@@ -1,2 +1,3 @@
 # qeframework
-epics Qt has been spilt into a number of components. This project provides the framework library and standard widgets.
+epics Qt has been spilt into a number of components, each placed in its own github repository.
+This repository provides the framework plugin library.
