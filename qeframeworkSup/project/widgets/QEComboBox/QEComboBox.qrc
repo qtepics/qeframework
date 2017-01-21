@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qe/combobox">
+        <file>QEComboBox.png</file>
+    </qresource>
+</RCC>

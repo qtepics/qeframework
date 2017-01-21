@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qe/slider">
+        <file>QESlider.png</file>
+    </qresource>
+</RCC>

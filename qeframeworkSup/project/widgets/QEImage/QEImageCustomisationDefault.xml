@@ -1,0 +1,35 @@
+<QEWindowCustomisation>
+
+    <Customisation Name="QEImageDefault">
+
+        <Menu Name="Image">
+            <Item Name="Pause">
+                <BuiltIn Name="Pause" >
+                    <WidgetName>BeamImage</WidgetName>
+                </BuiltIn>
+            </Item>
+            <Item Name="About image...">
+                <BuiltIn Name="About image..." >
+                    <WidgetName>BeamImage</WidgetName>
+                </BuiltIn>
+            </Item>
+            <Item Name="Save...">
+                <BuiltIn Name="Save..." >
+                    <WidgetName>BeamImage</WidgetName>
+                </BuiltIn>
+            </Item>
+            <Item Name="Move target position into beam">
+                <BuiltIn Name="Move target position into beam" >
+                    <WidgetName>BeamImage</WidgetName>
+                </BuiltIn>
+            </Item>
+            <Item Name="Contrast Reversal">
+                <BuiltIn Name="Contrast Reversal" >
+                    <WidgetName>BeamImage</WidgetName>
+                </BuiltIn>
+            </Item>
+        </Menu>
+
+    </Customisation>
+
+</QEWindowCustomisation>

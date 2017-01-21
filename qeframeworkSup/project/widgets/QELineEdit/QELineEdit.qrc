@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qe/lineedit">
+        <file>QELineEdit.png</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qe/formgrid">
+        <file>QEFormGrid.png</file>
+    </qresource>
+</RCC>

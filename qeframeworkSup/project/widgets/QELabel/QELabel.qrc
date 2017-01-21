@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qe/label">
+        <file>QELabel.png</file>
+    </qresource>
+</RCC>

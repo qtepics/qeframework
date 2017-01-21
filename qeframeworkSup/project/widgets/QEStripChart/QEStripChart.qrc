@@ -1,0 +1,21 @@
+<RCC>
+    <qresource prefix="/qe/stripchart">
+        <file>QEStripChart.png</file>
+        <file>archive.png</file>
+        <file>go_back.png</file>
+        <file>go_fwd.png</file>
+        <file>linear_scale.png</file>
+        <file>log_scale.png</file>
+        <file>normal_video.png</file>
+        <file>open_file.png</file>
+        <file>page_backward.png</file>
+        <file>page_forward.png</file>
+        <file>pause.png</file>
+        <file>play.png</file>
+        <file>powered_by_asp.png</file>
+        <file>reverse_video.png</file>
+        <file>save_file.png</file>
+        <file>select_date_times.png</file>
+        <file>select_time.png</file>
+    </qresource>
+</RCC>

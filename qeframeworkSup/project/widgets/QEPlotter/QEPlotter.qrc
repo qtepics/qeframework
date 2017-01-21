@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qe/plotter">
+        <file>QEPlotter.png</file>
+    </qresource>
+</RCC>

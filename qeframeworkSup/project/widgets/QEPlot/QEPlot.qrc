@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qe/plot">
+        <file>QEPlot.png</file>
+    </qresource>
+</RCC>

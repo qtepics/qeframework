@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qe/spinbox">
+        <file>QESpinBox.png</file>
+    </qresource>
+</RCC>

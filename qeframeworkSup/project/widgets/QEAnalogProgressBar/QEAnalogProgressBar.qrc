@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qe/analogprogressbar">
+        <file>QEAnalogProgressBar.png</file>
+    </qresource>
+</RCC>

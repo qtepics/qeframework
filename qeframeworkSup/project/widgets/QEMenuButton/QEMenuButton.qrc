@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qe/menubutton">
+        <file>QEMenuButton.png</file>
+    </qresource>
+</RCC>

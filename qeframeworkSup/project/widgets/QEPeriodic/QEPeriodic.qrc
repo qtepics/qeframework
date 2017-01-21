@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qe/periodic">
+        <file>QEPeriodic.png</file>
+    </qresource>
+</RCC>

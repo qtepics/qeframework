@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/qe/pvloadsave">
+        <file>QEPvLoadSave.png</file>
+        <file>archive_time.png</file>
+        <file>copy_all.png</file>
+        <file>copy_subset.png</file>
+        <file>read_all.png</file>
+        <file>read_subset.png</file>
+        <file>write_all.png</file>
+        <file>write_subset.png</file>
+        <file>ypoc_all.png</file>
+        <file>ypoc_subset.png</file>
+    </qresource>
+</RCC>

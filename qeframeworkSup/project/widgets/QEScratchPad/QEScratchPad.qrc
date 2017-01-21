@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qe/scratchpad">
+        <file>QEScratchPad.png</file>
+    </qresource>
+</RCC>

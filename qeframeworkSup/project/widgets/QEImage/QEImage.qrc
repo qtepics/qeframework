@@ -1,0 +1,26 @@
+<RCC>
+    <qresource prefix="/qe/image">
+        <file>save.png</file>
+        <file>zoom.png</file>
+        <file>select.png</file>
+        <file>pause.png</file>
+        <file>play.png</file>
+        <file>flipRotate.png</file>
+        <file>cameraROI.png</file>
+        <file>cameraROIreset.png</file>
+        <file>QEImage.png</file>
+        <file>target.png</file>
+        <file>circleCursor.png</file>
+        <file>targetCursor.png</file>
+        <file>regionCursor.png</file>
+        <file>vLineCursor.png</file>
+        <file>hLineCursor.png</file>
+        <file>lineCursor.png</file>
+        <file>markupDisplay.png</file>
+        <file>record.png</file>
+        <file>stop.png</file>
+    </qresource>
+    <qresource prefix="/qe/configuration">
+        <file>QEImageCustomisationDefault.xml</file>
+    </qresource>
+</RCC>

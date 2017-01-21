@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qe/table">
+        <file>QETable.png</file>
+    </qresource>
+</RCC>

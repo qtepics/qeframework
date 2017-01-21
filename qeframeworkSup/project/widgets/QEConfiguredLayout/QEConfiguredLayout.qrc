@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qe/configuredlayout">
+        <file>QEConfiguredLayout.png</file>
+    </qresource>
+</RCC>

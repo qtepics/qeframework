@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/qe/bitstatus">
+        <file>QBitStatus.png</file>
+        <file>QEBitStatus.png</file>
+    </qresource>
+</RCC>

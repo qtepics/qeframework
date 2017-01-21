@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/qe/link">
+        <file>QELink.png</file>
+    </qresource>
+</RCC>
