@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
+ *  Copyright (c) 2013,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -23,13 +23,13 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEStripChartContextMenu.h"
 #include <QVariant>
 #include <QDebug>
-#include "QEStripChartContextMenu.h"
 #include <QECommon.h>
 
 
-#define DEBUG  qDebug () << "QEStripChartContextMenu::" <<  __FUNCTION__  << ":" << __LINE__
+#define DEBUG  qDebug () << "QEStripChartContextMenu" << __LINE__ <<  __FUNCTION__  << "  "
 
 
 //------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ QEStripChartContextMenu::QEStripChartContextMenu (bool inUseIn, QWidget *parent)
    this->setTitle ("PV Item");
 
    this->serverTime = NULL;
-   this->serverTime = NULL;
+   this->clientTime = NULL;
 
    for (j = 0; j < ARRAY_LENGTH (this->archiveModeActions); j++) {
       this->archiveModeActions [j] = NULL;
@@ -55,6 +55,10 @@ QEStripChartContextMenu::QEStripChartContextMenu (bool inUseIn, QWidget *parent)
 
    for (j = 0; j < ARRAY_LENGTH (this->lineDrawModeActions); j++) {
       this->lineDrawModeActions [j] = NULL;
+   }
+
+   for (j = 0; j < ARRAY_LENGTH (this->linePlotModeActions); j++) {
+      this->linePlotModeActions [j] = NULL;
    }
 
    for (j = 0 ; j < ARRAY_LENGTH (this->predefinedPVs); j++) {
@@ -83,8 +87,12 @@ QEStripChartContextMenu::QEStripChartContextMenu (bool inUseIn, QWidget *parent)
 
       menu = new QMenu ("Mode", this);
       this->addMenu (menu);
-      this->make (menu, "Rectangular",                         false, QEStripChartNames::SCCM_PLOT_RECTANGULAR)->setEnabled (false);
-      this->make (menu, "Smooth",                              false, QEStripChartNames::SCCM_PLOT_SMOOTH)->setEnabled (false);
+
+      this->linePlotModeActions [QEStripChartNames::lpmRectangular] =
+      this->make (menu, "Rectangular",                         true,  QEStripChartNames::SCCM_PLOT_RECTANGULAR);
+      this->linePlotModeActions [QEStripChartNames::lpmSmooth] =
+      this->make (menu, "Smooth",                              true,  QEStripChartNames::SCCM_PLOT_SMOOTH);
+
       this->serverTime =
       this->make (menu, "User PV Process Time",                true,  QEStripChartNames::SCCM_PLOT_SERVER_TIME);
       this->clientTime =
@@ -152,12 +160,9 @@ QEStripChartContextMenu::~QEStripChartContextMenu ()
 //
 void QEStripChartContextMenu::setPredefinedNames (const QStringList & pvList)
 {
-   unsigned int j;
-   QAction *action;
-
    if (!this->inUse) {
-      for (j = 0 ; j < ARRAY_LENGTH (this->predefinedPVs); j++) {
-         action = this->predefinedPVs [j];
+      for (int j = 0 ; j < ARRAY_LENGTH (this->predefinedPVs); j++) {
+         QAction* action = this->predefinedPVs [j];
          if (!action) continue;
          if ((int) j < pvList.count ()) {
             action->setText (pvList.value(j) + " ");
@@ -185,11 +190,8 @@ void QEStripChartContextMenu::setUseReceiveTime  (const bool useReceiveTime)
 //
 void QEStripChartContextMenu::setArchiveReadHow (const QEArchiveInterface::How how)
 {
-   int j;
-   QAction *action;
-
-   for (j = 0; j < ARRAY_LENGTH (this->archiveModeActions); j++) {
-      action = this->archiveModeActions [j];
+   for (int j = 0; j < ARRAY_LENGTH (this->archiveModeActions); j++) {
+      QAction* action = this->archiveModeActions [j];
       if (!action) continue;
       action->setChecked (j == (int) how);
    }
@@ -199,11 +201,19 @@ void QEStripChartContextMenu::setArchiveReadHow (const QEArchiveInterface::How h
 //
 void QEStripChartContextMenu::setLineDrawMode (const QEStripChartNames::LineDrawModes mode)
 {
-   int j;
-   QAction *action;
+   for (int j = 0; j < ARRAY_LENGTH (this->lineDrawModeActions); j++) {
+      QAction* action = this->lineDrawModeActions [j];
+      if (!action) continue;
+      action->setChecked (j == (int) mode);
+   }
+}
 
-   for (j = 0; j < ARRAY_LENGTH (this->lineDrawModeActions); j++) {
-      action = this->lineDrawModeActions [j];
+//------------------------------------------------------------------------------
+//
+void QEStripChartContextMenu::setLinePlotMode  (const QEStripChartNames::LinePlotModes mode)
+{
+   for (int j = 0; j < ARRAY_LENGTH (this->linePlotModeActions); j++) {
+      QAction* action = this->linePlotModeActions [j];
       if (!action) continue;
       action->setChecked (j == (int) mode);
    }
@@ -227,14 +237,12 @@ void QEStripChartContextMenu::contextMenuTriggered (QAction* selectedItem)
 
 //------------------------------------------------------------------------------
 //
-QAction* QEStripChartContextMenu::make (QMenu *parent,
-                                        const QString & caption,
+QAction* QEStripChartContextMenu::make (QMenu* parent,
+                                        const QString& caption,
                                         const bool checkable,
                                         const QEStripChartNames::ContextMenuOptions option)
 {
-   QAction* action;
-
-   action = new QAction (caption, parent);
+   QAction* action = new QAction (caption, parent);
    action->setCheckable (checkable);
    action->setData (QVariant (int (option)));
    parent->addAction (action);

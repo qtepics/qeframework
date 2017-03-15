@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2016 Australian Synchrotron
+ *  Copyright (c) 2012,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -89,6 +89,7 @@ public:
    bool getUseReceiveTime () const { return this->useReceiveTime; }
    QEArchiveInterface::How getArchiveReadHow () const { return this->archiveReadHow; }
    QEStripChartNames::LineDrawModes getLineDrawMode () const { return this->lineDrawMode; }
+   QEStripChartNames::LinePlotModes getLinePlotMode () const { return this->linePlotMode; }
 
    // NOTE: Where ever possible I spell colour properly.
    //
@@ -155,6 +156,7 @@ private:
    bool useReceiveTime;
    QEArchiveInterface::How archiveReadHow;
    QEStripChartNames::LineDrawModes lineDrawMode;
+   QEStripChartNames::LinePlotModes linePlotMode;
 
    QColor colour;
    ValueScaling scaling;

@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2014  Australian Synchrotron.
+ *  Copyright (c) 2014,2017  Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -27,6 +27,7 @@
 #ifndef Q_RADIO_GROUP_H
 #define Q_RADIO_GROUP_H
 
+#include <QFont>
 #include <QGridLayout>
 #include <QList>
 #include <QString>
@@ -107,6 +108,7 @@ signals:
 
 protected:
    QSize sizeHint () const;
+   bool eventFilter (QObject *obj, QEvent *event);
 
 private:
    typedef QList<QAbstractButton*> QAbstractButtonList;

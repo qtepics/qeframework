@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012, 2016 Australian Synchrotron
+ *  Copyright (c) 2012,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -65,8 +65,8 @@ static const QColor clBlack (0x00, 0x00, 0x00, 0xFF);
 static const QColor item_colours [QEStripChart::NUMBER_OF_PVS] = {
     QColor (0xFF0000), QColor (0x0000FF), QColor (0x008000), QColor (0xFF8000),
     QColor (0x4080FF), QColor (0x800000), QColor (0x008080), QColor (0x808000),
-    QColor (0x800080), QColor (0x00FF00), QColor (0x00FFFF), QColor (0xFFFF00),
-    QColor (0x8F00C0), QColor (0xC0008F), QColor (0xB040B0), clBlack
+    QColor (0x800080), QColor (0x00FF00), QColor (0x00FFFF), QColor (0xE0E000),
+    QColor (0x8F00C0), QColor (0x008FC0), QColor (0xB040B0), clBlack
 };
 
 
@@ -249,6 +249,7 @@ void QEStripChartItem::createInternalWidgets ()
 void QEStripChartItem::clear ()
 {
    this->dataKind = NotInUse;
+   this->caLabel->deactivate ();
    this->caLabel->setVariableNameAndSubstitutions ("", "", 0);
    this->caLabel->setText ("-");
    this->caLabel->setStyleSheet (unusedStyle);
@@ -264,6 +265,7 @@ void QEStripChartItem::clear ()
    this->useReceiveTime = false;
    this->archiveReadHow = QEArchiveInterface::Linear;
    this->lineDrawMode = QEStripChartNames::ldmRegular;
+   this->linePlotMode = QEStripChartNames::lpmRectangular;
 
    // Reset identity sclaing
    //
@@ -508,9 +510,38 @@ void QEStripChartItem::plotDataPoints (const QCaDataPointList& dataPoints,
    isFirstPoint = true;
    doesPreviousExist = false;
 
-   const int first = dataPoints.indexBeforeTime (start_time, 0);
+   // Determine number of points that can be plotted.
+   //
    const int count = dataPoints.count ();
-   for (int j = first; j < count; j++) {
+   const int first = dataPoints.indexBeforeTime (start_time, 0);
+   const int last  = dataPoints.indexBeforeTime (end_time, count);
+   const int number = last - first + 1;
+
+   // The maximum width of the chart is typically of the order of
+   // 1200 pixels. No point over-plotting if we have lots of data. If
+   // more that 3*chart width then start decimating.
+   //
+   const int width = this->chart->plotArea->geometry ().width ();
+
+   // Calculate decimation factor
+   //
+   const int decimation = 1 + number/(3 * width);
+
+   // Also if we are decimatinging - don't bother rectangularising the plot.
+   //
+   QEStripChartNames::LinePlotModes workingPlotMode = this->linePlotMode;
+   if (decimation > 1) workingPlotMode = QEStripChartNames::lpmSmooth;
+
+   // Reserve required number of draw points up front.
+   //
+   int drawPoints = (number / decimation) + 1;
+   if (workingPlotMode == QEStripChartNames::lpmRectangular) {
+     drawPoints = 2*drawPoints;
+   }
+   tdata.reserve (drawPoints);
+   ydata.reserve (drawPoints);
+
+   for (int j = first; j < count; j += decimation) {
       point = dataPoints.value (j);
 
       // Calculate the time of this point (in seconds) relative to the end of the chart.
@@ -536,12 +567,13 @@ void QEStripChartItem::plotDataPoints (const QCaDataPointList& dataPoints,
          // Is it a valid point - can we sensible plot it?
          //
          if (point.isDisplayable ()) {
+            // Yes we can.
+            //
             if (!this->firstPointIsDefined) {
                this->firstPointIsDefined = true;
                this->firstPoint = point;
             }
-            // Yes we can.
-            //
+
             // start edge effect required?
             //
             if (isFirstPoint && doesPreviousExist) {
@@ -550,11 +582,13 @@ void QEStripChartItem::plotDataPoints (const QCaDataPointList& dataPoints,
                 plottedTrackRange.merge (previous.value);
             }
 
-            // Do steps - do it like this as using qwt Step mode is not quite what I want.
-            //
-            if (ydata.count () >= 1) {
-               tdata.append (PLOT_T (t));
-               ydata.append (ydata.last ());   // copy don't need PLOT_Y
+            if (workingPlotMode == QEStripChartNames::lpmRectangular) {
+               // Do steps - do it like this as using qwt Step mode is not what I want.
+               //
+               if (ydata.count () >= 1) {
+                  tdata.append (PLOT_T (t));
+                  ydata.append (ydata.last ());   // copy - don't need PLOT_Y
+               }
             }
 
             tdata.append (PLOT_T (t));
@@ -1301,9 +1335,12 @@ void QEStripChartItem::contextMenuRequested (const QPoint & pos)
    golbalPos = this->mapToGlobal (tempPos);
 
    if (this->isInUse()) {
+      // Ensure menu status reflects the current state.
+      //
       this->inUseMenu->setUseReceiveTime (this->getUseReceiveTime ());
       this->inUseMenu->setArchiveReadHow (this->getArchiveReadHow ());
       this->inUseMenu->setLineDrawMode (this->getLineDrawMode ());
+      this->inUseMenu->setLinePlotMode (this->getLinePlotMode ());
       this->inUseMenu->exec (golbalPos, 0);
    } else {
       this->emptyMenu->setPredefinedNames (chart->getPredefinedPVNameList ());
@@ -1474,6 +1511,16 @@ void QEStripChartItem::contextMenuSelected (const QEStripChartNames::ContextMenu
 
       case QEStripChartNames::SCCM_PLOT_CLIENT_TIME:
          this->useReceiveTime = true;
+         break;
+
+      case QEStripChartNames::SCCM_PLOT_RECTANGULAR:
+         this->linePlotMode = QEStripChartNames::lpmRectangular;
+         this->chart->setReplotIsRequired ();
+         break;
+
+      case QEStripChartNames::SCCM_PLOT_SMOOTH:
+         this->linePlotMode = QEStripChartNames::lpmSmooth;
+         this->chart->setReplotIsRequired ();
          break;
 
       case QEStripChartNames::SCCM_ARCH_LINEAR:

@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
+ *  Copyright (c) 2013,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -31,6 +31,8 @@
 #include <QPoint>
 #include <QRect>
 #include <QSize>
+#include <QString>
+#include <QVariant>
 
 #include <QEPluginLibrary_global.h>
 
@@ -46,7 +48,7 @@
 //
 class QEPLUGINLIBRARYSHARED_EXPORT QEScaling {
 public:
-    /// Set currently applied scaling.
+    /// Set currently applied application wide scaling.
     /// Both values default to 1, which is a null scaling.
     /// Only valid scaling values (m > 0, d > 0) are accepted.
    ///
@@ -64,6 +66,12 @@ public:
     //
     static void applyToWidget (QWidget* widget);
 
+    /// Applies applied scaling to the nominated widget. This is in addition to
+    /// the application wide scalining defined by setScaling. The scaling is
+    /// limited to 0.1 to 400.0  (10% to 400%)
+    //
+    static void rescaleWidget (QWidget* widget, const double newScale);
+
     /// Conveniance functions for widget specific 'scaleBy' functions.
     ///
     /// Scales a single value. Note: all other scaling functions take a object by reference
@@ -76,6 +84,11 @@ public:
     ///
     static void applyToPoint (QPoint& point);
 
+    /// Scales styleSheet - looks for  "... <number>px ..." or "... <number>pt ..."
+    /// and scales the number.
+    ///
+    static QString scaleStyleSheet (const QString& input);
+
 private:
     static int currentScaleM;
     static int currentScaleD;
@@ -85,7 +98,7 @@ private:
     typedef void (*ScalingFunction) (QWidget* widget);
     static void widgetTreeWalk (QWidget* widget, ScalingFunction sf);
 
-    /// Captures scaling info as property, if not already done so.
+    /// Captures baseline scaling info as property, if not already done so.
     ///
     static void widgetCapture (QWidget* widget);
 
@@ -93,26 +106,43 @@ private:
     /// Applies some special processing above and beyond size, min size, max size and font
     /// depending on the type of widget. Also if is a QEWidget then calls QEWidget's scaleBy
     /// method.
-    ///
+    // This function does all the hard work.
+    //
     static void widgetScale (QWidget* widget);
 
-    /// Static functions create an instance of this object. This object use to
-    /// hold base line widget sizing data. The data is encoded and store in a
-    /// property associated with the widget.
-    ///
 private:
    int firstMember;    // used in conjection with lastMember to define size.
 
-   explicit QEScaling (QWidget* widget);
+   /// Static functions create an instance of this object. This object used to
+   /// hold base line widget sizing data. The data is encoded and stored in a
+   /// property associated with the widget.
+   ///
+   explicit QEScaling ();
    ~QEScaling ();
 
-   void   extractFromWidget (const QWidget* widget);
-   bool     decodeProperty (const QVariant& property);
+   // Captures and saves information necessary to scale a widget. This information
+   // includes widigets geometry, minimum and maximum sizes point/pixel size etc.
+   // The information is saved as a dynamic widget property.
+   //
+   void captureBaselineInformation (QWidget* widget);
+
+   // Extracts captured scaling data from dynamic widget property if it exists,
+   // validates date. The restored data is stored in this QEScaling object.
+   // Note: this function is not the opposite/inverse of captureBaselineInformation
+   // as the extracted data is not applied to the widget.
+   //
+   bool extractBaselineInformation (const QWidget* widget);
+
+   // Utility functions
+   //
+   int dataSize () const;
+   void extractFromWidget (const QWidget* widget);
+   bool decodeProperty (const QVariant& property);
    QVariant encodeProperty () const;
 
    bool isDefined;
 
-   // basic geomertry and size constraints.
+   // Basic geomertry and size constraints.
    //
    QRect geometry;
    QSize minimumSize;
@@ -131,6 +161,8 @@ private:
    int layoutMarginRight;
    int layoutMarginBottom;
    int layoutSpacing;
+   int layoutHorizontalSpacing;
+   int layoutVerticalSpacing;
 
    // Specials - for particular widget types.
    //
@@ -143,6 +175,8 @@ private:
 
 private:
    int lastMember;
+
+   QString styleSheet;   // stylesheet not saved as generic data
 };
 
 # endif // QE_SCALING_H

@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010, 2016 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Anthony Owen
@@ -34,14 +34,16 @@
   Refer to the class description in QEWidget.h for further details
  */
 
+#include <QEWidget.h>
+
 #include <QDebug>
 #include <QCoreApplication>
 #include <QFileInfo>
 #include <QDir>
-#include <QEWidget.h>
 #include <QEFrameworkVersion.h>
 #include <QEForm.h>
 #include <QMainWindow>
+#include <QEGlobalStyle.h>
 
 // Constructor
 
@@ -50,6 +52,11 @@ QEWidget::QEWidget( QWidget *ownerIn ) :
    styleManager( ownerIn ), contextMenu( this ),
    standardProperties( ownerIn ), QEEmitter( this, ownerIn )
 {
+    // Check for and apply any global style settings.
+    //
+    QEGlobalStyle globalStyle;
+    globalStyle.apply();   // idempotent.
+
     // Sanity check.
     if( ownerIn == NULL )
     {

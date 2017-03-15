@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016 Australian Synchrotron
+ *  Copyright (c) 2013,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -50,7 +50,7 @@ public:
    void setUseReceiveTime  (const bool useReceiveTime);
    void setArchiveReadHow  (const QEArchiveInterface::How how);
    void setLineDrawMode    (const QEStripChartNames::LineDrawModes mode);
-
+   void setLinePlotMode    (const QEStripChartNames::LinePlotModes mode);
 
 signals:
    // All the triggered actions from the various sub-menu items are
@@ -73,6 +73,7 @@ private:
    QAction* clientTime;
    QAction* archiveModeActions [5];
    QAction* lineDrawModeActions [3];
+   QAction* linePlotModeActions [2];
 
 private slots:
    void contextMenuTriggered (QAction* selectedItem);

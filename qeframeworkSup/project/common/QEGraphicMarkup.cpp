@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2014 Australian Synchrotron.
+ *  Copyright (c) 2014,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -390,7 +390,7 @@ void QEGraphicAreaMarkup::plotMarkup ()
 QEGraphicLineMarkup::QEGraphicLineMarkup (QEGraphic* ownerIn) :
    QEGraphicMarkup (QEGraphicNames::Line, ownerIn)
 {
-   this->pen.setColor(QColor (0x80C0E0));  // blueish
+   this->pen.setColor(QColor (0x60A0E0));  // blueish
    this->origin = QPointF (0.0, 0.0);
    this->activationButton = MIDDLE_BUTTON;
 }
@@ -440,12 +440,31 @@ void QEGraphicLineMarkup::mouseMove    (const QPointF& realMousePosition)
 //
 void QEGraphicLineMarkup::plotMarkup ()
 {
+   static const int a = 5;
+   static const QPoint box [5] = {
+      QPoint (0, +a), QPoint (+a, 0), QPoint (0, -a), QPoint (-a, 0), QPoint (0, +a)
+   };
+
    QEGraphicNames::DoubleVector xdata;
    QEGraphicNames::DoubleVector ydata;
 
-   xdata << this->positon.x ();  ydata << this->positon.y ();
-   xdata << this->origin.x ();   ydata << this->origin.y ();
+   // Extract origin, draw diamond box about origin
+   //
+   const QPoint poi = this->getOwner()->realToPoint (this->origin);
+   for (int j = 0; j < ARRAY_LENGTH (box); j++) {
+      QPointF itemF = this->getOwner()->pointToReal (poi + box [j]);
+      xdata << itemF.x (); ydata << itemF.y ();
+   }
 
+   this->pen.setStyle (Qt::SolidLine);
+   this->pen.setWidth (2);
+   this->plotCurve (xdata, ydata);
+
+   xdata.clear (); ydata.clear ();
+   xdata << this->origin.x ();   ydata << this->origin.y ();
+   xdata << this->positon.x ();  ydata << this->positon.y ();
+
+   this->pen.setWidth (1);
    this->plotCurve (xdata, ydata);
 }
 
@@ -529,19 +548,42 @@ void QEGraphicBoxMarkup::plotMarkup ()
    //
    const int w = gap + maxTextWidth + gap;
    const int h = gap + 3*verticalTextSpacing;
-   const QPoint pvd [5] = {
+   const QPoint infoBoxOutLine [5] = {
       QPoint (0, 0), QPoint (w, 0), QPoint (w, -h), QPoint (0, -h),  QPoint (0, 0)
    };
 
-   // The item is enabled - draw associated pop up box.
-   // Draw connector - last itemF is top right hand corner
-   // TODO: Constrain blc such that info box always on screen.
+   // Constrain info box bottom left corner such that info box always on screen.
    //
-   const QPoint blc = poi + QPoint (16, -16);  // bottom left corner
+   double xmin, xmax, ymin, ymax;
+   this->getOwner()->getXRange (xmin, xmax);
+   this->getOwner()->getYRange (ymin, ymax);
+   QPointF topRightReal   (xmax, ymax);
+   QPointF bottomLeftReal (xmin, ymin);
+   const QPoint topRight   = this->getOwner ()->realToPoint (topRightReal);
+   const QPoint bottomLeft = this->getOwner ()->realToPoint (bottomLeftReal);
 
+   QPoint infoBoxCorner = poi + QPoint (16, -16);  // bottom left corner
+
+   if (infoBoxCorner.x () < bottomLeft.x ()) {
+       infoBoxCorner.setX (bottomLeft.x ());
+   }
+   if (infoBoxCorner.x () + w > topRight.x ()) {
+      infoBoxCorner.setX (topRight.x () - w);
+   }
+
+   if (infoBoxCorner.y () > bottomLeft.y ()) {
+       infoBoxCorner.setY (bottomLeft.y ());
+   }
+   if (infoBoxCorner.y () - h < topRight.y ()) {
+      infoBoxCorner.setY (topRight.y () + h);
+   }
+
+   // The item is enabled - draw associated pop up box.
+   // Draw connector - last itemF is top right hand corner of small box.
+   //
    xdata.clear (); ydata.clear ();
    xdata << itemF.x (); ydata << itemF.y ();
-   itemF = this->getOwner()->pointToReal (blc);
+   itemF = this->getOwner()->pointToReal (infoBoxCorner);
    xdata << itemF.x (); ydata << itemF.y ();
    this->brush.setStyle (Qt::NoBrush);
    this->plotCurve (xdata, ydata);
@@ -550,18 +592,18 @@ void QEGraphicBoxMarkup::plotMarkup ()
    xdata.clear (); ydata.clear ();
    this->pen.setWidth (2);      // because RenderAntialiased hint is off
    for (int j = 0; j < ARRAY_LENGTH (box); j++) {
-      itemF = this->getOwner()->pointToReal (blc + pvd [j]);
+      itemF = this->getOwner()->pointToReal (infoBoxCorner + infoBoxOutLine [j]);
       xdata << itemF.x (); ydata << itemF.y ();
    }
    this->brush.setColor (QColor ("#e0f0ff"));    // pale blue-ish
    this->brush.setStyle (Qt::SolidPattern);
    this->plotCurve (xdata, ydata);
 
-   this->pen.setColor (QColor (0, 0, 0, 255));  //  black
+   this->pen.setColor (QColor (0, 0, 0, 255));   //  black
    this->owner->setCurvePen (this->pen);
    this->pen.setWidth (1);
 
-   QPoint textOrigin = blc + QPoint (gap, -h + verticalTextSpacing);
+   QPoint textOrigin = infoBoxCorner + QPoint (gap, -h + verticalTextSpacing);
    for (int j = 0; j < 3; j++) {
       this->owner->drawText (textOrigin + QPoint (0, j*verticalTextSpacing), info.value (j),
                              QEGraphicNames::PixelPosition, false);

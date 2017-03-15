@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2014,2016 Australian Synchrotron.
+ *  Copyright (c) 2013,2014,2016,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -76,11 +76,17 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEPlotter : public QEAbstractDynamicWidget {
    // Layout control
    //
    Q_PROPERTY (bool enableContextMenu  READ getEnableConextMenu  WRITE setEnableConextMenu)
-   Q_PROPERTY (bool toolBarVisible     READ getToolBarVisible    WRITE setToolBarVisible)
-   Q_PROPERTY (bool pvItemsVisible     READ getPvItemsVisible    WRITE setPvItemsVisible)
-   Q_PROPERTY (bool statusVisible      READ getStatusVisible     WRITE setStatusVisible)
+   Q_PROPERTY (bool toolBarIsVisible   READ getToolBarVisible    WRITE setToolBarVisible)
+   Q_PROPERTY (bool pvItemsIsVisible   READ getPvItemsVisible    WRITE setPvItemsVisible)
+   Q_PROPERTY (bool statusIsVisible    READ getStatusVisible     WRITE setStatusVisible)
+
+   // Default is false - i.e. linear
    Q_PROPERTY (bool xLogarithmic       READ getXLogarithmic      WRITE setXLogarithmic)
    Q_PROPERTY (bool yLogarithmic       READ getYLogarithmic      WRITE setYLogarithmic)
+
+   // Default is true - i.e. visible
+   Q_PROPERTY (bool axisEnableX        READ getAxisEnableX       WRITE setAxisEnableX)
+   Q_PROPERTY (bool axisEnableY        READ getAxisEnableY       WRITE setAxisEnableY)
 
    // Conext menu ledgend
    //
@@ -194,6 +200,15 @@ public:
    void setXYLineVisible (const int slot, const bool isVisible);
    bool getXYLineVisible (const int slot) const;
 
+   void setXYLineBold (const int slot, const bool isBold);
+   bool getXYLineBold (const int slot) const;
+
+   void setXYLineDashed (const int slot, const bool isDashed);
+   bool getXYLineDashed (const int slot) const;
+
+   void setXYLineHasDots (const int slot, const bool hasDots);
+   bool getXYLineHasDots (const int slot) const;
+
    void setEnableConextMenu (bool enable);
    bool getEnableConextMenu () const;
 
@@ -209,6 +224,12 @@ public:
    void setStatusVisible (bool visible);
    bool getStatusVisible () const;
 
+   void setAxisEnableX (bool axisEnableX);
+   bool getAxisEnableX () const;
+
+   void setAxisEnableY (bool axisEnableY);
+   bool getAxisEnableY () const;
+
    void setXLogarithmic (bool visible);
    bool getXLogarithmic () const;
 
@@ -218,6 +239,45 @@ public:
    int addPvName (const QString& pvName);        // Add name to next available Y PV slot.
 
    int  getCrosshairIndex () const;
+
+   // Property access READ and WRITE functions.
+   // We can define the access functions using a macro.
+   // Alas, due to SDK/moc limitation, we cannot embedded the property
+   // definitions in a macro.
+   //
+   #define PROPERTY_ACCESS(letter, slot)                                                 \
+      void    setDataPV##letter (QString name)  { this->setXYDataPV (slot, name); }      \
+      QString getDataPV##letter () const { return this->getXYDataPV (slot); }            \
+                                                                                         \
+      void    setSizePV##letter (QString name)  { this->setXYSizePV (slot, name); }      \
+      QString getSizePV##letter () const { return this->getXYSizePV (slot); }            \
+                                                                                         \
+      void    setAlias##letter  (QString name)  { this->setXYAlias (slot, name); }       \
+      QString getAlias##letter  () const { return this->getXYAlias (slot); }             \
+                                                                                         \
+      void    setColour##letter (QColor colour)  { this->setXYColour (slot, colour); }   \
+      QColor  getColour##letter () const { return this->getXYColour (slot); }
+
+
+   PROPERTY_ACCESS  (X, 0)
+   PROPERTY_ACCESS  (A, 1)
+   PROPERTY_ACCESS  (B, 2)
+   PROPERTY_ACCESS  (C, 3)
+   PROPERTY_ACCESS  (D, 4)
+   PROPERTY_ACCESS  (E, 5)
+   PROPERTY_ACCESS  (F, 6)
+   PROPERTY_ACCESS  (G, 7)
+   PROPERTY_ACCESS  (H, 8)
+   PROPERTY_ACCESS  (I, 9)
+   PROPERTY_ACCESS  (J, 10)
+   PROPERTY_ACCESS  (K, 11)
+   PROPERTY_ACCESS  (L, 12)
+   PROPERTY_ACCESS  (M, 13)
+   PROPERTY_ACCESS  (N, 14)
+   PROPERTY_ACCESS  (O, 15)
+   PROPERTY_ACCESS  (P, 16)
+
+   #undef PROPERTY_ACCESS
 
 public slots:
    // Allows the chart range to be specified externally.
@@ -329,6 +389,9 @@ private:
    QEPlotterItemDialog* dataDialog;
    QEPlotterMenu* generalContextMenu;
 
+   bool xAxisIsEnabled;
+   bool yAxisIsEnabled;
+
    // State data
    //
    bool isReverse;       // vs. Normal
@@ -342,6 +405,10 @@ private:
    QEPlotterStateList  stateList;
 
    bool enableConextMenu;
+   bool toolBarIsVisible;
+   bool pvItemsIsVisible;
+   bool statusIsVisible;
+
    int selectedDataSet;
    static QTimer* tickTimer;
    int tickTimerCount;
@@ -413,6 +480,7 @@ private:
       QColor colour;
       bool isDisplayed;
       bool isBold;
+      bool isDashed;
       bool showDots;
       int median;  // 1 or 3 or 5
 
@@ -476,45 +544,6 @@ private:
    //
    void    setVariableSubstitutions (QString variableNameSubstitutions);
    QString getVariableSubstitutions () const;
-
-   // Property access READ and WRITE functions.
-   // We can define the access functions using a macro.
-   // Alas, due to SDK limitation, we cannot embedded the property definitions
-   // in a macro.
-   //
-   #define PROPERTY_ACCESS(letter, slot)                                                 \
-      void    setDataPV##letter (QString name)  { this->setXYDataPV (slot, name); }      \
-      QString getDataPV##letter () const { return this->getXYDataPV (slot); }            \
-                                                                                         \
-      void    setSizePV##letter (QString name)  { this->setXYSizePV (slot, name); }      \
-      QString getSizePV##letter () const { return this->getXYSizePV (slot); }            \
-                                                                                         \
-      void    setAlias##letter  (QString name)  { this->setXYAlias (slot, name); }       \
-      QString getAlias##letter  () const { return this->getXYAlias (slot); }             \
-                                                                                         \
-      void    setColour##letter (QColor colour)  { this->setXYColour (slot, colour); }   \
-      QColor  getColour##letter () const { return this->getXYColour (slot); }
-
-
-   PROPERTY_ACCESS  (X, 0)
-   PROPERTY_ACCESS  (A, 1)
-   PROPERTY_ACCESS  (B, 2)
-   PROPERTY_ACCESS  (C, 3)
-   PROPERTY_ACCESS  (D, 4)
-   PROPERTY_ACCESS  (E, 5)
-   PROPERTY_ACCESS  (F, 6)
-   PROPERTY_ACCESS  (G, 7)
-   PROPERTY_ACCESS  (H, 8)
-   PROPERTY_ACCESS  (I, 9)
-   PROPERTY_ACCESS  (J, 10)
-   PROPERTY_ACCESS  (K, 11)
-   PROPERTY_ACCESS  (L, 12)
-   PROPERTY_ACCESS  (M, 13)
-   PROPERTY_ACCESS  (N, 14)
-   PROPERTY_ACCESS  (O, 15)
-   PROPERTY_ACCESS  (P, 16)
-
-   #undef PROPERTY_ACCESS
 
    // Provides consistant interpretation of variableIndex.
    // Must be consistent with variableIndex allocation in the contructor.

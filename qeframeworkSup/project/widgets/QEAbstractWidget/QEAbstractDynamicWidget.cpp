@@ -226,6 +226,14 @@ void QEAbstractDynamicWidget::saveWidgetConfiguration ()
          (this, "Select configuration output file", this->getDefaultDir (),
           "Config Files(*.xml)", 0, QFileDialog::DontConfirmOverwrite);
 
+   // Ensure name ends with .xml iff a name has been specified.
+   //
+   if (!filename.isEmpty()) {
+      if (!filename.endsWith(".xml")) {
+         filename.append(".xml");
+      }
+   }
+
    // Idf user clicks on Cancel, an empty file name is returned.
    // This is handled by the saveNamedWidetConfiguration function.
    //

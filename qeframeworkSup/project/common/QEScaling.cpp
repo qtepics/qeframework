@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
+ *  Copyright (c) 2013,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -24,20 +24,25 @@
  *
  */
 
+#include "QEScaling.h"
+
 #include <QDebug>
 #include <QLabel>
 #include <QLayout>
+#include <QGridLayout>
 #include <QHeaderView>
+#include <QRegExp>
 #include <QSize>
 #include <QTableWidget>
 #include <QTreeView>
 #include <QWidget>
+#include <QVariantList>
 
 #include <QEResizeableFrame.h>
 #include <QEWidget.h>
 #include <QECommon.h>
 
-#include "QEScaling.h"
+#define DEBUG qDebug () << "QEScaling" << __LINE__ << __FUNCTION__ << "  "
 
 
 //==============================================================================
@@ -65,9 +70,17 @@ static int gcd (int a, int b)
 #define MAGIC_NUMBER        0x23571113
 #define BASELINE_SCALING    "QE_BASELINE_SCALING"
 
+
+enum PropertyIndex {
+   piStyleSheet = 0,
+   piGenericData,
+   piNUMBER_OF_ITEMS       // MUST be last
+};
+
+
 //------------------------------------------------------------------------------
 //
-QEScaling::QEScaling (QWidget* widget)
+QEScaling::QEScaling ()
 {
    this->firstMember = MAGIC_NUMBER;
    this->isDefined = false;
@@ -78,32 +91,6 @@ QEScaling::QEScaling (QWidget* widget)
    this->tableDefaultHorizontalSectionSize  = -1;
    this->tableDefaultVerticalSectionSize  = -1;
    this->treeViewIndentation  = -1;
-
-   QVariant baselinePropertyData;
-   baselinePropertyData = widget->property (BASELINE_SCALING);
-
-   if (baselinePropertyData.type () == QVariant::ByteArray) {
-      // Base line data exists and is valid - use it.
-      //
-      if (this->decodeProperty (baselinePropertyData)) {
-         // all okay
-      } else {
-         // decode failed - re-extract.
-         //
-         qDebug () << __FUNCTION__ << "scaling extraction failed.";
-
-         this->extractFromWidget (widget);
-         baselinePropertyData = this->encodeProperty ();
-         widget->setProperty (BASELINE_SCALING, baselinePropertyData);
-      }
-   } else {
-      // Base line data does not exists or is invalid.
-      // Use current widget values as base line and save in property.
-      //
-      this->extractFromWidget (widget);
-      baselinePropertyData = this->encodeProperty ();
-      widget->setProperty (BASELINE_SCALING, baselinePropertyData);
-   }
 }
 
 //------------------------------------------------------------------------------
@@ -111,7 +98,35 @@ QEScaling::QEScaling (QWidget* widget)
 QEScaling::~QEScaling ()
 {
    this->firstMember = !MAGIC_NUMBER;
- }
+}
+
+//------------------------------------------------------------------------------
+//
+void QEScaling::captureBaselineInformation (QWidget* widget)
+{
+   if (!widget) return;  // sainity check.
+
+   this->extractFromWidget (widget);
+   QVariant property = this->encodeProperty ();
+   widget->setProperty (BASELINE_SCALING, property);
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEScaling::extractBaselineInformation (const QWidget* widget)
+{
+   if (!widget) return false;  // sainity check.
+   QVariant property = widget->property (BASELINE_SCALING);
+   bool result = this->decodeProperty (property);
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+int QEScaling::dataSize () const
+{
+   return int (size_t (&this->lastMember) - size_t (&this->firstMember));
+}
 
 //------------------------------------------------------------------------------
 // Encodes from firstMember upto, but excluding lastMember as QByteArray QVariant.
@@ -122,14 +137,15 @@ QVariant QEScaling::encodeProperty () const
       return    QVariant (QVariant::Invalid);
    }
 
-   const void* base = NULL;
-   int size;
-
-   base = &this->firstMember;
-   size = int (size_t (&this->lastMember) - size_t (&this->firstMember));
+   const void* base = &this->firstMember;
+   const int size = this->dataSize ();
 
    QByteArray data ((char *)base, size);
-   return QVariant (data);
+
+   QVariantList result;
+   result.append (QVariant (this->styleSheet));
+   result.append (QVariant (data));
+   return result;
 }
 
 //------------------------------------------------------------------------------
@@ -137,46 +153,52 @@ QVariant QEScaling::encodeProperty () const
 bool QEScaling::decodeProperty (const QVariant& property)
 {
    bool result = false;
-   void* base = NULL;
-   int size;
 
    this->isDefined = false;
 
-   base = &this->firstMember;
-   size = int (size_t (&this->lastMember) - size_t (&this->firstMember));
+   if (property.type () != QVariant::List) return false;
 
-   if (property.type () != QVariant::Invalid) {
-      if (property.type () == QVariant::ByteArray) {
-         QByteArray byetArray = property.toByteArray ();
+   QVariantList variantList = property.toList ();
+   if (variantList.count () != piNUMBER_OF_ITEMS) return false;
 
-         if (byetArray.size () == size) {
-            int magic;
+   QVariant styl = variantList.value (piStyleSheet);
+   if (styl.type () != QVariant::String) return false;
 
-            memcpy (&magic, byetArray.data (), sizeof (int));
+   QVariant data = variantList.value (piGenericData);
+   if (data.type () != QVariant::ByteArray) return false;
 
-            if (magic == MAGIC_NUMBER) {
+   // Extract style sheet
+   this->styleSheet = styl.toString ();
 
-               // Look good copy the lot.
-               //
-               memcpy (base, byetArray.data(), size);
-               result = true;
+   // Extract generic data
+   //
+   QByteArray byteArray = data.toByteArray ();
 
-            } else {
-               qDebug () << __FUNCTION__ << " magic number fail."
-                         << "expecected:" << MAGIC_NUMBER
-                         << ", actual:"  << magic;
-            }
+   const int size = this->dataSize ();
+   if (byteArray.size () == size) {
+      int magic;
 
-         } else {
-            qDebug () << __FUNCTION__ << " size mis-match"
-                      << "expecected:" << size
-                      << ", actual:"  <<  byetArray.size ();
-         }
+      memcpy (&magic, byteArray.data (), sizeof (int));
+
+      if (magic == MAGIC_NUMBER) {
+
+         // Look good copy the lot.
+         //
+         void* base = &this->firstMember;
+         memcpy (base, byteArray.data(), size);
+         result = true;
 
       } else {
-         qDebug () << __FUNCTION__ << "not a ByteArray QVariant:" << property.type ();
+         qDebug () << __FUNCTION__ << " magic number fail."
+                   << "expecected:" << MAGIC_NUMBER
+                   << ", actual:"  << magic;
       }
-   } // else no error per se
+
+   } else {
+      qDebug () << __FUNCTION__ << " size mis-match"
+                << "expecected:" << size
+                << ", actual:"  <<  byteArray.size ();
+   }
 
    return result;
 }
@@ -192,6 +214,7 @@ void QEScaling::extractFromWidget (const QWidget* widget)
       return;
    }
 
+   this->styleSheet = widget->styleSheet();
    this->geometry = widget->geometry ();
    this->minimumSize = widget->minimumSize ();
    this->maximumSize = widget->maximumSize ();
@@ -203,6 +226,18 @@ void QEScaling::extractFromWidget (const QWidget* widget)
       layout->getContentsMargins (&this->layoutMarginLeft,  &this->layoutMarginTop,
                                   &this->layoutMarginRight, &this->layoutMarginBottom);
       this->layoutSpacing = layout->spacing ();
+
+      QGridLayout* gridLayout = dynamic_cast <QGridLayout*> (layout);
+      if (gridLayout) {
+         // Grid layout extras
+         //
+         this->layoutHorizontalSpacing = gridLayout->horizontalSpacing ();
+         this->layoutVerticalSpacing = gridLayout->verticalSpacing ();
+      } else {
+         this->layoutHorizontalSpacing = 0;
+         this->layoutVerticalSpacing = 0;
+      }
+
       this->layoutIsDefined = true;
    } else {
       this->layoutIsDefined = false;
@@ -269,7 +304,7 @@ void QEScaling::getScaling (int& m, int& d)
 }
 
 //------------------------------------------------------------------------------
-//
+// static
 void QEScaling::widgetCapture (QWidget* widget)
 {
    if (!widget) return;
@@ -279,32 +314,40 @@ void QEScaling::widgetCapture (QWidget* widget)
    // relevant data; second and subqequent times through extracts data from the
    // property.
    //
-   QEScaling* baseline = new QEScaling (widget);
-   delete baseline;
+   QEScaling s;
+   bool okay = s.extractBaselineInformation (widget);
+   if (!okay) {
+      // The extraction of the baseline sizing info returned false, so assume
+      // first time called for this widget - capture the sizing data.
+      //
+      s.captureBaselineInformation (widget);
+   } // else func. returned true - info already extracted.
 }
 
 //------------------------------------------------------------------------------
-//
+// static
 void QEScaling::widgetScale (QWidget* widget)
 {
-   QLabel* label = NULL;
-   QEWidget* qeWidget = NULL;
-   QLayout* layout = NULL;
-   QEResizeableFrame* resizeableFrame = NULL;
-   QTableWidget* tableWidget = NULL;
-   QTreeView* treeView = NULL;
-
    // sainity check.
    //
    if (!widget) return;
 
    // Extract base line sizing and constraints.
    //
-   QEScaling* baseline = new QEScaling (widget);
+   QEScaling baseline;
+   bool okay = baseline.extractBaselineInformation (widget);
+   if (!okay) {
+      DEBUG << "no/invalid baseline scaling info"
+            << widget->objectName() << widget->metaObject()->className();
+      return;
+   }
 
-   QSize minSize = baseline->minimumSize;
-   QSize maxSize = baseline->maximumSize;
-   QRect geo = baseline->geometry;
+   QString ss = QEScaling::scaleStyleSheet (baseline.styleSheet);
+   widget->setStyleSheet (ss);
+
+   QSize minSize = baseline.minimumSize;
+   QSize maxSize = baseline.maximumSize;
+   QRect geo = baseline.geometry;
 
    minSize.setWidth  (QEScaling::scale (minSize.width ()));
    minSize.setHeight (QEScaling::scale (minSize.height ()));
@@ -338,8 +381,8 @@ void QEScaling::widgetScale (QWidget* widget)
    widget->setGeometry (geo);
 
    QFont font = widget->font ();
-   int pointSize = baseline->pointSize;
-   int pixelSize = baseline->pixelSize;
+   int pointSize = baseline.pointSize;
+   int pixelSize = baseline.pixelSize;
 
    if (pointSize >= 0) {
       // Font point sizes must me at least one.
@@ -352,34 +395,45 @@ void QEScaling::widgetScale (QWidget* widget)
 
    // Check if there is a layout
    //
-   layout = widget->layout ();
-   if (layout && baseline->layoutIsDefined) {
+   QLayout* layout = widget->layout ();
+   if (layout && baseline.layoutIsDefined) {
 
-       layout->setContentsMargins (QEScaling::scale (baseline->layoutMarginLeft),
-                                   QEScaling::scale (baseline->layoutMarginTop),
-                                   QEScaling::scale (baseline->layoutMarginRight),
-                                   QEScaling::scale (baseline->layoutMarginBottom));
+       layout->setContentsMargins (QEScaling::scale (baseline.layoutMarginLeft),
+                                   QEScaling::scale (baseline.layoutMarginTop),
+                                   QEScaling::scale (baseline.layoutMarginRight),
+                                   QEScaling::scale (baseline.layoutMarginBottom));
 
-       layout->setSpacing (QEScaling::scale (baseline->layoutSpacing));
+       QGridLayout* gridLayout = dynamic_cast <QGridLayout*> (layout);
+
+       // Is this a grid layout??
+       //
+       if (gridLayout) {
+          gridLayout->setHorizontalSpacing (QEScaling::scale (baseline.layoutHorizontalSpacing));
+          gridLayout->setVerticalSpacing (QEScaling::scale (baseline.layoutVerticalSpacing));
+       } else {
+          // Horizontal or vertical layout.
+          //
+          layout->setSpacing (QEScaling::scale (baseline.layoutSpacing));
+       }
    }
 
    // Specials.
-   // Q? How expensive are dynamic castes? Use Qt's own caste?
+   // Q? How expensive are dynamic casts? Use Qt's own caste?
    //    Leverage off some items being mutually exclusive.
    //
-   label = dynamic_cast <QLabel*>(widget);
+   QLabel* label = dynamic_cast <QLabel*>(widget);
    if (label) {
-      int indent = baseline->labelIndent;
+      int indent = baseline.labelIndent;
       if (indent > 0) {
          indent = QEScaling::scale (indent);
          label->setIndent (indent);
       }
    }
 
-   resizeableFrame = dynamic_cast <QEResizeableFrame*>(widget);
+   QEResizeableFrame* resizeableFrame = dynamic_cast <QEResizeableFrame*>(widget);
    if (resizeableFrame) {
-      int allowedMin = baseline->resizeFrameAllowedMin;
-      int allowedMax = baseline->resizeFrameAllowedMax;
+      int allowedMin = baseline.resizeFrameAllowedMin;
+      int allowedMax = baseline.resizeFrameAllowedMax;
 
       // scale
       allowedMin = QEScaling::scale (allowedMin);
@@ -398,37 +452,35 @@ void QEScaling::widgetScale (QWidget* widget)
       }
    }
 
-   tableWidget = dynamic_cast <QTableWidget *>(widget);
+   QTableWidget* tableWidget = dynamic_cast <QTableWidget *>(widget);
    if (tableWidget) {
       int defaultSectionSize;
 
-      defaultSectionSize = baseline->tableDefaultHorizontalSectionSize;
+      defaultSectionSize = baseline.tableDefaultHorizontalSectionSize;
       defaultSectionSize = QEScaling::scale (defaultSectionSize);
       tableWidget->horizontalHeader ()->setDefaultSectionSize (defaultSectionSize);
 
-      defaultSectionSize =  baseline->tableDefaultVerticalSectionSize;
+      defaultSectionSize =  baseline.tableDefaultVerticalSectionSize;
       defaultSectionSize = QEScaling::scale (defaultSectionSize);
       tableWidget->verticalHeader ()->setDefaultSectionSize (defaultSectionSize);
    }
 
-   treeView = dynamic_cast <QTreeView *>(widget);
+   QTreeView* treeView = dynamic_cast <QTreeView *>(widget);
    if (treeView) {
-      int indentation = baseline->treeViewIndentation;
+      int indentation = baseline.treeViewIndentation;
       if (indentation > 0) {
          indentation = QEScaling::scale (indentation);
          treeView->setIndentation (indentation);
       }
    }
 
-   qeWidget = dynamic_cast <QEWidget *>(widget);
+   QEWidget* qeWidget = dynamic_cast <QEWidget *>(widget);
    if (qeWidget) {
       // For QEWidget objects, scaleBy is virtual function. This allows geometrically
       // complicated widgets, such as QEShape, to provide a bespoke scaling function.
       //
       qeWidget->scaleBy (QEScaling::currentScaleM, QEScaling::currentScaleD);
    }
-
-   delete baseline;
 }
 
 //------------------------------------------------------------------------------
@@ -444,7 +496,6 @@ void QEScaling::widgetTreeWalk (QWidget* widget, ScalingFunction sf)
    //
    if (!widget) return;
    if (!sf) return;
-   if (QEScaling::currentScaleM == QEScaling::currentScaleD) return;   // skip null scaling
 
    // Apply scaling function to this widget.
    //
@@ -468,12 +519,13 @@ void QEScaling::widgetTreeWalk (QWidget* widget, ScalingFunction sf)
 }
 
 //------------------------------------------------------------------------------
-//
+// static
 void QEScaling::applyToWidget (QWidget* widget)
 {
    if (!widget) return;
 
-   // We do two tree walks, first does a pure data capture, the second applyies scaling.
+   // We do two tree walks, first does a pure data capture, the second applies scaling.
+   // The capture phase only actually captures info the first time call for the widget.
    //
    // This is particularly important for font sizes. If a child's font same as its
    // parent's then is scaled auto-magically when the parent's font is scaled, and
@@ -481,9 +533,26 @@ void QEScaling::applyToWidget (QWidget* widget)
    // will be scaled three times etc.
    //
    QEScaling::widgetTreeWalk (widget, QEScaling::widgetCapture);
-
-   if (QEScaling::currentScaleM == QEScaling::currentScaleD) return;   // skip null scaling
    QEScaling::widgetTreeWalk (widget, QEScaling::widgetScale);
+}
+
+//------------------------------------------------------------------------------
+// static
+void QEScaling::rescaleWidget (QWidget* widget, const double newScale)
+{
+   const int savedM = QEScaling::currentScaleM;
+   const int savedD = QEScaling::currentScaleD;
+
+   int t = int (100.0 * newScale);
+   int modM = LIMIT (t, 10, 400) * savedM;
+   int modD = 100 * savedD;
+
+   QEScaling::setScaling (modM, modD);
+   QEScaling::applyToWidget (widget);
+
+   // Finally restore
+   //
+   QEScaling::setScaling (savedM, savedD);
 }
 
 //------------------------------------------------------------------------------
@@ -498,6 +567,48 @@ void QEScaling::applyToPoint (QPoint& point)
    x = QEScaling::scale (x);
    y = QEScaling::scale (y);
    point = QPoint (x, y);
+}
+
+//------------------------------------------------------------------------------
+// static
+QString QEScaling::scaleStyleSheet (const QString& input)
+{
+   // skip scaling empty style sheet
+   //
+   if (input.isEmpty()) return input;
+
+   const QString pattern = "[0-9][0-9]*p[xt]";
+   const QRegExp re = QRegExp (pattern, Qt::CaseSensitive, QRegExp::RegExp2);
+
+   QString workingInput = input;
+   QString result = "";
+
+   int next = workingInput.indexOf (re, 0);
+   int safety_count = 0;
+   while (next >= 0 && safety_count < 200) {
+      // Move pre-regular expression text from input to result
+      //
+      result.append (workingInput.left (next));
+      workingInput.remove (0, next);
+
+      // Peel of the point/pixel size number, digit-by-digit
+      //
+      int px = 0;
+      while ((workingInput.length() > 0) && (workingInput [0] >= '0') && (workingInput [0] <= '9')) {
+         const QString d = workingInput.left (1);
+         px = 10 * px + d.toInt();
+         workingInput.remove (0, 1);
+      }
+
+      const int npx = QEScaling::scale (px);
+
+      result.append (QString::number(npx));
+      next = workingInput.indexOf (re, 0);
+      safety_count++;
+   }
+
+   result.append (workingInput);
+   return result;
 }
 
 // end

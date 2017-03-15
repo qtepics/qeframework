@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016 Australian Synchrotron.
+ *  Copyright (c) 2013,2016,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -366,6 +366,7 @@ QEPlotter::DataSets::DataSets ()
    this->sizeIsConnected = false;
    this->isDisplayed = true;
    this->isBold = false;
+   this->isDashed = false;
    this->showDots = false;
    this->median = 1;
 
@@ -526,7 +527,9 @@ QString QEPlotter::DataSets::getSizeData () const
 QEPlotter::QEPlotter (QWidget* parent) : QEAbstractDynamicWidget (parent)
 {
    QCaVariableNamePropertyManager* vpnm;
-   int slot;
+
+   this->xAxisIsEnabled = true;
+   this->yAxisIsEnabled = true;
 
    this->widgetToSlot.clear();
    this->createInternalWidgets ();
@@ -541,7 +544,7 @@ QEPlotter::QEPlotter (QWidget* parent) : QEAbstractDynamicWidget (parent)
 
    this->setNumVariables (2*ARRAY_LENGTH (this->xy));
 
-   for (slot = 0; slot < ARRAY_LENGTH (this->xy); slot++) {
+   for (int slot = 0; slot < ARRAY_LENGTH (this->xy); slot++) {
       this->xy [slot].setContext (this, slot);   // set owner and slot number.
       this->xy [slot].colour = item_colours [slot];
 
@@ -564,6 +567,10 @@ QEPlotter::QEPlotter (QWidget* parent) : QEAbstractDynamicWidget (parent)
    this->contextMenuRequestPosition = QPointF (0.0, 0.0);
    this->contextMenuEmitText = "Emit Coordinates";
    this->enableConextMenu = true;
+   this->toolBarIsVisible = true;
+   this->pvItemsIsVisible = true;
+   this->statusIsVisible = true;
+
    this->isReverse = false;
    this->isPaused = false;
    this->selectedDataSet = 0;
@@ -580,7 +587,7 @@ QEPlotter::QEPlotter (QWidget* parent) : QEAbstractDynamicWidget (parent)
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   for (slot = 0 ; slot < ARRAY_LENGTH (this->xy); slot++) {
+   for (int slot = 0 ; slot < ARRAY_LENGTH (this->xy); slot++) {
       vpnm = &this->xy [slot].dataVariableNameManager;
       QObject::connect (vpnm, SIGNAL (newVariableNameProperty (QString, QString, unsigned int)),
                         this, SLOT   (setNewVariableName      (QString, QString, unsigned int)));
@@ -1039,7 +1046,7 @@ void QEPlotter::itemContextMenuRequested (const QPoint& pos)
    if (slot > 0) {
       // Only meaningful for y data sets.
       //
-      ds->itemMenu->setCheckedStates (ds->isDisplayed, ds->isBold, ds->showDots);
+      ds->itemMenu->setCheckedStates (ds->isDisplayed, ds->isBold, ds->isDashed, ds->showDots);
 
       ds->itemMenu->setActionChecked (QEPlotterNames::PLOTTER_LINE_NO_MEDIAN_FILTER, (ds->median == 1));
       ds->itemMenu->setActionChecked (QEPlotterNames::PLOTTER_LINE_MEDIAN_3_FILTER, (ds->median == 3));
@@ -1279,7 +1286,12 @@ void QEPlotter::menuSelected (const QEPlotterNames::MenuActions action, const in
          // PV item specific.
          //
       case QEPlotterNames::PLOTTER_LINE_BOLD:
-         ds->isBold = ! ds->isBold;
+         ds->isBold = !ds->isBold;
+         this->replotIsRequired = true;
+         break;
+
+      case QEPlotterNames::PLOTTER_LINE_DASHED:
+         ds->isDashed = !ds->isDashed;
          this->replotIsRequired = true;
          break;
 
@@ -1289,7 +1301,7 @@ void QEPlotter::menuSelected (const QEPlotterNames::MenuActions action, const in
          break;
 
       case QEPlotterNames::PLOTTER_LINE_VISIBLE:
-         ds->isDisplayed = ! ds->isDisplayed;
+         ds->isDisplayed = !ds->isDisplayed;
          ds->checkBox->setChecked (ds->isDisplayed);
          this->replotIsRequired = true;
          break;
@@ -2383,7 +2395,12 @@ void QEPlotter::plot ()
       } else {
          pen.setWidth (1);
       }
-      pen.setStyle (Qt::SolidLine);
+
+      if (ys->isDashed) {
+         pen.setStyle (Qt::DashLine);
+      } else {
+         pen.setStyle (Qt::SolidLine);
+      }
 
       this->plotArea->setCurvePen (pen);
       this->plotArea->setCurveRenderHint (QwtPlotItem::RenderAntialiased, false);
@@ -2747,7 +2764,7 @@ void QEPlotter::setXYLineVisible (const int slot, const bool isVisible)
 {
    SLOT_CHECK (slot,);
 
-   // Slot 0 (X) has nno visibility per se.
+   // Slot 0 (X) has no visibility per se.
    //
    if (slot != 0) {
       this->xy[slot].isDisplayed = isVisible;
@@ -2762,6 +2779,72 @@ bool QEPlotter::getXYLineVisible (const int slot) const
 {
    SLOT_CHECK (slot, false);
    return this->xy[slot].isDisplayed;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlotter::setXYLineBold (const int slot, const bool isBold)
+{
+   SLOT_CHECK (slot,);
+
+   // Slot 0 (X) has no boldness per se.
+   //
+   if (slot != 0) {
+      this->xy[slot].isBold = isBold;
+      this->replotIsRequired = true;
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEPlotter::getXYLineBold (const int slot) const
+{
+   SLOT_CHECK (slot, false);
+   return this->xy[slot].isBold;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlotter::setXYLineDashed (const int slot, const bool isDashed)
+{
+   SLOT_CHECK (slot,);
+
+   // Slot 0 (X) has no dashed attribute per se.
+   //
+   if (slot != 0) {
+      this->xy[slot].isDashed = isDashed;
+      this->replotIsRequired = true;
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEPlotter::getXYLineDashed (const int slot) const
+{
+   SLOT_CHECK (slot, false);
+   return this->xy[slot].isDashed;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlotter::setXYLineHasDots (const int slot, const bool hasDots)
+{
+   SLOT_CHECK (slot,);
+
+   // Slot 0 (X) has no dots to show per se.
+   //
+   if (slot != 0) {
+      this->xy[slot].showDots = hasDots;
+      this->replotIsRequired = true;
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEPlotter::getXYLineHasDots (const int slot) const
+{
+   SLOT_CHECK (slot, false);
+   return this->xy[slot].showDots;
 }
 
 //------------------------------------------------------------------------------
@@ -2792,36 +2875,65 @@ QString QEPlotter::getMenuEmitText () const
 //
 void QEPlotter::setToolBarVisible (bool visible)
 {
+   this->toolBarIsVisible = visible;
    this->toolBarResize->setVisible (visible);
 }
 
 bool QEPlotter::getToolBarVisible () const
 {
-   return this->toolBarResize->isVisible ();
+   return this->toolBarIsVisible;
 }
 
 //------------------------------------------------------------------------------
 //
 void QEPlotter::setPvItemsVisible (bool visible)
 {
+   this->pvItemsIsVisible = visible;
    this->itemResize->setVisible (visible);
 }
 
 bool QEPlotter::getPvItemsVisible () const
 {
-   return this->itemResize->isVisible ();
+   return this->pvItemsIsVisible;
 }
 
 //------------------------------------------------------------------------------
 //
 void QEPlotter::setStatusVisible (bool visible)
 {
+   this->statusIsVisible = visible;
    this->statusFrame->setVisible (visible);
 }
 
 bool QEPlotter::getStatusVisible () const
 {
-   return this->statusFrame->isVisible ();
+   return this->statusIsVisible;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlotter::setAxisEnableX (bool axisEnableX)
+{
+   this->xAxisIsEnabled = axisEnableX;
+   this->plotArea->setAxisEnableX (axisEnableX);
+}
+
+bool QEPlotter::getAxisEnableX () const
+{
+   return this->xAxisIsEnabled;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlotter::setAxisEnableY (bool axisEnableY)
+{
+   this->yAxisIsEnabled = axisEnableY;
+   this->plotArea->setAxisEnableY (axisEnableY);
+}
+
+bool QEPlotter::getAxisEnableY () const
+{
+   return this->yAxisIsEnabled;
 }
 
 //------------------------------------------------------------------------------

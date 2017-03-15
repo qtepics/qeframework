@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2011 Australian Synchrotron.
+ *  Copyright (c) 2011,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Rhyder
@@ -1040,7 +1040,7 @@ void QEPeriodic::setUserInfo( QString inStr )
         {
             // Ignore all but 'elements' elements
             if( xml.readNext() == QXmlStreamReader::StartElement &&
-                xml.name().compare( "elements" ) == 0 )
+                xml.name().compare( QString( "elements" ) ) == 0 )
             {
                 // Found an 'elements' element
                 // Parse all elements in the 'elements' element
@@ -1048,7 +1048,7 @@ void QEPeriodic::setUserInfo( QString inStr )
                 {
                     // Ignore all but 'element' elements
                     if( xml.readNext() == QXmlStreamReader::StartElement &&
-                        xml.name().compare( "element" ) == 0 )
+                        xml.name().compare( QString( "element" ) ) == 0 )
                     {
 
                         // Found an 'element' element, get any attributes
@@ -1063,7 +1063,7 @@ void QEPeriodic::setUserInfo( QString inStr )
                             // Note, the presence of each attribute is not checked.
                             // If not present or valid then the returned 0.0 or empty strings are used
                             i--;
-                            if( attributes.value( "enable" ).toString().compare( "yes" ) == 0 )
+                            if( attributes.value( "enable" ).toString().compare( QString( "yes" ) ) == 0 )
                                 userInfo[i].enable = true;
                             else
                                 userInfo[i].enable = false;

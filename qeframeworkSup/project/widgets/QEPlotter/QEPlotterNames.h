@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016 Australian Synchrotron
+ *  Copyright (c) 2013,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -94,6 +94,7 @@ public:
       // PV item context menu items.
       //
       PLOTTER_LINE_BOLD,           //
+      PLOTTER_LINE_DASHED,         //
       PLOTTER_LINE_DOTS,           //
       PLOTTER_LINE_VISIBLE,        //
       PLOTTER_LINE_NO_MEDIAN_FILTER,  //

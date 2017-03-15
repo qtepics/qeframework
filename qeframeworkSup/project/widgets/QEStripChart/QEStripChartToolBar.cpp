@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016 Australian Synchrotron
+ *  Copyright (c) 2013,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -136,6 +136,8 @@ static const struct QEStripChartPushButtonSpecifications buttonSpecs [NUMBER_OF_
 
 
 //==============================================================================
+// QEStripChartToolBar::OwnTabWidget
+//==============================================================================
 //
 class QEStripChartToolBar::OwnTabWidget : public QTabWidget {
 public:
@@ -180,7 +182,8 @@ public:
 
 private:
    QEStripChartToolBar* owner;
-   int enhancedPointSize;
+   int originalPointSize;
+   int reducedPointSize;
 
    // Conveniance QLabel contructor.
    // Need text, parent, geometry and optional enhancement.
@@ -211,8 +214,9 @@ QEStripChartToolBar::OwnTabWidget::OwnTabWidget (QEStripChartToolBar* parent) : 
    // Do smaller (80%) standard font, enhanced is original size.
    //
    QFont font = this->font ();
-   this->enhancedPointSize = font.pointSize ();
-   font.setPointSize ((this->enhancedPointSize * 4) / 5);
+   this->originalPointSize = font.pointSize ();
+   this->reducedPointSize = (this->originalPointSize * 4) / 5;
+   font.setPointSize (this->reducedPointSize);
    this->setFont (font);
 
    // The default tab height is dervied from font size, but is too small. The setFixedHeight
@@ -295,7 +299,7 @@ QEStripChartToolBar::OwnTabWidget::OwnTabWidget (QEStripChartToolBar* parent) : 
    this->predefinedComboBox = new QComboBox (tabParent);
    this->predefinedComboBox->setGeometry (left, 5, 600, 23);  // left top width height
    font = this->predefinedComboBox->font ();
-   font.setPointSize (this->enhancedPointSize);  // use original font size.
+   font.setPointSize (this->originalPointSize);
    this->predefinedComboBox->setFont (font);
    this->predefinedComboBox->setToolTip (" Select and load predefined chart configuration ");
    QObject::connect (this->predefinedComboBox, SIGNAL (activated (QString)),
@@ -396,13 +400,17 @@ QLabel* QEStripChartToolBar::OwnTabWidget::createLabel (const QString& text, QWi
 
    // Has enhancement been specified ?
    //
+   QFont font = result->font ();
    if (enhance) {
-      QFont font = result->font ();
-      font.setPointSize (this->enhancedPointSize);  // use original font size.
+      // Yes - use larger font size and set background.
+      font.setPointSize (this->originalPointSize);
       result->setFont (font);
       result->setStyleSheet ("QLabel { background-color: #e8e8e8; }");
-      result->setIndent (6);
+   } else {
+      // No - use smaller font size.
+      font.setPointSize (this->reducedPointSize);
    }
+   result->setIndent (6);
 
    return result;
 }

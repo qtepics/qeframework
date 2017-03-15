@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron.
+ *  Copyright (c) 2013,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -159,6 +159,7 @@ QEPlotterMenu::QEPlotterMenu (const int slotIn, QWidget* parent) : QMenu (parent
    menu->setEnabled (this->slot > 0);
    if (this->slot > 0) {
       this->make (menu, "Bold",                 true,  QEPlotterNames::PLOTTER_LINE_BOLD);
+      this->make (menu, "Dashed",               true,  QEPlotterNames::PLOTTER_LINE_DASHED);
       this->make (menu, "Dots",                 true,  QEPlotterNames::PLOTTER_LINE_DOTS);
       this->make (menu, "Visible",              true,  QEPlotterNames::PLOTTER_LINE_VISIBLE);
       menu->addSeparator ();
@@ -217,11 +218,13 @@ void  QEPlotterMenu::setActionText (const QEPlotterNames::MenuActions actionName
 
 //------------------------------------------------------------------------------
 //
-void QEPlotterMenu::setCheckedStates (const bool isDisplayed, const bool isBold, const bool showDots)
+void QEPlotterMenu::setCheckedStates (const bool isDisplayed, const bool isBold,
+                                      const bool isDashed, const bool showDots)
 {
    if (this->slot > 0) {
       this->setActionChecked (QEPlotterNames::PLOTTER_LINE_VISIBLE, isDisplayed);
       this->setActionChecked (QEPlotterNames::PLOTTER_LINE_BOLD, isBold);
+      this->setActionChecked (QEPlotterNames::PLOTTER_LINE_DASHED, isDashed);
       this->setActionChecked (QEPlotterNames::PLOTTER_LINE_DOTS, showDots);
    }
 }

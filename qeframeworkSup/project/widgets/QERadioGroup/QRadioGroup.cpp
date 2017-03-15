@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
+ *  Copyright (c) 2013,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -23,14 +23,15 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QRadioGroup.h"
+#include <QEvent>
 #include <QDebug>
 #include <QRadioButton>
 #include <QPushButton>
 #include <QECommon.h>
 
-#include "QRadioGroup.h"
 
-#define DEBUG qDebug () << "QRadioGroup" << __FUNCTION__ << __LINE__
+#define DEBUG qDebug () << "QRadioGroup"  << __LINE__<< __FUNCTION__ << " "
 
 //-----------------------------------------------------------------------------
 // Constructor with no initialisation
@@ -59,6 +60,23 @@ QSize QRadioGroup::sizeHint () const
 
 //---------------------------------------------------------------------------------
 //
+bool QRadioGroup::eventFilter (QObject *obj, QEvent *event)
+{
+   const QEvent::Type type = event->type ();
+   if ((type == QEvent::FontChange) && (obj == this)){
+
+      // Propagate font change to embedded buttons.
+      //
+      for (int j = 0; j < this->buttonList.count (); j++) {
+         QAbstractButton* button = this->buttonList.value (j);
+         if (button) button->setFont (this->font());
+      }
+   }
+   return false;
+}
+
+//---------------------------------------------------------------------------------
+//
 QAbstractButton* QRadioGroup::createButton (QWidget* parent)
 {
    QAbstractButton* result = NULL;
@@ -79,6 +97,7 @@ QAbstractButton* QRadioGroup::createButton (QWidget* parent)
 
    result->setAutoExclusive (true);
    result->setCheckable (true);
+   result->setFont (this->font());
    return result;
 }
 
@@ -161,6 +180,11 @@ void QRadioGroup::commonSetup ()
    this->buttonList.clear ();
    this->reCreateAllButtons ();
    this->emitValueChangeInhibited = false;
+
+   // Overriding fontChange didn't seem to work, so filter own events in
+   // order to catch the FontChange event.
+   //
+   this->installEventFilter (this);
 }
 
 //---------------------------------------------------------------------------------

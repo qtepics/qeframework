@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016 Australian Synchrotron
+ *  Copyright (c) 2013,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -109,6 +109,12 @@ public:
 
    Q_ENUMS (LineDrawModes)
 
+   enum LinePlotModes {
+      lpmRectangular,  // plot current value until next value with step
+      lpmSmooth        // plot linear interpolation from current to next value.
+   };
+
+   Q_ENUMS (LinePlotModes)
 
    // IDs for all menu options
    // Each menu option has a unique ID across all menus
@@ -185,6 +191,7 @@ Q_DECLARE_METATYPE (QEStripChartNames::StateModes)
 Q_DECLARE_METATYPE (QEStripChartNames::VideoModes)
 Q_DECLARE_METATYPE (QEStripChartNames::YScaleModes)
 Q_DECLARE_METATYPE (QEStripChartNames::LineDrawModes)
+Q_DECLARE_METATYPE (QEStripChartNames::LinePlotModes)
 #endif
 
 #endif   // QE_STRIPCHART_NAMES_H

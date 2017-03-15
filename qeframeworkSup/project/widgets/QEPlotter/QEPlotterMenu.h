@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron.
+ *  Copyright (c) 2013,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -57,9 +57,10 @@ public:
    void setActionVisible (const QEPlotterNames::MenuActions action, const bool visible);
    void setActionText    (const QEPlotterNames::MenuActions action, const QString& caption);
 
-   // Convienance function for setActionChecked for three attributes.
+   // Convienance function for setActionChecked for four attributes.
    //
-   void setCheckedStates (const bool isDisplayed, const bool isBold, const bool showDots);
+   void setCheckedStates (const bool isDisplayed, const bool isBold,
+                          const bool isDashed, const bool showDots);
 
 signals:
    // All the triggered actions from the various sub-menu items are
