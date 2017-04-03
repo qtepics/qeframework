@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2014,2016 Australian Synchrotron.
+ *  Copyright (c) 2013,2014,2016,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -24,14 +24,14 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QERadioGroup.h"
+
 #include <QDebug>
 #include <QRadioButton>
 #include <QPushButton>
 #include <QECommon.h>
 
-#include "QERadioGroup.h"
-
-#define DEBUG qDebug () << "QERadioGroup" << __FUNCTION__ << __LINE__
+#define DEBUG qDebug () << "QERadioGroup" << __LINE__ << __FUNCTION__ << "  "
 
 #define PV_VARIABLE_INDEX      0
 #define TITLE_VARIABLE_INDEX   1
@@ -228,7 +228,7 @@ void QERadioGroup::establishConnection (unsigned int variableIndex)
          // If successfull, the QCaObject object that will supply data update signals will be returned
          // Note createConnection creates the connection and returns reference to existing QCaObject.
          //
-         qca = createConnection (variableIndex);
+         qca = this->createConnection (variableIndex);
 
          // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots.
          //
@@ -531,27 +531,6 @@ QString QERadioGroup::getLocalEnumerations () const
    return this->localEnumerations.getLocalEnumeration ();
 }
 
-
-//==============================================================================
-// Drag drop
-//
-void QERadioGroup::setDrop (QVariant drop)
-{
-   this->setVariableName (drop.toString (), PV_VARIABLE_INDEX);
-   this->establishConnection (PV_VARIABLE_INDEX);
-}
-
-//------------------------------------------------------------------------------
-//
-QVariant QERadioGroup::getDrop ()
-{
-   if (isDraggingVariable ()) {
-      return QVariant (this->copyVariable ());
-   } else {
-      return this->copyData ();
-   }
-}
-
 //==============================================================================
 // Copy / Paste
 //
@@ -567,11 +546,12 @@ QVariant QERadioGroup::copyData ()
    return QVariant (this->currentIndex);
 }
 
+//------------------------------------------------------------------------------
+//
 void QERadioGroup::paste (QVariant v)
 {
-   if (this->getAllowDrop ()) {
-      this->setDrop (v);
-   }
+   this->setVariableName (v.toString (), PV_VARIABLE_INDEX);
+   this->establishConnection (PV_VARIABLE_INDEX);
 }
 
 // end

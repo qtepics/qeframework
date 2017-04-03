@@ -59,20 +59,37 @@ QSize QRadioGroup::sizeHint () const
 }
 
 //---------------------------------------------------------------------------------
+// QGroupBox (paranet class) captures some of these events and does not call
+// appropriate virtual function.  So must intercept there events here.
 //
-bool QRadioGroup::eventFilter (QObject *obj, QEvent *event)
+bool QRadioGroup::event (QEvent* event)
 {
    const QEvent::Type type = event->type ();
-   if ((type == QEvent::FontChange) && (obj == this)){
 
-      // Propagate font change to embedded buttons.
-      //
-      for (int j = 0; j < this->buttonList.count (); j++) {
-         QAbstractButton* button = this->buttonList.value (j);
-         if (button) button->setFont (this->font());
-      }
+   bool result = false;
+
+   switch (type) {
+      case QEvent::FontChange:
+         // Propagate font change to embedded buttons.
+         //
+         for (int j = 0; j < this->buttonList.count (); j++) {
+            QAbstractButton* button = this->buttonList.value (j);
+            if (button) button->setFont (this->font());
+         }
+         result = QGroupBox::event (event);   // call parent fuction;
+         break;
+
+      case QEvent::MouseButtonPress:
+      case QEvent::MouseButtonDblClick:
+         // Handle by doing nothing - not even ignoring the event as base class does.
+         result = false;
+         break;
+
+      default:
+         result = QGroupBox::event (event);   // call parent fuction
    }
-   return false;
+
+   return result;
 }
 
 //---------------------------------------------------------------------------------
@@ -98,6 +115,7 @@ QAbstractButton* QRadioGroup::createButton (QWidget* parent)
    result->setAutoExclusive (true);
    result->setCheckable (true);
    result->setFont (this->font());
+   result->setFocusPolicy (Qt::NoFocus);
    return result;
 }
 
@@ -180,11 +198,6 @@ void QRadioGroup::commonSetup ()
    this->buttonList.clear ();
    this->reCreateAllButtons ();
    this->emitValueChangeInhibited = false;
-
-   // Overriding fontChange didn't seem to work, so filter own events in
-   // order to catch the FontChange event.
-   //
-   this->installEventFilter (this);
 }
 
 //---------------------------------------------------------------------------------

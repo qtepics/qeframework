@@ -220,8 +220,8 @@ public:
     enum restorePhases { APPLICATION = SaveRestoreSignal::RESTORE_APPLICATION,
                          FRAMEWORK   = SaveRestoreSignal::RESTORE_QEFRAMEWORK };
 
-    /// Defines a list or set of variable indices. Used to indicate thos variables
-    /// that are considered control variables, and thus have theitr cursor updated
+    /// Defines a list or set of variable indices. Used to indicate those variables
+    /// that are considered control variables, and thus have their cursor updated
     /// to the forbidden cursor if/when write access is denied.
     typedef QList <unsigned int> ControlVariableIndicesSet;
 

@@ -48,9 +48,12 @@
 // Constructor
 
 QEWidget::QEWidget( QWidget *ownerIn ) :
-   QEToolTip( ownerIn ), QEDragDrop( ownerIn ),
-   styleManager( ownerIn ), contextMenu( this ),
-   standardProperties( ownerIn ), QEEmitter( this, ownerIn )
+   QEToolTip( ownerIn ),
+   QEDragDrop( this, ownerIn ),
+   styleManager( ownerIn ),
+   contextMenu( this, ownerIn ),
+   standardProperties( ownerIn ),
+   QEEmitter( this, ownerIn )
 {
     // Check for and apply any global style settings.
     //
@@ -98,6 +101,9 @@ QEWidget::QEWidget( QWidget *ownerIn ) :
 
         // Set up contextMenu consumer
         setConsumer( getGuiLaunchConsumer() );
+
+        // Set up drag drop consumer
+        setDragDropConsumer( getGuiLaunchConsumer() );
     }
 
     // Setup to respond to requests to save or restore persistant data

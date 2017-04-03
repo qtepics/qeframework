@@ -55,12 +55,25 @@ bool contextMenu::draggingVariable = true;
 
 //======================================================
 // Methods for QObject based contextMenuObject class
-void contextMenuObject::contextMenuTriggeredSlot( QAction* selectedItem )
+QEContextMenuObject::QEContextMenuObject( contextMenu* menuIn,  QObject* parent ) : QObject (parent)
+{
+    menu = menuIn;
+}
+
+// place holder
+QEContextMenuObject::~QEContextMenuObject() { }
+
+void QEContextMenuObject::sendRequestAction( const QEActionRequests& request)
+{
+    emit requestAction( request );
+}
+
+void QEContextMenuObject::contextMenuTriggeredSlot( QAction* selectedItem )
 {
    menu->contextMenuTriggered( selectedItem->data().toInt() );
 }
 
-void contextMenuObject::showContextMenuSlot( const QPoint& pos )
+void QEContextMenuObject::showContextMenuSlot( const QPoint& pos )
 {
    menu->showContextMenu( pos );
 }
@@ -83,24 +96,24 @@ contextMenu::ContextMenuOptionSets  contextMenu::defaultMenuSet ()
 }
 
 // Create a class to manage the QE context menu
-contextMenu::contextMenu( QEWidget* qewIn )
+contextMenu::contextMenu( QEWidget* qewIn, QWidget* ownerIn )
 {
     hasConsumer = false;
     qew = qewIn;
     numberOfItems = 1;
     menuSet = defaultMenuSet();
-    object = new contextMenuObject( this );
+
+    // Create the signaller object - note: owned and deleted the widget
+    object = new QEContextMenuObject( this, ownerIn );
 }
 
-contextMenu::~contextMenu()
-{
-}
+contextMenu::~contextMenu() { }   // place holder
 
 // Tests is primary PV is an array variable
 bool contextMenu::isArrayVariable () const
 {
     bool result = false;
-    qcaobject::QCaObject* qca = this->qew->getQcaItem (0);
+    qcaobject::QCaObject* qca = qew->getQcaItem( 0 );
     if( qca ){
        result = (qca->getElementCount() >= 2);
     }
@@ -132,7 +145,7 @@ QMenu* contextMenu::buildContextMenu()
 
     // Add QE context menu
     QAction* a;
-    QString names = (numberOfItems >= 2) ? "names" : "name";
+    QString names = (numberOfItems >= 2) ? "names " : "name ";
 
     // Add menu options that require the application to provide support such as launch a strip chart.
     if( hasConsumer )

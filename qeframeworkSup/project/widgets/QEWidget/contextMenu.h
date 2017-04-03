@@ -23,8 +23,8 @@
  *    andrew.rhyder@synchrotron.org.au
  */
 
-#ifndef CONTEXTMENU_H
-#define CONTEXTMENU_H
+#ifndef QE_CONTEXT_MENU_H
+#define QE_CONTEXT_MENU_H
 
 #include <QMenu>
 #include <QSet>
@@ -35,12 +35,13 @@ class QEWidget;
 
 // QObject based context menu
 // Instance of this created and owned by contextMenu which itself cannot be based on a QObject
-class contextMenuObject : public QObject
+class QEContextMenuObject : public QObject
 {
     Q_OBJECT
 public:
-    contextMenuObject( contextMenu* menuIn ){ menu = menuIn; }          // Construction
-    void sendRequestAction( const QEActionRequests& request){ emit requestAction( request ); } // Emit a GUI launch request
+    QEContextMenuObject( contextMenu* menuIn,  QObject* parent ); // Construction
+    ~QEContextMenuObject();                                       // Destruction
+    void sendRequestAction( const QEActionRequests& request);   // Emit a GUI launch request
 
 signals:
     void requestAction( const QEActionRequests& );                      // Signal 'launch a GUI'
@@ -57,7 +58,7 @@ private:
 class QEPLUGINLIBRARYSHARED_EXPORT contextMenu
 {
 public:
-    friend class contextMenuObject;
+    friend class QEContextMenuObject;
 
     enum contextMenuOptions{ CM_NOOPTION,
                              CM_COPY_VARIABLE, CM_COPY_DATA, CM_PASTE,
@@ -74,10 +75,8 @@ public:
 
     static ContextMenuOptionSets defaultMenuSet ();     // All menu items are in the default set.
 
-    explicit contextMenu( QEWidget* qewIn );
+    explicit contextMenu( QEWidget* qewIn, QWidget* ownerIn );
     virtual ~contextMenu();
-
-    void setConsumer (QObject *consumer);               // Set the consumer of the signal generted by this object
 
     // Set up the standard QE context menu for a QE widget (conextMenu class is a base class for
     // all QE widgets, but a menu is only available to users if this is called)
@@ -103,8 +102,11 @@ public:
 
     void addMenuItem( QMenu* menu, const QString& title, const bool checkable, const bool checked, const int option );
 
+protected:
+    void setConsumer (QObject *consumer);               // Set the consumer of the signal generted by this object
+
 private:
-    contextMenuObject* object;                          // Our own QObject based class to managing signals and slots
+    QEContextMenuObject* object;                          // Our own QObject based class to managing signals and slots
     void doCopyVariable();                              // 'Copy Variable' was selected from the menu
     void doCopyData();                                  // 'Copy Data' was selected from the menu
     void doPaste();                                     // 'Paste' was selected from the menu
@@ -122,4 +124,4 @@ private:
     int numberOfItems;                                  // Number PV names to be copied/dragged
 };
 
-#endif // CONTEXTMENU_H
+#endif // QE_CONTEXT_MENU_H

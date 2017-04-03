@@ -108,7 +108,7 @@ signals:
 
 protected:
    QSize sizeHint () const;
-   bool eventFilter (QObject *obj, QEvent *event);
+   bool event (QEvent* event);
 
 private:
    typedef QList<QAbstractButton*> QAbstractButtonList;
