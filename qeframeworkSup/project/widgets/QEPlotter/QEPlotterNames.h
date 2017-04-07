@@ -79,6 +79,8 @@ public:
       PLOTTER_CURRENT_X_RANGE,     // XMin/XMax based on overal min/max of current data set
       PLOTTER_DYNAMIC_X_RANGE,     // As PLOTTER_CURRENT_X_RANGE, but dynamic per update
 
+      PLOTTER_MANUAL_XY_RANGE,     // User selected XMin XMax and YMin YMax
+
       PLOTTER_PLAY,                //
       PLOTTER_PAUSE,               //
 

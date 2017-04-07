@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2011,2016 Australian Synchrotron
+ *  Copyright (c) 2011,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -170,7 +170,7 @@ QMenu* contextMenu::buildContextMenu()
             addSeparator = true;
         }
 
-        // This menu items are really only sensible of array PVs, i.e. PVs with at leat two elements.
+        // This menu items are really only sensible of array PVs, i.e. PVs with at least two elements.
         if( isArrayVariable() ) {
 
            if( menuSet.contains( CM_ADD_TO_PLOTTER ))
@@ -182,6 +182,12 @@ QMenu* contextMenu::buildContextMenu()
            if( menuSet.contains( CM_SHOW_AS_HISTOGRAM ))
            {
                a = new QAction( "Show as Historgram", menu ); a->setCheckable( false ); a->setData( CM_SHOW_AS_HISTOGRAM ); menu->addAction( a );
+               addSeparator = true;
+           }
+
+           if( menuSet.contains( CM_ADD_TO_TABLE ))
+           {
+               a = new QAction( "Show in Table",      menu ); a->setCheckable( false ); a->setData( CM_ADD_TO_TABLE ); menu->addAction( a );
                addSeparator = true;
            }
         }
@@ -383,6 +389,10 @@ void contextMenu::contextMenuTriggered( int optionNum )
             doAddToPlotter();
             break;
 
+       case contextMenu::CM_ADD_TO_TABLE:
+           doAddToTable();
+           break;
+
         case contextMenu::CM_SHOW_AS_HISTOGRAM:
             doShowAsHistogram();
             break;
@@ -464,6 +474,14 @@ void contextMenu::doAddToPlotter()
 {
    QString pvName = copyVariable().trimmed();
    QEActionRequests request( QEActionRequests::actionPlotter(), pvName );
+   if( !pvName.isEmpty() ) object->sendRequestAction( request );
+}
+
+// 'Show in Table' was selected from the menu
+void contextMenu::doAddToTable()
+{
+   QString pvName = copyVariable().trimmed();
+   QEActionRequests request( QEActionRequests::actionTable(), pvName );
    if( !pvName.isEmpty() ) object->sendRequestAction( request );
 }
 

@@ -343,6 +343,7 @@ void QEPlotter::createInternalWidgets ()
    this->dataDialog = new QEPlotterItemDialog (this);
    this->rangeDialog = new QEStripChartRangeDialog (this);
    this->rangeDialog->setWindowTitle ("Plotter Y Range");
+   this->twinRangeDialog = new QETwinScaleSelectDialog ("Plotter XY Range", "X", "Y", this);
 }
 
 
@@ -1107,6 +1108,8 @@ void QEPlotter::menuSelected (const QEPlotterNames::MenuActions action, const in
    QString pasteText;
    QString pvName;
    DataSets* ds = &(this->xy [slot]);
+   QETwinScaleSelectDialog::ScaleLimit xScale;
+   QETwinScaleSelectDialog::ScaleLimit yScale;
    int n;
 
    switch (action) {
@@ -1247,6 +1250,29 @@ void QEPlotter::menuSelected (const QEPlotterNames::MenuActions action, const in
          this->fixedMinY = 0.0;
          this->fixedMaxY = 1.0;
          this->pushState ();
+         break;
+
+      case QEPlotterNames::PLOTTER_MANUAL_XY_RANGE:
+         // Like PLOTTER_MANUAL_X_RANGE and PLOTTER_MANUAL_Y_RANGE but
+         // does both at once.
+         xScale.min = this->fixedMinX;
+         xScale.max = this->fixedMaxX;
+         yScale.min = this->fixedMinY;
+         yScale.max = this->fixedMaxY;
+         this->twinRangeDialog->setActiveMap (xScale, yScale);
+         n = this->twinRangeDialog->exec (wsender ? wsender : this);
+         if (n == 1) {
+            // User has selected okay.
+            //
+            this->xScaleMode = QEPlotterNames::smFixed;
+            this->yScaleMode = QEPlotterNames::smFixed;
+            this->twinRangeDialog->getActiveMap (xScale, yScale);
+            this->fixedMinX = xScale.min;
+            this->fixedMaxX = xScale.max;
+            this->fixedMinY = yScale.min;
+            this->fixedMaxY = yScale.max;
+            this->pushState ();
+         }
          break;
 
       case  QEPlotterNames::PLOTTER_PLAY:

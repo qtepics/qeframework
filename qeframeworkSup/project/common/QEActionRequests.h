@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
+ *  Copyright (c) 2013,2013 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -68,12 +68,13 @@ public:
 
    // Predefined actions values for built in windows that consumer may provide.
    //
-   static QString actionPvProperties ()  { return "PV Properties...";   }
-   static QString actionStripChart ()    { return "Strip Chart...";     }
-   static QString actionScratchPad ()    { return "Scratch Pad...";     }
-   static QString actionPlotter ()       { return "Show in Plotter..."; }
-   static QString actionShowInHisogram (){ return "Show in Histogram..."; }
-   static QString actionGeneralPvEdit () { return "General PV Edit..."; }
+   static QString actionPvProperties ()   { return "PV Properties...";   }
+   static QString actionStripChart ()     { return "Strip Chart...";     }
+   static QString actionScratchPad ()     { return "Scratch Pad...";     }
+   static QString actionPlotter ()        { return "Show in Plotter..."; }
+   static QString actionTable ()          { return "Show in Table...";   }
+   static QString actionShowInHisogram () { return "Show in Histogram..."; }
+   static QString actionGeneralPvEdit ()  { return "General PV Edit..."; }
 
    // Constructors.
    //

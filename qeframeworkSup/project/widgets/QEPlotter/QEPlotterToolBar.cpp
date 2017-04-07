@@ -74,6 +74,8 @@ static const struct QEPlotterPushButtonSpecifications buttonSpecs [] = {
    { 0,   ICW, false, QString ("Ax"),                QEPlotterNames::PLOTTER_CURRENT_X_RANGE,    QString ("X Data Range Scale") },
    { 0,   ICW, false, QString ("Dx"),                QEPlotterNames::PLOTTER_DYNAMIC_X_RANGE,    QString ("Dynamic X Scale")    },
 
+   { GAP, ICW, false, QString ("M"),                 QEPlotterNames::PLOTTER_MANUAL_XY_RANGE,    QString ("Manual X & Y Scale") },
+
    { GAP, ICW, true,  QString ("play.png"),          QEPlotterNames::PLOTTER_PLAY,               QString ("Play - Real time")   },
    { 0,   ICW, true,  QString ("pause.png"),         QEPlotterNames::PLOTTER_PAUSE,              QString ("Pause"),             },
 

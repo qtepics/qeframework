@@ -77,6 +77,8 @@ QEPlotterMenu::QEPlotterMenu (QWidget* parent) : QMenu (parent)
    this->make (menu, "X Data Range Scale",      false, QEPlotterNames::PLOTTER_CURRENT_X_RANGE);
    this->make (menu, "Dynamic X Scale",         false, QEPlotterNames::PLOTTER_DYNAMIC_X_RANGE);
 
+   this->make (this, "Manual XY Scale...",      false, QEPlotterNames::PLOTTER_MANUAL_XY_RANGE);
+
    menu = new QMenu ("Show", this);
    this->addMenu (menu);
    this->make (menu, "Show/Hide Crosshairs",    true,  QEPlotterNames::PLOTTER_SHOW_HIDE_CROSSHAIRS);

@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2011,2016 Australian Synchrotron
+ *  Copyright (c) 2011,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -67,6 +67,7 @@ public:
                              CM_ADD_TO_STRIPCHART,
                              CM_ADD_TO_SCRATCH_PAD,
                              CM_ADD_TO_PLOTTER,
+                             CM_ADD_TO_TABLE,
                              CM_SHOW_AS_HISTOGRAM,
                              CM_GENERAL_PV_EDIT,
                              CM_SPECIFIC_WIDGETS_START_HERE };
@@ -114,6 +115,7 @@ private:
     void doAddToStripChart();                           // 'Add to strip chart' was selected from the menu
     void doAddToScratchPad();                           // 'Add to scratch pad' was selected from the menu
     void doAddToPlotter();                              // 'Add to plotter' was selected from the menu
+    void doAddToTable();                                // 'Add to table' was selected from the menu
     void doShowAsHistogram();                           // 'Show as histogram' was selected from the menu
     void doGeneralPVEdit();                             // 'Add to scratch pad' was selected from the menu
     bool isArrayVariable () const;                      // Tests is primary PV is an array variable

@@ -52,6 +52,7 @@
 #include <QEResizeableFrame.h>
 #include <QEGraphicNames.h>
 #include <QEStripChartRangeDialog.h>
+#include <QETwinScaleSelectDialog.h>
 
 #include "QEPlotterNames.h"
 #include "QEPlotterItemDialog.h"
@@ -358,7 +359,7 @@ private:
    QHBoxLayout* statusLayout;
    QVBoxLayout* itemLayout;
 
-   QEResizeableFrame* toolBarResize; 
+   QEResizeableFrame* toolBarResize;
    QEPlotterToolBar* toolBar;
    QFrame* theMainFrame;
    QFrame* statusFrame;
@@ -385,6 +386,7 @@ private:
    QLabel* comValue;
 
    QEStripChartRangeDialog* rangeDialog;
+   QETwinScaleSelectDialog* twinRangeDialog;
    QColorDialog *colourDialog;
    QEPlotterItemDialog* dataDialog;
    QEPlotterMenu* generalContextMenu;

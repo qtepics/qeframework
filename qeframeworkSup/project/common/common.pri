@@ -29,6 +29,7 @@ HEADERS += \
    common/QERecordFieldName.h \
    common/QEScaling.h \
    common/QEScanTimers.h \
+   common/QETwinScaleSelectDialog.h \
    common/PasswordDialog.h \
    common/windowCustomisation.h \
    common/macroSubstitution.h
@@ -56,6 +57,7 @@ SOURCES += \
    common/QERecordFieldName.cpp \
    common/QEScaling.cpp \
    common/QEScanTimers.cpp \
+   common/QETwinScaleSelectDialog.cpp \
    common/PasswordDialog.cpp \
    common/windowCustomisation.cpp \
    common/macroSubstitution.cpp
@@ -70,6 +72,7 @@ DEPENDPATH += common
 
 FORMS += \
    common/QEPVNameSelectDialog.ui \
+   common/QETwinScaleSelectDialog.ui \
    common/PasswordDialog.ui
 
 #RESOURCES += \

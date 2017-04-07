@@ -16,13 +16,15 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2014,2016 Australian Synchrotron.
+ *  Copyright (c) 2014,2016,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
+
+#include "QETable.h"
 
 #include <QAction>
 #include <QColor>
@@ -33,9 +35,8 @@
 #include <QEFloating.h>
 #include <QHeaderView>
 
-#include "QETable.h"
 
-#define DEBUG qDebug () << "QETable" << __FUNCTION__ << __LINE__
+#define DEBUG qDebug () << "QETable" << __LINE__ << __FUNCTION__ << "  "
 
 #define DEFAULT_CELL_HEIGHT     22
 #define NULL_SELECTION          (-1)
@@ -777,6 +778,10 @@ void QETable::setVariableName (const int slot, const QString& pvName)
 {
    SLOT_CHECK (slot,);
    this->dataSet [slot].variableNameManager.setVariableNameProperty (pvName);
+
+   // Ensure we always subscribe (activate) irrespective of the profile DontActivateYet state.
+   //
+   this->establishConnection (slot);
 }
 
 //------------------------------------------------------------------------------
