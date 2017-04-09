@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2016 Australian Synchrotron
+ *  Copyright (c) 2012,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -74,6 +74,21 @@ public:
    static int getNumberPVs ();
 
    static QStringList getAllPvNames ();
+
+   // Supports getArchivePvInformation
+   //
+   struct ArchiverPvInfo {
+     int key;
+     QString path;
+     QCaDateTime startTime;
+     QCaDateTime endTime;
+   };
+
+   typedef QList<ArchiverPvInfo>  ArchiverPvInfoLists;
+
+   static bool getArchivePvInformation (const QString& pvName,
+                                        QString& effectivePvName,
+                                        ArchiverPvInfoLists& data);
 
    // Requests re-transmission of archive status.
    // Returned status is via archiveStatus signal.

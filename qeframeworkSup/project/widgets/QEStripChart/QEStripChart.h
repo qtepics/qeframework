@@ -194,6 +194,13 @@ public:
    QEStripChartNames::VideoModes getVideoMode () const;
    QEStripChartNames::YScaleModes getYScaleMode () const;
 
+   // Allow arbitary action to be added to the item menus.
+   // Note: The chart takes owbership of these actions.
+   // Set inUseMenu true for slot used menu, false for empty menu.
+   // This specifically added for kubili display manager.
+   //
+   void updateItemMenu (const int slot, QAction* action, const bool inUseMenu);
+
 public slots:
    void videoModeSelected (const QEStripChartNames::VideoModes mode);
    void yRangeSelected (const QEStripChartNames::ChartYRanges scale);

@@ -121,6 +121,10 @@ public:
    void saveConfiguration (PMElement & parentElement);
    void restoreConfiguration (PMElement & parentElement);
 
+   // Allow arbitary action to be added to the menus.
+   //
+   void updateMenu (QAction* action, const bool inUseMenu);
+
    QCaVariableNamePropertyManager pvNameProperyManager;
 
 signals:

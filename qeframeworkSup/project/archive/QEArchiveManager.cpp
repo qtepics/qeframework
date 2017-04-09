@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2016 Australian Synchrotron
+ *  Copyright (c) 2012,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -759,7 +759,7 @@ void QEArchiveManager::valuesResponse (const QObject* userData,
       response.supplementary = response.isSuccess ? "okay" : "archiver response failure";
 
       emit this->readArchiveResponse (context->archiveAccess, response);
-	  
+
       delete context;
    }
    this->resendStatus ();
@@ -955,6 +955,65 @@ QStringList QEArchiveAccess::getAllPvNames ()
 
    result = pvNameToSourceLookUp.keys ();
    return  result;
+}
+
+//------------------------------------------------------------------------------
+// static
+//
+bool QEArchiveAccess::getArchivePvInformation (const QString& pvName,
+                                               QString& effectivePvName,
+                                               ArchiverPvInfoLists& data)
+{
+   bool result = false;
+   effectivePvName = pvName;
+   data.clear ();
+
+   if (QEArchiveAccess::isReady () && !pvName.isEmpty ()) {
+
+      // TODO: refactor this code snippet - see readArchiveRequest
+      //
+      bool isKnownPVName = pvNameToSourceLookUp.contains (effectivePvName);
+      if (!isKnownPVName) {
+         // No - the PV 'as is' is not archived.
+         // If user has requested XXXXXX.VAL, check if XXXXXX is archived.
+         // Similarly, if user requested YYYYYY, check if YYYYYY.VAL archived.
+         //
+         if (effectivePvName.right (4) == ".VAL") {
+            // Remove the .VAL field and try again.
+            //
+            effectivePvName.chop (4);
+         } else {
+            // Add .VAL and try again.
+            //
+            effectivePvName.append (".VAL");
+         }
+         isKnownPVName = pvNameToSourceLookUp.contains (effectivePvName);
+      }
+
+      if (isKnownPVName) {
+         SourceSpec sourceSpec = pvNameToSourceLookUp.value (effectivePvName);
+         QList<int> keys;
+
+         keys = sourceSpec.keyToTimeSpecLookUp.keys ();
+         for (int j = 0; j < keys.count (); j++) {
+            int key = keys.value (j, -1);
+            if (key < 0) continue;
+            KeyTimeSpec keyTimeSpec = sourceSpec.keyToTimeSpecLookUp.value (key);
+
+            ArchiverPvInfo item;
+
+            item.key = key;
+            item.path = keyTimeSpec.path;
+            item.startTime = keyTimeSpec.startTime;
+            item.endTime = keyTimeSpec.endTime;
+
+            data.append (item);
+            result = true;
+         }
+      }
+   }
+
+   return result;
 }
 
 // end

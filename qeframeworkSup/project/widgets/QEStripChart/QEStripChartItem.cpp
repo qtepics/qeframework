@@ -1614,4 +1614,19 @@ void QEStripChartItem::restoreConfiguration (PMElement& parentElement)
    }
 }
 
+//------------------------------------------------------------------------------
+//
+void QEStripChartItem::updateMenu (QAction* action, const bool inUseMenu)
+{
+   if(!action) return;
+
+   if (inUseMenu) {
+      action->setParent (this->inUseMenu);
+      this->inUseMenu->addAction (action);
+   } else {
+      action->setParent (this->emptyMenu);
+      this->emptyMenu->addAction (action);
+   }
+}
+
 // end

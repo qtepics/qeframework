@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2016 Australian Synchrotron.
+ *  Copyright (c) 2012,2016,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -1209,6 +1209,16 @@ int QEStripChart::addPvName (const QString& pvName)
    //
    this->evaluateAllowDrop ();
    return result;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChart::updateItemMenu (const int slot, QAction* action, const bool inUseMenu)
+{
+   QEStripChartItem* item = this->getItem (slot);
+   if (item) {
+      item->updateMenu (action, inUseMenu);
+   }
 }
 
 //------------------------------------------------------------------------------
