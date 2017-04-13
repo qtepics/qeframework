@@ -542,9 +542,23 @@ void QEGenericButton::userReleased()
 void QEGenericButton::userClicked( bool checked )
 {
     // Do nothing if nothing to do. (no point asking for confirmation or password)
-    // Then keep doing nothing if user confirmation required but not given, or password required but not given
-    if(( !writeOnClick && programLauncher.getProgram().isEmpty() && guiName.isEmpty() ) ||  !confirmAction() || !checkPassword() )
+    if( !writeOnClick && programLauncher.getProgram().isEmpty() && guiName.isEmpty() )
+    {
         return;
+    }
+
+    // Keep doing nothing if user confirmation required but not given, or password required but not given
+    // If confirmation not given or password verification failed, then reset widget checked state if checkable.
+    // Should this also apply to userPressed and/or userReleased functions?
+    if( !confirmAction() || !checkPassword() )
+    {
+        QAbstractButton* button = getButtonQObject();
+        if( button->isCheckable() ) {
+            // Un-check/re-check.
+            button->setChecked (!checked);
+        }
+        return;
+    }
 
     // Get the variable to write to
     QEString *qca = (QEString*)getQcaItem(0);
