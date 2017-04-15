@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2014,2016 Australian Synchrotron.
+ *  Copyright (c) 2014,2016,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -23,11 +23,10 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QSimpleShape.h"
 #include <QDebug>
 #include <QPainter>
 #include <QECommon.h>
-
-#include "QSimpleShape.h"
 
 #define DEBUG qDebug () << "QSimpleShape" << __LINE__ << __FUNCTION__ << "  "
 
@@ -46,6 +45,8 @@ QSimpleShape::QSimpleShape (QWidget* parent) : QWidget (parent)
    this->fixedText = "";
    this->isActive = true;
    this->edgeWidth = 1;
+   this->semiCycles = 8;
+   this->percentSize = 10;
    this->flashStateIsOn = false;
 
    this->edgeColour     = QColor (0,   0,   0);        // black
@@ -111,17 +112,21 @@ void QSimpleShape::paintEvent (QPaintEvent*)
    QPen pen;
    QBrush brush;
    QRect rect;
-   QPoint polygon [20];
+   QPoint polygon [128];  // 30 snake points
    QColor colour;
    QColor boarderColour;
    bool washedOut = false;
    QString text;
-   int f = 0;   // fraction
-   int g = 0;   // co-fraction
+   int f = 0;             // fraction
+   int g = 0;             // co-fraction
    int sum;
 
-   int x0, x1, x2;
-   int y0, y1, y2;
+   // work variables
+   int numPoints, ds;
+   int p, q;
+   int x0, x1, x2, x3;
+   int y0, y1, y2, y3;
+   double dx, dy;
 
    // Get basic colour property.
    // NOTE: This is a dispatching call.
@@ -389,7 +394,7 @@ void QSimpleShape::paintEvent (QPaintEvent*)
          break;
 
       case octogon:
-         // sum/f is approx sqrt (2) - the rest is high-school geometry.
+         // sum/f is a very good approximation of sqrt (2) - the rest is high-school geometry.
          //
          sum = 99;
          f = 70;
@@ -408,6 +413,120 @@ void QSimpleShape::paintEvent (QPaintEvent*)
          polygon[7] = QPoint (rect.left (),  y2);
          polygon[8] = polygon[0];       // close loop
          painter.drawPolygon (polygon, 9);
+         break;
+
+      case snakeHorizontal:
+         ds = (rect.height () * this->percentSize + 49) / 100;
+
+         // calculate pitch
+         dx = double (rect.width () - ds) / double (this->semiCycles);
+         if (dx <= 0.0) break;
+
+         y0 = rect.top () + ds;
+         y1 = (rect.top () + rect.bottom ()) / 2;
+         y2 = rect.bottom () - ds;
+
+         numPoints = this->semiCycles*4 + 4;
+
+         // First and last point indices, which count up/down respectively.
+         //
+         p = 0;
+         q = numPoints - 1;
+
+         polygon[p++] = QPoint (rect.left (),       y1);
+         polygon[q--] = QPoint (rect.left () + ds,  y1);
+
+         x2 = x3 = 0;  // avoid warning
+         for (int j = 0; j < this->semiCycles; j++) {
+
+            x0 = rect.left () + int ((j + 0)*dx);
+            x1 = x0 + ds;
+
+            x2 = rect.left () + int ((j + 1)*dx);
+            x3 = x2 + ds;
+
+            if (j%2 == 0) {
+               polygon[p++] =  QPoint (x0, rect.top ());
+               polygon[q--] =  QPoint (x1, y0);
+
+               polygon[p++] =  QPoint (x3, rect.top ());
+               polygon[q--] =  QPoint (x2, y0);
+            } else {
+               polygon[p++] =  QPoint (x1, y2);
+               polygon[q--] =  QPoint (x0, rect.bottom ());
+
+               polygon[p++] =  QPoint (x2, y2);
+               polygon[q--] =  QPoint (x3, rect.bottom ());
+            }
+         }
+
+         if (this->semiCycles%2 == 0) {
+            polygon[p++] = QPoint (x2, y1);
+            polygon[q--] = QPoint (x3, y1);
+         } else {
+            polygon[p++] = QPoint (x3, y1);
+            polygon[q--] = QPoint (x2, y1);
+         }
+
+         polygon[numPoints] = polygon[0];       // close loop
+         painter.drawPolygon (polygon, numPoints + 1);
+         break;
+
+      case snakeVertical:
+         // Same but x/y swapped.
+
+         ds = (rect.width () * this->percentSize + 49) / 100;
+         // calculate pitch
+         dy = double (rect.height () - ds) / double (this->semiCycles);
+         if (dy <= 0.0) break;
+
+         x0 = rect.left ()  + ds;
+         x1 = (rect.left () + rect.right ()) / 2;
+         x2 = rect.right () - ds;
+
+         numPoints = this->semiCycles*4 + 4;
+
+         // First and last point indices, which count up/down respectively.
+         //
+         p = 0;
+         q = numPoints - 1;
+
+         polygon[p++] = QPoint (x1, rect.top () + ds);
+         polygon[q--] = QPoint (x1, rect.top ()     );
+
+         y2 = y3 = 0;  // avoid warning
+         for (int j = 0; j < this->semiCycles; j++) {
+            y0 = rect.top () + int ((j + 0)*dy);
+            y1 = y0 + ds;
+
+            y2 = rect.top () + int ((j + 1)*dy);
+            y3 = y2 + ds;
+
+            if (j%2 == 1) {
+               polygon[p++] =  QPoint (rect.left (), y0);
+               polygon[q--] =  QPoint (x0, y1);
+
+               polygon[p++] =  QPoint (rect.left (), y3);
+               polygon[q--] =  QPoint (x0, y2);
+            } else {
+               polygon[p++] =  QPoint (x2, y1);
+               polygon[q--] =  QPoint (rect.right (), y0);
+
+               polygon[p++] =  QPoint (x2, y2);
+               polygon[q--] =  QPoint (rect.right (), y3);
+            }
+         }
+
+         if (this->semiCycles%2 == 1) {
+            polygon[p++] = QPoint (x1, y2);
+            polygon[q--] = QPoint (x1, y3);
+         } else {
+            polygon[p++] = QPoint (x1, y3);
+            polygon[q--] = QPoint (x1, y2);
+         }
+
+         polygon[numPoints] = polygon[0];       // close loop
+         painter.drawPolygon (polygon, numPoints + 1);
          break;
 
       default:
@@ -537,6 +656,40 @@ void QSimpleShape::setEdgeWidth (const int edgeWidthIn)
 int QSimpleShape::getEdgeWidth () const
 {
    return this->edgeWidth;
+}
+
+//------------------------------------------------------------------------------
+//
+void QSimpleShape::setSemiCycles (const int semiCyclesIn)
+{
+   this->semiCycles = LIMIT (semiCyclesIn, 1, 30);
+   if ((this->shape == snakeHorizontal) || (this->shape == snakeVertical)) {
+       this->update ();
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+int QSimpleShape::getSemiCycles () const
+{
+   return this->semiCycles;
+}
+
+//------------------------------------------------------------------------------
+//
+void QSimpleShape::setPercentSize (const int percentSizeIn)
+{
+   this->percentSize = LIMIT (percentSizeIn, 1, 50);
+    if ((this->shape == snakeHorizontal) || (this->shape == snakeVertical)) {
+       this->update ();
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+int QSimpleShape::getPercentSize () const
+{
+   return this->percentSize;
 }
 
 //------------------------------------------------------------------------------

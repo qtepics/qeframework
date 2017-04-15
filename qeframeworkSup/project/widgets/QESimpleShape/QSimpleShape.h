@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2014,2016 Australian Synchrotron.
+ *  Copyright (c) 2014,2016,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -47,22 +47,33 @@ public:
                  triangleUp, triangleDown, triangleLeft, triangleRight,
                  triangleTopRight, triangleBottomRight, triangleBottomLeft, triangleTopLeft,
                  diamond, equalDiamond, arrowUp, arrowDown, arrowLeft, arrowRight,
-                 crossHorizontal, crossVertical, hexagon, octogon };
+                 crossHorizontal, crossVertical, hexagon, octogon,
+                 snakeHorizontal, snakeVertical };
    Q_ENUMS (Shapes)
 
    /// Nominated shape
    ///
-   Q_PROPERTY (Shapes shape     READ getShape     WRITE setShape)
+   Q_PROPERTY (Shapes shape       READ getShape       WRITE setShape)
 
    /// Edge width - range 0 to 20 - default is 1.
    /// If edge width set to 0, then shape colour used for edge/boarder colour.
-   Q_PROPERTY (int    edgeWidth READ getEdgeWidth WRITE setEdgeWidth)
+   Q_PROPERTY (int    edgeWidth   READ getEdgeWidth   WRITE setEdgeWidth)
+
+   /// Number of semi-cycles - range 1 to 30 - default is 8.
+   /// Only applies to serpentine items.
+   Q_PROPERTY (int    semiCycles  READ getSemiCycles  WRITE setSemiCycles)
+
+   /// Breadth of serpentine line as a percentage of widget height or width
+   /// depending on wheather horizontal or vertical orientatiion.
+   /// Range 1 to 50, default 10%
+   /// Only applies to serpentine items.
+   Q_PROPERTY (int    percentSize READ getPercentSize WRITE setPercentSize)
 
    /// Shape value - range 0 to 15 - default is zero.
-   Q_PROPERTY (int    value     READ getValue     WRITE setValue)
+   Q_PROPERTY (int    value       READ getValue       WRITE setValue)
 
    /// Shape value modulus - range 2 to 16 - default is 16.
-   Q_PROPERTY (int    modulus   READ getModulus   WRITE setModulus)
+   Q_PROPERTY (int    modulus     READ getModulus     WRITE setModulus)
 
    //----------------------------------------------------------------------------------
    // Note: PvText and LocalEnumeration are a nod to QESimpleShape. LocalEnumeration has
@@ -72,7 +83,7 @@ public:
    enum TextFormats { FixedText,           ///< Use user specified fixed text (default)
                       StateSet,            ///< Use one of the stae Set values
                       PvText,              ///< Use EPICS value agumented with units if selected.
-                      LocalEnumeration };  ///< Use specied enumeration values, PV value (modulo 16) used to select item
+                      LocalEnumeration };  ///< Use specied enumeration values, PV value used to select item
    Q_ENUMS (TextFormats)
 
    /// Nominated text format
@@ -171,6 +182,12 @@ public:
    void setEdgeWidth (const int value);
    int getEdgeWidth () const;
 
+   void setSemiCycles (const int value);
+   int getSemiCycles () const;
+
+   void setPercentSize (const int value);
+   int getPercentSize () const;
+
    void setEdgeColour (const QColor value);
    QColor getEdgeColour () const;
 
@@ -229,7 +246,7 @@ protected:
    // Allows drived class to do specials as required, e.g. PV text or
    // the alarm severity colour.
    //
-   virtual QString getItemText ();
+   virtual QString getItemText ();    /// returns "" unless overriden.
    virtual QColor getItemColour ();
 
 private:
@@ -249,6 +266,8 @@ private:
    QEScanTimers::ScanRates flashRate;
    bool flashStateIsOn;
    int edgeWidth;
+   int semiCycles;
+   int percentSize;
    QColor flashOffColour;
    QColor edgeColour;
    QColor colourList [16];
