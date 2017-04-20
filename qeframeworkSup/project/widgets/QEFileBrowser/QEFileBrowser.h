@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
+ *  Copyright (c) 2012,2017 Australian Synchrotron
  *
  *  Author:
  *    Ricardo Fernandes
@@ -178,7 +178,8 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEFileBrowser:public QWidget, public QEWidget
         /// Enable/disable the browsing of directories-only when opening the dialog window
         Q_PROPERTY(bool fileDialogDirectoriesOnly READ getFileDialogDirectoriesOnly WRITE setFileDialogDirectoriesOnly)
 
-        /// Specify which files to browse. To specify more than one filter, please separate them with a “;”. Example: *.py;*.ui (this will only display files with an extension .py or .ui).
+        /// Specify which files to browse. To specify more than one filter, please separate them with a ";".
+        /// Example: *.py;*.ui (this will only display files with an extension .py or .ui).
         Q_PROPERTY(QString fileFilter READ getFileFilter WRITE setFileFilter)
 
         /// Change the order of the widgets. Valid orders are: TOP, BOTTOM, LEFT and RIG
@@ -327,10 +328,11 @@ public:
 
         void itemActivated(QTableWidgetItem *);
 
-
     signals:
-        /// Signal that is generated every time the user double-clicks a certain file. This signals emits a string that contains the full path and the name of the selected file.
-        /// This signal may be captured by other widgets that perform further operations (for instance, the QEImage displays the content of this file if it is a graphical one).
+        /// Signal that is generated every time the user double-clicks a certain file.
+        /// This signals emits a string that contains the full path and the name of the selected file.
+        /// This signal may be captured by other widgets that perform further operations (for instance,
+        /// the QEImage displays the content of this file if it is a graphical one).
         void selected(QString pFilename);
 
 };
