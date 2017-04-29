@@ -1,4 +1,55 @@
 ==================================================================================================
+Changes between 3.4.2 and 3.4.1 (this includes changes to all branches and tags and may include changes not related to this release)
+
+SUMMARY:
+Re-generated the QE Reference Manual.
+
+Updated the bit status, analog progress bar and simple shape icons.
+
+Add snake shape option to QSimpleShape - this is to support cryo cooler gui.
+
+QEFileBrowser - remove none UTF-8 character.
+
+DETAIL:
+------------------------------------------------------------------------
+r2031 | andrewstarritt | 2017-04-16 16:33:31 +1000 (Sun, 16 Apr 2017) | 5 lines
+
+[GUI-34] Update resourse makefile to call up Makefile.EPICS_HOST_ARCH
+Update release.py to become python3 compatible and replace tabs with spaces.
+Get Doxyfile ready for next release. Change 41359 by starritt
+
+
+------------------------------------------------------------------------
+r2032 | andrewstarritt | 2017-04-16 17:01:55 +1000 (Sun, 16 Apr 2017) | 8 lines
+
+Update bit status, analog progress bar and simple shape icons.
+Icons now formed from screen snap shots of an actual widgets.
+Update framework version to 3.4.1 development
+Add snake shape option to QSimpleShape - this is to support cryo cooler gui.
+QEFileBrowser - remove none UTF-8 character.
+Change 41361 by starritt
+
+
+------------------------------------------------------------------------
+r2033 | andrewstarritt | 2017-04-19 18:14:59 +1000 (Wed, 19 Apr 2017) | 5 lines
+
+Prepare for next release to include an updated QE_ReferenceManual.pdf
+Update Doxyfile config file and in epicsqt.dox to reference LGPL as opposed to GPL.
+Update compare_common_properties script to be python3 compatible.
+Change 41363 by starritt
+
+------------------------------------------------------------------------
+r2034 | andrewstarritt | 2017-04-27 16:02:06 +1000 (Thu, 27 Apr 2017) | 2 lines
+
+Run doxygen to re-generate the QE reference manual ready for next release. Change 41407 by starritt
+
+------------------------------------------------------------------------
+r2035 | andrewstarritt | 2017-04-29 17:34:42 +1000 (Sat, 29 Apr 2017) | 2 lines
+
+Add missing release notes for previous release 3.4.1   Change 41503 by starritt
+
+------------------------------------------------------------------------
+==================================================================================================
 Changes between 3.3.1 and 3.2.4 (this includes changes to all branches and tags and may include changes not related to this release)
 
 SUMMARY:
