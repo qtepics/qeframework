@@ -7,6 +7,8 @@ Many widgets now emit a connection/disconnection signal and the dbValueChanged s
 The context menu has been improved to detect array PVs and offer the option to plot the PV or show in a histogram.
 .
 Added mouse middle button support to copy the variable name to clip-board and show the name on the status bar.
+Added mouse double middle button click functionality to "Plot in StripChart".
+Added mouse double left button click functionality to "Examine PV Properties".
 .
 All single variable widgets now provide an arrayIndex property that allows the selection of the element of
 an array PV to be displayed and/or written to.

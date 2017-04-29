@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/Makefile $
-# $Revision: #4 $
-# $DateTime: 2016/11/08 17:29:39 $
+# $Revision: #5 $
+# $DateTime: 2017/04/28 13:36:27 $
 # Last checked in by: $Author: starritt $
 #
 # This make file is the bridge beween the EPICS build system and the Qt project qmake/make paradigm.
@@ -13,6 +13,13 @@ TOP=..
 include $(TOP)/configure/CONFIG
 #
 # Note: we do not include the rule $(TOP)/configure/RULES
+
+# Note: this makefile calls up qmake. Depending on which version of Qt you are using, you may
+# have to setup qmake in your development PATH to call up the required version of qmake.
+# E.g. on Linux with Qt4, create the following symbolic link:
+#
+#    /usr/local/bin/qmake -> /usr/bin/qmake-qt4
+#
 
 # Create environment variable from Make variable as defined in $(TOP)/configure/RELEASE
 # Note use of := which avoids "*** Recursive variable `EPICS_BASE' references itself (eventually)" error
