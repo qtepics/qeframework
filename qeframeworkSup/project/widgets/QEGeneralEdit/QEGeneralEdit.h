@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2014,2016 Australian Synchrotron.
+ *  Copyright (c) 2014,2016,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -34,10 +34,6 @@
 #include <QWidget>
 #include <QSize>
 
-#include "QEGroupBox.h"
-#include "QELabel.h"
-#include "QELineEdit.h"
-#include "QENumericEdit.h"
 #include "QERadioGroup.h"
 
 #include <QCaObject.h>
@@ -49,6 +45,11 @@
 #include <QCaVariableNamePropertyManager.h>
 #include <QEPluginLibrary_global.h>
 #include <QEFrame.h>
+
+
+namespace Ui {
+   class General_Edit_Form;   // differed
+}
 
 /*!
  * \brief The QEGeneralEdit class
@@ -93,6 +94,22 @@ public:
    //
    // END-SINGLE-VARIABLE-V2-PROPERTIES =================================================
 
+   // Widget specific properties.
+   //
+   /// Button style for enumerations edits.
+   ///
+   Q_PROPERTY (QRadioGroup::ButtonStyles buttonStyle READ getButtonStyle  WRITE setButtonStyle)
+
+   /// Button order for enumerations edits.
+   ///
+   Q_PROPERTY (QRadioGroup::ButtonOrders buttonOrder READ getButtonOrder  WRITE setButtonOrder)
+
+   /// For numeric and string edits, the cnage can be applied on enter/lose focus, or
+   /// applied via explicity clicking an apply button. Setting this proerty false
+   /// uses the former, true the latter. The default property value is false.
+   ///
+   Q_PROPERTY (bool  useApplyButton   READ getUseApplyButton       WRITE setUseApplyButton)
+
 public:
    /// Create without a variable.
    /// Use setVariableNameProperty() and setSubstitutionsProperty() to define a
@@ -110,9 +127,43 @@ public:
    /// Destruction
    virtual ~QEGeneralEdit () {}
 
-   // Override/hide paraent function.
+   // Override/hide parent function.
    //
    void setArrayIndex (const int arrayIndex);
+
+   // Property value setter and getter functions
+   //
+   void setButtonStyle (const QRadioGroup::ButtonStyles style);
+   QRadioGroup::ButtonStyles getButtonStyle () const;
+
+   void setButtonOrder (const QRadioGroup::ButtonOrders order);
+   QRadioGroup::ButtonOrders getButtonOrder () const;
+
+   void setUseApplyButton (const bool useApplyButton);
+   bool getUseApplyButton () const;
+
+signals:
+   // Note, the following signals are common to many QE widgets,
+   // if changing the doxygen comments, ensure relevent changes are migrated to all instances
+   // These signals are emitted using the QEEmitter::emitDbValueChanged function.
+   // This signal emiited as a result of changes to the primary PV variable only,
+   // i.e. excludes the edgeVariable.
+   /// Sent when the widget is updated following a data change
+   /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
+   /// For example a QList widget could log updates from this widget.
+   ///
+   void dbValueChanged (const QString& out);   // signal as formatted text
+   void dbValueChanged (const int& out);       // signal as int if applicable
+   void dbValueChanged (const long& out);      // signal as long if applicable
+   void dbValueChanged (const qlonglong& out); // signal as qlonglong if applicable
+   void dbValueChanged (const double& out);    // signal as floating if applicable
+   void dbValueChanged (const bool& out);      // signal as bool: value != 0 if applicable
+
+   // This signal is emitted using the QEEmitter::emitDbConnectionChanged function.
+   /// Sent when the widget state updated following a channel connection change
+   /// Applied to provary varible.
+   ///
+   void dbConnectionChanged (const bool& isConnected);
 
 protected:
    QSize sizeHint () const;
@@ -124,19 +175,12 @@ protected:
 
 private:
    void commonSetup ();
-   void createInternalWidgets ();
 
-   QVBoxLayout *verticalLayout;
-   QLabel *pvNameLabel;
-   QELabel *valueLabel;
-   QENumericEdit *numericEditWidget;
-   QERadioGroup *radioGroupPanel;
-   QELineEdit *stringEditWidget;
-
+   Ui::General_Edit_Form* ui;
    bool isFirstUpdate;
+   bool useApplyButton;
 
 private slots:
-
    void useNewVariableNameProperty (QString variableNameIn,
                                     QString variableNameSubstitutionsIn,
                                     unsigned int variableIndex);
@@ -144,14 +188,20 @@ private slots:
    void connectionChanged (QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex);
    void dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex);
 
+   // Handles signals from within the General_Edit_Form itself.
+   //
+   void onStringEditApply (bool checked);
+   void onNumericEditApply (bool checked);
+   void onZerosValueChanged (const int value);
+   void onPrecisionValueChanged (const int value);
 
 protected:
    // Drag and Drop
    void dragEnterEvent(QDragEnterEvent *event) { qcaDragEnterEvent( event );  }
    void dropEvent(QDropEvent *event)           { qcaDropEvent( event );       }
    void mousePressEvent(QMouseEvent *event)    { qcaMousePressEvent( event ); }
-   void setDrop( QVariant drop );
-   QVariant getDrop();
+
+   // Use default getDrop/setDrop
 
    // Copy paste
    QString copyVariable ();

@@ -566,7 +566,7 @@ void QENumericEdit::calculateAutoValues ()
    }
    autoPrecision = qca->getPrecision ();
 
-   // Now apply auto values to the internal QNumeric object.
+   // Now apply auto values to the internal QNumericEdit object.
    // Note the order of application.
    //
    this->internalWidget->setLeadingZeros (autoLeadingZeros);

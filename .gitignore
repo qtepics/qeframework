@@ -1,0 +1,14 @@
+O.Common/
+O.linux-x86_64/
+O.linux-x86/
+O.windows-x64/
+O.win32-x86/
+O.win32-x86-mingw/
+bin/
+lib/
+include/
+*.o
+*.exe
+*.creator.user
+*.linux-x86_64
+*.linux-x86

@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2014,2016Australian Synchrotron.
+ *  Copyright (c) 2014,2016,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -23,11 +23,22 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEGeneralEdit.h"
+
+// In this context, we are a user of the QEPlugin library as we are using
+// the moc generated ui_QEGeneralEdit.h file that needs access the meta
+// types to be declared.
+//
+#define QE_DECLARE_METATYPE_IS_REQUIRED
+
 #include <QDebug>
 #include <QECommon.h>
 #include <QEScaling.h>
 
-#include "QEGeneralEdit.h"
+#include <QELabel.h>
+#include <QELineEdit.h>
+#include <QENumericEdit.h>
+#include <ui_QEGeneralEdit.h>
 
 #define DEBUG qDebug () << "QEGeneralEdit" << __LINE__ << __FUNCTION__ << "  "
 
@@ -53,7 +64,7 @@ QEGeneralEdit::QEGeneralEdit (const QString & variableNameIn,
    QESingleVariableMethods (this, PV_VARIABLE_INDEX)
 {
    this->commonSetup ();
-   this->setVariableName (variableNameIn, 0);
+   this->setVariableName (variableNameIn, PV_VARIABLE_INDEX);
    this->activate ();
 }
 
@@ -69,6 +80,23 @@ QSize QEGeneralEdit::sizeHint () const
 //
 void QEGeneralEdit::commonSetup ()
 {
+   this->ui = new Ui::General_Edit_Form ();
+   this->ui->setupUi (this);
+
+   // Clear design time styles.
+   //
+   this->ui->numericEditPanel->setStyleSheet("");
+   this->ui->stringEditPanel->setStyleSheet("");
+
+   // Set two of three edit modes invisible.
+   //
+   this->ui->numericEditPanel->setVisible (false);
+   this->ui->enumerationEditPanel->setVisible (false);
+
+   // No apply buttons by default.
+   //
+   this->setUseApplyButton (false);
+
    // Configure the panel.
    //
    this->setFrameShape (QFrame::Panel);
@@ -89,8 +117,6 @@ void QEGeneralEdit::commonSetup ()
    this->setAllowDrop (true);
    this->setDisplayAlarmState (false);
 
-   this->createInternalWidgets ();
-
    this->setMinimumWidth (400);
    this->setMinimumHeight (50);
 
@@ -103,48 +129,22 @@ void QEGeneralEdit::commonSetup ()
    // variable name after the user has stopped typing.
    //
    this->connectNewVariableNameProperty (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
-}
 
-//------------------------------------------------------------------------------
-//
-void QEGeneralEdit::createInternalWidgets ()
-{
-   this->verticalLayout = new QVBoxLayout (this);
-   this->verticalLayout->setMargin (4);
-   this->verticalLayout->setSpacing (4);
+   // Apply button connections (always connected even when not in use).
+   //
+   QObject::connect (this->ui->numericEditApplyButton, SIGNAL (clicked (bool)),
+                     this, SLOT (onNumericEditApply (bool)));
 
-   this->pvNameLabel = new QLabel (this);
-   this->pvNameLabel->setAlignment (Qt::AlignHCenter);
-   this->pvNameLabel->setMinimumWidth (320);
-   this->pvNameLabel->setMinimumHeight (17);
-   this->pvNameLabel->setMaximumHeight (17);
-   this->verticalLayout->addWidget (pvNameLabel);
+   QObject::connect (this->ui->stringEditApplyButton, SIGNAL (clicked (bool)),
+                     this, SLOT (onStringEditApply (bool)));
 
-   this->valueLabel = new QELabel (this);
-   this->valueLabel->setArrayAction (QEStringFormatting::INDEX);
-   this->valueLabel->setFrameShape (QFrame::Panel);
-   this->valueLabel->setFrameShadow (QFrame::Plain);
-   this->valueLabel->setMinimumHeight (19);
-   this->valueLabel->setMaximumHeight (19);
-   this->verticalLayout->addWidget (valueLabel);
+   // Updated for adjusting the leading zeros and precision of the numeric edit widget.
+   //
+   QObject::connect (this->ui->zerosEdit, SIGNAL (valueChanged (const int)),
+                     this, SLOT (onZerosValueChanged (const int)));
 
-   this->numericEditWidget = new QENumericEdit (this);
-   this->numericEditWidget->setAddUnits (false);
-   this->numericEditWidget->setMinimumSize (200, 23);
-   this->verticalLayout->addWidget (numericEditWidget);
-
-   this->radioGroupPanel = new QERadioGroup ("", "", this);
-   this->radioGroupPanel->setMinimumSize (QSize (412, 23));
-   this->radioGroupPanel->setColumns (3);
-   this->verticalLayout->addWidget (this->radioGroupPanel);
-
-   this->stringEditWidget = new QELineEdit (this);
-   this->stringEditWidget->setMinimumSize (342, 23);
-   this->verticalLayout->addWidget (this->stringEditWidget);
-
-   this->numericEditWidget->setVisible (false);
-   this->radioGroupPanel->setVisible (false);
-   this->stringEditWidget->setVisible (true);  // allow one (at least at design time)
+   QObject::connect (this->ui->precisionEdit, SIGNAL (valueChanged (const int)),
+                    this, SLOT (onPrecisionValueChanged (const int)));
 }
 
 //------------------------------------------------------------------------------
@@ -157,29 +157,31 @@ void QEGeneralEdit::setArrayIndex (const int arrayIndex)
 
    // And then apply to each internal widget
    //
-   this->valueLabel->setArrayIndex (arrayIndex);
-   this->numericEditWidget->setArrayIndex (arrayIndex);
-   this->radioGroupPanel->setArrayIndex (arrayIndex);
-   this->stringEditWidget->setArrayIndex (arrayIndex);
+   this->ui->valueLabel->setArrayIndex (arrayIndex);
+   this->ui->numericEditWidget->setArrayIndex (arrayIndex);
+   this->ui->radioGroupWidget->setArrayIndex (arrayIndex);
+   this->ui->stringEditWidget->setArrayIndex (arrayIndex);
 }
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of
 // QCaObject required. A QCaObject that streams integers is required.
 //
-qcaobject::QCaObject*  QEGeneralEdit::createQcaItem (unsigned int variableIndex)
+qcaobject::QCaObject* QEGeneralEdit::createQcaItem (unsigned int variableIndex)
 {
    qcaobject::QCaObject * result = NULL;
    QString pvName;
 
-   if (variableIndex != 0) {
+   if (variableIndex != PV_VARIABLE_INDEX) {
       DEBUG << "unexpected variableIndex" << variableIndex;
       return NULL;
    }
 
    pvName = this->getSubstitutedVariableName (0).trimmed ();
-   this->pvNameLabel->setText (pvName);
+   this->ui->pvNameLabel->setText (pvName);
 
+   // We create a generic connection here as opposed to a QEInteger or QEFloating etc.
+   //
    result = new qcaobject::QCaObject (pvName, this, variableIndex);
 
    // Apply currently defined array index.
@@ -198,7 +200,7 @@ qcaobject::QCaObject*  QEGeneralEdit::createQcaItem (unsigned int variableIndex)
 //
 void QEGeneralEdit::establishConnection (unsigned int variableIndex)
 {
-   if (variableIndex != 0) {
+   if (variableIndex != PV_VARIABLE_INDEX) {
       DEBUG << "unexpected variableIndex" << variableIndex;
       return;
    }
@@ -221,51 +223,62 @@ void QEGeneralEdit::establishConnection (unsigned int variableIndex)
 }
 
 //------------------------------------------------------------------------------
-// Act on a connection change.
-// Change how the s looks and change the tool tip
+// Act on a connection change - modify the tool tip
+// We don't chage the style - the inner widgets can to that.
 // This is the slot used to recieve connection updates from a QCaObject based class.
 //
-void QEGeneralEdit::connectionChanged (QCaConnectionInfo& connectionInfo, const unsigned int& )
+void QEGeneralEdit::connectionChanged (QCaConnectionInfo& connectionInfo,
+                                       const unsigned int& variableIndex)
 {
+   if (variableIndex != PV_VARIABLE_INDEX) {
+      DEBUG << "unexpected variableIndex" << variableIndex;
+      return;
+   }
+
    // Note the connected state
    //
    bool isConnected = connectionInfo.isChannelConnected ();
 
    // Display the connected state
    //
-   updateToolTipConnection (isConnected);
-   updateConnectionStyle (isConnected);
+   this->updateToolTipConnection (isConnected);
 
    this->isFirstUpdate = true;
+
+   // Signal channel connection change to any (Link) widgets.
+   // using signal dbConnectionChanged.
+   //
+   this->emitDbConnectionChanged (PV_VARIABLE_INDEX);
 }
 
 //-----------------------------------------------------------------------------
 //
-void QEGeneralEdit::dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& )
+void QEGeneralEdit::dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
+                                 QCaDateTime&, const unsigned int& variableIndex)
 
 {
+   if (variableIndex != PV_VARIABLE_INDEX) {
+      DEBUG << "unexpected variableIndex" << variableIndex;
+      return;
+   }
+
    qcaobject::QCaObject* qca = this->getQcaItem (0);
 
    if (qca && this->isFirstUpdate) {
-      QWidget* useThisWidget = NULL;
-      QString pvName;
-      int numElements = 0;
+      const QString pvName = this->getSubstitutedVariableName (0).trimmed ();
 
-      pvName = this->getSubstitutedVariableName (0).trimmed ();
-      this->valueLabel->setVariableNameAndSubstitutions (pvName, "", 0);
+      this->ui->valueLabel->setVariableNameAndSubstitutions (pvName, "", 0);
+      this->ui->valueLabel->activate ();
 
       // Clear all three optional edit widgets.
       //
-      // Can't use regular widget setVisible as this gets inter-twinggled with
-      // the visibility set by the setting user level.
-      //
-      this->numericEditWidget->setRunVisible (false);
-      this->radioGroupPanel->setRunVisible (false);
-      this->stringEditWidget->setRunVisible (false);
+      this->ui->numericEditPanel->setVisible (false);
+      this->ui->enumerationEditPanel->setVisible (false);
+      this->ui->stringEditPanel->setVisible (false);
 
-      this->numericEditWidget->setVariableNameAndSubstitutions ("", "", 0);
-      this->radioGroupPanel->setVariableNameAndSubstitutions ("", "", 0);
-      this->stringEditWidget->setVariableNameAndSubstitutions ("", "", 0);
+      this->ui->numericEditWidget->setVariableNameAndSubstitutions ("", "", 0);
+      this->ui->radioGroupWidget->setVariableNameAndSubstitutions ("", "", 0);
+      this->ui->stringEditWidget->setVariableNameAndSubstitutions ("", "", 0);
 
       QVariant workingValue = value;
       QVariant::Type type = workingValue.type ();
@@ -283,12 +296,18 @@ void QEGeneralEdit::dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
          }
       }
 
-      // Use data type to figure out which type of editting widget is most
+      // Use data type to figure out which type of editing widget is most
       // appropriate.
       //
+      QWidget* useThisWidget = NULL;
+      QWidget* inThisPanel = NULL;
+      int numElements = 0;
+
       switch (type) {
+
          case QVariant::String:
-            useThisWidget = this->stringEditWidget;
+            useThisWidget = this->ui->stringEditWidget;
+            inThisPanel = this->ui->stringEditPanel;
             break;
 
          case QVariant::Int:
@@ -297,24 +316,45 @@ void QEGeneralEdit::dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
          case QVariant::ULongLong:
             numElements = qca->getEnumerations().count();
             if (numElements > 0) {
-               int numRows;
-
                // represents an enumeration.
                //
-               numRows = (numElements + 2) / 3;
-               this->radioGroupPanel->setMinimumHeight ((numRows + 2) *  QEScaling::scale (20));
+               const int numRows = (numElements + 3) / 4;
+               const int rowHgt = (this->getButtonStyle () == QRadioGroup::Radio) ? 24 : 28;
+               const int minh = (numRows * QEScaling::scale (rowHgt)) + QEScaling::scale (24);
+               this->ui->enumerationEditPanel->setMinimumHeight (minh);
 
-               useThisWidget = this->radioGroupPanel;
+               useThisWidget = this->ui->radioGroupWidget;
+               inThisPanel = this->ui->enumerationEditPanel;
             } else {
                // basic integer
                //
-               useThisWidget = this->numericEditWidget;
-
+               useThisWidget = this->ui->numericEditWidget;
+               inThisPanel = this->ui->numericEditPanel;
             }
             break;
-\
+
          case QVariant::Double:
-            useThisWidget = this->numericEditWidget;
+            {
+               int p = qca->getPrecision();
+
+               this->ui->precisionEdit->setValue (p);
+
+               double t = MAX (ABS (qca->getControlLimitLower ()),
+                               ABS (qca->getControlLimitUpper ()));
+               if (t == 0.0) {
+                  t = MAX (ABS (qca->getDisplayLimitLower ()),
+                           ABS (qca->getDisplayLimitUpper ()));
+               }
+               t = MAX (t, 1);
+               int z = 1 + int (LOG10 (t));  // the (int) cast truncates to 0
+               this->ui->zerosEdit->setValue (z);
+
+               this->ui->numericEditWidget->setPrecision(p);
+               this->ui->numericEditWidget->setLeadingZeros (z);
+
+               useThisWidget = this->ui->numericEditWidget;
+               inThisPanel = this->ui->numericEditPanel;
+            }
             break;
 
          default:
@@ -323,20 +363,21 @@ void QEGeneralEdit::dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
       }
 
       QEWidget* qeWidget = dynamic_cast <QEWidget*> (useThisWidget);
-      if (useThisWidget && qeWidget) {
+      if (inThisPanel && qeWidget) {
 
-         qeWidget->setRunVisible (true);
+         inThisPanel->setVisible (true);
          qeWidget->setVariableNameAndSubstitutions (pvName, "", 0);
+         qeWidget->activate ();
 
          int newHeight =
-               this->pvNameLabel->minimumHeight () +
-               this->valueLabel->minimumHeight () +
-               useThisWidget->minimumHeight () +
-               QEScaling::scale (40);
+               this->ui->pvNameLabel->minimumHeight () +
+               this->ui->valueLabel->minimumHeight () +
+               inThisPanel->minimumHeight () +
+               QEScaling::scale (20);
 
          int newWidth =
-               MAX (this->pvNameLabel->minimumWidth (),
-                    useThisWidget->minimumWidth ()) +
+               MAX (this->ui->pvNameLabel->minimumWidth (),
+                    inThisPanel->minimumWidth ()) +
                QEScaling::scale (20);
 
          this->setMinimumSize (newWidth, newHeight);
@@ -349,44 +390,112 @@ void QEGeneralEdit::dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
    // Invoke common alarm handling processing.
    //
    this->processAlarmInfo (alarmInfo);
+
+   // Signal a database value change to any Link (or other) widgets using one
+   // of the dbValueChanged.
+   //
+   this->emitDbValueChanged (PV_VARIABLE_INDEX);
 }
 
+//------------------------------------------------------------------------------
+//
+void QEGeneralEdit::onStringEditApply (bool)
+{
+   this->ui->stringEditWidget->writeNow ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEGeneralEdit::onNumericEditApply (bool)
+{
+   this->ui->numericEditWidget->writeNow ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEGeneralEdit::onZerosValueChanged (const int value)
+{
+   this->ui->numericEditWidget->setAutoScale (false);
+   this->ui->numericEditWidget->setLeadingZeros (value);
+   this->ui->precisionEdit->setValue (MIN (15 - value, this->ui->precisionEdit->getValue ()));
+
+   // The min and max will get limited by the current precision/leading zeros value.
+   this->ui->numericEditWidget->setMinimum (-1.0E15);
+   this->ui->numericEditWidget->setMaximum (+1.0E15);
+}
+
+//------------------------------------------------------------------------------
+//
+void QEGeneralEdit::onPrecisionValueChanged (const int value)
+{
+   this->ui->numericEditWidget->setAutoScale (false);
+   this->ui->numericEditWidget->setPrecision (value);
+   this->ui->zerosEdit->setValue (MIN (15 - value, this->ui->zerosEdit->getValue ()));
+
+   // The min and max will get limited by the current precision/leading zeros value.
+   this->ui->numericEditWidget->setMinimum (-1.0E15);
+   this->ui->numericEditWidget->setMaximum (+1.0E15);
+}
 
 //==============================================================================
 // Properties
 // Update variable name etc.
 //
 void QEGeneralEdit::useNewVariableNameProperty (QString variableNameIn,
-                                                QString variableNameSubstitutionsIn,
+                                                QString substitutionsIn,
                                                 unsigned int variableIndex)
 {
-   this->setVariableNameAndSubstitutions (variableNameIn,
-                                          variableNameSubstitutionsIn,
-                                          variableIndex);
-}
-
-
-//==============================================================================
-// Drag drop
-//
-void QEGeneralEdit::setDrop (QVariant drop)
-{
-   this->setVariableName (drop.toString (), 0);
-   this->establishConnection (0);
+   this->setVariableNameAndSubstitutions (variableNameIn, substitutionsIn, variableIndex);
 }
 
 //------------------------------------------------------------------------------
 //
-QVariant QEGeneralEdit::getDrop ()
+void QEGeneralEdit::setButtonStyle (const QRadioGroup::ButtonStyles style)
 {
-   QVariant result;
+   this->ui->radioGroupWidget->setButtonStyle (style);
+}
 
-   if (this->isDraggingVariable ()) {
-      result = QVariant (this->copyVariable ());
-   } else {
-      result = this->copyData ();
-   }
-   return result;
+//------------------------------------------------------------------------------
+//
+QRadioGroup::ButtonStyles QEGeneralEdit::getButtonStyle () const
+{
+   return this->ui->radioGroupWidget->getButtonStyle ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEGeneralEdit::setButtonOrder (const QRadioGroup::ButtonOrders order)
+{
+   this->ui->radioGroupWidget->setButtonOrder (order);
+}
+
+//------------------------------------------------------------------------------
+//
+QRadioGroup::ButtonOrders QEGeneralEdit::getButtonOrder () const
+{
+   return this->ui->radioGroupWidget->getButtonOrder ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEGeneralEdit::setUseApplyButton (const bool useApplyButtonIn)
+{
+   this->useApplyButton = useApplyButtonIn;
+
+   this->ui->numericEditApplyButton->setVisible (this->useApplyButton);
+   this->ui->numericEditWidget->setWriteOnEnter (!this->useApplyButton);
+   this->ui->numericEditWidget->setWriteOnFinish (!this->useApplyButton);
+
+   this->ui->stringEditApplyButton->setVisible (this->useApplyButton);
+   this->ui->stringEditWidget->setWriteOnEnter (!this->useApplyButton);
+   this->ui->stringEditWidget->setWriteOnFinish (!this->useApplyButton);
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEGeneralEdit::getUseApplyButton () const
+{
+   return this->useApplyButton;
 }
 
 //==============================================================================
@@ -408,9 +517,8 @@ QVariant QEGeneralEdit::copyData ()
 //
 void QEGeneralEdit::paste (QVariant v)
 {
-   if (this->getAllowDrop ()) {
-      this->setDrop (v);
-   }
+   this->setVariableName (v.toString (), 0);
+   this->establishConnection (0);
 }
 
 // end
