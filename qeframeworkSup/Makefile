@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/Makefile $
-# $Revision: #7 $
-# $DateTime: 2017/05/03 13:23:09 $
+# $Revision: #8 $
+# $DateTime: 2017/05/03 18:48:46 $
 # Last checked in by: $Author: starritt $
 #
 # This make file is the bridge beween the EPICS build system and the Qt project qmake/make paradigm.
@@ -104,12 +104,12 @@ install: $(TARGET)
 $(TARGET) : $(SOURCE_DIR)/$(MAKEFILE)  always
 	@echo "=== Building $(LIBFILE) plugin"                      && \
 	cd  $(SOURCE_DIR)                                           && \
-	$(MAKE) -f $(MAKEFILE) -j3 -w                               && \
+	$(MAKE) -f $(MAKEFILE) -j 3 -w                              && \
 	echo "=== Installing plugin headers"                        && \
 	$(MAKE) -f $(MAKEFILE) install                              && \
 	echo "=== Setting up designer directory/folder"             && \
 	cd .. && cd $(TARGET_DIR)                                   && \
-	$(MKDIR) -p designer  &&  cd designer                       && \
+	$(MKDIR) designer  &&  cd designer                          && \
 	$(RM) $(LIBFILE) && $(call LINKFILE)                        && \
 	echo "=== Complete"
 
