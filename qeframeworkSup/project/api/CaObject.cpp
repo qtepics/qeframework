@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2015 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2015,2017 Australian Synchrotron
  *
  *  Author:
  *    Anthony Owen
@@ -28,13 +28,15 @@
 #define epicsAlarmGLOBAL
 
 #include <CaObjectPrivate.h>
+#include <QDebug>
 #include <epicsEvent.h>
 #include <epicsMutex.h>
 #include <alarm.h>
 #include <db_access.h>
 #include <string.h>
-
 #include <stdio.h>
+
+#define DEBUG  qDebug () << "CaObject" << __LINE__ << __FUNCTION__ << "  "
 
 static epicsEventId monitorEvent = NULL;
 
@@ -223,7 +225,13 @@ caconnection::ca_responses CaObjectPrivate::writeChannel( generic::Generic *newV
             case generic::GENERIC_STRING :
             {
                 std::string outValue = newValue->getString();
-                return caConnection->writeChannel( writeHandler, owner->myRef, DBR_STRING, 0, outValue.c_str() );
+
+                // Truncate string if needs be. It is better/consistant to truncate than fail.
+                //
+                dbr_string_t dbr_string;
+                snprintf (dbr_string, sizeof (dbr_string), "%s", outValue.c_str());
+
+                return caConnection->writeChannel( writeHandler, owner->myRef, DBR_STRING, 0, dbr_string);
                 break;
             }
             case generic::GENERIC_SHORT :
@@ -1124,4 +1132,3 @@ std::string CaObjectPrivate::limitToEpicsStringLen( const char* inStr, unsigned 
 }
 
 // end
-

@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010, 2016  Australian Synchrotron
+ *  Copyright (c) 2009,2010,2016,2017  Australian Synchrotron
  *
  *  Author:
  *    Anthony Owen
@@ -23,8 +23,8 @@
  *    anthony.owen@gmail.com
  */
 
-#ifndef QCAOBJECT_H
-#define QCAOBJECT_H
+#ifndef QCA_OBJECT_H
+#define QCA_OBJECT_H
 
 #include <QObject>
 #include <QMutex>
@@ -46,6 +46,8 @@
 
 namespace qcaobject {
 
+// bit significant
+//
 #define SIG_VARIANT   1
 #define SIG_BYTEARRAY 2
 
@@ -238,6 +240,6 @@ namespace qcaobject {
       void setChannelExpired();
   };
 
-}
+}      // end qcaobject namespace
 
-#endif // QCAOBJECT_H
+#endif // QCA_OBJECT_H
