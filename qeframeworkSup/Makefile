@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/Makefile $
-# $Revision: #6 $
-# $DateTime: 2017/05/01 17:24:01 $
+# $Revision: #7 $
+# $DateTime: 2017/05/03 13:23:09 $
 # Last checked in by: $Author: starritt $
 #
 # This make file is the bridge beween the EPICS build system and the Qt project qmake/make paradigm.
@@ -39,6 +39,11 @@ ifeq ($(OS),Windows_NT)
     define LINKFILE
         MKLINK /H  $(LIBFILE) ..\$(LIBFILE)
     endef
+
+    define NOOP
+       echo ""
+    endef
+
 else
     # Linux and the like.
     # We can use symbolic links on Linux
@@ -46,9 +51,13 @@ else
     define LINKFILE
        rm -f $(1) && ln -s ../$(LIBFILE)  $(LIBFILE)
     endef
+
+    define NOOP
+       :
+    endef
+
 endif
 
-NOOP = :
 
 # Directories of interest.
 #
@@ -112,14 +121,14 @@ $(SOURCE_DIR)/$(MAKEFILE) : $(SOURCE_DIR)/$(PROJECT)
 
 
 # Do a qt clean, then delete all qmake generated Makefiles.
-# Note the : "command" is a null command in bash.
 #
 clean:
-	cd $(SOURCE_DIR) && test -f $(MAKEFILE) && $(MAKE) -f $(MAKEFILE) clean && $(RM) $(MAKEFILE) || $(NOOP)
+	cd $(SOURCE_DIR) && $(MAKE) -f $(MAKEFILE) clean || $(NOOP)
+	cd $(SOURCE_DIR) && $(RM) $(MAKEFILE)
 
 
 uninstall:
-	rm -f $(TARGET)
+	$(RM) $(TARGET)
 
 always:
 
