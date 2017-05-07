@@ -16,13 +16,16 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2013,2016 Australian Synchrotron.
+ *  Copyright (c) 2012,2013,2016,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
+
+#include "QEPvProperties.h"
+#include "QEPvPropertiesUtilities.h"
 
 #include <QDebug>
 #include <QTableWidgetItem>
@@ -38,14 +41,12 @@
 #include <QEStringFormatting.h>
 #include <QERecordFieldName.h>
 
-#include "QEPvProperties.h"
-#include "QEPvPropertiesUtilities.h"
-
 #define DEBUG qDebug() << "QEPvProperties" << __LINE__ << __FUNCTION__ << "  "
 
 // INP/OUT and CALC fields are 80, 120 should cover it.
 //
 #define MAX_FIELD_DATA_SIZE  120
+#define PV_VARIABLE_INDEX      0
 
 
 //==============================================================================
@@ -129,6 +130,7 @@ void QEPvProperties::createInternalWidgets ()
 {
    const int label_height = 18;
    const int label_width = 48;
+   const userLevelTypes::userLevels level = this->minimumEditPvUserLevel ();
 
    int j;
 
@@ -163,6 +165,8 @@ void QEPvProperties::createInternalWidgets ()
    this->label2->setFixedSize (QSize (label_width, label_height));
    this->valueLabel = new QELabel (this->topFrame);
    this->valueLabel->setFixedHeight (label_height);
+   this->valueLabel->setEditPvUserLevel (level);
+
    this->hlayouts [2]->addWidget (this->label2);
    this->hlayouts [2]->addWidget (this->valueLabel);
 
@@ -234,7 +238,8 @@ void QEPvProperties::createInternalWidgets ()
 //------------------------------------------------------------------------------
 //
 QEPvProperties::QEPvProperties (QWidget* parent) :
-   QEFrame (parent),
+   QEAbstractDynamicWidget (parent),
+   QESingleVariableMethods (this, PV_VARIABLE_INDEX),
    QEQuickSort ()
 {
    this->recordBaseName = "";
@@ -244,12 +249,13 @@ QEPvProperties::QEPvProperties (QWidget* parent) :
 //------------------------------------------------------------------------------
 //
 QEPvProperties::QEPvProperties (const QString& variableName, QWidget* parent) :
-   QEFrame (parent),
+   QEAbstractDynamicWidget (parent),
+   QESingleVariableMethods (this, PV_VARIABLE_INDEX),
    QEQuickSort ()
 {
    this->recordBaseName = QERecordFieldName::recordName (variableName);
    this->common_setup ();
-   this->setVariableName (variableName, 0);
+   this->setVariableName (variableName, PV_VARIABLE_INDEX);
    this->valueLabel->setVariableName (variableName, 0);
    this->activate ();
 }
@@ -295,7 +301,11 @@ void QEPvProperties::common_setup ()
    QTableWidgetItem* item;
    QString style;
    int j;
-   QLabel *enumLabel;
+   QLabel* enumLabel;
+
+   // ensure null so that if (this->valueLabel) is sensible.
+   //
+   this->valueLabel = NULL;
 
    // This function only perform required actions on first call.
    //
@@ -312,6 +322,10 @@ void QEPvProperties::common_setup ()
    //
    this->setFrameShape (QFrame::Panel);
    this->setFrameShadow (QFrame::Plain);
+
+   // configure abstract dynamic widget - allow edit PV
+   //
+   this->setEnableEditPv (true);
 
    // allocate and configure own widgets
    // ...and setup an alias
@@ -420,13 +434,6 @@ void QEPvProperties::common_setup ()
    //
    this->setupContextMenu ();
 
-   // High-jack the value context menu, we want to do a special with it.
-   //
-   this->valueLabel->clearContextMenuRequestHandling ();
-   this->valueLabel->setContextMenuPolicy (Qt::CustomContextMenu);
-   QObject::connect (this->valueLabel, SIGNAL (customContextMenuRequested      (const QPoint&)),
-                     this,             SLOT   (customValueContextMenuRequested (const QPoint&)));
-
    // Table related signals.
    // Do context menu for the table (this exludes the headings).
    //
@@ -443,10 +450,8 @@ void QEPvProperties::common_setup ()
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   QObject::connect (
-         &variableNamePropertyManager, SIGNAL (newVariableNameProperty    (QString, QString, unsigned int)),
-         this,                         SLOT   (useNewVariableNameProperty (QString, QString, unsigned int)));
-
+   this->connectNewVariableNameProperty
+         (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
 }
 
 //------------------------------------------------------------------------------
@@ -454,7 +459,7 @@ void QEPvProperties::common_setup ()
 void QEPvProperties::resizeEvent (QResizeEvent *)
 {
    QRect g;
-   QLabel *enumLabel;
+   QLabel* enumLabel;
    int pw;
    int ew;   // enumerations width
    int epr;  // enumerations per row.
@@ -485,7 +490,7 @@ void QEPvProperties::resizeEvent (QResizeEvent *)
 //
 void QEPvProperties::clearFieldChannels ()
 {
-   QEString *qca;
+   QEString* qca;
    QTableWidgetItem *item;
    QString gap ("           ");  // empirically found to be quivilent width of " DESC "
    int j;
@@ -581,7 +586,7 @@ void QEPvProperties::useNewVariableNameProperty (QString variableNameIn,
 //
 qcaobject::QCaObject* QEPvProperties::createQcaItem (unsigned int variableIndex)
 {
-   if (variableIndex != 0) {
+   if (variableIndex != PV_VARIABLE_INDEX) {
       DEBUG << "unexpected variableIndex" << variableIndex;
       return NULL;
    }
@@ -596,6 +601,10 @@ qcaobject::QCaObject* QEPvProperties::createQcaItem (unsigned int variableIndex)
    //
    qca = new qcaobject::QCaObject (pvName, this, variableIndex, SIG_VARIANT);
 
+   // Apply currently defined array index.
+   //
+   this->setQCaArrayIndex (qca);
+
    return qca;
 }
 
@@ -605,7 +614,7 @@ void QEPvProperties::establishConnection (unsigned int variableIndex)
 {
    QString substitutedPVName;
 
-   if (variableIndex != 0) {
+   if (variableIndex != PV_VARIABLE_INDEX) {
       DEBUG << "unexpected variableIndex" << variableIndex;
       return;
    }
@@ -1086,25 +1095,6 @@ void QEPvProperties::insertIntoDropDownList (const QString& pvName)
    this->box->insertItem (0, pvName, QVariant ());
 }
 
-//==============================================================================
-// Context menu.
-//
-void QEPvProperties::addEditPvToMenu (QMenu* menu)
-{
-   // Allow the edit PV context menu entry irrespective of user level.
-   //
-   const userLevelTypes::userLevels userLevel = this->valueLabel->getUserLevel ();
-   if (userLevel != userLevelTypes::USERLEVEL_ENGINEER) {
-      // Cribbed from contextMenu - we need to refactor the code.
-      //
-      menu->addSeparator();
-      QAction* a = new QAction ("Edit PV", menu);
-      a->setCheckable (false);
-      a->setData (CM_GENERAL_PV_EDIT);
-      menu->addAction (a);
-   }
-}
-
 //------------------------------------------------------------------------------
 //
 QMenu* QEPvProperties::buildContextMenu ()
@@ -1127,7 +1117,6 @@ QMenu* QEPvProperties::buildContextMenu ()
    action->setData (QEPvProperties::PVPROP_RESET_FIELD_NAMES);
    menu->addAction (action);
 
-   this->addEditPvToMenu (menu);
    return menu;
 }
 
@@ -1170,20 +1159,6 @@ void QEPvProperties::tableHeaderClicked (int index)
          this->fieldsAreSorted = true;
       }
    }
-}
-
-//------------------------------------------------------------------------------
-//
-void QEPvProperties::customValueContextMenuRequested (const QPoint& pos)
-{
-   // First build the default menu, and then allow the edit PV context menu
-   // entry irrespective of user level.
-   //
-   QMenu* menu = this->valueLabel->buildContextMenu ();
-   this->addEditPvToMenu (menu);
-
-   const QPoint golbalPos = this->valueLabel->mapToGlobal (pos);
-   menu->exec (golbalPos);
 }
 
 //------------------------------------------------------------------------------
@@ -1246,14 +1221,24 @@ void QEPvProperties::customTableContextMenuRequested (const QPoint& posIn)
 //
 void QEPvProperties::saveConfiguration (PersistanceManager* pm)
 {
-   const QString formName = this->persistantName ("QEPvProperties");
+   const QString formName = this->getPersistantName ();
+
    PMElement formElement = pm->addNamedConfiguration (formName);
 
-   // DEBUG << "\nQEPvProperties " << __FUNCTION__ << formName << "\n";
+   // DEBUG << "\n" << formName << "\n";
 
    // Note: we save the subsituted name (as opposed to template name and any macros).
    //
    formElement.addValue ("Name", this->getSubstitutedVariableName (0));
+
+   // Add combo box drop down data.
+   //
+   PMElement dropDownElement = formElement.addElement ("DropDownList");
+   for (int slot = 0 ; slot < this->box->count(); slot++) {
+      PMElement pvElement = dropDownElement.addElement ("PV");
+      pvElement.addAttribute ("id", slot);
+      pvElement.addValue ("Name", this->box->itemText (slot).trimmed ());
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -1262,17 +1247,36 @@ void QEPvProperties::restoreConfiguration (PersistanceManager* pm, restorePhases
 {
    if (restorePhase != FRAMEWORK) return;
 
-   const QString formName = this->persistantName ("QEPvProperties");
+   const QString formName = this->getPersistantName ();
+
+   DEBUG << formName;
    PMElement formElement = pm->getNamedConfiguration (formName);
+   if (formElement.isNull ()) return;   // sainity check
+
    bool status;
    QString pvName;
+   DEBUG;
 
-   // DEBUG << "\nQEPvProperties " << __FUNCTION__ << formName <<  restorePhase << "\n";
+   status = formElement.getValue ("Name", pvName);
+   if (status) {
+      this->setPvName (pvName);
+   }
 
-   if ((restorePhase == FRAMEWORK) && !formElement.isNull ()) {
-      status = formElement.getValue ("Name", pvName);
+   // Restore each Drop Down PV.
+   //
+   PMElement dropDownElement = formElement.getElement ("DropDownList");
+   this->box->clear();
+
+   for (int slot = 0; slot < this->box->maxCount(); slot++) {
+      PMElement pvElement = dropDownElement.getElement ("PV", "id", slot);
+
+      if (pvElement.isNull ()) continue;
+
+      // Attempt to extract a PV name
+      //
+      status = pvElement.getValue ("Name", pvName);
       if (status) {
-         this->setPvName (pvName);
+         this->box->addItem (pvName, QVariant ());
       }
    }
 }
@@ -1284,7 +1288,6 @@ void QEPvProperties::setPvName (const QString& pvNameIn)
    this->setVariableName (pvNameIn, 0);
    this->establishConnection (0);
 }
-
 
 //==============================================================================
 // Copy / Paste
@@ -1341,23 +1344,25 @@ QVariant QEPvProperties::copyData ()
 
 //------------------------------------------------------------------------------
 //
-void QEPvProperties::paste (QVariant v)
+void QEPvProperties::enableEditPvChanged ()
 {
-   QStringList pvNameList;
+   const userLevelTypes::userLevels level = this->minimumEditPvUserLevel ();
+   this->setEditPvUserLevel (level);
 
-   pvNameList = QEUtilities::variantToStringList (v);
-
-   // Insert all supplied names into the drop down list (in reverse order)
-   // and select the first PV name (if it exists of course).
+   // This function may be called before the internal are widgets created.
    //
-   for (int j = pvNameList.count () - 1; j >= 0 ;j--) {
-      QString pvName = pvNameList.value (j);
-      if (j > 0) {
-         this->insertIntoDropDownList (pvName);
-      } else {
-         this->setPvName (pvName);
-      }
+   if (this->valueLabel) {
+      this->valueLabel->setEditPvUserLevel (level);
    }
+}
+
+//------------------------------------------------------------------------------
+//
+int QEPvProperties::addPvName (const QString& pvName)
+{
+   this->insertIntoDropDownList (pvName);
+   this->setPvName (pvName);
+   return 0;
 }
 
 // end

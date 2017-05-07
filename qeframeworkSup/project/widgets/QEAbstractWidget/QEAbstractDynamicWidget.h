@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2016 Australian Synchrotron
+ *  Copyright (c) 2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -30,6 +30,7 @@
 #include <QString>
 #include <QStringList>
 #include <QEPluginLibrary_global.h>
+#include <ContainerProfile.h>
 #include <QEFrame.h>
 
 /// Provides a common abstract base class for dynamic widgets, i.e. dynamic in the
@@ -47,7 +48,17 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEAbstractDynamicWidget : public QEFrame
    /// Default directory used for loading/saving files. Default to null string
    /// which is interpreted as the current directory.
    ///
-   Q_PROPERTY (QString defaultDir  READ getDefaultDir  WRITE setDefaultDir)
+   Q_PROPERTY (QString defaultDir    READ getDefaultDir    WRITE setDefaultDir)
+
+   /// By default, the contexMenu class only adds the "Edit PV" menu entry if and only
+   /// if we are using the engineer user level (provided it  has also been included in
+   /// the widget menu set). When enableEditPv set true, the user level required is set
+   /// to user level user, i.e. always available.
+   /// Note: this may apply to this widget itself, but is more likely to be applied to
+   /// the contained dynamic widgets.
+   /// The default value for this property is false.
+   ///
+   Q_PROPERTY (bool    enableEditPv  READ getEnableEditPv  WRITE setEnableEditPv)
 
 public:
    // Abstract Dynamic Widget Context Menu values
@@ -65,8 +76,13 @@ public:
    void setDefaultDir (const QString& defaultDir);
    QString getDefaultDir () const;
 
+   // Set/Get enableEditPv.
+   //
+   void setEnableEditPv (const bool isEnabled);
+   bool getEnableEditPv () const;
+
    // Both add names to next available slot(s) if any.
-   //.
+   //
    void paste (QVariant s);
 
    // Used by paste, but also made publically available.
@@ -74,7 +90,7 @@ public:
    void addPvNameList (const QStringList& pvNameList);
    void addPvNameSet (const QString& pvNameSet);
 
-   // Add PV to next avialble slot (if any).
+   // Add PV to next available slot (if any).
    // returns slot number 0 .. Max - 1 iff successful otherwise -1.
    //
    // Sub-class must provide an implementation for this function.
@@ -85,8 +101,13 @@ protected:
    QMenu* buildContextMenu ();                        // Build the specific context menu
    void contextMenuTriggered (int selectedItemNum);   // An action was selected from the context menu
 
-   QString getPersistantRootName () const;
-   QString getPersistantName () const;
+   QString getPersistantName () const;                // Sub classes use this in lieu of QEWidget::persistantName
+
+   // Sub-class may provide an implementation for this function.
+   //
+   virtual void enableEditPvChanged ();               // Used for sub-class notification
+
+   userLevelTypes::userLevels minimumEditPvUserLevel () const; // Sub-class convienence
 
 protected slots:
    // Leverage off the persistant manager capability to load/save widget configurations.
@@ -101,8 +122,11 @@ protected slots:
    void saveWidgetConfiguration ();
 
 private:
+   QString getPersistantRootName () const;
+
    bool useOwnPersistantName;
    QString defaultDir;
+   bool enableEditPv;
 };
 
 #endif // QE_ABSTRACT_COMPLEX_WIDGET_H

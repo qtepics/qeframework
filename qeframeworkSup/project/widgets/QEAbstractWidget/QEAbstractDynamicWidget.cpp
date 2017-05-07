@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2016 Australian Synchrotron
+ *  Copyright (c) 2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -23,12 +23,13 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEAbstractDynamicWidget.h"
+
 #include <QDebug>
 #include <QFileDialog>
 #include <QECommon.h>
 #include <persistanceManager.h>
-
-#include "QEAbstractDynamicWidget.h"
+#include <contextMenu.h>
 
 #define DEBUG qDebug() << "QEAbstractComplexWidget" << __LINE__ << __FUNCTION__ << "  "
 
@@ -45,6 +46,7 @@ QEAbstractDynamicWidget::QEAbstractDynamicWidget (QWidget* parent) :
 
    this->defaultDir = "";
    this->useOwnPersistantName = false;
+   this->enableEditPv = false;
 }
 
 //------------------------------------------------------------------------------
@@ -66,6 +68,38 @@ void QEAbstractDynamicWidget::setDefaultDir (const QString& defaultDirIn)
 QString QEAbstractDynamicWidget::getDefaultDir () const
 {
    return this->defaultDir;
+}
+
+//------------------------------------------------------------------------------
+// Sub class utility
+//
+userLevelTypes::userLevels QEAbstractDynamicWidget::minimumEditPvUserLevel () const
+{
+   return this->getEnableEditPv () ?
+          userLevelTypes::USERLEVEL_USER :
+          userLevelTypes::USERLEVEL_ENGINEER;
+}
+
+//------------------------------------------------------------------------------
+// virtual - place holder
+//
+void QEAbstractDynamicWidget::enableEditPvChanged () { }
+
+//------------------------------------------------------------------------------
+//
+void QEAbstractDynamicWidget::setEnableEditPv (const bool isEnabled)
+{
+   this->enableEditPv = isEnabled;
+
+   // Notify sub-class
+   this->enableEditPvChanged ();
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEAbstractDynamicWidget::getEnableEditPv () const
+{
+   return this->enableEditPv;
 }
 
 //------------------------------------------------------------------------------

@@ -36,15 +36,14 @@
  *
  */
 
+#include "contextMenu.h"
 #include <QDebug>
-#include <contextMenu.h>
 #include <QClipboard>
 #include <QApplication>
 #include <QDebug>
 #include <QEWidget.h>
 #include <QEScaling.h>
 #include <QAction>
-#include <ContainerProfile.h>
 
 #define DEBUG qDebug() << "contextMenu" << __LINE__ << __FUNCTION__ << "  "
 
@@ -101,6 +100,7 @@ contextMenu::contextMenu( QEWidget* qewIn, QWidget* ownerIn )
     hasConsumer = false;
     qew = qewIn;
     numberOfItems = 1;
+    editPvUserLevel = userLevelTypes::USERLEVEL_ENGINEER;
     menuSet = defaultMenuSet();
 
     // Create the signaller object - note: owned and deleted the widget
@@ -237,10 +237,8 @@ QMenu* contextMenu::buildContextMenu()
         addSeparator = true;
     }
 
-    // Add edit PV menu if and only if we are using the engineer use level.
-    bool inEngineeringMode = qew->getUserLevel () == userLevelTypes::USERLEVEL_ENGINEER;
-
-    if( inEngineeringMode && menuSet.contains( CM_GENERAL_PV_EDIT ))
+    // Add edit PV menu if and only if we are in the approriate level.
+    if( ( qew->getUserLevel() >= editPvUserLevel ) && menuSet.contains( CM_GENERAL_PV_EDIT ))
     {
         if( addSeparator ) menu->addSeparator();
         a = new QAction( "Edit PV", menu );
@@ -319,6 +317,18 @@ void contextMenu::setupContextMenu( const ContextMenuOptionSets& menuSetIn )
     qw->setContextMenuPolicy( Qt::CustomContextMenu );
     QObject::connect( qw, SIGNAL( customContextMenuRequested( const QPoint& )),
                       object, SLOT( showContextMenuSlot( const QPoint& )));
+}
+
+// Set minimum user level required for EditPV context menu entry available.
+void contextMenu::setEditPvUserLevel( const userLevelTypes::userLevels level )
+{
+    editPvUserLevel = level;
+}
+
+// Get minimum user level required for EditPV context menu entry available.
+bool contextMenu::getEditPvUserLevel() const
+{
+    return editPvUserLevel;
 }
 
 // Disconnect the supplied QE widget to a slot that will present the context menu.

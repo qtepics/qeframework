@@ -15,13 +15,15 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016 Australian Synchrotron
+ *  Copyright (c) 2013,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
+
+#include "QEScratchPad.h"
 
 #include <QDebug>
 #include <QFileDialog>
@@ -32,8 +34,8 @@
 
 #include <QECommon.h>
 #include <QERecordFieldName.h>
+#include <ContainerProfile.h>
 
-#include "QEScratchPad.h"
 
 #define DEBUG qDebug() << "QEScratchPad::" << __LINE__ << __FUNCTION__ << "  "
 
@@ -120,6 +122,8 @@ void QEScratchPad::createInternalWidgets ()
    this->scrollArea->setWidget (this->scrollContents);
    this->vLayout->addWidget (this->scrollArea);
 
+   const userLevelTypes::userLevels level = this->minimumEditPvUserLevel ();
+
    for (int slot = 0; slot < ARRAY_LENGTH (this->items); slot++) {
 
       this->items [slot] = new DataSets ();  // allocate item.
@@ -146,6 +150,7 @@ void QEScratchPad::createInternalWidgets ()
       item->description->setIndent (indent);
       item->description->setSizePolicy (QSizePolicy::Ignored, QSizePolicy::Preferred);
       item->description->setStyleSheet (QEUtilities::colourToStyle (clNotInUse));
+      item->description->setEditPvUserLevel (level);
 
       item->value = new QELabel (item->frame);
       item->value->setDisplayAlarmState (true);
@@ -159,6 +164,7 @@ void QEScratchPad::createInternalWidgets ()
       item->value->setTrailingZeros (false);
       item->value->setArrayAction (QEStringFormatting::INDEX);
       item->value->setArrayIndex (0);
+      item->value->setEditPvUserLevel (level);
 
       // Set up layout - paramers must be same as titlelayout
       //
@@ -238,6 +244,9 @@ QEScratchPad::QEScratchPad (QWidget* parent) : QEAbstractDynamicWidget (parent),
 {
    this->createInternalWidgets ();
 
+   // Configure parant classes
+   //
+   this->setEnableEditPv (true);
    this->setNumVariables (0);
 
    // Configure the panel.
@@ -901,6 +910,29 @@ void QEScratchPad::contextMenuTriggered (int selectedItemNum)
          //
          QEAbstractDynamicWidget::contextMenuTriggered (selectedItemNum);
          break;
+   }
+}
+
+//---------------------------------------------------------------------------------
+//
+void QEScratchPad::enableEditPvChanged ()
+{
+   // Determine min user level in order to all Edit PV menu entry.
+   //
+   const userLevelTypes::userLevels level = this->minimumEditPvUserLevel ();
+
+   // Now applies to embedded widgets (if they exists yet).
+   for (int slot = 0; slot < ARRAY_LENGTH (this->items); slot++) {
+      DataSets* item = this->items [slot];
+      // Check widgets have been created.
+      //
+      if (!item) continue;
+      if (item->value) {
+         item->value->setEditPvUserLevel (level);
+      }
+      if (item->description) {
+         item->description->setEditPvUserLevel (level);
+      }
    }
 }
 

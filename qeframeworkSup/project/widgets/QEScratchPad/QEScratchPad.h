@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016 Australian Synchrotron
+ *  Copyright (c) 2013,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -89,7 +89,7 @@ signals:
    void pvNameSetChanged (const QStringList& nameSet);
 
 protected:
-   // Overtide super class functions.
+   // Override super class functions.
    //
    void resizeEvent (QResizeEvent* event);
    void activated ();
@@ -97,6 +97,12 @@ protected:
    QMenu* buildContextMenu ();                        // Build the Scratch Pad specific context menu
    void contextMenuTriggered (int selectedItemNum);   // An action was selected from the context menu
 
+   // Override QEAbstractDynamicWidget functions.
+   //
+   void enableEditPvChanged ();
+
+   // Override QEQuickSort functions.
+   //
    bool itemLessThan (const int a, const int b, QObject* context = NULL) const;
    void swapItems (const int a, const int b, QObject* context = NULL);
 

@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
+ *  Copyright (c) 2012,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -47,7 +47,8 @@
 #include <QEDragDrop.h>
 #include <QCaObject.h>
 #include <QEPluginLibrary_global.h>
-#include <QEFrame.h>
+#include <QEAbstractDynamicWidget.h>
+#include <QESingleVariableMethods.h>
 #include <QELabel.h>
 #include <QEResizeableFrame.h>
 #include <QEString.h>
@@ -57,44 +58,43 @@
 #include <QEQuickSort.h>
 #include <QEOneToOne.h>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEPvProperties : public QEFrame, QEQuickSort {
+class QEPLUGINLIBRARYSHARED_EXPORT QEPvProperties :
+      public QEAbstractDynamicWidget,
+      public QESingleVariableMethods,
+      public QEQuickSort {
    Q_OBJECT
 
-   typedef QEFrame ParentWidgetClass;
+   typedef QEAbstractDynamicWidget ParentWidgetClass;
 
-    // BEGIN-SINGLE-VARIABLE-PROPERTIES ===============================================
-    // Single Variable properties
-    // These properties should be identical for every widget using a single variable.
-    // WHEN MAKING CHANGES: Use the update_widget_properties script in the
-    // resources directory.
-    //
-    // Note, a property macro in the form 'Q_PROPERTY(QString variableName READ ...' doesn't work.
-    // A property name ending with 'Name' results in some sort of string a variable being displayed, but will only accept alphanumeric and won't generate callbacks on change.
+   // BEGIN-SINGLE-VARIABLE-V2-PROPERTIES ===============================================
+   // Single Variable properties
+   // These properties should be identical for every widget using a single variable.
+   // WHEN MAKING CHANGES: Use the update_widget_properties script in the resources
+   // directory.
+   //
+   // Note, a property macro in the form 'Q_PROPERTY(QString variableName READ ...' doesn't work.
+   // A property name ending with 'Name' results in some sort of string a variable being displayed,
+   // but will only accept alphanumeric and won't generate callbacks on change.
 public:
-    /// EPICS variable name (CA PV)
-    ///
-    Q_PROPERTY(QString variable READ getVariableNameProperty WRITE setVariableNameProperty)
-    /// Macro substitutions. The default is no substitutions. The format is NAME1=VALUE1[,] NAME2=VALUE2... Values may be quoted strings. For example, 'PUMP=PMP3, NAME = "My Pump"'
-    /// These substitutions are applied to variable names for all QE widgets. In some widgets are are also used for other purposes.
-    Q_PROPERTY(QString variableSubstitutions READ getVariableNameSubstitutionsProperty WRITE setVariableNameSubstitutionsProperty)
+   /// EPICS variable name (CA PV)
+   ///
+   Q_PROPERTY (QString variable READ getVariableNameProperty WRITE setVariableNameProperty)
 
-    /// Property access function for #variable property. This has special behaviour to work well within designer.
-    void    setVariableNameProperty( QString variableName ){ variableNamePropertyManager.setVariableNameProperty( variableName ); }
-    /// Property access function for #variable property. This has special behaviour to work well within designer.
-    QString getVariableNameProperty(){ return variableNamePropertyManager.getVariableNameProperty(); }
+   /// Macro substitutions. The default is no substitutions. The format is NAME1=VALUE1[,] NAME2=VALUE2...
+   /// Values may be quoted strings. For example, 'PUMP=PMP3, NAME = "My Pump"'
+   /// These substitutions are applied to variable names for all QE widgets.
+   /// In some widgets are are also used for other purposes.
+   ///
+   Q_PROPERTY (QString variableSubstitutions READ getVariableNameSubstitutionsProperty WRITE setVariableNameSubstitutionsProperty)
 
-    /// Property access function for #variableSubstitutions property. This has special behaviour to work well within designer.
-    void    setVariableNameSubstitutionsProperty( QString variableNameSubstitutions ){ variableNamePropertyManager.setSubstitutionsProperty( variableNameSubstitutions ); }
-    /// Property access function for #variableSubstitutions property. This has special behaviour to work well within designer.
-    QString getVariableNameSubstitutionsProperty(){ return variableNamePropertyManager.getSubstitutionsProperty(); }
-
-private:
-    QCaVariableNamePropertyManager variableNamePropertyManager;
-public:
-    // END-SINGLE-VARIABLE-PROPERTIES =================================================
+   /// Index used to select a single item of data for processing. The default is 0.
+   ///
+   Q_PROPERTY (int arrayIndex READ getArrayIndex WRITE setArrayIndex)
+   //
+   // END-SINGLE-VARIABLE-V2-PROPERTIES =================================================
 
 public:
-    enum OwnContextMenuOptions { PVPROP_NONE = CM_SPECIFIC_WIDGETS_START_HERE,
+    enum OwnContextMenuOptions { PVPROP_NONE = QEAbstractDynamicWidget::ADWCM_SUB_CLASS_WIDGETS_START_HERE,
                                  PVPROP_SORT_FIELD_NAMES,
                                  PVPROP_RESET_FIELD_NAMES,
                                  PVPROP_SUB_CLASS_WIDGETS_START_HERE };
@@ -138,7 +138,11 @@ protected:
    //
    QString copyVariable ();
    QVariant copyData ();
-   void paste (QVariant s);
+
+   // Override QEAbstractDynamicWidget functions
+   //
+   void enableEditPvChanged ();
+   int addPvName (const QString& pvName);
 
 private:
    enum PVReadModes {
@@ -218,8 +222,6 @@ private:
    //
    void setPvName (const QString& pvName);
 
-   void addEditPvToMenu (QMenu* menu);
-
 private slots:
    void useNewVariableNameProperty (QString variableNameIn,
                                     QString variableNameSubstitutionsIn,
@@ -246,14 +248,11 @@ private slots:
                        const unsigned int & variableIndex);
 
    void boxCurrentIndexChanged (int index);                    // From own combo box.
-   void customValueContextMenuRequested (const QPoint & pos);  // Form value label
    void customTableContextMenuRequested (const QPoint & pos);  // Form the table.
-
    void tableHeaderClicked (int index);
 
 signals:
    void setCurrentBoxIndex (int index);           // connected to own combo box
-
 };
 
 # endif  // QE_PV_PROPERTIES_H
