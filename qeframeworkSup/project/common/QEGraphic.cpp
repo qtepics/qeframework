@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2014,2016 Australian Synchrotron.
+ *  Copyright (c) 2013,2014,2016,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -420,6 +420,11 @@ QEGraphic::QEGraphic (const QString& title, QWidget* parent) : QWidget (parent)
 //
 void QEGraphic::construct ()
 {
+   // Set min size, not needed Qt4 but sometimes needed in Qt5
+   // Applying same to this->plot appears to have same effect.
+   //
+   this->setMinimumSize (20, 20);
+
    // Create a layout within the containing widget.
    //
    this->layout = new QHBoxLayout (this);
