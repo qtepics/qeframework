@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2011,2016 Australian Synchrotron
+ *  Copyright (c) 2011,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -25,6 +25,7 @@
 
 #include <managePixmaps.h>
 
+// constructor
 managePixmaps::managePixmaps()
 {
     // Initialy set all pixmaps to a blank pixmap
@@ -34,6 +35,9 @@ managePixmaps::managePixmaps()
         pixmaps.append( blank );
     }
 }
+
+// place holder destructor
+managePixmaps::~managePixmaps() { }
 
 // place holder function intended to be overiden by sub class if required.
 void managePixmaps::pixmapUpdated( const int ) { }
@@ -56,12 +60,12 @@ void managePixmaps::setDataPixmap( const QPixmap& pixmap, const int index )
 QPixmap managePixmaps::getDataPixmap( const int index ) const
 {
     QPixmap blank;
-    return pixmaps.value (index, blank);
+    return pixmaps.value( index, blank );
 }
 
-QPixmap managePixmaps::getDataPixmap( const QString text ) const
+QPixmap managePixmaps::getDataPixmap( const QString& text ) const
 {
-    QStringList list = text.simplified().split(QRegExp("\\s+"));
+    QStringList list = text.simplified().split( QRegExp( "\\s+" ) );
 
     // Attempt to interpret the text as a floating point number
     bool ok = false;

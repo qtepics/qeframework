@@ -23,6 +23,8 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEPlotter.h"
+
 #include <QApplication>
 #include <QClipboard>
 #include <QDebug>
@@ -41,7 +43,6 @@
 #include <QEInteger.h>
 #include <QEScaling.h>
 
-#include "QEPlotter.h"
 
 #define DEBUG qDebug() << "QEPlotter"  << __LINE__ << __FUNCTION__ << "  "
 
@@ -1277,7 +1278,7 @@ void QEPlotter::menuSelected (const QEPlotterNames::MenuActions action, const in
 
       case  QEPlotterNames::PLOTTER_PLAY:
          this->isPaused = false;
-         // TODO - request framefork to resend data for all iuse channels.
+         // TODO - request framefork to resend data for all in-use channels.
          this->pushState ();
          break;
 
@@ -2989,5 +2990,21 @@ bool QEPlotter::getYLogarithmic () const
 {
    return this->plotArea->getYLogarithmic ();
 }
+
+//------------------------------------------------------------------------------
+//
+void QEPlotter::setIsPaused (bool paused)
+{
+   this->isPaused = paused;
+   if (!this->isPaused) this->replotIsRequired = true;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEPlotter::getIsPaused () const
+{
+   return this->isPaused;
+}
+
 
 // end

@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2011,2016 Australian Synchrotron
+ *  Copyright (c) 2011,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -23,8 +23,8 @@
  *    andrew.rhyder@synchrotron.org.au
  */
 
-#ifndef MANAGE_PIXMAP_H
-#define MANAGE_PIXMAP_H
+#ifndef QE_MANAGE_PIXMAP_H
+#define QE_MANAGE_PIXMAP_H
 
 #include <QList>
 #include <QPixmap>
@@ -35,13 +35,15 @@
 class QEPLUGINLIBRARYSHARED_EXPORT managePixmaps {
 
 public:
-    managePixmaps();
+   explicit managePixmaps();
+   virtual ~managePixmaps();
+
     // Property convenience functions
 
     // Pixmaps
     void setDataPixmap( const QPixmap& Pixmap, const int index );
     QPixmap getDataPixmap( const int index ) const;
-    QPixmap getDataPixmap( const QString value ) const;
+    QPixmap getDataPixmap( const QString& value ) const;
 
     // Access function for pixmap properties.
     // Currently used by QELabel, QEPushButton etc. and QEFrame.
@@ -70,4 +72,4 @@ private:
     QList<QPixmap> pixmaps;
 };
 
-#endif // MANAGE_PIXMAP_H
+#endif // QE_MANAGE_PIXMAP_H

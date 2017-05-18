@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2016 Australian Synchrotron
+ *  Copyright (c) 2012,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -39,8 +39,11 @@
 // QEFrame container also.
 // See QEGroupBox as well.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEFrame:public QFrame, public QEWidget, private managePixmaps {
-
+class QEPLUGINLIBRARYSHARED_EXPORT QEFrame :
+      public QFrame,
+      public QEWidget,
+      public managePixmaps
+{
    Q_OBJECT
 
    // BEGIN-STANDARD-PROPERTIES ======================================================

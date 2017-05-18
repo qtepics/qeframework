@@ -237,6 +237,11 @@ public:
    void setYLogarithmic (bool visible);
    bool getYLogarithmic () const;
 
+   // Control paused state.
+   //
+   void setIsPaused (bool paused);
+   bool getIsPaused () const;
+
    int addPvName (const QString& pvName);        // Add name to next available Y PV slot.
 
    int  getCrosshairIndex () const;

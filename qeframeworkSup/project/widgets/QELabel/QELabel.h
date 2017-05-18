@@ -44,9 +44,10 @@
 class QEPLUGINLIBRARYSHARED_EXPORT QELabel :
         public QLabel,
         public QEWidget,
-        private managePixmaps,
+        public managePixmaps,
         public QESingleVariableMethods,
-        public QEStringFormattingMethods {
+        public QEStringFormattingMethods
+{
     Q_OBJECT
 
   public:
