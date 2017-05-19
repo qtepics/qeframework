@@ -942,7 +942,14 @@ void QEScratchPad::enableEditPvChanged ()
 //
 void QEScratchPad::dragMoveEvent (QDragMoveEvent* event)
 {
-   QFrame* sourceFrame = dynamic_cast <QFrame*> (event->source()->parent());
+   QFrame* sourceFrame = NULL;
+
+   // When dropping from anither application, the event source does not exist.
+   //
+   if (event && event->source()) {
+      sourceFrame = dynamic_cast <QFrame*> (event->source()->parent());
+   }
+
    if (sourceFrame) {
       // Parent is of the correct type.
 
