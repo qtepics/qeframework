@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -69,6 +69,8 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEForm : public QEAbstractWidget,
         QString getUniqueIdentifier(){ return uniqueIdentifier; }            /// Get a unique identifier string for this form. This identifier should be persistant across application runs as it is based on the QEForm's position in the widget hierarchy. The same widget will generate the same identifier when opened within the same GUI.
         void setUniqueIdentifier( QString name ){ uniqueIdentifier = name; } /// Set a unique identifier string for this form. This identifier should be persistant across application runs as it is based on the QEForm's position in the widget hierarchy. The same widget will generate the same identifier when opened within the same GUI.
 
+        void clearUiFileNames ();   // clears uiFileName/fullUiFileName
+
         int getDisconnectedCount();                                          /// Return the count of disconnected variables
         int getConnectedCount();                                             /// Return the count of connected variables
 
@@ -89,7 +91,6 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEForm : public QEAbstractWidget,
 
     protected:
         void establishConnection( unsigned int variableIndex );
-        void clearUiFileNames ();   // clears uiFileName/fullUiFileName
 
         QString uiFileName; // As specified on creation
         QString fullUiFileName; // Full standard path
