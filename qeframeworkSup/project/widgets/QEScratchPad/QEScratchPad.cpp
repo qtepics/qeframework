@@ -161,6 +161,7 @@ void QEScratchPad::createInternalWidgets ()
       item->value->setPrecision (12);
       item->value->setUseDbPrecision (false);
       item->value->setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
+      item->value->setSeparator (QEStringFormatting::SEPARATOR_COMMA);
       item->value->setTrailingZeros (false);
       item->value->setArrayAction (QEStringFormatting::INDEX);
       item->value->setArrayIndex (0);
