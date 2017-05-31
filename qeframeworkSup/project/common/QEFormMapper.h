@@ -1,4 +1,27 @@
 /*  QEFormMapper.h
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  The EPICS QT Framework is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Lesser General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The EPICS QT Framework is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *  Copyright (c) 2015,2017 Australian Synchrotron.
+ *
+ *  Author:
+ *    Andrew Starritt
+ *  Contact details:
+ *    andrew.starritt@synchrotron.org.au
  */
 
 #ifndef QE_FORM_MAPPER_H
@@ -29,9 +52,12 @@ public:
    //
    typedef quint64 FormHandles;
 
-    static FormHandles nullHandle ();        // provides the null handle identifier value
-   static FormHandles allocateHandle ();     // allocate unique handle identifier
+   static FormHandles nullHandle ();        // provides the null handle identifier value
+   static FormHandles allocateHandle ();    // allocate unique handle identifier
 
+   // Find the widget with the specified handle - handle specified in the action request.
+   // These functions return NULL if the widget is not found.
+   //
    // NOTE: Forms and the widgets they contain may disapper at any time,
    // i.e. when a main window form is closed. Therefore the QEForm/QWidget
    // references returnd by these MUST ONLY BE CONSIDERED VALID within the scope
@@ -48,6 +74,9 @@ public:
    // BAD:
    //   void askingForTrouble () {
    //      this->w = findWidget (handle, "QEPlotter"); // save ref for later use.
+   //   }
+   //
+   //   void someTimeLater () {
    //      this->w->callSomeFunction();
    //   }
    //

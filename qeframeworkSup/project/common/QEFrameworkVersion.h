@@ -24,8 +24,8 @@
  *
  */
 
-#ifndef QEFRAMEWORKVERSION_H
-#define QEFRAMEWORKVERSION_H
+#ifndef QE_FRAMEWORK_VERSION_H
+#define QE_FRAMEWORK_VERSION_H
 
 #include <QString>
 #include <QEPluginLibrary_global.h>
@@ -52,7 +52,7 @@
 //
 #define QE_VERSION_STAGE_DEVELOPMENT "Development"
 #define QE_VERSION_STAGE_PRODUCTION  "Production"
-#define QE_VERSION_STAGE             QE_VERSION_STAGE_PRODUCTION
+#define QE_VERSION_STAGE             QE_VERSION_STAGE_DEVELOPMENT
 
 #define QE_VERSION_STRING     STRINGIFY(QE_VERSION_MAJOR) "." \
                               STRINGIFY(QE_VERSION_MINOR) "." \
@@ -82,4 +82,4 @@ public:
    static const QString getEpicsVersionStr ();
 };
 
-#endif // QEFRAMEWORKVERSION_H
+#endif // QE_FRAMEWORK_VERSION_H
