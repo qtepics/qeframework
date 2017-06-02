@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
+ *  Copyright (c) 2012,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -24,11 +24,10 @@
  *
  */
 
+#include "QEFrameworkVersion.h"
 #include <qglobal.h>
 #include <epicsVersion.h>
 #include <qwt_global.h>
-
-#include <QEFrameworkVersion.h>
 
 //------------------------------------------------------------------------------
 //
@@ -93,7 +92,7 @@ const QString QEFrameworkVersion::getQtVersionStr ()
 //
 const QString QEFrameworkVersion::getQwtVersionStr ()
 {
-   return QString (QWT_VERSION_STR);
+   return QString ("QWT %1").arg (QWT_VERSION_STR);
 }
 
 //------------------------------------------------------------------------------
