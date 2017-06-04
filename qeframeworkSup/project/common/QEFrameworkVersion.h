@@ -45,14 +45,14 @@
 //
 #define QE_VERSION_MAJOR      3     // Public releases that include interface or paradigm changes that may require changes to the way the framework is used.
 #define QE_VERSION_MINOR      4     // Public releases containing new functionality (may include fixes as well)
-#define QE_VERSION_RELEASE    2     // Public releases containing fixes only.
+#define QE_VERSION_RELEASE    3     // Public releases containing fixes only.
 
 // During tagging the version stage should be set to production
 // During tagging the version stage should be set to production
 //
 #define QE_VERSION_STAGE_DEVELOPMENT "Development"
 #define QE_VERSION_STAGE_PRODUCTION  "Production"
-#define QE_VERSION_STAGE             QE_VERSION_STAGE_DEVELOPMENT
+#define QE_VERSION_STAGE             QE_VERSION_STAGE_PRODUCTION
 
 #define QE_VERSION_STRING     STRINGIFY(QE_VERSION_MAJOR) "." \
                               STRINGIFY(QE_VERSION_MINOR) "." \
