@@ -1,4 +1,6 @@
-/*  This file is part of the EPICS QT Framework, initially developed at
+/*  QEScript.cpp
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
@@ -14,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
+ *  Copyright (c) 2012,2017 Australian Synchrotron
  *
  *  Author:
  *    Ricardo Fernandes
@@ -22,6 +24,7 @@
  *    ricardo.fernandes@synchrotron.org.au
  */
 
+#include <QEScript.h>
 #include <QLineEdit>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -35,7 +38,6 @@
 #include <QInputDialog>
 #include <QProcess>
 #include <QCoreApplication>
-#include <QEScript.h>
 #include <UserMessage.h>
 
 
@@ -128,11 +130,11 @@ QEScript::QEScript(QWidget *pParent):QWidget(pParent), QEWidget( this )
     qTableWidgetScript->setFont(qFont);
     QObject::connect(qTableWidgetScript->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(selectionChanged(const QItemSelection &, const QItemSelection &)));
 
-    setScriptType(FROM_FILE);
+    setScriptType(File);
     setScriptFile("");
     setScriptText("");
     setScriptDefault("");
-    setOptionsLayout(TOP);
+    setOptionsLayout(Top);
     isExecuting = false;
     refreshWidgets();
     editableTable = true;
@@ -495,7 +497,7 @@ void QEScript::setScriptFile(QString pValue)
 
 
     scriptFile = pValue;
-    if (scriptType == FROM_FILE)
+    if (scriptType == File)
     {
         document.clear();
         if (scriptFile.isEmpty())
@@ -548,7 +550,7 @@ void QEScript::setScriptText(QString pValue)
     QDomElement rootElement;
 
     scriptText = pValue;
-    if (scriptType == FROM_TEXT)
+    if (scriptType == Text)
     {
         document.clear();
         if (document.setContent(scriptText) == false)
@@ -645,8 +647,8 @@ void QEScript::setOptionsLayout(int pValue)
 
     switch(pValue)
     {
-        case TOP:
-            optionsLayout = TOP;
+        case Top:
+            optionsLayout = Top;
             qLayoutMain = new QVBoxLayout(this);
             qLayoutChild = new QHBoxLayout();
             qLayoutChild->addWidget(qComboBoxScriptList);
@@ -667,8 +669,8 @@ void QEScript::setOptionsLayout(int pValue)
             qLayoutMain->addWidget(qTableWidgetScript);
             break;
 
-        case BOTTOM:
-            optionsLayout = BOTTOM;
+        case Bottom:
+            optionsLayout = Bottom;
             qLayoutMain = new QVBoxLayout(this);
             qLayoutMain->addWidget(qTableWidgetScript);
             qLayoutChild = new QHBoxLayout();
@@ -689,8 +691,8 @@ void QEScript::setOptionsLayout(int pValue)
             qLayoutMain->addItem(qLayoutChild);
             break;
 
-        case LEFT:
-            optionsLayout = LEFT;
+        case Left:
+            optionsLayout = Left;
             qLayoutMain = new QHBoxLayout(this);
             qLayoutChild = new QVBoxLayout();
             qLayoutChild->addWidget(qComboBoxScriptList);
@@ -709,8 +711,8 @@ void QEScript::setOptionsLayout(int pValue)
             qLayoutMain->addWidget(qTableWidgetScript);
             break;
 
-        case RIGHT:
-            optionsLayout = RIGHT;
+        case Right:
+            optionsLayout = Right;
             qLayoutMain = new QHBoxLayout(this);
             qLayoutChild = new QVBoxLayout();
             qLayoutChild->addWidget(qComboBoxScriptList);
@@ -725,7 +727,7 @@ void QEScript::setOptionsLayout(int pValue)
             qLayoutChild->addWidget(qPushButtonDown);
             qLayoutChild->addWidget(qPushButtonCopy);
             qLayoutChild->addWidget(qPushButtonPaste);
-            qLayoutMain->addWidget(qTableWidgetScript);            
+            qLayoutMain->addWidget(qTableWidgetScript);
             qLayoutMain->addItem(qLayoutChild);
     }
 
@@ -1494,9 +1496,9 @@ void QEScript::refreshWidgets()
     rowSelectedCount = qTableWidgetScript->selectionModel()->selectedRows().count();
 
     qComboBoxScriptList->setEnabled(isExecuting == false);
-    qPushButtonNew->setEnabled(scriptType == FROM_FILE && isExecuting == false);
-    qPushButtonSave->setEnabled(scriptType == FROM_FILE && isExecuting == false && qTableWidgetScript->rowCount() > 0);
-    qPushButtonDelete->setEnabled(scriptType == FROM_FILE && isExecuting == false && qComboBoxScriptList->currentText().isEmpty() == false);
+    qPushButtonNew->setEnabled(scriptType == File && isExecuting == false);
+    qPushButtonSave->setEnabled(scriptType == File && isExecuting == false && qTableWidgetScript->rowCount() > 0);
+    qPushButtonDelete->setEnabled(scriptType == File && isExecuting == false && qComboBoxScriptList->currentText().isEmpty() == false);
     qPushButtonExecute->setEnabled(isExecuting == false && rowCount > 0);
     qPushButtonAbort->setEnabled(isExecuting == true);
 
@@ -1742,4 +1744,4 @@ void _QTableWidgetScript::resizeEvent(QResizeEvent *)
 
 }
 
-
+// end

@@ -32,16 +32,6 @@
 #include <QEWidget.h>
 #include <QELineEdit.h>
 
-
-enum details
-{
-    TOP,
-    BOTTOM,
-    LEFT,
-    RIGHT
-};
-
-
 // ============================================================
 //  _QTABLEWIDGETFILEBROWSER CLASS
 // ============================================================
@@ -129,7 +119,7 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEFileBrowser:public QWidget, public QEWidget
         bool getShowFileExtension();
 
         void setFileFilter(QString pValue);
-        QString getFileFilter();        
+        QString getFileFilter();
 
         void setFileDialogDirectoriesOnly(bool pValue);
         bool getFileDialogDirectoriesOnly();
@@ -187,11 +177,11 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEFileBrowser:public QWidget, public QEWidget
         Q_PROPERTY(optionsLayoutProperty optionsLayout READ getOptionsLayoutProperty WRITE setOptionsLayoutProperty)
         enum optionsLayoutProperty
         {
-            Top = TOP,
-            Bottom = BOTTOM,
-            Left = LEFT,
-            Right = RIGHT
-        };        
+            Top,
+            Bottom,
+            Left,
+            Right
+        };
 
         void setOptionsLayoutProperty(optionsLayoutProperty pOptionsLayout)
         {

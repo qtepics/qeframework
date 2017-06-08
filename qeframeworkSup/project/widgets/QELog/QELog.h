@@ -33,13 +33,6 @@
 #include <QPushButton>
 #include <QEWidget.h>
 
-enum details {
-    TOP,
-    BOTTOM,
-    LEFT,
-    RIGHT
-};
-
 
 // ============================================================
 //  _QTABLEWIDGETLOG CLASS
@@ -138,10 +131,10 @@ public:
 
 
    enum optionsLayoutProperty {
-      Top = TOP,
-      Bottom = BOTTOM,
-      Left = LEFT,
-      Right = RIGHT
+      Top,
+      Bottom,
+      Left,
+      Right
    };
 
    Q_ENUMS (optionsLayoutProperty)

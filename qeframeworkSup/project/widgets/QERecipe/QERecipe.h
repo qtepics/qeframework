@@ -135,8 +135,8 @@ class QEPLUGINLIBRARYSHARED_EXPORT QERecipe:public QWidget, public QEWidget
         Q_PROPERTY(configurationTypesProperty configurationType READ getConfigurationTypeProperty WRITE setConfigurationTypeProperty)
         enum configurationTypesProperty
         {
-            File = FROM_FILE,
-            Text = FROM_TEXT
+            File,
+            Text
         };
 
         void setConfigurationTypeProperty(configurationTypesProperty pConfigurationType)
@@ -156,11 +156,11 @@ class QEPLUGINLIBRARYSHARED_EXPORT QERecipe:public QWidget, public QEWidget
         Q_PROPERTY(optionsLayoutProperty optionsLayout READ getOptionsLayoutProperty WRITE setOptionsLayoutProperty)
         enum optionsLayoutProperty
         {
-            Top = TOP,
-            Bottom = BOTTOM,
-            Left = LEFT,
-            Right = RIGHT
-        };        
+            Top,
+            Bottom,
+            Left,
+            Right
+        };
 
         void setOptionsLayoutProperty(optionsLayoutProperty pOptionsLayout)
         {

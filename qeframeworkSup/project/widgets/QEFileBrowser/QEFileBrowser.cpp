@@ -1,4 +1,6 @@
-/*  This file is part of the EPICS QT Framework, initially developed at
+/*  QEFileBrowser.cpp
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
@@ -14,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
+ *  Copyright (c) 2012,2017 Australian Synchrotron
  *
  *  Author:
  *    Ricardo Fernandes
@@ -22,12 +24,12 @@
  *    ricardo.fernandes@synchrotron.org.au
  */
 
+#include <QEFileBrowser.h>
 #include <QLineEdit>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFileDialog>
 #include <QHeaderView>
-#include <QEFileBrowser.h>
 #include <QELineEdit.h>
 
 
@@ -72,7 +74,7 @@ QEFileBrowser::QEFileBrowser(QWidget *pParent):QWidget(pParent), QEWidget( this 
     setShowFileExtension(true);
     setFileFilter("");
     setFileDialogDirectoriesOnly(true);
-    setOptionsLayout(TOP);
+    setOptionsLayout(Top);
 
 }
 
@@ -331,8 +333,8 @@ void QEFileBrowser::setOptionsLayout(int pValue)
 
     switch(pValue)
     {
-        case TOP:
-            optionsLayout = TOP;
+        case Top:
+            optionsLayout = Top;
             qLayoutMain = new QVBoxLayout(this);
             qLayoutChild = new QHBoxLayout();
             qLayoutChild->addWidget(qeLineEditDirectoryPath);
@@ -342,8 +344,8 @@ void QEFileBrowser::setOptionsLayout(int pValue)
             qLayoutMain->addWidget(qTableWidgetFileBrowser);
             break;
 
-        case BOTTOM:
-            optionsLayout = BOTTOM;
+        case Bottom:
+            optionsLayout = Bottom;
             qLayoutMain = new QVBoxLayout(this);
             qLayoutMain->addWidget(qTableWidgetFileBrowser);
             qLayoutChild = new QHBoxLayout();
@@ -353,8 +355,8 @@ void QEFileBrowser::setOptionsLayout(int pValue)
             qLayoutMain->addItem(qLayoutChild);
             break;
 
-        case LEFT:
-            optionsLayout = LEFT;
+        case Left:
+            optionsLayout = Left;
             qLayoutMain = new QHBoxLayout(this);
             qLayoutChild = new QVBoxLayout();
             qLayoutChild->addWidget(qeLineEditDirectoryPath);
@@ -364,8 +366,8 @@ void QEFileBrowser::setOptionsLayout(int pValue)
             qLayoutMain->addWidget(qTableWidgetFileBrowser);
             break;
 
-        case RIGHT:
-            optionsLayout = RIGHT;
+        case Right:
+            optionsLayout = Right;
             qLayoutMain = new QHBoxLayout(this);
             qLayoutChild = new QVBoxLayout();
             qLayoutChild->addWidget(qeLineEditDirectoryPath);
@@ -619,4 +621,4 @@ void _QTableWidgetFileBrowser::resizeEvent(QResizeEvent *)
 
 }
 
-
+// end

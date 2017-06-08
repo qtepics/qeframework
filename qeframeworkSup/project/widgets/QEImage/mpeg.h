@@ -71,7 +71,12 @@ public:
     QMutex *mutex;
     unsigned char *mem;
     AVFrame *pFrame;
+
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(51, 42, 0)
     PixelFormat pix_fmt;
+#else
+    AVPixelFormat pix_fmt;
+#endif
     int width;
     int height;
     int refs;
