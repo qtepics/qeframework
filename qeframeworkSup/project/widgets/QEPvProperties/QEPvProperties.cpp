@@ -1168,6 +1168,7 @@ void QEPvProperties::customTableContextMenuRequested (const QPoint& posIn)
    QTableWidgetItem* item = NULL;
    QString trimmed;
    int row;
+   int vi;
    qcaobject::QCaObject* qca = NULL;
    QString newPV = "";
 
@@ -1183,7 +1184,9 @@ void QEPvProperties::customTableContextMenuRequested (const QPoint& posIn)
    switch (item->column ()) {
       case FIELD_COL:
          row = item->row ();
-         qca = this->fieldChannels.value (row, NULL);
+         // Find associated variable index...
+         vi = this->variableIndexTableRowMap.valueI (row, -1);
+         qca = this->fieldChannels.value (vi, NULL);
          if (qca) {
             newPV = qca->getRecordName ();
          }
@@ -1191,6 +1194,8 @@ void QEPvProperties::customTableContextMenuRequested (const QPoint& posIn)
 
       case VALUE_COL:
          trimmed = item->text ().trimmed ();
+         // newPV set to empty string if input is not a valid PV name
+         //
          QERecordFieldName::extractPvName (trimmed, newPV);
          break;
 
