@@ -22,6 +22,7 @@ RESOURCES += \
 HEADERS += \
     widgets/QEPvLoadSave/QEPvLoadSave.h \
     widgets/QEPvLoadSave/QEPvLoadSaveCommon.h \
+    widgets/QEPvLoadSave/QEPvLoadSaveAccessFail.h \
     widgets/QEPvLoadSave/QEPvLoadSaveCompare.h \
     widgets/QEPvLoadSave/QEPvLoadSaveItem.h \
     widgets/QEPvLoadSave/QEPvLoadSaveModel.h \
@@ -35,6 +36,7 @@ HEADERS += \
 SOURCES += \
     widgets/QEPvLoadSave/QEPvLoadSave.cpp \
     widgets/QEPvLoadSave/QEPvLoadSaveCommon.cpp \
+    widgets/QEPvLoadSave/QEPvLoadSaveAccessFail.cpp \
     widgets/QEPvLoadSave/QEPvLoadSaveCompare.cpp \
     widgets/QEPvLoadSave/QEPvLoadSaveItem.cpp \
     widgets/QEPvLoadSave/QEPvLoadSaveModel.cpp \
@@ -48,6 +50,7 @@ INCLUDEPATH += \
     widgets/QEPvLoadSave
 
 FORMS += \
+    widgets/QEPvLoadSave/QEPvLoadSaveAccessFail.ui \
     widgets/QEPvLoadSave/QEPvLoadSaveCompare.ui \
     widgets/QEPvLoadSave/QEPvLoadSaveGroupNameDialog.ui \
     widgets/QEPvLoadSave/QEPvLoadSaveTimeDialog.ui \

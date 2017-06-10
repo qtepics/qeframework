@@ -106,7 +106,9 @@ public:
    // void setModelIndex (const QModelIndex& index);
    // QModelIndex getModelIndex ();
    //
-   virtual void actionConnect (QObject* actionCompleteObject, const char* actionCompleteSlot);
+   virtual void actionConnect (QObject* actionCompleteObject,
+                               const char* actionCompleteSlot,
+                               const char* actionInCompleteSlot);
 
    QStringList getNodePath ();
 
@@ -128,6 +130,7 @@ public:
    virtual void extractPVData ();
    virtual void applyPVData ();
    virtual void readArchiveData (const QCaDateTime& dateTime);
+   virtual void abortAction ();
 
    // Count of number of PV leaf items at or below this node.
    // (As opposed to childCount which is number of direct children).
@@ -138,11 +141,6 @@ public:
    // returns an empty map.
    //
    virtual QEPvLoadSaveCommon::PvNameValueMaps getPvNameValueMap () const;
-
-signals:
-   void reportActionComplete (const QEPvLoadSaveItem* item,
-                              QEPvLoadSaveCommon::ActionKinds action,
-                              bool actionSuccessful);
 
 protected:
    // We keep and maintain a separate list of QEPvLoadSaveItem children, as
@@ -174,10 +172,13 @@ public:
    //
    bool getIsGroup () const { return true; }
    QEPvLoadSaveItem* clone (QEPvLoadSaveItem* parent);
-   void actionConnect (QObject* actionCompleteObject, const char* actionCompleteSlot);
+   void actionConnect (QObject* actionCompleteObject,
+                       const char* actionCompleteSlot,
+                       const char* actionInCompleteSlot);
    void extractPVData ();
    void applyPVData ();
    void readArchiveData (const QCaDateTime& dateTime);
+   void abortAction ();
    int leafCount () const;
 
    QEPvLoadSaveCommon::PvNameValueMaps getPvNameValueMap () const;
@@ -215,15 +216,35 @@ public:
    bool getIsPV () const { return true; }
    QEPvLoadSaveItem* clone (QEPvLoadSaveItem* parent);
    QEPvLoadSaveCommon::PvNameValueMaps getPvNameValueMap () const;
-   void actionConnect (QObject* actionCompleteObject, const char* actionCompleteSlot);
+   void actionConnect (QObject* actionCompleteObject,
+                       const char* actionCompleteSlot,
+                       const char* actionInCompleteSlot);
    void extractPVData ();
    void applyPVData ();
    void readArchiveData (const QCaDateTime& dateTime);
+   void abortAction ();
    int leafCount () const;
+
+signals:
+   // Used for progress bar on main form.
+   //
+   void reportActionComplete (const QEPvLoadSaveItem* item,
+                              const QEPvLoadSaveCommon::ActionKinds action,
+                              const bool actionSuccessful);
+
+   // Used when outstanding actions are aborted on main form.
+   //
+   void reportActionInComplete (const QEPvLoadSaveItem* item,
+                                const QEPvLoadSaveCommon::ActionKinds action);
+
 
 private:
    QString calcNodeName () const;  // Merges three PV names into a single node name.
    void setupQCaObjects ();        // Create/updates internal QCaObjects
+
+   // Conveniance function
+   //
+   void emitReportActionComplete (const bool actionSuccessful);
 
    QString setPointPvName;
    QString readBackPvName;
@@ -233,6 +254,8 @@ private:
    qcaobject::QCaObject* qcaReadBack;
    QEArchiveAccess* archiveAccess;
    QCaAlarmInfo alarmInfo;
+   QEPvLoadSaveCommon::ActionKinds action;
+   bool actionIsComplete;
 
 private slots:
    void dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex);

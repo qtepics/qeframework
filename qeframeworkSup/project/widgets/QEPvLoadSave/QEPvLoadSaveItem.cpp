@@ -277,7 +277,7 @@ int QEPvLoadSaveItem::getElementCount () const
 
 //-----------------------------------------------------------------------------
 //
-void QEPvLoadSaveItem::actionConnect (QObject*, const char*)
+void QEPvLoadSaveItem::actionConnect (QObject*, const char*, const char*)
 {
    NOT_IMPLEMENTED;
 }
@@ -299,6 +299,13 @@ void QEPvLoadSaveItem::applyPVData ()
 //-----------------------------------------------------------------------------
 //
 void QEPvLoadSaveItem::readArchiveData (const QCaDateTime&)
+{
+   NOT_IMPLEMENTED;
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSaveItem::abortAction ()
 {
    NOT_IMPLEMENTED;
 }
@@ -363,11 +370,12 @@ QEPvLoadSaveItem* QEPvLoadSaveGroup::clone (QEPvLoadSaveItem* parent)
 //-----------------------------------------------------------------------------
 //
 void QEPvLoadSaveGroup::actionConnect (QObject* actionCompleteObject,
-                                       const char* actionCompleteSlot)
+                                       const char* actionCompleteSlot,
+                                       const char* actionInCompleteSlot)
 {
    for (int j = 0; j < this->childItems.count(); j++) {
       QEPvLoadSaveItem* item = this->getChild (j);
-      if (item) item->actionConnect (actionCompleteObject, actionCompleteSlot);
+      if (item) item->actionConnect (actionCompleteObject, actionCompleteSlot, actionInCompleteSlot);
    }
 }
 
@@ -398,6 +406,16 @@ void QEPvLoadSaveGroup::readArchiveData (const QCaDateTime& dateTime)
    for (int j = 0; j < this->childItems.count(); j++) {
       QEPvLoadSaveItem* item = this->getChild (j);
       if (item) item->readArchiveData (dateTime);
+   }
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSaveGroup::abortAction ()
+{
+   for (int j = 0; j < this->childItems.count(); j++) {
+      QEPvLoadSaveItem* item = this->getChild (j);
+      if (item) item->abortAction ();
    }
 }
 
@@ -456,6 +474,7 @@ QEPvLoadSaveLeaf::QEPvLoadSaveLeaf (const QString& setPointPvNameIn,
    this->qcaSetPoint = NULL;
    this->qcaReadBack = NULL;
    this->archiveAccess = NULL;
+   this->actionIsComplete = true;
 
    this->setupQCaObjects ();
 
@@ -545,23 +564,30 @@ void QEPvLoadSaveLeaf::setupQCaObjects ()
 //-----------------------------------------------------------------------------
 //
 void QEPvLoadSaveLeaf::actionConnect (QObject* actionCompleteObject,
-                                      const char* actionCompleteSlot)
+                                      const char* actionCompleteSlot,
+                                      const char* actionInCompleteSlot)
 {
    QObject::connect (this, SIGNAL (reportActionComplete (const QEPvLoadSaveItem*, QEPvLoadSaveCommon::ActionKinds, bool)),
                      actionCompleteObject, actionCompleteSlot);
+
+   QObject::connect (this, SIGNAL (reportActionInComplete (const QEPvLoadSaveItem*, QEPvLoadSaveCommon::ActionKinds)),
+                     actionCompleteObject, actionInCompleteSlot);
 }
 
 //-----------------------------------------------------------------------------
 //
 void QEPvLoadSaveLeaf::extractPVData ()
 {
+   this->action = QEPvLoadSaveCommon::Extract;
+   this->actionIsComplete = false;
+
    if (this->qcaReadBack)  {
       bool status = this->qcaReadBack->singleShotRead ();
       if (!status) {
-         emit this->reportActionComplete (this, QEPvLoadSaveCommon::Extract, false);
+         this->emitReportActionComplete (false);
       }
    } else {
-      emit this->reportActionComplete (this, QEPvLoadSaveCommon::Extract, false);
+      this->emitReportActionComplete (false);
    }
 }
 
@@ -569,11 +595,14 @@ void QEPvLoadSaveLeaf::extractPVData ()
 //
 void QEPvLoadSaveLeaf::applyPVData ()
 {
-   if (this->qcaSetPoint) {
+   this->action = QEPvLoadSaveCommon::Apply;
+   this->actionIsComplete = false;
+
+   if (this->qcaSetPoint && this->qcaSetPoint->isChannelConnected ()) {
       bool status = this->qcaSetPoint->writeData (this->value);
-      emit this->reportActionComplete (this, QEPvLoadSaveCommon::Apply, status);
+      this->emitReportActionComplete (status);
    } else {
-      emit this->reportActionComplete (this, QEPvLoadSaveCommon::Apply, false);
+      this->emitReportActionComplete (false);
    }
 }
 
@@ -581,13 +610,26 @@ void QEPvLoadSaveLeaf::applyPVData ()
 //
 void QEPvLoadSaveLeaf::readArchiveData (const QCaDateTime& dateTime)
 {
+   this->action = QEPvLoadSaveCommon::ReadArchive;
+   this->actionIsComplete = false;
+
    if (this->archiveAccess) {
       this->archiveAccess->readArchive (this, this->getNodeName (),
                                         dateTime, dateTime, 1,
                                         QEArchiveInterface::Linear, 0);
    } else {
-      //
+      this->emitReportActionComplete (false);
    }
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSaveLeaf::abortAction ()
+{
+   if (!this->actionIsComplete) {
+      emit this->reportActionInComplete (this, this->action);
+   }
+   this->actionIsComplete = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -730,30 +772,39 @@ QString QEPvLoadSaveLeaf::calcNodeName () const
 //-----------------------------------------------------------------------------
 //
 void QEPvLoadSaveLeaf::dataChanged (const QVariant& valueIn, QCaAlarmInfo& alarmInfoIn,
-                                     QCaDateTime&, const unsigned int&)
+                                    QCaDateTime&, const unsigned int&)
 {
    this->value = valueIn;
    this->alarmInfo = alarmInfoIn;
-   emit this->reportActionComplete (this, QEPvLoadSaveCommon::Extract, true);
+   this->emitReportActionComplete (true);
 }
 
 //-----------------------------------------------------------------------------
 //
-void QEPvLoadSaveLeaf::setArchiveData (const QObject*, const bool okay, const QCaDataPointList& dataPointList,
-                                       const QString& /* pvName */ , const QString& /* supplementary */)
+void QEPvLoadSaveLeaf::setArchiveData (const QObject*, const bool okay,
+                                       const QCaDataPointList& dataPointList,
+                                       const QString&, const QString&)
 {
-   // DEBUG << pvName << okay << supplementary;
-
    if (okay && dataPointList.count() > 0) {
       QCaDataPoint item = dataPointList.value (0);
 
       this->value = QVariant (item.value);
       this->alarmInfo = item.alarm;
 
-      emit this->reportActionComplete (this, QEPvLoadSaveCommon::ReadArchive, true);
+      this->emitReportActionComplete (true);
    } else {
-      emit this->reportActionComplete (this, QEPvLoadSaveCommon::ReadArchive, false);
+      this->emitReportActionComplete (false);
    }
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSaveLeaf::emitReportActionComplete (const bool actionSuccessful)
+{
+   // Only successfull actions are deemed complete
+   //
+   if (actionSuccessful) this->actionIsComplete = true;
+   emit this->reportActionComplete (this, this->action, actionSuccessful);
 }
 
 // end

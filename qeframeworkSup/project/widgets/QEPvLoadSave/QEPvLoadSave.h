@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) Australian Synchrotron 2013,2016
+ *  Copyright (c) Australian Synchrotron 2013,2016,2017
  *
  *  Author:
  *    Andrew Starritt
@@ -23,8 +23,8 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
-#ifndef QEPVLOADSAVE_H
-#define QEPVLOADSAVE_H
+#ifndef QE_PV_LOAD_SAVE_H
+#define QE_PV_LOAD_SAVE_H
 
 #include <QAction>
 #include <QMenu>
@@ -65,6 +65,7 @@
 
 // Differed declaration - avoids mutual header inclusions.
 //
+class QEPvLoadSaveAccessFail;
 class QEPvLoadSaveCompare;
 class QEPvLoadSaveItem;
 class QEPvLoadSaveModel;
@@ -215,10 +216,14 @@ private:
    QFrame* sidesFrame;
    QHBoxLayout* sideBySidelayout;
    Halves* half [2];  // two halves make a whole ;-)
-   QFrame* loadSaveStatus;
+
+   QString loadSaveAction;
+   QFrame* loadSaveStatusFrame;
    QLabel* loadSaveTitle;
    QProgressBar* progressBar;
+   QLabel* progressStatus;
    QPushButton* abortButton;
+   QEPvLoadSaveAccessFail* accessFail;
 
    QEPvLoadSaveGroupNameDialog* groupNameDialog;
    QEPvLoadSaveValueEditDialog* valueEditDialog;
@@ -265,7 +270,8 @@ private slots:
                                          QString configurationFileSubstitutionsIn,
                                          unsigned int variableIndex );
 
-   void acceptActionComplete (QEPvLoadSaveCommon::ActionKinds, bool);
+   void acceptActionComplete (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ActionKinds, const bool);
+   void acceptActionInComplete (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ActionKinds);
 
    void treeMenuRequested (const QPoint& pos);
    void treeMenuSelected  (QAction* action);
@@ -287,4 +293,4 @@ private slots:
    void abortClicked (bool);
 };
 
-#endif // QEPVLOADSAVE_H
+#endif // QE_PV_LOAD_SAVE_H
