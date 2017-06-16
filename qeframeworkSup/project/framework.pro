@@ -1,7 +1,7 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #4 $
-# $DateTime: 2016/10/26 18:24:07 $
-# Last checked in by: $Author: starritt $
+# $Revision: #5 $
+# $DateTime: 2017/06/14 17:22:16 $
+# Last checked in by: $Author: rhydera $
 #
 # Copyright (c) 2009,2010,2016 Australian Synchrotron
 #
@@ -118,6 +118,7 @@ INCLUDEPATH += O.$$(EPICS_HOST_ARCH)/ui
 
 
 DEFINES += QWT_DLL=TRUE
+win32:DEFINES += EPICS_CALL_DLL
 
 #===========================================================
 # Include MPEG streaming into QEImage widget
@@ -208,6 +209,7 @@ unix:INCLUDEPATH += $$(EPICS_BASE)/include/os/Linux
 unix:INCLUDEPATH += $$(EPICS_BASE)/include/compiler/gcc
 
 win32:INCLUDEPATH += $$(EPICS_BASE)/include/os/WIN32
+win32:INCLUDEPATH += $$(EPICS_BASE)/include/compiler/msvc
 
 LIBS += -L$$(EPICS_BASE)/lib/$$(EPICS_HOST_ARCH) \
     -lca \
