@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2015,2016 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2015,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -98,6 +98,7 @@ public:
     void setUseDbPrecision( bool useDbPrecision );
     void setLeadingZero( bool leadingZero );
     void setTrailingZeros( bool trailingZeros );
+    void setForceSign( bool forceSign );
     void setFormat( formats format );
     void setSeparator( const separators separator );
     void setRadix( const int radix );
@@ -111,6 +112,7 @@ public:
     bool         getUseDbPrecision() const;
     bool         getLeadingZero() const;
     bool         getTrailingZeros() const;
+    bool         getForceSign() const;
     formats      getFormat() const;
     separators   getSeparator () const;
     unsigned int getRadix() const;
@@ -133,7 +135,7 @@ public:
 
     // Utility functions
     void determineDbFormat( const QVariant &value );
-
+    void applyForceSign ();
     QString insertSeparators( const QString image ) const;
 
     // Error reporting
@@ -152,6 +154,7 @@ public:
     bool useDbPrecision;             // Use the number of decimal places displayed as defined in the database.
     bool leadingZero;                // Add a leading zero when required.
     bool trailingZeros;              // Add trailing zeros when required (up to the precision).
+    bool forceSign;                  // Add "+" for numeric values >= 0
     formats format;                  // Presentation required (Floating, integer, etc).
     formats dbFormat;                // Format determined from read value (Floating, integer, etc).
     separators separator;            // Thousands separator (applies to numeric values only)

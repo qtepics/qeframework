@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2015,2016 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2015,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -23,10 +23,10 @@
  *    andrew.rhyder@synchrotron.org.au
  */
 
+#include <QEStringFormatting.h>
 #include <math.h>
 #include <QtDebug>
 #include <QECommon.h>
-#include <QEStringFormatting.h>
 
 /*
     Construction
@@ -40,6 +40,7 @@ QEStringFormatting::QEStringFormatting() {
     precision = 4;
     leadingZero = true;
     trailingZeros = true;
+    forceSign = false;
     format = FORMAT_DEFAULT;
     dbFormat = FORMAT_DEFAULT;
     separator = SEPARATOR_NONE;
@@ -362,6 +363,24 @@ void QEStringFormatting::determineDbFormat( const QVariant &value )
 }
 
 /*
+    Set strem numbers flags
+ */
+void QEStringFormatting::applyForceSign ()
+{
+   QTextStream::NumberFlags nf = stream.numberFlags();
+
+   if( forceSign ) {
+       // yes - set flag
+       nf = nf | QTextStream::ForceSign;
+   } else {
+       // no - clear flag
+       nf = (nf | QTextStream::ForceSign) ^ QTextStream::ForceSign;
+
+   }
+   stream.setNumberFlags( nf );
+}
+
+/*
     Insert separators iff defined.
  */
 QString QEStringFormatting::insertSeparators( const QString image) const
@@ -501,6 +520,7 @@ QString QEStringFormatting::formatString( const QVariant& value, int arrayIndex 
 */
 QString QEStringFormatting::formatElementString( const QVariant& value ) {
     // Examine the value and note the matching format
+    // This sets dbFormat which is used by following switch statements
     determineDbFormat( value );
 
     // Initialise
@@ -631,6 +651,10 @@ void QEStringFormatting::formatFromFloating( const QVariant &value ) {
         return;
     }
 
+    // Ensure '+' sign added if requested.
+    //
+    applyForceSign();
+
     // NOTE: Smart notation (NOTATION_AUTOMATIC) does not honor real number precision.
     // So select FixedNotation or ScientificNotation as appropriate.
     //
@@ -740,6 +764,7 @@ void QEStringFormatting::formatFromInteger( const QVariant &value ) {
 
     // Add sperators if needs be
     outStr = insertSeparators( outStr );
+
 }
 
 /*
@@ -830,7 +855,7 @@ void QEStringFormatting::formatFromTime( const QVariant &value ) {
         if (okay) {
            if (seconds >= 0.0) {
               time = seconds;
-              sign= "";
+              sign= forceSign ? "+" : "";
            } else {
               time = -seconds;
               sign= "-";
@@ -942,6 +967,13 @@ void QEStringFormatting::setTrailingZeros( bool trailingZerosIn ) {
 }
 
 /*
+    Set or clear flag to force + sign on numeric values.
+ */
+void QEStringFormatting::setForceSign( bool forceSignIn ) {
+    forceSign = forceSignIn;
+}
+
+/*
     Set the type of information being displayed (floating point number,
     date/time, etc).
 */
@@ -1036,6 +1068,13 @@ bool QEStringFormatting::getLeadingZero() const {
 */
 bool QEStringFormatting::getTrailingZeros() const {
     return trailingZeros;
+}
+
+/*
+    Get or clear flag to force + sign on numeric values.
+ */
+bool QEStringFormatting::getForceSign() const {
+    return forceSign;
 }
 
 /*
