@@ -126,6 +126,8 @@ public:
     QString formatElementString( const QVariant& value );
 
     // Type specific conversion functions
+    // TODO: These SHOULD be rebadged formatToFloatingString etc.
+    //
     void formatFromFloating( const QVariant& value );
     void formatFromInteger( const QVariant& value );
     void formatFromUnsignedInteger( const QVariant& value );
@@ -136,7 +138,12 @@ public:
     // Utility functions
     void determineDbFormat( const QVariant &value );
     void applyForceSign ();
-    QString insertSeparators( const QString image ) const;
+    QString insertSeparators( const QString& image ) const;
+    QString realImage (const double item,
+                       const notations notation,
+                       const bool forceSign,
+                       const int zeros,
+                       const int prec);
 
     // Error reporting
     void formatFailure( QString message );
@@ -157,6 +164,7 @@ public:
     bool forceSign;                  // Add "+" for numeric values >= 0
     formats format;                  // Presentation required (Floating, integer, etc).
     formats dbFormat;                // Format determined from read value (Floating, integer, etc).
+    notations notation;              // Required notation for floating point formats
     separators separator;            // Thousands separator (applies to numeric values only)
     bool dbFormatArray;              // True if read value is an array
     bool addUnits;                   // Flag use engineering units from database
