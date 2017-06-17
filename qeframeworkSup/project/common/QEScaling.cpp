@@ -279,6 +279,8 @@ void QEScaling::extractFromWidget (const QWidget* widget)
 //
 int QEScaling::currentScaleM = 1;
 int QEScaling::currentScaleD = 1;
+int QEScaling::currentFontScaleM = 1;
+int QEScaling::currentFontScaleD = 1;
 
 //------------------------------------------------------------------------------
 //
@@ -304,7 +306,33 @@ void QEScaling::getScaling (int& m, int& d)
 }
 
 //------------------------------------------------------------------------------
+//static
+//
+void QEScaling::setFontScaling (const int fm, const int fd)
+{
+   // sanity check - m and d both positive.
+   //
+   if ((fm > 0) && (fd > 0)) {
+      // Normalise rational number.
+      //
+      int g = gcd (fm, fd);
+      QEScaling::currentFontScaleM = fm/g;
+      QEScaling::currentFontScaleD = fd/g;
+   }
+}
+
+//------------------------------------------------------------------------------
 // static
+//
+void QEScaling::getFontScaling (int& fm, int& fd)
+{
+   fm = QEScaling::currentFontScaleM;
+   fd = QEScaling::currentFontScaleD;
+}
+
+//------------------------------------------------------------------------------
+// static
+//
 void QEScaling::widgetCapture (QWidget* widget)
 {
    if (!widget) return;
@@ -386,10 +414,10 @@ void QEScaling::widgetScale (QWidget* widget)
 
    if (pointSize >= 0) {
       // Font point sizes must me at least one.
-      font.setPointSize (MAX (1, QEScaling::scale (pointSize)));
+      font.setPointSize (MAX (1, QEScaling::scaleFont (pointSize)));
    }
    else if (pixelSize >= 0) {
-      font.setPixelSize (MAX (1, QEScaling::scale (pixelSize)));
+      font.setPixelSize (MAX (1, QEScaling::scaleFont (pixelSize)));
    }
    widget->setFont (font);
 
@@ -556,6 +584,14 @@ void QEScaling::rescaleWidget (QWidget* widget, const double newScale)
 }
 
 //------------------------------------------------------------------------------
+// static
+//
+int QEScaling::scaleFont (const int v) {
+   return (v * QEScaling::currentScaleM * QEScaling::currentFontScaleM ) /
+              (QEScaling::currentScaleD * QEScaling::currentFontScaleD);
+}
+
+//------------------------------------------------------------------------------
 //
 void QEScaling::applyToPoint (QPoint& point)
 {
@@ -600,7 +636,7 @@ QString QEScaling::scaleStyleSheet (const QString& input)
          workingInput.remove (0, 1);
       }
 
-      const int npx = QEScaling::scale (px);
+      const int npx = QEScaling::scaleFont (px);
 
       result.append (QString::number(npx));
       next = workingInput.indexOf (re, 0);
