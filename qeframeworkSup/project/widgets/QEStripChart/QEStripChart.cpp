@@ -1059,7 +1059,7 @@ QEStripChart::QEStripChart (QWidget * parent) : QEAbstractDynamicWidget (parent)
    //
    this->archiveAccess->resendStatus ();
 
-   this->recalcIsRequired = false; // part of fuuture enhancement
+   this->recalcIsRequired = false; // part of future enhancement
 
    this->replotIsRequired = true; // ensure process on first tick.
    this->tickTimerCount = 0;

@@ -139,6 +139,7 @@ private:
    void setCaption ();
    void clear ();
    void highLight (bool isHigh);
+   void addRealTimeDataPoint (const QCaDataPoint& point);
 
    QPen getPen ();
    void plotDataPoints (const QCaDataPointList& dataPoints,
@@ -156,6 +157,7 @@ private:
    // data members
    //
    int slot;
+   int maxRealTimePoints;
    bool isConnected;
    bool useReceiveTime;
    QEArchiveInterface::How archiveReadHow;
