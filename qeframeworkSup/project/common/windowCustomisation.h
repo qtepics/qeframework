@@ -1,4 +1,5 @@
-/*
+/*  windowCustomisation.h
+ *
  *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
@@ -14,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
+ *  Copyright (c) 2013,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -128,8 +129,8 @@
     </QEWindowCustomisation>
  */
 
-#ifndef WINDOWCUSTOMISATION_H
-#define WINDOWCUSTOMISATION_H
+#ifndef QE_WINDOW_CUSTOMISATION_H
+#define QE_WINDOW_CUSTOMISATION_H
 
 #include <QObject>
 #include <QAction>
@@ -192,7 +193,7 @@ private:
 
 
 // Class defining an individual item (base class for button or menu item)
-class windowCustomisationItem : public QAction
+class windowCustomisationItem: public QObject
 {
     Q_OBJECT
 public:
@@ -224,6 +225,7 @@ public:
     void logItem( customisationLog& log );
     void addUserLevelAccess( QDomElement element, customisationLog& log  ); // Note the user levels at which the item is enabled and visible
     void setUserLevelState( userLevelTypes::userLevels currentUserLevel );  // Set the visibility and enabled state of the item according to the user level
+    QAction* getAction(){ return iAction; }                                 // Return embedded QAction
 
 private:
     // Item action
@@ -235,11 +237,13 @@ private:
     QString widgetName;                             // Widget to locate if passing this action on to a widget in a GUI
     QString guiTitle;                               // Title to give GUI. This overrides any title specified in the GUI.
 
-    ContainerProfile profile;                       // Profile to use while creating customisations.
     applicationLauncher programLauncher;            // Manage any program that needs to be started
 
     userLevelTypes::userLevels userLevelVisible;    // User level at which the item will be visible
     userLevelTypes::userLevels userLevelEnabled;    // User level at which the item will be enabled
+protected:
+    ContainerProfile profile;                       // Profile to use while creating customisations.
+    QAction* iAction;
 
 public slots:
     void itemAction();                              // Slot to call when action is triggered
@@ -490,4 +494,4 @@ private slots:
 };
 
 
-#endif // WINDOWCUSTOMISATION_H
+#endif // QE_WINDOW_CUSTOMISATION_H

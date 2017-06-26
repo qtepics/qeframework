@@ -1,4 +1,5 @@
-/*
+/*  windowCustomisation.cpp
+ *
  *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
@@ -14,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
+ *  Copyright (c) 2013,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -35,7 +36,7 @@
  * REFER TO windowCustomisation.h for more details on how to use this module.
  */
 
-#include <windowCustomisation.h>
+#include "windowCustomisation.h"
 #include <QDebug>
 #include <QFile>
 #include <QMenuBar>
@@ -50,7 +51,7 @@
 //==============================================================================================
 
 // Construct instance of class defining an individual item when none exists (for example, a menu placeholder)
-windowCustomisationItem::windowCustomisationItem() : QAction( 0 )
+windowCustomisationItem::windowCustomisationItem() : iAction( NULL )
 {
     commonInit();
 
@@ -59,7 +60,7 @@ windowCustomisationItem::windowCustomisationItem() : QAction( 0 )
 
 // Construct instance of class defining a built in application action
 windowCustomisationItem::windowCustomisationItem( const QString builtInActionIn )
-                                                  : QAction( 0 )
+                                                  : iAction( NULL )
 {
     commonInit();
 
@@ -68,7 +69,7 @@ windowCustomisationItem::windowCustomisationItem( const QString builtInActionIn 
 
 windowCustomisationItem::windowCustomisationItem( const QString builtInActionIn,
                                                   const QString widgetNameIn )                           // widget name if built in function is for a widget, not the application
-                                                  : QAction( 0 )
+                                                  : iAction( NULL )
 {
     commonInit();
 
@@ -82,7 +83,7 @@ windowCustomisationItem::windowCustomisationItem(
     const QList<windowCreationListItem>& windowsIn,      // Windows to display (centrals and docks)
     const QString programIn,                             // Program to run
     const QStringList argumentsIn )                      // Arguments for 'program'
-         : QAction( 0 )
+         : iAction( NULL )
 {
     commonInit();
 
@@ -98,7 +99,7 @@ windowCustomisationItem::windowCustomisationItem(
 }
 
 // Construct instance of class defining an individual item (base class for button) or menu item
-windowCustomisationItem::windowCustomisationItem(windowCustomisationItem* item): QAction( 0 )
+windowCustomisationItem::windowCustomisationItem(windowCustomisationItem* item): iAction( NULL )
 {
     commonInit();
 
@@ -121,11 +122,11 @@ windowCustomisationItem::windowCustomisationItem(windowCustomisationItem* item):
     userLevelVisible = item->userLevelVisible;
     userLevelEnabled = item->userLevelEnabled;
 
-    setUserLevelState( profile.getUserLevel() );
+//    setUserLevelState( profile.getUserLevel() );
 }
 
 // Construct instance of class defining a link to an existing dock
-windowCustomisationItem::windowCustomisationItem( const QString dockTitleIn, bool /*unused*/ ): QAction( 0 )
+windowCustomisationItem::windowCustomisationItem( const QString dockTitleIn, bool /*unused*/ ): iAction( NULL )
 {
     commonInit();
 
@@ -146,7 +147,7 @@ void windowCustomisationItem::initialise()
 {
     if( !builtInAction.isEmpty() && !widgetName.isEmpty() )
     {
-        emit newGui( QEActionRequests( builtInAction, widgetName, QStringList(), true, this ) );
+        emit newGui( QEActionRequests( builtInAction, widgetName, QStringList(), true, iAction ) );
     }
 }
 
@@ -185,7 +186,7 @@ void windowCustomisationItem::itemAction()
         // A widget name is present, assume the action is for a QE widget created by the application
         else
         {
-            emit newGui( QEActionRequests( builtInAction, widgetName, QStringList(), false, this ) );
+            emit newGui( QEActionRequests( builtInAction, widgetName, QStringList(), false, iAction ) );
         }
     }
 
@@ -222,11 +223,13 @@ void windowCustomisationItem::addUserLevelAccess( QDomElement element, customisa
 // Set the visibility and enabled state of the item according to the user level
 void windowCustomisationItem::setUserLevelState( userLevelTypes::userLevels currentUserLevel )
 {
+    if( !iAction ) return; // sainty check
+
     // Set the menu visibility according to user level
-    setVisible( userLevelVisible <= currentUserLevel );
+    iAction->setVisible( userLevelVisible <= currentUserLevel );
 
     // Set the menu enabled state according to user level
-    setEnabled( userLevelEnabled <= currentUserLevel );
+    iAction->setEnabled( userLevelEnabled <= currentUserLevel );
 }
 
 //==============================================================================================
@@ -374,13 +377,13 @@ windowCustomisationMenuItem::windowCustomisationMenuItem(windowCustomisationMenu
     type = menuItem->type;
     menuHierarchy = menuItem->getMenuHierarchy();
     title = menuItem->getTitle();
-    setText(title);
-    setParent(this);
+    
     separator = menuItem->separator;
     checkInfo = menuItem->checkInfo;
+    iAction = new QAction( title, this );
 
     // Set up an action to respond to the user
-    connect( this, SIGNAL( triggered()), this, SLOT(itemAction()));
+    connect( iAction, SIGNAL( triggered()), this, SLOT(itemAction()));
 }
 
 // Add an initial menu hierarchy.
@@ -463,11 +466,10 @@ windowCustomisationButtonItem::windowCustomisationButtonItem(windowCustomisation
     buttonLocation = buttonItem->getButtonLocation();
     buttonText     = buttonItem->getButtonText();
     buttonIcon     = buttonItem->getButtonIcon();
-    setText(buttonText);
-    setParent(this);
+    iAction = new QAction( buttonText, this );
 
     // Set up an action to respond to the user
-    connect( this, SIGNAL( triggered()), this, SLOT(itemAction()));
+    connect( iAction, SIGNAL( triggered()), this, SLOT(itemAction()));
 }
 
 //==============================================================================================
@@ -1372,7 +1374,7 @@ void windowCustomisationList::applyCustomisation( QMainWindow* mw,              
         }
 
         // Add button action
-        tb->addAction( item );
+        tb->addAction( item->getAction() );
 
         // Set the icon if possible
         if( !item->getButtonIcon().isEmpty() )
@@ -1383,7 +1385,7 @@ void windowCustomisationList::applyCustomisation( QMainWindow* mw,              
                 QIcon icon = QIcon( file->fileName() );
                 if( !icon.isNull() )
                 {
-                    item->setIcon( icon );
+                    item->getAction()->setIcon( icon );
                 }
                 delete file;
             }
@@ -1423,8 +1425,8 @@ void windowCustomisationList::applyCustomisation( QMainWindow* mw,              
                     itemCheckInfo checkInfo = menuItem->getCheckInfo();
                     if( checkInfo.getCheckable() )
                     {
-                        menuItem->setCheckable( true );
-                        menuItem->setChecked( macroSubstitutionParts.getValue( checkInfo.getKey() ) == checkInfo.getValue() );
+                        menuItem->getAction()->setCheckable( true );
+                        menuItem->getAction()->setChecked( macroSubstitutionParts.getValue( checkInfo.getKey() ) == checkInfo.getValue() );
                     }
 
                     // Set up an action to respond to the user
@@ -1488,7 +1490,7 @@ void windowCustomisationList::applyCustomisation( QMainWindow* mw,              
                     // Not dock related, just add the menu item as the action
                     else
                     {
-                        action = menuItem;
+                        action = menuItem->getAction();
                     }
 
                     // If the required action is available, add the item action to the correct menu.
@@ -1550,7 +1552,7 @@ void windowCustomisationList::applyCustomisation( QMainWindow* mw,              
                     {
                         menu->addSeparator();
                     }
-                    menu->addAction( menuItem );
+                    menu->addAction( menuItem->getAction() );
                 }
 
                 // Or add the item to the menu bar, if not in a menu
@@ -1558,7 +1560,7 @@ void windowCustomisationList::applyCustomisation( QMainWindow* mw,              
                 // but is a bit unusual otherwise)
                 else
                 {
-                    mw->menuBar()->addAction( menuItem );
+                    mw->menuBar()->addAction( menuItem->getAction() );
                 }
 
                 // Set the item to request an action from the main window it has been added to.
@@ -1705,3 +1707,5 @@ void windowCustomisationInfo::userLevelChangedGeneral( userLevelTypes::userLevel
         items.at( i )->setUserLevelState( userLevel );
     }
 }
+
+// end
