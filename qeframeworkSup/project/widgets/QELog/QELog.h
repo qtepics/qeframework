@@ -53,7 +53,7 @@ public:
 // ============================================================
 //  _QELOG METHODS
 // ============================================================
-class QEPLUGINLIBRARYSHARED_EXPORT QELog : public QWidget, public QEWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QELog : public QWidget, public QEWidget {
    Q_OBJECT
 private:
    void newMessage (QString msg, message_types type);

@@ -50,7 +50,7 @@
 #include <QEActionRequests.h>
 #include <QEExpressionEvaluation.h>
 #include <QEDisplayRanges.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 #include "QEStripChart.h"
 #include "QEStripChartNames.h"
@@ -63,7 +63,7 @@
 // We have to make is public so that it can be a pukka Q_OBJECT in order to
 // receive signals.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEStripChartItem : public QWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStripChartItem : public QWidget {
    Q_OBJECT
 public:
    explicit QEStripChartItem (QEStripChart* chart,

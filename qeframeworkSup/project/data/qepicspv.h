@@ -40,10 +40,10 @@
 #include <QObject>
 #include <QVariant>
 #include <QStringList>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEpicsPV : public QObject {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEpicsPV : public QObject {
   Q_OBJECT
 
 private:

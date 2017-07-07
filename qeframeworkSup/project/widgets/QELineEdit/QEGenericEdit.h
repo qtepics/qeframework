@@ -31,11 +31,11 @@
 #include <QEWidget.h>
 #include <QESingleVariableMethods.h>
 #include <QCaVariableNamePropertyManager.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 // Provides the base class for QELineEdit
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEGenericEdit :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGenericEdit :
     public QLineEdit,
     public QESingleVariableMethods,
     public QEWidget

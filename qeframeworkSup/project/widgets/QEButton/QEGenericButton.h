@@ -40,7 +40,7 @@
 #include <QEWidgetProperties.h>
 
 // Class common to all QE buttons
-class QEPLUGINLIBRARYSHARED_EXPORT QEGenericButton :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGenericButton :
         public QEWidget,
         public managePixmaps,
         public QESingleVariableMethods,

@@ -26,14 +26,14 @@
 #ifndef QE_GLOBAL_STYLE_H
 #define QE_GLOBAL_STYLE_H
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// This class sets the QApplication instancse style sheet, and hence is a
 /// global style that is applicable to all widgets. As this functionality is
 /// invoked from the QEWidget constructor, this style applies equally within
 /// designer, qegui or any other display mangers using at least one QEWidget.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEGlobalStyle
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGlobalStyle
 {
 public:
    /// Constructor

@@ -30,11 +30,11 @@
 #include <QEWidget.h>
 #include <QEString.h>
 #include <QEStringFormatting.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <managePixmaps.h>
 #include <QEGenericButton.h>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QERadioButton : public QRadioButton, public QEGenericButton {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QERadioButton : public QRadioButton, public QEGenericButton {
     Q_OBJECT
 
   public:

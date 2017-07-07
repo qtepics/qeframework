@@ -1,7 +1,7 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #5 $
-# $DateTime: 2017/06/14 17:22:16 $
-# Last checked in by: $Author: rhydera $
+# $Revision: #6 $
+# $DateTime: 2017/07/07 11:21:59 $
+# Last checked in by: $Author: starritt $
 #
 # Copyright (c) 2009,2010,2016 Australian Synchrotron
 #
@@ -84,25 +84,24 @@ isEmpty( _EPICS_HOST_ARCH ) {
 }
 
 TEMPLATE = lib
-DEFINES += QEPLUGIN_LIBRARY
+DEFINES += QE_FRAMEWORK_LIBRARY
 
 # Install the generated plugin library and include files in QE_TARGET_DIR if defined.
 _QE_TARGET_DIR = $$(QE_TARGET_DIR)
 isEmpty( _QE_TARGET_DIR ) {
     INSTALL_DIR = $$TOP
-    message( "QE_TARGET_DIR is not defined. The QE plugin library/include files will be installed into the <top> directory." )
+    message( "QE_TARGET_DIR is not defined. The QE framework library/include files will be installed into the <top> directory." )
 } else {
     INSTALL_DIR = $$(QE_TARGET_DIR)
-    message( "QE_TARGET_DIR is defined. The QE plugin library/include files will be installed directly into" $$INSTALL_DIR )
-    unix:message( "Applications may need to load the framework library directly. To ensure this can happen one option is to set up LD_LIBRARY_PATH to include the directory" $$INSTALL_DIR/lib/$$(EPICS_HOST_ARCH) ". LD_LIBRARY_PATH is currently" $(LD_LIBRARY_PATH) )
-    message( "Applications may need to load the framework library as a Qt plugin. To ensure this can happen one option is to set up QT_PLUGIN_PATH to include a directory containing a 'designer' directory with a link to the plugin library. QT_PLUGIN_PATH is currently" $(QT_PLUGIN_PATH) )
+    warning( "QE_TARGET_DIR is defined. The QE plugin library/include files will be installed directly into" $$INSTALL_DIR )
+    unix:warning( "Applications may need to load the framework library directly. To ensure this can happen one option is to set up LD_LIBRARY_PATH to include the directory" $$INSTALL_DIR/lib/$$(EPICS_HOST_ARCH) ". LD_LIBRARY_PATH is currently" $(LD_LIBRARY_PATH) )
 }
 
 # The plugin ends up here.
 #
 DESTDIR = $$INSTALL_DIR/lib/$$(EPICS_HOST_ARCH)
 
-TARGET = QEPlugin
+TARGET = QEFramework
 
 # Place all intermediate generated files in architecture specific locations
 #

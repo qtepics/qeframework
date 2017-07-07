@@ -105,7 +105,7 @@ class _CopyPaste
   This class is a EPICS aware widget.
   The QEScript widget allows the user to define a certain sequence of external programs to be executed. This sequence may be saved, modified or loaded for future usage.
 */
-class QEPLUGINLIBRARYSHARED_EXPORT QEScript:public QWidget, public QEWidget
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEScript:public QWidget, public QEWidget
 {
 
     Q_OBJECT

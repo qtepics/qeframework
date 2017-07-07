@@ -32,7 +32,7 @@
 #include <QList>
 #include <QStringList>
 #include <QDebug>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <persistanceManager.h>
 
 
@@ -42,7 +42,7 @@ class ContainerProfile;
 
 
 // Define the user levels
-class QEPLUGINLIBRARYSHARED_EXPORT userLevelTypes : public QObject
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT userLevelTypes : public QObject
 {
     Q_OBJECT
 public:
@@ -197,7 +197,7 @@ public:
 
 // Class to provide a communication mechanism from the code creating QE widgets to the QE widgets.
 // See ContainerProfile.cpp for details
-class QEPLUGINLIBRARYSHARED_EXPORT ContainerProfile
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT ContainerProfile
 {
 public:
     ContainerProfile();    // Construction. Sets up local copies of any profile defined by setupProfile() in an earlier instance
@@ -303,7 +303,7 @@ private:
 //
 //   }  p is destroyed when it goes out of scope.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT ProfilePublisher {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT ProfilePublisher {
 public:
     explicit ProfilePublisher( QEWidget* owner,
                                const QString& prioritySubstitutions );

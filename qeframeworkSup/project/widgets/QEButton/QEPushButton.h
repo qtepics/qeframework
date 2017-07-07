@@ -30,7 +30,7 @@
 #include <QEWidget.h>
 #include <QEString.h>
 #include <QEStringFormatting.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEForm.h>
 #include <UserMessage.h>
 #include <ContainerProfile.h>
@@ -39,7 +39,7 @@
 #include <QCaVariableNamePropertyManager.h>
 
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEPushButton : public QPushButton, public QEGenericButton {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPushButton : public QPushButton, public QEGenericButton {
     Q_OBJECT
 
   public:

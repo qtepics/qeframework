@@ -34,7 +34,7 @@
 #include <QString>
 #include <QVariant>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// The scaling is defined using a rational number specifed by two integers (m, d).
 /// The first (m) integer is the multiplier and the second (d) integer is the divisor.
@@ -46,7 +46,7 @@
 ///
 // Note: This was formerly part of QECommon.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEScaling {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEScaling {
 public:
     /// Set application wide general gui scaling values.
     /// Both values default to 1, which is a null scaling.

@@ -31,13 +31,13 @@
 #include <QString>
 #include <QStringList>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// Provides a basic name search capability. Extracted from archiver manager
 /// in ordger to provide a more flexibility, i.e. sets of PV names which can
 /// be source from any source.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEPvNameSearch {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvNameSearch {
 public:
    explicit QEPvNameSearch ();
    explicit QEPvNameSearch (const QEPvNameSearch& other);

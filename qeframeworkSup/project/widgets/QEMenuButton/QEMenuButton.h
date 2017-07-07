@@ -39,7 +39,7 @@
 #include <QECommon.h>
 #include <QEActionRequests.h>
 #include <QEAbstractWidget.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEWidget.h>
 
 /// This widget provides a menu attached to a button.
@@ -48,7 +48,7 @@
 /// b) run a nominated program; and/or
 /// c) open a specified ui file.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEMenuButton : public QEAbstractWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEMenuButton : public QEAbstractWidget {
    Q_OBJECT
 public:
    // Some standard properties are really not applicable.

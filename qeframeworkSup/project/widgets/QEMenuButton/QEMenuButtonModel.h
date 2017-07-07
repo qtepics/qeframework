@@ -31,7 +31,7 @@
 #include <QString>
 #include <QVariant>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QAbstractItemModel>
 
 // The model is serialsed as a string so that is can be stored as a string
@@ -97,7 +97,7 @@
 class QEMenuButton;
 class QEMenuButtonItem;
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEMenuButtonModel : public QAbstractItemModel
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEMenuButtonModel : public QAbstractItemModel
 {
    Q_OBJECT
 public:

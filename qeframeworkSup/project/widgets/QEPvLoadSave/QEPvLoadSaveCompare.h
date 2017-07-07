@@ -29,7 +29,7 @@
 #include <QColor>
 #include <QList>
 #include <QWidget>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <UserMessage.h>
 
 namespace Ui {
@@ -41,7 +41,7 @@ class QEPvLoadSave;   // differed.
 /// This widget displays graphically the difference between two PV data sets
 /// from the left/right hand side of a QEPvLoadSave.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEPvLoadSaveCompare : public QWidget, public UserMessage
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvLoadSaveCompare : public QWidget, public UserMessage
 {
    Q_OBJECT
 public:

@@ -31,14 +31,14 @@
 #include <QString>
 #include <contextMenu.h>
 #include <QEAbstractDynamicWidget.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 // Define strip chart specific names (enumerations).
 // We use a QObject as opposed to a namespace as this allows us leverage off the
 // meta object compiler output, specifically allows us to use the enumToString
 // and stringToEnum functions in QEUtilities.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEStripChartNames : public QObject {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStripChartNames : public QObject {
    Q_OBJECT
 public:
 

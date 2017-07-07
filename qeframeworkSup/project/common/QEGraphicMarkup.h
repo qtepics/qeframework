@@ -35,14 +35,14 @@
 #include <QPoint>
 #include <QVariant>
 #include <QEGraphicNames.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 class QEGraphic;  // differed declaration - avoid mutual header inclusion
 
 //-----------------------------------------------------------------------------
 // Base class for all QEGraphic markups.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEGraphicMarkup {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGraphicMarkup {
 public:
    explicit QEGraphicMarkup (QEGraphicNames::Markups markup, QEGraphic* owner);
    virtual ~QEGraphicMarkup ();

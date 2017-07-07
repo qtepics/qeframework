@@ -63,7 +63,7 @@ class _QTableWidgetFileBrowser:public QTableWidget
   This class is a EPICS aware widget.
   The QEFileBrowser widget allows the user to browse existing files from a certain directory.
 */
-class QEPLUGINLIBRARYSHARED_EXPORT QEFileBrowser:public QWidget, public QEWidget
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFileBrowser:public QWidget, public QEWidget
 {
 
     Q_OBJECT

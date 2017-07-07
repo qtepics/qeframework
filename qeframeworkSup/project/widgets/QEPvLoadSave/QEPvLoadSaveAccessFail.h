@@ -29,7 +29,7 @@
 #include <QString>
 #include <QStringList>
 #include <QWidget>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 namespace Ui {
    class QEPvLoadSaveAccessFail;
@@ -39,7 +39,7 @@ class QEPvLoadSave;   // differed.
 
 /// This widget displays a list of PVs that failed to extracted, applied or read from the archive,
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEPvLoadSaveAccessFail : public QWidget
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvLoadSaveAccessFail : public QWidget
 {
    Q_OBJECT
 public:

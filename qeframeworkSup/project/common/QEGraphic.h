@@ -46,7 +46,7 @@
 #include <qwt_plot_grid.h>
 
 #include <QEGraphicNames.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEDisplayRanges.h>
 
 class QEGraphicMarkup;  // differed declaration
@@ -72,7 +72,7 @@ class QEGraphicMarkup;  // differed declaration
 ///
 /// h) Provides wrapper functions to hide QWT version API changes.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEGraphic :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGraphic :
       public QWidget,
       public QEGraphicNames
 {

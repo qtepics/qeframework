@@ -46,7 +46,7 @@
 #include <QCaAlarmInfo.h>
 #include <QEDragDrop.h>
 #include <QCaObject.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEAbstractDynamicWidget.h>
 #include <QESingleVariableMethods.h>
 #include <QELabel.h>
@@ -58,7 +58,7 @@
 #include <QEQuickSort.h>
 #include <QEOneToOne.h>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEPvProperties :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvProperties :
       public QEAbstractDynamicWidget,
       public QESingleVariableMethods,
       public QEQuickSort {

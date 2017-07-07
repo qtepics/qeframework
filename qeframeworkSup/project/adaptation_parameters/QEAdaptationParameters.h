@@ -31,7 +31,7 @@
 #include <QEEnvironmentVariables.h>
 #include <QESettings.h>
 #include <QEOptions.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// This class provides general access to adaptation parameters that may be specified in
 /// a variety of ways. Specifcally it provides a standard and consistent wrapper around
@@ -56,7 +56,7 @@
 /// If only command line options, or setting or environment variables to be considered, then
 /// use the getXxxx () function out of the QEOptions, QEQEEnvironmentVariables or QESettings.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEAdaptationParameters {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAdaptationParameters {
 public:
    QEAdaptationParameters ();  // uses curent default prefix for environment variables.
    QEAdaptationParameters (const QString& envPrefix);  // specifies environment prefix

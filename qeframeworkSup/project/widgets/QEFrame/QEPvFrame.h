@@ -35,12 +35,12 @@
 #include <QESingleVariableMethods.h>
 
 #include <QEFrame.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 // The QEPvFrame class provides an extension to the QEFrame class in that it allows
 // the value of a nominated PV to select one of 8 pixmaps to use as frame background.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEPvFrame :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvFrame :
    public QEFrame,
    public QESingleVariableMethods
 {

@@ -13,9 +13,7 @@ isEmpty( _QE_ARCHIVE_LIST ) {
 }
 
 OTHER_FILES += \
-    archive/archive_status.png \
-    archive/drag_icon.png   \
-    archive/name_search.png
+    archive/drag_icon.png
 
 RESOURCES += \
     archive/archive.qrc
@@ -27,9 +25,7 @@ HEADERS += \
     archive/QEArchiveInterface.h \
     archive/QEArchiveManager.h \
     archive/QEArchiveStatus.h  \
-    archive/QEArchiveStatusManager.h \
-    archive/QEArchiveNameSearch.h  \
-    archive/QEArchiveNameSearchManager.h
+    archive/QEArchiveNameSearch.h
 
 
 SOURCES += \
@@ -39,9 +35,7 @@ SOURCES += \
     archive/QEArchiveInterface.cpp \
     archive/QEArchiveManager.cpp \
     archive/QEArchiveStatus.cpp  \
-    archive/QEArchiveStatusManager.cpp  \
-    archive/QEArchiveNameSearch.cpp  \
-    archive/QEArchiveNameSearchManager.cpp
+    archive/QEArchiveNameSearch.cpp
 
 INCLUDEPATH += \
     archive

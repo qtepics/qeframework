@@ -45,7 +45,7 @@
 #include "imageDataFormats.h"
 
 #include <QEStringFormatting.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEIntegerFormatting.h>
 #include <QEFloatingFormatting.h>
 #include <fullScreenWindow.h>
@@ -159,7 +159,7 @@ class pointInfo
   Many PVs may be defined to allow user interaction, such as selecting regions of interest.
   It is tighly integrated with the base class QEWidget which provides generic support such as macro substitutions, drag/drop, and standard properties.
  */
-class QEPLUGINLIBRARYSHARED_EXPORT QEImage : public QFrame, public QEWidget, public imageInfo, private mpegSource{
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEImage : public QFrame, public QEWidget, public imageInfo, private mpegSource{
     Q_OBJECT
   public:
     /// Create without a variable.

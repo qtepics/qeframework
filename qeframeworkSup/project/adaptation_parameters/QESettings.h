@@ -30,7 +30,7 @@
 #include <QStringList>
 #include <QSettings>
 #include <QVariant>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <UserMessage.h>
 
 /// This class provides access to user defined settings. The setting file
@@ -58,7 +58,7 @@
 ///
 // This class contains a QSettings objects (as opposed to extending it).
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QESettings : private UserMessage {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESettings : private UserMessage {
 public:
    // Contructor that locates and uses the applicatuion's adaptation_parmeters.ini
    // This should be located in the application's current directory at start up.

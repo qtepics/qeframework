@@ -32,14 +32,14 @@
 #include <QString>
 #include <QStringList>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <applicationLauncher.h>
 #include <QEActionRequests.h>
 #include <QEStringFormatting.h>
 
 // Own variant type associated with QAction data.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEMenuButtonData {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEMenuButtonData {
 public:
    explicit QEMenuButtonData ();
    ~QEMenuButtonData ();

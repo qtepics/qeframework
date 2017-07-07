@@ -30,11 +30,11 @@
 #include <QDateTime>
 #include <QList>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <persistanceManager.h>
 #include <QEPlotterNames.h>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEPlotterState {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlotterState {
 public:
    QEPlotterState ();
    void saveConfiguration (PMElement& parentElement);
@@ -54,7 +54,7 @@ public:
 
 // This class uses a QList in order to implement a stack.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEPlotterStateList {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlotterStateList {
 public:
    QEPlotterStateList ();
 

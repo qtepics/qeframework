@@ -31,11 +31,11 @@
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QESingleVariableMethods.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QCaVariableNamePropertyManager.h>
 
 // TODO Rebadge QEDoubleSpinBox and derive QESpinBox from QSpinBox
-class QEPLUGINLIBRARYSHARED_EXPORT QESpinBox :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESpinBox :
       public QDoubleSpinBox,
       public QESingleVariableMethods,
       public QEWidget {

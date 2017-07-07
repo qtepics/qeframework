@@ -170,7 +170,7 @@ class _QDialogItem:public QDialog
 // ============================================================
 //  QECONFIGUREDLAYOUT CLASS
 // ============================================================
-class QEPLUGINLIBRARYSHARED_EXPORT QEConfiguredLayout:public QWidget, public QEWidget
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEConfiguredLayout:public QWidget, public QEWidget
 {
     Q_OBJECT
 

@@ -35,9 +35,9 @@
 #include <QELocalEnumeration.h>
 #include <QESingleVariableMethods.h>
 #include <QCaConnectionInfo.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEComboBox :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEComboBox :
       public QComboBox,
       public QESingleVariableMethods,
       public QEWidget

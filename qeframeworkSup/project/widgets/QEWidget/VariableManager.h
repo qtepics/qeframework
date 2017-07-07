@@ -82,7 +82,7 @@
   from the QEString object to its setLabelText slot.
  */
 
-class QEPLUGINLIBRARYSHARED_EXPORT  VariableManager :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT  VariableManager :
                  public VariableNameManager
 {
 public:

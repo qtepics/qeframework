@@ -33,12 +33,12 @@
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QCaVariableNamePropertyManager.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QESingleVariableMethods.h>
 #include <QEStringFormattingMethods.h>
 
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEAnalogProgressBar :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAnalogProgressBar :
       public QEAnalogIndicator,
       public QEWidget,
       public QESingleVariableMethods,

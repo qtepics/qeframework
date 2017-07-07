@@ -89,7 +89,7 @@ class QELoginDialog : public QDialog
 // ============================================================
 // QELogin class manages the current user type (USER, SCIENTIST, ENGINEER) for the QE framework and applications
 
-class QEPLUGINLIBRARYSHARED_EXPORT QELogin:public QFrame, public QEWidget
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QELogin:public QFrame, public QEWidget
 {
     Q_OBJECT
 

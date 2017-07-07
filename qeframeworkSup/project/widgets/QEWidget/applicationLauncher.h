@@ -37,11 +37,11 @@
 #include <QTemporaryFile>
 #include <VariableNameManager.h>
 #include <UserMessage.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 
 // Class to manage a process started by a QE button/image
-class QEPLUGINLIBRARYSHARED_EXPORT processManager : public QProcess
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT processManager : public QProcess
 {
     Q_OBJECT
 
@@ -65,7 +65,7 @@ private:
 };
 
 
-class QEPLUGINLIBRARYSHARED_EXPORT applicationLauncher
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT applicationLauncher
 {
 public:
 

@@ -29,7 +29,7 @@
 #define QE_QUICK_SORT_H
 
 #include <QObject>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 
 /// This base class provides the means to add quick sort functionality to a class.
@@ -37,7 +37,7 @@
 /// function, so we roll out own.
 /// The items to be sorted must be indexable via consecutive integers.
 ///
-class  QEPLUGINLIBRARYSHARED_EXPORT QEQuickSort
+class  QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEQuickSort
 {
 public:
    explicit QEQuickSort ();

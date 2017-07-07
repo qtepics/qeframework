@@ -30,7 +30,7 @@
 #include <QEWidget.h>
 #include <QEString.h>
 #include <QEStringFormatting.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <managePixmaps.h>
 #include <QESingleVariableMethods.h>
 #include <QEStringFormattingMethods.h>
@@ -41,7 +41,7 @@
   When a variable is defined, the label text (or optionally the background pixmap) will be updated. The label will be disabled if the variable is invalid.
   It is tighly integrated with the base class QEWidget which provides generic support such as macro substitutions, drag/drop, and standard properties.
  */
-class QEPLUGINLIBRARYSHARED_EXPORT QELabel :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QELabel :
         public QLabel,
         public QEWidget,
         public managePixmaps,

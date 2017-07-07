@@ -30,7 +30,7 @@
 #include <QString>
 #include <QWidget>
 #include <QEDialog.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 namespace Ui {
    class QEPVNameSelectDialog;
@@ -39,7 +39,7 @@ namespace Ui {
 /*
  * Manager class for the QEPVNameSelectDialog.ui compiled form.
  */
-class QEPLUGINLIBRARYSHARED_EXPORT QEPVNameSelectDialog : public QEDialog
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPVNameSelectDialog : public QEDialog
 {
    Q_OBJECT
 

@@ -42,7 +42,7 @@
 #include <QScrollArea>
 
 #include <QCaAlarmInfo.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QCaDateTime.h>
 #include <QCaConnectionInfo.h>
 #include <QEDragDrop.h>
@@ -69,7 +69,7 @@ class QEGraphic;
 //
 class QEStripChartItem;
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEStripChart : public QEAbstractDynamicWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStripChart : public QEAbstractDynamicWidget {
    Q_OBJECT
 
 public:

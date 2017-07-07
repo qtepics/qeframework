@@ -30,7 +30,7 @@
 #include <QVector>
 #include <QWidget>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEScanTimers.h>
 
 /*!
@@ -38,7 +38,7 @@
   It has been refactored from QESimpleShape and will become the bases
   for QESimpleShape.
 */
-class QEPLUGINLIBRARYSHARED_EXPORT QSimpleShape : public QWidget  {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QSimpleShape : public QWidget  {
    Q_OBJECT
 public:
    // QSimpleShape specific properties ==============================================

@@ -31,7 +31,7 @@
 #include <QColor>
 #include <QEDialog.h>
 #include <QTime>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 namespace Ui {
    class QEStripChartDurationDialog;
@@ -42,7 +42,7 @@ namespace Ui {
  *
  * This dialog form allows the user to select an arbitary duration.
  */
-class QEPLUGINLIBRARYSHARED_EXPORT QEStripChartDurationDialog : public QEDialog
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStripChartDurationDialog : public QEDialog
 {
     Q_OBJECT
 

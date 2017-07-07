@@ -32,7 +32,7 @@
 #include <QString>
 #include <QEInteger.h>
 #include <QEIntegerFormatting.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QESingleVariableMethods.h>
 #include <QEStringFormattingMethods.h>
 #include <QSimpleShape.h>
@@ -45,7 +45,7 @@
   When the displayAlarmState property is true, the colour is based on the alarm state, i.e. green when no alarm, yellow for minor alarm etc.
   This class extends QSimpleShape in order to make it EPICS aware.
 */
-class QEPLUGINLIBRARYSHARED_EXPORT QESimpleShape :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESimpleShape :
       public QSimpleShape,
       public QEWidget,
       public QESingleVariableMethods,

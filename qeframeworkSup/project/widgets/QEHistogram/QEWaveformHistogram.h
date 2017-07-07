@@ -38,7 +38,7 @@
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QCaVariableNamePropertyManager.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// The QEWaveformHistogram class is a EPICS aware histogram widget.
 /// The value of, i.e. the length of each bar of the histogram is controlled by
@@ -52,7 +52,7 @@
 /// via QEFrame, which provides generic support such as macro substitutions,
 /// drag/drop, and standard properties.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEWaveformHistogram:public QEFrame {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEWaveformHistogram:public QEFrame {
    Q_OBJECT
 
    // All standard properties are inherited from QEFrame.

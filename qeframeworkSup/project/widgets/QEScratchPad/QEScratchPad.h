@@ -52,7 +52,7 @@
 /// This class is a direct re-implementation of TScratch_Pad_Form out of the
 /// Delphi OPI framework.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEScratchPad : public QEAbstractDynamicWidget, QEQuickSort {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEScratchPad : public QEAbstractDynamicWidget, QEQuickSort {
    Q_OBJECT
 public:
    static const int NUMBER_OF_ITEMS = 72;

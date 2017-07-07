@@ -38,12 +38,12 @@
 #include <QWidget>
 #include <QEAxisPainter.h>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// The QEHistogram class is a non-EPICS aware histogram widget.
 /// The value of, i.e. the length of each bar, and colour may be set indepedently.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEHistogram : public QFrame {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEHistogram : public QFrame {
    Q_OBJECT
 
 public:

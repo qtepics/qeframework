@@ -33,7 +33,7 @@
 #include <QWidget>
 #include <QString>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// The QEFormMapper mapper class is a singleton class that allows a user allocated
 /// form handle to be associated with an QEForm, specifically the form handle is
@@ -45,7 +45,7 @@
 ///
 // This is a singleton class - the single instance is declared in the .cpp file.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEFormMapper
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFormMapper
 {
 public:
    // Handle type used to identify a QEForm. The type should be considered private.
@@ -114,7 +114,7 @@ private:
 // This class enables a QEForm (or any other widget) to be mapable, i.e.
 // allows a unique identifer to be associated with the QEForm.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEMapable {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEMapable {
 public:
    explicit QEMapable (QWidget* ownerIn);
    ~QEMapable ();

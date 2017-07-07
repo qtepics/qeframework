@@ -28,11 +28,11 @@
 
 #include <QList>
 #include <QPixmap>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 #define NUM_PIXMAPS_MANAGED 8
 
-class QEPLUGINLIBRARYSHARED_EXPORT managePixmaps {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT managePixmaps {
 
 public:
    explicit managePixmaps();

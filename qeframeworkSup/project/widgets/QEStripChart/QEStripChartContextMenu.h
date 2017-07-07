@@ -33,10 +33,10 @@
 #include <QStringList>
 #include <contextMenu.h>
 #include <QEArchiveInterface.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include "QEStripChartNames.h"
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEStripChartContextMenu : public QMenu {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStripChartContextMenu : public QMenu {
 Q_OBJECT
 public:
    /// Construct strip chart item context menu.

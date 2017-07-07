@@ -28,7 +28,7 @@
 
 #include <QMetaType>
 #include <QObject>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QtDebug>
 
 // Note: message_types is now a class (see below) - what was message_types is now message_severities.
@@ -48,7 +48,7 @@ typedef unsigned int  message_kind_sets;
 // Standard/default kind.
 const message_kind_sets MESSAGE_KIND_STANDARD = ( MESSAGE_KIND_EVENT | MESSAGE_KIND_STATUS );
 
-class QEPLUGINLIBRARYSHARED_EXPORT message_types {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT message_types {
 public:
    explicit message_types ();
    explicit message_types (message_severities severityIn,
@@ -164,7 +164,7 @@ private:
  *   logging QE widget) then the nested QEForm could be set up not to filter and resend any messages.
  */
 
-class QEPLUGINLIBRARYSHARED_EXPORT UserMessage
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT UserMessage
 {
 public:
     friend class UserMessageSlot;

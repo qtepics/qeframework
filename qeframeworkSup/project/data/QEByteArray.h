@@ -28,9 +28,9 @@
 #include <QtDebug>
 #include <QVariant>
 #include <QCaObject.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEByteArray : public qcaobject::QCaObject {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEByteArray : public qcaobject::QCaObject {
     Q_OBJECT
 
   public:

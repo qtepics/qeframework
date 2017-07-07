@@ -36,10 +36,10 @@
 #include <QTextStream>
 
 #include <QELocalEnumeration.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEStringFormatting {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStringFormatting {
 public:
 
     /// \enum formats

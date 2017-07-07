@@ -29,7 +29,7 @@
 #define QE_ONE_TO_ONE
 
 #include <QHash>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// This template provides a one-to-one mapping from one type, the Domain type,
 /// to a another, possiblely the same, type, the CoDomain type. Despite the
@@ -49,7 +49,7 @@
 // this sort of construct has caused issue on some platforms.
 //
 template <class D, class C>
-class QEPLUGINLIBRARYSHARED_EXPORT QEOneToOne {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEOneToOne {
 private:
    QHash <D,C> forward;
    QHash <C,D> inverse;

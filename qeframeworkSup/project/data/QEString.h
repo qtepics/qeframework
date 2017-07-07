@@ -32,9 +32,9 @@
 #include <QCaObject.h>
 #include <QVector>
 #include <QEStringFormatting.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEString : public qcaobject::QCaObject {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEString : public qcaobject::QCaObject {
     Q_OBJECT
 
   public:

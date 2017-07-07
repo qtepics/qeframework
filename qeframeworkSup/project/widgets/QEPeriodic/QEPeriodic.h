@@ -34,7 +34,7 @@
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QCaVariableNamePropertyManager.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 #define NUM_ELEMENTS 118
 
@@ -73,7 +73,7 @@ public:
     QString elementText;    // User text associated with element (emitted on element change)
 };
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEPeriodic : public QFrame, public QEWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPeriodic : public QFrame, public QEWidget {
     Q_OBJECT
 
   public:

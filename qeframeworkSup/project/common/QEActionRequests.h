@@ -30,7 +30,7 @@
 #include <QString>
 #include <QStringList>
 #include <QVariant>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QAction>
 #include <QEFormMapper.h>
 
@@ -40,7 +40,7 @@ class windowCreationListItem;
 class componentHostListItem;
 
 // Class defining an action an application should carry out on behalf od a QE Widget it has created.
-class QEPLUGINLIBRARYSHARED_EXPORT QEActionRequests {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEActionRequests {
 public:
 
    // Type of request

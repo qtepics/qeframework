@@ -30,7 +30,7 @@
 
 #include <QDateTime>
 #include <persistanceManager.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 #include <QEDisplayRanges.h>
 
@@ -42,7 +42,7 @@
 // It is a simple linear scaling. While d and c are not independent, from a
 // user point of view is it often easier to specify a 'd' and/or a 'c' value.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT ValueScaling {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT ValueScaling {
 public:
    ValueScaling ();
 

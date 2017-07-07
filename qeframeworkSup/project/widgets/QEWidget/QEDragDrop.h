@@ -31,7 +31,7 @@
 #include <QObject>
 #include <QEActionRequests.h>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 class QEWidget;
 
@@ -48,7 +48,7 @@ signals:
 };
 
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEDragDrop {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEDragDrop {
 
 public:
     QEDragDrop( QEWidget* qewIn, QWidget* ownerIn );

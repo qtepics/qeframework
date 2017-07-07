@@ -5,7 +5,6 @@
 #
 
 OTHER_FILES += \
-    widgets/QEPvLoadSave/QEPvLoadSave.png \
     widgets/QEPvLoadSave/archive_time.png \
     widgets/QEPvLoadSave/copy_all.png \
     widgets/QEPvLoadSave/copy_subset.png \
@@ -26,7 +25,6 @@ HEADERS += \
     widgets/QEPvLoadSave/QEPvLoadSaveCompare.h \
     widgets/QEPvLoadSave/QEPvLoadSaveItem.h \
     widgets/QEPvLoadSave/QEPvLoadSaveModel.h \
-    widgets/QEPvLoadSave/QEPvLoadSaveManager.h  \
     widgets/QEPvLoadSave/QEPvLoadSaveUtilities.h \
     widgets/QEPvLoadSave/QEPvLoadSaveGroupNameDialog.h \
     widgets/QEPvLoadSave/QEPvLoadSaveTimeDialog.h \
@@ -40,7 +38,6 @@ SOURCES += \
     widgets/QEPvLoadSave/QEPvLoadSaveCompare.cpp \
     widgets/QEPvLoadSave/QEPvLoadSaveItem.cpp \
     widgets/QEPvLoadSave/QEPvLoadSaveModel.cpp \
-    widgets/QEPvLoadSave/QEPvLoadSaveManager.cpp  \
     widgets/QEPvLoadSave/QEPvLoadSaveUtilities.cpp \
     widgets/QEPvLoadSave/QEPvLoadSaveGroupNameDialog.cpp \
     widgets/QEPvLoadSave/QEPvLoadSaveTimeDialog.cpp \

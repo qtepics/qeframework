@@ -33,10 +33,10 @@
 #include <QBrush>
 #include <QPen>
 #include <QWidget>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 
-class QEPLUGINLIBRARYSHARED_EXPORT QBitStatus : public QWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QBitStatus : public QWidget {
    Q_OBJECT
 
 public:

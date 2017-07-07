@@ -35,11 +35,11 @@
 #include <QEFrame.h>
 
 #include <QCaVariableNamePropertyManager.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// This class load a grid QEForms.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEFormGrid : public QEFrame {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFormGrid : public QEFrame {
    Q_OBJECT
 
 public:

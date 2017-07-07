@@ -32,12 +32,12 @@
 #include <QString>
 #include <QLabel>
 #include <QEFileMonitor.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QCaVariableNamePropertyManager.h>
 #include <QEActionRequests.h>
 #include <QEFormMapper.h>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEForm : public QEAbstractWidget,
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEForm : public QEAbstractWidget,
                                             public QEMapable
 {
     Q_OBJECT

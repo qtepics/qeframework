@@ -29,7 +29,7 @@
 #include <QWidget>
 #include <QString>
 #include <QStringList>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <ContainerProfile.h>
 #include <QEFrame.h>
 
@@ -39,7 +39,7 @@
 /// QEScratchPad, QEPlotter and QETable widgets. This not only minimises maintainance,
 /// but helps ensure we maintain a common look and feel user experiance.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEAbstractDynamicWidget : public QEFrame
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAbstractDynamicWidget : public QEFrame
 {
    Q_OBJECT
 

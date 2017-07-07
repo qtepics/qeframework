@@ -27,7 +27,7 @@
 #define QE_SINGLE_VARIABLE_METHODS_H
 
 #include <QString>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QCaVariableNamePropertyManager.h>
 #include <QCaObject.h>
 
@@ -35,7 +35,7 @@ class QEWidget;   // differed
 
 // This class intended to be used as:
 //
-// class QEPLUGINLIBRARYSHARED_EXPORT YourWidget :
+// class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT YourWidget :
 //     public QBaseWidget,
 //     public QEWidget,
 //     public QESingleVariableMethods { .... };
@@ -52,7 +52,7 @@ class QEWidget;   // differed
 //
 // Examples: QEAnalogSlider and QESimpleShape
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QESingleVariableMethods {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESingleVariableMethods {
 public:
    // Typically for a single variable widget, we would expect the PV to use
    // variable index slot 0. We encourage, but do not enforce this.

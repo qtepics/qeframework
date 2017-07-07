@@ -29,7 +29,7 @@
 
 #include <QObject>
 #include <QString>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// The QString class provides general value to/from radix string representation,
 /// but only for integer types. This class provdies similar functionality for
@@ -42,7 +42,7 @@
 // This class is QObject mainly to allow Radicies/Separators to become part of the
 // meta object system.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEFixedPointRadix : public QObject {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFixedPointRadix : public QObject {
    Q_OBJECT
 public:
 

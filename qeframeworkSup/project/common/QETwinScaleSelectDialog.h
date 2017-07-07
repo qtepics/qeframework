@@ -28,13 +28,13 @@
 #include <QWidget>
 #include <QPointF>
 #include <QEDialog.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 namespace Ui {
    class QE_TWin_Scale_Select_Dialog;   // differed
 }
 
-class QEPLUGINLIBRARYSHARED_EXPORT QETwinScaleSelectDialog : public QEDialog {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QETwinScaleSelectDialog : public QEDialog {
    Q_OBJECT
 public:
    // Define scale min and max

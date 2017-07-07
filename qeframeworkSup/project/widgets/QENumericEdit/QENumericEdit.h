@@ -39,12 +39,12 @@
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QESingleVariableMethods.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 // QEAbstractWidget provides all standard QEWidget properties
 // QENumericEdit holds a single QNumericEdit widget
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QENumericEdit :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QENumericEdit :
       public QEAbstractWidget,
       public QESingleVariableMethods {
 

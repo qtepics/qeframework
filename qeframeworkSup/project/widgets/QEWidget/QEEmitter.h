@@ -28,7 +28,7 @@
 
 #include <QWidget>
 #include <QString>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 class QEWidget;
 
@@ -53,7 +53,7 @@ class QEWidget;
 // numerical value must available as well. The signal value is true for non-zero
 // values and false for zero values.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEEmitter {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEEmitter {
 
 public:
    // Need both views as we cannot do dynamic castimng during construction

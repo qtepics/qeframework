@@ -34,12 +34,12 @@
 #include <QEAxisIterator.h>
 #include <QEColourBandList.h>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 // Support widget for QAnalogSlider (and maybe in future) for QAnalogIndicator
 // It could be promoted to a plugin widget in its own right if ever necessary.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEAxisPainter : public QWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAxisPainter : public QWidget {
    Q_OBJECT
 public:
    /// \enum    Orientations

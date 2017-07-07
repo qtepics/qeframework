@@ -29,7 +29,7 @@
 
 #include <QWidget>
 #include <QEWidget.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 
 // The QEAbstractWidget class provides a minimalist extension to the QWidget class
@@ -39,7 +39,7 @@
 // Any widget that inherits from QEFrame, but always turns the frame off should
 // consider inheriting from QEAbstractWidget.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEAbstractWidget :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAbstractWidget :
       public QWidget, public QEWidget {
 
 Q_OBJECT

@@ -30,7 +30,7 @@
 #include <QPixmap>
 #include <QEWidget.h>
 #include <managePixmaps.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 
 // The QEFrame class provides a minimalist extension to the QFrame class
@@ -39,7 +39,7 @@
 // QEFrame container also.
 // See QEGroupBox as well.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEFrame :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFrame :
       public QFrame,
       public QEWidget,
       public managePixmaps

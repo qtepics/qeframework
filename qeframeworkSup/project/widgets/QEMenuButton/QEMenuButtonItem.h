@@ -36,7 +36,7 @@
 #include <QVariant>
 #include <qdom.h>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <applicationLauncher.h>
 #include <QEActionRequests.h>
 #include <QEStringFormatting.h>
@@ -52,7 +52,7 @@
 /// as an when needed.  Also some function name changes such as parent => getParent
 /// and some changes just to follow QE prefered style.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEMenuButtonItem
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEMenuButtonItem
 {
 public:
    explicit QEMenuButtonItem (const QString& name,

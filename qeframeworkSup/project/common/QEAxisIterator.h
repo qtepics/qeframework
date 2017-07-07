@@ -27,7 +27,7 @@
 #ifndef QE_AXIS_ITERATOR_H
 #define QE_AXIS_ITERATOR_H
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// This class provides the means to iterate over a range of values such that
 /// the returned values x, are minimum <= x <= maximum together an indication
@@ -60,7 +60,7 @@
 //
 // This is used by and has been refactoed out of QEAxisPainter.h.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEAxisIterator {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAxisIterator {
 public:
    // Iterator constructor.
    explicit QEAxisIterator (const double minimum,

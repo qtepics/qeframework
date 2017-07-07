@@ -38,7 +38,7 @@
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QCaVariableNamePropertyManager.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// The QEScalarHistogram class is a EPICS aware histogram widget.
 /// The value of, i.e. the length of each bar of the histogram is controlled by
@@ -55,7 +55,7 @@
 // Maximum number of variables.
 #define QE_HISTOGRAM_NUMBER_VARIABLES 120
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEScalarHistogram:public QEFrame {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEScalarHistogram:public QEFrame {
    Q_OBJECT
 
    // All standard properties are inherited from QEFrame.

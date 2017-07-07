@@ -36,7 +36,7 @@
 #include <QVector>
 #include <QTimer>
 #include <QVBoxLayout>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 // Maximum number of variables.
 #define QEPLOT_NUM_VARIABLES 4
@@ -46,7 +46,7 @@
 class QwtPlot;
 class QwtPlotGrid;
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEPlot : public QEFrame {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlot : public QEFrame {
     Q_OBJECT
 
 public:

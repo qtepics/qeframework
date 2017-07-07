@@ -30,13 +30,13 @@
 #include <QEWidget.h>
 #include <QEString.h>
 #include <QEStringFormatting.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEStringFormattingMethods.h>
 #include <QEGenericEdit.h>
 #include <QCaVariableNamePropertyManager.h>
 
 
-class QEPLUGINLIBRARYSHARED_EXPORT QELineEdit :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QELineEdit :
       public QEGenericEdit,
       public QEStringFormattingMethods
 {

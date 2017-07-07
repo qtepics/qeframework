@@ -32,9 +32,9 @@
 #include <QVariant>
 #include <QCaObject.h>
 #include <QEFloatingFormatting.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEFloating : public qcaobject::QCaObject {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFloating : public qcaobject::QCaObject {
     Q_OBJECT
 
   public:

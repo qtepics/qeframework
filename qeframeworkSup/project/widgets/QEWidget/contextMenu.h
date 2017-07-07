@@ -56,7 +56,7 @@ private:
 };
 
 // Manage QE widget context menu
-class QEPLUGINLIBRARYSHARED_EXPORT contextMenu
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT contextMenu
 {
 public:
     friend class QEContextMenuObject;

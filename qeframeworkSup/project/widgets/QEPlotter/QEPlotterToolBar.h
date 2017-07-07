@@ -33,13 +33,13 @@
 #include <QPushButton>
 #include <QWidget>
 #include <QEOneToOne.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 #include "QEPlotterNames.h"
 
 /// This class holds all the QEPlotter tool bar widget.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEPlotterToolBar : public QFrame {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlotterToolBar : public QFrame {
    Q_OBJECT
 public:  
    explicit QEPlotterToolBar (QWidget *parent = 0);

@@ -32,7 +32,7 @@
 #include <ContainerProfile.h>
 #include <QEEmitter.h>
 #include <QEToolTip.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEDragDrop.h>
 #include <styleManager.h>
 #include <contextMenu.h>
@@ -204,7 +204,7 @@ private:
 
  */
 
-class QEPLUGINLIBRARYSHARED_EXPORT  QEWidget :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT  QEWidget :
                  public VariableManager,
                  public QEToolTip,
                  public ContainerProfile,

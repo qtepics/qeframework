@@ -27,12 +27,12 @@
 #define QEFLOATING_ARRAY_H
 
 #include <QVector>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// This class provides short hand for QVector<double> together with some
 /// basic double vector operations.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEFloatingArray : public QVector<double> {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFloatingArray : public QVector<double> {
 public:
    // Various constructors that replicate those provided by QVector
    //

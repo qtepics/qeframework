@@ -43,7 +43,7 @@
 #include <QEFrame.h>
 #include <QEActionRequests.h>
 #include <QEWidget.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QCaVariableNamePropertyManager.h>
 #include <QEPVNameSelectDialog.h>
 #include <QEPvLoadSaveGroupNameDialog.h>
@@ -70,7 +70,7 @@ class QEPvLoadSaveCompare;
 class QEPvLoadSaveItem;
 class QEPvLoadSaveModel;
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEPvLoadSave : public QEFrame  {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvLoadSave : public QEFrame  {
 
    Q_OBJECT
    // QEPvLoadSave specific properties ==============================================

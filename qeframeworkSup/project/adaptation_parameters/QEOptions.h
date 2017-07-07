@@ -28,7 +28,7 @@
 
 #include <QString>
 #include <QStringList>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// This class provides a basic means to parse command line options or any
 /// other arbitary list of strings. Options are named and the name format
@@ -64,7 +64,7 @@
 /// as from environment variables, command line options and settings. They all
 /// provide a similar API.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEOptions {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEOptions {
 public:
    // Creates an object based on the command line (QCoreApplication::arguments ()).
    // Note: the program name (first item) is removed from the arguments.

@@ -26,10 +26,10 @@
 #ifndef QE_STRING_FORMATTING_METHODS_H
 #define QE_STRING_FORMATTING_METHODS_H
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEStringFormatting.h>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEStringFormattingMethods {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStringFormattingMethods {
 
   public:
     virtual ~QEStringFormattingMethods(){}

@@ -144,7 +144,7 @@
 #include <QMap>
 #include <ContainerProfile.h>
 #include <applicationLauncher.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 
 // Class for building a log of the process of loading the customisation files
@@ -403,7 +403,7 @@ private:
 };
 
 // Window customisation information per Main Window
-class QEPLUGINLIBRARYSHARED_EXPORT windowCustomisationInfo : public ContainerProfile
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT windowCustomisationInfo : public ContainerProfile
 {
 public:
     windowCustomisationInfo () {}
@@ -437,7 +437,7 @@ public:
 // Class managing all customisation sets
 // Only one instance of this class is instantiated (unless groups of customisation sets are required)
 // Multiple .xml files may be loaded, each defining one or more named customisations.
-class QEPLUGINLIBRARYSHARED_EXPORT windowCustomisationList : public QObject, ContainerProfile
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT windowCustomisationList : public QObject, ContainerProfile
 {
     Q_OBJECT
 public:

@@ -30,12 +30,12 @@
 #define QE_RECORD_FIELD_NAME_H
 
 #include <QString>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 //------------------------------------------------------------------------------
 // All functions are static.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QERecordFieldName {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QERecordFieldName {
 public:
    // Converts PV name to record name, e.g.:
    //

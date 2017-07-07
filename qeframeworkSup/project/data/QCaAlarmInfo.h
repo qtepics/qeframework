@@ -30,11 +30,11 @@
 
 #include <QString>
 #include <QStringList>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 #define QCAALARMINFO_SEVERITY unsigned short
 
-class QEPLUGINLIBRARYSHARED_EXPORT QCaAlarmInfo
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QCaAlarmInfo
 {
 public:
     QCaAlarmInfo();

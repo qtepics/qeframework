@@ -30,11 +30,11 @@
 #include <QObject>
 #include <QString>
 #include <QTimer>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// Provides a delayed text signal, noy unlike that employed by QCaVariableNamePropertyManager
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEDelayedText : public QObject {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEDelayedText : public QObject {
    Q_OBJECT
 
 public:

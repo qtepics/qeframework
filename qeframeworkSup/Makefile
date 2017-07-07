@@ -1,9 +1,10 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/Makefile $
-# $Revision: #8 $
-# $DateTime: 2017/05/03 18:48:46 $
+# $Revision: #9 $
+# $DateTime: 2017/07/07 11:21:59 $
 # Last checked in by: $Author: starritt $
 #
 # This make file is the bridge beween the EPICS build system and the Qt project qmake/make paradigm.
+# It makes the FRAMEWORK library.
 #
 
 TOP=..
@@ -28,30 +29,13 @@ export EPICS_BASE := $(EPICS_BASE)
 
 
 # Commands
-# EPICS make system defines many OS independent commands, but not all
 #
 ifeq ($(OS),Windows_NT)
-    # We use a hard link - it has to be the same file otherwise loading and
-    # plugin libraries end up being separate copies; also hardlinks don't
-    # require special privileges. Hey ... it's Windoze, what do you expect??
-    # At least the parameter order is sensible.
-    #
-    define LINKFILE
-        MKLINK /H  $(LIBFILE) ..\$(LIBFILE)
-    endef
-
     define NOOP
        echo ""
     endef
 
 else
-    # Linux and the like.
-    # We can use symbolic links on Linux
-    #
-    define LINKFILE
-       rm -f $(1) && ln -s ../$(LIBFILE)  $(LIBFILE)
-    endef
-
     define NOOP
        :
     endef
@@ -70,9 +54,9 @@ MAKEFILE = Makefile.$(EPICS_HOST_ARCH)
 PROJECT  = framework.pro
 
 ifeq ($(OS),Windows_NT)
-   LIBFILE = QEPlugin.dll
+   LIBFILE = QEFramework.dll
 else
-   LIBFILE = libQEPlugin.so
+   LIBFILE = libQEFramework.so
 endif
 
 # Full target path
@@ -80,43 +64,32 @@ endif
 TARGET=$(TARGET_DIR)/$(LIBFILE)
 
 
-.PHONY: all install clean uninstall  always
+.PHONY: all install clean uninstall  always  headers 
 
-all: $(TARGET)
+all: $(TARGET)  headers
 
-install: $(TARGET)
+install: $(TARGET)  headers
 
 
-# The Qt widget loader (as used by qegui, designer, etc.) expect plugin libraries
-# to be located in a directory called designer, i.e. like:  ...../designer/libQEPlugin.so
-# and QT_PLUGIN_PATH exdludes the /designer part of the path.
-#
-# However, users building against this, esp using EPICS make system,
-# are expecting a file path like:  ...../lib/linux-x86_64/libQEPlugin.so.
-#
-# We can't install in to both locations, but the the creation of a
-# designer directory together with a link in allows the following:
-#  ...../lib/linux-x86_64/designer/libQEPlugin.so
-# which keeps both Qt and EPICS happy.
-#
 # Note: we always run this step
 #
 $(TARGET) : $(SOURCE_DIR)/$(MAKEFILE)  always
-	@echo "=== Building $(LIBFILE) plugin"                      && \
-	cd  $(SOURCE_DIR)                                           && \
-	$(MAKE) -f $(MAKEFILE) -j 3 -w                              && \
-	echo "=== Installing plugin headers"                        && \
-	$(MAKE) -f $(MAKEFILE) install                              && \
-	echo "=== Setting up designer directory/folder"             && \
-	cd .. && cd $(TARGET_DIR)                                   && \
-	$(MKDIR) designer  &&  cd designer                          && \
-	$(RM) $(LIBFILE) && $(call LINKFILE)                        && \
-	echo "=== Complete"
+	@echo "=== Building $(LIBFILE) library"      && \
+	cd  $(SOURCE_DIR)                            && \
+	$(MAKE) -f $(MAKEFILE) -j 3 -w               && \
+	echo "=== $(LIBFILE) library build complete"
+
+
+headers : $(TARGET) 
+	@echo "=== Installing library headers"       && \
+	cd  $(SOURCE_DIR)                            && \
+	$(MAKE) -f $(MAKEFILE) install               && \
+	echo "=== Header installation complete"
 
 
 $(SOURCE_DIR)/$(MAKEFILE) : $(SOURCE_DIR)/$(PROJECT)
-	@echo "=== Running qmake - generating $(MAKEFILE)"          && \
-	cd  $(SOURCE_DIR)                                           && \
+	@echo "=== Running qmake - generating $(MAKEFILE)"   && \
+	cd  $(SOURCE_DIR)                            && \
 	qmake -o $(MAKEFILE) $(PROJECT) -r
 
 

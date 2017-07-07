@@ -40,9 +40,9 @@
 #include <QEString.h>
 #include <QEStringFormatting.h>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEToolTip
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEToolTip
 {
     public:
         QEToolTip( QWidget* ownerIn );

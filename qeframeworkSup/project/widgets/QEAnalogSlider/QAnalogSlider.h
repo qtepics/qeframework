@@ -39,13 +39,13 @@
 #include <QECommon.h>
 #include <QEColourBandList.h>
 #include <QEAxisPainter.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// QAnalogSlider is a non EPICS aware slider that provides an analog equivilent of the QSlider.
 /// It is deemed analog as it can be set by/emits floating point (double) values as opposed to interger values.
 /// It is also decorated with a scale and text showing the current value; it also provides a save-restore capability.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QAnalogSlider : public QFrame {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QAnalogSlider : public QFrame {
 
 Q_OBJECT
 public:

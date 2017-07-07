@@ -23,17 +23,18 @@
  *    andrew.rhyder@synchrotron.org.au
  */
 
-#ifndef PERIODICDIALOG_H
-#define PERIODICDIALOG_H
+#ifndef QE_PERIODIC_DIALOG_H
+#define QE_PERIODIC_DIALOG_H
 
 #include <QDialog>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEDialog.h>
 
 namespace Ui {
     class PeriodicDialog;
 }
 
-class PeriodicDialog : public QEDialog {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT PeriodicDialog : public QEDialog {
     Q_OBJECT
 public:
     PeriodicDialog(QWidget *parent = 0);
@@ -173,4 +174,4 @@ private slots:
 
 };
 
-#endif // PERIODICDIALOG_H
+#endif // QE_PERIODIC_DIALOG_H

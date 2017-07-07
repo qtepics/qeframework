@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/configure/RELEASE $
-# $Revision: #1 $
-# $DateTime: 2016/10/21 21:01:47 $
+# $Revision: #2 $
+# $DateTime: 2017/07/07 11:21:59 $
 # Last checked in by: $Author: starritt $
 #
 # RELEASE - Location of external support modules
@@ -26,15 +26,18 @@
 
 TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
 
-# Defines the prebuilt bundle location.
+# Defines the pre-built bundle location or left blank for formal build.
 #
 BUNDLE=
 
-# EPICS_BASE usually appears last so other apps can override stuff:
-EPICS_BASE=$(BUNDLE)/epics/base
+# This must be defind as an absolute path - you cannot use $(TOP) here.
+# This is because QE_FRAMEWORK variable called up by the plugin project file.
+# On Linux the following works: QE_FRAMEWORK=$(shell readlink -f $(TOP) )
+#
+QE_FRAMEWORK=$(BUNDLE)/gui/qeframework
 
-# Set RULES here if you want to take build rules from somewhere
-# other than EPICS_BASE:
-#RULES=/path/to/epics/support/module/rules/x-y
+# EPICS_BASE usually appears last so other apps can override stuff:
+#
+EPICS_BASE=$(BUNDLE)/epics/base
 
 # end
