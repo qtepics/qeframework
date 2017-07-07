@@ -1,7 +1,0 @@
-<RCC>
-    <qresource prefix="/qe/histogram">
-        <file>QEHistogram.png</file>
-        <file>QEScalarHistogram.png</file>
-        <file>QEWaveformHistogram.png</file>
-    </qresource>
-</RCC>

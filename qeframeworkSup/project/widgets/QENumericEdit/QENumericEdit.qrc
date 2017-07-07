@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix="/qe/numericedit">
-        <file>QNumericEdit.png</file>
-        <file>QENumericEdit.png</file>
-    </qresource>
-</RCC>

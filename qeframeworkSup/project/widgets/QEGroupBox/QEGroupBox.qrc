@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/qe/groupbox">
-        <file>QEGroupBox.png</file>
-    </qresource>
-</RCC>

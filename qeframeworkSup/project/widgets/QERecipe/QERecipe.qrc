@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/qe/recipe">
-        <file>QERecipe.png</file>
-    </qresource>
-</RCC>

@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/qe/filebrowser">
-        <file>QEFileBrowser.png</file>
-    </qresource>
-</RCC>
