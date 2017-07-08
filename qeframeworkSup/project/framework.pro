@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #6 $
-# $DateTime: 2017/07/07 11:21:59 $
+# $Revision: #7 $
+# $DateTime: 2017/07/08 14:39:51 $
 # Last checked in by: $Author: starritt $
 #
 # Copyright (c) 2009,2010,2016 Australian Synchrotron
@@ -41,18 +41,18 @@
 
 #===========================================================
 # Since Qt 4.7.4, enable-auto-import is required to avoid a crash on windows when the qwt dll is loaded
-# Depending on compiler the '-W1' may or may not be required. If an error relating to nable-auto-import occurs (missing leading -e) then use -W1 option
+# Depending on compiler the '-W1' may or may not be required.
+# If an error relating to nable-auto-import occurs (missing leading -e) then use -W1 option
 #win32:QMAKE_LFLAGS += -enable-auto-import
 win32QMAKE_LFLAGS += -Wl,-enable-auto-import
 
 #==========================================================
-#Define this if you are using MinGW compiler
-#DEFINES += _MINGW=TRUE
+# _MINGW=TRUE is now automatically defined when needed
+# See line 86 (approx).
 
 #===========================================================
 # Project configuration
-
-# Points to the target directoy in which lib/EPICS_HOST_ARCH/QEPlugin
+# Points to the target directoy in which lib/EPICS_HOST_ARCH/QEFramework
 # will be created. This follows the regular EPICS Makefile paradigm.
 #
 TOP=../..
@@ -75,12 +75,23 @@ equals( QT_MAJOR_VERSION, 5 ) {
 #
 _EPICS_BASE = $$(EPICS_BASE)
 isEmpty( _EPICS_BASE ) {
-    error( "EPICS_BASE must be defined. Ensure EPICS is installed and EPICS_BASE environment variable is defined." )
+    error( "EPICS_BASE must be defined. Ensure EPICS is installed and EPICS_BASE environment variable is defined, typically in your configure/RELEASE file." )
 }
 
 _EPICS_HOST_ARCH = $$(EPICS_HOST_ARCH)
 isEmpty( _EPICS_HOST_ARCH ) {
     error( "EPICS_HOST_ARCH must be defined. Ensure EPICS is installed and EPICS_HOST_ARCH environment variable is defined." )
+}
+
+# Define _MINGW if using a MinGW compiler
+#
+equals( _EPICS_HOST_ARCH, "win32-x86-mingw" ) {
+    message("MINGW compiler in use, defining _MINGW=TRUE")
+    DEFINES += _MINGW=TRUE
+}
+equals( _EPICS_HOST_ARCH, "windows-x64-mingw" ) {
+    message("MINGW compiler in use, defining _MINGW=TRUE")
+    DEFINES += _MINGW=TRUE
 }
 
 TEMPLATE = lib
@@ -94,10 +105,11 @@ isEmpty( _QE_TARGET_DIR ) {
 } else {
     INSTALL_DIR = $$(QE_TARGET_DIR)
     warning( "QE_TARGET_DIR is defined. The QE plugin library/include files will be installed directly into" $$INSTALL_DIR )
-    unix:warning( "Applications may need to load the framework library directly. To ensure this can happen one option is to set up LD_LIBRARY_PATH to include the directory" $$INSTALL_DIR/lib/$$(EPICS_HOST_ARCH) ". LD_LIBRARY_PATH is currently" $(LD_LIBRARY_PATH) )
+    unix:warning( "Applications may need to load the framework library directly. To ensure this can happen one option is to set up LD_LIBRARY_PATH")
+    unix:warning( " ... to include the directory" $$INSTALL_DIR/lib/$$(EPICS_HOST_ARCH) ". LD_LIBRARY_PATH is currently" $(LD_LIBRARY_PATH) )
 }
 
-# The plugin ends up here.
+# The library ends up here.
 #
 DESTDIR = $$INSTALL_DIR/lib/$$(EPICS_HOST_ARCH)
 
