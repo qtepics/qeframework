@@ -9,7 +9,10 @@ lib/
 include/
 *.o
 *.exe
-*.creator.user
 *.linux-x86_64
 *.linux-x86
 *.local
+*.creator.user
+*.pro.user
+Makefile.*
+object_script.*
