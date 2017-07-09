@@ -311,6 +311,9 @@ void QEPvProperties::common_setup ()
    //
    initialiseRecordSpecs ();
 
+   this->previousRecordBaseName = "";
+   this->previousRecordType = "";
+
    this->fieldsAreSorted = false;
    this->fieldChannels.clear ();
    this->variableIndexTableRowMap.clear ();
@@ -656,6 +659,9 @@ void QEPvProperties::establishConnection (unsigned int variableIndex)
    // but also to determine if the PV server (IOC) supports character array mode
    // for string PVs. This is usefull for long strings (> 40 characters).
    //
+   // The order we do this here is important as this is refected in the order
+   // that we will receive the connection notications.
+   //
    this->setUpRecordTypeChannels (this->alternateRecordType, ReadAsCharArray);
    this->setUpRecordTypeChannels (this->standardRecordType,  StandardRead);
 
@@ -742,8 +748,9 @@ void QEPvProperties::setRecordTypeConnection (QCaConnectionInfo& connectionInfo,
                                               const unsigned int &variableIndex)
 {
    const PVReadModes readMode = (PVReadModes) variableIndex;
+   const bool isConnected = connectionInfo.isChannelConnected ();
 
-   if ((readMode == ReadAsCharArray) && connectionInfo.isChannelConnected ()) {
+   if ((readMode == ReadAsCharArray) && isConnected) {
       // XXX.RTYP$ connected - pre empty standard connection.
       //
       delete this->standardRecordType;
@@ -752,9 +759,8 @@ void QEPvProperties::setRecordTypeConnection (QCaConnectionInfo& connectionInfo,
 
    // Update tool tip, but leave the basic widget enabled.
    //
-   updateToolTipConnection (connectionInfo.isChannelConnected ());
+   updateToolTipConnection (isConnected);
 }
-
 
 //------------------------------------------------------------------------------
 // Called when notified of the (new) record type value.
@@ -765,6 +771,16 @@ void QEPvProperties::setRecordTypeValue (const QString& rtypeValue,
                                          const unsigned int& variableIndex)
 {
    const PVReadModes readMode = (PVReadModes) variableIndex;
+
+   if ((this->recordBaseName == this->previousRecordBaseName) &&
+       (rtypeValue == this->previousRecordType)) {
+      return; // Nothing to do - there is no significant change.
+   }
+
+   // Update for next time.
+   //
+   this->previousRecordBaseName = this->recordBaseName;
+   this->previousRecordType = rtypeValue;
 
    // Look for the record spec for the given record type if it exists.
    //
@@ -863,7 +879,7 @@ void QEPvProperties::setRecordTypeValue (const QString& rtypeValue,
       this->variableIndexTableRowMap.insertF (vi, j);
    }
 
-   // The alarmInfo not really applicabe to the RTYP field.
+   // The alarmInfo not really applicable to the RTYP field.
    // We pick up on the VAL field instead.
 }
 
@@ -874,12 +890,14 @@ void QEPvProperties::setValueConnection (QCaConnectionInfo& connectionInfo, cons
    qcaobject::QCaObject *qca;
    QString s;
 
-   // These are not QELabels - so gotta do manually.
+   const bool isConnected = connectionInfo.isChannelConnected ();
+
+   // These are not QELabels - so have to do this do manually.
    //
-   this->hostName->setEnabled  (connectionInfo.isChannelConnected ());
-   this->timeStamp->setEnabled (connectionInfo.isChannelConnected ());
-   this->fieldType->setEnabled (connectionInfo.isChannelConnected ());
-   this->indexInfo->setEnabled (connectionInfo.isChannelConnected ());
+   this->hostName->setEnabled  (isConnected);
+   this->timeStamp->setEnabled (isConnected);
+   this->fieldType->setEnabled (isConnected);
+   this->indexInfo->setEnabled (isConnected);
 
    if (connectionInfo.isChannelConnected ()) {
       // We "know" that the only/main channel is the 1st (slot 0) channel.
@@ -994,11 +1012,12 @@ void QEPvProperties::setFieldConnection (QCaConnectionInfo& connectionInfo,
 {
    const int row = this->variableIndexTableRowMap.valueF (variableIndex);
    const int numberOfRows = this->table->rowCount ();
+   const bool isConnected = connectionInfo.isChannelConnected ();
 
    if ((row >= 0) && (row < numberOfRows)) {
       QTableWidgetItem* item = this->table->item (row, VALUE_COL);
 
-      if (connectionInfo.isChannelConnected ()) {
+      if (isConnected) {
          // connected
          item->setForeground (QColor (0, 0, 0));
          item->setText ("");

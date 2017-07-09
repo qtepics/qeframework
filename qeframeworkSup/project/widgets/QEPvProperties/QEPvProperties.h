@@ -183,8 +183,10 @@ private:
    QString recordBaseName;
    QEStringFormatting fieldStringFormatting;
 
-   QEString* standardRecordType;
-   QEString* alternateRecordType;
+   QEString* standardRecordType;     // RTYP
+   QEString* alternateRecordType;    // RTYP$
+   QString previousRecordBaseName;
+   QString previousRecordType;
 
    QList<QEString *> fieldChannels;
    bool fieldsAreSorted;
