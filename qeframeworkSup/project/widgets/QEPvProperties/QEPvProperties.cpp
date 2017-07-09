@@ -637,7 +637,11 @@ void QEPvProperties::establishConnection (unsigned int variableIndex)
    this->indexInfo->setText ("");
    this->valueLabel->setText ("");
 
-   //-----------------------------------------------------
+   // Clear any previous cached info.
+   //
+   this->previousRecordBaseName = "";
+   this->previousRecordType = "";
+
    // Clear any exiting field connections.
    //
    this->clearFieldChannels ();
@@ -774,7 +778,7 @@ void QEPvProperties::setRecordTypeValue (const QString& rtypeValue,
 
    if ((this->recordBaseName == this->previousRecordBaseName) &&
        (rtypeValue == this->previousRecordType)) {
-      return; // Nothing to do - there is no significant change.
+      return;   // Nothing to do - there is no significant change.
    }
 
    // Update for next time.
