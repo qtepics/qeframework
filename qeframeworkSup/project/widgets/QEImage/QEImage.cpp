@@ -912,7 +912,7 @@ void QEImage::connectionChanged( QCaConnectionInfo& connectionInfo )
 // If
 //    // Display the connected state
 //    updateToolTipConnection( isConnected );
-//    updateConnectionStyle( isConnected );
+//    processConnectionInfo( isConnected );
 
 // Instead just log the disconnected variables.
     if( !isConnected )

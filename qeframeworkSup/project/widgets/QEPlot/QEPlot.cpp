@@ -393,6 +393,7 @@ void QEPlot::connectionChanged (QCaConnectionInfo& connectionInfo,
 
    // Display the connected state
    updateToolTipConnection (isConnected, variableIndex);
+   processConnectionInfo (isConnected, variableIndex);
 }
 
 //------------------------------------------------------------------------------

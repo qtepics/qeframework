@@ -177,7 +177,7 @@ void QEScalarHistogram::connectionChanged (QCaConnectionInfo & connectionInfo,
    this->updateToolTipConnection (pvConnected, variableIndex);
 
    // This is a multi PV widget.
-   // Do not use updateConnectionStyle.
+   // Do not use processConnectionInfo.
    //
    // If this is a disconnect - set gray.
    // If this is a connect, we will soon change from gray to required colour.

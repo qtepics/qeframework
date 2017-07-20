@@ -165,8 +165,8 @@ void QEPvFrame::connectionChanged (QCaConnectionInfo & connectionInfo,
 
    // Display the connected state
    //
-   updateToolTipConnection (isConnected, variableIndex);
-   updateConnectionStyle (isConnected);
+   this->updateToolTipConnection (isConnected, variableIndex);
+   this->processConnectionInfo (isConnected, variableIndex);
 
    // Signal channel connection change to any (Link) widgets.
    // using signal dbConnectionChanged.

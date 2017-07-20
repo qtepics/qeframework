@@ -146,7 +146,7 @@ void QEComboBox::establishConnection( unsigned int variableIndex ) {
    This function is called when the channel is first established to the data. It will also be called if the channel fails
    and recovers. Subsequent calls will do nothing as the combo box is already populated.
 */
-void QEComboBox::connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& )
+void QEComboBox::connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex)
 {
     // Note the connected state
     isConnected = connectionInfo.isChannelConnected();
@@ -158,8 +158,8 @@ void QEComboBox::connectionChanged( QCaConnectionInfo& connectionInfo, const uns
     }
 
     // Display the connected state
-    updateToolTipConnection( isConnected );
-    updateConnectionStyle( isConnected );
+    updateToolTipConnection( isConnected,variableIndex );
+    processConnectionInfo( isConnected, variableIndex );
 
     // Start a single shot read if the channel is up (ignore channel down),
     // This will allow initialisation of the widget using info from the database.

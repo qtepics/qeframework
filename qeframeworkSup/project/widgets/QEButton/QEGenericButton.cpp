@@ -348,7 +348,7 @@ void QEGenericButton::processConnectedDisableStates()
         active = isConnected && ( disa != disv );
         break;
     }
-    updateConnectionStyle( active );
+    processConnectionInfo( active );
 }
 
 /*

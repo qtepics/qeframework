@@ -410,8 +410,8 @@ void QENumericEdit::connectionChanged (QCaConnectionInfo& connectionInfo,
 
    // Display the connected state
    //
-   this->updateToolTipConnection (this->isConnected);
-   // this->updateConnectionStyle (this->isConnected); -- no need - internal widget disabled.
+   this->updateToolTipConnection (this->isConnected, variableIndex);
+   this->processConnectionInfo (this->isConnected, variableIndex);
 
    // Set cursor to indicate access mode.
    //

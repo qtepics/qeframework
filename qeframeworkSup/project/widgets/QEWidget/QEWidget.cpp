@@ -74,7 +74,7 @@ QEWidget::QEWidget( QWidget *ownerIn ) :
     controlVariableIndices.clear();
     isWriteAllowed = true;     // assume allowed until we find out otherwise.
 
-    // Inisialise 'current' severity and alarm states
+    // Initialise 'current' severity and alarm states
     lastSeverity = QCaAlarmInfo::getInvalidSeverity();
     lastDisplayAlarmState = standardProperties::DISPLAY_ALARM_STATE_NEVER;
 
@@ -162,6 +162,16 @@ QColor QEWidget::getColor( QCaAlarmInfo& alarmInfo, int saturation )
     result.setHsv( h, saturation, 255 );
     return result;
 }
+
+void QEWidget::processConnectionInfo (bool isConnected, const unsigned int )
+{
+    updateConnectionStyle( isConnected );
+
+    // Re-initialise 'current' severity and alarm states
+    lastSeverity = QCaAlarmInfo::getInvalidSeverity();
+    lastDisplayAlarmState = standardProperties::DISPLAY_ALARM_STATE_NEVER;
+}
+
 
 // Provides default (and consistant) alarm handling for all QE widgets.
 //

@@ -2184,11 +2184,11 @@ void QEPlotter::setToolTipSummary ()
 
    total = connected + disconnected;
 
-   // Only disconnected when ALL, if any, aare disconnected.
+   // Only disconnected when ALL, if any, are disconnected.
    //
    no_disconnects = ((connected > 0) || (total == 0));
 
-   this->updateConnectionStyle (no_disconnects);   // Is this sensible?
+   this->processConnectionInfo (no_disconnects);   // Is this sensible?
 
    if (total > 0) {
       if (connected == 0) {

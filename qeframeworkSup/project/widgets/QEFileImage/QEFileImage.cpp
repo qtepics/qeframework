@@ -120,7 +120,7 @@ void QEFileImage::connectionChanged( QCaConnectionInfo& connectionInfo )
 
     // Display the connected state
     updateToolTipConnection( isConnected );
-    updateConnectionStyle( isConnected );
+    processConnectionInfo( isConnected );
 }
 
 /*

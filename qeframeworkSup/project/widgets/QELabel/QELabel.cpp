@@ -73,7 +73,7 @@ void QELabel::setup() {
     setText( "----" );
     setIndent( 6 );
     isConnected = false;
-    updateConnectionStyle( isConnected );
+    processConnectionInfo( isConnected, 0 );
     updateOption = UPDATE_TEXT;
 
     // Use standard context menu
@@ -142,14 +142,14 @@ void QELabel::establishConnection( unsigned int variableIndex ) {
     Change how the label looks and change the tool tip
     This is the slot used to recieve connection updates from a QCaObject based class.
  */
-void QELabel::connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& )
+void QELabel::connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex)
 {
     // Note the connected state
     isConnected = connectionInfo.isChannelConnected();
 
     // Display the connected state
-    updateToolTipConnection( isConnected );
-    updateConnectionStyle( isConnected );
+    updateToolTipConnection( isConnected, variableIndex );
+    processConnectionInfo( isConnected, variableIndex );
 
     // Signal channel connection change to any Link widgets,
     // using signal dbConnectionChanged.
