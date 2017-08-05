@@ -59,7 +59,9 @@ QEMenuButton::QEMenuButton (QWidget* parent) : QEAbstractWidget (parent)
    this->setVariableAsToolTip (false);
    this->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_NEVER);
 
-   this->button->setText ("MenuButton");
+   setLabelTextProperty(getLabelTextProperty());
+   this->button->setFont(font());
+   //this->button->setText ("MenuButton");
 
    // Null menu specification.
    //
@@ -268,6 +270,34 @@ void QEMenuButton::setSubstitutionsProperty (const QString& substitutions)
 QString QEMenuButton::getSubstitutionsProperty () const
 {
    return this->getVariableNameSubstitutions ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEMenuButton::setLabelTextProperty( QString labelTextIn )
+{
+   this->button->setText (labelTextIn);
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEMenuButton::getLabelTextProperty()
+{
+    return this->button->text();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEMenuButton::setFont(const QFont &f)
+{
+    button->setFont(f);
+}
+
+//------------------------------------------------------------------------------
+//
+const QFont& QEMenuButton::font() const
+{
+    return button->font();
 }
 
 //------------------------------------------------------------------------------
