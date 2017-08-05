@@ -34,13 +34,13 @@
 
 #include <QCaAlarmInfo.h>
 #include <QCaDateTime.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 // This struct used to hold a single data point. Objects of this type are
 // intended for use QCaStripChart in particular, but also for the interface
 // to the Channel Access archives.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QCaDataPoint {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QCaDataPoint {
 public:
    explicit QCaDataPoint ();
    bool isDisplayable () const;     // i.e. is okay
@@ -66,7 +66,7 @@ public:
 // It has now been modified to include a QList<QCaDataPoint> member. The
 // downside of this is that we must now provide list member access functions.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QCaDataPointList  {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QCaDataPointList  {
 public:
    explicit QCaDataPointList ();
    ~QCaDataPointList ();

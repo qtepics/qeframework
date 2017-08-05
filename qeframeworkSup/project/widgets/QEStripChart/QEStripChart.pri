@@ -5,7 +5,6 @@
 #
 
 OTHER_FILES += \
-    widgets/QEStripChart/QEStripChart.png \
     widgets/QEStripChart/archive.png \
     widgets/QEStripChart/go_back.png \
     widgets/QEStripChart/go_fwd.png \
@@ -38,7 +37,6 @@ HEADERS += \
     widgets/QEStripChart/QEStripChartTimeDialog.h \
     widgets/QEStripChart/QEStripChartToolBar.h \
     widgets/QEStripChart/QEStripChartUtilities.h \
-    widgets/QEStripChart/QEStripChartManager.h \
     widgets/QEStripChart/QEStripChartStatistics.h
 
 SOURCES += \
@@ -53,7 +51,6 @@ SOURCES += \
     widgets/QEStripChart/QEStripChartTimeDialog.cpp \
     widgets/QEStripChart/QEStripChartToolBar.cpp \
     widgets/QEStripChart/QEStripChartUtilities.cpp \
-    widgets/QEStripChart/QEStripChartManager.cpp \
     widgets/QEStripChart/QEStripChartStatistics.cpp
 
 INCLUDEPATH += \

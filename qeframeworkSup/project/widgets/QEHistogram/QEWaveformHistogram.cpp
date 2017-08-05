@@ -166,7 +166,7 @@ void QEWaveformHistogram::connectionChanged (QCaConnectionInfo & connectionInfo,
    //
    this->updateToolTipConnection (pvConnected, variableIndex);
 
-   // Do not use updateConnectionStyle.
+   // Do not use processConnectionInfo.
    //
    // If this is a disconnect - set gray.
    // If this is a connect, we will soon change from gray to required colour.

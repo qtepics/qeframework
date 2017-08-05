@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2016 Australian Synchrotron
+ *  Copyright (c) 2012,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Ricardo Fernandes
@@ -37,31 +37,6 @@
 #include <QEComboBox.h>
 #include <QESpinBox.h>
 
-
-enum details
-{
-    TOP,
-    BOTTOM,
-    LEFT,
-    RIGHT
-};
-
-
-enum configuration
-{
-    FROM_FILE,
-    FROM_TEXT
-};
-
-
-enum types
-{
-    LABEL,
-    LINEEDIT,
-    COMBOBOX,
-    SPINBOX,
-    BUTTON,
-};
 
 
 // ============================================================
@@ -154,7 +129,10 @@ class _QPushButtonGroup:public QPushButton
         QString groupName;
 
     public:
-        _QPushButtonGroup(QWidget * pParent = 0, QString pItemName = "", QString pGroupName = "", QList <_Field *> *pCurrentFieldList = 0);
+        _QPushButtonGroup(QWidget * pParent = 0,
+                          QString pItemName = "",
+                          QString pGroupName = "",
+                          QList <_Field *> *pCurrentFieldList = 0);
 
         void mouseReleaseEvent(QMouseEvent *qMouseEvent);
         void keyPressEvent(QKeyEvent *pKeyEvent);
@@ -177,7 +155,11 @@ class _QDialogItem:public QDialog
         QPushButton *qPushButtonClose;
 
     public:
-        _QDialogItem(QWidget *pParent = 0, QString pItemName = "", QString pGroupName = "", QList <_Field *> *pCurrentFieldList = 0, Qt::WindowFlags pF = 0);
+        _QDialogItem(QWidget *pParent = 0,
+                     QString pItemName = "",
+                     QString pGroupName = "",
+                     QList <_Field *> *pCurrentFieldList = 0,
+                     Qt::WindowFlags pF = 0);
 
     private slots:
         void buttonCloseClicked();
@@ -188,7 +170,7 @@ class _QDialogItem:public QDialog
 // ============================================================
 //  QECONFIGUREDLAYOUT CLASS
 // ============================================================
-class QEPLUGINLIBRARYSHARED_EXPORT QEConfiguredLayout:public QWidget, public QEWidget
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEConfiguredLayout:public QWidget, public QEWidget
 {
     Q_OBJECT
 
@@ -208,6 +190,8 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEConfiguredLayout:public QWidget, public QEW
         bool subscription;
 
     public:
+        enum types { LABEL, LINEEDIT, COMBOBOX, SPINBOX, BUTTON };
+
         QEConfiguredLayout(QWidget *pParent = 0, bool pSubscription = true);
         virtual ~QEConfiguredLayout(){}
 
@@ -249,8 +233,8 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEConfiguredLayout:public QWidget, public QEW
         Q_PROPERTY(configurationTypesProperty configurationType READ getConfigurationTypeProperty WRITE setConfigurationTypeProperty)
         enum configurationTypesProperty
         {
-            File = FROM_FILE,
-            Text = FROM_TEXT
+            File,
+            Text
         };
 
         void setConfigurationTypeProperty(configurationTypesProperty pConfigurationType)
@@ -271,10 +255,10 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEConfiguredLayout:public QWidget, public QEW
         Q_PROPERTY(optionsLayoutProperty optionsLayout READ getOptionsLayoutProperty WRITE setOptionsLayoutProperty)
         enum optionsLayoutProperty
         {
-            Top = TOP,
-            Bottom = BOTTOM,
-            Left = LEFT,
-            Right = RIGHT
+            Top,
+            Bottom,
+            Left,
+            Right
         };
 
         void setOptionsLayoutProperty(optionsLayoutProperty pOptionsLayout)

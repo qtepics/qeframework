@@ -701,7 +701,7 @@
           <enum>QFrame::Plain</enum>
          </property>
          <property name="text">
-          <string>Contrained wilde carding</string>
+          <string>Constrained wild carding</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>

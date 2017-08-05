@@ -53,7 +53,7 @@
 // Defines the number of live points to be accumulated before dropping
 // older points.
 //
-#define MAXIMUM_LIVE_POINTS      40000
+#define DEFAULT_MAXIMUM_LIVE_POINTS      40000
 
 // Can't declare black as QColor (0x000000)
 //
@@ -95,6 +95,7 @@ QEStripChartItem::QEStripChartItem (QEStripChart* chartIn,
    //
    this->createInternalWidgets ();
 
+   this->maxRealTimePoints = DEFAULT_MAXIMUM_LIVE_POINTS;
    this->previousQcaItem = NULL;
 
    this->dataKind = NotInUse;
@@ -121,11 +122,12 @@ QEStripChartItem::QEStripChartItem (QEStripChart* chartIn,
 
    // Setup QELabel properties.
    //
-   this->caLabel->setAlignment (Qt::AlignRight);
+   this->caLabel->setAlignment (Qt::AlignLeft);
 
    // We have to be general here.
    //
    this->caLabel->setPrecision (6);
+   this->caLabel->setForceSign (true);
    this->caLabel->setUseDbPrecision (false);
    this->caLabel->setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
    this->caLabel->setTrailingZeros (false);
@@ -142,7 +144,6 @@ QEStripChartItem::QEStripChartItem (QEStripChart* chartIn,
       defaultColour = clBlack;
    }
    this->setColour (defaultColour);
-
 
    // Clear/initialise.
    //
@@ -230,13 +231,20 @@ void QEStripChartItem::createInternalWidgets ()
 
    this->pvName = new QLabel (this);
    this->pvName->setMinimumSize (QSize (328, 15));
-   this->pvName->setMaximumSize (QSize (328, 15));
+   this->pvName->setMaximumSize (QSize (1200, 15));
+   this->pvName->setSizePolicy (QSizePolicy::Ignored, QSizePolicy::Preferred);
+
    layout->addWidget (this->pvName);
 
    this->caLabel = new QELabel (this);
-   this->caLabel->setMinimumSize (QSize (100, 15));
-   this->caLabel->setMaximumSize (QSize (1600, 15));
+   this->caLabel->setMinimumSize (QSize (88, 15));
+   this->caLabel->setMaximumSize (QSize (200, 15));
    this->layout->addWidget (this->caLabel);
+
+   // Set up the stretchh ratios.
+   this->layout->setStretch (0, 0);
+   this->layout->setStretch (1, 3);
+   this->layout->setStretch (2, 1);
 
    this->colourDialog = new QColorDialog (this);
    this->inUseMenu = new QEStripChartContextMenu (true, this);
@@ -261,6 +269,7 @@ void QEStripChartItem::clear ()
    this->historicalTimeDataPoints.clear ();
    this->dashExists = false;
    this->realTimeDataPoints.clear ();
+   this->maxRealTimePoints = DEFAULT_MAXIMUM_LIVE_POINTS;
 
    this->useReceiveTime = false;
    this->archiveReadHow = QEArchiveInterface::Linear;
@@ -777,6 +786,18 @@ void QEStripChartItem::newVariableNameProperty (QString pvName, QString substitu
 
 //------------------------------------------------------------------------------
 //
+void QEStripChartItem::addRealTimeDataPoint (const QCaDataPoint& point)
+{
+   // Do any decimation and/or dead-banding here.
+   //
+   this->realTimeDataPoints.append (point);
+   if (this->realTimeDataPoints.count () > this->maxRealTimePoints) {
+      this->realTimeDataPoints.removeFirst ();
+   }
+}
+
+//------------------------------------------------------------------------------
+//
 void QEStripChartItem::setDataConnection (QCaConnectionInfo& connectionInfo, const unsigned int& )
 {
    QCaDataPoint point;
@@ -789,18 +810,12 @@ void QEStripChartItem::setDataConnection (QCaConnectionInfo& connectionInfo, con
       //
       point = this->realTimeDataPoints.last ();
       point.datetime = QDateTime::currentDateTime ().toUTC ();
-      this->realTimeDataPoints.append (point);
-      if (this->realTimeDataPoints.count () > MAXIMUM_LIVE_POINTS) {
-         this->realTimeDataPoints.removeFirst ();
-      }
+      this->addRealTimeDataPoint (point);
 
-      // create a dummy point with same time but marked invalid.
+      // create a dummy point with same time but marked invalid to indicate a break.
       //
       point.alarm = QCaAlarmInfo (NO_ALARM, INVALID_ALARM);
-      this->realTimeDataPoints.append (point);
-      if (this->realTimeDataPoints.count () > MAXIMUM_LIVE_POINTS) {
-         this->realTimeDataPoints.removeFirst ();
-      }
+      this->addRealTimeDataPoint (point);
 
       this->chart->setRecalcIsRequired ();
    }
@@ -855,12 +870,8 @@ void QEStripChartItem::setDataValue (const QVariant& value, QCaAlarmInfo& alarm,
    if (point.isDisplayable ()) {
       this->realTimeMinMax.merge (point.value);
    }
-   this->realTimeDataPoints.append (point);
 
-   if (this->realTimeDataPoints.count () > MAXIMUM_LIVE_POINTS) {
-      this->realTimeDataPoints.removeFirst ();
-   }
-
+   this->addRealTimeDataPoint (point);
    this->chart->setRecalcIsRequired ();
 }
 

@@ -31,7 +31,7 @@
 #include <QEWidget.h>
 #include <QEString.h>
 #include <QEStringFormatting.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <managePixmaps.h>
 #include <QEStringFormattingMethods.h>
 #include <QCaVariableNamePropertyManager.h>
@@ -41,7 +41,7 @@
   When a variable is defined, the label pixmap will be updated with the file specified by the variable. The label will be disabled if the variable is invalid.
   It is tighly integrated with the base class QEWidget which provides generic support such as macro substitutions, drag/drop, and standard properties.
  */
-class QEPLUGINLIBRARYSHARED_EXPORT QEFileImage : public QLabel, public QEWidget, public QEStringFormattingMethods {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFileImage : public QLabel, public QEWidget, public QEStringFormattingMethods {
     Q_OBJECT
 
   public:

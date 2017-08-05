@@ -32,13 +32,13 @@
 #include <QEGroupBox.h>
 #include <QVBoxLayout>
 #include <QLabel>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEArchiveManager.h>
 
 /// This is a non EPICS aware widget.
 /// It extracts and displays states information from the archive manager.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEArchiveStatus : public QEGroupBox {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEArchiveStatus : public QEGroupBox {
   Q_OBJECT
 public:
    explicit QEArchiveStatus (QWidget* parent = 0);

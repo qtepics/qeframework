@@ -34,7 +34,7 @@
 
 #include <QEDisplayRanges.h>
 #include <QEStripChartUtilities.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 namespace Ui {
     class QEStripChartAdjustPVDialog;
@@ -46,7 +46,7 @@ namespace Ui {
  * This dialog form allows the user to select a start datetime and
  * end datetime pair for the strip chart.
  */
-class QEPLUGINLIBRARYSHARED_EXPORT QEStripChartAdjustPVDialog : public QEDialog
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStripChartAdjustPVDialog : public QEDialog
 {
     Q_OBJECT
 

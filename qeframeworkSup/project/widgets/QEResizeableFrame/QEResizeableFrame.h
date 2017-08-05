@@ -28,14 +28,14 @@
 #include <QVBoxLayout>
 
 #include <QEFrame.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// The QEResizeableFrame provides a frame capable of holding another widget
 /// together with a grabber widget that allows the frame to be re-sized, and
 /// hence contained widget to be resized. The class currently only supports
 /// vertical or horizontal resizing, but not both.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEResizeableFrame : public QEFrame {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEResizeableFrame : public QEFrame {
     Q_OBJECT
 public:
    enum GrabbingEdges { TopEdge, LeftEdge, BottomEdge, RightEdge };

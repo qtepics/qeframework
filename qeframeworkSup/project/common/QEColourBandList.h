@@ -29,7 +29,7 @@
 
 #include <QColor>
 #include <QList>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 namespace qcaobject {
    class QCaObject;   // differed
@@ -53,7 +53,7 @@ struct QEColourBand {
 // QList<QEColourBand> member, i.e. using compostion rather than inheritance.
 // The downside of this is that we must provide list member access functions.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEColourBandList {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEColourBandList {
 public:
    explicit QEColourBandList ();
    ~QEColourBandList ();

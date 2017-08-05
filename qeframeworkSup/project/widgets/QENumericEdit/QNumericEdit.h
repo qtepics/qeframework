@@ -36,7 +36,7 @@
 
 #include <QECommon.h>
 #include <QEFixedPointRadix.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// This class provides a non EPICS aware numeric edit widget, somewhat
 /// akin to QDoubleSpin. However QNumericEdit provides a number of advantages
@@ -51,7 +51,7 @@
 ///
 // Note: QENumericEdit will be modified to sub-class or side-class this widget
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QNumericEdit : public QWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QNumericEdit : public QWidget {
    Q_OBJECT
 public:
    /// \enum Notations

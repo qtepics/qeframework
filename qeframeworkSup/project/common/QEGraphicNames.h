@@ -28,13 +28,13 @@
 #define QE_GRAPHIC_NAMES_H
 
 #include <QVector>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 // Define grapjic specific names (enumerations). We use a class as opposed to
 // a namespace so that QEGraphic and QEGraphicMarkup classes can just inherit
 // from this class.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEGraphicNames {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGraphicNames {
 public:
 
    typedef QVector<double> DoubleVector;

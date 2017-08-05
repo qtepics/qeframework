@@ -415,7 +415,11 @@ void mpegSource::updateImage(FFBuffer *newbuf) {
     // Format the data in a CA like QByteArray
     switch( newbuf->pix_fmt )
     {
-    case PIX_FMT_YUVJ420P:
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(51, 42, 0)
+        case PIX_FMT_YUVJ420P:
+#else
+        case AV_PIX_FMT_YUVJ420P:
+#endif
         {
             //!!! Since the QEImage widget handles (or should handle) CA image data in all the formats that are expected in this mpeg stream
             //!!! perhaps this formatting here should be simply packaging the data in a QbyteArray and delivering it, rather than perform any conversion.

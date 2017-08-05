@@ -1,7 +1,0 @@
-<RCC>
-    <qresource prefix="/qe/button">
-        <file>QEPushButton.png</file>
-        <file>QERadioButton.png</file>
-        <file>QECheckBox.png</file>
-    </qresource>
-</RCC>

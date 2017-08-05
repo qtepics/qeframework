@@ -32,7 +32,7 @@
 #include <QPen>
 #include <QPixmap>
 #include <QWidget>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QCaVariableNamePropertyManager.h>
 
 // Maximum number of variables.
@@ -44,7 +44,7 @@
   For example to represent beam positino and size, an elipse can be drawn with four variables animating its vertcal and horizontal size and position.
   It is tighly integrated with the base class QEWidget which provides generic support such as macro substitutions, drag/drop, and standard properties.
  */
-class QEPLUGINLIBRARYSHARED_EXPORT QEShape : public QWidget, public QEWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEShape : public QWidget, public QEWidget {
     Q_OBJECT
 
   public:

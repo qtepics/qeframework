@@ -36,10 +36,10 @@
 #include <QSize>
 #include <QGroupBox>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEOneToOne.h>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QRadioGroup : public QGroupBox {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QRadioGroup : public QGroupBox {
 
 Q_OBJECT
 public:

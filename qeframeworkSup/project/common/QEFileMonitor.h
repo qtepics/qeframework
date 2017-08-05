@@ -29,7 +29,7 @@
 
 #include <QObject>
 #include <QString>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// The QEFileMonitor class provides a wrapper around a single QFileSystemWatcher
 /// object which can be used to monitor all file/directories that require watching.
@@ -42,7 +42,7 @@
 ///
 /// Refer to QFileSystemWatcher documentation on limits and monitoring features.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEFileMonitor : public QObject
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFileMonitor : public QObject
 {
    Q_OBJECT
 public:

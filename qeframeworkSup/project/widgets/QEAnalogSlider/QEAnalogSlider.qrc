@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix="/qe/slider">
-        <file>QAnalogSlider.png</file>
-        <file>QEAnalogSlider.png</file>
-    </qresource>
-</RCC>

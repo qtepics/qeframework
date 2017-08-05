@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2014,2016 Australian Synchrotron
+ *  Copyright (c) 2013,2014,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -284,9 +284,9 @@ void QESimpleShape::connectionChanged (QCaConnectionInfo & connectionInfo,
 
    if (variableIndex == MAIN_PV_INDEX) {
       // Widget draws itself - a styleSheet not applicable per se.
-      // No need to call updateConnectionStyle (isConnected),
-      // but we do flag is in active (quazi disabled).
+      // However we stillcall processConnectionInfo (isConnected)
       //
+      this->processConnectionInfo (isConnected, variableIndex);
       this->setIsActive (isConnected);
 
       this->isFirstUpdate = true;  // more trob. than it's worth to check if connect or disconnect.

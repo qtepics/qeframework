@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010, 2016 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Anthony Owen
@@ -23,8 +23,8 @@
  *    anthony.owen@gmail.com
  */
 
-#ifndef QEWIDGET_H
-#define QEWIDGET_H
+#ifndef QE_WIDGET_H
+#define QE_WIDGET_H
 
 #include <QList>
 #include <QObject>
@@ -32,7 +32,7 @@
 #include <ContainerProfile.h>
 #include <QEEmitter.h>
 #include <QEToolTip.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEDragDrop.h>
 #include <styleManager.h>
 #include <contextMenu.h>
@@ -204,7 +204,7 @@ private:
 
  */
 
-class QEPLUGINLIBRARYSHARED_EXPORT  QEWidget :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT  QEWidget :
                  public VariableManager,
                  public QEToolTip,
                  public ContainerProfile,
@@ -248,6 +248,11 @@ public:
     /// Note, the color is determined by the alarmInfo class, but since that class is used in non
     /// gui applications, it can't return a QColor
     static QColor getColor( QCaAlarmInfo& alarmInfo, const int saturation );
+
+    /// This convenience function updates the connection style and also clears/re-initialises
+    /// the last saved severity and display alarm info state, as used by processAlarmInfo.
+    ///
+    void processConnectionInfo (bool isConnected, const unsigned int variableIndex = 0 );
 
     /// This convenience function updates the alarm tool tip, and alarm status style if the displayAlarmState
     /// property is set to true - assumes the widget uses standard properties. This function is perhaps
@@ -367,4 +372,4 @@ public:
     virtual bool getAlarmSensitive(){ return false; }       /// Return the widget's alarm sensitivity (default to not sensitive)
 };
 
-#endif // QEWIDGET_H
+#endif // QE_WIDGET_H

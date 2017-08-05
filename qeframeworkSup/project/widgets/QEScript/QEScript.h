@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
+ *  Copyright (c) 2012,2017 Australian Synchrotron
  *
  *  Author:
  *    Ricardo Fernandes
@@ -31,23 +31,6 @@
 #include <QPushButton>
 #include <QComboBox>
 #include <QEWidget.h>
-
-
-enum details
-{
-    TOP,
-    BOTTOM,
-    LEFT,
-    RIGHT
-};
-
-
-enum script
-{
-    FROM_FILE,
-    FROM_TEXT
-};
-
 
 // ============================================================
 //  _QTABLEWIDGETSCRIPT CLASS
@@ -122,7 +105,7 @@ class _CopyPaste
   This class is a EPICS aware widget.
   The QEScript widget allows the user to define a certain sequence of external programs to be executed. This sequence may be saved, modified or loaded for future usage.
 */
-class QEPLUGINLIBRARYSHARED_EXPORT QEScript:public QWidget, public QEWidget
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEScript:public QWidget, public QEWidget
 {
 
     Q_OBJECT
@@ -291,8 +274,8 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEScript:public QWidget, public QEWidget
         Q_PROPERTY(scriptTypesProperty scriptType READ getScriptTypeProperty WRITE setScriptTypeProperty)
         enum scriptTypesProperty
         {
-            File = FROM_FILE,
-            Text = FROM_TEXT
+            File,
+            Text
         };
 
         void setScriptTypeProperty(scriptTypesProperty pScriptType)
@@ -321,11 +304,11 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEScript:public QWidget, public QEWidget
         Q_PROPERTY(optionsLayoutProperty optionsLayout READ getOptionsLayoutProperty WRITE setOptionsLayoutProperty)
         enum optionsLayoutProperty
         {
-            Top = TOP,
-            Bottom = BOTTOM,
-            Left = LEFT,
-            Right = RIGHT
-        };        
+            Top,
+            Bottom,
+            Left,
+            Right
+        };
 
         void setOptionsLayoutProperty(optionsLayoutProperty pOptionsLayout)
         {

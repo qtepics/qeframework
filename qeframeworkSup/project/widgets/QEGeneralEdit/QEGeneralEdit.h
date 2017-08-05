@@ -43,7 +43,7 @@
 #include <QESingleVariableMethods.h>
 #include <QELocalEnumeration.h>
 #include <QCaVariableNamePropertyManager.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEFrame.h>
 
 
@@ -60,7 +60,7 @@ namespace Ui {
  * This widget is intented for use within a qegui predefined form, displayed in
  * response to context menu request to edit an arbitary PV.
  */
-class QEPLUGINLIBRARYSHARED_EXPORT QEGeneralEdit :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGeneralEdit :
    public QEFrame,
    public QESingleVariableMethods
 {

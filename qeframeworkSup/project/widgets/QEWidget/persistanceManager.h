@@ -39,7 +39,7 @@
 #include <QHash>
 #include <QStringList>
 #include <QXmlStreamWriter>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QXmlDefaultHandler>
 #include <QVariant>
 #include <QDomDocument>
@@ -95,7 +95,7 @@ private:
 class PMElement;
 
 // Class to conceal QDomNodeList from users of the persistance manager (and make it easier to add stuff)
-class QEPLUGINLIBRARYSHARED_EXPORT PMElementList: private QDomNodeList
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT PMElementList: private QDomNodeList
 {
 public:
     PMElementList( PersistanceManager* ownerIn, QDomNodeList elementListIn );
@@ -107,7 +107,7 @@ private:
 };
 
 // Class to conceal QDomElement from users of the persistance manager (and make it easier to add stuff)
-class QEPLUGINLIBRARYSHARED_EXPORT PMElement : private QDomElement
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT PMElement : private QDomElement
 {
 public:
     PMElement( PersistanceManager* ownerIn, QDomElement elementIn );
@@ -150,7 +150,7 @@ private:
 //
 class QEWidget;   // differed
 
-class QEPLUGINLIBRARYSHARED_EXPORT PersistanceManager : public QXmlDefaultHandler
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT PersistanceManager : public QXmlDefaultHandler
 {
 public:
 

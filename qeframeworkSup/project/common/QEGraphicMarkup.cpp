@@ -62,6 +62,8 @@ QEGraphicMarkup::QEGraphicMarkup (QEGraphicNames::Markups markupIn, QEGraphic* o
    this->pen.setColor (QColor (0, 0, 0, 255));
    this->pen.setStyle (Qt::SolidLine);
    this->pen.setWidth (1);
+   this->brush.setStyle (Qt::NoBrush);
+   this->curveStyle = QwtPlotCurve::Lines;
 }
 
 //-----------------------------------------------------------------------------
@@ -147,11 +149,25 @@ bool QEGraphicMarkup::isOverHere (const QPointF& here, const QPointF& point, int
 void QEGraphicMarkup::plot ()
 {
    if (this->visible) {
-      QPen   savedPen = this->owner->getCurvePen ();
-      QBrush savedBrush = this->owner->getCurveBrush ();
+
+      const QPen   savedPen = this->owner->getCurvePen ();
+      const QBrush savedBrush = this->owner->getCurveBrush ();
+      const QwtPlotCurve::CurveStyle savedCurveStyle = this->owner->getCurveStyle ();
+
+      // Set this markups pen, brush and style
+      //
+      this->owner->setCurvePen   (this->pen);
+      this->owner->setCurveBrush (this->brush);
+      this->owner->setCurveStyle (this->curveStyle);
+
       this->plotMarkup ();
+
+      // Restore settings.
+      //
       this->owner->setCurvePen   (savedPen);
       this->owner->setCurveBrush (savedBrush);
+      this->owner->setCurveStyle (savedCurveStyle);
+
    }
 }
 

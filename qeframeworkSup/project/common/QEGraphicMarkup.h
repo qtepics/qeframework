@@ -27,6 +27,7 @@
 #ifndef QE_GRAPHIC_MARKUP_H
 #define QE_GRAPHIC_MARKUP_H
 
+#include <qwt_plot_curve.h>
 #include <QCursor>
 #include <QObject>
 #include <QFontMetrics>
@@ -34,14 +35,14 @@
 #include <QPoint>
 #include <QVariant>
 #include <QEGraphicNames.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 class QEGraphic;  // differed declaration - avoid mutual header inclusion
 
 //-----------------------------------------------------------------------------
 // Base class for all QEGraphic markups.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEGraphicMarkup {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGraphicMarkup {
 public:
    explicit QEGraphicMarkup (QEGraphicNames::Markups markup, QEGraphic* owner);
    virtual ~QEGraphicMarkup ();
@@ -105,6 +106,7 @@ protected:
    QVariant data;     // any associated data
    QPen pen;
    QBrush brush;
+   QwtPlotCurve::CurveStyle curveStyle;
    QCursor cursor;
    Qt::MouseButton activationButton;
    bool inUse;
@@ -164,7 +166,7 @@ public:
    explicit QEGraphicBoxMarkup (QEGraphic* owner);
    bool isOver (const QPointF& point, int& distance) const;
    void setSelected (const bool selected);
-   
+
 protected:
    void plotMarkup ();
 };

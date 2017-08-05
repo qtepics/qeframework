@@ -1,4 +1,6 @@
-/*  This file is part of the EPICS QT Framework, initially developed at
+/*  QEConfiguredLayout.cpp
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
@@ -14,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
+ *  Copyright (c) 2012,2017 Australian Synchrotron
  *
  *  Author:
  *    Ricardo Fernandes
@@ -22,9 +24,7 @@
  *    ricardo.fernandes@synchrotron.org.au
  */
 
-
 #include <QEConfiguredLayout.h>
-
 
 
 // ============================================================
@@ -51,9 +51,9 @@ QEConfiguredLayout::QEConfiguredLayout(QWidget *pParent, bool pSubscription):QWi
     setItemDescription("");
     setConfigurationFile("");
     setConfigurationText("");
-    setConfigurationType(FROM_FILE);
+    setConfigurationType(File);
     setShowItemList(true);
-    setOptionsLayout(TOP);
+    setOptionsLayout(Top);
     setCurrentUserType(getUserLevel());
 
 }
@@ -136,7 +136,7 @@ void QEConfiguredLayout::setConfigurationFile(QString pValue)
     QString data;
 
     configurationFile = pValue;
-    if (configurationType == FROM_FILE)
+    if (configurationType == File)
     {
         file = new QFile(configurationFile);
         if (file->open(QFile::ReadOnly | QFile::Text))
@@ -167,7 +167,7 @@ void QEConfiguredLayout::setConfigurationText(QString pValue)
 {
 
     configurationText = pValue;
-    if (configurationType == FROM_TEXT)
+    if (configurationType == Text)
     {
         setConfiguration(configurationText);
     }
@@ -293,8 +293,8 @@ void QEConfiguredLayout::setOptionsLayout(int pValue)
 
     switch(pValue)
     {
-        case TOP:
-            optionsLayout = TOP;
+        case Top:
+            optionsLayout = Top;
             qLayoutMain = new QVBoxLayout(this);
             qLayoutChild = new QHBoxLayout();
             qLayoutChild->addWidget(qLabelItemDescription);
@@ -303,8 +303,8 @@ void QEConfiguredLayout::setOptionsLayout(int pValue)
             qLayoutMain->addWidget(qScrollArea);
             break;
 
-        case BOTTOM:
-            optionsLayout = BOTTOM;
+        case Bottom:
+            optionsLayout = Bottom;
             qLayoutMain = new QVBoxLayout(this);
             qLayoutChild = new QHBoxLayout();
             qLayoutMain->addWidget(qScrollArea);
@@ -313,8 +313,8 @@ void QEConfiguredLayout::setOptionsLayout(int pValue)
             qLayoutMain->addItem(qLayoutChild);
             break;
 
-        case LEFT:
-            optionsLayout = LEFT;
+        case Left:
+            optionsLayout = Left;
             qLayoutMain = new QHBoxLayout(this);
             qLayoutChild = new QVBoxLayout();
             qLayoutChild->addWidget(qLabelItemDescription);
@@ -324,8 +324,8 @@ void QEConfiguredLayout::setOptionsLayout(int pValue)
             qLayoutMain->addWidget(qScrollArea);
             break;
 
-        case RIGHT:
-            optionsLayout = RIGHT;
+        case Right:
+            optionsLayout = Right;
             qLayoutMain = new QHBoxLayout(this);
             qLayoutChild = new QVBoxLayout();
             qLayoutMain->addWidget(qScrollArea);
@@ -1092,26 +1092,26 @@ _QDialogItem::_QDialogItem(QWidget *pParent, QString pItemName, QString pGroupNa
                     flag = true;
                 }
 
-                if (fieldInfo->getType() != BUTTON && fieldInfo->getName().isEmpty() == false)
+                if (fieldInfo->getType() != QEConfiguredLayout::BUTTON && fieldInfo->getName().isEmpty() == false)
                 {
                     qLabel = new QLabel();
                     qLabel->setText(fieldInfo->getName());
                     qLabel->setFixedWidth(130);
                     qHBoxLayout->addWidget(qLabel);
                 }
-                if (fieldInfo->getType() == BUTTON)
+                if (fieldInfo->getType() == QEConfiguredLayout::BUTTON)
                 {
                     qHBoxLayout->addWidget((QEPushButton *) pCurrentFieldList->at(i)->qeWidget);
                 }
-                else if (fieldInfo->getType() == LABEL)
+                else if (fieldInfo->getType() == QEConfiguredLayout::LABEL)
                 {
                     qHBoxLayout->addWidget((QELabel *) pCurrentFieldList->at(i)->qeWidget);
                 }
-                else if (fieldInfo->getType() == SPINBOX)
+                else if (fieldInfo->getType() == QEConfiguredLayout::SPINBOX)
                 {
                     qHBoxLayout->addWidget((QESpinBox *) pCurrentFieldList->at(i)->qeWidget);
                 }
-                else if (fieldInfo->getType() == COMBOBOX)
+                else if (fieldInfo->getType() == QEConfiguredLayout::COMBOBOX)
                 {
                     qHBoxLayout->addWidget((QEComboBox *) pCurrentFieldList->at(i)->qeWidget);
                 }
@@ -1149,3 +1149,4 @@ void _QDialogItem::buttonCloseClicked()
 
 }
 
+// end

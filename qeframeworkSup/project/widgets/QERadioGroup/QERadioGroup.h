@@ -43,12 +43,12 @@
 #include <QELocalEnumeration.h>
 #include <QESingleVariableMethods.h>
 #include <QCaVariableNamePropertyManager.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEOneToOne.h>
 
 // QEAbstractWidget provides all standard QEWidget properties
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QERadioGroup :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QERadioGroup :
       public QEAbstractWidget,
       public QESingleVariableMethods {
 

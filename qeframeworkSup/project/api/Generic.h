@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2017 Australian Synchrotron
  *
  *  Author:
  *    Anthony Owen
@@ -23,10 +23,11 @@
  *    anthony.owen@gmail.com
  */
 
-#ifndef GENERIC_H_
-#define GENERIC_H_
+#ifndef QE_GENERIC_H
+#define QE_GENERIC_H
 
 #include <string>
+#include <QString>
 #include <QtGlobal>
 
 namespace generic {
@@ -37,6 +38,8 @@ namespace generic {
                        GENERIC_LONG, GENERIC_UNSIGNED_LONG,
                        GENERIC_FLOAT, GENERIC_DOUBLE,
                        GENERIC_UNKNOWN };
+
+  QString typeImage (const generic_types type);
 
   class Generic {
     public:
@@ -120,4 +123,4 @@ namespace generic {
 
 }
 
-#endif  // GENERIC_H_
+#endif  // QE_GENERIC_H

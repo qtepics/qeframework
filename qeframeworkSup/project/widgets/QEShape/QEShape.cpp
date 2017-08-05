@@ -213,8 +213,8 @@ void QEShape::connectionChanged( QCaConnectionInfo& connectionInfo, const unsign
     isConnected = connectionInfo.isChannelConnected();
 
     // Display the connected state
-    updateToolTipConnection( isConnected, variableIndex);
-    updateConnectionStyle( isConnected );
+    updateToolTipConnection( isConnected, variableIndex );
+    processConnectionInfo( isConnected, variableIndex );
 }
 
 /*

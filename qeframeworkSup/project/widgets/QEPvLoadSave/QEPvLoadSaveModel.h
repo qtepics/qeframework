@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) Australian Synchrotron 2013
+ *  Copyright (c) Australian Synchrotron 2013,2017
  *
  *  Author:
  *    Andrew Starritt
@@ -23,8 +23,8 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
-#ifndef QEPVLOADSAVEMODEL_H
-#define QEPVLOADSAVEMODEL_H
+#ifndef QE_PV_LOAD_SAVE_MODEL_H
+#define QE_PV_LOAD_SAVE_MODEL_H
 
 #include <QAbstractItemModel>
 #include <QItemSelectionModel>
@@ -109,11 +109,14 @@ public:
    void applyPVData ();
    void readArchiveData (const QCaDateTime& dateTime);
 
+   // Request each item to abort current action, more importantly report incomplete
+   //
+   void abortAction ();
+
    // Tree walking attribute functions.
    //
    int leafCount () const;
    QEPvLoadSaveCommon::PvNameValueMaps getPvNameValueMap () const;
-
 
    QEPvLoadSaveItem* getRootItem ();
    QEPvLoadSaveItem* getSelectedItem () { return this->selectedItem; }
@@ -125,7 +128,8 @@ public:
    QEPvLoadSaveItem* indexToItem (const QModelIndex& index) const;
 
 signals:
-   void reportActionComplete (QEPvLoadSaveCommon::ActionKinds, bool);
+   void reportActionComplete   (const QEPvLoadSaveItem* item, QEPvLoadSaveCommon::ActionKinds, bool);
+   void reportActionInComplete (const QEPvLoadSaveItem* item, QEPvLoadSaveCommon::ActionKinds action);
 
 protected:
    bool eventFilter (QObject *obj, QEvent* event);
@@ -144,7 +148,6 @@ private:
    bool processDropEvent (QEPvLoadSaveItem* item, QDropEvent *event);
    bool mergeItemInToItem (QEPvLoadSaveItem* item, QEPvLoadSaveItem* targetItem);
 
-
    QEPvLoadSave* owner;                  // the associated form - duplicates parent () but avoids casting
    QTreeView* treeView;                       // the associated tree view widget
    QItemSelectionModel* treeSelectionModel;   // manages tree selections
@@ -156,9 +159,11 @@ private:
    QEPvLoadSaveItem* requestedInsertItem;     //
 
 private slots:
-   void acceptActionComplete (const QEPvLoadSaveItem*, QEPvLoadSaveCommon::ActionKinds, bool);
+   void acceptActionComplete   (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ActionKinds, const bool);
+   void acceptActionInComplete (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ActionKinds);
+
    void selectionChanged (const QItemSelection& selected, const QItemSelection& deselected);
 
 };
 
-#endif   // QEPVLOADSAVEMODEL_H
+#endif   // QE_PV_LOAD_SAVE_MODEL_H

@@ -27,10 +27,10 @@
 #ifndef QCACONNECTIONINFO_H
 #define QCACONNECTIONINFO_H
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QString>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QCaConnectionInfo
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QCaConnectionInfo
 {
 public:
     QCaConnectionInfo();

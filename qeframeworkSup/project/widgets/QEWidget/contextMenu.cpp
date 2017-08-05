@@ -120,6 +120,47 @@ bool contextMenu::isArrayVariable () const
     return result;
 }
 
+// static
+bool contextMenu::insertBefore( QMenu* menu, QAction* action, const int option )
+{
+    if (!menu || !action) return false;
+
+    QList<QAction*> actionList = menu->actions ();
+    for( int j = 0; j < actionList.count(); j++ ) {
+        QAction* aoi = actionList.value( j, NULL );
+        if( !aoi )continue;
+        int ad =  aoi->data().toInt( NULL );
+        if( ad == option ){
+            // We have found a match
+            menu->insertAction( aoi, action );
+            return true;
+        }
+    }
+    return false;
+}
+
+// static
+bool contextMenu::insertAfter(  QMenu* menu, QAction* action, const int option )
+{
+   if (!menu || !action) return false;
+
+   QList<QAction*> actionList = menu->actions ();
+   for( int j = 0; j < actionList.count(); j++ ) {
+       QAction* aoi = actionList.value( j, NULL );
+       if( !aoi )continue;
+       int ad =  aoi->data().toInt( NULL );
+       if( ad == option ){
+           // We have found a match
+           // The insertAction function is insert before, so we have to be sneaky.
+           menu->insertAction( aoi, action );
+           menu->removeAction( aoi );
+           menu->insertAction( action, aoi );
+           return true;
+       }
+   }
+   return false;
+}
+
 // Build the QE generic context menu
 QMenu* contextMenu::buildContextMenu()
 {

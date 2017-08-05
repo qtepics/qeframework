@@ -109,3 +109,5 @@ void PeriodicDialog::noteElementSelected()
     }
     this->close();
 }
+
+// end

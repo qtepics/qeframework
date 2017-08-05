@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/qe/shape">
-        <file>QEShape.png</file>
-    </qresource>
-</RCC>

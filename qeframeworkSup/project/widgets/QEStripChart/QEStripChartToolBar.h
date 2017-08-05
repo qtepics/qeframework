@@ -34,11 +34,11 @@
 #include <QTabWidget>
 #include <QObject>
 #include <QWidget>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEStripChartNames.h>
 
 /// This class holds all the StripChart tool bar widgets.
-class QEPLUGINLIBRARYSHARED_EXPORT QEStripChartToolBar : public QWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStripChartToolBar : public QWidget {
    Q_OBJECT
 public:  
    static int designHeight ();

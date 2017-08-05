@@ -27,12 +27,12 @@
 #ifndef QE_DISPLAY_RANGES_H
 #define QE_DISPLAY_RANGES_H
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 // Refactor from QEStripChartUtilities TrackRanages with some
 // functionalty from QEGraphic.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEDisplayRanges {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEDisplayRanges {
 public:
    explicit QEDisplayRanges ();
    explicit QEDisplayRanges (const double min, const double max);

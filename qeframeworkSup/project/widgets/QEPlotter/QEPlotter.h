@@ -41,7 +41,7 @@
 #include <QVector>
 #include <QWidget>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEActionRequests.h>
 #include <QEFloatingArray.h>
 #include <QEFloatingFormatting.h>
@@ -64,7 +64,7 @@
 //
 class QEGraphic;
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEPlotter : public QEAbstractDynamicWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlotter : public QEAbstractDynamicWidget {
    Q_OBJECT
 
    /// Default macro substitutions. The default is no substitutions.

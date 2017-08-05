@@ -29,7 +29,7 @@
 
 #include <QHash>
 #include <QString>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 //---------------------------------------------------------------------------------
 /// Description:
@@ -64,7 +64,7 @@
 /// QEExpressionEvaluation is a direct crib of TCalculate out of the Delphi OPI framework.
 /// The postfix and calcPerform functions were written by Bob Dalesio (12-12-86).
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEExpressionEvaluation {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEExpressionEvaluation {
 public:
    QEExpressionEvaluation ();
    virtual ~QEExpressionEvaluation ();

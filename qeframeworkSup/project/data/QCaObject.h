@@ -42,7 +42,7 @@
 #include <QCaAlarmInfo.h>
 #include <QCaDateTime.h>
 #include <QCaConnectionInfo.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 namespace qcaobject {
 
@@ -51,7 +51,7 @@ namespace qcaobject {
 #define SIG_VARIANT   1
 #define SIG_BYTEARRAY 2
 
-  class QEPLUGINLIBRARYSHARED_EXPORT QCaObject : public QObject, caobject::CaObject {
+  class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QCaObject : public QObject, caobject::CaObject {
       Q_OBJECT
 
     public:

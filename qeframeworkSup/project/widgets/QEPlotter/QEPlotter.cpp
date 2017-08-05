@@ -2184,11 +2184,11 @@ void QEPlotter::setToolTipSummary ()
 
    total = connected + disconnected;
 
-   // Only disconnected when ALL, if any, aare disconnected.
+   // Only disconnected when ALL, if any, are disconnected.
    //
    no_disconnects = ((connected > 0) || (total == 0));
 
-   this->updateConnectionStyle (no_disconnects);   // Is this sensible?
+   this->processConnectionInfo (no_disconnects);   // Is this sensible?
 
    if (total > 0) {
       if (connected == 0) {
@@ -2234,6 +2234,7 @@ void QEPlotter::dataArrayChanged (const QVector<double>& values,
 
    SLOT_CHECK (slot,);
    if (this->isPaused) return;
+   if (alarmInfo.isInvalid ()) return;   // don't attempt to plot invalid data
    this->xy [slot].data = QEFloatingArray (values);
    this->replotIsRequired = true;
    this->processAlarmInfo (alarmInfo, variableIndex);
@@ -2265,6 +2266,7 @@ void QEPlotter::sizeValueChanged (const long& value,
 
    SLOT_CHECK (slot,);
    if (this->isPaused) return;
+   if (alarmInfo.isInvalid ()) return;   // don't attempt to plot invalid data
    this->xy [slot].dbSize = value;
    this->replotIsRequired = true;
    this->processAlarmInfo (alarmInfo, variableIndex);

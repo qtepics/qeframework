@@ -33,7 +33,7 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 
 // Useful type neutral numerical macro fuctions.
@@ -88,7 +88,7 @@ class QWidget;
 // We use a class of static methods as opposed to a set of regular functions.
 // This provide a name space, but also allows inheritance if needs be.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEUtilities {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEUtilities {
 public:
     /// For the specified bacground colour, returns font colour (black or white)
     /// with a suitable contrast. Currently based on rgb values, and ignores alpha.

@@ -45,7 +45,7 @@
 #include <QCaObject.h>
 #include <QEWidget.h>
 #include <QCaVariableNamePropertyManager.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /*!
    This class provides an EPICS aware table widget which is capable of displaying
@@ -58,7 +58,7 @@
    class which provides generic support such as macro substitutions, drag/drop,
    and standard properties. QEAbstractWidget provides all standard properties.
  */
-class QEPLUGINLIBRARYSHARED_EXPORT QETable : public QEAbstractDynamicWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QETable : public QEAbstractDynamicWidget {
 
    Q_OBJECT
 

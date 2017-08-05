@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2015,2016 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2015,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -75,6 +75,17 @@ void QEStringFormattingMethods::setTrailingZeros( bool trailingZeros )
 bool QEStringFormattingMethods::getTrailingZeros() const
 {
     return stringFormatting.getTrailingZeros();
+}
+
+// forceSign
+void QEStringFormattingMethods::setForceSign( bool forceSign )
+{
+    stringFormatting.setForceSign( forceSign );
+    stringFormattingChange();
+}
+bool QEStringFormattingMethods::getForceSign() const
+{
+    return stringFormatting.getForceSign();
 }
 
 // addUnits

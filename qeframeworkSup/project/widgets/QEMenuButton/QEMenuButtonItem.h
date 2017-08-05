@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015 Australian Synchrotron
+ *  Copyright (c) 2015,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -36,6 +36,7 @@
 #include <QVariant>
 #include <qdom.h>
 
+#include <QEFrameworkLibraryGlobal.h>
 #include <applicationLauncher.h>
 #include <QEActionRequests.h>
 #include <QEStringFormatting.h>
@@ -51,7 +52,7 @@
 /// as an when needed.  Also some function name changes such as parent => getParent
 /// and some changes just to follow QE prefered style.
 ///
-class QEMenuButtonItem
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEMenuButtonItem
 {
 public:
    explicit QEMenuButtonItem (const QString& name,

@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015 Australian Synchrotron
+ *  Copyright (c) 2015,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -32,13 +32,14 @@
 #include <QString>
 #include <QStringList>
 
+#include <QEFrameworkLibraryGlobal.h>
 #include <applicationLauncher.h>
 #include <QEActionRequests.h>
 #include <QEStringFormatting.h>
 
 // Own variant type associated with QAction data.
 //
-class QEMenuButtonData {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEMenuButtonData {
 public:
    explicit QEMenuButtonData ();
    ~QEMenuButtonData ();

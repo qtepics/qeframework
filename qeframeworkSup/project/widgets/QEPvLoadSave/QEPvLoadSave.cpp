@@ -15,13 +15,15 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016 Australian Synchrotron
+ *  Copyright (c) 2013,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
+
+#include "QEPvLoadSave.h"
 
 #include <QDebug>
 #include <QFileDialog>
@@ -35,7 +37,7 @@
 
 #include <QECommon.h>
 #include <QEScaling.h>
-#include "QEPvLoadSave.h"
+#include "QEPvLoadSaveAccessFail.h"
 #include "QEPvLoadSaveCompare.h"
 #include "QEPvLoadSaveItem.h"
 #include "QEPvLoadSaveModel.h"
@@ -87,6 +89,9 @@ static const struct PushButtonSpecifications buttonSpecs [QEPvLoadSave::NumberOf
    { BOTH, 2,   WCW, false, QString ("Compare"),           QString ("Compare workspaces"),                         SLOT (compareClicked (bool))     }
 };
 
+
+static const QString abortEnabledStyle  = QEUtilities::colourToStyle (QColor (145, 200, 255));
+static const QString abortDisabledStyle = QEUtilities::colourToStyle (QColor (200, 200, 200));
 
 //=============================================================================
 // Halves
@@ -219,8 +224,11 @@ QEPvLoadSave::Halves::Halves (const Sides sideIn, QEPvLoadSave* ownerIn, QBoxLay
    //
    this->model = new QEPvLoadSaveModel (this->tree, this->owner);  // not a widget
 
-   QObject::connect (this->model, SIGNAL (reportActionComplete (QEPvLoadSaveCommon::ActionKinds, bool)),
-                     this->owner, SLOT   (acceptActionComplete (QEPvLoadSaveCommon::ActionKinds, bool)));
+   QObject::connect (this->model, SIGNAL (reportActionComplete (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ActionKinds, const bool)),
+                     this->owner, SLOT   (acceptActionComplete (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ActionKinds, const bool)));
+
+   QObject::connect (this->model, SIGNAL (reportActionInComplete (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ActionKinds)),
+                     this->owner, SLOT   (acceptActionInComplete (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ActionKinds)));
 
 
    // Create an essentially empty model.
@@ -358,27 +366,35 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
       this->half [t] = new Halves ((Sides) t, this, this->sideBySidelayout);
    }
 
-   this->loadSaveStatus = new QFrame ();
-   this->loadSaveStatus->setFrameShape (QFrame::Panel);
-   this->loadSaveStatus->setFrameShadow (QFrame::Plain);
-   this->loadSaveStatus->setFixedHeight (68);
-   this->overallLayout->addWidget (this->loadSaveStatus);
+   this->loadSaveStatusFrame = new QFrame ();
+   this->loadSaveStatusFrame->setFrameShape (QFrame::Panel);
+   this->loadSaveStatusFrame->setFrameShadow (QFrame::Plain);
+   this->loadSaveStatusFrame->setFixedHeight (76);
+   this->overallLayout->addWidget (this->loadSaveStatusFrame);
 
-   this->loadSaveTitle = new QLabel ("Progress to/from System or from Archive", this->loadSaveStatus);
-   this->loadSaveTitle->setGeometry (12, 4, 400, 18);
+   this->loadSaveTitle = new QLabel ("Transfer to/from System or from Archive", this->loadSaveStatusFrame);
+   QFont tf = this->loadSaveTitle->font ();
+   tf.setPointSize (8);
+   this->loadSaveTitle->setFont (tf);
+   this->loadSaveTitle->setGeometry (12, 4, 400, 15);
 
-   this->progressBar = new QProgressBar (this->loadSaveStatus);
-   this->progressBar->setGeometry (12, 28, 400, 26);
+   this->progressBar = new QProgressBar (this->loadSaveStatusFrame);
+   this->progressBar->setGeometry (12, 24, 400, 26);
 
-   this->abortButton = new QPushButton (this->loadSaveStatus);
+   this->progressStatus = new QLabel ("", this->loadSaveStatusFrame);
+   this->progressStatus->setGeometry (12, 54, 400, 16);
+
+   this->abortButton = new QPushButton (this->loadSaveStatusFrame);
    this->abortButton->setText ("Abort");
-   this->abortButton->setGeometry (424, 28, 80, 26);
-   this->abortButton->setStyleSheet (QEUtilities::colourToStyle (QColor (155, 205, 255)));
+   this->abortButton->setGeometry (424, 24, 80, 26);
+   this->abortButton->setStyleSheet (abortDisabledStyle);
    this->abortButton->setEnabled (false);
+
    QObject::connect (this->abortButton, SIGNAL (clicked (bool)), this, SLOT (abortClicked (bool)));
 
-   // Create dialogs.
+   // Create forms/dialogs.
    //
+   this->accessFail = new QEPvLoadSaveAccessFail (NULL);
    this->groupNameDialog = new QEPvLoadSaveGroupNameDialog (this);
    this->valueEditDialog = new QEPvLoadSaveValueEditDialog (this);
    this->pvNameSelectDialog = new QEPVNameSelectDialog (this);
@@ -585,11 +601,32 @@ QEPvLoadSave::Halves* QEPvLoadSave::halfAssociatedWith (QObject* obj)
 
 //------------------------------------------------------------------------------
 //
-void QEPvLoadSave::acceptActionComplete (QEPvLoadSaveCommon::ActionKinds, bool okay)
+void QEPvLoadSave::acceptActionComplete (const QEPvLoadSaveItem*,
+                                         const QEPvLoadSaveCommon::ActionKinds,
+                                         const bool okay)
 {
    if (okay) {
-      int v = this->progressBar->value ();
-      this->progressBar->setValue (v + 1);
+      int v = this->progressBar->value () + 1;
+      this->progressBar->setValue (v);
+      int n = this->progressBar->maximum();
+      QString status = QString ("%1: Processed %2 of %3 items")
+            .arg (this->loadSaveAction)
+            .arg (v).arg (n);
+      this->progressStatus->setText (status);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPvLoadSave::acceptActionInComplete (const QEPvLoadSaveItem* item,
+                                           const QEPvLoadSaveCommon::ActionKinds action)
+{
+   if (item) {
+      this->accessFail->addPVName (item->getNodeName());
+   } else {
+      DEBUG << "item" << item
+            << " reported action" << action
+            << " current action" << this->loadSaveAction;
    }
 }
 
@@ -861,8 +898,11 @@ void QEPvLoadSave::writeAllClicked (bool)
    const int number =  model->leafCount ();
    if (number > 0) {
       if (this->pvWriteIsPermitted ()) {
+         this->loadSaveAction = "Apply";
          this->progressBar->setMaximum (MAX (1, number));
          this->progressBar->setValue (0);
+         this->abortButton->setStyleSheet (abortEnabledStyle);
+         this->abortButton->setEnabled (true);
          model->applyPVData ();
       }
    }
@@ -875,8 +915,11 @@ void QEPvLoadSave::readAllClicked (bool)
    VERIFY_SENDER;
    QEPvLoadSaveModel* model = this->half [side]->model;
 
+   this->loadSaveAction = "Extract";
    this->progressBar->setMaximum (MAX (1, model->leafCount ()));
    this->progressBar->setValue (0);
+   this->abortButton->setStyleSheet (abortEnabledStyle);
+   this->abortButton->setEnabled (true);
    model->extractPVData ();
 }
 
@@ -890,8 +933,11 @@ void QEPvLoadSave::writeSubsetClicked (bool)
    const int number = item ? item->leafCount() : 0;
    if (number > 0) {
       if (this->pvWriteIsPermitted ()) {
+         this->loadSaveAction = "Apply";
          this->progressBar->setMaximum (MAX (1, number));
          this->progressBar->setValue (0);
+         this->abortButton->setStyleSheet (abortEnabledStyle);
+         this->abortButton->setEnabled (true);
          item->applyPVData ();
       }
    }
@@ -905,8 +951,11 @@ void QEPvLoadSave::readSubsetClicked (bool)
 
    QEPvLoadSaveItem* item = this->half [side]->model->getSelectedItem ();
    if (item) {
+      this->loadSaveAction = "Extract";
       this->progressBar->setMaximum (MAX (1, item->leafCount ()));
       this->progressBar->setValue (0);
+      this->abortButton->setStyleSheet (abortEnabledStyle);
+      this->abortButton->setEnabled (true);
       item->extractPVData ();
    }
 }
@@ -921,7 +970,7 @@ void QEPvLoadSave::archiveTimeClicked (bool)
    QEPvLoadSaveModel* model = this->half [side]->model;
    if (!model) return;  // sainity check
 
-   const int number =  model->leafCount ();
+   const int number = model->leafCount ();
 
    // Any PVs to worry about?
    //
@@ -934,8 +983,11 @@ void QEPvLoadSave::archiveTimeClicked (bool)
          //
          QDateTime selectedDataTime = this->archiveTimeDialog->getDateTime ();
 
+         this->loadSaveAction = "Read Archive";
          this->progressBar->setMaximum (MAX (1, number));
          this->progressBar->setValue (0);
+         this->abortButton->setStyleSheet (abortEnabledStyle);
+         this->abortButton->setEnabled (true);
          model->readArchiveData (selectedDataTime);
       }
    }
@@ -1112,11 +1164,12 @@ void QEPvLoadSave::compareClicked (bool)
    QString title = "Process Variable Comparison";
    if (this->hostSlotAvailable) {
       // If the graphicalCompare widget already visible - skip this part
+      //
       if (!graphicalCompare->isVisible()) {
          // Create component item and associated request.
          //
          componentHostListItem item (graphicalCompare,
-                                     QEActionRequests::OptionFloatingDockWindow ,
+                                     QEActionRequests::OptionFloatingDockWindow,
                                      false, title);
 
          // ... and request this hosted by the support application.
@@ -1135,7 +1188,35 @@ void QEPvLoadSave::compareClicked (bool)
 //
 void QEPvLoadSave::abortClicked (bool)
 {
-   DEBUG;
+   this->accessFail->clear ();
+   this->half [0]->model->abortAction ();
+   this->half [1]->model->abortAction ();
+
+   QString title = this->loadSaveAction + " failures";
+   if (this->hostSlotAvailable) {
+      // If the graphicalCompare widget already visible - skip this part
+      //
+      if (!this->accessFail->isVisible()) {
+         // Create component item and associated request.
+         //
+         componentHostListItem item (this->accessFail,
+                                     QEActionRequests::OptionFloatingDockWindow,
+                                     false, title);
+
+         // ... and request this hosted by the support application.
+         //
+         emit requestAction (QEActionRequests (item));
+      }
+   } else {
+      // Just show it.
+      //
+      this->accessFail->setWindowTitle (title);
+      this->accessFail->show ();
+   }
+
+   this->abortButton->setStyleSheet (abortDisabledStyle);
+   this->abortButton->setEnabled (false);
+   this->progressStatus->setText ("");
 }
 
 

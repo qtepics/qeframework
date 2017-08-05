@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2015,2016 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2015,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -30,7 +30,7 @@
 #include <QEWidget.h>
 #include <QEString.h>
 #include <QEStringFormatting.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <managePixmaps.h>
 #include <QESingleVariableMethods.h>
 #include <QEStringFormattingMethods.h>
@@ -41,7 +41,7 @@
   When a variable is defined, the label text (or optionally the background pixmap) will be updated. The label will be disabled if the variable is invalid.
   It is tighly integrated with the base class QEWidget which provides generic support such as macro substitutions, drag/drop, and standard properties.
  */
-class QEPLUGINLIBRARYSHARED_EXPORT QELabel :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QELabel :
         public QLabel,
         public QEWidget,
         public managePixmaps,
@@ -302,6 +302,10 @@ public:
     /// If true (default), add engineering units supplied with the data.
     ///
     Q_PROPERTY(bool addUnits READ getAddUnits WRITE setAddUnits)
+
+    /// If false (default), no "+" sign, when true always add a sign.
+    ///
+    Q_PROPERTY(bool forceSign READ getForceSign WRITE setForceSign)
 
     // NOTE, keep in sync. The documentation below is repeated in QEStringFormatting::setLocalEnumeration() (in QEStringformatting.cpp)
     /// An enumeration list used to data values. Used only when the formatting option is 'local enumeration'.

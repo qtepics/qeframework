@@ -30,11 +30,11 @@
 #include <QDateTime>
 #include <QList>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <persistanceManager.h>
 #include <QEStripChartNames.h>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEStripChartState {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStripChartState {
 public:
    QEStripChartState ();
    void saveConfiguration (PMElement& parentElement);
@@ -59,7 +59,7 @@ public:
 // It has now been modified to include a QList<QEStripChartState> member. The
 // downside of this is that we must now provide list member access functions.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEStripChartStateList {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStripChartStateList {
 public:
    QEStripChartStateList ();
 

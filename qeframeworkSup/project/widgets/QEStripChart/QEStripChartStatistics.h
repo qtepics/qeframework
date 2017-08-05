@@ -31,7 +31,7 @@
 #include <QString>
 #include <QWidget>
 #include <QCaDataPoint.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 namespace Ui {
 class QEStripChartStatistics;
@@ -39,7 +39,7 @@ class QEStripChartStatistics;
 
 class QEStripChartItem;
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEStripChartStatistics : public QWidget
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStripChartStatistics : public QWidget
 {
    Q_OBJECT
 

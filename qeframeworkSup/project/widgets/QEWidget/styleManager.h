@@ -28,7 +28,7 @@
 
 #include <ContainerProfile.h>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 class changeEventFilter; // Forward declaration
 
@@ -72,7 +72,7 @@ class changeEventFilter; // Forward declaration
   updated style will not be applied until the widget is enabled.
 */
 
-class QEPLUGINLIBRARYSHARED_EXPORT styleManager {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT styleManager {
     friend class changeEventFilter; // The event filter is really part of this style manager class
 
 public:

@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2017 Australian Synchrotron
  *
  *  Author:
  *    Anthony Owen
@@ -25,16 +25,61 @@
 
 // Provides a generic holder for different types.
 
-#include <Generic.h>
+#include "Generic.h"
 #include <stdlib.h>
 #include <string.h>
+#include <QDebug>
+
+#define DEBUG  qDebug () << "Generic" << __LINE__ << __FUNCTION__ << "  "
+
+
+QString generic::typeImage (const generic_types type)
+{
+   QString result;
+
+   switch (type) {
+      case GENERIC_STRING:
+         result = "GENERIC_STRING";
+         break;
+      case GENERIC_SHORT:
+         result = "GENERIC_SHORT";
+         break;
+      case GENERIC_UNSIGNED_SHORT:
+         result = "GENERIC_UNSIGNED_SHORT";
+         break;
+      case GENERIC_UNSIGNED_CHAR:
+         result = "GENERIC_UNSIGNED_CHAR";
+         break;
+      case GENERIC_LONG:
+         result = "GENERIC_LONG";
+         break;
+      case GENERIC_UNSIGNED_LONG:
+         result = "GENERIC_UNSIGNED_LONG";
+         break;
+      case GENERIC_FLOAT:
+         result = "GENERIC_FLOAT";
+         break;
+      case GENERIC_DOUBLE:
+         result = "GENERIC_DOUBLE";
+         break;
+      case GENERIC_UNKNOWN:
+         result = "GENERIC_UNKNOWN";
+         break;
+      default:
+         result = QString ("GENERIC_UNKNOWN_TYPE_%1").arg (int(type));
+         break;
+   }
+
+   return result;
+}
+
 
 using namespace generic;
 
 /*
     Creates unknown type
 */
-Generic::Generic() { 
+Generic::Generic() {
     value = NULL;
     arrayCount = 0;
     type = generic::GENERIC_UNKNOWN;
@@ -173,7 +218,7 @@ void Generic::setString( std::string newValue ) {
 /*
     Creates and records new type short
 */
-void Generic::setShort( short newValue ) { 
+void Generic::setShort( short newValue ) {
     setShort( &newValue, 1 );
 }
 
@@ -400,7 +445,7 @@ void Generic::getString( char** valueArray, unsigned long* arrayCountOut ){
 /*
     Returns type short or invalid
 */
-short Generic::getShort() { 
+short Generic::getShort() {
     if( getType() == GENERIC_SHORT ) {
         return *(short*)value;
     }
@@ -550,7 +595,7 @@ void Generic::getFloat( float** valueArray, unsigned long* arrayCountOut ) {
 /*
     Returns type double or invalid
 */
-double Generic::getDouble() { 
+double Generic::getDouble() {
     if( getType() == GENERIC_DOUBLE ) {
         return *(double*)value;
     }
@@ -603,7 +648,7 @@ void Generic::setType( generic_types newType ) {
 }
 
 /*
-    Deletes stored value 
+    Deletes stored value
 */
 void Generic::deleteValue() {
     if( value == NULL ) {
@@ -744,3 +789,5 @@ int Generic::getSize( generic_types type )
     // All cases are handled above, and if not then compiler warnings should let us know.
     return 1;
 }
+
+// end

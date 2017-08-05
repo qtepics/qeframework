@@ -30,9 +30,9 @@
 
 #include <QTimer>
 #include <QString>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QCaVariableNamePropertyManager : public QTimer {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QCaVariableNamePropertyManager : public QTimer {
     Q_OBJECT
 
   public:

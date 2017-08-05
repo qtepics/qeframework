@@ -38,11 +38,11 @@
 #include <QESingleVariableMethods.h>
 #include <QCaVariableNamePropertyManager.h>
 #include <QAnalogSlider.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 // QEAbstractWidget provides all standard QEWidget properties
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEAnalogSlider :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAnalogSlider :
       public QAnalogSlider,
       public QESingleVariableMethods,
       public QEWidget {

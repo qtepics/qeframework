@@ -27,7 +27,7 @@
 #define QE_WIDGET_PROPERTIES_H
 
 #include <QObject>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// This class defines common widget property types.
 ///
@@ -35,7 +35,7 @@
 /// The use of the class is to provide a name space and allow moc to
 /// generate the asociated meta data.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEWidgetProperties : public QObject {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEWidgetProperties : public QObject {
     Q_OBJECT
 public:
 

@@ -29,7 +29,7 @@
 #include <QDialog>
 #include <QRect>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// This class provides a thin wrapper around the QDialog class, specifically the
 /// exec function. There are two issues with the standard QDialog when exec-ed.
@@ -44,7 +44,7 @@
 /// The overaloded wrapper function allows a widget to be specified, and if specified
 /// the dialog is centred over the widget.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT  QEDialog : public QDialog {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT  QEDialog : public QDialog {
    Q_OBJECT
 public:
    explicit QEDialog (QWidget* parent = 0);

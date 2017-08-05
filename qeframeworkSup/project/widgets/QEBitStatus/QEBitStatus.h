@@ -35,9 +35,9 @@
 #include <QEIntegerFormatting.h>
 #include <QESingleVariableMethods.h>
 #include <QCaVariableNamePropertyManager.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEBitStatus :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEBitStatus :
       public QBitStatus,
       public QESingleVariableMethods,
       public QEWidget {

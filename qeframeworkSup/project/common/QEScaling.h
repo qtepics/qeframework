@@ -34,7 +34,7 @@
 #include <QString>
 #include <QVariant>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// The scaling is defined using a rational number specifed by two integers (m, d).
 /// The first (m) integer is the multiplier and the second (d) integer is the divisor.
@@ -46,18 +46,30 @@
 ///
 // Note: This was formerly part of QECommon.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEScaling {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEScaling {
 public:
-    /// Set currently applied application wide scaling.
+    /// Set application wide general gui scaling values.
     /// Both values default to 1, which is a null scaling.
     /// Only valid scaling values (m > 0, d > 0) are accepted.
-   ///
+    ///
     static void setScaling (const int m, const int d);
 
     /// Extract currently applied scaling - allows widgets to perform widget class
     /// specific scaling functionality.
     ///
     static void getScaling (int& m, int& d);
+
+    /// Set application wide additional font scaling values.
+    /// The final font scaling is this (m * fm) / (d * fd)
+    /// Both values default to 1, which is a null scaling.
+    /// Only valid scaling values (fm > 0, fd > 0) are accepted.
+    //
+    static void setFontScaling (const int fm, const int fd);
+
+    /// Extract currently applied font scaling - allows widgets to perform widget class
+    /// specific scaling functionality.
+    ///
+    static void getFontScaling (int& fm, int& fd);
 
     /// Adjust the geometry and font scaling of the widget and all child widgets
     /// by the defined scaling parameters (m, d). Unless m and d different, no scaling occurs.
@@ -77,8 +89,14 @@ public:
     /// Scales a single value. Note: all other scaling functions take a object by reference
     /// and modify that object. Only this function returns a scaled value.
     ///
+    /// General scale function.
+    //
     static inline int scale (const int v) { return (v * QEScaling::currentScaleM) /
-                                                    QEScaling::currentScaleD; }
+                                                        QEScaling::currentScaleD; }
+
+    /// Font specific scale function.
+    //
+    static int scaleFont (const int v);
 
     /// Scales a point.
     ///
@@ -92,6 +110,8 @@ public:
 private:
     static int currentScaleM;
     static int currentScaleD;
+    static int currentFontScaleM;
+    static int currentFontScaleD;
 
     /// Tree walks the QWidget hierarchy in order to apply supplied scaling finction.
     ///

@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016 Australian Synchrotron
+ *  Copyright (c) 2013,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -23,16 +23,15 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEPvLoadSaveModel.h"
 #include <QDebug>
 #include <QList>
 #include <QVariant>
 #include <QEScaling.h>
-
 #include "QEPvLoadSave.h"
 #include "QEPvLoadSaveItem.h"
-#include "QEPvLoadSaveModel.h"
 
-#define DEBUG  qDebug () << "QEPvLoadSaveModel.cpp" << __LINE__ << __FUNCTION__ << "  "
+#define DEBUG  qDebug () << "QEPvLoadSaveModel" << __LINE__ << __FUNCTION__ << "  "
 
 //-----------------------------------------------------------------------------
 //
@@ -144,7 +143,9 @@ bool QEPvLoadSaveModel::addItemToModel (QEPvLoadSaveItem* item, QEPvLoadSaveItem
 
       // item calls this resursively down the QEPvLoadSaveItem tree.
       //
-      item->actionConnect (this, SLOT (acceptActionComplete (const QEPvLoadSaveItem*, QEPvLoadSaveCommon::ActionKinds, bool)));
+      item->actionConnect (this,
+                           SLOT (acceptActionComplete (const QEPvLoadSaveItem*, QEPvLoadSaveCommon::ActionKinds, bool)),
+                           SLOT (acceptActionInComplete (const QEPvLoadSaveItem*, QEPvLoadSaveCommon::ActionKinds)));
    }
    return result;
 }
@@ -295,6 +296,13 @@ void QEPvLoadSaveModel::readArchiveData (const QCaDateTime& dateTime)
 
 //-----------------------------------------------------------------------------
 //
+void  QEPvLoadSaveModel::abortAction ()
+{
+   this->coreItem->abortAction ();
+}
+
+//-----------------------------------------------------------------------------
+//
 int QEPvLoadSaveModel::leafCount () const
 {
    return this->coreItem->leafCount ();
@@ -316,7 +324,9 @@ QEPvLoadSaveItem* QEPvLoadSaveModel::getRootItem ()
 
 //-----------------------------------------------------------------------------
 //
-void QEPvLoadSaveModel::acceptActionComplete (const QEPvLoadSaveItem* item, QEPvLoadSaveCommon::ActionKinds action, bool actionSuccessful)
+void QEPvLoadSaveModel::acceptActionComplete (const QEPvLoadSaveItem* item,
+                                              const QEPvLoadSaveCommon::ActionKinds action,
+                                              const bool actionSuccessful)
 {
    if (!item) return;
 
@@ -331,7 +341,19 @@ void QEPvLoadSaveModel::acceptActionComplete (const QEPvLoadSaveItem* item, QEPv
          break;
    }
 
-   emit this->reportActionComplete (action, actionSuccessful);
+   // Forward
+   //
+   emit this->reportActionComplete (item, action, actionSuccessful);
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSaveModel::acceptActionInComplete (const QEPvLoadSaveItem* item,
+                                                const QEPvLoadSaveCommon::ActionKinds action)
+{
+   // Just forward as is.
+   //
+   emit this->reportActionInComplete (item, action);
 }
 
 //-----------------------------------------------------------------------------

@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015 Australian Synchrotron
+ *  Copyright (c) 2015,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -31,6 +31,7 @@
 #include <QString>
 #include <QVariant>
 
+#include <QEFrameworkLibraryGlobal.h>
 #include <QAbstractItemModel>
 
 // The model is serialsed as a string so that is can be stored as a string
@@ -96,7 +97,7 @@
 class QEMenuButton;
 class QEMenuButtonItem;
 
-class QEMenuButtonModel : public QAbstractItemModel
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEMenuButtonModel : public QAbstractItemModel
 {
    Q_OBJECT
 public:

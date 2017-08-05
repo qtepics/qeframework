@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2016 Australian Synchrotron
+ *  Copyright (c) 2012,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Ricardo Fernandes
@@ -24,12 +24,12 @@
  *    ricardo.fernandes@synchrotron.org.au
  */
 
+#include <QELog.h>
 #include <QMessageBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QFileDialog>
 #include <QHeaderView>
-#include <QELog.h>
 
 // =============================================================================
 //  QELOG METHODS
@@ -87,7 +87,7 @@ QELog::QELog (QWidget* parent) : QWidget (parent), QEWidget (this)
    setWarningColor (QColor (255, 160, 0));
    setErrorColor (QColor (255, 0, 0));
    setScrollToBottom (true);
-   setOptionsLayout (BOTTOM);
+   setOptionsLayout (Bottom);
 
    clearLog ();
 
@@ -213,8 +213,8 @@ void QELog::setOptionsLayout (int pValue)
    delete layout ();
 
    switch (pValue) {
-      case TOP:
-         optionsLayout = TOP;
+      case Top:
+         optionsLayout = Top;
          qLayoutMain = new QVBoxLayout (this);
          qLayoutChild = new QHBoxLayout ();
          qLayoutChild->addWidget (qCheckBoxInfoMessage);
@@ -228,8 +228,8 @@ void QELog::setOptionsLayout (int pValue)
          qLayoutMain->addWidget (qTableWidgetLog);
          break;
 
-      case BOTTOM:
-         optionsLayout = BOTTOM;
+      case Bottom:
+         optionsLayout = Bottom;
          qLayoutMain = new QVBoxLayout (this);
          qLayoutChild = new QHBoxLayout ();
          qLayoutMain->addWidget (qTableWidgetLog);
@@ -243,8 +243,8 @@ void QELog::setOptionsLayout (int pValue)
          qLayoutMain->addItem (qLayoutChild);
          break;
 
-      case LEFT:
-         optionsLayout = LEFT;
+      case Left:
+         optionsLayout = Left;
          qLayoutMain = new QHBoxLayout (this);
          qLayoutChild = new QVBoxLayout ();
          qLayoutChild->addWidget (qCheckBoxInfoMessage);
@@ -256,8 +256,8 @@ void QELog::setOptionsLayout (int pValue)
          qLayoutMain->addWidget (qTableWidgetLog);
          break;
 
-      case RIGHT:
-         optionsLayout = RIGHT;
+      case Right:
+         optionsLayout = Right;
          qLayoutMain = new QHBoxLayout (this);
          qLayoutChild = new QVBoxLayout ();
          qLayoutChild->addWidget (qCheckBoxInfoMessage);

@@ -33,13 +33,6 @@
 #include <QPushButton>
 #include <QEWidget.h>
 
-enum details {
-    TOP,
-    BOTTOM,
-    LEFT,
-    RIGHT
-};
-
 
 // ============================================================
 //  _QTABLEWIDGETLOG CLASS
@@ -60,7 +53,7 @@ public:
 // ============================================================
 //  _QELOG METHODS
 // ============================================================
-class QEPLUGINLIBRARYSHARED_EXPORT QELog : public QWidget, public QEWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QELog : public QWidget, public QEWidget {
    Q_OBJECT
 private:
    void newMessage (QString msg, message_types type);
@@ -138,10 +131,10 @@ public:
 
 
    enum optionsLayoutProperty {
-      Top = TOP,
-      Bottom = BOTTOM,
-      Left = LEFT,
-      Right = RIGHT
+      Top,
+      Bottom,
+      Left,
+      Right
    };
 
    Q_ENUMS (optionsLayoutProperty)

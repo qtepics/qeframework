@@ -29,14 +29,14 @@
 #include <QMap>
 #include <QString>
 #include <QObject>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 // Define PV Load/Save specific names (enumerations)
 // We use a QObject as opposed to a namespace as this allows us leverage off the
 // meta object compiler output, specifically allows us to use the enumToString
 // and stringToEnum functions in QEUtilities.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEPvLoadSaveCommon : public QObject {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvLoadSaveCommon : public QObject {
    Q_OBJECT
 public:
    enum  ActionKinds { Apply, Extract, ReadArchive };

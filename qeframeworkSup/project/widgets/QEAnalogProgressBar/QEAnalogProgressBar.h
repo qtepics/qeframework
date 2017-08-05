@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2011 Australian Synchrotron
+ *  Copyright (c) 2011,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -33,12 +33,12 @@
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QCaVariableNamePropertyManager.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QESingleVariableMethods.h>
 #include <QEStringFormattingMethods.h>
 
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEAnalogProgressBar :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAnalogProgressBar :
       public QEAnalogIndicator,
       public QEWidget,
       public QESingleVariableMethods,
@@ -240,6 +240,10 @@ public:
     /// If true (default), add engineering units supplied with the data.
     ///
     Q_PROPERTY(bool addUnits READ getAddUnits WRITE setAddUnits)
+
+    /// If false (default), no "+" sign, when true always add a sign.
+    ///
+    Q_PROPERTY(bool forceSign READ getForceSign WRITE setForceSign)
 
     // NOTE, keep in sync. The documentation below is repeated in QEStringFormatting::setLocalEnumeration() (in QEStringformatting.cpp)
     /// An enumeration list used to data values. Used only when the formatting option is 'local enumeration'.

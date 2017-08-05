@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix="/qe/radiogroup">
-        <file>QRadioGroup.png</file>
-        <file>QERadioGroup.png</file>
-    </qresource>
-</RCC>

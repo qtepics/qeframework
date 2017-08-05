@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2016 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -30,7 +30,7 @@
 #include <QEWidget.h>
 #include <QEString.h>
 #include <QEStringFormatting.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEForm.h>
 #include <UserMessage.h>
 #include <ContainerProfile.h>
@@ -39,7 +39,7 @@
 #include <QCaVariableNamePropertyManager.h>
 
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEPushButton : public QPushButton, public QEGenericButton {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPushButton : public QPushButton, public QEGenericButton {
     Q_OBJECT
 
   public:
@@ -344,10 +344,11 @@ public:
     // END-STANDARD-PROPERTIES ========================================================
 
 
-    //=================================================================================
+    // BEGIN-STRING-FORMATTING-PROPERTIES =============================================
     // String formatting properties
     // These properties should be identical for every widget managing strings.
-    // WHEN MAKING CHANGES: search for STRINGPROPERTIES and change all occurances.
+    // WHEN MAKING CHANGES: Use the update_widget_properties script in the
+    // resources directory.
 public:
     /// Precision used when formatting floating point numbers. The default is 4.
     /// This is only used if useDbPrecision is false.
@@ -368,6 +369,10 @@ public:
     /// If true (default), add engineering units supplied with the data.
     ///
     Q_PROPERTY(bool addUnits READ getAddUnits WRITE setAddUnits)
+
+    /// If false (default), no "+" sign, when true always add a sign.
+    ///
+    Q_PROPERTY(bool forceSign READ getForceSign WRITE setForceSign)
 
     // NOTE, keep in sync. The documentation below is repeated in QEStringFormatting::setLocalEnumeration() (in QEStringformatting.cpp)
     /// An enumeration list used to data values. Used only when the formatting option is 'local enumeration'.
@@ -429,7 +434,22 @@ public:
 
     /// Base used for when formatting integers. Default is 10 (duh!)
     ///
-    Q_PROPERTY(unsigned int radix READ getRadix WRITE setRadix)
+    Q_PROPERTY(int radix READ getRadix WRITE setRadix)
+
+    /// \enum Separators
+    /// User friendly enumerations for seprator property - refer to QEStringFormatting::formats for details.
+    enum Separators { NoSeparator = QEStringFormatting::SEPARATOR_NONE,         ///< Use no separator
+                      Comma       = QEStringFormatting::SEPARATOR_COMMA,        ///< Use ',' as separator
+                      Underscore  = QEStringFormatting::SEPARATOR_UNDERSCORE,   ///< Use '_' as separator
+                      Space       = QEStringFormatting::SEPARATOR_SPACE         ///< Use ' ' as separator
+                    };
+    Q_ENUMS (Separators)
+    void setSeparatorProperty( const Separators notation ){ setSeparator( (QEStringFormatting::separators)notation ); }  ///< Access function for #separator property - refer to #separator property for details
+    Separators getSeparatorProperty() const { return (Separators)getSeparator(); }                                       ///< Access function for #separator property - refer to #separator property for details
+
+    /// Seperators used for interger and fixed point formatting. Default is None.
+    ///
+    Q_PROPERTY(Separators separator READ getSeparatorProperty WRITE setSeparatorProperty)
 
     /// \enum Notations
     /// User friendly enumerations for notation property - refer to QEStringFormatting::notations for details.
@@ -674,6 +694,7 @@ private:
 Q_DECLARE_METATYPE (QEPushButton::UserLevels)
 Q_DECLARE_METATYPE (QEPushButton::DisplayAlarmStateOptions)
 Q_DECLARE_METATYPE (QEPushButton::Formats)
+Q_DECLARE_METATYPE (QEPushButton::Separators)
 Q_DECLARE_METATYPE (QEPushButton::Notations)
 Q_DECLARE_METATYPE (QEPushButton::ArrayActions)
 Q_DECLARE_METATYPE (QEPushButton::UpdateOptions)

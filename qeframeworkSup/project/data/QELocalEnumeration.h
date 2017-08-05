@@ -30,7 +30,7 @@
 #include <QString>
 #include <QVariant>
 
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// This class allows a user defined two-way value to enumeration map.
 /// The map is define using a single string, typically a widget property string.
@@ -41,7 +41,7 @@
 /// This functionality that this class provided was formerly embedded within
 /// QEStringFormatting.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QELocalEnumeration {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QELocalEnumeration {
 public:
 
     /// Constructors

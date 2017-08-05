@@ -271,6 +271,7 @@ void QERadioGroup::connectionChanged (QCaConnectionInfo& connectionInfo,
    //
    this->setNumberToolTipVariables (1);
    this->updateToolTipConnection (isConnected, variableIndex);
+   this->processConnectionInfo (isConnected, variableIndex);
 
    this->internalWidget->setEnabled (isConnected);
 

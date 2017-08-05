@@ -40,9 +40,9 @@
 #include <QLabel>
 #include <QEWidget.h>
 #include <QCaVariableNamePropertyManager.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QESubstitutedLabel : public QLabel, public QEWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESubstitutedLabel : public QLabel, public QEWidget {
     Q_OBJECT
 
   public:

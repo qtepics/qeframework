@@ -80,6 +80,9 @@
         <property name="alignment">
          <set>Qt::AlignCenter</set>
         </property>
+        <property name="arrayIndex">
+         <number>0</number>
+        </property>
         <property name="precision">
          <number>12</number>
         </property>
@@ -91,6 +94,9 @@
         </property>
         <property name="notation" stdset="0">
          <enum>QELabel::Automatic</enum>
+        </property>
+        <property name="arrayAction" stdset="0">
+         <enum>QELabel::Index</enum>
         </property>
        </widget>
       </item>

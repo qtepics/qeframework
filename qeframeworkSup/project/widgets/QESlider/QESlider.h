@@ -31,10 +31,10 @@
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QESingleVariableMethods.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QCaVariableNamePropertyManager.h>
 
-class QEPLUGINLIBRARYSHARED_EXPORT QESlider :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESlider :
       public QSlider,
       public QESingleVariableMethods,
       public QEWidget {

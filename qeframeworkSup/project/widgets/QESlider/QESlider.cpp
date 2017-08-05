@@ -140,7 +140,7 @@ void QESlider::connectionChanged( QCaConnectionInfo& connectionInfo )
 
     // Display the connected state
     updateToolTipConnection( isConnected );
-    updateConnectionStyle( isConnected );
+    processConnectionInfo( isConnected );
 
     // !!! ??? not sure if this is right. Added as the record type was comming back as GENERIC::UNKNOWN deep in the write
     // Start a single shot read if the channel is up (ignore channel down),

@@ -25,19 +25,11 @@
 #   andrew.starritt@synchrotron.org.au
 #
 
-OTHER_FILES += \
-    widgets/QEGeneralEdit/QEGeneralEdit.png
-
-RESOURCES += \
-    widgets/QEGeneralEdit/QEGeneralEdit.qrc
-
 HEADERS += \
-    widgets/QEGeneralEdit/QEGeneralEdit.h \
-    widgets/QEGeneralEdit/QEGeneralEditManager.h
+    widgets/QEGeneralEdit/QEGeneralEdit.h
 
 SOURCES += \
-    widgets/QEGeneralEdit/QEGeneralEdit.cpp \
-    widgets/QEGeneralEdit/QEGeneralEditManager.cpp
+    widgets/QEGeneralEdit/QEGeneralEdit.cpp
 
 FORMS += \
     widgets/QEGeneralEdit/QEGeneralEdit.ui

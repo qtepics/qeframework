@@ -27,12 +27,12 @@
 #define QEINTEGER_ARRAY_H
 
 #include <QVector>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// This class provides short hand for QVector<long> together with some
 /// basic long vector operations.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT  QEIntegerArray : public QVector<long> {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT  QEIntegerArray : public QVector<long> {
 public:
    // Various constructors that replicate those provided by QVector
    //

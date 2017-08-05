@@ -1,4 +1,6 @@
-/*  This file is part of the EPICS QT Framework, initially developed at
+/*  QERecipe.cpp
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
@@ -14,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
+ *  Copyright (c) 2012,2017 Australian Synchrotron
  *
  *  Author:
  *    Ricardo Fernandes
@@ -22,12 +24,11 @@
  *    ricardo.fernandes@synchrotron.org.au
  */
 
+#include <QERecipe.h>
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QDir>
-
-#include <QERecipe.h>
 
 
 
@@ -79,9 +80,9 @@ QERecipe::QERecipe(QWidget *pParent):QWidget(pParent), QEWidget(this)
     setRecipeFile("");
     setConfigurationFile("");
     setConfigurationText("");
-    setConfigurationType(FROM_FILE);
+    setConfigurationType(File);
     setShowRecipeList(true);
-    setOptionsLayout(TOP);
+    setOptionsLayout(Top);
     setCurrentUserType(getUserLevel());
 
 }
@@ -380,8 +381,8 @@ void QERecipe::setOptionsLayout(int pValue)
 
     switch(pValue)
     {
-        case TOP:
-            optionsLayout = TOP;
+        case Top:
+            optionsLayout = Top;
             qLayoutMain = new QVBoxLayout(this);
             qLayoutChild = new QHBoxLayout();
             qLayoutChild->addWidget(qLabelRecipeDescription);
@@ -395,8 +396,8 @@ void QERecipe::setOptionsLayout(int pValue)
             qLayoutMain->addWidget(qEConfiguredLayoutRecipeFields);
             break;
 
-        case BOTTOM:
-            optionsLayout = BOTTOM;
+        case Bottom:
+            optionsLayout = Bottom;
             qLayoutMain = new QVBoxLayout(this);
             qLayoutMain->addWidget(qEConfiguredLayoutRecipeFields);
             qLayoutChild = new QHBoxLayout();
@@ -410,8 +411,8 @@ void QERecipe::setOptionsLayout(int pValue)
             qLayoutMain->addItem(qLayoutChild);
             break;
 
-        case LEFT:
-            optionsLayout = LEFT;
+        case Left:
+            optionsLayout = Left;
             qLayoutMain = new QHBoxLayout(this);
             qLayoutChild = new QVBoxLayout();
             qLayoutChild->addWidget(qLabelRecipeDescription);
@@ -425,8 +426,8 @@ void QERecipe::setOptionsLayout(int pValue)
             qLayoutMain->addWidget(qEConfiguredLayoutRecipeFields);
             break;
 
-        case RIGHT:
-            optionsLayout = RIGHT;
+        case Right:
+            optionsLayout = Right;
             qLayoutMain = new QHBoxLayout(this);
             qLayoutChild = new QVBoxLayout();
             qLayoutChild->addWidget(qLabelRecipeDescription);
@@ -603,17 +604,17 @@ void QERecipe::buttonNewClicked()
                 fieldInfo = qEConfiguredLayoutRecipeFields->currentFieldList.at(i);
                 processVariableElement = document.createElement("processvariable");
                 processVariableElement.setAttribute("name", fieldInfo->getProcessVariable());
-                if (fieldInfo->getType() == BUTTON)
+                if (fieldInfo->getType() == QEConfiguredLayout::BUTTON)
                 {
                 }
-                else if (fieldInfo->getType() == LABEL)
+                else if (fieldInfo->getType() == QEConfiguredLayout::LABEL)
                 {
                 }
-                else if (fieldInfo->getType() == SPINBOX)
+                else if (fieldInfo->getType() == QEConfiguredLayout::SPINBOX)
                 {
                     processVariableElement.setAttribute("value", ((QESpinBox *) fieldInfo->qeWidget)->text());
                 }
-                else if (fieldInfo->getType() == COMBOBOX)
+                else if (fieldInfo->getType() == QEConfiguredLayout::COMBOBOX)
                 {
                     processVariableElement.setAttribute("value", ((QEComboBox *) fieldInfo->qeWidget)->currentText());
                 }
@@ -698,17 +699,17 @@ void QERecipe::buttonSaveClicked()
             fieldInfo = qEConfiguredLayoutRecipeFields->currentFieldList.at(i);
             processVariableElement = document.createElement("processvariable");
             processVariableElement.setAttribute("name", fieldInfo->getProcessVariable());
-            if (fieldInfo->getType() == BUTTON)
+            if (fieldInfo->getType() == QEConfiguredLayout::BUTTON)
             {
             }
-            else if (fieldInfo->getType() == LABEL)
+            else if (fieldInfo->getType() == QEConfiguredLayout::LABEL)
             {
             }
-            else if (fieldInfo->getType() == SPINBOX)
+            else if (fieldInfo->getType() == QEConfiguredLayout::SPINBOX)
             {
                 processVariableElement.setAttribute("value", ((QESpinBox *) fieldInfo->qeWidget)->text());
             }
-            else if (fieldInfo->getType() == COMBOBOX)
+            else if (fieldInfo->getType() == QEConfiguredLayout::COMBOBOX)
             {
                 processVariableElement.setAttribute("value", ((QEComboBox *) fieldInfo->qeWidget)->currentText());
             }
@@ -1007,17 +1008,17 @@ void QERecipe::refreshButton()
                                     if (fieldInfo->getProcessVariable() == processVariableElement.attribute("name"))
                                     {
 
-                                        if (fieldInfo->getType() == BUTTON)
+                                        if (fieldInfo->getType() == QEConfiguredLayout::BUTTON)
                                         {
                                         }
-                                        else if (fieldInfo->getType() == LABEL)
+                                        else if (fieldInfo->getType() == QEConfiguredLayout::LABEL)
                                         {
                                         }
-                                        else if (fieldInfo->getType() == SPINBOX)
+                                        else if (fieldInfo->getType() == QEConfiguredLayout::SPINBOX)
                                         {
                                             //((QESpinBox *) fieldInfo->qeWidget)->setValue((float) processVariableElement.attribute("value"));
                                         }
-                                        else if (fieldInfo->getType() == COMBOBOX)
+                                        else if (fieldInfo->getType() == QEConfiguredLayout::COMBOBOX)
                                         {
                                             ((QEComboBox *) fieldInfo->qeWidget)->setEditText(processVariableElement.attribute("value"));
                                         }
@@ -1057,3 +1058,4 @@ void QERecipe::userLevelChanged(userLevelTypes::userLevels pValue)
 
 }
 
+// end

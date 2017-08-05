@@ -29,12 +29,12 @@
 
 #include <QObject>
 #include <QTimer>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 // Used by, for example QSimpleShape, to ensure ALL QSimpleShape widgets
 // flash in sync.
 //
-class QEPLUGINLIBRARYSHARED_EXPORT QEScanTimers : public QObject {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEScanTimers : public QObject {
 Q_OBJECT
 public:
    enum ScanRates {

@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2017 Australian Synchrotron
  *
  *  Author:
  *    Glenn Jackson
@@ -26,11 +26,8 @@
 #ifndef QE_PLOT_H
 #define QE_PLOT_H
 
-#include <qwt_plot.h>
-#include <qwt_plot_canvas.h>
-#include <qwt_plot_curve.h>
-#include <qwt_plot_grid.h>
 #include <QEWidget.h>
+#include <QEFrame.h>
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QCaVariableNamePropertyManager.h>
@@ -38,35 +35,33 @@
 #include <QPoint>
 #include <QVector>
 #include <QTimer>
-#include <QEPluginLibrary_global.h>
+#include <QVBoxLayout>
+#include <QEFrameworkLibraryGlobal.h>
 
 // Maximum number of variables.
 #define QEPLOT_NUM_VARIABLES 4
 
-// Trace related data and properties
-class trace {
-    public:
+// Differed class declaration - no user dependency on Qwt header files.
+//
+class QwtPlot;
+class QwtPlotGrid;
 
-    trace(){ waveform = false; hasCurrentPoint = false; }
-    QVector<QCaDateTime> timeStamps;
-    QVector<double> xdata;
-    QVector<double> ydata;
-
-    QwtPlotCurve* curve;
-    QColor color;
-    QString legend;
-    bool waveform;  // True if displaying a waveform (an array of values arriving in one update), false if displaying a strip chart (individual values arriving over time)
-    QwtPlotCurve::CurveStyle style;
-
-    bool hasCurrentPoint;   // If true this the last point is repeated at the current time. this is done to ensure a trace is drawn all the way up to the current time.
-};
-
-class QEPLUGINLIBRARYSHARED_EXPORT QEPlot : public QwtPlot, public QEWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlot : public QEFrame {
     Q_OBJECT
 
-  public:
-    QEPlot( QWidget *parent = 0 );
-    QEPlot( const QString &variableName, QWidget *parent = 0 );
+public:
+    // Synonyms for QwtPlotCurve::CurveStyle
+    // This are converted dynamically as opposed to having an
+    // explicit dependency on QwtPlotCurve
+    //
+    Q_ENUMS(TraceStyles)
+    enum TraceStyles { Lines = 1,
+                       Sticks,
+                       Steps,
+                       Dots };
+
+    explicit QEPlot( QWidget* parent = 0 );
+    explicit QEPlot( const QString &variableName, QWidget* parent = 0 );
 
     ~QEPlot();
 
@@ -89,54 +84,86 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEPlot : public QwtPlot, public QEWidget {
     void setAxisEnableY( bool axisEnableYIn );
     bool getAxisEnableY() const;
 
-    // No QEPlot::setTitle() needed. Uses QwtPlot::setTitle()
+    void setTitle (const QString& title);
     QString getTitle() const;
 
-    void    setBackgroundColor( QColor backgroundColor );
+    void    setBackgroundColor( const QColor backgroundColor );
     QColor getBackgroundColor() const;
 
-    void    setTraceStyle( QwtPlotCurve::CurveStyle traceStyle, const unsigned int variableIndex );
-    QwtPlotCurve::CurveStyle getTraceStyle( const unsigned int variableIndex ) const;
+    // Each property associated with one of the four traces needs simple read and write functions.
+    // Each simple function leverages off a relatively complex function that takes a variableIndex parameter.
+    // For historical reasons, variable name access functions are named 0 to 3, while other attribues are 1 to 4.
+    //
+    void setVariableNameIndexProperty ( const QString& variableName, const unsigned int variableIndex);
+    void setVariableName0Property( const QString& pvName );
+    void setVariableName1Property( const QString& pvName );
+    void setVariableName2Property( const QString& pvName );
+    void setVariableName3Property( const QString& pvName );
 
-    void    setTraceColor( QColor traceColor, const unsigned int variableIndex );
-    void    setTraceColor1( QColor traceColor );
-    void    setTraceColor2( QColor traceColor );
-    void    setTraceColor3( QColor traceColor );
-    void    setTraceColor4( QColor traceColor );
+    QString getVariableNameIndexProperty( const unsigned int variableIndex ) const;
+    QString getVariableName0Property () const;
+    QString getVariableName1Property () const;
+    QString getVariableName2Property () const;
+    QString getVariableName3Property () const;
+
+    void setTraceStyle(  const TraceStyles traceStyle, const unsigned int variableIndex );
+    void setTraceStyle1( const TraceStyles traceStyle );
+    void setTraceStyle2( const TraceStyles traceStyle );
+    void setTraceStyle3( const TraceStyles traceStyle );
+    void setTraceStyle4( const TraceStyles traceStyle );
+
+    TraceStyles getTraceStyle( const unsigned int variableIndex ) const;
+    TraceStyles getTraceStyle1() const;
+    TraceStyles getTraceStyle2() const;
+    TraceStyles getTraceStyle3() const;
+    TraceStyles getTraceStyle4() const;
+
+    void    setTraceColor(  const QColor traceColor, const unsigned int variableIndex );
+    void    setTraceColor1( const QColor traceColor );
+    void    setTraceColor2( const QColor traceColor );
+    void    setTraceColor3( const QColor traceColor );
+    void    setTraceColor4( const QColor traceColor );
+
     QColor getTraceColor( const unsigned int variableIndex ) const;
     QColor getTraceColor1() const;
     QColor getTraceColor2() const;
     QColor getTraceColor3() const;
     QColor getTraceColor4() const;
 
-    void    setTraceLegend1( QString traceLegend );
-    void    setTraceLegend2( QString traceLegend );
-    void    setTraceLegend3( QString traceLegend );
-    void    setTraceLegend4( QString traceLegend );
+    void    setTraceLegend(  const QString& traceLegend, const unsigned int variableIndex );
+    void    setTraceLegend1( const QString& traceLegend );
+    void    setTraceLegend2( const QString& traceLegend );
+    void    setTraceLegend3( const QString& traceLegend );
+    void    setTraceLegend4( const QString& traceLegend );
 
+    QString getTraceLegend( const unsigned int variableIndex ) const;
     QString getTraceLegend1() const;
     QString getTraceLegend2() const;
     QString getTraceLegend3() const;
     QString getTraceLegend4() const;
 
-    void    setXUnit( QString xUnit );
+    void    setXUnit( const QString& xUnit );
     QString getXUnit() const;
 
-    void    setYUnit( QString yUnit );
+    void    setYUnit( const QString& yUnit );
     QString getYUnit() const;
 
     void setGridEnableMajorX( bool gridEnableMajorXIn );
-    void setGridEnableMajorY( bool gridEnableMajorYIn );
-    void setGridEnableMinorX( bool gridEnableMinorXIn );
-    void setGridEnableMinorY( bool gridEnableMinorYIn );
     bool getGridEnableMajorX() const;
+
+    void setGridEnableMajorY( bool gridEnableMajorYIn );
     bool getGridEnableMajorY() const;
+
+    void setGridEnableMinorX( bool gridEnableMinorXIn );
     bool getGridEnableMinorX() const;
+
+    void setGridEnableMinorY( bool gridEnableMinorYIn );
     bool getGridEnableMinorY() const;
 
     void setGridMajorColor( QColor gridMajorColorIn );
-    void setGridMinorColor( QColor gridMinorColorIn );
     QColor getGridMajorColor() const;
+
+    void setGridMinorColor( QColor gridMinorColorIn );
     QColor getGridMinorColor() const;
 
     void setXStart( double xStart );
@@ -145,16 +172,19 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEPlot : public QwtPlot, public QEWidget {
     void setXIncrement( double xIncrement );
     double getXIncrement() const;
 
-    void setTimeSpan( unsigned int timeSpan );
-    unsigned int getTimeSpan() const;
+    void setTimeSpan( int timeSpan );
+    int getTimeSpan() const;
 
-    void setTickRate( unsigned int tickRate );
-    unsigned int getTickRate() const;
+    void setTickRate( int tickRate );
+    int getTickRate() const;
 
-  signals:
-    void mouseMove     (const QPointF& posn);
+    void setMargin( const int margin );
+    int getMargin() const;
 
-  protected:
+signals:
+    void mouseMove( const QPointF& posn );
+
+protected:
     QEFloatingFormatting floatingFormatting;
     bool localEnabled;
     bool allowDrop;
@@ -163,38 +193,42 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEPlot : public QwtPlot, public QEWidget {
     bool eventFilter( QObject *obj, QEvent *event );
     void establishConnection( unsigned int variableIndex );
 
-  private slots:
+private slots:
     void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int & );
     void setPlotData( const QVector<double>& values, QCaAlarmInfo&, QCaDateTime&, const unsigned int& );
     void setPlotData( const double value, QCaAlarmInfo&, QCaDateTime&, const unsigned int& );
     void tickTimeout();
-    // !! move this functionality into QEWidget???
-    // !! needs one for single variables and one for multiple variables, or just the multiple variable one for all
-    void useNewVariableNameProperty( QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex )// !! move into Standard Properties section??
-    {
-        setVariableNameAndSubstitutions(variableNameIn, variableNameSubstitutionsIn, variableIndex);
-    }
 
-  signals:
+    // !! move this functionality into QEWidget???
+    // !! needs one for single variables and one for multiple variables, or
+    //    just the multiple variable one for all
+    void useNewVariableNameProperty( QString variableName,
+                                     QString variableNameSubstitutions,
+                                     unsigned int variableIndex );
+
+signals:
     // Note, the following signals are common to many QE widgets,
     // if changing the doxygen comments, ensure relevent changes are migrated to all instances
     /// Sent when the widget is updated following a data change
     /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
     /// For example a QList widget could log updates from this widget.
     void dbValueChanged( const double& out );
+
     /// Sent when the widget is updated following a data change
     /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
     /// For example a QList widget could log updates from this widget.
     void dbValueChanged( const QVector<double>& out );
 
-  private:
-
+private:
     void setup();
 
+    QVBoxLayout* layout;
+    int layoutMargin;
+    QwtPlot* plot;
     QTimer* tickTimer;          // Timer to keep strip chart scrolling
+
     void setPlotDataCommon( const unsigned int variableIndex );
     void setalarmInfoCommon( QCaAlarmInfo& alarmInfo, const unsigned int variableIndex );
-
 
     // General plot properties
     double yMin;
@@ -211,8 +245,8 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEPlot : public QwtPlot, public QEWidget {
     QColor gridMinorColor;
 
     // Trace update and movement properties
-    unsigned int tickRate; //mS
-    unsigned int timeSpan; // Seconds
+    int tickRate; // mS
+    int timeSpan; // Seconds
 
     // Waveform properties
     double xStart;
@@ -224,16 +258,14 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEPlot : public QwtPlot, public QEWidget {
     qcaobject::QCaObject* createQcaItem( unsigned int variableIndex );
 
     bool isConnected;
-    
-    // Variables and functions to manage plot data
 
-    trace traces[QEPLOT_NUM_VARIABLES];
+    // Variables and functions to manage plot data
+    class Trace;
+    Trace* traces[QEPLOT_NUM_VARIABLES];
 
     void regenerateTickXData( const unsigned int variableIndex );
 
     void setCurveColor( const QColor color, const unsigned int variableIndex );
-    void    setTraceLegend( QString traceLegend, const unsigned int variableIndex );
-    QString getTraceLegend( const unsigned int variableIndex ) const;
     void setGridEnable();
 
     // Drag and Drop
@@ -241,8 +273,7 @@ protected:
     void dragEnterEvent(QDragEnterEvent *event) { qcaDragEnterEvent( event ); }
     void dropEvent(QDropEvent *event)           { qcaDropEvent( event ); }
     void mousePressEvent(QMouseEvent *event)    { qcaMousePressEvent( event ); }
-    void setDrop( QVariant drop );
-    QVariant getDrop();
+    // This widget uses the setDrop/getDrop defined in QEWidget.
 
     // Copy paste
     QString copyVariable();
@@ -258,196 +289,46 @@ public:
         QCaVariableNamePropertyManager variableNamePropertyManagers[QEPLOT_NUM_VARIABLES];
     public:
 
-    // Define a variable
-    // Note, the QPROPERTY declaration itself can't be in this macro
-#define VARIABLE_PROPERTY_ACCESS(VAR_INDEX) \
-    void    setVariableName##VAR_INDEX##Property( QString variableName ){ variableNamePropertyManagers[VAR_INDEX].setVariableNameProperty( variableName ); } \
-    QString getVariableName##VAR_INDEX##Property(){ return variableNamePropertyManagers[VAR_INDEX].getVariableNameProperty(); }
-
-    VARIABLE_PROPERTY_ACCESS(0)
     /// EPICS variable name (CA PV).
     /// This variable is used to read updating values or waveforms for plotting in the first trace.
     Q_PROPERTY(QString variable1 READ getVariableName0Property WRITE setVariableName0Property)
 
-    VARIABLE_PROPERTY_ACCESS(1)
     /// EPICS variable name (CA PV).
     /// This variable is used to read updating values or waveforms for plotting in the second trace.
     Q_PROPERTY(QString variable2 READ getVariableName1Property WRITE setVariableName1Property)
 
-    VARIABLE_PROPERTY_ACCESS(2)
     /// EPICS variable name (CA PV).
     /// This variable is used to read updating values or waveforms for plotting in the third trace.
     Q_PROPERTY(QString variable3 READ getVariableName2Property WRITE setVariableName2Property)
 
-    VARIABLE_PROPERTY_ACCESS(3)
     /// EPICS variable name (CA PV).
     /// This variable is used to read updating values or waveforms for plotting in the fourth trace.
     Q_PROPERTY(QString variable4 READ getVariableName3Property WRITE setVariableName3Property)
-
-#undef VARIABLE_PROPERTY_ACCESS
 
     /// Macro substitutions. The default is no substitutions. The format is NAME1=VALUE1[,] NAME2=VALUE2... Values may be quoted strings. For example, 'SAMPLE=SAM1, NAME = "Ref foil"'
     /// These substitutions are applied to all the variable names.
     Q_PROPERTY(QString variableSubstitutions READ getVariableNameSubstitutionsProperty WRITE setVariableNameSubstitutionsProperty)
 
     /// Property access function for #variableSubstitutions property. This has special behaviour to work well within designer.
-    void    setVariableNameSubstitutionsProperty( QString variableNameSubstitutions )
-    {
-        for( int i = 0; i < QEPLOT_NUM_VARIABLES; i++ )
-        {
-            variableNamePropertyManagers[i].setSubstitutionsProperty( variableNameSubstitutions );
-        }
-    }
+    void    setVariableNameSubstitutionsProperty( const QString& variableNameSubstitutions );
+
     /// Property access function for #variableSubstitutions property. This has special behaviour to work well within designer.
-    QString getVariableNameSubstitutionsProperty()
-    {
-        return variableNamePropertyManagers[0].getSubstitutionsProperty();
-    }
+    QString getVariableNameSubstitutionsProperty() const;
 
 public:
     //=================================================================================
 
-    // BEGIN-STANDARD-PROPERTIES ======================================================
-    // Standard properties
-    // These properties should be identical for every widget using them.
-    // WHEN MAKING CHANGES: Use the update_widget_properties script in the
-    // resources directory.
-public slots:
-    /// Slot to set the visibility of a QE widget, taking into account the user level.
-    /// Widget will be hidden if hidden by a call this slot, by will only be made visible by a calll to this slot if the user level allows.
-    void setManagedVisible( bool v ){ setRunVisible( v ); }
-public:
-    /// Use the variable as the tool tip. Default is true. Tool tip property will be overwritten by the variable name.
-    ///
-    Q_PROPERTY(bool variableAsToolTip READ getVariableAsToolTip WRITE setVariableAsToolTip)
-
-    /// Allow drag/drops operations to this widget. Default is false. Any dropped text will be used as a new variable name.
-    ///
-    Q_PROPERTY(bool allowDrop READ getAllowDrop WRITE setAllowDrop)
-
-    /// Display the widget. Default is true.
-    /// Setting this property false is usefull if widget is only used to provide a signal - for example, when supplying data to a QELink widget.
-    /// Note, when false the widget will still be visible in Qt Designer.
-    Q_PROPERTY(bool visible READ getRunVisible WRITE setRunVisible)
-
-    /// Set the ID used by the message filtering system. Default is zero.
-    /// Widgets or applications that use messages from the framework have the option of filtering on this ID.
-    /// For example, by using a unique message source ID a QELog widget may be set up to only log messages from a select set of widgets.
-    Q_PROPERTY(unsigned int messageSourceId READ getMessageSourceId WRITE setMessageSourceId )
-
-    /// Hide style sheet from designer as style calculation by the styleManager and not directly setable per se.
-    /// This also stops transient styles being saved to the ui file.
-    Q_PROPERTY(QString styleSheet   READ styleSheet       WRITE setStyleSheet  DESIGNABLE false)
-
-    /// Style Sheet string to be applied before, i.e. lower priority than, any other style, e.g. alarm style and/or user level style.
-    /// Default is an empty string.
-    Q_PROPERTY(QString defaultStyle READ getStyleDefault  WRITE setStyleDefault)
-
-    /// Style Sheet string to be applied when the widget is displayed in 'User' mode. Default is an empty string.
-    /// The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
-    /// This Style Sheet string will be applied by the styleManager class.
-    /// Refer to the styleManager class for details about how this Style Sheet string will be merged with any pre-existing Style Sheet string
-    /// and any Style Sheet strings generated during the display of data.
-    Q_PROPERTY(QString userLevelUserStyle READ getStyleUser WRITE setStyleUser)
-
-    /// Style Sheet string to be applied when the widget is displayed in 'Scientist' mode. Default is an empty string.
-    /// The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
-    /// This Style Sheet string will be applied by the styleManager class.
-    /// Refer to the styleManager class for details about how this Style Sheet string will be merged with any pre-existing Style Sheet string
-    /// and any Style Sheet strings generated during the display of data.
-    Q_PROPERTY(QString userLevelScientistStyle READ getStyleScientist WRITE setStyleScientist)
-
-    /// Style Sheet string to be applied when the widget is displayed in 'Engineer' mode. Default is an empty string.
-    /// The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
-    /// This Style Sheet string will be applied by the styleManager class.
-    /// Refer to the styleManager class for details about how this Style Sheet string will be merged with any pre-existing Style Sheet string
-    /// and any Style Sheet strings generated during the display of data.
-    Q_PROPERTY(QString userLevelEngineerStyle READ getStyleEngineer WRITE setStyleEngineer)
-
-    /// \enum UserLevels
-    /// User friendly enumerations for #userLevelVisibility and #userLevelEnabled properties - refer to #userLevelVisibility and #userLevelEnabled properties and userLevel enumeration for details.
-    enum UserLevels { User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
-                      Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
-                      Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
-                              };
-    Q_ENUMS(UserLevels)
-
-    /// Lowest user level at which the widget is visible. Default is 'User'.
-    /// Used when designing GUIs that display more and more detail according to the user mode.
-    /// The user mode is set application wide through the QELogin widget, or programatically through setUserLevel()
-    /// Widgets that are always visible should be visible at 'User'.
-    /// Widgets that are only used by scientists managing the facility should be visible at 'Scientist'.
-    /// Widgets that are only used by engineers maintaining the facility should be visible at 'Engineer'.
-    Q_PROPERTY(UserLevels userLevelVisibility READ getUserLevelVisibilityProperty WRITE setUserLevelVisibilityProperty)
-
-    /// Lowest user level at which the widget is enabled. Default is 'User'.
-    /// Used when designing GUIs that allow access to more and more detail according to the user mode.
-    /// The user mode is set application wide through the QELogin widget, or programatically through setUserLevel()
-    /// Widgets that are always accessable should be visible at 'User'.
-    /// Widgets that are only accessable to scientists managing the facility should be visible at 'Scientist'.
-    /// Widgets that are only accessable to engineers maintaining the facility should be visible at 'Engineer'.
-    Q_PROPERTY(UserLevels userLevelEnabled READ getUserLevelEnabledProperty WRITE setUserLevelEnabledProperty)
-
-    UserLevels getUserLevelVisibilityProperty() { return (UserLevels)getUserLevelVisibility(); }            ///< Access function for #userLevelVisibility property - refer to #userLevelVisibility property for details
-    void setUserLevelVisibilityProperty( UserLevels level ) { setUserLevelVisibility( (userLevelTypes::userLevels)level ); }///< Access function for #userLevelVisibility property - refer to #userLevelVisibility property for details
-    UserLevels getUserLevelEnabledProperty() { return (UserLevels)getUserLevelEnabled(); }                  ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
-    void setUserLevelEnabledProperty( UserLevels level ) { setUserLevelEnabled( (userLevelTypes::userLevels)level ); }      ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
-
-    /// DEPRECATED. USE displayAlarmStateOption INSTEAD.
-    /// If set (default) widget will indicate the alarm state of any variable data it is displaying.
-    /// If clear widget will never indicate the alarm state of any variable data it is displaying.
-    /// Typically the background colour is set to indicate the alarm state.
-    /// Note, this property is included in the set of standard properties as it applies to most widgets. It
-    /// will do nothing for widgets that don't display data.
-    Q_PROPERTY(bool displayAlarmState READ getDisplayAlarmState WRITE setDisplayAlarmState DESIGNABLE false)
-
-    /// \enum DisplayAlarmStateOptions
-    /// User friendly enumerations for #displayAlarmStateOption property - refer to #displayAlarmStateOption property and displayAlarmStateOptions enumeration for details.
-    enum DisplayAlarmStateOptions { Never       = standardProperties::DISPLAY_ALARM_STATE_NEVER,          ///< Refer to DISPLAY_ALARM_STATE_NEVER for details
-                                    Always      = standardProperties::DISPLAY_ALARM_STATE_ALWAYS,         ///< Refer to DISPLAY_ALARM_STATE_ALWAYS for details
-                                    WhenInAlarm = standardProperties::DISPLAY_ALARM_STATE_WHEN_IN_ALARM   ///< Refer to DISPLAY_ALARM_STATE_WHEN_IN_ALARM for details
-                              };
-    Q_ENUMS(DisplayAlarmStateOptions)
-    /// If 'Always' (default) widget will indicate the alarm state of any variable data it is displaying, including 'No Alarm'
-    /// If 'Never' widget will never indicate the alarm state of any variable data it is displaying.
-    /// If 'WhenInAlarm' widget only indicate the alarm state of any variable data it is displaying if it is 'in alarm'.
-    /// Typically the background colour is set to indicate the alarm state.
-    /// Note, this property is included in the set of standard properties as it applies to most widgets. It
-    /// will do nothing for widgets that don't display data.
-    Q_PROPERTY(DisplayAlarmStateOptions displayAlarmStateOption READ getDisplayAlarmStateOptionProperty WRITE setDisplayAlarmStateOptionProperty)
-
-    DisplayAlarmStateOptions getDisplayAlarmStateOptionProperty() { return (DisplayAlarmStateOptions)getDisplayAlarmStateOption(); }            ///< Access function for #displayAlarmStateOption property - refer to #displayAlarmStateOption property for details
-    void setDisplayAlarmStateOptionProperty( DisplayAlarmStateOptions option ) { setDisplayAlarmStateOption( (displayAlarmStateOptions)option ); }///< Access function for #displayAlarmStateOption property - refer to #displayAlarmStateOption property for details
-
-public:
-    // END-STANDARD-PROPERTIES ========================================================
-
     // Widget specific properties
-
+    //
     Q_PROPERTY(QColor traceColor1 READ getTraceColor1 WRITE setTraceColor1)
     Q_PROPERTY(QColor traceColor2 READ getTraceColor2 WRITE setTraceColor2)
     Q_PROPERTY(QColor traceColor3 READ getTraceColor3 WRITE setTraceColor3)
     Q_PROPERTY(QColor traceColor4 READ getTraceColor4 WRITE setTraceColor4)
 
-    Q_ENUMS(TraceStyles)
     Q_PROPERTY(TraceStyles traceStyle1 READ getTraceStyle1 WRITE setTraceStyle1)
     Q_PROPERTY(TraceStyles traceStyle2 READ getTraceStyle2 WRITE setTraceStyle2)
     Q_PROPERTY(TraceStyles traceStyle3 READ getTraceStyle3 WRITE setTraceStyle3)
     Q_PROPERTY(TraceStyles traceStyle4 READ getTraceStyle4 WRITE setTraceStyle4)
-    enum TraceStyles { Lines  = QwtPlotCurve::Lines,
-                       Sticks = QwtPlotCurve::Sticks,
-                       Steps  = QwtPlotCurve::Steps,
-                       Dots   = QwtPlotCurve::Dots };
-    void setTraceStyle1( TraceStyles traceStyle ){ setTraceStyle( (QwtPlotCurve::CurveStyle)traceStyle, 0 ); }
-    void setTraceStyle2( TraceStyles traceStyle ){ setTraceStyle( (QwtPlotCurve::CurveStyle)traceStyle, 1 ); }
-    void setTraceStyle3( TraceStyles traceStyle ){ setTraceStyle( (QwtPlotCurve::CurveStyle)traceStyle, 2 ); }
-    void setTraceStyle4( TraceStyles traceStyle ){ setTraceStyle( (QwtPlotCurve::CurveStyle)traceStyle, 3 ); }
-
-    TraceStyles getTraceStyle1(){ return (TraceStyles)(getTraceStyle( 0 )); }
-    TraceStyles getTraceStyle2(){ return (TraceStyles)(getTraceStyle( 1 )); }
-    TraceStyles getTraceStyle3(){ return (TraceStyles)(getTraceStyle( 2 )); }
-    TraceStyles getTraceStyle4(){ return (TraceStyles)(getTraceStyle( 3 )); }
-
 
     Q_PROPERTY(QString traceLegend1 READ getTraceLegend1 WRITE setTraceLegend1)
     Q_PROPERTY(QString traceLegend2 READ getTraceLegend2 WRITE setTraceLegend2)
@@ -477,13 +358,12 @@ public:
     Q_PROPERTY(QString yUnit READ getYUnit WRITE setYUnit)
     Q_PROPERTY(double xStart READ getXStart WRITE setXStart)
     Q_PROPERTY(double xIncrement READ getXIncrement WRITE setXIncrement)
-    Q_PROPERTY(unsigned int timeSpan READ getTimeSpan WRITE setTimeSpan)
-    Q_PROPERTY(unsigned int tickRate READ getTickRate WRITE setTickRate)
+    Q_PROPERTY(int timeSpan READ getTimeSpan WRITE setTimeSpan)
+    Q_PROPERTY(int tickRate READ getTickRate WRITE setTickRate)
+    Q_PROPERTY(int margin READ getMargin WRITE setMargin)
 };
 
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QEPlot::UserLevels)
-Q_DECLARE_METATYPE (QEPlot::DisplayAlarmStateOptions)
 Q_DECLARE_METATYPE (QEPlot::TraceStyles)
 #endif
 

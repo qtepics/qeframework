@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2011,2016 Australian Synchrotron
+ *  Copyright (c) 2011,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -180,8 +180,8 @@ void QEAnalogProgressBar::connectionChanged (QCaConnectionInfo& connectionInfo,
    this->updateToolTipConnection (isConnected, variableIndex);
 
    // Change style to reflect being connected/disconnected.
-   // Using updateConnectionStyle not applicable as this a self drawn graphical widget.
    //
+   this->processConnectionInfo (isConnected, variableIndex);
    this->setIsActive (isConnected);
 
    // Signal channel connection change to any (Link) widgets.

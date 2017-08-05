@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2015,2016 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2015,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -36,10 +36,10 @@
 #include <QTextStream>
 
 #include <QELocalEnumeration.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 
-class QEPLUGINLIBRARYSHARED_EXPORT QEStringFormatting {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStringFormatting {
 public:
 
     /// \enum formats
@@ -98,6 +98,7 @@ public:
     void setUseDbPrecision( bool useDbPrecision );
     void setLeadingZero( bool leadingZero );
     void setTrailingZeros( bool trailingZeros );
+    void setForceSign( bool forceSign );
     void setFormat( formats format );
     void setSeparator( const separators separator );
     void setRadix( const int radix );
@@ -111,6 +112,7 @@ public:
     bool         getUseDbPrecision() const;
     bool         getLeadingZero() const;
     bool         getTrailingZeros() const;
+    bool         getForceSign() const;
     formats      getFormat() const;
     separators   getSeparator () const;
     unsigned int getRadix() const;
@@ -124,6 +126,8 @@ public:
     QString formatElementString( const QVariant& value );
 
     // Type specific conversion functions
+    // TODO: These SHOULD be rebadged formatToFloatingString etc.
+    //
     void formatFromFloating( const QVariant& value );
     void formatFromInteger( const QVariant& value );
     void formatFromUnsignedInteger( const QVariant& value );
@@ -133,8 +137,13 @@ public:
 
     // Utility functions
     void determineDbFormat( const QVariant &value );
-
-    QString insertSeparators( const QString image ) const;
+    void applyForceSign ();
+    QString insertSeparators( const QString& image ) const;
+    QString realImage (const double item,
+                       const notations notation,
+                       const bool forceSign,
+                       const int zeros,
+                       const int prec);
 
     // Error reporting
     void formatFailure( QString message );
@@ -152,8 +161,10 @@ public:
     bool useDbPrecision;             // Use the number of decimal places displayed as defined in the database.
     bool leadingZero;                // Add a leading zero when required.
     bool trailingZeros;              // Add trailing zeros when required (up to the precision).
+    bool forceSign;                  // Add "+" for numeric values >= 0
     formats format;                  // Presentation required (Floating, integer, etc).
     formats dbFormat;                // Format determined from read value (Floating, integer, etc).
+    notations notation;              // Required notation for floating point formats
     separators separator;            // Thousands separator (applies to numeric values only)
     bool dbFormatArray;              // True if read value is an array
     bool addUnits;                   // Flag use engineering units from database

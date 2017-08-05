@@ -41,14 +41,13 @@ HEADERS += \
     widgets/QEWidget/QESingleVariableMethods.h \
     widgets/QEWidget/QEStringFormattingMethods.h \
     widgets/QEWidget/QEToolTip.h \
-    widgets/QEWidget/QEDesignerPlugin.h \
-    widgets/QEWidget/QEDesignerPluginCommon.h \
     widgets/QEWidget/ContainerProfile.h \
-    widgets/QEWidget/QEPluginLibrary_global.h \
     widgets/QEWidget/persistanceManager.h \
     widgets/QEWidget/applicationLauncher.h \
     widgets/QEWidget/QEEmitter.h \
-    widgets/QEWidget/QEGlobalStyle.h
+    widgets/QEWidget/QEGlobalStyle.h \
+    widgets/QEWidget/QEDesignerPluginCommon.h \
+    widgets/QEWidget/QEFrameworkLibraryGlobal.h
 
 SOURCES += \
     widgets/QEWidget/VariableManager.cpp \
@@ -64,14 +63,10 @@ SOURCES += \
     widgets/QEWidget/QESingleVariableMethods.cpp \
     widgets/QEWidget/QEStringFormattingMethods.cpp \
     widgets/QEWidget/QEToolTip.cpp \
-    widgets/QEWidget/QEDesignerPlugin.cpp \
     widgets/QEWidget/ContainerProfile.cpp \
     widgets/QEWidget/persistanceManager.cpp \
     widgets/QEWidget/applicationLauncher.cpp \
     widgets/QEWidget/QEEmitter.cpp \
     widgets/QEWidget/QEGlobalStyle.cpp
-
-OTHER_FILES += \
-    widgets/QEWidget/qeplugin.json
 
 # end

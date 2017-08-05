@@ -127,7 +127,7 @@ void QEGenericEdit::connectionChanged( QCaConnectionInfo& connectionInfo )
 
     // Display the connected state
     updateToolTipConnection( isConnected );
-    updateConnectionStyle( isConnected );
+    processConnectionInfo( isConnected );
 
     // Set cursor to indicate access mode.
     setAccessCursorStyle();

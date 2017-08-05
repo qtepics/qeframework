@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/qe/log">
-        <file>QELog.png</file>
-    </qresource>
-</RCC>

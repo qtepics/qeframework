@@ -37,7 +37,7 @@
 #include <QWidget>
 
 #include <QEFrame.h>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <QEDelayedText.h>
 
 #include <QEArchiveManager.h>
@@ -46,7 +46,7 @@
 /// This is a non EPICS aware widget.
 /// It provides a simple user means to find archived PV names.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEArchiveNameSearch : public QEFrame {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEArchiveNameSearch : public QEFrame {
   Q_OBJECT
 public:
    explicit QEArchiveNameSearch (QWidget* parent = 0);

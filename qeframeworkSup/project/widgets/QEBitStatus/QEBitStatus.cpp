@@ -172,7 +172,7 @@ void QEBitStatus::connectionChanged (QCaConnectionInfo& connectionInfo, const un
 
     // Display the connected state
     this->updateToolTipConnection (isConnected, variableIndex);
-    this->updateConnectionStyle (isConnected);
+    this->processConnectionInfo (isConnected, variableIndex);
 
     this->setIsActive (isConnected);
 

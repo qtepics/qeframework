@@ -30,7 +30,7 @@
 
 #include <Qt>
 #include <QtGlobal>
-#include <QEPluginLibrary_global.h>
+#include <QEFrameworkLibraryGlobal.h>
 
 /// Geneal purpose platform specific functions used to hide compiler, environment
 /// and version specific features. This locates all the #indef and the like tests
@@ -38,7 +38,7 @@
 /// We use a class of static methods as opposed to a set of regular functions.
 /// This provide a name space, but also allows inheritance if needs be.
 ///
-class QEPLUGINLIBRARYSHARED_EXPORT QEPlatform {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlatform {
 public:
    /// This function test if the specified double floating point number is 'Not a Number'.
    static bool isNaN (const double x);
