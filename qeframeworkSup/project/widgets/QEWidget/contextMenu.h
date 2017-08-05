@@ -26,6 +26,7 @@
 #ifndef QE_CONTEXT_MENU_H
 #define QE_CONTEXT_MENU_H
 
+#include <QAction>
 #include <QMenu>
 #include <QSet>
 #include <QEActionRequests.h>
@@ -95,6 +96,13 @@ public:
     void setNumberOfContextMenuItems( const int numberOfItems );            // Set number of PV items - used to pluralise conext menu captions
 
     bool isDraggingVariable();                          // Return the global 'is dragging variable' flag (Dragging variable is true, draging data if false)
+
+    // buildContextMenu support functions. Where as most sub classes jist append action items to the
+    // menu constructed by its parent class, these function allow action items to be inserted into the
+    // menu before/after the noninated menu option value. These functions return false if the specified
+    // option was not found.
+    static bool insertBefore( QMenu* menu, QAction* action, const int option );
+    static bool insertAfter(  QMenu* menu, QAction* action, const int option );
 
     virtual QMenu* buildContextMenu();                        // Build the QE generic context menu
     virtual void contextMenuTriggered( int selectedItemNum ); // An action was selected from the context menu

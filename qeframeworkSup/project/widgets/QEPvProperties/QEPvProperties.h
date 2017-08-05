@@ -51,6 +51,8 @@
 #include <QESingleVariableMethods.h>
 #include <QELabel.h>
 #include <QEResizeableFrame.h>
+#include <QEInteger.h>
+#include <QEIntegerFormatting.h>
 #include <QEString.h>
 #include <QEStringFormatting.h>
 #include <QCaVariableNamePropertyManager.h>
@@ -97,6 +99,7 @@ public:
     enum OwnContextMenuOptions { PVPROP_NONE = QEAbstractDynamicWidget::ADWCM_SUB_CLASS_WIDGETS_START_HERE,
                                  PVPROP_SORT_FIELD_NAMES,
                                  PVPROP_RESET_FIELD_NAMES,
+                                 PVPROP_PROCESS_RECORD,
                                  PVPROP_SUB_CLASS_WIDGETS_START_HERE };
 
    // Constructors
@@ -150,7 +153,9 @@ private:
       ReadAsCharArray    // read field as array of chars to overcome 40 character DBF_STRING limit.
    };
 
-   QEStringFormatting stringFormatting;
+   QEIntegerFormatting integerFormatting;
+   QEStringFormatting rtypStringFormatting;
+   QEStringFormatting valueStringFormatting;
    bool isFirstUpdate;
 
    // Internal widgets.
@@ -165,7 +170,7 @@ private:
    QLabel* label5;
    QLabel* label6;
    QComboBox* box;
-   QELabel* valueLabel;
+   QLabel* valueLabel;
    QLabel* hostName;
    QLabel* fieldType;
    QLabel* timeStamp;
@@ -183,8 +188,10 @@ private:
    QString recordBaseName;
    QEStringFormatting fieldStringFormatting;
 
+   QEInteger* recordProcField;       // PROC
    QEString* standardRecordType;     // RTYP
    QEString* alternateRecordType;    // RTYP$
+
    QString previousRecordBaseName;
    QString previousRecordType;
 
@@ -210,7 +217,7 @@ private:
    void createInternalWidgets ();
    void clearFieldChannels ();
 
-   void setUpLabelChannel ();
+   void setUpRecordProcChannel (QEInteger* &qca);
    void setUpRecordTypeChannels (QEString* &qca, const PVReadModes readMode);
 
    // Override standardProperties::setApplicationEnabled()

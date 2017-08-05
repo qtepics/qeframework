@@ -37,6 +37,7 @@
 #include <QEScaling.h>
 #include <QECommon.h>
 #include <QEAdaptationParameters.h>
+#include <QCaAlarmInfo.h>
 #include <QELabel.h>
 #include <QEStringFormatting.h>
 #include <QERecordFieldName.h>
@@ -53,6 +54,8 @@
 // class wide data
 //==============================================================================
 //
+static const QString lightGreyStyle = QEUtilities::colourToStyle ("#e8e8e8");
+
 static bool recordSpecsAreInitialised = false;       // setup housekeeping
 static QERecordSpec *pDefaultRecordSpec = NULL;      // default for unknown record types
 static QERecordSpecList recordSpecList;              // list of record type specs
@@ -130,7 +133,6 @@ void QEPvProperties::createInternalWidgets ()
 {
    const int label_height = 18;
    const int label_width = 48;
-   const userLevelTypes::userLevels level = this->minimumEditPvUserLevel ();
 
    int j;
 
@@ -163,9 +165,10 @@ void QEPvProperties::createInternalWidgets ()
 
    this->label2 = new QLabel ("VAL", this->topFrame);
    this->label2->setFixedSize (QSize (label_width, label_height));
-   this->valueLabel = new QELabel (this->topFrame);
+   this->valueLabel = new QLabel (this->topFrame);
    this->valueLabel->setFixedHeight (label_height);
-   this->valueLabel->setEditPvUserLevel (level);
+   this->valueLabel->setStyleSheet (lightGreyStyle);
+   this->valueLabel->setIndent (6);
 
    this->hlayouts [2]->addWidget (this->label2);
    this->hlayouts [2]->addWidget (this->valueLabel);
@@ -256,7 +259,6 @@ QEPvProperties::QEPvProperties (const QString& variableName, QWidget* parent) :
    this->recordBaseName = QERecordFieldName::recordName (variableName);
    this->common_setup ();
    this->setVariableName (variableName, PV_VARIABLE_INDEX);
-   this->valueLabel->setVariableName (variableName, 0);
    this->activate ();
 }
 
@@ -299,13 +301,15 @@ QSize QEPvProperties::sizeHint () const {
 void QEPvProperties::common_setup ()
 {
    QTableWidgetItem* item;
-   QString style;
    int j;
    QLabel* enumLabel;
 
    // ensure null so that if (this->valueLabel) is sensible.
    //
    this->valueLabel = NULL;
+   this->standardRecordType = NULL;
+   this->alternateRecordType = NULL;
+   this->recordProcField = NULL;
 
    // This function only perform required actions on first call.
    //
@@ -318,15 +322,12 @@ void QEPvProperties::common_setup ()
    this->fieldChannels.clear ();
    this->variableIndexTableRowMap.clear ();
 
-   this->standardRecordType = NULL;
-   this->alternateRecordType = NULL;
-
    // configure the panel and create contents
    //
    this->setFrameShape (QFrame::Panel);
    this->setFrameShadow (QFrame::Plain);
 
-   // configure abstract dynamic widget - allow edit PV
+   // configure abstract dynamic widget - allow edit PV by default.
    //
    this->setEnableEditPv (true);
 
@@ -363,34 +364,33 @@ void QEPvProperties::common_setup ()
    QObject::connect (this,      SIGNAL (setCurrentBoxIndex (int)),
                      this->box, SLOT   (setCurrentIndex    (int)));
 
-   style = "QWidget { background-color: #F0F0F0; }";
-
-   this->valueLabel->setDefaultStyle (style);
 
    // We want to be general here - plenty of precision.
-   this->valueLabel->setPrecision (9);
-   this->valueLabel->setUseDbPrecision (false);
-   this->valueLabel->setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
-   this->valueLabel->setArrayAction (QEStringFormatting::INDEX);
-   this->valueLabel->setArrayIndex (0);
+   //
+   this->valueStringFormatting.setPrecision (9);
+   this->valueStringFormatting.setUseDbPrecision (false);
+   this->valueStringFormatting.setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
+   this->valueStringFormatting.setArrayAction (QEStringFormatting::INDEX);
+
+   this->rtypStringFormatting.setArrayAction (QEStringFormatting::ASCII);
 
    this->hostName->setIndent (4);
-   this->hostName->setStyleSheet (style);
+   this->hostName->setStyleSheet (lightGreyStyle);
 
    this->timeStamp->setIndent (4);
-   this->timeStamp->setStyleSheet (style);
+   this->timeStamp->setStyleSheet (lightGreyStyle);
 
    this->fieldType->setAlignment(Qt::AlignHCenter);
-   this->fieldType->setStyleSheet (style);
+   this->fieldType->setStyleSheet (lightGreyStyle);
 
    this->indexInfo->setAlignment(Qt::AlignRight);
    this->indexInfo->setIndent (4);
-   this->indexInfo->setStyleSheet (style);
+   this->indexInfo->setStyleSheet (lightGreyStyle);
 
    for (j = 0; j < this->enumerationLabelList.count (); j++) {
       enumLabel = this->enumerationLabelList.value (j);
       enumLabel->setIndent (4);
-      enumLabel->setStyleSheet (style);
+      enumLabel->setStyleSheet (lightGreyStyle);
    }
 
    item = new QTableWidgetItem (" Field ");
@@ -654,10 +654,6 @@ void QEPvProperties::establishConnection (unsigned int variableIndex)
    //
    emit setCurrentBoxIndex (0);
 
-   // Set up internal QElabel object.
-   //
-   this->setUpLabelChannel ();
-
    // Set up connections to XXXX.RTYP and XXXX.RTYP$.
    // We do this to firstly establish the record type name (e.g. ai, calcout),
    // but also to determine if the PV server (IOC) supports character array mode
@@ -669,13 +665,17 @@ void QEPvProperties::establishConnection (unsigned int variableIndex)
    this->setUpRecordTypeChannels (this->alternateRecordType, ReadAsCharArray);
    this->setUpRecordTypeChannels (this->standardRecordType,  StandardRead);
 
+   // Set up XXXX.PROC client
+   //
+   this->setUpRecordProcChannel (this->recordProcField);
+
    // Lastly do the regular connection.
    //
    // Create a connection.
    // If successfull, the QCaObject object that will supply data update signals will be returned
    // Note createConnection creates the connection and returns reference to existing QCaObject.
    //
-   qcaobject::QCaObject* qca = createConnection (variableIndex);
+   qcaobject::QCaObject* qca = this->createConnection (variableIndex);
 
    // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots.
    //
@@ -686,6 +686,27 @@ void QEPvProperties::establishConnection (unsigned int variableIndex)
       QObject::connect (qca,  SIGNAL (dataChanged   (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
                         this, SLOT   (setValueValue (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
    }
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPvProperties::setUpRecordProcChannel (QEInteger* &qca)
+{
+   QString pvName;
+   QString recordProcFieldName;
+
+   pvName = this->getSubstitutedVariableName (0).trimmed ();
+   recordProcFieldName = QERecordFieldName::fieldPvName (pvName, "PROC");
+
+   // Delete any existing qca object if needs be.
+   //
+   if (qca) {
+      delete qca;
+      qca = NULL;
+   }
+
+   qca = new QEInteger (recordProcFieldName, this, &this->integerFormatting, 0);
+   qca->subscribe ();
 }
 
 //------------------------------------------------------------------------------
@@ -710,7 +731,7 @@ void QEPvProperties::setUpRecordTypeChannels (QEString* &qca, const PVReadModes 
       qca = NULL;
    }
 
-   qca = new QEString (recordTypeName, this, &stringFormatting, (unsigned int) readMode);
+   qca = new QEString (recordTypeName, this, &this->rtypStringFormatting, (unsigned int) readMode);
 
    if (readMode == ReadAsCharArray)  {
       // Record type names are never longer than standard string.
@@ -731,23 +752,6 @@ void QEPvProperties::setUpRecordTypeChannels (QEString* &qca, const PVReadModes 
 
 //------------------------------------------------------------------------------
 //
-void QEPvProperties::setUpLabelChannel ()
-{
-   QString pvName;
-
-   // The pseudo RTYP field has connected - we are good to go...
-   //
-   pvName = this->getSubstitutedVariableName (0).trimmed ();
-
-   // Set PV name of internal QELabel.
-   //
-   this->valueLabel->deactivate ();
-   this->valueLabel->setVariableNameAndSubstitutions (pvName, "", 0);
-   this->valueLabel->activate ();
-}
-
-//------------------------------------------------------------------------------
-//
 void QEPvProperties::setRecordTypeConnection (QCaConnectionInfo& connectionInfo,
                                               const unsigned int &variableIndex)
 {
@@ -763,7 +767,7 @@ void QEPvProperties::setRecordTypeConnection (QCaConnectionInfo& connectionInfo,
 
    // Update tool tip, but leave the basic widget enabled.
    //
-   updateToolTipConnection (isConnected);
+   this->updateToolTipConnection (isConnected, variableIndex);
 }
 
 //------------------------------------------------------------------------------
@@ -898,6 +902,7 @@ void QEPvProperties::setValueConnection (QCaConnectionInfo& connectionInfo, cons
 
    // These are not QELabels - so have to do this do manually.
    //
+   this->valueLabel->setEnabled  (isConnected);
    this->hostName->setEnabled  (isConnected);
    this->timeStamp->setEnabled (isConnected);
    this->fieldType->setEnabled (isConnected);
@@ -922,7 +927,7 @@ void QEPvProperties::setValueConnection (QCaConnectionInfo& connectionInfo, cons
 
 //------------------------------------------------------------------------------
 //
-void QEPvProperties::setValueValue (const QVariant&,
+void QEPvProperties::setValueValue (const QVariant& value,
                                     QCaAlarmInfo& alarmInfo,
                                     QCaDateTime& dateTime,
                                     const unsigned int&)
@@ -936,14 +941,11 @@ void QEPvProperties::setValueValue (const QVariant&,
    QRect g;
    int h;
 
-   // NOTE: The value label updates itself.
-   //
    this->timeStamp->setText (dateTime.text () + "  " + QEUtilities::getTimeZoneTLA (dateTime));
 
    // We "know" that the only/main channel is the 1st (slot 0) channel.
    //
-   qca = this->valueLabel->getQcaItem (0);
-
+   qca = this->getQcaItem (0);
    if (this->isFirstUpdate && qca) {
 
       // Whilst the value QELabel basically looks after itself, it benefits from
@@ -960,10 +962,13 @@ void QEPvProperties::setValueValue (const QVariant&,
 
       bool longString = isDbfChar && requestedCharArray;
       if (longString) {
-         this->valueLabel->setArrayAction (QEStringFormatting::ASCII);
+         this->valueStringFormatting.setArrayAction (QEStringFormatting::ASCII);
       } else {
-         this->valueLabel->setArrayAction (QEStringFormatting::INDEX);
+         this->valueStringFormatting.setArrayAction (QEStringFormatting::INDEX);
       }
+
+      this->valueLabel->setText (this->valueStringFormatting.formatString (value, 0));
+      this->valueLabel->setStyleSheet (alarmInfo.style ());
 
       // Ensure we do any required resizing.
       //
@@ -1085,11 +1090,9 @@ void QEPvProperties::boxCurrentIndexChanged (int index)
       // belts 'n' braces.
       //
       if (newPvName != oldPvName) {
-         // Clear style - by calling processAlarmInfo - if we clear style directly,
-         // next time processAlarmInfo is called, it may decidec no change is required.
+         // Clear style.
          //
-         QCaAlarmInfo dummyAlarm (0, QCaAlarmInfo::getInvalidSeverity());
-         this->valueLabel->processAlarmInfo (dummyAlarm, 0);
+         this->valueLabel->setStyleSheet (lightGreyStyle);
          this->setVariableName (newPvName, 0);
          this->establishConnection (0);
       }
@@ -1140,6 +1143,14 @@ QMenu* QEPvProperties::buildContextMenu ()
    action->setData (QEPvProperties::PVPROP_RESET_FIELD_NAMES);
    menu->addAction (action);
 
+   action = new QAction ("Process Record", menu);
+   action->setCheckable (false);
+   action->setEnabled (true);
+   action->setData (QEPvProperties::PVPROP_PROCESS_RECORD);
+
+   contextMenu::insertAfter (menu, action, contextMenu::CM_GENERAL_PV_EDIT);
+   //menu->addAction (action);  // or insert??
+
    return menu;
 }
 
@@ -1158,6 +1169,12 @@ void QEPvProperties::contextMenuTriggered (int selectedItemNum)
       case QEPvProperties::PVPROP_RESET_FIELD_NAMES:
          this->sort (0, lastRow, &this->resetContext);
          this->fieldsAreSorted = false;
+         break;
+
+      case QEPvProperties::PVPROP_PROCESS_RECORD:
+         if (this->recordProcField && this->recordProcField->getChannelIsConnected ()) {
+            this->recordProcField->writeInteger (1);
+         }
          break;
 
       default:
@@ -1376,12 +1393,6 @@ void QEPvProperties::enableEditPvChanged ()
 {
    const userLevelTypes::userLevels level = this->minimumEditPvUserLevel ();
    this->setEditPvUserLevel (level);
-
-   // This function may be called before the internal are widgets created.
-   //
-   if (this->valueLabel) {
-      this->valueLabel->setEditPvUserLevel (level);
-   }
 }
 
 //------------------------------------------------------------------------------

@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2016 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -219,10 +219,9 @@ private:
     void processConnectedDisableStates();
     void setDisabledVariableNames ();
 
-    // Drag and Drop (See specific QE button widgets for button type specific drag and drop)
 private:
-    void setDrop( QVariant drop );
-    QVariant getDrop();
+    // Drag and Drop (See specific QE button widgets for button type specific drag and drop)
+    // Use default getDrop/setDrop
 
     // Copy paste (See specific QE button widgets for button type specific copy and paste)
     QString copyVariable();

@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -720,34 +720,16 @@ bool QEGenericButton::checkPassword()
 }
 
 //==============================================================================
-// Drag drop
-void QEGenericButton::setDrop( QVariant drop )
-{
-    setVariableName( drop.toString(), 0 );
-    establishConnection( 0 );
-}
-
-QVariant QEGenericButton::getDrop()
-{
-    if( isDraggingVariable() )
-        return QVariant( copyVariable() );
-    else
-        return copyData();
-}
-
-//==============================================================================
 // Copy / Paste
 QString QEGenericButton::copyVariable()
 {
-    return getSubstitutedVariableName(0);
+    return getSubstitutedVariableName( 0 );
 }
 
 void QEGenericButton::paste( QVariant v )
 {
-    if( getAllowDrop() )
-    {
-        setDrop( v );
-    }
+    setVariableName( v.toString(), 0 );
+    establishConnection( 0 );
 }
 
 //==============================================================================
