@@ -26,6 +26,17 @@
 #ifndef QE_PLUGIN_WIDGET_MANAGERS_H
 #define QE_PLUGIN_WIDGET_MANAGERS_H
 
+// The QT_VERSION check is in QEDesignerPluginCommon.h, but does not
+// work with moc unless restated here.  Possibly relevant:
+// https://stackoverflow.com/questions/4119688/macro-expansion-in-moc
+// Provide Qt version independent plugin-related includes.
+//
+#if (QT_VERSION >= 0x050500)
+#include <QtUiPlugin/QDesignerCustomWidgetInterface>
+#else
+#include <QDesignerCustomWidgetInterface>
+#endif
+
 #include <QObject>
 #include <QEDesignerPluginCommon.h>
 #include <QEPluginLibrary_global.h>
