@@ -31,7 +31,8 @@ TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
 BUNDLE=
 
 # EPICS_BASE usually appears last so other apps can override stuff:
-EPICS_BASE=$(BUNDLE)/epics/base
+#EPICS_BASE=$(BUNDLE)/epics/base
+EPICS_BASE=/usr/local/epics/R3.14.12/base
 
 # Set RULES here if you want to take build rules from somewhere
 # other than EPICS_BASE:
