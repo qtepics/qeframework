@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015,2016 Australian Synchrotron
+ *  Copyright (c) 2015,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -39,6 +39,7 @@ class QEWidget;
 // signals:
 //
 //   dbConnectionChanged (const bool&)
+//   dbValueChanged ()
 //   dbValueChanged (const QString&)
 //   dbValueChanged (const int&)
 //   dbValueChanged (const long&)
@@ -46,8 +47,8 @@ class QEWidget;
 //   dbValueChanged (const double&)
 //   dbValueChanged (const bool&)
 //
-// In order for these signals to be emitted, the standard signal declaration must
-// be placed in the widget header file - see QELabel.h as example.
+// In order for any of these signals to be emitted, the standard signal declarations
+// must be placed in the widget header file - see QELabel.h as example.
 // Also, the underlying channel's QVariant value must also be able to be converted
 // to the appropriate numerical value. For the boolean dbValueChanged signal, the
 // numerical value must available as well. The signal value is true for non-zero
@@ -82,7 +83,7 @@ private:
 
    QWidget* owner;            // Widget which will emit signals.
    QEWidget* qew;             // Same object - different view
-   bool filter [8];
+   bool filter [9];           // Indicates if particular signal is defined
    bool setupFilterComplete;
 };
 

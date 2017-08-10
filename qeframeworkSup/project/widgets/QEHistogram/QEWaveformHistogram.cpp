@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2014,2016 Australian Synchrotron.
+ *  Copyright (c) 2014,2016,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -179,6 +179,11 @@ void QEWaveformHistogram::connectionChanged (QCaConnectionInfo & connectionInfo,
    // More trob. than it's worth to check if this is a connect or disconnect.
    //
    this->isFirstUpdate = true;
+
+   // Signal a channel connection change to any widgets using the
+   // dbConnectionChanged signal.
+   //
+   this->emitDbConnectionChanged (variableIndex);
 }
 
 //------------------------------------------------------------------------------
@@ -260,6 +265,10 @@ void QEWaveformHistogram::setChannelArrayValue (const QVector<double>& value,
    // Invoke for tool tip processing directly.
    //
    this->updateToolTipAlarm (alarmInfo.severityName (), variableIndex);
+
+   // Signal a database value change to any widgets using dbValueChanged.
+   //
+   this->emitDbValueChanged (variableIndex);
 }
 
 //------------------------------------------------------------------------------

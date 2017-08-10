@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015 Australian Synchrotron
+ *  Copyright (c) 2015,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -36,8 +36,11 @@
 
 // Signal identifiers.
 //
-enum filterKinds { fkConnected = 0,
-                   fkInt, fkLong, fkLongLong, fkString, fkDouble, fkBool };
+enum filterKinds {
+   fkConnected = 0,
+   fkUpdateEvent,   // no data per se
+   fkInt, fkLong, fkLongLong, fkString, fkDouble, fkBool
+};
 
 //------------------------------------------------------------------------------
 //
@@ -59,29 +62,30 @@ QEEmitter::~QEEmitter ()
    // place holder
 }
 
-
 //------------------------------------------------------------------------------
 //
 #define SIGNAL_EXISTS(member)   \
    (meta->indexOfSignal(QMetaObject::normalizedSignature (member)) >= 0)
 
+
 void QEEmitter::setupFilter ()
 {
    if (this->setupFilterComplete) return; // all done
 
-   if (!this->owner) return;
+   if (!this->owner) return;              // sainity check
    const QMetaObject* meta = this->owner->metaObject ();
-   if (!meta) return;
+   if (!meta) return;                     // sainity check
 
-   // Find out which signal exists for this particu;ar object.
+   // Find out which signal exists for this particular object.
    //
-   this->filter [fkConnected] = SIGNAL_EXISTS ("dbConnectionChanged (const bool&)");
-   this->filter [fkInt]       = SIGNAL_EXISTS ("dbValueChanged (const int&)");
-   this->filter [fkLong]      = SIGNAL_EXISTS ("dbValueChanged (const long&)");
-   this->filter [fkLongLong]  = SIGNAL_EXISTS ("dbValueChanged (const qlonglong&)");
-   this->filter [fkString]    = SIGNAL_EXISTS ("dbValueChanged (const QString&)");
-   this->filter [fkDouble]    = SIGNAL_EXISTS ("dbValueChanged (const double&)");
-   this->filter [fkBool]      = SIGNAL_EXISTS ("dbValueChanged (const bool&)");
+   this->filter [fkConnected]   = SIGNAL_EXISTS ("dbConnectionChanged (const bool&)");
+   this->filter [fkUpdateEvent] = SIGNAL_EXISTS ("dbValueChanged ()");
+   this->filter [fkInt]         = SIGNAL_EXISTS ("dbValueChanged (const int&)");
+   this->filter [fkLong]        = SIGNAL_EXISTS ("dbValueChanged (const long&)");
+   this->filter [fkLongLong]    = SIGNAL_EXISTS ("dbValueChanged (const qlonglong&)");
+   this->filter [fkString]      = SIGNAL_EXISTS ("dbValueChanged (const QString&)");
+   this->filter [fkDouble]      = SIGNAL_EXISTS ("dbValueChanged (const double&)");
+   this->filter [fkBool]        = SIGNAL_EXISTS ("dbValueChanged (const bool&)");
 
    this->setupFilterComplete = true;
 }
@@ -164,9 +168,15 @@ void QEEmitter::emitDbValueChangedPrivate (const bool useFormmattedText,
       value = value.toList().value (ai);
    }
 
+   if (this->filter [fkUpdateEvent]) {
+      // No argument - just a notification that an update has occured.
+      //
+      meta->invokeMethod (this->owner, member, Qt::DirectConnection);
+   }
+
    const double dValue = value.toDouble (&okay);   // Extarct value as double.
 
-   // Did we successfully extrat a double value?
+   // Did we successfully extract a double value?
    // Is the signal not inhibited (yet)?
    //
    if (okay && this->filter [fkDouble]) {

@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2014,2016 Australian Synchrotron.
+ *  Copyright (c) 2014,2016,2016  Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -122,6 +122,14 @@ signals:
    //
    void mouseIndexChanged (const int index);
    void mouseIndexPressed (const int index, const Qt::MouseButton button);
+
+   // This signal is emitted using the QEEmitter::emitDbConnectionChanged function.
+   /// Sent when the widget state updated following a channel connection change
+   void dbConnectionChanged (const bool& isConnected);
+
+   // This signal is emitted using the QEEmitter::emitDbValueChanged function.
+   /// Sent when the widget is updated following a data change
+   void dbValueChanged ();             // signal event
 
 protected:
    qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
