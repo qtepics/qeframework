@@ -101,6 +101,7 @@ signals:
     /// Sent when the widget is updated following a data change
     /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
     /// For example a QList widget could log updates from this widget.
+    void dbValueChanged();                       // signal event
     void dbValueChanged( const QString& out );   // signal as enumeration text
     void dbValueChanged( const int& out );       // signal as int if applicable
     void dbValueChanged( const long& out );      // signal as long if applicable
@@ -113,7 +114,8 @@ signals:
     void dbConnectionChanged (const bool& isConnected);
 
     /// Internal use only. Used by QEConfiguredLayout to be notified when one of its widgets has written something
-    void userChange( const QString& oldValue, const QString& newValue, const QString& lastValue );    // Signal a user attempt to change a value. Values are strings as the user sees them
+    //  Signal a user attempt to change a value. Values are strings as the user sees them
+    void userChange( const QString& oldValue, const QString& newValue, const QString& lastValue );    
 
   private:
     void setup();

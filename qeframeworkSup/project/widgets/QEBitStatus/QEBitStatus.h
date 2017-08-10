@@ -207,6 +207,7 @@ signals:
    /// Sent when the widget is updated following a data change
    /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
    /// For example a QList widget could log updates from this widget.
+   void dbValueChanged ();                     // signal event
    void dbValueChanged (const QString& out);   // signal as formatted text
    void dbValueChanged (const int& out);       // signal as int if applicable
    void dbValueChanged (const long& out);      // signal as long if applicable

@@ -40,7 +40,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESlider :
       public QEWidget {
     Q_OBJECT
 
-  public:
+public:
     QESlider( QWidget *parent = 0 );
     QESlider( const QString& variableName, QWidget *parent = 0 );
 
@@ -67,18 +67,18 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESlider :
     // write the value (of the underlying QSlider object) into the PV immediately
     void writeNow();
 
-  public slots:
+public slots:
     /// Update the default style applied to this widget.
     void setDefaultStyle( const QString& style ) { setStyleDefault( style ); }
 
-  protected:
+protected:
     QEFloatingFormatting floatingFormatting; // Floating formatting options.
     bool writeOnChange;             // Write changed value to database when ever the position changes.
 
     void establishConnection( unsigned int variableIndex );
 
-  private slots:
-    void connectionChanged( QCaConnectionInfo& connectionInfo );
+private slots:
+    void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& );
     void setValueIfNoFocus( const double& value, QCaAlarmInfo&, QCaDateTime&, const unsigned int& );
     void userValueChanged( const int& newValue );
     void useNewVariableNameProperty( QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex )// !! move into Standard Properties section??
@@ -86,15 +86,27 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESlider :
         setVariableNameAndSubstitutions(variableNameIn, variableNameSubstitutionsIn, variableIndex);
     }
 
-  signals:
+signals:
     // Note, the following signals are common to many QE widgets,
     // if changing the doxygen comments, ensure relevent changes are migrated to all instances
+    // These signals are emitted using the QEEmitter::emitDbValueChanged function.
     /// Sent when the widget is updated following a data change
     /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
     /// For example a QList widget could log updates from this widget.
-    void dbValueChanged( const qlonglong& out );
+    void dbValueChanged();                       // signal event
+    void dbValueChanged( const QString& out );   // signal as formatted text
+    void dbValueChanged( const int& out );       // signal as int if applicable
+    void dbValueChanged( const long& out );      // signal as long if applicable
+    void dbValueChanged( const qlonglong& out ); // signal as qlonglong if applicable
+    void dbValueChanged( const double& out );    // signal as floating if applicable
+    void dbValueChanged( const bool& out );      // signal as bool: value != 0 if applicable
 
-  private:
+    // This signal is emitted using the QEEmitter::emitDbConnectionChanged function.
+    /// Sent when the widget state updated following a channel connection change
+    /// Applied to provary varible.
+    void dbConnectionChanged( const bool& isConnected );
+
+private:
     void setup();
     qcaobject::QCaObject* createQcaItem( unsigned int variableIndex );
 

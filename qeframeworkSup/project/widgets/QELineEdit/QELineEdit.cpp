@@ -90,8 +90,8 @@ void QELineEdit::establishConnection( unsigned int variableIndex ) {
     if(  qca ) {
         QObject::connect( qca,  SIGNAL( stringChanged( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                           this, SLOT( setTextIfNoFocus( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-        QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo& ) ),
-                          this, SLOT( connectionChanged( QCaConnectionInfo& ) ) );
+        QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ),
+                          this, SLOT( connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ) );
         QObject::connect( this, SIGNAL( requestResend() ),
                           qca, SLOT( resendLastData() ) );
     }

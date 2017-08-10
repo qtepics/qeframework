@@ -61,9 +61,11 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFileImage : public QLabel, public QEW
 public slots:
     void setImageFileName( const QString& text );
 private slots:
-    void connectionChanged( QCaConnectionInfo& connectionInfo );
+    void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int&  );
     void setLabelImage( const QString& text, QCaAlarmInfo&, QCaDateTime&, const unsigned int& );
-    void useNewVariableNameProperty( QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex )// !! move into Standard Properties section??
+
+    // !! move into Standard Properties section??
+    void useNewVariableNameProperty( QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex )
     {
         setVariableNameAndSubstitutions(variableNameIn, variableNameSubstitutionsIn, variableIndex);
     }
@@ -74,7 +76,9 @@ private slots:
     /// Sent when the widget is updated following a data change
     /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
     /// For example a QList widget could log updates from this widget.
+    void dbValueChanged();                     // signal event    
     void dbValueChanged( const QString& out );
+    
     /// Internal use only. Used when changing a property value to force a re-display to reflect the new property value.
     void requestResend();
 

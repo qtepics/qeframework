@@ -150,8 +150,8 @@ void QESpinBox::establishConnection( unsigned int variableIndex ) {
         setValue( 0 );
         QObject::connect( qca,  SIGNAL( floatingChanged( const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                           this, SLOT( setValueIfNoFocus( const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-        QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo& ) ),
-                          this, SLOT( connectionChanged( QCaConnectionInfo& ) ) );
+        QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ),
+                          this, SLOT( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
     }
 }
 
@@ -160,7 +160,8 @@ void QESpinBox::establishConnection( unsigned int variableIndex ) {
     Change how the label looks and change the tool tip
     This is the slot used to recieve connection updates from a QCaObject based class.
  */
-void QESpinBox::connectionChanged( QCaConnectionInfo& connectionInfo )
+void QESpinBox::connectionChanged( QCaConnectionInfo& connectionInfo,
+                                   const unsigned int &variableIndex )
 {
     // Note the connected state
     isConnected = connectionInfo.isChannelConnected();
@@ -186,6 +187,11 @@ void QESpinBox::connectionChanged( QCaConnectionInfo& connectionInfo )
 
     // Set cursor to indicate access mode.
     setAccessCursorStyle();
+
+    // Signal channel connection change to any (Link) widgets.
+    // using signal dbConnectionChanged.
+    //
+    emitDbConnectionChanged( variableIndex );
 }
 
 /*
@@ -197,7 +203,8 @@ void QESpinBox::connectionChanged( QCaConnectionInfo& connectionInfo )
     This is the slot used to recieve data updates from a QCaObject based class.
     This is the slot used to recieve data updates from a QCaObject based class.
 */
-void QESpinBox::setValueIfNoFocus( const double& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& ) {
+void QESpinBox::setValueIfNoFocus( const double& value, QCaAlarmInfo& alarmInfo,
+                                   QCaDateTime&, const unsigned int& variableIndex) {
 
     // Save the last database value
     lastValue = value;
@@ -236,8 +243,9 @@ void QESpinBox::setValueIfNoFocus( const double& value, QCaAlarmInfo& alarmInfo,
     // Invoke common alarm handling processing.
     processAlarmInfo( alarmInfo );
 
-    // Signal a database value change to any Link widgets
-    emit dbValueChanged( value );
+    // Signal a database value change to any Link (or other) widgets using one
+    // of the dbValueChanged signals declared in header file.
+    emitDbValueChanged( variableIndex );
 }
 
 /*

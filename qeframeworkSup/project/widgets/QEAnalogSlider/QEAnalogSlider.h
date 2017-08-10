@@ -272,11 +272,23 @@ public:
 signals:
    // Note, the following signals are common to many QE widgets,
    // if changing the doxygen comments, ensure relevent changes are migrated to all instances
+   // These signals are emitted using the QEEmitter::emitDbValueChanged function.
    /// Sent when the widget is updated following a data change
    /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
    /// For example a QList widget could log updates from this widget.
    /// Note: this widget emits the numeric enumeration value as opposed to the associated text.
+   void dbValueChanged ();                     // signal event
+   void dbValueChanged (const QString& out);   // signal as formatted text
+   void dbValueChanged (const int& out);       // signal as int if applicable
    void dbValueChanged (const long& out);
+   void dbValueChanged (const qlonglong& out); // signal as qlonglong if applicable
+   void dbValueChanged (const double& out);    // signal as floating if applicable
+   void dbValueChanged (const bool& out);      // signal as bool: value != 0 if applicable
+
+   // This signal is emitted using the QEEmitter::emitDbConnectionChanged function.
+   /// Sent when the widget state updated following a channel connection change
+   /// Applied to provary varible.
+   void dbConnectionChanged (const bool& isConnected);
 
 protected:
    // override QEWidget fnctions.

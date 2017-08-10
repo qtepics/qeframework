@@ -114,7 +114,8 @@ QMenu* QEGenericEdit::getDefaultContextMenu()
 // Change how the label looks and change the tool tip
 // This is the slot used to recieve connection updates from a QCaObject based class.
 //
-void QEGenericEdit::connectionChanged( QCaConnectionInfo& connectionInfo )
+void QEGenericEdit::connectionChanged( QCaConnectionInfo& connectionInfo,
+                                       const unsigned int& variableIndex )
 {
     // Note the connected state
     isConnected = connectionInfo.isChannelConnected();
@@ -135,7 +136,7 @@ void QEGenericEdit::connectionChanged( QCaConnectionInfo& connectionInfo )
     // Signal channel connection change to any (Link) widgets.
     // using signal dbConnectionChanged.
     //
-    emitDbConnectionChanged( 0 );
+    emitDbConnectionChanged( variableIndex );
 }
 
 //------------------------------------------------------------------------------

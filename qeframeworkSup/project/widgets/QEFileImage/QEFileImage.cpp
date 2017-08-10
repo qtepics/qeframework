@@ -100,8 +100,8 @@ void QEFileImage::establishConnection( unsigned int variableIndex ) {
     if(  qca ) {
         QObject::connect( qca,  SIGNAL( stringChanged( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                           this, SLOT( setLabelImage( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-        QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo& ) ),
-                          this, SLOT( connectionChanged( QCaConnectionInfo& ) ) );
+        QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ),
+                          this, SLOT( connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ) );
         QObject::connect( this, SIGNAL( requestResend() ),
                           qca, SLOT( resendLastData() ) );
     }
@@ -113,7 +113,7 @@ void QEFileImage::establishConnection( unsigned int variableIndex ) {
     Change how the label looks and change the tool tip
     This is the slot used to recieve connection updates from a QCaObject based class.
  */
-void QEFileImage::connectionChanged( QCaConnectionInfo& connectionInfo )
+void QEFileImage::connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex )
 {
     // Note the connected state
     isConnected = connectionInfo.isChannelConnected();
@@ -121,13 +121,19 @@ void QEFileImage::connectionChanged( QCaConnectionInfo& connectionInfo )
     // Display the connected state
     updateToolTipConnection( isConnected );
     processConnectionInfo( isConnected );
+
+    // Signal channel connection change to any (Link) widgets.
+    // using signal dbConnectionChanged.
+    //
+    emitDbConnectionChanged( variableIndex );
 }
 
 /*
     Update the label pixmap from variable data.
     This is the slot used to recieve data updates from a QCaObject based class.
  */
-void QEFileImage::setLabelImage( const QString& textIn, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& ) {
+void QEFileImage::setLabelImage( const QString& textIn, QCaAlarmInfo& alarmInfo,
+                                 QCaDateTime&, const unsigned int& variableIndex ) {
 
     // Signal a database value change to any Link widgets
     emit dbValueChanged( textIn );
@@ -137,6 +143,10 @@ void QEFileImage::setLabelImage( const QString& textIn, QCaAlarmInfo& alarmInfo,
 
     // Invoke common alarm handling processing.
     processAlarmInfo( alarmInfo );
+
+    // Signal a database value change to any Link (or other) widgets using one
+    // of the dbValueChanged signals declared in header file.
+    emitDbValueChanged( variableIndex );
 }
 
 /*

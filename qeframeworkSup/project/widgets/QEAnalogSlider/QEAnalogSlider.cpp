@@ -340,8 +340,12 @@ void QEAnalogSlider::mainConnectionChanged (QCaConnectionInfo& connectionInfo,
    // Set cursor to indicate access mode.
    //
    this->setAccessCursorStyle ();
-}
 
+   // Signal a channel connection change to any Link (or other) widgets using one
+   // of the dbValueChanged signals declared in header file.
+   //
+   this->emitDbConnectionChanged (variableIndex);
+}
 
 //-----------------------------------------------------------------------------
 //
@@ -396,14 +400,14 @@ void QEAnalogSlider::floatingChanged (const double& value,
    ap->setMarkerColour (SET_POINT_MARKER, QColor (255, 155, 55));
    ap->setMarkerVisible (SET_POINT_MARKER, true);
 
-
-   // Signal a database value change to any Link widgets
-   //
-   emit this->dbValueChanged (value);
-
    // Invoke common alarm handling processing.
    //
    this->processAlarmInfo (alarmInfo, variableIndex);
+
+   // Signal a database value change to any Link (or other) widgets using one
+   // of the dbValueChanged signals declared in header file.
+   //
+   this->emitDbValueChanged (variableIndex);
 }
 
 //-----------------------------------------------------------------------------

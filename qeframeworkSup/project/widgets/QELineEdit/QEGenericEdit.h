@@ -303,7 +303,7 @@ private:
 
 
 private slots:
-    void connectionChanged( QCaConnectionInfo& connectionInfo );
+    void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex );
     void useNewVariableNameProperty( QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex );
     void userReturnPressed();                       // Act on the user pressing return in the widget
     void userEditingFinished();                     // Act on the user signaling text editing is complete (pressing return)

@@ -123,8 +123,8 @@ void QESlider::establishConnection( unsigned int variableIndex ) {
         setValue( 0 );
         QObject::connect( qca,  SIGNAL( floatingChanged( const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                           this, SLOT( setValueIfNoFocus( const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-        QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo& ) ),
-                          this, SLOT( connectionChanged( QCaConnectionInfo& ) ) );
+        QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int ) ),
+                          this, SLOT( connectionChanged( QCaConnectionInfo&, const unsigned int ) ) );
     }
 }
 
@@ -133,7 +133,7 @@ void QESlider::establishConnection( unsigned int variableIndex ) {
     Change how the label looks and change the tool tip
     This is the slot used to recieve connection updates from a QCaObject based class.
  */
-void QESlider::connectionChanged( QCaConnectionInfo& connectionInfo )
+void QESlider::connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex )
 {
     // Note the connected state
     isConnected = connectionInfo.isChannelConnected();
@@ -159,6 +159,11 @@ void QESlider::connectionChanged( QCaConnectionInfo& connectionInfo )
 
     // Set cursor to indicate access mode.
     setAccessCursorStyle();
+
+    // Signal channel connection change to any (Link) widgets.
+    // using signal dbConnectionChanged.
+    //
+    emitDbConnectionChanged( variableIndex );
 }
 
 /*
@@ -168,7 +173,8 @@ void QESlider::connectionChanged( QCaConnectionInfo& connectionInfo )
     if is is written to by another user on another gui.
     This is the slot used to recieve data updates from a QCaObject based class.
 */
-void QESlider::setValueIfNoFocus( const double& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& ) {
+void QESlider::setValueIfNoFocus( const double& value, QCaAlarmInfo& alarmInfo,
+                                  QCaDateTime&, const unsigned int& variableIndex ) {
 
     // Do nothing if doing a single shot read (done when not subscribing to get enumeration values)
     if( ignoreSingleShotRead )
@@ -176,9 +182,6 @@ void QESlider::setValueIfNoFocus( const double& value, QCaAlarmInfo& alarmInfo, 
         ignoreSingleShotRead = false;
         return;
     }
-
-    // Signal a database value change to any Link widgets
-    emit dbValueChanged( qlonglong( value ) );
 
     // Update the slider only if the user is not interacting with the object, unless
     // the form designer has specifically allowed updates  while the widget has focus.
@@ -192,6 +195,10 @@ void QESlider::setValueIfNoFocus( const double& value, QCaAlarmInfo& alarmInfo, 
 
     // Invoke common alarm handling processing.
     processAlarmInfo( alarmInfo );
+
+    // Signal a database value change to any Link (or other) widgets using one
+    // of the dbValueChanged signals declared in header file.
+    emitDbValueChanged( variableIndex );
 }
 
 /*
