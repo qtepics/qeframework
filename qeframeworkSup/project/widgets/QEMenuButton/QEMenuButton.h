@@ -70,6 +70,12 @@ public:
    //
    Q_PROPERTY (QString defaultSubstitutions READ getSubstitutionsProperty WRITE setSubstitutionsProperty)
 
+    /// Label Text
+    Q_PROPERTY(QString labelText READ getLabelTextProperty WRITE setLabelTextProperty)
+
+    /// Font
+    Q_PROPERTY(QFont font READ font WRITE setFont)
+
    // This property stores the user info.
    // The "Edit User Info..." context menu item must be used to edit this.
    /// Specifies the menu entry values, encoded and an XML string.
@@ -84,6 +90,14 @@ public:
 
    void setSubstitutionsProperty (const QString& substitutions);
    QString getSubstitutionsProperty () const;
+
+   // Label text must be mapped to the button
+   void setLabelTextProperty( QString labelTextIn );
+   QString getLabelTextProperty();
+
+   // Font must be mapped to the button
+   void setFont(const QFont &);
+   const QFont & font() const;
 
    void setMenuString (const QString& s);
    QString getMenuString () const;

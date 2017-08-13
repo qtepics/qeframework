@@ -37,7 +37,7 @@ BUNDLE=
 QE_FRAMEWORK=$(BUNDLE)/gui/qeframework
 
 # EPICS_BASE usually appears last so other apps can override stuff:
-#
-EPICS_BASE=$(BUNDLE)/epics/base
+#EPICS_BASE=$(BUNDLE)/epics/base
+EPICS_BASE=/usr/local/epics/R3.14.12/base
 
 # end
