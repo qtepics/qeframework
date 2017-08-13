@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015 Australian Synchrotron
+ *  Copyright (c) 2015,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -45,13 +45,13 @@
 /// This widget provides a menu attached to a button.
 /// Each menu/submenu can tigger same items as a QEPushButton, i.e:
 /// a) write a value to a PV (click only); and/or
-/// b) run a nominated program; and/or
+/// b) run a nominated program (with arguments); and/or
 /// c) open a specified ui file.
 ///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEMenuButton : public QEAbstractWidget {
    Q_OBJECT
 public:
-   // Some standard properties are really not applicable.
+   // Some standard properties are really not applicable to this widget.
    // These are re-declared as DESIGNABLE false.
    //
    Q_PROPERTY (bool allowDrop         READ getAllowDrop         WRITE setAllowDrop         DESIGNABLE false)
@@ -70,6 +70,9 @@ public:
    //
    Q_PROPERTY (QString defaultSubstitutions READ getSubstitutionsProperty WRITE setSubstitutionsProperty)
 
+   /// Label Text
+   Q_PROPERTY (QString labelText READ getLabelTextProperty WRITE setLabelTextProperty)
+
    // This property stores the user info.
    // The "Edit User Info..." context menu item must be used to edit this.
    /// Specifies the menu entry values, encoded and an XML string.
@@ -85,6 +88,10 @@ public:
    void setSubstitutionsProperty (const QString& substitutions);
    QString getSubstitutionsProperty () const;
 
+   // Label text must be mapped to the button
+   void setLabelTextProperty (const QString& labelText);
+   QString getLabelTextProperty () const;
+
    void setMenuString (const QString& s);
    QString getMenuString () const;
 
@@ -94,6 +101,9 @@ signals:
 
 protected:
    QSize sizeHint () const;
+
+   // Font must be mapped to the button
+   void fontChange (const QFont& font);
 
    QMenu* buttonMainMenu;
    QString theMenuString;

@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015, 2016 Australian Synchrotron
+ *  Copyright (c) 2015,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -59,7 +59,8 @@ QEMenuButton::QEMenuButton (QWidget* parent) : QEAbstractWidget (parent)
    this->setVariableAsToolTip (false);
    this->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_NEVER);
 
-   this->button->setText ("MenuButton");
+   this->setLabelTextProperty ("MenuButton");
+   this->button->setFont (this->font ());
 
    // Null menu specification.
    //
@@ -115,6 +116,19 @@ QEMenuButton::~QEMenuButton ()
 QSize QEMenuButton::sizeHint () const
 {
    return QSize (110, 27);
+}
+
+//------------------------------------------------------------------------------
+//
+void QEMenuButton::fontChange (const QFont&)
+{
+   // We use this overridden function as a trigger to update the internal
+   // widget's font. The given parameter (which we don't use) lags by one change,
+   // but this->font () is up to date, so we use that.
+   //
+   if (this->button) {
+      this->button->setFont (this->font ());
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -199,7 +213,7 @@ void QEMenuButton::writeToVariable (qcaobject::QCaObject* qca)
          break;
 
       case QEStringFormatting::FORMAT_DEFAULT:
-      // TODO - fix this option, but go with string for now.
+         // TODO - fix this option, but go with string for now.
 
       case QEStringFormatting::FORMAT_STRING:
          pvData = QVariant (buttonData.variableValue);
@@ -244,7 +258,7 @@ void QEMenuButton::connectionChanged (QCaConnectionInfo& connectionInfo, const u
 //
 void QEMenuButton::programCompletedSlot ()
 {
-   DEBUG;
+//   DEBUG;
 }
 
 //------------------------------------------------------------------------------
@@ -268,6 +282,20 @@ void QEMenuButton::setSubstitutionsProperty (const QString& substitutions)
 QString QEMenuButton::getSubstitutionsProperty () const
 {
    return this->getVariableNameSubstitutions ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEMenuButton::setLabelTextProperty (const QString& labelTextIn)
+{
+   this->button->setText (labelTextIn);
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEMenuButton::getLabelTextProperty() const
+{
+   return this->button->text ();
 }
 
 //------------------------------------------------------------------------------
