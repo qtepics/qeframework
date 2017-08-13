@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2011 Australian Synchrotron
+ *  Copyright (c) 2011,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -25,6 +25,17 @@
 
 #ifndef QE_PERIODIC_MANAGER_H
 #define QE_PERIODIC_MANAGER_H
+
+// The QT_VERSION check is in QEDesignerPluginCommon.h, but does not
+// work with moc unless restated here.  Possibly relevant:
+// https://stackoverflow.com/questions/4119688/macro-expansion-in-moc
+// Provide Qt version independent plugin-related includes.
+//
+#if (QT_VERSION >= 0x050500)
+#include <QtUiPlugin/QDesignerCustomWidgetInterface>
+#else
+#include <QDesignerCustomWidgetInterface>
+#endif
 
 #include <QEDesignerPluginCommon.h>
 #include <QEPluginLibrary_global.h>
