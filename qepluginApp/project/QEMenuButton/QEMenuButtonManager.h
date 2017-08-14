@@ -27,6 +27,8 @@
 #ifndef QE_MENU_BUTTON_MANAGER_H
 #define QE_MENU_BUTTON_MANAGER_H
 
+#include <QtGlobal>
+
 // The QT_VERSION check is in QEDesignerPluginCommon.h, but does not
 // work with moc unless restated here.  Possibly relevant:
 // https://stackoverflow.com/questions/4119688/macro-expansion-in-moc
