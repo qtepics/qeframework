@@ -831,6 +831,7 @@ bool CaObjectPrivate::processChannel( struct event_handler_args args ) {
             caRecord.updateProcessState();
             caRecord.setStatus( incommingData->status );
             caRecord.setAlarmSeverity( incommingData->severity );
+            caRecord.setUnits( std::string( incommingData->units ) );
             caRecord.setDisplayLimit( incommingData->upper_disp_limit, incommingData->lower_disp_limit );
             caRecord.setAlarmLimit( incommingData->upper_alarm_limit, incommingData->lower_alarm_limit );
             caRecord.setWarningLimit( incommingData->upper_warning_limit, incommingData->lower_warning_limit );

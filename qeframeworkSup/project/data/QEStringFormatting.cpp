@@ -26,8 +26,10 @@
 #include <QEStringFormatting.h>
 #include <stdio.h>
 #include <math.h>
-#include <QtDebug>
+#include <QDebug>
 #include <QECommon.h>
+
+#define DEBUG qDebug () << "QEStringFormatting" << __LINE__ << __FUNCTION__ << "  "
 
 /*
     Construction
@@ -429,11 +431,11 @@ QString QEStringFormatting::insertSeparators( const QString& image) const
 
 /* Experimental - proof of concept.
    Creates an image of a real floating point number.
-   notation controls meaning of  prec
+   notation controls meaning of prec:
       when NOTATION_FIXED =>       prec is precision
       when NOTATION_SCIENTIFIC =>  prec is precision
       when NOTATION_AUTOMATIC =>   prec is significance
-   When sign True, result always include a leading '+'
+   When forceSign is true, result always include a leading '+'
    zeros sepifies the minimum number of leading zeros.
  */
 QString QEStringFormatting::realImage( const double item,
@@ -490,10 +492,11 @@ QString QEStringFormatting::formatString( const QVariant& value, int arrayIndex 
 {
    QEStringFormatting* self = (QEStringFormatting*) this;   // this works as modified members are just used as temp. variables.
    QString result;
+   bool isNumeric = false;
 
    if( value.type() != QVariant::List ){
       // "Simple" scalar
-      result = self->formatElementString( value );
+      result = self->formatElementString( value, isNumeric );
 
    } else {
       // Array variable
@@ -509,7 +512,7 @@ QString QEStringFormatting::formatString( const QVariant& value, int arrayIndex 
             for( int j = 0; j < number; j++ ){
                QVariant element = valueArray.value (j);
                QString elementString;
-               elementString = self->formatElementString( element );
+               elementString = self->formatElementString( element, isNumeric );
 
                if( j > 0 )result.append ( " " );
                result.append( elementString );
@@ -552,7 +555,7 @@ QString QEStringFormatting::formatString( const QVariant& value, int arrayIndex 
             if( ( arrayIndex >= 0 ) && ( arrayIndex < number ) )
             {
                QVariant element = valueArray.value( arrayIndex );
-               result = self->formatElementString( element );
+               result = self->formatElementString( element, isNumeric );
             }
             break;
 
@@ -565,7 +568,7 @@ QString QEStringFormatting::formatString( const QVariant& value, int arrayIndex 
 
    // Add units if required, if there are any present, and if the text is not an error message
    int eguLen = dbEgu.length(); // ??? Why cant this be in the 'if' statement? If it is it never adds an egu
-   if( addUnits && eguLen && (format != FORMAT_TIME) )
+   if( isNumeric && addUnits && (eguLen > 0) && (format != FORMAT_TIME) )
    {
       result.append( " " ).append( dbEgu );
    }
@@ -576,7 +579,7 @@ QString QEStringFormatting::formatString( const QVariant& value, int arrayIndex 
 /*
     Generate a string given an element value, using formatting defined within this class.
 */
-QString QEStringFormatting::formatElementString( const QVariant& value ) {
+QString QEStringFormatting::formatElementString( const QVariant& value, bool& isNumeric ) {
    // Examine the value and note the matching format
    // This sets dbFormat which is used by following switch statements
    determineDbFormat( value );
@@ -625,14 +628,17 @@ QString QEStringFormatting::formatElementString( const QVariant& value ) {
                {
                   case FORMAT_FLOATING:
                      formatFromFloating( value );
+                     isNumeric = true;
                      break;
 
                   case FORMAT_INTEGER:
                      formatFromInteger( value );
+                     isNumeric = true;
                      break;
 
                   case FORMAT_UNSIGNEDINTEGER:
                      formatFromUnsignedInteger( value );
+                     isNumeric = true;
                      break;
 
                   case FORMAT_STRING:
@@ -650,14 +656,17 @@ QString QEStringFormatting::formatElementString( const QVariant& value ) {
          // Format as requested, ignoring the database type
       case FORMAT_FLOATING:
          formatFromFloating( value );
+         isNumeric = true;
          break;
 
       case FORMAT_INTEGER:
          formatFromInteger( value );
+         isNumeric = true;
          break;
 
       case FORMAT_UNSIGNEDINTEGER:
          formatFromUnsignedInteger( value );
+         isNumeric = true;
          break;
 
       case FORMAT_LOCAL_ENUMERATE:
@@ -956,7 +965,7 @@ void QEStringFormatting::formatFromTime( const QVariant &value ) {
 /*
     Format a variant value as a string representation of a string. (Not a big ask!)
 */
-void QEStringFormatting::formatFromString( const QVariant &value ) {
+void QEStringFormatting::formatFromString( const QVariant& value ) {
    // Generate the text
    stream << value.toString(); // No conversion requried. Stored in variant as required type
 }
@@ -985,7 +994,8 @@ void QEStringFormatting::formatFailure( QString message ) {
 */
 void QEStringFormatting::setPrecision( int precisionIn ) {
    precision = precisionIn;
-   // Ensure rangeis sensible.
+
+   // Ensure range is sensible.
    //
    if (precision < 0) precision = 0;
    if (precision > 18) precision = 18;

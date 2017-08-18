@@ -122,8 +122,10 @@ public:
     QString      getLocalEnumeration() const;
     QELocalEnumeration getLocalEnumerationObject() const;
 
-  private:
-    QString formatElementString( const QVariant& value );
+private:
+    // isNumeric set true iff value is numeric data.
+    //
+    QString formatElementString( const QVariant& value, bool& isNumeric );
 
     // Type specific conversion functions
     // TODO: These SHOULD be rebadged formatToFloatingString etc.

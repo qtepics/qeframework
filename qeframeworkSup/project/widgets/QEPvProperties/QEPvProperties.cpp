@@ -373,6 +373,7 @@ void QEPvProperties::common_setup ()
    this->valueStringFormatting.setArrayAction (QEStringFormatting::INDEX);
 
    this->rtypStringFormatting.setArrayAction (QEStringFormatting::ASCII);
+   this->rtypStringFormatting.setAddUnits (false);
 
    this->hostName->setIndent (4);
    this->hostName->setStyleSheet (lightGreyStyle);
