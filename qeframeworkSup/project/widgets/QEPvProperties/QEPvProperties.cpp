@@ -968,9 +968,6 @@ void QEPvProperties::setValueValue (const QVariant& value,
          this->valueStringFormatting.setArrayAction (QEStringFormatting::INDEX);
       }
 
-      this->valueLabel->setText (this->valueStringFormatting.formatString (value, 0));
-      this->valueLabel->setStyleSheet (alarmInfo.style ());
-
       // Ensure we do any required resizing.
       //
       this->resizeEvent (NULL);
@@ -1009,6 +1006,11 @@ void QEPvProperties::setValueValue (const QVariant& value,
 
       this->isFirstUpdate = false;
    }
+
+   // Update internal label
+   //
+   this->valueLabel->setText (this->valueStringFormatting.formatString (value, 0));
+   this->valueLabel->setStyleSheet (alarmInfo.style ());
 
    // Invoke common alarm handling processing.
    //
