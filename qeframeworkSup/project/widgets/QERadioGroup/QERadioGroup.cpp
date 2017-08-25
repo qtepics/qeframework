@@ -43,7 +43,7 @@ QERadioGroup::QERadioGroup (QWidget* parent) :
    QEAbstractWidget (parent),
    QESingleVariableMethods (this, PV_VARIABLE_INDEX)
 {
-   this->commonSetup (" QERadioGroup ");
+   this->commonSetup ("");
 }
 
 //-----------------------------------------------------------------------------
@@ -53,7 +53,7 @@ QERadioGroup::QERadioGroup (const QString& variableNameIn, QWidget* parent) :
    QEAbstractWidget (parent),
    QESingleVariableMethods (this, PV_VARIABLE_INDEX)
 {
-   this->commonSetup (" QERadioGroup ");
+   this->commonSetup ("");
    this->setVariableName (variableNameIn, PV_VARIABLE_INDEX);
    activate();
 }
