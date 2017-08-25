@@ -37,7 +37,7 @@
 // Constructor with no initialisation
 //
 QRadioGroup::QRadioGroup (QWidget* parent) :
-   QGroupBox (" QRadioGroup ", parent)
+   QGroupBox (parent)
 {
    this->commonSetup ();
 }
