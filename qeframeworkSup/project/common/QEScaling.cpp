@@ -70,7 +70,10 @@ static int gcd (int a, int b)
 #define MAGIC_NUMBER        0x23571113
 #define BASELINE_SCALING    "QE_BASELINE_SCALING"
 
-
+// The baseline sizing information is stored as a dynamic widget property.
+// The stored porprty is a QVariantList with two elements, the enum type names
+// the indicies associated with each QVariant in the list.
+//
 enum PropertyIndex {
    piStyleSheet = 0,
    piGenericData,
@@ -129,12 +132,12 @@ int QEScaling::dataSize () const
 }
 
 //------------------------------------------------------------------------------
-// Encodes from firstMember upto, but excluding lastMember as QByteArray QVariant.
+// Encodes from firstMember upto, but excluding, lastMember as QByteArray QVariant.
 //
 QVariant QEScaling::encodeProperty () const
 {
    if (!isDefined) {
-      return    QVariant (QVariant::Invalid);
+      return QVariant (QVariant::Invalid);
    }
 
    const void* base = &this->firstMember;
@@ -306,7 +309,7 @@ void QEScaling::getScaling (int& m, int& d)
 }
 
 //------------------------------------------------------------------------------
-//static
+// static
 //
 void QEScaling::setFontScaling (const int fm, const int fd)
 {
@@ -370,8 +373,16 @@ void QEScaling::widgetScale (QWidget* widget)
       return;
    }
 
-   QString ss = QEScaling::scaleStyleSheet (baseline.styleSheet);
-   widget->setStyleSheet (ss);
+   QEWidget* qeWidget = dynamic_cast <QEWidget *>(widget);
+   if (!qeWidget) {
+      // This is not a QEWidget, so attempt to apply scaling to any defined point
+      // and/or pixel sizes.
+      // Note: QEWidgets make use of style to show alarm and connection status,
+      // so we definitly don't want to mess with that.
+      //
+      QString ss = QEScaling::scaleStyleSheet (baseline.styleSheet);
+      widget->setStyleSheet (ss);
+   }
 
    QSize minSize = baseline.minimumSize;
    QSize maxSize = baseline.maximumSize;
@@ -502,7 +513,6 @@ void QEScaling::widgetScale (QWidget* widget)
       }
    }
 
-   QEWidget* qeWidget = dynamic_cast <QEWidget *>(widget);
    if (qeWidget) {
       // For QEWidget objects, scaleBy is virtual function. This allows geometrically
       // complicated widgets, such as QEShape, to provide a bespoke scaling function.

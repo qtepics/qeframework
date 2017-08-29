@@ -36,10 +36,17 @@
 
 #include <QEFrameworkLibraryGlobal.h>
 
+/// This class provide the means to scale a Qt application and/or an individual widget.
+/// When scaled, the size related attributes including size, min sizee, max size and
+/// font size are scaled (note: different from the standard Qt layout streching).
+/// While not perfect, this can be useful and acceptable.
+///
 /// The scaling is defined using a rational number specifed by two integers (m, d).
 /// The first (m) integer is the multiplier and the second (d) integer is the divisor.
 /// For example, if m = 4 and d = 5, then this specifies an 80%; and if m = 5 and d = 4,
 /// this specifies that a 125% scaling is required.
+///
+/// Additonal font Scaling, above and beyond the overall scaling, may also be specified.
 ///
 /// Scaling is deemed to be application wide, hence all scaling data (and functions)
 /// are static.
@@ -141,13 +148,13 @@ private:
    ~QEScaling ();
 
    // Captures and saves information necessary to scale a widget. This information
-   // includes widigets geometry, minimum and maximum sizes point/pixel size etc.
+   // includes widget's geometry, minimum and maximum sizes point/pixel size etc.
    // The information is saved as a dynamic widget property.
    //
    void captureBaselineInformation (QWidget* widget);
 
    // Extracts captured scaling data from dynamic widget property if it exists,
-   // validates date. The restored data is stored in this QEScaling object.
+   // and validates the data. The restored data is stored in this QEScaling object.
    // Note: this function is not the opposite/inverse of captureBaselineInformation
    // as the extracted data is not applied to the widget.
    //
