@@ -367,6 +367,7 @@ void QEPvProperties::common_setup ()
 
    // We want to be general here - plenty of precision.
    //
+   this->valueStringFormatting.setFormat (QEStringFormatting::FORMAT_DEFAULT);
    this->valueStringFormatting.setPrecision (9);
    this->valueStringFormatting.setUseDbPrecision (false);
    this->valueStringFormatting.setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
@@ -968,6 +969,12 @@ void QEPvProperties::setValueValue (const QVariant& value,
          this->valueStringFormatting.setArrayAction (QEStringFormatting::INDEX);
       }
 
+      // Set up variable details used by some formatting options
+      //
+      this->valueStringFormatting.setDbEgu (qca->getEgu ());
+      this->valueStringFormatting.setDbEnumerations (qca->getEnumerations ());
+      this->valueStringFormatting.setDbPrecision (qca->getPrecision ());
+
       // Ensure we do any required resizing.
       //
       this->resizeEvent (NULL);
@@ -1007,7 +1014,7 @@ void QEPvProperties::setValueValue (const QVariant& value,
       this->isFirstUpdate = false;
    }
 
-   // Update internal label
+   // Update internal label.
    //
    this->valueLabel->setText (this->valueStringFormatting.formatString (value, 0));
    this->valueLabel->setStyleSheet (alarmInfo.style ());
