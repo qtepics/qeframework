@@ -81,10 +81,10 @@ QEPlotterMenu::QEPlotterMenu (QWidget* parent) : QMenu (parent)
 
    menu = new QMenu ("Show", this);
    this->addMenu (menu);
-   this->make (menu, "Show/Hide Crosshairs",    true,  QEPlotterNames::PLOTTER_SHOW_HIDE_CROSSHAIRS);
    this->make (menu, "Show/Hide Tool Bar",      true,  QEPlotterNames::PLOTTER_SHOW_HIDE_TOOLBAR);
    this->make (menu, "Show/Hide PV Items",      true,  QEPlotterNames::PLOTTER_SHOW_HIDE_PV_ITEMS);
    this->make (menu, "Show/Hide Status",        true,  QEPlotterNames::PLOTTER_SHOW_HIDE_STATUS);
+   this->make (menu, "Show/Hide Crosshairs",    true,  QEPlotterNames::PLOTTER_SHOW_HIDE_CROSSHAIRS);
 
    this->make (this, "Emit Coordinates",        false, QEPlotterNames::PLOTTER_EMIT_COORDINATES );
 

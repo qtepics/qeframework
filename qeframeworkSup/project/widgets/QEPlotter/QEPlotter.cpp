@@ -398,6 +398,14 @@ void QEPlotter::DataSets::setContext (QEPlotter* ownerIn, int slotIn)
 
 //------------------------------------------------------------------------------
 //
+void QEPlotter::DataSets::clear ()
+{
+   this->data.clear ();
+   this->dyByDx.clear ();
+}
+
+//------------------------------------------------------------------------------
+//
 bool QEPlotter::DataSets::isInUse () const
 {
    return (this->dataKind != NotInUse);
@@ -724,8 +732,7 @@ void QEPlotter::setNewVariableName (QString variableName,
                                     QString variableNameSubstitutions,
                                     unsigned int variableIndex)
 {
-   int slot = this->slotOf (variableIndex);
-
+   const int slot = this->slotOf (variableIndex);
    SLOT_CHECK (slot,);
 
    // First clear out any status - this is a new PV name or cleared PV name.
@@ -767,16 +774,15 @@ void QEPlotter::setNewVariableName (QString variableName,
 //
 qcaobject::QCaObject* QEPlotter::createQcaItem (unsigned int variableIndex)
 {
+   const int slot = this->slotOf (variableIndex);
+   SLOT_CHECK (slot, NULL);
+
    qcaobject::QCaObject* result = NULL;
    QString pvName;
    int size;
    bool okay;
-   int slot;
 
    pvName = this->getSubstitutedVariableName (variableIndex).trimmed ();
-   slot = this->slotOf (variableIndex);
-
-   SLOT_CHECK (slot, NULL);
 
    if (this->isDataIndex (variableIndex)) {
       // Has designer/user defined a calculation (as opposed to a PV name)?.
@@ -831,6 +837,9 @@ qcaobject::QCaObject* QEPlotter::createQcaItem (unsigned int variableIndex)
 //
 void QEPlotter::establishConnection (unsigned int variableIndex)
 {
+   const int slot = this->slotOf (variableIndex);
+   SLOT_CHECK (slot,);
+
    // Create a connection.
    // If successfull, the QCaObject object that will supply data update signals will be returned
    // Note createConnection creates the connection and returns reference to existing QCaObject.
@@ -840,8 +849,10 @@ void QEPlotter::establishConnection (unsigned int variableIndex)
    if (!qca) {
       return;
    }
-
    if (this->isDataIndex (variableIndex)) {
+
+      this->xy [slot].clear ();  // Clear any old data.
+
       QObject::connect (qca, SIGNAL (connectionChanged     (QCaConnectionInfo &, const unsigned int &)),
                         this, SLOT  (dataConnectionChanged (QCaConnectionInfo &, const unsigned int &)));
 

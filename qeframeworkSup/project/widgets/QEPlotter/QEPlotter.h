@@ -453,6 +453,7 @@ private:
       ~DataSets ();
 
       void setContext (QEPlotter* owner, int slot);
+      void clear ();
       int getSlot () const;
       bool isInUse () const;
       int actualSize () const;
