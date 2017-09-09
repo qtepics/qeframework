@@ -317,15 +317,20 @@ void QEScratchPad::resizeEvent (QResizeEvent*)
 
    geo = item->value->geometry ();
    geo.translate (horOffset, verOffset);
-   geo.setWidth (geo.width() - 44);
    this->titleValue->setGeometry (geo);
 
-   left = geo.right() + 8;
+   // Locate load and save buttons at right hand side of the parent frame.
+   // These locations are dependent on button sizes and the frame width.
+   //
+   const int tfw = this->titleFrame->geometry().width();
+   const int bw = this->loadButton->geometry().width();
+
+   left = tfw - (18*bw)/8;
    geo = this->loadButton->geometry();
    geo.moveLeft (left);   // absolute (as opposed to relative) move.
    this->loadButton->setGeometry (geo);
 
-   left = geo.right() + 4;
+   left = tfw - (9*bw)/8;
    geo = this->saveButton->geometry();
    geo.moveLeft (left);   // absolute (as opposed to relative) move.
    this->saveButton->setGeometry (geo);
@@ -633,7 +638,7 @@ void QEScratchPad::showEvent (QShowEvent* /*event*/ )
 
 //---------------------------------------------------------------------------------
 //
-void QEScratchPad::keyPressEvent (QKeyEvent * event)
+void QEScratchPad::keyPressEvent (QKeyEvent* event)
 {
    const int key = event->key ();
    const Qt::KeyboardModifiers modifier = event->modifiers();
@@ -658,6 +663,12 @@ void QEScratchPad::keyPressEvent (QKeyEvent * event)
             }
             this->setSelectItem (this->selectedItem + 1, false);
          }
+         break;
+
+      default:
+         // Otherwise call parent function.
+         //
+         QEAbstractDynamicWidget::keyPressEvent (event);
          break;
    }
 }
