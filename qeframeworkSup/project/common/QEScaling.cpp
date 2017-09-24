@@ -68,7 +68,8 @@ static int gcd (int a, int b)
 //==============================================================================
 //
 #define MAGIC_NUMBER        0x23571113
-#define BASELINE_SCALING    "QE_BASELINE_SCALING"
+#define BASELINE_SIZEING    "__QE_BASELINE_SIZEING__"
+#define CURRENT_SCALE       "__QE_CURRENT_SCALE__"
 
 // The baseline sizing information is stored as a dynamic widget property.
 // The stored porprty is a QVariantList with two elements, the enum type names
@@ -111,7 +112,7 @@ void QEScaling::captureBaselineInformation (QWidget* widget)
 
    this->extractFromWidget (widget);
    QVariant property = this->encodeProperty ();
-   widget->setProperty (BASELINE_SCALING, property);
+   widget->setProperty (BASELINE_SIZEING, property);
 }
 
 //------------------------------------------------------------------------------
@@ -119,7 +120,7 @@ void QEScaling::captureBaselineInformation (QWidget* widget)
 bool QEScaling::extractBaselineInformation (const QWidget* widget)
 {
    if (!widget) return false;  // sainity check.
-   QVariant property = widget->property (BASELINE_SCALING);
+   QVariant property = widget->property (BASELINE_SIZEING);
    bool result = this->decodeProperty (property);
    return result;
 }
@@ -357,7 +358,7 @@ void QEScaling::widgetCapture (QWidget* widget)
 
 //------------------------------------------------------------------------------
 // static
-void QEScaling::widgetScale (QWidget* widget)
+void QEScaling::applyScalingToWidget (QWidget* widget)
 {
    // sainity check.
    //
@@ -375,13 +376,22 @@ void QEScaling::widgetScale (QWidget* widget)
 
    QEWidget* qeWidget = dynamic_cast <QEWidget *>(widget);
    if (!qeWidget) {
-      // This is not a QEWidget, so attempt to apply scaling to any defined point
-      // and/or pixel sizes.
-      // Note: QEWidgets make use of style to show alarm and connection status,
-      // so we definitly don't want to mess with that.
+      // This widget is not is not a QEWidget.
+      //
+      // QEWidgets make use of style to show alarm and connection status,
+      // so we definitely don't want to mess with that.
+      //
+      // Attempt to apply scaling to any defined point and/or pixel sizes if defined.
+      // If no scaleable px/pt attributes exist in the style sheet, just leave it.
+      //
+      // NOTE: This is a all a bit of a compromise. If a form designer defines
+      // px/pt attributes for a QEWidget's style (e.g. default and/or user level
+      // style) they will not get scaled; and if he/she defines px/pt attributes
+      // in a non-QEWidget and sets other style attributes dynamically, the baseline
+      // style is rescaled and the dynamic style attributes will be lost.
       //
       QString ss = QEScaling::scaleStyleSheet (baseline.styleSheet);
-      widget->setStyleSheet (ss);
+      if (ss != baseline.styleSheet) widget->setStyleSheet (ss);
    }
 
    QSize minSize = baseline.minimumSize;
@@ -519,6 +529,17 @@ void QEScaling::widgetScale (QWidget* widget)
       //
       qeWidget->scaleBy (QEScaling::currentScaleM, QEScaling::currentScaleD);
    }
+
+   // Lastly save the scaling as applied to THIS widget.
+   //
+   QVariant mp = QVariant (int (QEScaling::currentScaleM));
+   QVariant md = QVariant (int (QEScaling::currentScaleD));
+
+   QVariantList appliedScale;
+   appliedScale.append (mp);
+   appliedScale.append (md);
+
+   widget->setProperty (CURRENT_SCALE, appliedScale);
 }
 
 //------------------------------------------------------------------------------
@@ -571,26 +592,75 @@ void QEScaling::applyToWidget (QWidget* widget)
    // will be scaled three times etc.
    //
    QEScaling::widgetTreeWalk (widget, QEScaling::widgetCapture);
-   QEScaling::widgetTreeWalk (widget, QEScaling::widgetScale);
+   QEScaling::widgetTreeWalk (widget, QEScaling::applyScalingToWidget);
+}
+
+//------------------------------------------------------------------------------
+// static
+void QEScaling::rescaleWidget (QWidget* widget, const int rm, const int rd)
+{
+   // sanity check - rm and rd both positive.
+   //
+   if ((rm > 0) && (rd > 0)) {
+
+      // Save application wide scaling parameters.
+      //
+      const int savedM = QEScaling::currentScaleM;
+      const int savedD = QEScaling::currentScaleD;
+
+      // There is no need to normalise rational number here.
+      // But to restrict range 0.1 to 4.0 (i.e. 10% to 400%)
+      //
+      int lrm = LIMIT (rm, int (rd/10), int (rd*4));
+
+      // Calculate combined scale.
+      //
+      int modM = lrm * savedM;
+      int modD = rd  * savedD;
+
+      QEScaling::setScaling (modM, modD);
+      QEScaling::applyToWidget (widget);
+
+      // Finally restore application wide scaling parameters.
+      //
+      QEScaling::setScaling (savedM, savedD);
+   }
 }
 
 //------------------------------------------------------------------------------
 // static
 void QEScaling::rescaleWidget (QWidget* widget, const double newScale)
 {
-   const int savedM = QEScaling::currentScaleM;
-   const int savedD = QEScaling::currentScaleD;
+   int rm = int (100 * newScale);
+   int rd = 100;
+   QEScaling::rescaleWidget (widget, rm, rd);
+}
 
-   int t = int (100.0 * newScale);
-   int modM = LIMIT (t, 10, 400) * savedM;
-   int modD = 100 * savedD;
-
-   QEScaling::setScaling (modM, modD);
-   QEScaling::applyToWidget (widget);
-
-   // Finally restore
+//------------------------------------------------------------------------------
+// static
+void QEScaling::getWidgetScaling (QWidget* widget, int& m, int& d)
+{
+   // Ensure not erroneous.
    //
-   QEScaling::setScaling (savedM, savedD);
+   m = 1;
+   d = 1;
+   if (!widget) return;
+
+   QVariant property = widget->property (CURRENT_SCALE);
+
+   if (property.type () != QVariant::List) return;
+
+   QVariantList variantList = property.toList ();
+   if (variantList.count () != 2) return;
+
+   QVariant mp = variantList.value (0);
+   if (mp.type() != QVariant::Int) return;
+
+   QVariant dp = variantList.value (1);
+   if (dp.type() != QVariant::Int) return;
+
+   m = mp.toInt ();
+   d = dp.toInt ();
 }
 
 //------------------------------------------------------------------------------

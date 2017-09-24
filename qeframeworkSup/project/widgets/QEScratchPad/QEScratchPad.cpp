@@ -33,6 +33,7 @@
 #include <QMimeData>
 
 #include <QECommon.h>
+#include <QEScaling.h>
 #include <QERecordFieldName.h>
 #include <ContainerProfile.h>
 
@@ -68,6 +69,13 @@ void QEScratchPad::createInternalWidgets ()
    this->vLayout->setSpacing (1);
 
    this->titleFrame = new QFrame (this);
+   this->scrollArea = new QScrollArea (this);
+
+   // Two main/top-level widget.
+   //
+   this->vLayout->addWidget (this->titleFrame);
+   this->vLayout->addWidget (this->scrollArea);
+
    this->titleFrame->setFixedHeight (titleFrameHeight);
 
    this->titlePvName = new QLabel ("PV Name", this->titleFrame);
@@ -96,9 +104,6 @@ void QEScratchPad::createInternalWidgets ()
    QObject::connect (this->saveButton, SIGNAL (clicked ()),
                      this, SLOT (saveWidgetConfiguration ()));
 
-   this->vLayout->addWidget (this->titleFrame);
-
-   this->scrollArea = new QScrollArea (this);
    this->scrollArea->setFrameShape (QFrame::NoFrame);
    this->scrollArea->setFrameShadow (QFrame::Plain);
    this->scrollArea->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOn);
@@ -107,6 +112,8 @@ void QEScratchPad::createInternalWidgets ()
    this->scrollArea->setMinimumHeight (60);
 
    this->scrollContents = new QWidget();
+   this->scrollArea->setWidget (this->scrollContents);
+
    this->scrollContents->setGeometry (QRect (0, 0, 378, 20));
    QSizePolicy sizePolicy (QSizePolicy::Preferred, QSizePolicy::Fixed);
    sizePolicy.setHorizontalStretch (0);
@@ -119,8 +126,6 @@ void QEScratchPad::createInternalWidgets ()
    this->scrollLayout = new QVBoxLayout (scrollContents);
    this->scrollLayout->setSpacing (spacing);
    this->scrollLayout->setMargin (margin);
-   this->scrollArea->setWidget (this->scrollContents);
-   this->vLayout->addWidget (this->scrollArea);
 
    const userLevelTypes::userLevels level = this->minimumEditPvUserLevel ();
 
@@ -129,8 +134,6 @@ void QEScratchPad::createInternalWidgets ()
       this->items [slot] = new DataSets ();  // allocate item.
 
       DataSets* item = this->items [slot];
-
-      this->menus [slot] = new QEScratchPadMenu (slot, this->scrollContents);
 
       item->frame = new QFrame (this);
       item->frame->setFixedHeight (itemFrameHeight);
@@ -183,9 +186,6 @@ void QEScratchPad::createInternalWidgets ()
 
       QObject::connect (item->frame, SIGNAL (customContextMenuRequested (const QPoint &)),
                         this,        SLOT   (contextMenuRequested (const QPoint &)));
-
-      QObject::connect (this->menus [slot], SIGNAL (contextMenuSelected (const int, const QEScratchPadMenu::ContextMenuOptions)),
-                        this,               SLOT   (contextMenuSelected (const int, const QEScratchPadMenu::ContextMenuOptions)));
    }
 
    this->scrollLayout->addStretch ();
@@ -221,7 +221,7 @@ void QEScratchPad::DataSets::setHighLighted (const bool isHighLightedIn)
 {
    QString styleSheet;
 
-   // Can only set/remove high ligt if not in use.
+   // Can only set/remove high light if not in use.
    //
    if (!this->isInUse()) {
       this->isHighLighted = isHighLightedIn;
@@ -287,13 +287,13 @@ QEScratchPad::~QEScratchPad ()
    }
 }
 
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------
 //
 QSize QEScratchPad::sizeHint () const {
    return QSize (800, 50);
 }
 
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------
 // manage titleFrame layout.  We use the automatoc layout of one of the
 // items to guide the layout of the title frame.
 //
@@ -334,17 +334,21 @@ void QEScratchPad::resizeEvent (QResizeEvent*)
    geo = this->saveButton->geometry();
    geo.moveLeft (left);   // absolute (as opposed to relative) move.
    this->saveButton->setGeometry (geo);
+
+   // This is required after a widget re-scale (ctrl+"+" / ctrl+"-").
+   //
+   this->calcMinimumHeight ();
 }
 
 //---------------------------------------------------------------------------------
 // Slot range checking macro function.
-// Set default to nil for void functions.
+// Set default value to nil for void functions.
 //
-#define SLOT_CHECK(slot, default) {                                   \
-   if ((slot < 0) || (slot >= ARRAY_LENGTH (this->items))) {          \
-      DEBUG << "slot out of range: " << slot;                         \
-      return default;                                                 \
-   }                                                                  \
+#define SLOT_CHECK(slot, defaultValue) {                                  \
+   if (((slot) < 0) || ((slot) >= ARRAY_LENGTH (this->items))) {          \
+      DEBUG << "slot out of range: " << slot;                             \
+      return defaultValue;                                                \
+   }                                                                      \
 }
 
 
@@ -389,16 +393,18 @@ int QEScratchPad::numberSlotsUsed () const
 //
 void QEScratchPad::calcMinimumHeight ()
 {
-   int count;
-   int delta_top;
+   // Extract the current scaling applied to this widget
+   //
+   int m, d;
+   QEScaling::getWidgetScaling (this, m, d);
 
    // Find number in use.
    //
-   count = this->numberSlotsUsed ();
+   int count = this->numberSlotsUsed ();
 
    // Allow one spare at end of widget if there is room.
    //
-   if (count  < ARRAY_LENGTH (this->items)) count++;
+   if (count < ARRAY_LENGTH (this->items)) count++;
 
    // Set visibility accordingly
    //
@@ -406,8 +412,9 @@ void QEScratchPad::calcMinimumHeight ()
       this->items [slot]->frame->setVisible (slot < count);
    }
 
-   delta_top = 20;
-   this->scrollContents->setFixedHeight ((delta_top * count) + 10);
+   const int delta_top = m * 20 / d;
+   const int extra =     m * 10 / d;
+   this->scrollContents->setFixedHeight ((delta_top * count) + extra);
 }
 
 //---------------------------------------------------------------------------------
@@ -492,7 +499,7 @@ void QEScratchPad::setSelectItem (const int slot, const bool toggle)
       }
    }
 
-   if (this->selectedItem  != NULL_SELECTION)  {
+   if (this->selectedItem != NULL_SELECTION) {
       DataSets* item = this->items [this->selectedItem];
       this->scrollArea->ensureWidgetVisible (item->frame, 0, spacing);
    }
@@ -515,18 +522,30 @@ void QEScratchPad::intialResize ()
 //
 void QEScratchPad::contextMenuRequested (const QPoint& pos)
 {
-   QObject *obj = this->sender();   // who sent the signal.
+   QObject *obj = this->sender ();   // who sent the signal.
    const int slot = this->findSlot (obj);
    SLOT_CHECK (slot,);
 
    QWidget* w = dynamic_cast<QWidget*> (obj);
-   if (w) {
-      QEScratchPadMenu* menu = this->menus [slot];
-      DataSets* item = this->items [slot];
-      QPoint golbalPos = w->mapToGlobal(pos);
-      menu->setIsInUse (item->isInUse ());
-      menu->exec (golbalPos, 0);
-   }
+   if (!w) return;
+
+   // MAYBE: Build once and add a setSlot function to QEScratchPadMenu.
+   //
+   QEScratchPadMenu* menu = new QEScratchPadMenu (slot, this);
+
+   QObject::connect (menu, SIGNAL (contextMenuSelected (const int, const QEScratchPadMenu::ContextMenuOptions)),
+                     this, SLOT   (contextMenuSelected (const int, const QEScratchPadMenu::ContextMenuOptions)));
+
+   // This object is created dynamically as opposed to at overall contruction
+   // time, so need to apply current application scalling, if any to the new menu.
+   //
+   QEScaling::applyToWidget (menu);
+
+   DataSets* item = this->items [slot];
+   QPoint golbalPos = w->mapToGlobal (pos);
+   menu->setIsInUse (item->isInUse ());
+   menu->exec (golbalPos, 0);
+   delete menu;
 }
 
 //---------------------------------------------------------------------------------

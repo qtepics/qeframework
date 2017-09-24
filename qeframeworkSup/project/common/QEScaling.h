@@ -78,18 +78,25 @@ public:
     ///
     static void getFontScaling (int& fm, int& fd);
 
-    /// Adjust the geometry and font scaling of the widget and all child widgets
-    /// by the defined scaling parameters (m, d). Unless m and d different, no scaling occurs.
+    /// Adjust the geometry and font scaling of the widget and all child widgets by the
+    /// defined global application scaling parameters (m, d). Unless m and d different,
+    /// no scaling occurs.
     /// The function tree walks the hiearchy of widgets paranted by the specified widget.
     /// This function is idempotent.
     //
     static void applyToWidget (QWidget* widget);
 
     /// Applies applied scaling to the nominated widget. This is in addition to
-    /// the application wide scalining defined by setScaling. The scaling is
+    /// the application wide scaling defined by setScaling. The scaling is
     /// limited to 0.1 to 400.0  (10% to 400%)
     //
+    static void rescaleWidget (QWidget* widget, const int rm, const int rd);
     static void rescaleWidget (QWidget* widget, const double newScale);
+
+    /// Get the current widget scaling. This may not be the global application
+    /// scaling if rescaleWidget has been called.
+    //
+    static void getWidgetScaling (QWidget* widget, int& m, int& d);
 
     /// Conveniance functions for widget specific 'scaleBy' functions.
     ///
@@ -135,10 +142,10 @@ private:
     /// method.
     // This function does all the hard work.
     //
-    static void widgetScale (QWidget* widget);
+    static void applyScalingToWidget (QWidget* widget);
 
 private:
-   int firstMember;    // used in conjection with lastMember to define size.
+   int firstMember;    // used in conjection with lastMember to define object size.
 
    /// Static functions create an instance of this object. This object used to
    /// hold base line widget sizing data. The data is encoded and stored in a

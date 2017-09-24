@@ -120,7 +120,7 @@ protected:
    QVariant copyData ();
    void paste (QVariant s);
 
-   // override pure virtual functions
+   // override other virtual functions
    //
    void saveConfiguration (PersistanceManager* pm);
    void restoreConfiguration (PersistanceManager* pm, restorePhases restorePhase);
@@ -175,7 +175,6 @@ private:
    // We keep menus and items in separate arrays. Items may be swapped, however
    // menu items are fixed, always associated with the same slot position.
    //
-   QEScratchPadMenu* menus [NUMBER_OF_ITEMS];
    DataSets* items [NUMBER_OF_ITEMS];
 
    void createInternalWidgets ();
