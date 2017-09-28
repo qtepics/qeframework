@@ -246,7 +246,7 @@ private:
    // Convert to PV item data to variant best matching the channels generic data
    // type, and hence best matching the PV server's native field type.
    //
-   static QVariant native (const generic::generic_types gdt, const QVariant& from);
+   static QVariant convertToNativeType (const generic::generic_types gdt, const QVariant& from);
 
    // Conveniance function
    //

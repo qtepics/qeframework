@@ -528,35 +528,34 @@ void QEPvLoadSaveLeaf::setupQCaObjects ()
    QEPvLoadSaveItem::setNodeName (aggragateName);  // call parenet function
 
    // Remove old objects if necessary.
-   // Note - may be referecing the same object.
+   // Note - we keep separate and distinct read and write objects.
    //
-   if (this->qcaSetPoint) delete this->qcaSetPoint;
-   if (this->qcaReadBack && (this->qcaReadBack != this->qcaSetPoint)) delete this->qcaReadBack;
+   if (this->qcaSetPoint) {
+      delete this->qcaSetPoint;
+      this->qcaSetPoint = NULL;
+   }
 
-   // Allocate new objects. Create only one object if PV names are the same.
+   if (this->qcaReadBack) {
+      delete this->qcaReadBack;
+      this->qcaReadBack = NULL;
+   }
+
+   // Allocate new objects.
    //
    this->qcaSetPoint = new qcaobject::QCaObject (this->getSetPointPvName (), this, 0);
-   if (this->getReadBackPvName () == this->getSetPointPvName ()) {
-      this->qcaReadBack = this->qcaSetPoint;
-   } else {
-      this->qcaReadBack = new qcaobject::QCaObject (this->getReadBackPvName (), this, 1);
-   }
+   this->qcaReadBack = new qcaobject::QCaObject (this->getReadBackPvName (), this, 1);
 
    // QCaObject does not do this automatically. Maybe it should?.
    //
    this->qcaSetPoint->setParent (this);
    this->qcaReadBack->setParent (this);
 
-   // Create only one object if PV names are the same.
+   // For the set point - we must read once to get the meta data to enable good writes.
    //
-   if (this->getReadBackPvName () == this->getSetPointPvName ()) {
-      this->qcaReadBack = this->qcaSetPoint;
-   } else {
-      // Create separate read back object.
-      this->qcaReadBack = new qcaobject::QCaObject (this->getReadBackPvName (), this, 1);
-      this->qcaReadBack->setParent (this);
-   }
+   this->qcaSetPoint->singleShotRead ();
 
+   // For the read back - no read yet, but do set up the connection.
+   //
    this->connect (this->qcaReadBack, SIGNAL (dataChanged (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&  )),
                   this,              SLOT   (dataChanged (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&  )));
 }
@@ -594,7 +593,7 @@ void QEPvLoadSaveLeaf::extractPVData ()
 //-----------------------------------------------------------------------------
 // private static
 //
-QVariant QEPvLoadSaveLeaf::native (const generic::generic_types gdt, const QVariant& from)
+QVariant QEPvLoadSaveLeaf::convertToNativeType (const generic::generic_types gdt, const QVariant& from)
 {
    QVariant result;
    bool okay;
@@ -650,7 +649,7 @@ void QEPvLoadSaveLeaf::applyPVData ()
    this->action = QEPvLoadSaveCommon::Apply;
    this->actionIsComplete = false;
 
-   if (this->qcaSetPoint && this->qcaSetPoint->isChannelConnected ()) {
+   if (this->qcaSetPoint && this->qcaSetPoint->getChannelIsConnected ()) {
 
       generic::generic_types gdt = this->qcaSetPoint->getDataType ();
 
@@ -663,11 +662,11 @@ void QEPvLoadSaveLeaf::applyPVData ()
          const int n = valueList.count ();
          QVariantList nativeList;
          for (int j = 0; j < n; j++) {
-            nativeList.append (this->native (gdt, valueList.value (j)));
+            nativeList.append (this->convertToNativeType (gdt, valueList.value (j)));
          }
          nativeValue = QVariant (nativeList);
       } else {
-         nativeValue = this->native (gdt, this->value);
+         nativeValue = this->convertToNativeType (gdt, this->value);
       }
 
       bool status = this->qcaSetPoint->writeData (nativeValue);
