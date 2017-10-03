@@ -598,6 +598,8 @@ QVariant QEPvLoadSaveLeaf::convertToNativeType (const generic::generic_types gdt
    QVariant result;
    bool okay;
 
+
+
    switch (gdt) {
       case generic::GENERIC_STRING:
          result = QVariant (from.toString ());
@@ -666,7 +668,8 @@ void QEPvLoadSaveLeaf::applyPVData ()
          }
          nativeValue = QVariant (nativeList);
       } else {
-         nativeValue = this->convertToNativeType (gdt, this->value);
+         // Scalar - Just use value as is, and let EPICS IOC do any required conversion.
+         nativeValue = this->value;
       }
 
       bool status = this->qcaSetPoint->writeData (nativeValue);
@@ -844,7 +847,20 @@ QString QEPvLoadSaveLeaf::calcNodeName () const
 void QEPvLoadSaveLeaf::dataChanged (const QVariant& valueIn, QCaAlarmInfo& alarmInfoIn,
                                     QCaDateTime&, const unsigned int&)
 {
-   this->value = valueIn;
+   // Must treat enumerations as strings.
+   //
+   const QStringList enums = this->qcaReadBack->getEnumerations ();
+   const int n = enums.count ();
+   if ((valueIn.type () == QVariant::ULongLong) && (n > 0)) {
+      const int index = valueIn.toInt();
+      if ((index >= 0) && (index < n)) {
+         this->value = enums.value (index);
+      } else {
+         this->value = valueIn;
+      }
+   } else {
+      this->value = valueIn;
+   }
    this->alarmInfo = alarmInfoIn;
    this->emitReportActionComplete (true);
 }
