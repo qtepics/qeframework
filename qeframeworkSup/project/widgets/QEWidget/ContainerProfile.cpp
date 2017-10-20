@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2017  Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -75,12 +75,12 @@
  *
  */
 
+#include <ContainerProfile.h>
 #include <QCoreApplication>
 #include <QProcessEnvironment>
 #include <QDir>
 #include <QEWidget.h>
 #include <QtDebug>
-#include <ContainerProfile.h>
 
 // Forward declaration
 QEEnvironmentShare ContainerProfile::share;
@@ -142,14 +142,18 @@ QEEnvironmentShare::QEEnvironmentShare()
 
     if( !sharedMemory->create( sizeof( PublishedProfile* ) ) )
     {
-        qDebug() << "Error (1) setting up ContainerProfile in shared memory. (on Linux, check if there are old shared memory sections or semaphores using the ipcs command.)" << sharedMemory->error() << sharedMemory->errorString();
+        qDebug() << "Error (1) setting up ContainerProfile in shared memory. "
+                    "(on Linux, check if there are old shared memory sections "
+                    "or semaphores using the ipcs command.)"
+                 << sharedMemory->error() << sharedMemory->errorString();
     }
     else
     {
         sharedMemoryData = sharedMemory->data();
         if( sharedMemoryData == NULL )
         {
-            qDebug() << "Error (2) setting up ContainerProfile in shared memory." << sharedMemory->error() << sharedMemory->errorString();
+            qDebug() << "Error (2) setting up ContainerProfile in shared memory."
+                     << sharedMemory->error() << sharedMemory->errorString();
         }
         else
         {
@@ -564,8 +568,8 @@ void ContainerProfile::setPublishedMessageFormId( unsigned int publishedMessageF
     getPublishedProfile()->messageFormId = publishedMessageFormIdIn;
 }
 
-// Set the flag indicating newly created QE widgets should hold of activating until told to do so
-// Return the previous value so it can be reset
+// Set the flag indicating newly created QE widgets should hold off activating
+// until told to do so. Return the previous value so it can be reset.
 bool ContainerProfile::setDontActivateYet( bool dontActivateYetIn )
 {
     bool oldDontActivate = getPublishedProfile()->dontActivateYet;
@@ -573,15 +577,16 @@ bool ContainerProfile::setDontActivateYet( bool dontActivateYetIn )
     return oldDontActivate;
 }
 
-// Get the flag indicating newly created QE widgets should hold of activating until told to do so
+// Get the flag indicating newly created QE widgets should hold off activating
+// until told to do so.
 bool ContainerProfile::getDontActivateYet()
 {
     return getPublishedProfile()->dontActivateYet;
 }
 
 // Return flag if one or more user level passwords have been set in the profile.
-// If the any passwords have been set up in the profile, then they should be used in preference to any others,
-// such as those local to a QELogin widget
+// If the any passwords have been set up in the profile, then they should be
+// used in preference to any others, such as those local to a QELogin widget.
 bool ContainerProfile::areUserLevelPasswordsSet()
 {
     return getPublishedProfile()->userLevelPasswordsSet;

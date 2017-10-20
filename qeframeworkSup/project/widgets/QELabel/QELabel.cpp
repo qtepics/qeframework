@@ -30,6 +30,7 @@
 
 #include <QELabel.h>
 
+#define DEBUG  qDebug () << "QELabel" << __LINE__ << __FUNCTION__ << "  "
 
 #define PV_VARIABLE_INDEX      0
 
@@ -160,8 +161,9 @@ void QELabel::connectionChanged( QCaConnectionInfo& connectionInfo, const unsign
     Update the label text
     This is the slot used to recieve data updates from a QCaObject based class.
  */
-void QELabel::setLabelText( const QString& textIn, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& ) {
-
+void QELabel::setLabelText( const QString& textIn, QCaAlarmInfo& alarmInfo,
+                            QCaDateTime&, const unsigned int& )
+{
     // Extract any formatting info from the text
     // For example "<background-color: red>Engineering Mode" or "<color: red>not selected"
     currentText = textIn;

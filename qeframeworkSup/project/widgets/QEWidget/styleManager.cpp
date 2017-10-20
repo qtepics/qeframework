@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
+ *  Copyright (c) 2012,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -182,7 +182,8 @@ void styleManager::updateStyleSheet()
             break;
     }
 
-    // Compile and apply the entire style string if there is any difference with what is currently there
+    // Compile and apply the entire style string if there is any difference
+    // with what is currently there
     QString newStyleSheet = defaultStyleSheet;
 
     if( !newStyleSheet.isEmpty() && !connectionStyleSheet.isEmpty() )
@@ -270,3 +271,5 @@ bool changeEventFilter::eventFilter(QObject *obj, QEvent *event)
     // Do standard event processing.
     return QObject::eventFilter(obj, event);
 }
+
+// end

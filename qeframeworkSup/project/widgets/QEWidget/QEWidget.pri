@@ -2,7 +2,7 @@
 #
 # This file is part of the EPICS QT Framework, initially developed at
 # the Australian Synchrotron. This file is included into and as part
-# of the overall framework plugins.pro project file.
+# of the overall framework.pro project file.
 #
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,7 @@
 #   Andrew Starritt
 # Contact details:
 #   andrew.starritt@synchrotron.org.au
+#
 
 INCLUDEPATH += \
     widgets/QEWidget

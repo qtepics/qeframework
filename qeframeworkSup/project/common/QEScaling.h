@@ -86,15 +86,15 @@ public:
     //
     static void applyToWidget (QWidget* widget);
 
-    /// Applies applied scaling to the nominated widget. This is in addition to
-    /// the application wide scaling defined by setScaling. The scaling is
-    /// limited to 0.1 to 400.0  (10% to 400%)
+    /// Applies the specified scaling to the nominated widget and all child widgets.
+    /// This is in addition to the application wide scaling defined by setScaling.
+    /// The scaling is limited to 0.1 to 400.0  (10% to 400%)
     //
     static void rescaleWidget (QWidget* widget, const int rm, const int rd);
     static void rescaleWidget (QWidget* widget, const double newScale);
 
     /// Get the current widget scaling. This may not be the global application
-    /// scaling if rescaleWidget has been called.
+    /// scaling if rescaleWidget has been called, but does include the global scaling.
     //
     static void getWidgetScaling (QWidget* widget, int& m, int& d);
 

@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2014 Australian Synchrotron.
+ *  Copyright (c) 2013,2014,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -25,8 +25,8 @@
  *
  */
 
-#ifndef QECOMMON_H
-#define QECOMMON_H
+#ifndef QE_COMMON_H
+#define QE_COMMON_H
 
 #include <math.h>
 #include <QDateTime>
@@ -40,11 +40,12 @@
 //
 // Note: the answer parameter supplied to these macros is evaluated two (or
 // three in the case of LIMIT) times. As such no expression with a side effect
-// should be used, nor an expression that that an excessive time to compute.
+// should be used, nor an expression that takes an excessive time to compute.
 //
-// Erroneous                              Use this
-// f = MAX (random (), 0.25)              t = random (); f = MAX (t, 0.25)
-// k = MAX (j++, 32);                     t = j++;  k = MAX(t, 32)
+// Erroneous                           Use this (with suitable t declaration).
+// f = MAX (random (), 0.25)           t = random (); f = MAX (t, 0.25);
+// k = MAX (j++, 32);                  t = j++;       k = MAX (t, 32);
+// r = MAX (cpu_hog(), 71.1);          t = cpu_hog(); r = MAX (t, 71.1);
 //
 #define ABS(a)             ((a) >= 0  ? (a) : -(a))
 #define MIN(a, b)          ((a) <= (b) ? (a) : (b))
@@ -84,7 +85,7 @@
 class QColor;
 class QWidget;
 
-// Geneal purpose utility functions.
+// General purpose utility functions.
 // We use a class of static methods as opposed to a set of regular functions.
 // This provide a name space, but also allows inheritance if needs be.
 //
@@ -185,6 +186,12 @@ public:
     /// multiple PVs.
     ///
     static QStringList variantToStringList (const QVariant& v);
+
+    /// Testing only - outputs the widget hierarchy to std out.
+    ///
+    static void debugWidgetHierarchy (const QWidget* root,
+                                      const int instance = 0,
+                                      const int level = 0);
 };
 
-# endif // QECOMMON_H
+# endif // QE_COMMON_H

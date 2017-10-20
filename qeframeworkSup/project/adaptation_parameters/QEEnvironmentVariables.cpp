@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
+ *  Copyright (c) 2013,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -23,11 +23,13 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEEnvironmentVariables.h"
+
 #include <QDebug>
 #include <QByteArray>
 #include <QtGlobal>
 
-#include "QEEnvironmentVariables.h"
+#define DEBUG qDebug () << "QEEnvironmentVariables" << __LINE__ << __FUNCTION__ << "  "
 
 #define NOT_A_NUMBER  "__not_a_number__"
 
@@ -54,15 +56,22 @@ QEEnvironmentVariables::~QEEnvironmentVariables ()
 }
 
 //------------------------------------------------------------------------------
-//
+// static
 void QEEnvironmentVariables::setDefaultPrefix (const QString& prefix)
 {
-   defaultPrefix = prefix;
+   QEEnvironmentVariables::defaultPrefix = prefix;
+}
+
+//------------------------------------------------------------------------------
+// static
+QString QEEnvironmentVariables::getDefaultPrefix ()
+{
+   return QEEnvironmentVariables::defaultPrefix;
 }
 
 //------------------------------------------------------------------------------
 //
-bool QEEnvironmentVariables::getBool (const QString &name, const bool defaultValue)
+bool QEEnvironmentVariables::getBool (const QString &name, const bool defaultValue) const
 {
    bool result;
    QString sval;
@@ -80,7 +89,7 @@ bool QEEnvironmentVariables::getBool (const QString &name, const bool defaultVal
 
 //------------------------------------------------------------------------------
 //
-QString QEEnvironmentVariables::getString (const QString& name, const QString& defaultValue)
+QString QEEnvironmentVariables::getString (const QString& name, const QString& defaultValue) const
 {
    QString envVar;
    QByteArray byteArray;
@@ -101,7 +110,7 @@ QString QEEnvironmentVariables::getString (const QString& name, const QString& d
 
 //------------------------------------------------------------------------------
 //
-int QEEnvironmentVariables::getInt (const QString& name, const int defaultValue)
+int QEEnvironmentVariables::getInt (const QString& name, const int defaultValue) const
 {
    int result = defaultValue;
    QString sval;
@@ -117,7 +126,7 @@ int QEEnvironmentVariables::getInt (const QString& name, const int defaultValue)
 
 //------------------------------------------------------------------------------
 //
-double QEEnvironmentVariables::getFloat  (const QString& name, const double defaultValue)
+double QEEnvironmentVariables::getFloat  (const QString& name, const double defaultValue) const
 {
    double result = defaultValue;
    QString sval;

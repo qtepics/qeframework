@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
+ *  Copyright (c) 2012,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -2295,6 +2295,11 @@ void QEImage::resizeEvent(QResizeEvent* )
 
 
 //==============================================================================
+
+void QEImage::doEnableButtonBar( bool enableButtonBar )
+{
+    buttonGroup->setVisible( enableButtonBar );
+}
 
 // Manage image display properties controls such as brightness and contrast
 void QEImage::doEnableImageDisplayProperties( bool enableImageDisplayProperties )
@@ -5053,17 +5058,17 @@ void QEImage::optionAction( imageContextMenu::imageContextMenuOptions option, bo
         case imageContextMenu::ICM_ENABLE_HOZ3:                      doEnableHozSlice3Selection ( checked );    break;
         case imageContextMenu::ICM_ENABLE_HOZ4:                      doEnableHozSlice4Selection ( checked );    break;
         case imageContextMenu::ICM_ENABLE_HOZ5:                      doEnableHozSlice5Selection ( checked );    break;
-        case imageContextMenu::ICM_ENABLE_AREA1:                     doEnableAreaSelection     ( checked );     break;
-        case imageContextMenu::ICM_ENABLE_AREA2:                     doEnableAreaSelection     ( checked );     break;
-        case imageContextMenu::ICM_ENABLE_AREA3:                     doEnableAreaSelection     ( checked );     break;
-        case imageContextMenu::ICM_ENABLE_AREA4:                     doEnableAreaSelection     ( checked );     break;
-        case imageContextMenu::ICM_ENABLE_LINE:                      doEnableProfileSelection  ( checked );     break;
-        case imageContextMenu::ICM_ENABLE_TARGET:                    doEnableTargetSelection   ( checked );     break;
-        case imageContextMenu::ICM_ENABLE_BEAM:                      doEnableBeamSelection     ( checked );     break;
-        case imageContextMenu::ICM_DISPLAY_BUTTON_BAR:               buttonGroup->setVisible   ( checked );     break;
+        case imageContextMenu::ICM_ENABLE_AREA1:                     doEnableAreaSelection      ( checked );    break;
+        case imageContextMenu::ICM_ENABLE_AREA2:                     doEnableAreaSelection      ( checked );    break;
+        case imageContextMenu::ICM_ENABLE_AREA3:                     doEnableAreaSelection      ( checked );    break;
+        case imageContextMenu::ICM_ENABLE_AREA4:                     doEnableAreaSelection      ( checked );    break;
+        case imageContextMenu::ICM_ENABLE_LINE:                      doEnableProfileSelection   ( checked );    break;
+        case imageContextMenu::ICM_ENABLE_TARGET:                    doEnableTargetSelection    ( checked );    break;
+        case imageContextMenu::ICM_ENABLE_BEAM:                      doEnableBeamSelection      ( checked );    break;
+        case imageContextMenu::ICM_DISPLAY_BUTTON_BAR:               doEnableButtonBar          ( checked );    break;
         case imageContextMenu::ICM_DISPLAY_IMAGE_DISPLAY_PROPERTIES: doEnableImageDisplayProperties( checked ); break;
-        case imageContextMenu::ICM_DISPLAY_RECORDER:                 doEnableRecording         ( checked );     break;
-        case imageContextMenu::ICM_FULL_SCREEN:                      setFullScreen             ( checked );     break;
+        case imageContextMenu::ICM_DISPLAY_RECORDER:                 doEnableRecording          ( checked );    break;
+        case imageContextMenu::ICM_FULL_SCREEN:                      setFullScreen              ( checked );    break;
         case imageContextMenu::ICM_OPTIONS:                          optionsDialog->exec( this );               break;
 
         // Note, zoom options caught by zoom menu signal

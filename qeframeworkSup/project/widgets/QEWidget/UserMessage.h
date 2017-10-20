@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
+ *  Copyright (c) 2012,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -23,8 +23,8 @@
  *    andrew.rhyder@synchrotron.org.au
  */
 
-#ifndef UserMessage_H
-#define UserMessage_H
+#ifndef QE_USER_MESSAGE_H
+#define QE_USER_MESSAGE_H
 
 #include <QMetaType>
 #include <QObject>
@@ -33,15 +33,20 @@
 
 // Note: message_types is now a class (see below) - what was message_types is now message_severities.
 //
-enum message_severities { MESSAGE_TYPE_INFO, MESSAGE_TYPE_WARNING, MESSAGE_TYPE_ERROR };
+enum message_severities {
+   MESSAGE_TYPE_INFO,
+   MESSAGE_TYPE_WARNING,
+   MESSAGE_TYPE_ERROR
+};
 
 // These values should be or-ed together.
 // Other kind values, i.e. 4, 8, 16 etc. can be added as necessary.
 //
-enum message_kinds  { MESSAGE_KIND_NONE = 0,         ///< Degeneate case
-                      MESSAGE_KIND_EVENT = 1,        ///< Message is significant event (captured by QELog)
-                      MESSAGE_KIND_STATUS = 2        ///< Message is transient statue (captured QEForm/QEGui status bar)
-                    };
+enum message_kinds {
+   MESSAGE_KIND_NONE = 0,         ///< Degeneate case
+   MESSAGE_KIND_EVENT = 1,        ///< Message is significant event (captured by QELog)
+   MESSAGE_KIND_STATUS = 2        ///< Message is transient statue (captured QEForm/QEGui status bar)
+};
 
 typedef unsigned int  message_kind_sets;
 
@@ -212,4 +217,4 @@ private:
     message_filter_options sourceFilter;                        // Message filtering to apply to source ID
 };
 
-#endif // UserMessage_H
+#endif // QE_USER_MESSAGE_H

@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2014,2016  Australian Synchrotron.
+ *  Copyright (c) 2013,2014,2016,2017  Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -25,8 +25,12 @@
  *
  */
 
-#include <math.h>
+#include "QECommon.h"
 
+#include <math.h>
+#include <iostream>
+
+#include <QLayout>
 #include <QtGlobal>
 #include <QColor>
 #include <QDebug>
@@ -36,7 +40,7 @@
 #include <QSize>
 #include <QWidget>
 
-#include "QECommon.h"
+#define DEBUG qDebug () << "QECommon" << __LINE__ << __FUNCTION__ << "  "
 
 //------------------------------------------------------------------------------
 //
@@ -419,6 +423,58 @@ QWidget* QEUtilities::findWidget (QWidget* parent, const QString& className)
    }
 
    return result;
+}
+
+//------------------------------------------------------------------------------
+// static
+void QEUtilities::debugWidgetHierarchy (const QWidget* root,
+                                        const int instance,
+                                        const int level)
+{
+   if (!root) return;
+
+   QString gap = "";
+   for (int j = 0; j < level; j++) {
+      gap.append ("  ");
+   }
+
+   QString b1;       // basic class info
+   QString b2;       // sizing info
+   QString b3 = "";  // layout info
+
+   b1.sprintf ("%d.%-2d%s %s:%s", level, instance,
+               gap.toStdString().c_str(),
+               root->objectName ().toStdString().c_str(),
+               root->metaObject()->className ());
+
+   b2.sprintf (" (%3d,%3d)  (%3d,%3d)  (%3d,%3d)",
+               root->size().width(), root->size().height(),
+               root->minimumWidth(), root->minimumHeight(),
+               root->maximumWidth(), root->maximumHeight());
+
+   QLayout* lay = root->layout();
+   if (lay) {
+      b3.sprintf ("  %s:%s",
+                  lay->objectName ().toStdString().c_str(),
+                  lay->metaObject()->className ());
+   }
+
+   QString buffer;
+   buffer.sprintf ("%-52s %-42s %s\n",
+                   b1.toStdString().c_str(),
+                   b2.toStdString().c_str(),
+                   b3.toStdString().c_str());
+
+   std::cout << buffer.toStdString().c_str();
+
+   QObjectList objList = root->children ();
+   for (int j = 0; j < objList.count (); j++) {
+       QObject* child = objList.value (j, NULL);
+       if( child && child->isWidgetType ()) {
+          const QWidget* w = (QWidget*) child;
+          QEUtilities::debugWidgetHierarchy (w, j, level + 1);
+       }
+   }
 }
 
 // end

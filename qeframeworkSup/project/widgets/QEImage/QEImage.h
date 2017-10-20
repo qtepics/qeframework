@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
+ *  Copyright (c) 2012,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -913,7 +913,8 @@ signals:
 
     void setRegionAutoBrightnessContrast( QPoint point1, QPoint point2 );    // Update the brightness and contrast, if in auto, to match the recently selected region
 
-    void doEnableImageDisplayProperties( bool enableBrightnessContrast );
+    void doEnableButtonBar( bool enableButtonBar );
+    void doEnableImageDisplayProperties( bool enableImageDisplayProperties );
     void doEnableRecording( bool enableRecording );
     void doContrastReversal( bool contrastReversal );
     void doEnableVertSlice1Selection( bool enableVSliceSelection );

@@ -45,6 +45,8 @@
 #include <QMainWindow>
 #include <QEGlobalStyle.h>
 
+#define DEBUG qDebug() << "QEWidget" << __LINE__ << __FUNCTION__ << "  "
+
 // Constructor
 
 QEWidget::QEWidget( QWidget *ownerIn ) :
@@ -127,7 +129,6 @@ QEWidget::~QEWidget() {
     // destroys QELabels during contruction. These QELabels get added to the contained widgets list
     // but are then destroyed. Unless they are removed from the list, the form will attempt to activate them.
     removeContainedWidget( this );
-
 }
 
 // Create a CA connection and initiates updates if required.

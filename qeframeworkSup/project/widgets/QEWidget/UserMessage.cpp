@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
+ *  Copyright (c) 2012,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -194,10 +194,10 @@ void UserMessage::sendMessage( QString msg,
 // Emit a signal to all other user message classes
 // Note, there is only a single UserMessageSignal class instance
 void UserMessageSignal::sendMessage( QString msg,
-                               message_types type,
-                               unsigned int formId,
-                               unsigned int sourceId,
-                               UserMessage* originator )
+                                     message_types type,
+                                     unsigned int formId,
+                                     unsigned int sourceId,
+                                     UserMessage* originator )
 {
     emit message( msg, type, formId, sourceId, originator );
 }
@@ -235,7 +235,7 @@ void UserMessage::newMessage( QString, message_types )
 {
     // Disconnect. If this default implementation of useMessage is called, no derived class is interested in messages
     QObject::disconnect( &userMessageSignal, SIGNAL( message( QString, message_types, unsigned int, unsigned int, UserMessage* ) ),
-                         &userMessageSlot, SLOT( message( QString, message_types, unsigned int, unsigned int, UserMessage* ) ) );
+                         &userMessageSlot,   SLOT(   message( QString, message_types, unsigned int, unsigned int, UserMessage* ) ) );
 }
 
 // end

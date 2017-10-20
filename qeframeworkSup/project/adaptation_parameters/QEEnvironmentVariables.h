@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
+ *  Copyright (c) 2013,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -70,11 +70,12 @@ public:
    // Set the default prefix.
    //
    static void setDefaultPrefix (const QString& prefix);
+   static QString getDefaultPrefix ();
 
-   bool    getBool   (const QString& name, const bool     defaultValue);
-   QString getString (const QString& name, const QString& defaultValue);
-   int     getInt    (const QString& name, const int      defaultValue);
-   double  getFloat  (const QString& name, const double   defaultValue);
+   bool    getBool   (const QString& name, const bool     defaultValue) const;
+   QString getString (const QString& name, const QString& defaultValue) const;
+   int     getInt    (const QString& name, const int      defaultValue) const;
+   double  getFloat  (const QString& name, const double   defaultValue) const;
 
 private:
    QString prefix;

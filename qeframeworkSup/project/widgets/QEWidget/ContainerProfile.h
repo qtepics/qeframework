@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -23,8 +23,8 @@
  *    andrew.rhyder@synchrotron.org.au
  */
 
-#ifndef CONTAINER_PROFILE_H
-#define CONTAINER_PROFILE_H
+#ifndef QE_CONTAINER_PROFILE_H
+#define QE_CONTAINER_PROFILE_H
 
 #include <QSharedMemory>
 #include <QObject>
@@ -35,11 +35,8 @@
 #include <QEFrameworkLibraryGlobal.h>
 #include <persistanceManager.h>
 
-
-
 class QEWidget;
 class ContainerProfile;
-
 
 // Define the user levels
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT userLevelTypes : public QObject
@@ -158,7 +155,13 @@ class WidgetRef
 };
 
 // Class to allow a truly unique instance of the published profile.
-// On Windows, static variables are defined twice when the QE plugin library is loaded: once by QEGui and once by the Qt .ui loader when creating forms.
+// On Windows, static variables are defined twice when the QE plugin library is
+// loaded: once by QEGui and once by the Qt .ui loader when creating forms.
+//
+// NOTE: Since the QEPlugin library was split into the functional QEFramework library
+// and a minimalist/pure plugin QEPlugin library (with no static variables) I strongly
+// suspect that two instance is no longer occurs; however even if that is the case
+// I have left this mechanism as is (at least until it ever becomes an issue).
 class PublishedProfile
 {
 public:
@@ -204,14 +207,18 @@ public:
     virtual ~ContainerProfile();   // Destruction
     void takeLocalCopy();
 
+    // Setup a local and published environmental profile for all QEWidgets to use on creation
     void setupProfile( QObject* guiLaunchConsumerIn,
                        QStringList pathListIn,
                        QString parentPathIn,
-                       QString macroSubstitutionsIn );     // Setup a local and published environmental profile for all QEWidgets to use on creation
+                       QString macroSubstitutionsIn );
+
+    // Setup the local environmental profile for this instance only
     void setupLocalProfile( QObject* guiLaunchConsumerIn,
                             QStringList pathListIn,
                             QString parentPathIn,
-                            QString macroSubstitutionsIn );// Setup the local environmental profile for this instance only
+                            QString macroSubstitutionsIn );
+
     void updateConsumers( QObject* guiLaunchConsumerIn );  // Update the local and published signal consumer objects
     QObject* replaceGuiLaunchConsumer( QObject* newGuiLaunchConsumerIn );  // Override the current GUI launch consumer
 
@@ -317,4 +324,4 @@ private:
 Q_DECLARE_METATYPE (userLevelTypes::userLevels)
 #endif
 
-#endif // CONTAINER_PROFILE_H
+#endif // QE_CONTAINER_PROFILE_H
