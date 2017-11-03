@@ -165,6 +165,7 @@ public:
    // Property functions.
    //
 public slots:
+   void setValue (const bool value);
    void setValue (const int value);
 
 public:

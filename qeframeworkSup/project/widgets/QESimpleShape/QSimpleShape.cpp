@@ -604,6 +604,14 @@ QColor QSimpleShape::getItemColour ()
 
 //------------------------------------------------------------------------------
 //
+void QSimpleShape::setValue (const bool value)
+{
+   int n = value ? 1 : 0;
+   this->setValue (n);
+}
+
+//------------------------------------------------------------------------------
+//
 void QSimpleShape::setValue (const int valueIn)
 {
    // We want the modulo value
