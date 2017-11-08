@@ -6312,6 +6312,24 @@ SIZE
 HASH
 PREC
 EGU
+MPST
+APST
+MDEL
+ADEL
+MLST
+ALST
+HIHI
+LOLO
+HIGH
+LOW
+HHSV
+LLSV
+HSV
+LSV
+LALM
+HOPR
+LOPR
+
 
 #-------------------------------------------------------------------------------
 #
@@ -6360,7 +6378,7 @@ ACQM
 OFFS
 GRSZ
 NGRP
-MNSA
+AFLDS
 LMT
 MT
 EVID
