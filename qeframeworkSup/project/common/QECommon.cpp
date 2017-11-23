@@ -63,7 +63,7 @@ QColor QEUtilities::fontColour (const QColor & backgroundColour)
 
    // Dark or bright background colour ?
    //
-   isDark = (wc < 112);
+   isDark = (wc < 124);
    if (isDark) {
       result = QColor (255, 255, 255, 255);    // white font
    } else {
