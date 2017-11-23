@@ -36,13 +36,14 @@
 #include <QCaObject.h>
 #include <QEArchiveInterface.h>
 #include <QECommon.h>
+#include <QEPlatform.h>
 #include <QEGraphic.h>
 #include <QEScaling.h>
 #include "QEStripChartItem.h"
 #include "QEStripChartContextMenu.h"
 #include "QEStripChartStatistics.h"
 
-#define DEBUG  qDebug () <<  "QEStripChartItem" << __LINE__ <<  __FUNCTION__  << "  "
+#define DEBUG  qDebug () << "QEStripChartItem" << __LINE__ <<  __FUNCTION__  << "  "
 
 // Defines the maximum number of points requested to be extracted from the
 // archiver per PV. The Channel Access archiver interface itself supports upto
@@ -61,6 +62,7 @@ static const QColor clWhite (0xFF, 0xFF, 0xFF, 0xFF);
 static const QColor clBlack (0x00, 0x00, 0x00, 0xFF);
 
 // Define colours: essentially RGB byte triplets
+// Keep consistent with QEPlotter.
 //
 static const QColor item_colours [QEStripChart::NUMBER_OF_PVS] = {
     QColor (0xFF0000), QColor (0x0000FF), QColor (0x008000), QColor (0xFF8000),
@@ -71,7 +73,8 @@ static const QColor item_colours [QEStripChart::NUMBER_OF_PVS] = {
 
 
 static const QString letterStyle ("QWidget { background-color: #e8e8e8; }");
-static const QString inuseStyle  ("QWidget { background-color: #e0e0e0; }");
+static const QString pvDataStyle ("QWidget { background-color: #e0e0e0; }");
+static const QString calcStyle   ("QWidget { background-color: #e0c0e0; }");
 static const QString unusedStyle ("QWidget { background-color: #c0c0c0; }");
 
 static const QString scaledTip  (" Note: this PV has been re-scaled ");
@@ -99,9 +102,11 @@ QEStripChartItem::QEStripChartItem (QEStripChart* chartIn,
    this->previousQcaItem = NULL;
 
    this->dataKind = NotInUse;
-   this->calculator = new QEExpressionEvaluation ();
+   this->calculator = new QEExpressionEvaluation (false);
    this->expression = "";
    this->expressionIsValid = false;
+   this->lastExpressionValueIsDefined = false;
+   this->lastExpressionValue = 0.0;
 
    // Set up other properties.
    //
@@ -334,23 +339,41 @@ void QEStripChartItem::setPvName (const QString& pvName, const QString& substitu
    substitutedPVName = caLabel->getSubstitutedVariableName (0);
    if (substitutedPVName.isEmpty ()) return;
 
-   // Ensure we always active irrespective of the profile DontActivateYet state.
+   // Has designer/user defined a calculation (as opposed to a PV name)?.
+   // Note: no sensible PV name starts with =.
    //
-   this->caLabel->activate();
+   if (substitutedPVName.left (1).compare (QString ("=")) == 0) {
+      // Extract and parse/validate the expression.
+      //
+      this->expression = substitutedPVName.remove (0, 1);
+      this->expressionIsValid = this->calculator->initialise (this->expression);
+      this->lastExpressionValue = 0.0;
+      this->lastExpressionValueIsDefined = false;
 
-   this->caLabel->setStyleSheet (inuseStyle);
-   this->dataKind = PVData;
-   this->setCaption ();
+      this->dataKind = CalculationData;
+      this->caLabel->setStyleSheet (calcStyle);
+      this->setCaption ();
 
-   // Set up connections.
-   //
-   this->connectQcaSignals ();
+   } else {
+      // Ensure we always active irrespective of any profile DontActivateYet state.
+      //
+      this->caLabel->activate();
+      this->caLabel->setStyleSheet (pvDataStyle);
+      this->dataKind = PVData;
+      this->setCaption ();
+
+      // Set up connections.
+      //
+      this->connectQcaSignals ();
+   }
 }
 
 //------------------------------------------------------------------------------
 //
 QString QEStripChartItem::getPvName () const
 {
+   // Allow get name to also get expressions.
+   //
    return this->isInUse () ? this->caLabel->getSubstitutedVariableName (0) : "";
 }
 
@@ -359,7 +382,7 @@ QString QEStripChartItem::getPvName () const
 QString QEStripChartItem::getEgu () const
 {
    QString result = "";
-   if (this->isInUse ()) {
+   if (this->isPvData ()) {
       qcaobject::QCaObject* qca = this->caLabel->getQcaItem (0);
       if (qca) result = qca->getEgu ();
    }
@@ -375,17 +398,35 @@ void QEStripChartItem::setCaption ()
 
    caption.clear ();
 
-   if (this->isInUse ()) {
-      if (this->scaling.isScaled ()) {
-         caption.append ("*");
-      } else {
-         caption.append (" ");
-      }
+   switch (this->dataKind) {
+      case NotInUse:
+         break;
 
-      substitutedPVName = this->caLabel->getSubstitutedVariableName (0);
-      caption.append (substitutedPVName);
+      case PVData:
+         if (this->scaling.isScaled ()) {
+            caption.append ("*");
+         } else {
+            caption.append (" ");
+         }
+
+         substitutedPVName = this->caLabel->getSubstitutedVariableName (0);
+         caption.append (substitutedPVName);
+         break;
+
+      case CalculationData:
+         if (this->expressionIsValid) {
+            if (this->scaling.isScaled ()) {
+               caption.append ("*");
+            } else {
+               caption.append (" ");
+            }
+            caption.append (":= ");
+            caption.append (this->expression);
+         } else {
+            caption.append ("invalid expr.");
+         }
+         break;
    }
-
    this->pvName->setText (caption);
 }
 
@@ -394,6 +435,13 @@ void QEStripChartItem::setCaption ()
 bool QEStripChartItem::isInUse () const
 {
    return ((this->dataKind == PVData) || (this->dataKind == CalculationData));
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEStripChartItem::isPvData () const
+{
+   return (this->dataKind == PVData);
 }
 
 //------------------------------------------------------------------------------
@@ -414,7 +462,7 @@ QEDisplayRanges QEStripChartItem::getLoprHopr (bool doScale)
 
    result.clear ();
 
-   if (this->isInUse ()) {
+   if (this->isPvData ()) {
       qca = this->getQcaItem ();
       if (qca) {
          lopr = qca->getDisplayLimitLower ();
@@ -467,7 +515,8 @@ QEDisplayRanges QEStripChartItem::getBufferedMinMax (bool doScale)
 }
 
 //------------------------------------------------------------------------------
-// macro functions to convert real-world values to a plot values, doing safe log conversion if required.
+// macro functions to convert real-world values to a plot values,
+// doing safe log conversion if required.
 //
 #define PLOT_T(t) (t)
 #define PLOT_Y(y) (this->scaling.value (y))
@@ -749,6 +798,88 @@ void QEStripChartItem::plotData ()
 
 //------------------------------------------------------------------------------
 //
+double QEStripChartItem::getCurrentValue (bool& okay) const
+{
+   okay = false;
+   double result = 0.0;
+
+   if (this->isInUse() && (this->realTimeDataPoints.count() > 0)) {
+      QCaDataPoint point = this->realTimeDataPoints.last ();
+      if (point.isDisplayable ()) {
+         okay = true;
+         result = point.value;
+      }
+   }
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChartItem::calculateAndUpdate (const QCaDateTime& datetimeIn,
+                                           const CalcInputs values)
+{
+   QCaDateTime datetime = datetimeIn;
+
+   if (!this->expressionIsValid) return;
+
+   // Form user arguments for expression evaluation.
+   //
+   QEExpressionEvaluation::CalculateArguments userArgs;
+
+   for (int i = 0; i < ARRAY_LENGTH (userArgs [0]); i++) {
+      double vi = (i < QEStripChart::NUMBER_OF_PVS) ? values [i] : 0.0;
+      userArgs [QEExpressionEvaluation::Normal][i] = vi;
+      userArgs [QEExpressionEvaluation::Primed][i] = 0.0;
+   }
+
+   bool okay;
+   const double value = this->calculator->evaluate (userArgs, &okay);
+
+   // This is not a PV, so update the CA label text directly.
+   //
+   QString numericText = "-";
+   if (okay) numericText.sprintf ("%+.9g", value);
+   this->caLabel->setText (numericText);
+   this->caLabel->setStyleSheet (calcStyle);
+
+   // Check for NaN / Infinte
+   //
+   if (QEPlatform::isNaN (value) || QEPlatform::isInf (value) ) {
+      okay = false;
+   }
+
+   if (!okay && !this->lastExpressionValueIsDefined) {
+      // Was invalid - is still invalid.
+      //
+      return;
+   }
+
+   if (okay && this->lastExpressionValueIsDefined) {
+      // Was valid - is still valid.
+      //
+      double delta = value - this->lastExpressionValue;
+      delta = ABS (delta);
+      if (delta < 1.0e-20) {
+         // Insignificant change.
+         //
+         return;
+      }
+   }
+
+   // Form data point and "send" to PV data update slot function.
+   //
+   QCaAlarmInfo alarm (0, okay ? NO_ALARM : INVALID_ALARM);
+   this->setDataValue (QVariant (value), alarm, datetime, 0);
+
+   // Save for next update so that we can detect status change or dead band exceeded.
+   //
+   this->lastExpressionValue = value;
+   this->lastExpressionValueIsDefined = okay;
+}
+
+//------------------------------------------------------------------------------
+//
 const QCaDataPoint* QEStripChartItem::findNearestPoint (const QCaDateTime& searchTime) const
 {
    const QCaDataPoint* result = NULL;
@@ -816,8 +947,6 @@ void QEStripChartItem::setDataConnection (QCaConnectionInfo& connectionInfo, con
       //
       point.alarm = QCaAlarmInfo (NO_ALARM, INVALID_ALARM);
       this->addRealTimeDataPoint (point);
-
-      this->chart->setRecalcIsRequired ();
    }
 }
 
@@ -872,7 +1001,6 @@ void QEStripChartItem::setDataValue (const QVariant& value, QCaAlarmInfo& alarm,
    }
 
    this->addRealTimeDataPoint (point);
-   this->chart->setRecalcIsRequired ();
 }
 
 //------------------------------------------------------------------------------
@@ -1012,7 +1140,7 @@ void QEStripChartItem::setArchiveData (const QObject* userData, const bool okay,
 //
 void QEStripChartItem::readArchive ()
 {
-   if (!this->isInUse ()) return;  // sainity check
+   if (!this->isPvData ()) return;  // sainity check
 
    const double chartDuration =  this->chart->getDuration();  // in seconds
 
@@ -1585,9 +1713,9 @@ void QEStripChartItem::contextMenuSelected (const QEStripChartNames::ContextMenu
 
 //------------------------------------------------------------------------------
 //
-void QEStripChartItem::saveConfiguration (PMElement & parentElement)
+void QEStripChartItem::saveConfiguration (PMElement& parentElement)
 {
-   // Any config data to save?
+   // Any config data to save? Also save expressions.
    //
    if (this->isInUse ()) {
       PMElement pvElement = parentElement.addElement ("PV");

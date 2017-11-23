@@ -38,6 +38,7 @@
 #include <qwt_plot_curve.h>
 #include <QEGraphic.h>
 
+#include <QEPlatform.h>
 #include <QECommon.h>
 #include <QEFloating.h>
 #include <QEInteger.h>
@@ -354,7 +355,7 @@ void QEPlotter::createInternalWidgets ()
 //
 QEPlotter::DataSets::DataSets ()
 {
-   this->calculator = new QEExpressionEvaluation ();
+   this->calculator = new QEExpressionEvaluation (true);
    this->dataKind = NotInUse;
    this->sizeKind = NotSpecified;
    // this->colour = item_colours [slot];
@@ -619,9 +620,9 @@ QEPlotter::QEPlotter (QWidget* parent) : QEAbstractDynamicWidget (parent)
    this->yScaleMode = QEPlotterNames::smDynamic;
 
    this->currentMinX = this->fixedMinX = 0.0;
-   this->currentMaxX = this->fixedMaxX = 10.0;
+   this->currentMaxX = this->fixedMaxX = 1.0;
    this->currentMinY = this->fixedMinY = 0.0;
-   this->currentMaxY = this->fixedMaxY = 10.0;
+   this->currentMaxY = this->fixedMaxY = 1.0;
 
    this->replotIsRequired = true; // ensure process on first tick.
    this->tickTimerCount = 0;
@@ -1756,6 +1757,13 @@ QStringList QEPlotter::getAliasNameSet () const
 
 //------------------------------------------------------------------------------
 //
+QEGraphic* QEPlotter::getGraphic () const
+{
+   return this->plotArea;
+}
+
+//------------------------------------------------------------------------------
+//
 void QEPlotter::setPlotterEntry (const int slot, const QString& pvName, const QString& alias)
 {
    SLOT_CHECK (slot,);
@@ -2556,7 +2564,13 @@ void QEPlotter::doAnyCalculations ()
             for (j = 0; j < effectiveXSize; j++) {
                QEExpressionEvaluation::clear (userArguments);
                userArguments [Normal][s] = (double) j;
+
                value = xs->calculator->evaluate (userArguments, &okay);
+               if (!okay || QEPlatform::isNaN (value) || QEPlatform::isInf (value) ) {
+                  // Plot zero as opposed to some "crazy" value.
+                  //
+                  value = 0.0;
+               }
                xs->data.append (value);
             }
          }
@@ -2601,6 +2615,11 @@ void QEPlotter::doAnyCalculations ()
             if (!dataIsAvailable) break;
 
             value = ys->calculator->evaluate (userArguments, &okay);
+            if (!okay || QEPlatform::isNaN (value) || QEPlatform::isInf (value) ) {
+               // Plot zero as opposed to some "crazy" value.
+               //
+               value = 0.0;
+            }
             ys->data.append (value);
          }
 
@@ -3012,12 +3031,57 @@ void QEPlotter::setIsPaused (bool paused)
    if (!this->isPaused) this->replotIsRequired = true;
 }
 
-//------------------------------------------------------------------------------
-//
 bool QEPlotter::getIsPaused () const
 {
    return this->isPaused;
 }
 
+//------------------------------------------------------------------------------
+//
+void QEPlotter::setXMinimum (const double xMinimumIn)
+{
+   this->setXRange (xMinimumIn, this->fixedMaxX);
+}
+
+double QEPlotter::getXMinimum () const
+{
+    return this->fixedMinX;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlotter::setXMaximum (const double xMaximumIn)
+{
+   this->setXRange (this->fixedMinX, xMaximumIn);
+}
+
+double QEPlotter::getXMaximum () const
+{
+   return this->fixedMaxX;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlotter::setYMinimum (const double yMinimumIn)
+{
+   this->setYRange (yMinimumIn, this->fixedMaxY);
+}
+
+double QEPlotter::getYMinimum () const
+{
+   return this->fixedMinY;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlotter::setYMaximum (const double yMaximumIn)
+{
+   this->setYRange (this->fixedMinY, yMaximumIn);
+}
+
+double QEPlotter::getYMaximum () const
+{
+   return this->fixedMaxY;
+}
 
 // end

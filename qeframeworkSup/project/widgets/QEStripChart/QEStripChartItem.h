@@ -71,7 +71,8 @@ public:
                               QWidget* parent);
    virtual ~QEStripChartItem ();
 
-   bool isInUse () const;
+   bool isInUse () const;    // isPvData or isCalculation
+   bool isPvData () const;
    bool isCalculation () const;
 
    void setPvName (const QString& pvName, const QString& substitutions);
@@ -110,6 +111,17 @@ public:
    void readArchive ();                                 // initiate archive read request
    void normalise ();                                   // scale LOPR/HOPR to 0 .. 100
    void plotData ();
+
+   // Extract the current value, raw PV or calculation, if it exists.
+   //
+   double getCurrentValue (bool& okay) const;
+
+   // Only adds a point to the plot history if there has been a change in status or value.
+   //
+   typedef double CalcInputs [QEStripChart::NUMBER_OF_PVS];
+
+   void calculateAndUpdate (const QCaDateTime& datetime,
+                            const CalcInputs values);
 
    // Return a reference to the point, realtime or from archive, nearest to the
    // specified time or NULL.
@@ -197,6 +209,11 @@ private:
    QString expression;        // when dataKind is CalculationPlot
    bool expressionIsValid;
    QEExpressionEvaluation* calculator;
+
+   // Used to determine if the calculates value has changed.
+   //
+   bool lastExpressionValueIsDefined;
+   double lastExpressionValue;
 
    // Internal widgets.
    //

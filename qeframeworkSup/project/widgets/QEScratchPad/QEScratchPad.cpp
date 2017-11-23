@@ -255,6 +255,7 @@ QEScratchPad::QEScratchPad (QWidget* parent) : QEAbstractDynamicWidget (parent),
    this->setFrameShape (QFrame::StyledPanel);
    this->setFrameShadow (QFrame::Raised);
 
+   this->setMinimumHeight (96);
    this->setMinimumWidth (800);
    this->calcMinimumHeight ();
 

@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron.
+ *  Copyright (c) 2013,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -24,17 +24,18 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEExpressionEvaluation.h"
 #include <QDebug>
 #include <QECommon.h>
-
 #include <postfix.h>   // out of EPICS
 
-#include <QEExpressionEvaluation.h>
 
+#define DEBUG  qDebug () << "QEExpressionEvaluation" << __LINE__ << __FUNCTION__ << "  "
 
 //---------------------------------------------------------------------------------
 //
-QEExpressionEvaluation::QEExpressionEvaluation ()
+QEExpressionEvaluation::QEExpressionEvaluation (const bool allowPrimedInputIn) :
+   allowPrimedInput (allowPrimedInputIn)
 {
    // We are erroneous until Postfix called.
    //
@@ -111,7 +112,7 @@ int QEExpressionEvaluation::indexOf (const char c)
 
 //---------------------------------------------------------------------------------
 //
-double QEExpressionEvaluation::evaluate (const CalculateArguments& userArgs, bool* okayOut)
+double QEExpressionEvaluation::evaluate (const CalculateArguments& userArgs, bool* okayOut) const
 {
    double result = 0.0;
    long status;
@@ -149,7 +150,7 @@ double QEExpressionEvaluation::evaluate (const CalculateArguments& userArgs, boo
 //
 bool QEExpressionEvaluation::buildMaps (const QString& expression, QString& translated)
 {
-   const QChar p = '\'';
+   static const QChar primeChar = '\'';
 
    int len;
    int j;
@@ -173,7 +174,13 @@ bool QEExpressionEvaluation::buildMaps (const QString& expression, QString& tran
       // Skip prime.
       // TODO: Only skip ' following A..Z
       //
-      if (x == p) continue;
+      if (x == primeChar) {
+         if (this->allowPrimedInput) {
+            continue;
+         } else {
+            return false;
+         }
+      }
 
       if (!x.isLetter ()) {
          translated.append (x);
@@ -199,7 +206,9 @@ bool QEExpressionEvaluation::buildMaps (const QString& expression, QString& tran
       }
 
       kind = Normal;
-      if ((j + 1 <  len) && (expression.at (j + 1) == p)) {
+      if (this->allowPrimedInput &&
+          (j + 1 <  len) &&
+          (expression.at (j + 1) == primeChar)) {
          kind = Primed;
       }
 

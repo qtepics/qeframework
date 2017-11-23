@@ -236,7 +236,6 @@ protected:
    void addToPredefinedList (const QString & pvName);
    QStringList getPredefinedPVNameList () const;
    QString getPredefinedItem (int i) const;
-   void setRecalcIsRequired () { this->recalcIsRequired = true; }
    void setReplotIsRequired () { this->replotIsRequired = true; }
    void evaluateAllowDrop ();
 
@@ -285,7 +284,6 @@ private:
    static QTimer* tickTimer;
    int tickTimerCount;
    bool replotIsRequired;
-   bool recalcIsRequired;
 
    // Chart time range in seconds.
    //

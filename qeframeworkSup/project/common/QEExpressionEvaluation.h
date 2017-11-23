@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron.
+ *  Copyright (c) 2013,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -24,8 +24,8 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
-#ifndef QEEXPRESSIONEVALUATION_H
-#define QEEXPRESSIONEVALUATION_H
+#ifndef QE_EXPRESSION_EVALUATION_H
+#define QE_EXPRESSION_EVALUATION_H
 
 #include <QHash>
 #include <QString>
@@ -45,15 +45,15 @@
 ///
 /// The QEExpressionEvaluation object provides an extended input name space for
 /// the user supplied expressions, i.e. 52 names (A .. Z, A' .. Z') instead of
-/// the native 12 inputs (A .. L). However, the MAXIMUM number of inputs may
-/// that may be used in any one expression is still LIMITED to 12.
+/// the native 12 inputs (A .. L). However, the MAXIMUM number of inputs that
+/// may be used in any one expression is still LIMITED to 12.
 ///
 /// That is:  "B + L' + M + X + Y' "  is an allowed expression, but
 /// "A + B + C + D + E + F + G + H + I + J + K + L' + M" is invalid because
 /// more than 12 inputs specified.
 ///
 /// This input name space extension is to allow sensible use with the Strip
-/// Chart widget that has 12 available inputs and the Plotter widget that has
+/// Chart widget that has 16 available inputs and the Plotter widget that has
 /// 16 avialable inputs plus an X input.
 ///
 /// Also, the length of the input string is not limited to the 40 characters
@@ -66,7 +66,7 @@
 ///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEExpressionEvaluation {
 public:
-   QEExpressionEvaluation ();
+   QEExpressionEvaluation (const bool allowPrimedInput);
    virtual ~QEExpressionEvaluation ();
 
    // User arguments A .. Z and A' .. Z'.
@@ -78,14 +78,15 @@ public:
    typedef double CalculateArguments [NumberInputKinds][NumberUserArguments];
 
    bool initialise (const QString& expression);
-   QString getCalcError () { return this-> calcError; }
+   QString getCalcError () const { return this->calcError; }
 
-   double evaluate (const CalculateArguments& userArgs, bool* okay = 0);
+   double evaluate (const CalculateArguments& userArgs, bool* okay = 0) const;
 
    static void clear (CalculateArguments& userArgs);
    static int indexOf (const char c);
 
 private:
+   const bool allowPrimedInput;
    bool buildMaps (const QString& expression, QString& translated);
 
    static const int MaxInfixSize = 100;
@@ -103,4 +104,4 @@ private:
    ArgumentMaps argumentMap;    // maps 0 .. 11 => 0 .. 51
 };
 
-#endif  // QEEXPRESSIONEVALUATION_H
+#endif  // QE_EXPRESSION_EVALUATION_H

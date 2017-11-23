@@ -89,7 +89,14 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlotter : public QEAbstractDynamicWid
    Q_PROPERTY (bool axisEnableX        READ getAxisEnableX       WRITE setAxisEnableX)
    Q_PROPERTY (bool axisEnableY        READ getAxisEnableY       WRITE setAxisEnableY)
 
-   // Conext menu ledgend
+   // Manual scaling
+   //
+   Q_PROPERTY (double xMinimum         READ getXMinimum          WRITE setXMinimum)
+   Q_PROPERTY (double xMaximum         READ getXMaximum          WRITE setXMaximum)
+   Q_PROPERTY (double yMinimum         READ getYMinimum          WRITE setYMinimum)
+   Q_PROPERTY (double yMaximum         READ getYMaximum          WRITE setYMaximum)
+
+   // Context menu legend
    //
    Q_PROPERTY (QString contextMenuEmitText    READ getMenuEmitText      WRITE setMenuEmitText)
 
@@ -237,6 +244,18 @@ public:
    void setYLogarithmic (bool visible);
    bool getYLogarithmic () const;
 
+   void setXMinimum (const double xMinimum);
+   double getXMinimum () const;
+
+   void setXMaximum (const double xMaximum);
+   double getXMaximum () const;
+
+   void setYMinimum (const double yMinimum);
+   double getYMinimum () const;
+
+   void setYMaximum (const double yMaximum);
+   double getYMaximum () const;
+
    // Control paused state.
    //
    void setIsPaused (bool paused);
@@ -319,6 +338,8 @@ public slots:
 public:
    QStringList getDataPvNameSet () const;
    QStringList getAliasNameSet () const;
+
+   QEGraphic* getGraphic () const;   // allow access to the embedded graphic widget.
 
 signals:
    void pvDataNameSetChanged (const QStringList& nameSet);

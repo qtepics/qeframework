@@ -517,11 +517,38 @@ const QCaDataPoint* QEStripChart::findNearestPoint (const QPointF& posn,
 //
 void QEStripChart::recalculateData ()
 {
-   // Place holder.
+   const QCaDateTime datetime = QCaDateTime::currentDateTimeUtc ();
 
-   // Last - clear flag.
+   QEStripChartItem::CalcInputs values;
+   bool okay;
+
+   // First initialise all values - undefined artefacts yield zero.
    //
-   this->recalcIsRequired = false;
+   for (int slot = 0; slot < NUMBER_OF_PVS; slot++) {
+      values [slot] = 0.0;
+   }
+
+   // Extract non-calculated values. Don't allow use of previous calculated values.
+   //
+   for (int slot = 0; slot < NUMBER_OF_PVS; slot++) {
+      QEStripChartItem* item = this->getItem (slot);
+      if (item && item->isPvData ()) {
+         double t = item->getCurrentValue (okay);
+         if (okay) values [slot] = t;
+      }
+   }
+
+   // Do calculations and back fill calculated values.
+   // Note: Calculations can only use PV values and already calculated values.
+   //
+   for (int slot = 0; slot < NUMBER_OF_PVS; slot++) {
+      QEStripChartItem* item = this->getItem (slot);
+      if (item && item->isCalculation ()) {
+         item->calculateAndUpdate (datetime, values);
+         double t = item->getCurrentValue (okay);
+         if (okay) values [slot] = t;
+      }
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -1059,8 +1086,6 @@ QEStripChart::QEStripChart (QWidget * parent) : QEAbstractDynamicWidget (parent)
    //
    this->archiveAccess->resendStatus ();
 
-   this->recalcIsRequired = false; // part of future enhancement
-
    this->replotIsRequired = true; // ensure process on first tick.
    this->tickTimerCount = 0;
 
@@ -1227,7 +1252,8 @@ void QEStripChart::tickTimeout ()
 {
    this->tickTimerCount = (this->tickTimerCount + 1) % 20;
 
-   if (this->recalcIsRequired) {
+   // Evaluate at (approx) 10 Hz.
+   if ((this->tickTimerCount % 2) == 0) {
       this->recalculateData ();
    }
 
@@ -1469,7 +1495,7 @@ void QEStripChart::readArchiveSelected ()
 {
    for (int slot = 0; slot < NUMBER_OF_PVS; slot++) {
       QEStripChartItem* item = this->getItem (slot);
-      if (item->isInUse ()) {
+      if (item->isPvData ()) {
          item->readArchive ();
       }
    }
@@ -1621,7 +1647,7 @@ QString QEStripChart::copyVariable ()
    for (int slot = 0; slot < NUMBER_OF_PVS; slot++) {
       QEStripChartItem* item = this->getItem (slot);
 
-      if ((item) && (item->isInUse() == true)) {
+      if ((item) && (item->isPvData () == true)) {
          if (!result.isEmpty()) {
             result.append (" ");
          };
