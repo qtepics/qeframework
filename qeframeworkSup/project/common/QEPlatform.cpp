@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015 Australian Synchrotron.
+ *  Copyright (c) 201,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -25,6 +25,7 @@
  *
  */
 
+#include "QEPlatform.h"
 
 #ifdef WIN32
 #include <float.h>
@@ -34,7 +35,10 @@
 
 #endif
 
-#include "QEPlatform.h"
+#include <limits>
+
+// TODO check for QT 5.X and use inbuilt functions.
+
 
 //------------------------------------------------------------------------------
 //
@@ -45,6 +49,22 @@ bool QEPlatform::isNaN (const double x)
 #else
    return isnan (x);
 #endif
+
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEPlatform::isInf (const double x)
+{
+   if (x > std::numeric_limits<double>::max()){
+      return true;
+   }
+   else if (x < -std::numeric_limits<double>::max()){
+      return true;
+   } else {
+      return false;
+   }
+
 }
 
 // end

@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015 Australian Synchrotron.
+ *  Copyright (c) 2015,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -42,6 +42,9 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlatform {
 public:
    /// This function test if the specified double floating point number is 'Not a Number'.
    static bool isNaN (const double x);
+
+   /// This function test if the specified double floating point number is +/-Infinity.
+   static bool isInf (const double x);
 
 protected:
    QEPlatform () { }
