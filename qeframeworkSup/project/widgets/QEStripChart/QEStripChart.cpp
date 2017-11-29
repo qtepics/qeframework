@@ -517,7 +517,7 @@ const QCaDataPoint* QEStripChart::findNearestPoint (const QPointF& posn,
 //
 void QEStripChart::recalculateData ()
 {
-   const QCaDateTime datetime = QCaDateTime::currentDateTimeUtc ();
+   const QCaDateTime datetime = QCaDateTime::currentDateTime ().toUTC ();
 
    QEStripChartItem::CalcInputs values;
    bool okay;
