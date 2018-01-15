@@ -53,23 +53,7 @@
 #include <imageProperties.h>
 #include <imageProcessor.h>
 
-// Only include the mpeg stuff if required.
-// To include mpeg stuff, don't define QE_USE_MPEG directly, define environment variable
-// QE_FFMPEG to be processed by framework.pro
-#ifdef QE_USE_MPEG
 #include <mpeg.h>
-#else
-// Define a stub mpegSource class in place of the class defined when mpeg.h is included.
-// this is required as mpegSource is a base class for QEImage
-class mpegSource
-{
-public:
-    void setURL( QString ){}
-    void startStream(){}
-    void stopStream(){}
-};
-#endif // QE_USE_MPEG
-
 
 // Differed class declaration - no visible dependency on profilePlot.h (it is
 // included from the .cpp file) and hence no visible dependency on qwt_plot.h
@@ -159,7 +143,7 @@ class pointInfo
   Many PVs may be defined to allow user interaction, such as selecting regions of interest.
   It is tighly integrated with the base class QEWidget which provides generic support such as macro substitutions, drag/drop, and standard properties.
  */
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEImage : public QFrame, public QEWidget, public imageInfo, private mpegSource{
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEImage : public QFrame, public QEWidget, public imageInfo {
     Q_OBJECT
   public:
     /// Create without a variable.
@@ -566,9 +550,14 @@ public:
     void redisplayAllMarkups();
 
 private slots:
+    // MPEG data update slots (and maybe other non CA sources)
+    void setDataImage( const QByteArray& imageIn,
+                       unsigned long dataSize, unsigned long elements,
+                       unsigned long width, unsigned long height,
+                       imageDataFormats::formatOptions format, unsigned int depth );
+
     // QCa data update slots
     void connectionChanged( QCaConnectionInfo& connectionInfo );
-    void setImage( const QByteArray& imageIn, unsigned long dataSize, unsigned long elements, unsigned long width, unsigned long height, imageDataFormats::formatOptions format, unsigned int depth );
     void setImage( const QByteArray& image, unsigned long dataSize, QCaAlarmInfo&, QCaDateTime&, const unsigned int& );
     void setFormat( const QString& text, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
     void setBitDepth( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
@@ -767,6 +756,7 @@ signals:
     QScrollArea* scrollArea;
     bool initScrollPosSet;
 
+    MpegSource*  mpegSource;
     VideoWidget* videoWidget;
 
     bool appHostsControls;

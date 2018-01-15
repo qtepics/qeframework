@@ -76,13 +76,9 @@ HEADERS += \
     widgets/QEImage/colourConversion.h \
     widgets/QEImage/imageProcessor.h \
     widgets/QEImage/imageProperties.h \
-    widgets/QEImage/imageMarkupLegendSetText.h
+    widgets/QEImage/imageMarkupLegendSetText.h \
+    widgets/QEImage/mpeg.h
 
-isEmpty( _QE_FFMPEG ) {
-
-} else {
-    HEADERS += widgets/QEImage/mpeg.h
-}
 
 SOURCES += \
     widgets/QEImage/QEImage.cpp \
@@ -112,12 +108,8 @@ SOURCES += \
     widgets/QEImage/screenSelectDialog.cpp \
     widgets/QEImage/imageProcessor.cpp \
     widgets/QEImage/imageProperties.cpp \
-    widgets/QEImage/imageMarkupLegendSetText.cpp
-
-isEmpty( _QE_FFMPEG ) {
-} else {
-    SOURCES += widgets/QEImage/mpeg.cpp
-}
+    widgets/QEImage/imageMarkupLegendSetText.cpp  \
+    widgets/QEImage/mpeg.cpp
 
 INCLUDEPATH += \
     widgets/QEImage

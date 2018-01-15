@@ -34,6 +34,8 @@
   User interaction and drawing markups over the image (such as selecting an area) is managed by the imageMarkup class.
  */
 
+#include <QEImage.h>
+#include <QDebug>
 #include <QIcon>
 #include <QPushButton>
 #include <QFileDialog>
@@ -41,7 +43,6 @@
 #include <QScrollBar>
 #include <QECommon.h>
 #include <profilePlot.h>
-#include <QEImage.h>
 #include <QEByteArray.h>
 #include <QEInteger.h>
 #include <QEFloating.h>
@@ -50,6 +51,8 @@
 #include <windowCustomisation.h>
 #include <screenSelectDialog.h>
 #include <colourConversion.h>
+
+#define DEBUG qDebug() << "QEImage"  << __LINE__ << __FUNCTION__ << "  "
 
 
 /*
@@ -71,7 +74,10 @@ QEImage::QEImage( const QString &variableNameIn, QWidget *parent ) : QFrame( par
 /*
     Setup common to all constructors
 */
-void QEImage::setup() {
+void QEImage::setup()
+{
+    // Create MPEG data source - may be a stubb depending
+    mpegSource = new MpegSource( this );
 
     // Set up data
     // This control uses the following data sources:
@@ -181,12 +187,18 @@ void QEImage::setup() {
         }
     }
 
-    // Use frame signals
-    // --Currently none--
-
+    // Connect MPEG data source.
+    QObject::connect (mpegSource, SIGNAL (setDataImage( const QByteArray&,
+                                                        unsigned long, unsigned long,
+                                                        unsigned long, unsigned long,
+                                                        imageDataFormats::formatOptions, unsigned int )),
+                      this,       SLOT   (setDataImage( const QByteArray&,
+                                                        unsigned long, unsigned long,
+                                                        unsigned long, unsigned long,
+                                                        imageDataFormats::formatOptions, unsigned int )));
 
     // Create the video destination
-    videoWidget = new VideoWidget;
+    videoWidget = new VideoWidget( this );
     setVertSlice1MarkupColor( QColor(127, 255, 127));
     setVertSlice2MarkupColor( QColor(114, 230, 114));  // 90% of slice 1
     setVertSlice3MarkupColor( QColor(101, 204, 101));  // 80% of slice 1
@@ -1550,25 +1562,25 @@ void QEImage::playingBack( bool playing )
     if( playing )
     {
         deleteQcaItem( IMAGE_VARIABLE, true );
-        stopStream();
+        mpegSource->stopStream();
     }
     else
     {
         establishConnection( IMAGE_VARIABLE );
-        startStream();
+        mpegSource->startStream();
     }
 }
 
 //====================================================
 
 // Update image from non CA souce (no associated CA timestamp or alarm info available)
-void QEImage::setImage( const QByteArray& imageIn,
-                        unsigned long dataSize,
-                        unsigned long elements,
-                        unsigned long width,
-                        unsigned long height,
-                        imageDataFormats::formatOptions format,
-                        unsigned int depth )
+void QEImage::setDataImage( const QByteArray& imageIn,
+                            unsigned long dataSize,
+                            unsigned long elements,
+                            unsigned long width,
+                            unsigned long height,
+                            imageDataFormats::formatOptions format,
+                            unsigned int depth )
 {
     //!!! Should the format, bit depth, width and height be clobered like this? (especially where we are altering properties, like bitDepth)
     //!!! Perhaps CA delivered and MPEG delivered images should maintain their own attributes?
@@ -3846,7 +3858,7 @@ void    QEImage::setEllipseLegend       ( QString legend ){        videoWidget->
 void QEImage::setSubstitutedUrl( QString urlIn )
 {
     url = urlIn;
-    setURL( substituteThis( url ));
+    mpegSource->setURL( substituteThis( url ));
 }
 
 QString QEImage::getSubstitutedUrl()
@@ -5230,11 +5242,9 @@ void QEImage::showImageAboutDialog()
 // Note if mpeg stuff if included.
 // To include mpeg stuff, don't define QE_USE_MPEG directly, define environment variable
 // QE_FFMPEG to be processed by framework.pro
-#ifdef QE_USE_MPEG
-    about.append( "\n\nImage MPEG URL: " ).append( (!getURL().isEmpty())?getURL():"No URL" );
-#else
-    about.append( "\n\nImage MPEG URL: ---MPEG source not enabled in this build---" );
-#endif // QE_USE_MPEG
+// Note: stub class returns a suitable non-url
+    QString url = mpegSource->getURL();
+    about.append( "\n\nImage MPEG URL: " ).append( (!url.isEmpty()) ? url :"No URL" );
 
     qcaobject::QCaObject *qca;
 
