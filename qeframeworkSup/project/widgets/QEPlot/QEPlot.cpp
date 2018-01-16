@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2016,2017 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2016,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Glenn Jackson
@@ -141,7 +141,7 @@ public:
 //
 QEPlot::QEPlot (QWidget* parent) : QEFrame (parent)
 {
-   setup ();
+   this->setup ();
 }
 
 //------------------------------------------------------------------------------
@@ -150,9 +150,9 @@ QEPlot::QEPlot (QWidget* parent) : QEFrame (parent)
 QEPlot::QEPlot (const QString& variableNameIn,
                 QWidget* parent) : QEFrame (parent)
 {
-   setup ();
-   setVariableName (variableNameIn, 0);
-   activate ();
+   this->setup ();
+   this->setVariableName (variableNameIn, 0);
+   this->activate ();
 }
 
 //------------------------------------------------------------------------------
@@ -162,56 +162,57 @@ void QEPlot::setup ()
 {
    // Set plain shape and noframe - the internal QwtPlot widget does its
    // own shape/shadow
-   setFrameShape(QFrame::NoFrame );
-   setFrameShadow(QFrame::Plain );
+   this->setFrameShape(QFrame::NoFrame );
+   this->setFrameShadow(QFrame::Plain );
 
    // Set up data
    // This control used a single data source
-   setNumVariables( QEPLOT_NUM_VARIABLES );
+   this->setNumVariables( QEPLOT_NUM_VARIABLES );
 
    // Set up default properties
-   setAllowDrop( false );
+   this->setAllowDrop( false );
 
    // Set the initial state
-   isConnected = false;
+   this->isConnected = false;
 
    // General plot properties
-   yMin = 0.0;
-   yMax = 0.0;
-   autoScale = true;
-   axisEnableX = true;
-   axisEnableY = true;
+   this->yMin = 0.0;
+   this->yMax = 0.0;
+   this->autoScale = true;
+   this->axisEnableX = true;
+   this->axisEnableY = true;
 
    //setLabelOrientation (Qt::Orientation)Qt::Vertical
 
    // Default to one minute span
-   tickRate = 50;
-   timeSpan = 60;
+   this->tickRate = 50;
+   this->timeSpan = 60;
 
    // Allocate Trace objects
    for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
-      traces[i] = new Trace ();
+      this->traces[i] = new Trace ();
    }
 
    // plot does the actual plotting
-   plot = new QwtPlot (NULL);
+   this->plot = new QwtPlot (NULL);
 
-   layout = new QVBoxLayout (this);
-   layoutMargin = 0;
-   layout->setMargin (layoutMargin);
-   layout->addWidget (plot);
+   this->layout = new QVBoxLayout (this);
+   this->layoutMargin = 0;
+   this->layout->setMargin (layoutMargin);
+   this->layout->addWidget (plot);
 
-   tickTimer = new QTimer (this);
-   connect (tickTimer, SIGNAL (timeout ()), this, SLOT (tickTimeout ()));
-   tickTimer->start (tickRate);
+   this->tickTimer = new QTimer (this);
+   QObject::connect (tickTimer, SIGNAL (timeout ()),
+                     this, SLOT (tickTimeout ()));
+   this->tickTimer->start (tickRate);
 
    // Waveform properties
-   xStart = 0.0;
-   xIncrement = 1.0;
+   this->xStart = 0.0;
+   this->xIncrement = 1.0;
 
    // Initially no curve or grid, and different trace colors
    for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
-      Trace* tr = traces[i];
+      Trace* tr = this->traces[i];
       tr->curve = NULL;
       switch (i)                // Note, this assumes 4 traces, but won't break with more or less
       {
@@ -234,20 +235,20 @@ void QEPlot::setup ()
       tr->style = QwtPlotCurve::Lines;
    }
 
-   grid = NULL;
-   gridEnableMajorX = false;
-   gridEnableMajorY = false;
-   gridEnableMinorX = false;
-   gridEnableMinorY = false;
-   gridMajorColor = Qt::black;
-   gridMinorColor = Qt::gray;
+   this->grid = NULL;
+   this->gridEnableMajorX = false;
+   this->gridEnableMajorY = false;
+   this->gridEnableMinorX = false;
+   this->gridEnableMinorY = false;
+   this->gridMajorColor = Qt::black;
+   this->gridMinorColor = Qt::gray;
 
 
    // Assume we are plotting scalar (rather than array) data
-   plottingArrayData = false;
+   this->plottingArrayData = false;
 
    // Use standard context menu
-   setupContextMenu ();
+   this->setupContextMenu ();
 
    // Use QwtPlot signals
    // !! move this functionality into QEWidget???
@@ -256,41 +257,42 @@ void QEPlot::setup ()
    // set up a connection to recieve variable name property changes.
    // The variable name property manager class only delivers an updated variable name after the user has stopped typing
    for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
-      variableNamePropertyManagers[i].setVariableIndex (i);
-      QObject::connect (&variableNamePropertyManagers[i],
+      this->variableNamePropertyManagers[i].setVariableIndex (i);
+      QObject::connect (&this->variableNamePropertyManagers[i],
                         SIGNAL (newVariableNameProperty  (QString, QString, unsigned int)), this,
                         SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
    }
 
-   plot->canvas ()->setMouseTracking (true);
-   plot->canvas ()->installEventFilter (this);
+   this->plot->canvas ()->setMouseTracking (true);
+   this->plot->canvas ()->installEventFilter (this);
+   this->setBackgroundColor (QColor (200,200,200));
 }
 
 //------------------------------------------------------------------------------
 //
 QEPlot::~QEPlot ()
 {
-   if (tickTimer) {
-      tickTimer->stop ();
-      delete tickTimer;
+   if (this->tickTimer) {
+      this->tickTimer->stop ();
+      delete this->tickTimer;
    }
 
    for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
-      Trace* tr = traces[i];
+      Trace* tr = this->traces[i];
       if (tr->curve) {
          delete tr->curve;
          tr->curve = NULL;
       }
    }
 
-   if (grid) {
-      delete grid;
+   if (this->grid) {
+      delete this->grid;
    }
 
    // Dellocate Trace objects
    for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
-      if (traces[i])
-         delete traces[i];
+      if (this->traces[i])
+         delete this->traces[i];
    }
 }
 
@@ -347,8 +349,8 @@ qcaobject::QCaObject* QEPlot::createQcaItem (unsigned int variableIndex)
    PV_INDEX_CHECK (variableIndex, NULL);
 
    // Create the item as a QEFloating
-   return new QEFloating (getSubstitutedVariableName (variableIndex), this,
-                          &floatingFormatting, variableIndex);
+   return new QEFloating (this->getSubstitutedVariableName (variableIndex), this,
+                          &this->floatingFormatting, variableIndex);
 }
 
 //------------------------------------------------------------------------------
@@ -362,7 +364,7 @@ void QEPlot::establishConnection (unsigned int variableIndex)
 
    // Create a connection.
    // If successfull, the QCaObject object that will supply data update signals will be returned
-   qcaobject::QCaObject* qca = createConnection (variableIndex);
+   qcaobject::QCaObject* qca = this->createConnection (variableIndex);
 
    if (!qca) return;
 
@@ -389,11 +391,11 @@ void QEPlot::connectionChanged (QCaConnectionInfo& connectionInfo,
    PV_INDEX_CHECK (variableIndex, );
 
    // Note the connected state
-   isConnected = connectionInfo.isChannelConnected ();
+   this->isConnected = connectionInfo.isChannelConnected ();
 
    // Display the connected state
-   updateToolTipConnection (isConnected, variableIndex);
-   processConnectionInfo (isConnected, variableIndex);
+   this->updateToolTipConnection (isConnected, variableIndex);
+   this->processConnectionInfo (isConnected, variableIndex);
 }
 
 //------------------------------------------------------------------------------
@@ -408,7 +410,7 @@ void QEPlot::setPlotData (const double value, QCaAlarmInfo& alarmInfo,
 
    // A seperate data connection (QEPlot::setPlotData( const QVector<double>& values, ... ) manages
    // array data (it also determines if we are getting array data), so do nothing more here if plotting array data data
-   if (plottingArrayData) {
+   if (this->plottingArrayData) {
       return;
    }
 
@@ -434,7 +436,7 @@ void QEPlot::setPlotData (const double value, QCaAlarmInfo& alarmInfo,
    }
 
    // Select the curve information for this variable
-   Trace* tr = traces[variableIndex];
+   Trace* tr = this->traces[variableIndex];
 
    // Flag this trace is displaying a strip chart
    tr->waveform = false;
@@ -480,8 +482,8 @@ void QEPlot::setPlotData (const double value, QCaAlarmInfo& alarmInfo,
    plot->setAxisScale (QwtPlot::xBottom, -(double) timeSpan, 0.0);
 
    // The data is now ready to plot
-   setPlotDataCommon (variableIndex);
-   setalarmInfoCommon (alarmInfo, variableIndex);
+   this->setPlotDataCommon (variableIndex);
+   this->setalarmInfoCommon (alarmInfo, variableIndex);
 }
 
 //------------------------------------------------------------------------------
@@ -496,8 +498,8 @@ void QEPlot::setPlotData (const QVector <double>& values,
 
    // A seperate data connection (QEPlot::setPlotData( const double value, ... ) manages scalar data,
    // so decide if we are plotting scalar or array data and do nothing more here if plotting scalar data
-   plottingArrayData = (values.count () > 1);
-   if (!plottingArrayData) {
+   this->plottingArrayData = (values.count () > 1);
+   if (!this->plottingArrayData) {
       return;
    }
 
@@ -505,7 +507,7 @@ void QEPlot::setPlotData (const QVector <double>& values,
    emit dbValueChanged (values);
 
    // Select the curve information for this variable
-   Trace* tr = traces[variableIndex];
+   Trace* tr = this->traces[variableIndex];
 
    // Flag this trace is displaying a waveform
    tr->waveform = true;
@@ -518,7 +520,7 @@ void QEPlot::setPlotData (const QVector <double>& values,
 
    // If no increment was supplied, use 1 by default
    double inc;
-   xIncrement == 0.0 ? inc = 1.0 : inc = xIncrement;
+   inc = this->xIncrement == 0.0 ? 1.0 : this->xIncrement;
 
    for (int i = 0; i < values.count (); i++) {
       tr->xdata.append (xStart + ((double) i * inc));
@@ -526,11 +528,11 @@ void QEPlot::setPlotData (const QVector <double>& values,
    }
 
    // Autoscale X for a waveform
-   plot->setAxisAutoScale (QwtPlot::xBottom);
+   this->plot->setAxisAutoScale (QwtPlot::xBottom);
 
    // The data is now ready to plot
-   setPlotDataCommon (variableIndex);
-   setalarmInfoCommon (alarmInfo, variableIndex);
+   this->setPlotDataCommon (variableIndex);
+   this->setalarmInfoCommon (alarmInfo, variableIndex);
 }
 
 //------------------------------------------------------------------------------
@@ -542,13 +544,13 @@ void QEPlot::setPlotDataCommon (const unsigned int variableIndex)
 {
    PV_INDEX_CHECK (variableIndex, );
 
-   Trace* tr = traces[variableIndex];
+   Trace* tr = this->traces[variableIndex];
 
    // Create the curve if it does not exist
    if (!tr->curve) {
       tr->curve = new QwtPlotCurve (tr->legend);
 
-      setCurveColor (tr->color, variableIndex);
+      this->setCurveColor (tr->color, variableIndex);
       tr->curve->setRenderHint (QwtPlotItem::RenderAntialiased);
       tr->curve->setStyle (tr->style);
       tr->curve->attach (plot);
@@ -562,7 +564,7 @@ void QEPlot::setPlotDataCommon (const unsigned int variableIndex)
 #endif
 
    // Update the plot
-   plot->replot ();
+   this->plot->replot ();
 }
 
 //------------------------------------------------------------------------------
@@ -574,7 +576,7 @@ void QEPlot::setalarmInfoCommon (QCaAlarmInfo & alarmInfo,
 
    // Invoke common alarm handling processing.
    // TODO: Aggregate all channel severities into a single alarm state.
-   processAlarmInfo (alarmInfo, variableIndex);
+   this->processAlarmInfo (alarmInfo, variableIndex);
 }
 
 //------------------------------------------------------------------------------
@@ -585,7 +587,7 @@ void QEPlot::regenerateTickXData (const unsigned int variableIndex)
 {
    PV_INDEX_CHECK (variableIndex, );
 
-   Trace* tr = traces[variableIndex];
+   Trace* tr = this->traces[variableIndex];
 
    QCaDateTime now = QDateTime::currentDateTime ();
    for (int i = 0; i < tr->xdata.count (); i++) {
@@ -599,7 +601,7 @@ void QEPlot::regenerateTickXData (const unsigned int variableIndex)
 void QEPlot::tickTimeout ()
 {
    for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
-      Trace* tr = traces[i];
+      Trace* tr = this->traces[i];
       if (tr->curve && !tr->waveform) {
          // Ensure the trace continues all the way up to the current time
          // regardless of when the last point appeared
@@ -621,9 +623,10 @@ void QEPlot::tickTimeout ()
                tr->hasCurrentPoint = true;
             }
          }
+
          // Recalculate where the points now are and display them
-         regenerateTickXData (i);
-         setPlotDataCommon (i);
+         this->regenerateTickXData (i);
+         this->setPlotDataCommon (i);
       }
    }
 }
@@ -637,9 +640,9 @@ void QEPlot::useNewVariableNameProperty (QString variableNameIn,
 {
    PV_INDEX_CHECK (variableIndex, );
 
-   setVariableNameAndSubstitutions (variableNameIn,
-                                    variableNameSubstitutionsIn,
-                                    variableIndex);
+   this->setVariableNameAndSubstitutions (variableNameIn,
+                                          variableNameSubstitutionsIn,
+                                          variableIndex);
 }
 
 //------------------------------------------------------------------------------
@@ -650,7 +653,7 @@ void QEPlot::setCurveColor (const QColor color,
 {
    PV_INDEX_CHECK (variableIndex, );
 
-   Trace* tr = traces[variableIndex];
+   Trace* tr = this->traces[variableIndex];
    if (tr->curve) {
       tr->curve->setPen (color);
    }
@@ -663,27 +666,7 @@ void QEPlot::setVariableNameIndexProperty (const QString& variableName,
                                            const unsigned int variableIndex)
 {
    PV_INDEX_CHECK (variableIndex, );
-   variableNamePropertyManagers[variableIndex].setVariableNameProperty (variableName);
-}
-
-void QEPlot::setVariableName0Property (const QString & pvName)
-{
-   setVariableNameIndexProperty (pvName, 0);
-}
-
-void QEPlot::setVariableName1Property (const QString & pvName)
-{
-   setVariableNameIndexProperty (pvName, 1);
-}
-
-void QEPlot::setVariableName2Property (const QString & pvName)
-{
-   setVariableNameIndexProperty (pvName, 2);
-}
-
-void QEPlot::setVariableName3Property (const QString & pvName)
-{
-   setVariableNameIndexProperty (pvName, 3);
+   this->variableNamePropertyManagers[variableIndex].setVariableNameProperty (variableName);
 }
 
 //------------------------------------------------------------------------------
@@ -691,27 +674,7 @@ void QEPlot::setVariableName3Property (const QString & pvName)
 QString QEPlot::getVariableNameIndexProperty (const unsigned int variableIndex) const
 {
    PV_INDEX_CHECK (variableIndex, "");
-   return variableNamePropertyManagers[variableIndex].getVariableNameProperty ();
-}
-
-QString QEPlot::getVariableName0Property () const
-{
-   return getVariableNameIndexProperty (0);
-}
-
-QString QEPlot::getVariableName1Property () const
-{
-   return getVariableNameIndexProperty (1);
-}
-
-QString QEPlot::getVariableName2Property () const
-{
-   return getVariableNameIndexProperty (2);
-}
-
-QString QEPlot::getVariableName3Property () const
-{
-   return getVariableNameIndexProperty (3);
+   return this->variableNamePropertyManagers[variableIndex].getVariableNameProperty ();
 }
 
 //------------------------------------------------------------------------------
@@ -721,7 +684,7 @@ void QEPlot::setVariableNameSubstitutionsProperty (const QString& variableNameSu
 {
    // Same substitutions apply to all variables.
    for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
-      variableNamePropertyManagers[i].
+      this->variableNamePropertyManagers[i].
           setSubstitutionsProperty (variableNameSubstitutions);
    }
 }
@@ -729,7 +692,7 @@ void QEPlot::setVariableNameSubstitutionsProperty (const QString& variableNameSu
 QString QEPlot::getVariableNameSubstitutionsProperty () const
 {
    // All the same - any variable's substitutions will do.
-   return variableNamePropertyManagers[0].getSubstitutionsProperty ();
+   return this->variableNamePropertyManagers[0].getSubstitutionsProperty ();
 }
 
 
@@ -739,7 +702,7 @@ QString QEPlot::copyVariable ()
 {
    QString text;
    for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
-      QString pv = getSubstitutedVariableName (i);
+      QString pv = this->getSubstitutedVariableName (i);
       if (!pv.isEmpty ()) {
          if (!text.isEmpty ()) text.append (" ");
          text.append (pv);
@@ -755,7 +718,7 @@ QVariant QEPlot::copyData ()
 {
    QString text;
    for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
-      Trace* tr = traces[i];
+      Trace* tr = this->traces[i];
       // Use i + 1 (as opposed to just i) as variable propety names are 1 to 4, not 0 to 3.
       QString tl = tr->legend.isEmpty () ? QString ("Variable %1").arg (i + 1) : tr->legend;
       text.append (QString ("\n%1\nx\ty\n").arg (tl));
@@ -779,200 +742,204 @@ void QEPlot::paste (QVariant v)
    PVs = QEUtilities::variantToStringList (v);
 
    for (int i = 0; (i < PVs.size ()) && (i < QEPLOT_NUM_VARIABLES); i++) {
-      setVariableName (PVs[i], i);
-      establishConnection (i);
+      this->setVariableName (PVs[i], i);
+      this->establishConnection (i);
    }
 }
 
 //==============================================================================
-// Property convenience functions
+// Property functions
 //
 // Access functions for YMin
 void QEPlot::setYMin (double yMinIn)
 {
    yMin = yMinIn;
-   if (!autoScale) {
-      plot->setAxisScale (QwtPlot::yLeft, yMin, yMax);
+   if (!this->autoScale) {
+      this->plot->setAxisScale (QwtPlot::yLeft, this->yMin, this->yMax);
    }
 }
 
 double QEPlot::getYMin () const
 {
-   return yMin;
+   return this->yMin;
 }
 
 //------------------------------------------------------------------------------
 // Access functions for yMax
 void QEPlot::setYMax (double yMaxIn)
 {
-   yMax = yMaxIn;
-   if (!autoScale) {
-      plot->setAxisScale (QwtPlot::yLeft, yMin, yMax);
+   this->yMax = yMaxIn;
+   if (!this->autoScale) {
+      plot->setAxisScale (QwtPlot::yLeft, this->yMin, this->yMax);
    }
 }
 
 double QEPlot::getYMax () const
 {
-   return yMax;
+   return this->yMax;
 }
 
 //------------------------------------------------------------------------------
 // Access functions for autoScale
 void QEPlot::setAutoScale (bool autoScaleIn)
 {
-   autoScale = autoScaleIn;
+   this->autoScale = autoScaleIn;
 
    // Set auto scale if requested, or if manual scale values are invalid
-   if (autoScale || yMin == yMax) {
-      plot->setAxisAutoScale (QwtPlot::yLeft);
+   if (this->autoScale || this->yMin == this->yMax) {
+      this->plot->setAxisAutoScale (QwtPlot::yLeft);
    } else {
-      plot->setAxisScale (QwtPlot::yLeft, yMin, yMax);
+      this->plot->setAxisScale (QwtPlot::yLeft, yMin, yMax);
    }
 }
 
 bool QEPlot::getAutoScale () const
 {
-   return autoScale;
+   return this->autoScale;
 }
 
 //------------------------------------------------------------------------------
 // Access functions for X axis visibility
 void QEPlot::setAxisEnableX (bool axisEnableXIn)
 {
-   axisEnableX = axisEnableXIn;
-   plot->enableAxis (QwtPlot::xBottom, axisEnableX);
+   this->axisEnableX = axisEnableXIn;
+   this->plot->enableAxis (QwtPlot::xBottom, this->axisEnableX);
 }
 
 bool QEPlot::getAxisEnableX () const
 {
-   return axisEnableX;
+   return this->axisEnableX;
 }
 
 //------------------------------------------------------------------------------
 // Access functions for Y axis visibility
 void QEPlot::setAxisEnableY (bool axisEnableYIn)
 {
-   axisEnableY = axisEnableYIn;
-   plot->enableAxis (QwtPlot::yLeft, axisEnableY);
+   this->axisEnableY = axisEnableYIn;
+   this->plot->enableAxis (QwtPlot::yLeft, this->axisEnableY);
 }
 
 bool QEPlot::getAxisEnableY () const
 {
-   return axisEnableY;
+   return this->axisEnableY;
 }
 
 //------------------------------------------------------------------------------
-// Access functions for grid
+// Access functions for grid enable
 void QEPlot::setGridEnableMajorX (bool gridEnableMajorXIn)
 {
-   gridEnableMajorX = gridEnableMajorXIn;
-   setGridEnable ();
+   this->gridEnableMajorX = gridEnableMajorXIn;
+   this->setGridEnable ();
 }
 
 void QEPlot::setGridEnableMajorY (bool gridEnableMajorYIn)
 {
-   gridEnableMajorY = gridEnableMajorYIn;
-   setGridEnable ();
+   this->gridEnableMajorY = gridEnableMajorYIn;
+   this->setGridEnable ();
 }
 
 void QEPlot::setGridEnableMinorX (bool gridEnableMinorXIn)
 {
-   gridEnableMinorX = gridEnableMinorXIn;
-   setGridEnable ();
+   this->gridEnableMinorX = gridEnableMinorXIn;
+   this->setGridEnable ();
 }
 
 void QEPlot::setGridEnableMinorY (bool gridEnableMinorYIn)
 {
-   gridEnableMinorY = gridEnableMinorYIn;
-   setGridEnable ();
+   this->gridEnableMinorY = gridEnableMinorYIn;
+   this->setGridEnable ();
 }
 
+//------------------------------------------------------------------------------
 void QEPlot::setGridEnable ()
 {
    // If any grid is required, create a grid and set it up
    // Note, Qwt will ignore minor enable if major is not enabled
-   if (gridEnableMajorX || gridEnableMajorY || gridEnableMinorX ||
-       gridEnableMinorY) {
-      if (!grid) {
-         grid = new QwtPlotGrid;
+   if (this->gridEnableMajorX || this->gridEnableMajorY ||
+       this->gridEnableMinorX || this->gridEnableMinorY) {
+      if (!this->grid) {
+         this->grid = new QwtPlotGrid;
 #if QWT_VERSION >= 0x060100
-         grid->setMajorPen (QPen (gridMajorColor, 0, Qt::DotLine));
-         grid->setMinorPen (QPen (gridMinorColor, 0, Qt::DotLine));
+         this->grid->setMajorPen (QPen (gridMajorColor, 0, Qt::DotLine));
+         this->grid->setMinorPen (QPen (gridMinorColor, 0, Qt::DotLine));
 #else
-         grid->setMajPen (QPen (gridMajorColor, 0, Qt::DotLine));
-         grid->setMinPen (QPen (gridMinorColor, 0, Qt::DotLine));
+         this->grid->setMajPen (QPen (gridMajorColor, 0, Qt::DotLine));
+         this->grid->setMinPen (QPen (gridMinorColor, 0, Qt::DotLine));
 #endif
-         grid->attach (plot);
+         this->grid->attach (plot);
       }
-      grid->enableX (gridEnableMajorX);
-      grid->enableY (gridEnableMajorY);
-      grid->enableXMin (gridEnableMinorX);
-      grid->enableYMin (gridEnableMinorY);
+      this->grid->enableX (gridEnableMajorX);
+      this->grid->enableY (gridEnableMajorY);
+      this->grid->enableXMin (gridEnableMinorX);
+      this->grid->enableYMin (gridEnableMinorY);
    }
    // No grid required, get rid of any grid
    else {
-      if (grid) {
-         grid->detach ();
-         delete grid;
-         grid = NULL;
+      if (this->grid) {
+         this->grid->detach ();
+         delete this->grid;
+         this->grid = NULL;
       }
    }
 }
 
 bool QEPlot::getGridEnableMajorX () const
 {
-   return gridEnableMajorX;
+   return this->gridEnableMajorX;
 }
 
 bool QEPlot::getGridEnableMajorY () const
 {
-   return gridEnableMajorY;
+   return this->gridEnableMajorY;
 }
 
 bool QEPlot::getGridEnableMinorX () const
 {
-   return gridEnableMinorX;
+   return this->gridEnableMinorX;
 }
 
 bool QEPlot::getGridEnableMinorY () const
 {
-   return gridEnableMinorY;
+   return this->gridEnableMinorY;
 }
 
 
-// Access functions for gridColor
+//------------------------------------------------------------------------------
+// Access functions for grid major colour
 void QEPlot::setGridMajorColor (QColor gridMajorColorIn)
 {
-   gridMajorColor = gridMajorColorIn;
-   if (grid) {
+   this->gridMajorColor = gridMajorColorIn;
+   if (this->grid) {
 #if QWT_VERSION >= 0x060100
-      grid->setMajorPen (QPen (gridMajorColor, 0, Qt::DotLine));
+      this->grid->setMajorPen (QPen (this->gridMajorColor, 0, Qt::DotLine));
 #else
-      grid->setMajPen (QPen (gridMajorColor, 0, Qt::DotLine));
-#endif
-   }
-}
-
-void QEPlot::setGridMinorColor (QColor gridMinorColorIn)
-{
-   gridMinorColor = gridMinorColorIn;
-   if (grid) {
-#if QWT_VERSION >= 0x060100
-      grid->setMinorPen (QPen (gridMinorColor, 0, Qt::DotLine));
-#else
-      grid->setMinPen (QPen (gridMinorColor, 0, Qt::DotLine));
+      this->grid->setMajPen   (QPen (this->gridMajorColor, 0, Qt::DotLine));
 #endif
    }
 }
 
 QColor QEPlot::getGridMajorColor () const
 {
-   return gridMajorColor;
+   return this->gridMajorColor;
+}
+
+//------------------------------------------------------------------------------
+// Access functions for grid minor colour
+void QEPlot::setGridMinorColor (QColor gridMinorColorIn)
+{
+   this->gridMinorColor = gridMinorColorIn;
+   if (grid) {
+#if QWT_VERSION >= 0x060100
+      this->grid->setMinorPen (QPen (this->gridMinorColor, 0, Qt::DotLine));
+#else
+      this->grid->setMinPen   (QPen (this->gridMinorColor, 0, Qt::DotLine));
+#endif
+   }
 }
 
 QColor QEPlot::getGridMinorColor () const
 {
-   return gridMinorColor;
+   return this->gridMinorColor;
 }
 
 
@@ -980,34 +947,34 @@ QColor QEPlot::getGridMinorColor () const
 // Access functions for title
 void QEPlot::setTitle (const QString & title)
 {
-   plot->setTitle (title);
+   this->plot->setTitle (title);
 }
 
 QString QEPlot::getTitle () const
 {
-   return plot->title ().text ();
+   return this->plot->title ().text ();
 }
 
 //------------------------------------------------------------------------------
 // Access functions for backgroundColor
-void QEPlot::setBackgroundColor (const QColor backgroundColor)
+void QEPlot::setBackgroundColor (const QColor backgroundColorIn)
 {
+   // cache in widget for proper behaviour.
+   //
+   this->backgroundColor = backgroundColorIn;
+
 #if QWT_VERSION >= 0x060000
    QBrush brush = plot->canvasBackground ();
-   brush.setColor (backgroundColor);
+   brush.setColor (this->backgroundColor);
    plot->setCanvasBackground (brush);
 #else
-   plot->setCanvasBackground (backgroundColor);
+   plot->setCanvasBackground (this->backgroundColor);
 #endif
 }
 
 QColor QEPlot::getBackgroundColor () const
 {
-#if QWT_VERSION >= 0x060000
-   return plot->canvasBackground ().color ();
-#else
-   return plot->canvasBackground ();
-#endif
+   return this->backgroundColor;
 }
 
 //------------------------------------------------------------------------------
@@ -1017,62 +984,20 @@ void QEPlot::setTraceStyle (const TraceStyles traceStyle,
 {
    PV_INDEX_CHECK (variableIndex, );
 
-   Trace* tr = traces[variableIndex];
+   Trace* tr = this->traces[variableIndex];
    tr->style = convertTrace2Curve (traceStyle);
    if (tr->curve) {
       tr->curve->setStyle (tr->style);
    }
 }
 
-void QEPlot::setTraceStyle1 (const TraceStyles traceStyle)
-{
-   setTraceStyle (traceStyle, 0);
-}
-
-void QEPlot::setTraceStyle2 (const TraceStyles traceStyle)
-{
-   setTraceStyle (traceStyle, 1);
-}
-
-void QEPlot::setTraceStyle3 (const TraceStyles traceStyle)
-{
-   setTraceStyle (traceStyle, 2);
-}
-
-void QEPlot::setTraceStyle4 (const TraceStyles traceStyle)
-{
-   setTraceStyle (traceStyle, 3);
-}
-
-
 //------------------------------------------------------------------------------
 //
 QEPlot::TraceStyles QEPlot::getTraceStyle (const unsigned int variableIndex) const
 {
    PV_INDEX_CHECK (variableIndex, Lines);
-   return convertCurve2Trace (traces[variableIndex]->style);
+   return convertCurve2Trace (this->traces[variableIndex]->style);
 }
-
-QEPlot::TraceStyles QEPlot::getTraceStyle1 () const
-{
-   return getTraceStyle (0);
-}
-
-QEPlot::TraceStyles QEPlot::getTraceStyle2 () const
-{
-   return getTraceStyle (1);
-}
-
-QEPlot::TraceStyles QEPlot::getTraceStyle3 () const
-{
-   return getTraceStyle (2);
-}
-
-QEPlot::TraceStyles QEPlot::getTraceStyle4 () const
-{
-   return getTraceStyle (3);
-}
-
 
 //------------------------------------------------------------------------------
 // Access functions for traceColor
@@ -1080,28 +1005,8 @@ void QEPlot::setTraceColor (const QColor traceColor,
                             const unsigned int variableIndex)
 {
    PV_INDEX_CHECK (variableIndex, );
-   traces[variableIndex]->color = traceColor;
-   setCurveColor (traceColor, variableIndex);
-}
-
-void QEPlot::setTraceColor1 (const QColor traceColor)
-{
-   setTraceColor (traceColor, 0);
-}
-
-void QEPlot::setTraceColor2 (const QColor traceColor)
-{
-   setTraceColor (traceColor, 1);
-}
-
-void QEPlot::setTraceColor3 (const QColor traceColor)
-{
-   setTraceColor (traceColor, 2);
-}
-
-void QEPlot::setTraceColor4 (const QColor traceColor)
-{
-   setTraceColor (traceColor, 3);
+   this->traces[variableIndex]->color = traceColor;
+   this->setCurveColor (traceColor, variableIndex);
 }
 
 //------------------------------------------------------------------------------
@@ -1109,28 +1014,9 @@ void QEPlot::setTraceColor4 (const QColor traceColor)
 QColor QEPlot::getTraceColor (const unsigned int variableIndex) const
 {
    PV_INDEX_CHECK (variableIndex, Qt::black);
-   return traces[variableIndex]->color;
+   return this->traces[variableIndex]->color;
 }
 
-QColor QEPlot::getTraceColor1 () const
-{
-   return getTraceColor (0);
-}
-
-QColor QEPlot::getTraceColor2 () const
-{
-   return getTraceColor (1);
-}
-
-QColor QEPlot::getTraceColor3 () const
-{
-   return getTraceColor (2);
-}
-
-QColor QEPlot::getTraceColor4 () const
-{
-   return getTraceColor (3);
-}
 
 //------------------------------------------------------------------------------
 // Access functions for traceLegend
@@ -1139,13 +1025,13 @@ void QEPlot::setTraceLegend (const QString & traceLegend,
 {
    PV_INDEX_CHECK (variableIndex, );
 
-   Trace* tr = traces[variableIndex];
+   Trace* tr = this->traces[variableIndex];
 
    tr->legend = traceLegend;
    if (traceLegend.count ()) {
-      plot->insertLegend (new QwtLegend (), QwtPlot::RightLegend);
+      this->plot->insertLegend (new QwtLegend (), QwtPlot::RightLegend);
    } else {
-      plot->insertLegend (NULL, QwtPlot::RightLegend);
+      this->plot->insertLegend (NULL, QwtPlot::RightLegend);
    }
 
    if (tr->curve) {
@@ -1153,141 +1039,155 @@ void QEPlot::setTraceLegend (const QString & traceLegend,
    }
 }
 
-void QEPlot::setTraceLegend1 (const QString & traceLegend)
-{
-   setTraceLegend (traceLegend, 0);
-}
-
-void QEPlot::setTraceLegend2 (const QString & traceLegend)
-{
-   setTraceLegend (traceLegend, 1);
-}
-
-void QEPlot::setTraceLegend3 (const QString & traceLegend)
-{
-   setTraceLegend (traceLegend, 2);
-}
-
-void QEPlot::setTraceLegend4 (const QString & traceLegend)
-{
-   setTraceLegend (traceLegend, 3);
-}
-
 //------------------------------------------------------------------------------
 //
 QString QEPlot::getTraceLegend (const unsigned int variableIndex) const
 {
    PV_INDEX_CHECK (variableIndex, "");
-   return traces[variableIndex]->legend;
-}
-
-QString QEPlot::getTraceLegend1 () const
-{
-   return getTraceLegend (0);
-}
-
-QString QEPlot::getTraceLegend2 () const
-{
-   return getTraceLegend (1);
-}
-
-QString QEPlot::getTraceLegend3 () const
-{
-   return getTraceLegend (2);
-}
-
-QString QEPlot::getTraceLegend4 () const
-{
-   return getTraceLegend (3);
+   return this->traces[variableIndex]->legend;
 }
 
 //------------------------------------------------------------------------------
 // Access functions for xUnit
 void QEPlot::setXUnit (const QString & xUnit)
 {
-   plot->setAxisTitle (QwtPlot::xBottom, xUnit);
+   this->plot->setAxisTitle (QwtPlot::xBottom, xUnit);
 }
 
 QString QEPlot::getXUnit () const
 {
-   return plot->axisTitle (QwtPlot::xBottom).text ();
+   return this->plot->axisTitle (QwtPlot::xBottom).text ();
 }
 
 //------------------------------------------------------------------------------
 // Access functions for yUnit
 void QEPlot::setYUnit (const QString & yUnit)
 {
-   plot->setAxisTitle (QwtPlot::yLeft, yUnit);
+   this->plot->setAxisTitle (QwtPlot::yLeft, yUnit);
 }
 
 QString QEPlot::getYUnit () const
 {
-   return plot->axisTitle (QwtPlot::yLeft).text ();
+   return this->plot->axisTitle (QwtPlot::yLeft).text ();
 }
 
 //------------------------------------------------------------------------------
 // Access functions for xStart
 void QEPlot::setXStart (double xStartIn)
 {
-   xStart = xStartIn;
+   this->xStart = xStartIn;
 }
 
 double QEPlot::getXStart () const
 {
-   return xStart;
+   return this->xStart;
 }
 
 //------------------------------------------------------------------------------
 // Access functions for xIncrement
 void QEPlot::setXIncrement (double xIncrementIn)
 {
-   xIncrement = xIncrementIn;
+   this->xIncrement = xIncrementIn;
 }
 
 double QEPlot::getXIncrement () const
 {
-   return xIncrement;
+   return this->xIncrement;
 }
 
 //------------------------------------------------------------------------------
 // Access functions for timeSpan
 void QEPlot::setTimeSpan (int timeSpanIn)
 {
-   timeSpan = MAX (1, timeSpanIn);
+   this->timeSpan = MAX (1, timeSpanIn);
 }
 
 int QEPlot::getTimeSpan () const
 {
-   return timeSpan;
+   return this->timeSpan;
 }
 
 //------------------------------------------------------------------------------
 // Access functions for tickRate
 void QEPlot::setTickRate (int tickRateIn)
 {
-   tickRate = MAX (20, tickRateIn);     // Limit to >= 20, i.e. <= 50 Hz.
-   if (tickTimer) {
-      tickTimer->stop ();
-      tickTimer->start (tickRate);
+   this->tickRate = MAX (20, tickRateIn);     // Limit to >= 20, i.e. <= 50 Hz.
+   if (this->tickTimer) {
+      this->tickTimer->stop ();
+      this->tickTimer->start (tickRate);
    }
 }
 
 int QEPlot::getTickRate () const
 {
-   return tickRate;
+   return this->tickRate;
 }
 
 //------------------------------------------------------------------------------
 // Access functions for margin
-void QEPlot::setMargin (const int margin)
+void QEPlot::setMargin (const int marginIn)
 {
-   layoutMargin = LIMIT (margin, 0, 100);
-   layout->setMargin (layoutMargin);
+   this->layoutMargin = LIMIT (marginIn, 0, 100);
+   this->layout->setMargin (layoutMargin);
 }
 
 int QEPlot::getMargin () const
 {
-   return layoutMargin;
+   return this->layoutMargin;
 }
+
+//------------------------------------------------------------------------------
+// There are foure PVs and assocates fours sets of trace properties, which
+// are all essentially identical, save for the function name and trace index.
+// names go 1 to 4, indicies go 0 to 3
+//
+#define ACCESS_FUNCTIONS(name, index)                                       \
+void QEPlot::setVariableName##name##Property (const QString & pvName)       \
+{                                                                           \
+   this->setVariableNameIndexProperty (pvName, index);                      \
+}                                                                           \
+                                                                            \
+QString QEPlot::getVariableName##name##Property () const                    \
+{                                                                           \
+   return this->getVariableNameIndexProperty (index);                       \
+}                                                                           \
+                                                                            \
+void QEPlot::setTraceStyle##name (const TraceStyles traceStyle)             \
+{                                                                           \
+   this->setTraceStyle (traceStyle, index);                                 \
+}                                                                           \
+                                                                            \
+QEPlot::TraceStyles QEPlot::getTraceStyle##name () const                    \
+{                                                                           \
+   return this->getTraceStyle (index);                                      \
+}                                                                           \
+                                                                            \
+void QEPlot::setTraceColor##name (const QColor traceColor)                  \
+{                                                                           \
+   this->setTraceColor (traceColor, index);                                 \
+}                                                                           \
+                                                                            \
+QColor QEPlot::getTraceColor##name () const                                 \
+{                                                                           \
+   return this->getTraceColor (index);                                      \
+}                                                                           \
+                                                                            \
+void QEPlot::setTraceLegend##name (const QString& traceLegend)              \
+{                                                                           \
+   this->setTraceLegend (traceLegend, index);                               \
+}                                                                           \
+                                                                            \
+QString QEPlot::getTraceLegend##name () const                               \
+{                                                                           \
+   return this->getTraceLegend (index);                                     \
+}
+
+
+ACCESS_FUNCTIONS (1, 0)
+ACCESS_FUNCTIONS (2, 1)
+ACCESS_FUNCTIONS (3, 2)
+ACCESS_FUNCTIONS (4, 3)
+
+#undef ACCESS_FUNCTIONS
 
 // end

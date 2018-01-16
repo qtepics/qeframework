@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2017 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Glenn Jackson
@@ -95,16 +95,16 @@ public:
     // For historical reasons, variable name access functions are named 0 to 3, while other attribues are 1 to 4.
     //
     void setVariableNameIndexProperty ( const QString& variableName, const unsigned int variableIndex);
-    void setVariableName0Property( const QString& pvName );
     void setVariableName1Property( const QString& pvName );
     void setVariableName2Property( const QString& pvName );
     void setVariableName3Property( const QString& pvName );
+    void setVariableName4Property( const QString& pvName );
 
     QString getVariableNameIndexProperty( const unsigned int variableIndex ) const;
-    QString getVariableName0Property () const;
     QString getVariableName1Property () const;
     QString getVariableName2Property () const;
     QString getVariableName3Property () const;
+    QString getVariableName4Property () const;
 
     void setTraceStyle(  const TraceStyles traceStyle, const unsigned int variableIndex );
     void setTraceStyle1( const TraceStyles traceStyle );
@@ -118,11 +118,11 @@ public:
     TraceStyles getTraceStyle3() const;
     TraceStyles getTraceStyle4() const;
 
-    void    setTraceColor(  const QColor traceColor, const unsigned int variableIndex );
-    void    setTraceColor1( const QColor traceColor );
-    void    setTraceColor2( const QColor traceColor );
-    void    setTraceColor3( const QColor traceColor );
-    void    setTraceColor4( const QColor traceColor );
+    void   setTraceColor(  const QColor traceColor, const unsigned int variableIndex );
+    void   setTraceColor1( const QColor traceColor );
+    void   setTraceColor2( const QColor traceColor );
+    void   setTraceColor3( const QColor traceColor );
+    void   setTraceColor4( const QColor traceColor );
 
     QColor getTraceColor( const unsigned int variableIndex ) const;
     QColor getTraceColor1() const;
@@ -237,6 +237,7 @@ private:
     bool axisEnableX;
     bool axisEnableY;
     QwtPlotGrid* grid;
+    QColor backgroundColor;
     bool gridEnableMajorX;
     bool gridEnableMajorY;
     bool gridEnableMinorX;
@@ -291,19 +292,19 @@ public:
 
     /// EPICS variable name (CA PV).
     /// This variable is used to read updating values or waveforms for plotting in the first trace.
-    Q_PROPERTY(QString variable1 READ getVariableName0Property WRITE setVariableName0Property)
+    Q_PROPERTY(QString variable1 READ getVariableName1Property WRITE setVariableName1Property)
 
     /// EPICS variable name (CA PV).
     /// This variable is used to read updating values or waveforms for plotting in the second trace.
-    Q_PROPERTY(QString variable2 READ getVariableName1Property WRITE setVariableName1Property)
+    Q_PROPERTY(QString variable2 READ getVariableName2Property WRITE setVariableName2Property)
 
     /// EPICS variable name (CA PV).
     /// This variable is used to read updating values or waveforms for plotting in the third trace.
-    Q_PROPERTY(QString variable3 READ getVariableName2Property WRITE setVariableName2Property)
+    Q_PROPERTY(QString variable3 READ getVariableName3Property WRITE setVariableName3Property)
 
     /// EPICS variable name (CA PV).
     /// This variable is used to read updating values or waveforms for plotting in the fourth trace.
-    Q_PROPERTY(QString variable4 READ getVariableName3Property WRITE setVariableName3Property)
+    Q_PROPERTY(QString variable4 READ getVariableName4Property WRITE setVariableName4Property)
 
     /// Macro substitutions. The default is no substitutions. The format is NAME1=VALUE1[,] NAME2=VALUE2... Values may be quoted strings. For example, 'SAMPLE=SAM1, NAME = "Ref foil"'
     /// These substitutions are applied to all the variable names.
@@ -358,8 +359,14 @@ public:
     Q_PROPERTY(QString yUnit READ getYUnit WRITE setYUnit)
     Q_PROPERTY(double xStart READ getXStart WRITE setXStart)
     Q_PROPERTY(double xIncrement READ getXIncrement WRITE setXIncrement)
+
+    /// Plot time span/duration (specified in seconds), constrained to be >= 1.
     Q_PROPERTY(int timeSpan READ getTimeSpan WRITE setTimeSpan)
+
+    /// Tick rate (specified in mSec), constrained to be >= 20.
+    /// Would be better called tick interval
     Q_PROPERTY(int tickRate READ getTickRate WRITE setTickRate)
+
     Q_PROPERTY(int margin READ getMargin WRITE setMargin)
 };
 
