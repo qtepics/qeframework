@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2014,2017 Australian Synchrotron.
+ *  Copyright (c) 2013,2014,2017,2018 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -30,6 +30,7 @@
 
 #include <math.h>
 #include <QDateTime>
+#include <QList>
 #include <QObject>
 #include <QString>
 #include <QStringList>
@@ -84,6 +85,7 @@
 //
 class QColor;
 class QWidget;
+class QEWidget;
 
 // General purpose utility functions.
 // We use a class of static methods as opposed to a set of regular functions.
@@ -187,11 +189,32 @@ public:
     ///
     static QStringList variantToStringList (const QVariant& v);
 
+    /// Performs deep search and writes all PV names to nominated target file.
+    ///
+    static void listPVNames (QWidget* rootWidget,
+                             const QString& targetFile,
+                             const QString& comment);
+
+    /// Returns the directory name as QString of the given pathname.
+    /// This is essentially like the Linux dirname command.
+    /// This conveniance functions hides the faffing with QFileInfo/QDir
+    ///
+    static QString dirName (const QString& pathName);
+
     /// Testing only - outputs the widget hierarchy to std out.
     ///
     static void debugWidgetHierarchy (const QWidget* root,
                                       const int instance = 0,
                                       const int level = 0);
+private:
+    typedef QList<QEWidget*> QEWidgetList;
+    typedef QList<QWidget*> QWidgetList;
+
+    static void treeWalkAndAppend (QObject* item, QEWidgetList& list);
+    static QEWidgetList findAllQEWidgets (QWidget* rootWidget);
+
+    static void treeWalkAndAppend (QObject* item, QWidgetList& list);
+    static QWidgetList findAllQWidgets (QWidget* rootWidget);
 };
 
 # endif // QE_COMMON_H

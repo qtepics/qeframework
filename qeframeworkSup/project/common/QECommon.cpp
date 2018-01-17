@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2014,2016,2017  Australian Synchrotron.
+ *  Copyright (c) 2013,2014,2016,2017,2018  Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -30,15 +30,18 @@
 #include <math.h>
 #include <iostream>
 
+#include <QDir>
 #include <QLayout>
 #include <QtGlobal>
 #include <QColor>
 #include <QDebug>
+#include <QFileInfo>
 #include <QMetaEnum>
 #include <QMetaObject>
 #include <QRegExp>
 #include <QSize>
 #include <QWidget>
+#include <QEWidget.h>
 
 #define DEBUG qDebug () << "QECommon" << __LINE__ << __FUNCTION__ << "  "
 
@@ -424,6 +427,144 @@ QWidget* QEUtilities::findWidget (QWidget* parent, const QString& className)
 
    return result;
 }
+
+//------------------------------------------------------------------------------
+// static
+// cribbed from kubili/KDM
+void QEUtilities::listPVNames (QWidget* rootWidget,
+                               const QString& targetFile,
+                               const QString& comment)
+{
+   if (targetFile.isEmpty ()) {
+      qDebug () << "QEUtilities::listPVNames - no filename specified";
+      return;
+   }
+
+   QFile file (targetFile);
+   if (!file.open (QIODevice::WriteOnly | QIODevice::Text)) {
+      qDebug () << targetFile << " file open (write) failed";
+      return;
+   }
+
+   QTextStream target (&file);
+
+   target << "# " << comment << "\n";
+   target << "#\n";
+   target << "\n";
+
+   QEWidgetList list = QEUtilities::findAllQEWidgets (rootWidget);
+
+   const int number = list.count ();
+   for (int j = 0; j < number; j++) {
+      QEWidget* item = list.value (j, NULL);
+      if (item) {
+         int m = item->getNumberVariables ();
+         for (int j = 0; j < m; j++) {
+            QString pvName = item->getSubstitutedVariableName ((unsigned int) j);
+            if (!pvName.isEmpty()) {
+               target << pvName << "\n";
+            }
+         }
+      }
+   }
+
+   target << "\n";
+   target << "# end\n";
+   file.close ();
+}
+
+//------------------------------------------------------------------------------
+// static
+//
+QString QEUtilities::dirName (const QString& pathName)
+{
+   QFileInfo fileInfo (pathName);
+   QDir dir = fileInfo.dir ();
+   QString result = dir.path ();
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// static
+void QEUtilities::treeWalkAndAppend (QObject* item, QEWidgetList& list)
+{
+   // sainity check.
+   if (!item) return;
+
+   // First - is this item a QEWidget?
+   //
+   QEWidget* qewidget = dynamic_cast <QEWidget *>(item);
+   if (qewidget) {
+      list.append (qewidget);    // Yes - add to the list
+   }
+
+   // Next examine any/all children.
+   //
+   QObjectList childList = item->children ();
+   const int n = childList.count();
+   for (int j = 0; j < n; j++) {
+      QObject* child = childList.value (j);
+      // We need only tree walk widgets.
+      //
+      QWidget* widget = dynamic_cast <QWidget *>(child);
+      if (widget) {
+         treeWalkAndAppend (widget, list);   // Note: recursive.
+      }
+   }
+}
+
+//------------------------------------------------------------------------------
+// static
+QEUtilities::QEWidgetList QEUtilities::findAllQEWidgets (QWidget* rootWidget)
+{
+   QEWidgetList list;
+
+   list.clear ();
+   QEUtilities::treeWalkAndAppend (rootWidget, list);
+   return list;
+}
+
+//------------------------------------------------------------------------------
+// Same again
+// static
+void QEUtilities::treeWalkAndAppend (QObject* item, QWidgetList& list)
+{
+   // sainity check.
+   if (!item) return;
+
+   // First - is this item a QEWidget?
+   //
+   QWidget* qwidget = dynamic_cast <QWidget *>(item);
+   if (qwidget) {
+      list.append (qwidget);    // Yes - add to the list
+   }
+
+   // Next examine any/all children.
+   //
+   QObjectList childList = item->children ();
+   const int n = childList.count();
+   for (int j = 0; j < n; j++) {
+      QObject* child = childList.value (j);
+      // We need only tree walk widgets.
+      //
+      QWidget* widget = dynamic_cast <QWidget *>(child);
+      if (widget) {
+         treeWalkAndAppend (widget, list);   // Note: recursive.
+      }
+   }
+}
+
+//------------------------------------------------------------------------------
+// static
+QWidgetList QEUtilities::findAllQWidgets (QWidget* rootWidget)
+{
+   QWidgetList list;
+
+   list.clear ();
+   QEUtilities::treeWalkAndAppend (rootWidget, list);
+   return list;
+}
+
 
 //------------------------------------------------------------------------------
 // static
