@@ -606,9 +606,9 @@ qcaobject::QCaObject* QEPvProperties::createQcaItem (unsigned int variableIndex)
    //
    qca = new qcaobject::QCaObject (pvName, this, variableIndex, SIG_VARIANT);
 
-   // Apply currently defined array index.
+   // Apply currently defined array index/elements request values.
    //
-   this->setQCaArrayIndex (qca);
+   this->setSingleVariableQCaProperties (qca);
 
    return qca;
 }

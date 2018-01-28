@@ -165,7 +165,7 @@ protected:
     // Note, a property macro in the form 'Q_PROPERTY(QString variableName READ ...' doesn't work.
     // A property name ending with 'Name' results in some sort of string a variable being displayed,
     // but will only accept alphanumeric and won't generate callbacks on change.
- public:
+public:
     /// EPICS variable name (CA PV)
     ///
     Q_PROPERTY (QString variable READ getVariableNameProperty WRITE setVariableNameProperty)
@@ -176,6 +176,13 @@ protected:
     /// In some widgets are are also used for other purposes.
     ///
     Q_PROPERTY (QString variableSubstitutions READ getVariableNameSubstitutionsProperty WRITE setVariableNameSubstitutionsProperty)
+
+    /// The number of elements required to be subscribed for from the PV host (IOC).
+    /// The default is 0 which means subscribed for all elements.
+    /// Note: changing this value causes the unsubscribe/re-subscribe just as if the
+    /// variable name changed.
+    ///
+    Q_PROPERTY (int elementsRequired READ getElementsRequired WRITE setElementsRequired)
 
     /// Index used to select a single item of data for processing. The default is 0.
     ///

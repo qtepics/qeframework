@@ -117,9 +117,9 @@ qcaobject::QCaObject* QEAnalogProgressBar::createQcaItem (unsigned int variableI
       result = new QEFloating (getSubstitutedVariableName (variableIndex), this,
                                &this->floatingFormatting, variableIndex);
 
-      // Apply currently defined array index.
+      // Apply currently defined array index/elements request values.
       //
-      this->setQCaArrayIndex (result);
+      this->setSingleVariableQCaProperties (result);
 
    } else {
       result = NULL;            // Unexpected

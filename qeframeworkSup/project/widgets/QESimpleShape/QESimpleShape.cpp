@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2014,2016,2017 Australian Synchrotron
+ *  Copyright (c) 2013,2014,2016,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -139,6 +139,20 @@ void QESimpleShape::setVariableNameSubstitutionsProperty (const QString& substit
 
 //------------------------------------------------------------------------------
 //
+void QESimpleShape::setEdgeElementsRequired (const int elementsRequired)
+{
+   this->edge->setElementsRequired (elementsRequired);
+}
+
+//------------------------------------------------------------------------------
+//
+int QESimpleShape::getEdgeElementsRequired () const
+{
+   return this->edge->getElementsRequired ();
+}
+
+//------------------------------------------------------------------------------
+//
 void QESimpleShape::setEdgeArrayIndex (const int arrayIndex)
 {
    this->edge->setArrayIndex (arrayIndex);
@@ -213,18 +227,18 @@ qcaobject::QCaObject* QESimpleShape::createQcaItem (unsigned int variableIndex)
          //
          result = new QEInteger (pvName, this, &this->integerFormatting, variableIndex);
 
-         // Apply currently defined array index.
+         // Apply currently defined array index/elements request values.
          //
-         this->setQCaArrayIndex (result);
+         this->setSingleVariableQCaProperties (result);
       }
 
    } else if (variableIndex == EDGE_PV_INDEX) {
       pvName = this->getSubstitutedVariableName (variableIndex);
       result = new QEInteger (pvName, this, &this->integerFormatting, variableIndex);
 
-      // Apply currently defined array index.
+      // Apply currently defined array index/elements request values.
       //
-      this->edge->setQCaArrayIndex (result);
+      this->edge->setSingleVariableQCaProperties (result);
 
    } else {
       result = NULL;         // Unexpected

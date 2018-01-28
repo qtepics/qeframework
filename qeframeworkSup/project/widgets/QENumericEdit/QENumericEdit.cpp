@@ -335,9 +335,9 @@ qcaobject::QCaObject* QENumericEdit::createQcaItem (unsigned int variableIndex)
    result = new QEFloating (this->getSubstitutedVariableName (variableIndex),
                             this, &this->floatingFormatting, variableIndex);
 
-   // Apply current array index to new QCaObject
+   // Apply currently defined array index/elements request values.
    //
-   this->setQCaArrayIndex (result);
+   this->setSingleVariableQCaProperties (result);
 
    return result;
 }

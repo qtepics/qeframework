@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2014,2016 Australian Synchrotron
+ *  Copyright (c) 2013,2014,2016,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -49,8 +49,8 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESimpleShape :
       public QSimpleShape,
       public QEWidget,
       public QESingleVariableMethods,
-      public QEStringFormattingMethods {
-
+      public QEStringFormattingMethods
+{
    Q_OBJECT
 
     // BEGIN-SINGLE-VARIABLE-V2-PROPERTIES ===============================================
@@ -74,6 +74,13 @@ public:
     ///
     Q_PROPERTY (QString variableSubstitutions READ getVariableNameSubstitutionsProperty WRITE setVariableNameSubstitutionsProperty)
 
+    /// The number of elements required to be subscribed for from the PV host (IOC).
+    /// The default is 0 which means subscribed for all elements.
+    /// Note: changing this value causes the unsubscribe/re-subscribe just as if the
+    /// variable name changed.
+    ///
+    Q_PROPERTY (int elementsRequired READ getElementsRequired WRITE setElementsRequired)
+
     /// Index used to select a single item of data for processing. The default is 0.
     ///
     Q_PROPERTY (int arrayIndex READ getArrayIndex WRITE setArrayIndex)
@@ -83,9 +90,10 @@ public:
     // QESimpleShape specific properties ==============================================
     // Optional PV used to set the colour of the shape boundary.
     //
-    Q_PROPERTY (QString edgeVariable READ getEdgeVariableNameProperty WRITE setEdgeVariableNameProperty)
+    Q_PROPERTY (QString edgeVariable     READ getEdgeVariableNameProperty WRITE setEdgeVariableNameProperty)
+    Q_PROPERTY (int edgeElementsRequired READ getEdgeElementsRequired     WRITE setEdgeElementsRequired)
+    Q_PROPERTY (int edgeArrayIndex       READ getEdgeArrayIndex           WRITE setEdgeArrayIndex)
 
-    Q_PROPERTY(int edgeArrayIndex READ getEdgeArrayIndex WRITE setEdgeArrayIndex)
     Q_PROPERTY (DisplayAlarmStateOptions edgeAlarmStateOption READ getEdgeAlarmStateOptionProperty WRITE setEdgeAlarmStateOptionProperty)
 
     //----------------------------------------------------------------------------------
@@ -206,7 +214,7 @@ public:
     enum UserLevels { User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
                       Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
                       Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
-                              };
+                    };
     Q_ENUMS(UserLevels)
 
     /// Lowest user level at which the widget is visible. Default is 'User'.
@@ -243,7 +251,7 @@ public:
     enum DisplayAlarmStateOptions { Never       = standardProperties::DISPLAY_ALARM_STATE_NEVER,          ///< Refer to DISPLAY_ALARM_STATE_NEVER for details
                                     Always      = standardProperties::DISPLAY_ALARM_STATE_ALWAYS,         ///< Refer to DISPLAY_ALARM_STATE_ALWAYS for details
                                     WhenInAlarm = standardProperties::DISPLAY_ALARM_STATE_WHEN_IN_ALARM   ///< Refer to DISPLAY_ALARM_STATE_WHEN_IN_ALARM for details
-                              };
+                                  };
     Q_ENUMS(DisplayAlarmStateOptions)
     /// If 'Always' (default) widget will indicate the alarm state of any variable data it is displaying, including 'No Alarm'
     /// If 'Never' widget will never indicate the alarm state of any variable data it is displaying.
@@ -257,7 +265,7 @@ public:
     void setDisplayAlarmStateOptionProperty( DisplayAlarmStateOptions option ) { setDisplayAlarmStateOption( (displayAlarmStateOptions)option ); }///< Access function for #displayAlarmStateOption property - refer to #displayAlarmStateOption property for details
 
 public:
-   // END-STANDARD-PROPERTIES ========================================================
+    // END-STANDARD-PROPERTIES ========================================================
 
 public:
    QESimpleShape (QWidget* parent = 0);
@@ -270,6 +278,9 @@ public:
 
    void setEdgeVariableNameProperty (const QString& variableName);
    QString getEdgeVariableNameProperty () const;
+
+   void setEdgeElementsRequired (const int elementsRequired);
+   int getEdgeElementsRequired () const;
 
    void setEdgeArrayIndex (const int arrayIndex);
    int getEdgeArrayIndex () const;

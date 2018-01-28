@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2016,2017 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2016,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Anthony Owen
@@ -261,7 +261,14 @@ public:
 
     /// Virtual function that may be implimented by users of QEWidget to update variable names and macro substitutions.
     /// A default is provided that is suitible in most cases.
-    virtual void setVariableNameAndSubstitutions( QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex ); // Generally don't need to override
+    // Generally don't need to override
+    virtual void setVariableNameAndSubstitutions( QString variableNameIn, 
+                                                  QString variableNameSubstitutionsIn, 
+                                                  unsigned int variableIndex );
+
+    /// Essentially like setVariableNameAndSubstitutions, but without resetting
+    /// the variable name or substitutions. This function calls establishConnection.
+    void reestablishConnection (unsigned int variableIndex);
 
     /// Looks for a file in a standard set of locations (and opens the file)
     ///
@@ -351,12 +358,12 @@ private:
 
     void buildPersistantName( QWidget* w, QString& name ) const;          // make a function??
 
-    QCAALARMINFO_SEVERITY lastSeverity;                                  // Used as low pass tool tip filter.
-    standardProperties::displayAlarmStateOptions lastDisplayAlarmState;  // Last alarm state. Kept to identify when the alarm state (included in a data update signal) changes
+    QCAALARMINFO_SEVERITY lastSeverity;                                   // Used as low pass tool tip filter.
+    standardProperties::displayAlarmStateOptions lastDisplayAlarmState;   // Last alarm state. Kept to identify when the alarm state (included in a data update signal) changes
 
     static void addPathToSearchList( QString path, QString name, QStringList& searchList ); // Add a path and filename to a search list. (add sub dirs if path ends with '...')
 
-    QWidget* owner;                                                      // QE Widget using this base class. for example, QELabel
+    QWidget* owner;                                                       // QE Widget using this base class. for example, QELabel
 
     //
     ControlVariableIndicesSet controlVariableIndices;

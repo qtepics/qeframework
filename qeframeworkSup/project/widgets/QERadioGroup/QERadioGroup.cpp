@@ -182,9 +182,9 @@ qcaobject::QCaObject* QERadioGroup::createQcaItem (unsigned int variableIndex)
          result = new QEInteger (this->getSubstitutedVariableName (variableIndex),
                                  this, &this->integerFormatting, variableIndex);
 
-         // Apply current array index to new QCaObject
+         // Apply currently defined array index/elements request values.
          //
-         this->setQCaArrayIndex (result);
+         this->setSingleVariableQCaProperties (result);
          break;
 
       case TITLE_VARIABLE_INDEX:

@@ -184,9 +184,9 @@ qcaobject::QCaObject* QEGeneralEdit::createQcaItem (unsigned int variableIndex)
    //
    result = new qcaobject::QCaObject (pvName, this, variableIndex);
 
-   // Apply currently defined array index.
+   // Apply currently defined array index/elements request values.
    //
-   this->setQCaArrayIndex (result);
+   this->setSingleVariableQCaProperties (result);
 
    return result;
 }
@@ -215,7 +215,7 @@ void QEGeneralEdit::establishConnection (unsigned int variableIndex)
    //
    if (qca) {
       QObject::connect (qca,  SIGNAL (connectionChanged (QCaConnectionInfo &, const unsigned int& )),
-                        this, SLOT  (connectionChanged (QCaConnectionInfo &, const unsigned int& )));
+                        this, SLOT   (connectionChanged (QCaConnectionInfo &, const unsigned int& )));
 
       QObject::connect (qca,SIGNAL (dataChanged (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& )),
                         this, SLOT (dataChanged (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& )));

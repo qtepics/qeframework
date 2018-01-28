@@ -167,12 +167,12 @@ qcaobject::QCaObject* QEGenericButton::createQcaItem( unsigned int variableIndex
     case VAR_PRIMARY:
         result = new QEString( pvName, target, &stringFormatting, variableIndex );
         // Apply currently defined array index.
-        setQCaArrayIndex( result );
+        setSingleVariableQCaProperties( result );
         break;
 
     case VAR_READBACK:
         result = new QEString( pvName, target, &stringFormatting, variableIndex );
-        if( altReadback ) altReadback->setQCaArrayIndex( result );
+        if( altReadback ) altReadback->setSingleVariableQCaProperties( result );
         break;
 
     case VAR_DISA:

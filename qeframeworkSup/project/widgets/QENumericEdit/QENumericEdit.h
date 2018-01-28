@@ -46,8 +46,8 @@
 //
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QENumericEdit :
       public QEAbstractWidget,
-      public QESingleVariableMethods {
-
+      public QESingleVariableMethods
+{
    Q_OBJECT
 
    // BEGIN-SINGLE-VARIABLE-V2-PROPERTIES ===============================================
@@ -70,6 +70,13 @@ public:
    /// In some widgets are are also used for other purposes.
    ///
    Q_PROPERTY (QString variableSubstitutions READ getVariableNameSubstitutionsProperty WRITE setVariableNameSubstitutionsProperty)
+
+   /// The number of elements required to be subscribed for from the PV host (IOC).
+   /// The default is 0 which means subscribed for all elements.
+   /// Note: changing this value causes the unsubscribe/re-subscribe just as if the
+   /// variable name changed.
+   ///
+   Q_PROPERTY (int elementsRequired READ getElementsRequired WRITE setElementsRequired)
 
    /// Index used to select a single item of data for processing. The default is 0.
    ///

@@ -100,9 +100,9 @@ qcaobject::QCaObject * QEPvFrame::createQcaItem (unsigned int variableIndex)
    result = new QEInteger (getSubstitutedVariableName (variableIndex),
                            this, &this->integerFormatting, variableIndex);
 
-   // Apply currently defined array index.
+   // Apply currently defined array index/elements request values.
    //
-   this->setQCaArrayIndex (result);
+   this->setSingleVariableQCaProperties (result);
 
    return result;
 }

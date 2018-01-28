@@ -128,8 +128,8 @@ qcaobject::QCaObject* QESpinBox::createQcaItem( unsigned int variableIndex ) {
     // Create the item as a QEFloating
     result = new QEFloating( getSubstitutedVariableName( variableIndex ), this, &floatingFormatting, variableIndex );
 
-    // Apply current array index to new QCaObject
-    setQCaArrayIndex( result );
+    // Apply currently defined array index/elements request values.
+    setSingleVariableQCaProperties( result );
 
     return result;
 }

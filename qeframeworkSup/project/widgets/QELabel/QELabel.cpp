@@ -107,8 +107,8 @@ qcaobject::QCaObject* QELabel::createQcaItem( unsigned int variableIndex ) {
     // Create the item as a QEString
     result = new QEString( getSubstitutedVariableName( variableIndex ), this, &stringFormatting, variableIndex );
 
-    // Apply current array index to new QCaObject
-    setQCaArrayIndex( result );
+    // Apply currently defined array index/elements request values.
+    setSingleVariableQCaProperties( result );
 
     return result;
 }

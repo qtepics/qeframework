@@ -37,9 +37,9 @@
 #include <QEFrame.h>
 #include <QEFrameworkLibraryGlobal.h>
 
-// The QEPvFrame class provides an extension to the QEFrame class in that it allows
-// the value of a nominated PV to select one of 8 pixmaps to use as frame background.
-//
+/// The QEPvFrame class provides an extension to the QEFrame class in that it allows
+/// the value of a nominated PV to select one of 8 pixmaps to use as frame background.
+///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvFrame :
    public QEFrame,
    public QESingleVariableMethods
@@ -67,6 +67,13 @@ public:
    /// In some widgets are are also used for other purposes.
    ///
    Q_PROPERTY (QString variableSubstitutions READ getVariableNameSubstitutionsProperty WRITE setVariableNameSubstitutionsProperty)
+
+   /// The number of elements required to be subscribed for from the PV host (IOC).
+   /// The default is 0 which means subscribed for all elements.
+   /// Note: changing this value causes the unsubscribe/re-subscribe just as if the
+   /// variable name changed.
+   ///
+   Q_PROPERTY (int elementsRequired READ getElementsRequired WRITE setElementsRequired)
 
    /// Index used to select a single item of data for processing. The default is 0.
    ///

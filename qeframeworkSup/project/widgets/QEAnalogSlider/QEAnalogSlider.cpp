@@ -151,18 +151,18 @@ qcaobject::QCaObject* QEAnalogSlider::createQcaItem (unsigned int variableIndex)
          result = new QEFloating (this->getSubstitutedVariableName (variableIndex),
                                   this, &this->floatingFormatting, variableIndex);
 
-         // Apply currently defined array index.
+         // Apply currently defined array index/elements request values.
          //
-         this->setQCaArrayIndex (result);
+         this->setSingleVariableQCaProperties (result);
          break;
 
       case READ_BACK_VARIABLE_INDEX:
          result = new QEString (this->getSubstitutedVariableName (variableIndex),
                                 this, &this->stringFormatting, variableIndex);
 
-         // Apply currently defined array index.
+         // Apply currently defined array index/elements request values.
          //
-         this->readback->setQCaArrayIndex (result);
+         this->readback->setSingleVariableQCaProperties (result);
          break;
 
       default:
@@ -498,6 +498,20 @@ void QEAnalogSlider::setReadbackNameProperty (const QString& variableName)
 QString QEAnalogSlider::getReadbackNameProperty () const
 {
    return this->readback->getVariableNameProperty ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAnalogSlider::setReadbackElementsRequired (const int elementsRequired)
+{
+   this->readback->setElementsRequired (elementsRequired);
+}
+
+//------------------------------------------------------------------------------
+//
+int QEAnalogSlider::getReadbackElementsRequired () const
+{
+   return this->readback->getElementsRequired ();
 }
 
 //------------------------------------------------------------------------------

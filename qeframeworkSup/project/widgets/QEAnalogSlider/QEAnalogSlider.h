@@ -45,7 +45,8 @@
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAnalogSlider :
       public QAnalogSlider,
       public QESingleVariableMethods,
-      public QEWidget {
+      public QEWidget 
+{
 
    Q_OBJECT
 
@@ -70,6 +71,13 @@ public:
    ///
    Q_PROPERTY (QString variableSubstitutions READ getVariableNameSubstitutionsProperty WRITE setVariableNameSubstitutionsProperty)
 
+   /// The number of elements required to be subscribed for from the PV host (IOC).
+   /// The default is 0 which means subscribed for all elements.
+   /// Note: changing this value causes the unsubscribe/re-subscribe just as if the
+   /// variable name changed.
+   ///
+   Q_PROPERTY (int elementsRequired READ getElementsRequired WRITE setElementsRequired)
+
    /// Index used to select a single item of data for processing. The default is 0.
    ///
    Q_PROPERTY (int arrayIndex READ getArrayIndex WRITE setArrayIndex)
@@ -82,9 +90,9 @@ public:
    // A property name ending with 'Name' results in some sort of string a variable being displayed,
    // but will only accept alphanumeric and won't generate callbacks on change.
 
-   Q_PROPERTY (QString readbackVariable    READ getReadbackNameProperty WRITE setReadbackNameProperty)
-
-   Q_PROPERTY(int readbackArrayIndex READ getReadbackArrayIndex WRITE setReadbackArrayIndex)
+   Q_PROPERTY (QString readbackVariable     READ getReadbackNameProperty     WRITE setReadbackNameProperty)
+   Q_PROPERTY (int readbackElementsRequired READ getReadbackElementsRequired WRITE setReadbackElementsRequired)
+   Q_PROPERTY (int readbackArrayIndex       READ getReadbackArrayIndex       WRITE setReadbackArrayIndex)
 
    /// If true the widget writes to the PV as the slider is moved.
    /// If false (default) a write only occurs when apply button click.
@@ -253,6 +261,9 @@ public:
 
    void setReadbackNameProperty (const QString& variableName);
    QString getReadbackNameProperty () const;
+
+   void setReadbackElementsRequired (const int elementsRequired);
+   int getReadbackElementsRequired () const;
 
    void setReadbackArrayIndex (const int arrayIndex);
    int getReadbackArrayIndex () const;

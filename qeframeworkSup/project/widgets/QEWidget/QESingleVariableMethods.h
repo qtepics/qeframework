@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2016 Australian Synchrotron
+ *  Copyright (c) 2016,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -80,12 +80,25 @@ public:
    ///
    QString getVariableNameSubstitutionsProperty () const;
 
+   /// Property access function to set #elementsRequired property. Limits the the numer of
+   /// elements requested to the given value.  Defaults to 0, which means no limit is
+   /// applied to the subscription.
+   /// The function adjusts the #arrayIndex property value if necessary.
+   ///
+   void setElementsRequired (const int elementsRequired);
+
+   /// Property access function to get #elementsRequired property. Limits the the numer of
+   /// elements requested to the given value.
+   ///
+   int getElementsRequired () const;
+
    /// Property access function for #arrayIndex property. Array element to access if
    /// variable is an array variable. Defaults to 0, i.e. first element.
    /// arrayIndex value is restricted to be >= 0
    ///
    /// If the assocated qcaobject::QCaObject exists then calls its setArrayIndex function
    /// and then requests that the object resend last data.
+   /// The function adjusts the #elementsRequired property value if necessary.
    ///
    void setArrayIndex (const int arrayIndex);
 
@@ -108,13 +121,23 @@ public:
    // createQcaItem may call this function, which does:
    //    qca->setArrayIndex (this->getArrayIndex ());
    //
+   // It also does
+   //    qca->setRequestedElementCount (this->elementsRequired);
+   // if needs be.
+   //
    // The QCaObjects are destroyed and re-created as the name/substitution values change
    // so the array index must be re-applied each time the QCaObjects is created.
    //
-   void setQCaArrayIndex (qcaobject::QCaObject* qca);
+   void setSingleVariableQCaProperties (qcaobject::QCaObject* qca);
+
+   // Deprecated - use setSingleVariableQCaProperties instead.
+   //
+   Q_DECL_DEPRECATED
+   void setQCaArrayIndex (qcaobject::QCaObject* qca) { this->setSingleVariableQCaProperties (qca); }
 
 private:
    QEWidget* owner;
+   int elementsRequired;                  // defaults to 0, i.e. not specified
    int arrayIndex;                        // defaults to 0, restricted to >= 0
    QCaVariableNamePropertyManager vnpm;
 };

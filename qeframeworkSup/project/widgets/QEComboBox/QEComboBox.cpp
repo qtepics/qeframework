@@ -109,8 +109,8 @@ qcaobject::QCaObject* QEComboBox::createQcaItem( unsigned int variableIndex ) {
     // Create the item as a QEInteger
     result = new QEInteger( getSubstitutedVariableName( variableIndex ), this, &integerFormatting, variableIndex );
 
-    // Apply current array index to new QCaObject
-    setQCaArrayIndex( result );
+    // Apply currently defined array index/elements request values.
+    setSingleVariableQCaProperties( result );
 
     return result;
 }

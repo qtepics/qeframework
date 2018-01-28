@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2016,2017 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2016,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Anthony Owen
@@ -260,6 +260,17 @@ void QEWidget::setVariableNameAndSubstitutions( QString variableNameIn, QString 
 {
     setVariableNameSubstitutions( variableNameSubstitutionsIn );
     setVariableName( variableNameIn, variableIndex );
+    updateToolTipConnection ( false, variableIndex );  // disconnected until we explicitly connect.
+    if( !getDontActivateYet() )
+    {
+        establishConnection( variableIndex );
+    }
+}
+
+// Used like setVariableNameAndSubstitutions, but without setting the name or substitutions
+//
+void QEWidget::reestablishConnection (unsigned int variableIndex)
+{
     updateToolTipConnection ( false, variableIndex );  // disconnected until we explicitly connect.
     if( !getDontActivateYet() )
     {
