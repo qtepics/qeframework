@@ -78,28 +78,32 @@ QSize QBitStatus::sizeHint () const {
 //
 QColor QBitStatus::getBorderPaintColour ()
 {
-   return this->getIsActive() ? this->mBorderColour : QColor (160, 160, 160);
+   return this->getIsActive()
+         ? this->mBorderColour : QEUtilities::blandColour (this->mBorderColour);
 }
 
 //------------------------------------------------------------------------------
 //
 QColor QBitStatus::getOffPaintColour ()
 {
-   return this->getIsActive () ? this->mOffColour : QColor (220, 220, 220);
+   return this->getIsActive ()
+         ? this->mOffColour : QEUtilities::blandColour (this->mOffColour);
 }
 
 //------------------------------------------------------------------------------
 //
 QColor QBitStatus::getOnPaintColour ()
 {
-   return this->getIsActive () ? this->mOnColour : QColor (240, 240, 240);
+   return this->getIsActive ()
+         ? this->mOnColour : QEUtilities::blandColour (this->mOnColour);
 }
 
 //------------------------------------------------------------------------------
 //
 QColor QBitStatus::getInvalidPaintColour ()
 {
-   return this->getIsActive () ? this->mInvalidColour : QColor (200, 200, 200);
+   return this->getIsActive ()
+         ? this->mInvalidColour : QEUtilities::blandColour (this->mInvalidColour);
 }
 
 

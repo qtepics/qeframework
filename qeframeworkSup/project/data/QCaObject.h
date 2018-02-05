@@ -164,6 +164,10 @@ namespace qcaobject {
                        unsigned char signalsToSendIn,
                        priorities priorityIn );
 
+      // Clear the connection state - and signal
+      //
+      void clearConnectionState();
+
       unsigned int variableIndex; // The variable index within a widget. If not used within a widget, can hold arbitary number.
       long lastEventChannelState; // Channel state from most recent update event. This is actually of type caconnection::channel_states
       long lastEventLinkState;    // Link state from most recent update event. This is actually of type aconnection::link_states

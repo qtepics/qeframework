@@ -132,11 +132,11 @@ QColor QEUtilities::blandColour (const QColor& vibrantColour)
 
    vibrantColour.getRgb (&r, &g, &b, &a);
 
-   // Move 66.6% of the way towards grey.
+   // Move 87.5% of the way towards light gray - #c8c8c8.
    //
-   r = (r + 256) / 3;
-   g = (g + 256) / 3;
-   b = (b + 256) / 3;
+   r = (7*200 + r) / 8;
+   g = (7*200 + g) / 8;
+   b = (7*200 + b) / 8;
 
    result.setRgb (r, g, b, a);
    return result;

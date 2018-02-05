@@ -235,19 +235,45 @@ QCaObject::~QCaObject() {
 }
 
 /*
+    Clear channel connection state - and signal "initial" change of state
+    Note: was original in setChannelExpired
+*/
+void QCaObject::clearConnectionState()
+{
+    // setChannelExpired
+    // Signal a connection change.
+    // (This is done with some licence. There isn't really a connection change.
+    //  The connection has gone from 'no connection' to 'not connectet yet')
+    QCaConnectionInfo connectionInfo( caconnection::NEVER_CONNECTED, caconnection::LINK_DOWN, getRecordName() );
+
+    // Save last connetion info.
+    lastIsChannelConnected = connectionInfo.isChannelConnected ();
+    lastIsLinkUp = connectionInfo.isLinkUp();
+
+    emit connectionChanged( connectionInfo, variableIndex );
+    emit connectionChanged( connectionInfo );
+}
+
+/*
     Subcribe
 */
-bool QCaObject::subscribe() {
-
-    return subscriptionMachine->process( qcastatemachine::SUBSCRIBED );
+bool QCaObject::subscribe()
+{
+    bool result;
+    clearConnectionState();
+    result = subscriptionMachine->process( qcastatemachine::SUBSCRIBED );
+    return result;
 }
 
 /*
     Initiate a single shot read
 */
-bool QCaObject::singleShotRead() {
-
-    return readMachine->process( qcastatemachine::READING );
+bool QCaObject::singleShotRead()
+{
+    bool result;
+    clearConnectionState();
+    result = readMachine->process( qcastatemachine::READING );
+    return result;
 }
 
 /*
@@ -1238,19 +1264,6 @@ void QCaObject::processData( void* newDataPtr ) {
     PV finally appears, we re-attempt the connection here after an extended wait.
 */
 void QCaObject::setChannelExpired() {
-
-    // Signal a connection change.
-    // (This is done with some licence. There isn't really a connection change.
-    //  The connection has gone from 'no connection' to 'given up waiting for a connection')
-    QCaConnectionInfo connectionInfo( caconnection::NEVER_CONNECTED, caconnection::LINK_DOWN, getRecordName() );
-
-    // Save last connetion info.
-    lastIsChannelConnected = connectionInfo.isChannelConnected ();
-    lastIsLinkUp = connectionInfo.isLinkUp ();
-
-    emit connectionChanged( connectionInfo, variableIndex );
-    emit connectionChanged( connectionInfo );
-
     // Generate a user message
     if( userMessage && !channelExpiredMessage )
     {
