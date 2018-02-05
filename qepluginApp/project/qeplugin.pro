@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qepluginApp/project/qeplugin.pro $
-# $Revision: #1 $
-# $DateTime: 2017/07/07 11:21:59 $
+# $Revision: #2 $
+# $DateTime: 2018/02/06 16:06:52 $
 # Last checked in by: $Author: starritt $
 #
 # Copyright (c) 2017 Australian Synchrotron
@@ -134,7 +134,7 @@ include (QEPeriodic/QEPeriodic.pri)
 include (qeplugin/qeplugin.pri)
 
 INCLUDEPATH += $$(QE_FRAMEWORK)/include
-LIBS += -L$$(QE_FRAMEWORK)/lib/$$(EPICS_HOST_ARCH) -l QEFramework
+LIBS += -L$$(QE_FRAMEWORK)/lib/$$(EPICS_HOST_ARCH) -lQEFramework
 unix: QMAKE_LFLAGS += -Wl,-rpath,$$(QE_FRAMEWORK)/lib/$$(EPICS_HOST_ARCH)
 
 #
