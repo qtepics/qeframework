@@ -41,6 +41,10 @@ public:
    explicit QEFloatingArray (int size, const double& t);
    explicit QEFloatingArray (const QVector<double>& other);
 
+   // Allow assignment
+   //
+   QEFloatingArray& operator=(const QVector<double>& other);
+
    // Find min/max values of the array. If array has zero elements then
    // the returned value is the defaultValue .
    //

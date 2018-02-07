@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
+ *  Copyright (c) 2013,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -37,6 +37,19 @@ QEIntegerArray::QEIntegerArray (int size) : QVector<long> (size) { }
 QEIntegerArray::QEIntegerArray (int size, const long& t) : QVector<long> (size, t) { }
 
 QEIntegerArray::QEIntegerArray (const QVector<long>& other) : QVector<long> (other) { }
+
+
+//---------------------------------------------------------------------------------
+// Copy a vertor from another and return value
+//
+QEIntegerArray& QEIntegerArray::operator=( const  QVector<long>& other )
+{
+    // Do parent class stuff assignment.
+    *(QVector<long>*) this = QVector<long> (other);
+
+    // return value as well.
+    return *this;
+}
 
 //---------------------------------------------------------------------------------
 //

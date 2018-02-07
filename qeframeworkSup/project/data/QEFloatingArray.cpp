@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
+ *  Copyright (c) 2013,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -40,6 +40,18 @@ QEFloatingArray::QEFloatingArray (int size) : QVector<double> (size) { }
 QEFloatingArray::QEFloatingArray (int size, const double& t) : QVector<double> (size, t) { }
 
 QEFloatingArray::QEFloatingArray (const QVector<double>& other) : QVector<double> (other) { }
+
+//---------------------------------------------------------------------------------
+// Copy a vertor from another and return value
+//
+QEFloatingArray& QEFloatingArray::operator=( const  QVector<double>& other )
+{
+    // Do parent class stuff assignment.
+    *(QVector<double>*) this = QVector<double> (other);
+
+    // return value as well.
+    return *this;
+}
 
 //---------------------------------------------------------------------------------
 //

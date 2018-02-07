@@ -41,6 +41,10 @@ public:
    explicit QEIntegerArray (int size, const long& t);
    explicit QEIntegerArray (const QVector<long>& other);
 
+   // Allow assignment
+   //
+   QEIntegerArray& operator=(const QVector<long>& other);
+
    // Find min/max values of the array. If array has zero elements then
    // the returned value is the defaultValue.
    //
