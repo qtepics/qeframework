@@ -167,8 +167,9 @@ public:
                   bool isCentred = true);
 
 
-   void setXRange (const double min, const double max, const AxisMajorIntervalModes mode,
-                   const int value, const bool immediate);
+   void setXRange (const double min, const double max,
+                   const AxisMajorIntervalModes mode, const double value,
+                   const bool immediate);
 
    /**
     * Returns the range of X axis
@@ -178,8 +179,9 @@ public:
     */
    void getXRange (double& min, double& max) const;
 
-   void setYRange (const double min, const double max, const AxisMajorIntervalModes mode,
-                   const int value, const bool immediate,
+   void setYRange (const double min, const double max,
+                   const AxisMajorIntervalModes mode, const double value,
+                   const bool immediate,
                    const QwtPlot::Axis selectedYAxis = QwtPlot::yLeft);
 
    /**
@@ -380,7 +382,7 @@ private:
       ~Axis ();
 
       void setRange (const double min, const double max,
-                     const AxisMajorIntervalModes mode, const int value,
+                     const AxisMajorIntervalModes mode, const double value,
                      const bool immediate);
       void getRange (double& min, double& max);
       bool doDynamicRescaling ();
@@ -416,7 +418,7 @@ private:
       QEDisplayRanges current;   // where we are now
       int transitionCount;
       AxisMajorIntervalModes intervalMode;
-      int intervalValue;
+      double intervalValue;
       bool axisEnabled;
 
       bool isLogarithmic;   // vs. Linear

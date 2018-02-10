@@ -47,12 +47,14 @@ public:
    };
 
    // Determines how the associated value is used to find and estimated major value.
-   // The estimated value is then rounded to something more appropriate
+   // The estimated value is then rounded to something more appropriate if needs be.
    //
    enum AxisMajorIntervalModes {
       SelectByValue,   // estimated major interval = (max - min) / value.
-      SelectBySize };  // estimated major interval = ((max - min) / (widget size / value)),
+      SelectBySize,    // estimated major interval = ((max - min) / (widget size / value)),
                        // i.e. value represents major interval expressed as a pixel size
+      UserInterval     // Use exact value give by the user.
+   };
 
    // Markup selection enumeration values and associated flags.
    //

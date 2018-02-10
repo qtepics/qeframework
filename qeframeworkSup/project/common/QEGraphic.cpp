@@ -122,7 +122,7 @@ QEGraphic::Axis::Axis (QwtPlot* plotIn, const int axisIdIn)
    this->target = this->current;
    this->transitionCount = 0;
    this->intervalMode = QEGraphic::SelectByValue;
-   this->intervalValue = 8;
+   this->intervalValue = 8.0;
    this->determineAxisScale ();
 }
 
@@ -136,7 +136,7 @@ QEGraphic::Axis::~Axis ()
 //------------------------------------------------------------------------------
 //
 void QEGraphic::Axis::setRange (const double minIn, const double maxIn,
-                                const AxisMajorIntervalModes modeIn, const int valueIn,
+                                const AxisMajorIntervalModes modeIn, const double valueIn,
                                 const bool immediate)
 {
    QEDisplayRanges newTarget;
@@ -226,28 +226,45 @@ void QEGraphic::Axis::determineAxisScale ()
    if (this->isLogarithmic) {
       this->current.adjustLogMinMax (this->useMin, this->useMax, this->useStep);
    } else {
-      if (this->intervalMode == QEGraphic::SelectBySize) {
-         switch (this->axisId) {
-            case QwtPlot::xTop:
-            case QwtPlot::xBottom:
-               canvasSize = this->plot->canvas()->width ();
-               break;
+      //
+      switch (this->intervalMode) {
 
-            case QwtPlot::yLeft:
-            case QwtPlot::yRight:
-               canvasSize = this->plot->canvas()->height ();
-               break;
+         case QEGraphic::UserInterval:
+            // Use knows what he/she is doing.
+            //
+            this->useMin = current.getMinimum ();
+            this->useMax = current.getMaximum ();
+            this->useStep = this->intervalValue;
+            break;
 
-            default:
-               canvasSize = 800;   // avoid compiler warning
-               break;
-         }
+         case  QEGraphic::SelectByValue:
+            number = this->intervalValue;
+            current.adjustMinMax (number, false, this->useMin, this->useMax, this->useStep);
+            break;
 
-         number = canvasSize / MAX (1, this->intervalValue);
-      } else {
-         number = this->intervalValue;
+         case QEGraphic::SelectBySize:
+            // Set size determined based on the pixel size of the widget.
+            //
+            switch (this->axisId) {
+               case QwtPlot::xTop:
+               case QwtPlot::xBottom:
+                  canvasSize = this->plot->canvas()->width ();
+                  break;
+
+               case QwtPlot::yLeft:
+               case QwtPlot::yRight:
+                  canvasSize = this->plot->canvas()->height ();
+                  break;
+
+               default:
+                  canvasSize = 800;   // avoid compiler warning
+                  break;
+            }
+
+            number = canvasSize / MAX (1, this->intervalValue);
+            current.adjustMinMax (number, false, this->useMin, this->useMax, this->useStep);
+            break;
       }
-      current.adjustMinMax (number, false, this->useMin, this->useMax, this->useStep);
 
       // Subtract/add tolerance as Qwt Axis ploting of minor ticks a bit slack.
       //
@@ -1407,7 +1424,7 @@ bool QEGraphic::eventFilter (QObject* obj, QEvent* event)
 //------------------------------------------------------------------------------
 //
 void QEGraphic::setXRange (const double min, const double max,
-                           const AxisMajorIntervalModes mode, const int value,
+                           const AxisMajorIntervalModes mode, const double value,
                            const bool immediate)
 {
    this->xAxis->setRange (min, max, mode, value, immediate);
@@ -1424,10 +1441,10 @@ void QEGraphic::getXRange (double& min, double& max) const
 //------------------------------------------------------------------------------
 //
 void QEGraphic::setYRange (const double min, const double max,
-                           const AxisMajorIntervalModes mode, const int value,
+                           const AxisMajorIntervalModes mode, const double value,
                            const bool immediate, const QwtPlot::Axis selectedYAxis)
 {
-   this->axisFromPosition(selectedYAxis)->setRange (min, max, mode, value, immediate);
+   this->axisFromPosition (selectedYAxis)->setRange (min, max, mode, value, immediate);
 }
 
 //------------------------------------------------------------------------------
