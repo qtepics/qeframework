@@ -1054,7 +1054,8 @@ bool QEGraphic::rightButtonPressed () const
 bool QEGraphic::getSlopeIsDefined (QPointF& slope) const
 {
    bool result;
-   QEGraphicLineMarkup* markup = static_cast <QEGraphicLineMarkup*> (this->graphicMarkupsSet->value (Line, NULL));
+   QEGraphicLineMarkup* markup =
+         static_cast <QEGraphicLineMarkup*> (this->graphicMarkupsSet->value (QEGraphicNames::Line, NULL));
 
    if (markup && markup->isVisible ()) {
       slope = markup->getSlope ();
@@ -1094,6 +1095,26 @@ QPoint QEGraphic::pixelDistance (const QPointF& from, const QPointF& to) const
    QPoint pointFrom = this->realToPoint (from);
    QPoint pointTo = this->realToPoint (to);
    return pointTo - pointFrom;
+}
+
+//------------------------------------------------------------------------------
+//
+QPointF QEGraphic::realOffset (const QPoint& offset, const QwtPlot::Axis selectedYAxis) const
+{
+   QPoint origin = QPoint (0,0);
+   QPointF realOrigin = this->pointToReal (origin, selectedYAxis);
+   QPointF realOffset = this->pointToReal (offset, selectedYAxis);
+   return realOffset - realOrigin;
+}
+
+//------------------------------------------------------------------------------
+//
+QPointF QEGraphic::realOffset (const QPointF& offset, const QwtPlot::Axis selectedYAxis) const
+{
+   QPointF origin = QPointF (0.0, 0.0);
+   QPointF realOrigin = this->pointToReal (origin, selectedYAxis);
+   QPointF realOffset = this->pointToReal (offset, selectedYAxis);
+   return realOffset - realOrigin;
 }
 
 //------------------------------------------------------------------------------

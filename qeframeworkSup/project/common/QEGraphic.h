@@ -129,8 +129,13 @@ public:
 
    // NOTE: Depricated - use setMarkupPosition/setMarkupVisible instead.
    //
+   Q_DECL_DEPRECATED
    void setCrosshairsVisible (const bool isVisible);                            ///< Depricated
+
+   Q_DECL_DEPRECATED
    void setCrosshairsVisible (const bool isVisible, const QPointF& position);   ///< Depricated
+
+   Q_DECL_DEPRECATED
    bool getCrosshairsVisible () const;                                          ///< Depricated
 
    /**
@@ -199,17 +204,19 @@ public:
    //
    void replot ();
 
-   bool rightButtonPressed () const;    // to allow inhibition of context menu - depricated.
+   Q_DECL_DEPRECATED
+   bool rightButtonPressed () const;    // to allow inhibition of context menu.
 
    QPointF getRealMousePosition () const;   // current mouse position in real world coords
 
+   // Returns true if the given global position of over the plot cancas.
+   //
    bool globalPosIsOverCanvas (const QPoint& golbalPos) const;
 
-   bool getSlopeIsDefined (QPointF& slope) const;
-
-   // Returns the pixel distance between two real points.
+   // Is the QEGraphicNames::Line visible. If yes the slope argument is set to
+   // the slope of the line.
    //
-   QPoint pixelDistance (const QPointF& from, const QPointF& to) const;
+   bool getSlopeIsDefined (QPointF& slope) const;
 
    // Set and get axis attribute functions
    //
@@ -332,6 +339,16 @@ public:
 
    // Utility functions.
    //
+   // Returns the pixel distance between two real points.
+   //
+   QPoint pixelDistance (const QPointF& from, const QPointF& to) const;
+
+   // Returns the real delta offset for a nominated pixel delta/offset.
+   // Not suitable for logarithic scaling.
+   //
+   QPointF realOffset (const QPoint&  offset, const QwtPlot::Axis selectedYAxis = QwtPlot::yLeft) const;
+   QPointF realOffset (const QPointF& offset, const QwtPlot::Axis selectedYAxis = QwtPlot::yLeft) const;  // overloaded form
+
    // Converts between pixel coords to real world coords taking into
    // account any scaling and/or logarithic scaling. This can be done for either
    // left or right Y axis
@@ -339,6 +356,7 @@ public:
    QPointF pointToReal (const QPoint& pos,  const QwtPlot::Axis selectedYAxis = QwtPlot::yLeft) const;
    QPointF pointToReal (const QPointF& pos, const QwtPlot::Axis selectedYAxis = QwtPlot::yLeft) const;   // overloaded form
    QPoint  realToPoint (const QPointF& pos, const QwtPlot::Axis selectedYAxis = QwtPlot::yLeft) const;
+
 
    // Embedded qwt plot manipulation functions.
    //

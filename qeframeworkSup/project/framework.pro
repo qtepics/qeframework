@@ -1,7 +1,7 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #7 $
-# $DateTime: 2017/07/08 14:39:51 $
-# Last checked in by: $Author: starritt $
+# $Revision: #11 $
+# $DateTime: 2018/02/19 11:31:52 $
+# Last checked in by: $Author: pozara $
 #
 # Copyright (c) 2009,2010,2016 Australian Synchrotron
 #
@@ -208,7 +208,7 @@ QEINCLUDE.files = $$HEADERS
 QEINCLUDE.path = $$QEINCLUDEPATH
 INSTALLS += QEINCLUDE
 
-message( "Note: By default qtcreator does not have a 'make install' build step. When using qtcreator, modify project " )
+message( "Note: By default qtcreator does not have a 'make install' build step. When using qtcreator, modify the project " )
 message( "....: to add an install build step which is required to install header files to $$INSTALL_DIR/include" )
 
 #===========================================================
@@ -221,10 +221,9 @@ unix:INCLUDEPATH += $$(EPICS_BASE)/include/compiler/gcc
 
 win32:INCLUDEPATH += $$(EPICS_BASE)/include/os/WIN32
 win32:INCLUDEPATH += $$(EPICS_BASE)/include/compiler/msvc
+win32:INCLUDEPATH += $$(EPICS_BASE)/include/compiler/gcc
 
-LIBS += -L$$(EPICS_BASE)/lib/$$(EPICS_HOST_ARCH) \
-    -lca \
-    -lCom
+LIBS += -L$$(EPICS_BASE)/lib/$$(EPICS_HOST_ARCH) -lca -lCom
 
 # Set runtime path for shared libraries
 #
@@ -252,15 +251,24 @@ isEmpty( _QWT_INCLUDE_PATH ) {
 # The following QWT include path and library path are only required if
 # qwt was not installed fully, with qwt available as a Qt 'feature'.
 # When installed as a Qt 'feature' all that is needed is CONFIG += qwt (above)
+#
 INCLUDEPATH += $$(QWT_INCLUDE_PATH)
+
 #win32:LIBS += -LC:/qwt-6.0.1/lib
-win32:LIBS += -LC:/qwt-6.1.3/lib
+#win32:LIBS += -LC:/qwt-6.1.3/lib
 #win32:LIBS += -LC:/qwt-6.1.1/lib
 
 # Depending on build, the qwt library below may need to be -lqwt or -lqwt6
 # The 'scope' labels Debug and Release need to have first letter capitalised for it to work in win32.
 #
 win32 {
+    _QWT_ROOT = $$(QWT_ROOT)
+    isEmpty( _QWT_ROOT ) {
+        error( "QWT_ROOT is not defined. It is required when building the QE framework on windows, e.g. C:/qwt-6.1.3/" )
+    }
+
+    LIBS += -L$$(QWT_ROOT)/lib
+
     Debug {
         message( "Using qwtd (not qwt) for this debug build" )
         LIBS += -lqwtd
@@ -277,8 +285,9 @@ unix {
         message( "QWT_ROOT is not defined, so using default location of QWT library" )
         LIBS += -lqwt
     } else {
-        message( "Using QWT_ROOT environment variable to locate QWT library" )
+        message( "Using QWT_ROOT environment variable to locate QWT library: $$(QWT_ROOT)" )
         LIBS += -L$$(QWT_ROOT)/lib -lqwt
+        QMAKE_LFLAGS += -Wl,-rpath,$$(QWT_ROOT)/lib
     }
 }
 
