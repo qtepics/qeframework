@@ -51,6 +51,48 @@ QRadioGroup::QRadioGroup (const QString& title, QWidget* parent) :
    this->commonSetup ();
 }
 
+//-----------------------------------------------------------------------------
+// Setup common to all constructors
+//
+void QRadioGroup::commonSetup ()
+{
+   this->setMinimumSize (120, 40);
+
+   // Set up default properties
+   //
+   this->cols = 2;
+   this->space = 4;
+   this->buttonStyle = Radio;
+   this->buttonOrder = rowMajor;
+   this->strings.clear ();
+
+   // Set the initial state
+   //
+   this->currentIndex = -1;
+
+   this->numberDisplayed = 0;
+   this->rows = 0;
+
+   this->buttonLayout = new QGridLayout (this);
+   this->buttonLayout->setContentsMargins (this->space,   // left
+                                           this->space,   // top
+                                           this->space,   // right
+                                           this->space);  // bottom
+   this->buttonLayout->setSpacing (this->space);
+
+   // Create buttons - invisble for now.
+   // NOTE: radio buttons are added/removed from layout as and when needed.
+   //
+   this->noSelectionButton = NULL;
+   this->buttonList.clear ();
+   this->reCreateAllButtons ();
+   this->emitValueChangeInhibited = false;
+
+   // Some events must be applied to the internal widgets
+   //
+   this->installEventFilter (this);
+}
+
 //---------------------------------------------------------------------------------
 //
 QSize QRadioGroup::sizeHint () const
@@ -59,24 +101,25 @@ QSize QRadioGroup::sizeHint () const
 }
 
 //---------------------------------------------------------------------------------
-// QGroupBox (paranet class) captures some of these events and does not call
+// QGroupBox (parent class) captures some of these events and does not call
 // appropriate virtual function.  So must intercept there events here.
 //
-bool QRadioGroup::event (QEvent* event)
+bool QRadioGroup::eventFilter (QObject* watched, QEvent* event)
 {
    const QEvent::Type type = event->type ();
-
    bool result = false;
 
    switch (type) {
       case QEvent::FontChange:
-         // Propagate font change to embedded buttons.
-         //
-         for (int j = 0; j < this->buttonList.count (); j++) {
-            QAbstractButton* button = this->buttonList.value (j);
-            if (button) button->setFont (this->font());
+         if (watched == this) {
+            // Propagate font change to embedded buttons.
+            //
+            for (int j = 0; j < this->buttonList.count (); j++) {
+               QAbstractButton* button = this->buttonList.value (j);
+               if (button) button->setFont (this->font());
+            }
+            result = QGroupBox::event (event);   // call parent fuction;
          }
-         result = QGroupBox::event (event);   // call parent fuction;
          break;
 
       case QEvent::MouseButtonPress:
@@ -86,7 +129,7 @@ bool QRadioGroup::event (QEvent* event)
          break;
 
       default:
-         result = QGroupBox::event (event);   // call parent fuction
+         result = false;
    }
 
    return result;
@@ -160,44 +203,6 @@ void QRadioGroup::reCreateAllButtons ()
    this->noSelectionButton = this->createButton (this);
    this->noSelectionButton->setGeometry (-40, -40, 20, 20);
    this->noSelectionButton->setVisible (false);
-}
-
-//-----------------------------------------------------------------------------
-// Setup common to all constructors
-//
-void QRadioGroup::commonSetup ()
-{
-   this->setMinimumSize (120, 40);
-
-   // Set up default properties
-   //
-   this->cols = 2;
-   this->space = 4;
-   this->buttonStyle = Radio;
-   this->buttonOrder = rowMajor;
-   this->strings.clear ();
-
-   // Set the initial state
-   //
-   this->currentIndex = -1;
-
-   this->numberDisplayed = 0;
-   this->rows = 0;
-
-   this->buttonLayout = new QGridLayout (this);
-   this->buttonLayout->setContentsMargins (this->space,   // left
-                                           this->space,   // top
-                                           this->space,   // right
-                                           this->space);  // bottom
-   this->buttonLayout->setSpacing (this->space);
-
-   // Create buttons - invisble for now.
-   // NOTE: radio buttons are added/removed from layout as and when needed.
-   //
-   this->noSelectionButton = NULL;
-   this->buttonList.clear ();
-   this->reCreateAllButtons ();
-   this->emitValueChangeInhibited = false;
 }
 
 //---------------------------------------------------------------------------------

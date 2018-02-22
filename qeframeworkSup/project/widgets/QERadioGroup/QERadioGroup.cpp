@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2014,2016,2017 Australian Synchrotron.
+ *  Copyright (c) 2013,2014,2016,2017,2018 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -153,19 +153,6 @@ void QERadioGroup::commonSetup (const QString& title)
 QSize QERadioGroup::sizeHint () const
 {
    return QSize (200, 80);
-}
-
-//---------------------------------------------------------------------------------
-//
-void QERadioGroup::fontChange (const QFont&)
-{
-   // We use this overridden function as a trigger to update the internal
-   // widget's font. The given parameter (which we don't use)  lags by one change,
-   // but this->font () is up to date, so we use that.
-   //
-   if (this->internalWidget) {
-      this->internalWidget->setFont (this->font ());
-   }
 }
 
 //------------------------------------------------------------------------------

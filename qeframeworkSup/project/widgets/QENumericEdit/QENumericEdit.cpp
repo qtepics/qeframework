@@ -147,6 +147,10 @@ void QENumericEdit::commonSetup ()
    //
    this->connectNewVariableNameProperty
          (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+
+   // Some events must be applied to the internal widget
+   //
+   this->installEventFilter (this);
 }
 
 //------------------------------------------------------------------------------
@@ -158,15 +162,28 @@ QENumericEdit::~QENumericEdit ()
 
 //------------------------------------------------------------------------------
 //
-void QENumericEdit::fontChange (const QFont&)
+bool QENumericEdit::eventFilter (QObject* watched, QEvent* event)
 {
-   // We use this overridden function as a trigger to update the internal
-   // widget's font. The given parameter (which we don't use)  lags by one change,
-   // but this->font () is up to date, so we use that.
-   //
-   if (this->internalWidget) {
-      this->internalWidget->setFont (this->font ());
+   const QEvent::Type type = event->type ();
+   bool result = false;
+
+   switch (type) {
+      case QEvent::FontChange:
+         if (watched == this) {
+            // Font must be mapped to the internal numeric edit
+            //
+            if (this->internalWidget) {
+               this->internalWidget->setFont (this->font ());
+            }
+         }
+         break;
+
+      default:
+         result = false;
+         break;
    }
+
+   return result;
 }
 
 //------------------------------------------------------------------------------

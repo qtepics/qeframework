@@ -240,7 +240,7 @@ signals:
 
 protected:
    QSize sizeHint () const;
-   void fontChange (const QFont& font);
+   bool eventFilter (QObject* watched, QEvent* event);
    void resizeEvent (QResizeEvent* event);
 
    // Override QEWidget functions.

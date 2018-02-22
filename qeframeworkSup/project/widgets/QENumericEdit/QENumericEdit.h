@@ -288,7 +288,7 @@ public slots:
    void setDefaultStyle (const QString& style) { this->setStyleDefault (style); }
 
 protected:
-   void fontChange (const QFont& font);
+   bool eventFilter (QObject* watched, QEvent* event);
    void focusInEvent (QFocusEvent* event);
 
    // Return the Qt default context menu to add to the QE context menu.

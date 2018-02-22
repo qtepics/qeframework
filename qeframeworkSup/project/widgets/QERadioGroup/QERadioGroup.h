@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2014,2016,2017 Australian Synchrotron
+ *  Copyright (c) 2013,2014,2016,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -198,7 +198,6 @@ public slots:
 
 protected:
    QSize sizeHint () const;
-   void fontChange (const QFont& font);
 
    // override QEWidget fnctions.
    //

@@ -809,6 +809,17 @@ bool QEHistogram::eventFilter (QObject *obj, QEvent* event)
          }
          break;
 
+      case QEvent::FontChange:
+         if (obj == this) {
+            // Font must be mapped to the internal axisPainter
+            //
+            if (this->axisPainter) {
+               this->axisPainter->setFont (this->font ());
+               this->axisPainter->update ();
+            }
+         }
+         break;
+
       default:
          result = false;   // event has not been handled
          break;
@@ -820,14 +831,6 @@ bool QEHistogram::eventFilter (QObject *obj, QEvent* event)
    }
 
    return result;
-}
-
-//------------------------------------------------------------------------------
-//
-void QEHistogram::fontChange (const QFont& f)
-{
-   this->axisPainter->setFont (f);   // Update the axis painter
-   this->update ();                  // Initiate a re-paint
 }
 
 //------------------------------------------------------------------------------

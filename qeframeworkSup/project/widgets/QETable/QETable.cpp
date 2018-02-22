@@ -362,6 +362,10 @@ QETable::QETable (QWidget* parent) : QEAbstractDynamicWidget (parent)
                      this,        SLOT   (gridCellEntered  (int, int)));
 
    this->table->setMouseTracking (true);   // need this for cell entered.
+
+   // Some events must be applied to the internal widget
+   //
+   this->installEventFilter (this);
 }
 
 //---------------------------------------------------------------------------------
@@ -377,15 +381,28 @@ QSize QETable::sizeHint () const
 
 //---------------------------------------------------------------------------------
 //
-void QETable::fontChange (const QFont&)
+bool QETable::eventFilter (QObject* watched, QEvent* event)
 {
-   // We use this overridden function as a trigger to update the internal
-   // widget's font. The given parameter (which we don't use) lags by one change,
-   // but this->font () is up to date, so we use that.
-   //
-   if (this->table) {
-      this->table->setFont (this->font ());
+   const QEvent::Type type = event->type ();
+   bool result = false;
+
+   switch (type) {
+      case QEvent::FontChange:
+         if (watched == this) {
+            // Font must be mapped to the internal table
+            //
+            if (this->table) {
+               this->table->setFont (this->font ());
+            }
+         }
+         break;
+
+      default:
+         result = false;
+         break;
    }
+
+   return result;
 }
 
 //---------------------------------------------------------------------------------

@@ -88,6 +88,10 @@ void QNumericEdit::commonConstructor ()
    this->internalSetValue (0.0);
    this->cursor = this->cursorFirst;
    this->emitValueChangeInhibited = false;
+
+   // Some events must be applied to the internal widget
+   //
+   this->installEventFilter (this);
 }
 
 //------------------------------------------------------------------------------
@@ -379,11 +383,29 @@ void QNumericEdit::focusInEvent (QFocusEvent* event)
 //
 bool QNumericEdit::eventFilter (QObject *obj, QEvent *event)
 {
+   const QEvent::Type type = event->type ();
    bool result = false;   // not handled unless we actually handle this event.
 
    if (obj == this->lineEdit) {
       result = this->lineEditEventFilter (event);
    }
+
+   switch (type) {
+      case QEvent::FontChange:
+         if (obj == this) {
+            // Font must be mapped to the internal lineEdit
+            //
+            if (this->lineEdit) {
+               this->lineEdit->setFont (this->font ());
+            }
+         }
+         break;
+
+      default:
+         result = false;
+         break;
+   }
+
 
    return result;
 }

@@ -149,7 +149,6 @@ public slots:
 
 protected:
    bool eventFilter (QObject* obj, QEvent* event);
-   void fontChange (const QFont& f);
 
 private:
    int indexOfHistogramAreaPosition (const int x, const int y) const;

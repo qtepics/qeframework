@@ -179,7 +179,7 @@ void QEWidget::processConnectionInfo (bool isConnected, const unsigned int )
 void QEWidget::processAlarmInfo( QCaAlarmInfo& alarmInfo, const unsigned int variableIndex )
 {
     // Gather the current info
-    QCAALARMINFO_SEVERITY severity = alarmInfo.getSeverity();
+    QCaAlarmInfo::Severity severity = alarmInfo.getSeverity();
     standardProperties::displayAlarmStateOptions displayAlarmState = getDisplayAlarmStateOption();
 
     // If anything has changed (either the alarm state itself, or if we have just started

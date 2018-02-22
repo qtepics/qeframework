@@ -102,6 +102,10 @@ QEMenuButton::QEMenuButton (QWidget* parent) : QEAbstractWidget (parent)
       QObject::connect( this, SIGNAL (newGui        (const QEActionRequests&)),
                         this, SLOT   (requestAction (const QEActionRequests&)));
    }
+
+   // Some events must be applied to the internal widget
+   //
+   this->installEventFilter (this);
 }
 
 //------------------------------------------------------------------------------
@@ -120,15 +124,28 @@ QSize QEMenuButton::sizeHint () const
 
 //------------------------------------------------------------------------------
 //
-void QEMenuButton::fontChange (const QFont&)
+bool QEMenuButton::eventFilter(QObject* watched, QEvent* event)
 {
-   // We use this overridden function as a trigger to update the internal
-   // widget's font. The given parameter (which we don't use) lags by one change,
-   // but this->font () is up to date, so we use that.
-   //
-   if (this->button) {
-      this->button->setFont (this->font ());
+   const QEvent::Type type = event->type ();
+   bool result = false;
+
+   switch (type) {
+      case QEvent::FontChange:
+         if (watched == this) {
+            // Font must be mapped to the internal button
+            //
+            if (this->button) {
+               this->button->setFont (this->font ());
+            }
+         }
+         break;
+
+      default:
+         result = false;
+         break;
    }
+
+   return result;
 }
 
 //------------------------------------------------------------------------------
@@ -288,7 +305,9 @@ QString QEMenuButton::getSubstitutionsProperty () const
 //
 void QEMenuButton::setLabelTextProperty (const QString& labelTextIn)
 {
-   this->button->setText (labelTextIn);
+   if (this->button) {
+      this->button->setText (labelTextIn);
+   }
 }
 
 //------------------------------------------------------------------------------
