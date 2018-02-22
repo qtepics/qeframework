@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010, 2016 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -23,8 +23,8 @@
  *    andrew.rhyder@synchrotron.org.au
  */
 
-#ifndef QEVARIABLEMANAGER_H
-#define QEVARIABLEMANAGER_H
+#ifndef QE_VARIABLE_MANAGER_H
+#define QE_VARIABLE_MANAGER_H
 
 #include <QCaObject.h>
 #include <QCaStateMachine.h>
@@ -87,17 +87,19 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT  VariableManager :
 {
 public:
     /// Constructor
-    VariableManager();
+    explicit VariableManager();
 
     /// Destructor
     virtual ~VariableManager();
 
     /// Initiate updates.
     /// Called after all configuration is complete.
+    /// Note: This function invokes the virtual activated() function.
     void activate();
 
     /// Terminates updates.
     /// This has been provided for third party (non QEGui) applications using the framework.
+    /// Note: This function invokes the virtual deactivated() function.
     void deactivate();
 
     /// Return a reference to one of the qCaObjects used to stream CA updates
@@ -110,7 +112,7 @@ public:
 
     /// (Control widgets only - such as QELineEdit)
     /// Write the value now. Used when writeOnChange, writeOnEnter, etc are all false
-    virtual void writeNow(){ qDebug()<<"default writeNow"; }
+    virtual void writeNow();
 
     /// Return references to the current count of disconnections.
     /// The plugin library (and therefore the static connection and disconnection counts)
@@ -143,7 +145,8 @@ protected:
 
     virtual qcaobject::QCaObject* createQcaItem( unsigned int variableIndex );  ///< Function to create a appropriate superclass of QCaObject to stream data updates
     virtual void establishConnection( unsigned int variableIndex );             ///< Create a CA connection and initiates updates if required
-    virtual void activated();                                                   ///< Do any post-all-widgets-constructed stuff
+    virtual void activated();                                                   ///< Do any post-all-widgets-constructed, i.e. activated stuff
+    virtual void deactivated();                                                 ///< Do any post deactivated stuff
 
     void deleteQcaItem( unsigned int variableIndex, bool disconnect );          ///< Delete a stream of CA updates
 
@@ -152,4 +155,4 @@ private:
     qcaobject::QCaObject** qcaItem;  // CA access - provides a stream of updates. One for each variable name used by the QE widgets
 };
 
-#endif // QEVARIABLEMANAGER_H
+#endif // QE_VARIABLE_MANAGER_H

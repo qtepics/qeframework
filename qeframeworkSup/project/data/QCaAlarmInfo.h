@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -32,13 +32,17 @@
 #include <QStringList>
 #include <QEFrameworkLibraryGlobal.h>
 
-#define QCAALARMINFO_SEVERITY unsigned short
-
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QCaAlarmInfo
 {
 public:
-    QCaAlarmInfo();
-    QCaAlarmInfo( unsigned short statusIn, unsigned short severityIn );
+    typedef unsigned short Severity;  // Alarm onfo severity type.
+
+    // For backward compatibility.
+#   define QCAALARMINFO_SEVERITY  QCaAlarmInfo::Severity
+
+    explicit QCaAlarmInfo();
+    explicit QCaAlarmInfo( const unsigned short statusIn, const unsigned short severityIn );
+    virtual ~QCaAlarmInfo();
 
     bool operator==(const QCaAlarmInfo& other) const;   // Return true if equal
     bool operator!=(const QCaAlarmInfo& other) const;   // Return true if not equal
@@ -53,14 +57,14 @@ public:
 
     // getStyleColorName/getColorName return standard color for the alarm state.
     // The former is paler/less solid, suitable e.g. label backgrounds. The later
-    // is more solid suitable for graphics. In both cases the reurned format is
+    // is more solid suitable for graphics. In both cases the returned format is
     // of the form of a 6 digit hex string, e.g.: "#0080ff"
     //
     QString getStyleColorName() const; // Return 'standard' style colour for the alarm state.
     QString getColorName() const;      // Return 'standard' colour for the alarm state.
 
-    static QCAALARMINFO_SEVERITY getInvalidSeverity(); // Return a severity that will not match any valid severity
-    QCAALARMINFO_SEVERITY getSeverity() const; // Return the current severity
+    static Severity getInvalidSeverity(); // Return a severity that will not match any valid severity
+    Severity getSeverity() const;      // Return the current severity
 
     // The following fuunctions take or return a QStringList with four elements indexed
     // by alarm severity, i.e. no alarm, minor, major and invalid.

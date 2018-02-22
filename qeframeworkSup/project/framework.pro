@@ -1,7 +1,7 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #11 $
-# $DateTime: 2018/02/19 11:31:52 $
-# Last checked in by: $Author: pozara $
+# $Revision: #12 $
+# $DateTime: 2018/02/21 11:32:41 $
+# Last checked in by: $Author: starritt $
 #
 # Copyright (c) 2009,2010,2016 Australian Synchrotron
 #
@@ -254,10 +254,6 @@ isEmpty( _QWT_INCLUDE_PATH ) {
 #
 INCLUDEPATH += $$(QWT_INCLUDE_PATH)
 
-#win32:LIBS += -LC:/qwt-6.0.1/lib
-#win32:LIBS += -LC:/qwt-6.1.3/lib
-#win32:LIBS += -LC:/qwt-6.1.1/lib
-
 # Depending on build, the qwt library below may need to be -lqwt or -lqwt6
 # The 'scope' labels Debug and Release need to have first letter capitalised for it to work in win32.
 #
@@ -267,6 +263,7 @@ win32 {
         error( "QWT_ROOT is not defined. It is required when building the QE framework on windows, e.g. C:/qwt-6.1.3/" )
     }
 
+    message( "Using QWT_ROOT environment variable to locate QWT library: $$(QWT_ROOT)" )
     LIBS += -L$$(QWT_ROOT)/lib
 
     Debug {

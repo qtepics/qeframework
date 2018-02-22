@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015, 2016 Australian Synchrotron
+ *  Copyright (c) 2015,2016,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -106,6 +106,9 @@ void VariableManager::activate()
 //
 void VariableManager::deactivate()
 {
+    // Ask the widget to perform any tasks which should done prior to being deactivated.
+    deactivated();
+
     // Delete all the QCaObject instances
     for( unsigned int i = 0; i < numVariables; i++ ) {
         deleteQcaItem( i, false );
@@ -180,7 +183,12 @@ void VariableManager::activated()
 {
 }
 
-
+//------------------------------------------------------------------------------
+// Default implementation of deactivated().
+//
+void VariableManager::deactivated ()
+{
+}
 
 // Return a reference to one of the qCaObjects used to stream CA data updates to the widget
 // This is called by CA aware widgets based on this class, such as a QELabel, mainly when they
@@ -243,6 +251,14 @@ void VariableManager::readNow()
             qca->singleShotRead();
         }
     }
+}
+
+//------------------------------------------------------------------------------
+// Provides default implementation of writeNow.
+//
+void VariableManager::writeNow()
+{
+    qDebug() << "default VariableManager::writeNow - this function should be overridden";
 }
 
 using namespace qcastatemachine;

@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -105,10 +105,16 @@ QCaAlarmInfo::QCaAlarmInfo()
 /*
   Construct an instance given an alarm state and severity
  */
-QCaAlarmInfo::QCaAlarmInfo( unsigned short statusIn, unsigned short severityIn ) {
+QCaAlarmInfo::QCaAlarmInfo( unsigned short statusIn, unsigned short severityIn )
+{
     status = statusIn;
     severity = severityIn;
 }
+
+/*
+  Deconstruct - place holder
+ */
+QCaAlarmInfo::~QCaAlarmInfo() { }
 
 /*
   Equality function.
@@ -219,7 +225,7 @@ QString QCaAlarmInfo::getColorName() const
 /*
   Return a severity that will not match any valid severity (static)
  */
-QCAALARMINFO_SEVERITY QCaAlarmInfo::getInvalidSeverity()
+QCaAlarmInfo::Severity QCaAlarmInfo::getInvalidSeverity()
 {
     return ALARM_NSEV;
 }
@@ -228,7 +234,7 @@ QCAALARMINFO_SEVERITY QCaAlarmInfo::getInvalidSeverity()
   Return the severity
   The caller is only expected to compare this to
  */
-QCAALARMINFO_SEVERITY QCaAlarmInfo::getSeverity() const
+QCaAlarmInfo::Severity QCaAlarmInfo::getSeverity() const
 {
     return severity;
 }
