@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016,2017 Australian Synchrotron
+ *  Copyright (c) 2013,2016,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -65,6 +65,9 @@ public:
    //
    void    setPvName (const int slot, const QString& pvName);
    QString getPvName (const int slot) const;
+
+   int addPvName (const QString& pvName);
+   void clearAllPvNames ();
 
    // Selects/highlights row.
    //
@@ -185,7 +188,6 @@ private:
    // Perform a pvNameDropEvent 'drop' when dropped onto internal widget.
    //
    void pvNameDropEvent (const int slot, QDropEvent* event);
-   int addPvName (const QString& pvName);
 
 private slots:
    void intialResize ();

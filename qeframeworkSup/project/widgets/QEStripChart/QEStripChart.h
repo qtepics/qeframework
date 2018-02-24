@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2016 Australian Synchrotron
+ *  Copyright (c) 2012,2016,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -187,6 +187,10 @@ public:
    // returns slot number 0 .. Max - 1 iff successful otherwise -1.
    //
    int addPvName (const QString& pvName);
+
+   // Clear all PV names.
+   //
+   void clearAllPvNames ();
 
    PropertyChartYRanges getYRangeMode () const;
    void setYRangeMode (const PropertyChartYRanges scale);

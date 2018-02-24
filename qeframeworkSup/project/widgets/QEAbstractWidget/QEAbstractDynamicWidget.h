@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2016,2017 Australian Synchrotron
+ *  Copyright (c) 2016,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -81,13 +81,17 @@ public:
    void setEnableEditPv (const bool isEnabled);
    bool getEnableEditPv () const;
 
-   // Both add names to next available slot(s) if any.
+   // Override paste. This functions adds PVs names to the next
+   // available slot(s) if any.
    //
    void paste (QVariant s);
 
-   // Used by paste, but also made publically available.
+   // Used by paste and addPvNameSet, but also made publically available.
    //
    void addPvNameList (const QStringList& pvNameList);
+
+   // Split input string using white space as delimiter.
+   //
    void addPvNameSet (const QString& pvNameSet);
 
    // Add PV to next available slot (if any).
@@ -96,6 +100,11 @@ public:
    // Sub-class must provide an implementation for this function.
    //
    virtual int addPvName (const QString& pvName) = 0; // Add name to next available slot.
+
+   // Remove and clear all PVs.
+   // Sub-class must provide an implementation for this function.
+   //
+   virtual void clearAllPvNames () = 0;
 
 protected:
    QMenu* buildContextMenu ();                        // Build the specific context menu

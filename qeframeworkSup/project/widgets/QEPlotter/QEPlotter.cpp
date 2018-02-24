@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016,2017 Australian Synchrotron.
+ *  Copyright (c) 2013,2016,2017,2018 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -57,7 +57,7 @@ static const QString letterStyle ("QWidget { background-color: #e8e8e8; }");
 
 // Define default colours: essentially RGB byte triplets
 //
-static const QColor item_colours [1 + NUMBER_OF_PLOTS] = {
+static const QColor item_colours [QEPlotter::NUMBER_OF_SLOTS] = {
    clWhite,
    QColor (0xFF0000), QColor (0x0000FF), QColor (0x008000), QColor (0xFF8000),
    QColor (0x4080FF), QColor (0x800000), QColor (0x008080), QColor (0x808000),
@@ -65,7 +65,7 @@ static const QColor item_colours [1 + NUMBER_OF_PLOTS] = {
    QColor (0x8F00C0), QColor (0xC0008F), QColor (0xB040B0), clBlack
 };
 
-static const QString item_labels [1 + NUMBER_OF_PLOTS] = {
+static const QString item_labels [QEPlotter::NUMBER_OF_SLOTS] = {
    QString ("X"),
    QString ("A"), QString ("B"), QString ("C"), QString ("D"),
    QString ("E"), QString ("F"), QString ("G"), QString ("H"),
@@ -2169,6 +2169,16 @@ int QEPlotter::addPvName (const QString& pvName)
    }
 
    return result;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlotter::clearAllPvNames ()
+{
+   for (int slot = 0; slot < NUMBER_OF_SLOTS; slot++) {
+      this->setXYDataPV (slot, "");
+      this->setXYSizePV (slot, "");
+   }
 }
 
 //------------------------------------------------------------------------------

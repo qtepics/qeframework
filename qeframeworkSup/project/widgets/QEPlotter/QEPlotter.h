@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2014,2016,2017 Australian Synchrotron.
+ *  Copyright (c) 2013,2014,2016,2017,2018 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -184,7 +184,10 @@ public:
    ~QEPlotter();
    QSize sizeHint () const;
 
-#define NUMBER_OF_PLOTS 16
+   enum Constants {
+      NUMBER_OF_PLOTS = 16,
+      NUMBER_OF_SLOTS = 17     // includes the X slot
+   };
 
    // Single function for all 'Data Set' properties.
    // Slot 0 is the X PV slot.
@@ -262,6 +265,7 @@ public:
    bool getIsPaused () const;
 
    int addPvName (const QString& pvName);        // Add name to next available Y PV slot.
+   void clearAllPvNames ();                      // Clear all PV names.
 
    int  getCrosshairIndex () const;
 

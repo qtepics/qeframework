@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016,2017 Australian Synchrotron
+ *  Copyright (c) 2013,2016,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -645,6 +645,15 @@ int QEScratchPad::addPvName (const QString& pvName)
    }
 
    return result;
+}
+
+//---------------------------------------------------------------------------------
+//
+void QEScratchPad::clearAllPvNames ()
+{
+   for (int slot = 0; slot < NUMBER_OF_ITEMS; slot++) {
+      this->setPvName (slot, "");
+   }
 }
 
 //---------------------------------------------------------------------------------

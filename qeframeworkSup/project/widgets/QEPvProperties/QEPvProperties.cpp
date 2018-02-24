@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2013,2016,2017 Australian Synchrotron.
+ *  Copyright (c) 2012,2013,2016,2017,2018 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -1412,6 +1412,13 @@ int QEPvProperties::addPvName (const QString& pvName)
    this->insertIntoDropDownList (pvName);
    this->setPvName (pvName);
    return 0;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPvProperties::clearAllPvNames ()
+{
+   this->setPvName ("");
 }
 
 // end

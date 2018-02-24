@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2017 Australian Synchrotron
+ *  Copyright (c) 2012,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -117,6 +117,9 @@ public:
 
    QSize sizeHint () const;
 
+   int addPvName (const QString& pvName);
+   void clearAllPvNames ();
+
 protected:
    void resizeEvent (QResizeEvent*  event);
 
@@ -152,7 +155,6 @@ protected:
    // Override QEAbstractDynamicWidget functions
    //
    void enableEditPvChanged ();
-   int addPvName (const QString& pvName);
 
 private:
    enum PVReadModes {

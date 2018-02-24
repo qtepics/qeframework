@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2014,2016 Australian Synchrotron
+ *  Copyright (c) 2014,2016,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -65,7 +65,9 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QETable : public QEAbstractDynamicWidge
    // Must be consistant with the number of variable name properties below and
    // calls to PROPERTY_ACCESS below.
    //
-   #define MAXIMUM_NUMBER_OF_VARIABLES 20
+   enum Constanys {
+      MAXIMUM_NUMBER_OF_VARIABLES = 20
+   };
 
    // QETable specific properties ===============================================
    /// EPICS variable names (CA PV)
@@ -164,6 +166,7 @@ public:
    Qt::Orientation getOrientation () const;
 
    int addPvName (const QString& pvName);
+   void clearAllPvNames ();
 
    // Property access READ and WRITE functions. We can define the access functions
    // using a macro.  Alas, due to SDK limitation, we cannot embedded the property

@@ -16,13 +16,18 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2016,2017 Australian Synchrotron.
+ *  Copyright (c) 2012,2016,2017,2018 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
+
+#include "QEStripChart.h"
+#include "QEStripChartToolBar.h"
+#include "QEStripChartItem.h"
+#include "QEStripChartUtilities.h"
 
 #include <math.h>
 
@@ -58,12 +63,6 @@
 #include <QCaObject.h>
 #include <QELabel.h>
 #include <QCaVariableNamePropertyManager.h>
-
-#include "QEStripChart.h"
-#include "QEStripChartToolBar.h"
-#include "QEStripChartItem.h"
-#include "QEStripChartUtilities.h"
-
 
 #define DEBUG  qDebug () << "QEStripChart" << __LINE__ << __FUNCTION__ << "  "
 
@@ -1234,6 +1233,15 @@ int QEStripChart::addPvName (const QString& pvName)
    //
    this->evaluateAllowDrop ();
    return result;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChart::clearAllPvNames ()
+{
+   for (int slot = 0; slot < NUMBER_OF_PVS; slot++) {
+      this->setPvName (slot, "");
+   }
 }
 
 //------------------------------------------------------------------------------
