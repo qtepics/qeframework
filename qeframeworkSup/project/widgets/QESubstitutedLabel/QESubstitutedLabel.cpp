@@ -1,4 +1,5 @@
-/*
+/*  QESubstitutedLabel.cpp
+ *
  *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
@@ -14,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -28,28 +29,36 @@
  */
 
 #include <QESubstitutedLabel.h>
+#include <QECommon.h>
 
 /*
     Constructor with no initialisation
 */
-QESubstitutedLabel::QESubstitutedLabel( QWidget *parent ) : QLabel( parent ), QEWidget( this ) {
+QESubstitutedLabel::QESubstitutedLabel( QWidget *parent ) :
+   QLabel( parent ),
+   QEWidget( this )
+{
     setup();
 }
 
 /*
     Setup common to all constructors
 */
-void QESubstitutedLabel::setup() {
-
-    setVariableAsToolTip( false ); // Not used as this widget does not connect to any data source
+void QESubstitutedLabel::setup()
+{
+    // Not used as this widget does not connect to any data source
+    setVariableAsToolTip( false );
 
     // Set up the number of variables managed by the variable name manager
-    // NOTE: there is no data associated with this widget, but it uses the same substitution mechanism as other data widgets.
+    // NOTE: there is no data associated with this widget, but it uses the same
+    // substitution mechanism as other data widgets.
     variableNameManagerInitialise( 1 );
-
 
     // Set the initial state
     setText( "----" );
+    setIndent( 6 );
+
+    setStyleSheet( QEUtilities::offBackgroundStyle() );
 
     // Use label signals
     // --Currently none--
@@ -117,3 +126,5 @@ QString QESubstitutedLabel::getSubstitutionsProperty()
 {
     return getVariableNameSubstitutions();
 }
+
+// end

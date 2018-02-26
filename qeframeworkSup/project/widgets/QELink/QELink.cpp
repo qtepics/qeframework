@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010, 2015 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2015,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -28,20 +28,26 @@
 #include <QVariant>
 #include <QString>
 #include <QDebug>
+#include <QECommon.h>
 
 /*
     Constructor with no initialisation
 */
-QELink::QELink( QWidget *parent ) : QLabel( parent ), QEWidget( this ) {
-
+QELink::QELink( QWidget *parent ) : QLabel( parent ), QEWidget( this )
+{
     // Don't display this widget, by default (will always display in 'Designer'
     setRunVisible( false );
 
     // Set default properties
+    setAlignment( Qt::AlignHCenter | Qt::AlignVCenter );
     setText( "Link" );
+    setIndent( 6 );
+
+    setStyleSheet ( QEUtilities::offBackgroundStyle() );
 
     signalFalse = true;
     signalTrue = true;
+    isProcessing = false;
 
     condition = CONDITION_EQ;
 }
@@ -128,18 +134,25 @@ void QELink::in( const QString& inVal )
 // Generate appropriate signals following a comparison of an input value
 void QELink::sendValue( bool match )
 {
-    // If input comparison matched, emit the appropriate value if required
-    if( match )
-    {
-        if( signalTrue )
-            emitValue( outTrueValue );
-    }
+    // Avoid infinite signal-slot loops.
+    if( !isProcessing ){
+        isProcessing = true;
 
-    // If input comparison did not match, emit the appropriate value if required
-    else
-    {
-        if( signalFalse )
-            emitValue( outFalseValue );
+        // If input comparison matched, emit the appropriate value if required
+        if( match )
+        {
+            if( signalTrue )
+                emitValue( outTrueValue );
+        }
+
+        // If input comparison did not match, emit the appropriate value if required
+        else
+        {
+            if( signalFalse )
+                emitValue( outFalseValue );
+        }
+
+        isProcessing = false;
     }
 }
 
@@ -154,7 +167,8 @@ void QELink::emitValue( QVariant value )
     emit out( value.toString() );
 }
 
-// Slot to allow signal/slot manipulation of the auto fill background attribute of the base label class
+// Slot to allow signal/slot manipulation of the auto fill background
+// attribute of the base label class
 void QELink::autoFillBackground( const bool& enable )
 {
     setAutoFillBackground( enable );

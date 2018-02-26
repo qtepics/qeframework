@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2016 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2016,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -29,6 +29,8 @@
  */
 
 #include <QELabel.h>
+#include <QDebug>
+#include <QECommon.h>
 
 #define DEBUG  qDebug () << "QELabel" << __LINE__ << __FUNCTION__ << "  "
 
@@ -61,11 +63,11 @@ QELabel::QELabel( const QString &variableNameIn, QWidget *parent ) :
 /*
     Setup common to all constructors
 */
-void QELabel::setup() {
-
+void QELabel::setup()
+{
     // Set up data
     // This control used a single data source
-    setNumVariables(1);
+    setNumVariables( 1 );
 
     // Set up default properties
     setAllowDrop( false );
@@ -80,12 +82,12 @@ void QELabel::setup() {
     // Use standard context menu
     setupContextMenu();
 
-//    defaultStyleSheet = styleSheet();
-    // Use label signals
-    // --Currently none--
+    setStyleSheet( QEUtilities::offBackgroundStyle() );    // By pass the normal designer check
+    setDefaultStyle( QEUtilities::offBackgroundStyle() );  // This will kick in at runtime
 
     // Set up a connection to recieve variable name property changes
-    // The variable name property manager class only delivers an updated variable name after the user has stopped typing
+    // The variable name property manager class only delivers an updated
+    // variable name after the user has stopped typing.
     connectNewVariableNameProperty( SLOT ( useNewVariableNameProperty( QString, QString, unsigned int ) ) );
 }
 

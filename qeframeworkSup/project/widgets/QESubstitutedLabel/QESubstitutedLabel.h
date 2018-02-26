@@ -1,4 +1,5 @@
-/*
+/*  QESubstitutedLabel.h
+ *
  *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
@@ -14,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -33,9 +34,8 @@
   managing data connections. These functions are just stubs.
  */
 
-
-#ifndef QESUBSTITUTEDLABEL_H
-#define QESUBSTITUTEDLABEL_H
+#ifndef QE_SUBSTITUTED_LABEL_H
+#define QE_SUBSTITUTED_LABEL_H
 
 #include <QLabel>
 #include <QEWidget.h>
@@ -45,7 +45,7 @@
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESubstitutedLabel : public QLabel, public QEWidget {
     Q_OBJECT
 
-  public:
+public:
     QESubstitutedLabel( QWidget *parent = 0 );
 
     // Property convenience functions
@@ -64,15 +64,11 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESubstitutedLabel : public QLabel, pub
     void setLabelTextPropertyFormat( QString labelTextIn );
 
 
-  protected:
-
+protected:
     QString labelText;                                                 // Fixed text to which substitutions will be applied
 
-  public slots:
 
-  signals:
-
-  private:
+private:
     void setup();
     qcaobject::QCaObject* createQcaItem( unsigned int ){ return NULL; } // Not used as this widget does not connect to any data source
 
@@ -96,4 +92,4 @@ private:
     //=================================================================================
 };
 
-#endif // QESUBSTITUTEDLABEL_H
+#endif // QE_SUBSTITUTED_LABEL_H
