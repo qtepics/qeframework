@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2014,2016 Australian Synchrotron.
+ *  Copyright (c) 2014,2016,2018 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -23,20 +23,18 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QNumericEdit.h"
 #include <math.h>
 #include <QDebug>
 
-#include "QNumericEdit.h"
-
 #define DEBUG  qDebug () << "QNumericEdit" << __LINE__ << __FUNCTION__ << "  "
 
-#define NUMBER_OF_RADICES  4
 
 //==============================================================================
-//
 // For decimal, this is about 48.9 bits, for the other radix values this is 48 bits exactly.
 // Note: order MUST be consistant with enum Radicies specification.
 //
+#define NUMBER_OF_RADICES  4
 const static int maximumNumberDigits [NUMBER_OF_RADICES] = { 15, 12, 16, 48 };
 
 
@@ -59,16 +57,17 @@ void QNumericEdit::commonConstructor ()
    this->lineEdit = new QLineEdit (this);
    this->lineEdit->setSizePolicy (QSizePolicy::Preferred, QSizePolicy::Preferred);
    this->lineEdit->setAlignment (Qt::AlignRight);
+   
    this->lineEdit->installEventFilter (this);
+
+   // The font change event must be applied to the internal widget.
+   //
+   this->installEventFilter (this);
 
    this->layout = new QHBoxLayout (this);
    this->layout->setMargin (0);
    this->layout->setSpacing (0);
    this->layout->addWidget (this->lineEdit);
-
-   //QFont font = this->font ();
-   //font.setFamily ("Monospace");
-   //this->setFont (font);
 
    // Ensure sensible auto values
    //
@@ -88,10 +87,6 @@ void QNumericEdit::commonConstructor ()
    this->internalSetValue (0.0);
    this->cursor = this->cursorFirst;
    this->emitValueChangeInhibited = false;
-
-   // Some events must be applied to the internal widget
-   //
-   this->installEventFilter (this);
 }
 
 //------------------------------------------------------------------------------
@@ -388,6 +383,7 @@ bool QNumericEdit::eventFilter (QObject *obj, QEvent *event)
 
    if (obj == this->lineEdit) {
       result = this->lineEditEventFilter (event);
+      return result;
    }
 
    switch (type) {
@@ -399,13 +395,13 @@ bool QNumericEdit::eventFilter (QObject *obj, QEvent *event)
                this->lineEdit->setFont (this->font ());
             }
          }
+         result = true;
          break;
 
       default:
          result = false;
          break;
    }
-
 
    return result;
 }
