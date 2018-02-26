@@ -1,4 +1,4 @@
-# QELabel.pri
+# QECalcout.pri
 #
 # This file is part of the EPICS QT Framework, initially developed at
 # the Australian Synchrotron. This file is included into and as part
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (c) 2017 Australian Synchrotron
+# Copyright (c) 2018 Australian Synchrotron
 #
 # Author:
 #   Andrew Starritt
@@ -26,14 +26,12 @@
 #
 
 HEADERS += \
-    widgets/QELabel/QELabel.h \
-    widgets/QELabel/QEDescriptionLabel.h
+    widgets/QECalcout/QECalcout.h
 
 SOURCES += \
-    widgets/QELabel/QELabel.cpp \
-    widgets/QELabel/QEDescriptionLabel.cpp
+    widgets/QECalcout/QECalcout.cpp
 
 INCLUDEPATH += \
-    widgets/QELabel
+    widgets/QECalcout
 
 # end

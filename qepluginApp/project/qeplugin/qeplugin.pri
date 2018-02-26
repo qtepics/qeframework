@@ -38,6 +38,7 @@ HEADERS += qeplugin/QEPluginWidgetManagers.h
 SOURCES += qeplugin/QEPluginWidgetManagers.cpp
 
 RESOURCES   += qeplugin/qeplugin.qrc
+
 OTHER_FILES += qeplugin/QAnalogSlider.png
 OTHER_FILES += qeplugin/QBitStatus.png
 OTHER_FILES += qeplugin/QEAnalogIndicator.png
@@ -46,9 +47,11 @@ OTHER_FILES += qeplugin/QEAnalogSlider.png
 OTHER_FILES += qeplugin/QEArchiveNameSearch.png
 OTHER_FILES += qeplugin/QEArchiveStatus.png
 OTHER_FILES += qeplugin/QEBitStatus.png
+OTHER_FILES += qeplugin/QECalcout.png
 OTHER_FILES += qeplugin/QECheckBox.png
 OTHER_FILES += qeplugin/QEComboBox.png
 OTHER_FILES += qeplugin/QEConfiguredLayout.png
+OTHER_FILES += qeplugin/QEDescriptionLabel.png
 OTHER_FILES += qeplugin/QEFileBrowser.png
 OTHER_FILES += qeplugin/QEFileImage.png
 OTHER_FILES += qeplugin/QEForm.png

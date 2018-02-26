@@ -8,9 +8,11 @@
         <file>QEArchiveNameSearch.png</file>
         <file>QEArchiveStatus.png</file>
         <file>QEBitStatus.png</file>
+        <file>QECalcout.png</file>
         <file>QECheckBox.png</file>
         <file>QEComboBox.png</file>
         <file>QEConfiguredLayout.png</file>
+        <file>QEDescriptionLabel.png</file>
         <file>QEFileBrowser.png</file>
         <file>QEFileImage.png</file>
         <file>QEForm.png</file>

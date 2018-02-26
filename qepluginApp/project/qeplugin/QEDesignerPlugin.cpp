@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -37,6 +37,7 @@ QEWidgets::QEWidgets(QObject *parent) : QObject(parent) {
     widgets.append(new QEAnalogProgressBarManager(this));
     widgets.append(new QEAnalogSliderManager(this));
     widgets.append(new QEBitStatusManager(this));
+    widgets.append(new QECalcoutManager(this));
     widgets.append(new QECheckBoxManager(this));
     widgets.append(new QEComboBoxManager(this));
     widgets.append(new QEConfiguredLayoutManager(this));
@@ -47,6 +48,7 @@ QEWidgets::QEWidgets(QObject *parent) : QObject(parent) {
     widgets.append(new QEGeneralEditManager(this));
     widgets.append(new QEImageManager(this));
     widgets.append(new QELabelManager(this));
+    widgets.append(new QEDescriptionLabelManager(this));
     widgets.append(new QELineEditManager(this));
     widgets.append(new QELogManager(this));
     widgets.append(new QELoginManager(this));

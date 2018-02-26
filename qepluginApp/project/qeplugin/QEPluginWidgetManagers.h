@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2017 Australian Synchrotron
+ *  Copyright (c) 2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -291,6 +291,16 @@ class QEPLUGINLIBRARYSHARED_EXPORT QELabelManager :
 
 //------------------------------------------------------------------------------
 //
+class QEPLUGINLIBRARYSHARED_EXPORT QEDescriptionLabelManager :
+      public QObject, public QDesignerCustomWidgetInterface
+{
+   Q_OBJECT
+   Q_INTERFACES (QDesignerCustomWidgetInterface)
+   QE_DECLARE_PLUGIN_MANAGER (QEDescriptionLabel)
+};
+
+//------------------------------------------------------------------------------
+//
 class QEPLUGINLIBRARYSHARED_EXPORT QELineEditManager :
       public QObject, public QDesignerCustomWidgetInterface
 {
@@ -307,6 +317,16 @@ class QEPLUGINLIBRARYSHARED_EXPORT QELinkManager :
    Q_OBJECT
    Q_INTERFACES (QDesignerCustomWidgetInterface)
    QE_DECLARE_PLUGIN_MANAGER (QELink)
+};
+
+//------------------------------------------------------------------------------
+//
+class QEPLUGINLIBRARYSHARED_EXPORT QECalcoutManager :
+      public QObject, public QDesignerCustomWidgetInterface
+{
+   Q_OBJECT
+   Q_INTERFACES (QDesignerCustomWidgetInterface)
+   QE_DECLARE_PLUGIN_MANAGER (QECalcout)
 };
 
 //------------------------------------------------------------------------------

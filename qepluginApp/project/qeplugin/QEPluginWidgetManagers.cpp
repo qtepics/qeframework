@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2017 Australian Synchrotron
+ *  Copyright (c) 2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -32,7 +32,9 @@
 #include <QEAnalogSlider.h>
 #include <QBitStatus.h>
 #include <QEBitStatus.h>
+#include <QECalcout.h>
 #include <QECheckBox.h>
+#include <QEDescriptionLabel.h>
 #include <QEPushButton.h>
 #include <QERadioButton.h>
 #include <QEComboBox.h>
@@ -107,8 +109,10 @@ QE_IMPLEMENT_PLUGIN_MANAGER (QEScalarHistogram,   QEGRAPHIC,  ":/qe/plugin/QESca
 QE_IMPLEMENT_PLUGIN_MANAGER (QEWaveformHistogram, QEGRAPHIC,  ":/qe/plugin/QEWaveformHistogram.png", false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEImage,             QEGRAPHIC,  ":/qe/plugin/QEImage.png",             false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QELabel,             QEMONITOR,  ":/qe/plugin/QELabel.png",             false)
+QE_IMPLEMENT_PLUGIN_MANAGER (QEDescriptionLabel,  QEMONITOR,  ":/qe/plugin/QEDescriptionLabel.png",  false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QELineEdit,          QECONTROL,  ":/qe/plugin/QELineEdit.png",          false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QELink,              QESUPPORT,  ":/qe/plugin/QELink.png",              false)
+QE_IMPLEMENT_PLUGIN_MANAGER (QECalcout,           QESUPPORT,  ":/qe/plugin/QECalcout.png",           false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QELog,               QESUPPORT,  ":/qe/plugin/QELog.png",               false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QELogin,             QESUPPORT,  ":/qe/plugin/QELogin.png",             false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QNumericEdit,        QETOOL,     ":/qe/plugin/QNumericEdit.png",        false)
