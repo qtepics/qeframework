@@ -79,8 +79,8 @@
    type getfunc () const { return this->object->getfunc (); }
 
 
-// We do not include QColor and QWidget header files in this header file (they are
-// called by by QECommon.cpp), we just provide incomplete declarations.
+// We do not include QColor and QWidget header files in this header file (they
+// are called by by QECommon.cpp), we just provide incomplete declarations.
 // This particularly usefull for non-gui command line programs.
 //
 class QColor;
@@ -98,7 +98,7 @@ public:
     ///
     static QColor fontColour (const QColor& backgroundColour);
 
-    /// Converts a given colours to associated style.
+    /// Converts a given colours to the associated style.
     ///
     static QString colourToStyle (const QColor& backgroundColour,
                                   const QColor& foregroundColour);
@@ -108,11 +108,16 @@ public:
     ///
     static QString colourToStyle (const QColor& backgroundColour);
 
+    /// Provides a slightly lighter colour than the standard form background
+    /// colour. This is particularly useful for QLabel based widgets.
+    ///
+    static QString offBackgroundStyle ();
+
     // Same colour, just darker - good for edges.
     //
     static QColor darkColour (const QColor& lightColour);
 
-    // Same colour, just washed-out/greyed-out - good for diabled widgets.
+    // Same colour, just washed-out/greyed-out - good for disabled widgets.
     //
     static QColor blandColour (const QColor& vibrantColour);
 
@@ -148,7 +153,6 @@ public:
     /// Overloaded function that uses the timeSpec assocaited with atTime.
     ///
     static QString getTimeZoneTLA (const QDateTime & atTime);
-
 
     /// This function returns the image, as a QString, of a enumeration value (cast as an integer).
     /// An invalid enumeration value returns a null string.

@@ -47,7 +47,7 @@
 
 //------------------------------------------------------------------------------
 //
-QColor QEUtilities::fontColour (const QColor & backgroundColour)
+QColor QEUtilities::fontColour (const QColor& backgroundColour)
 {
    QColor result;
    int r, g, b, a;
@@ -105,6 +105,15 @@ QString QEUtilities::colourToStyle (const QColor& backgroundColour)
    return QEUtilities::colourToStyle (backgroundColour, foregroundColour);
 }
 
+//------------------------------------------------------------------------------
+//
+QString QEUtilities::offBackgroundStyle ()
+{
+   // Standard background on Linux is #d6d2d0. Add #0a0a0a
+   // Windows may be a bit different.
+   //
+   return QEUtilities::colourToStyle (QColor ("#e0dcda"));
+}
 
 //------------------------------------------------------------------------------
 //
@@ -564,7 +573,6 @@ QWidgetList QEUtilities::findAllQWidgets (QWidget* rootWidget)
    QEUtilities::treeWalkAndAppend (rootWidget, list);
    return list;
 }
-
 
 //------------------------------------------------------------------------------
 // static
