@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2016 Australian Synchrotron
+ *  Copyright (c) 2016,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -70,8 +70,9 @@ public:
    //
    static bool pvNameIsValid (const QString & pvName);
 
-   // Remove any qualifiers (e.g. " CPP") prior to validaing name.
-   // Modified name set in pvName is valid, otherwise cleared.
+   // Remove any qualifiers (e.g. " CPP", " MSI") prior to validating the PV
+   // name. The modified PV name is returned in the pvName parameter if valid,
+   // otherwise the pvName parameter is cleared.
    //
    static bool extractPvName (const QString & item, QString & pvName);
 };

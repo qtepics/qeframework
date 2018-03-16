@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2016 Australian Synchrotron
+ *  Copyright (c) 2016,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -24,11 +24,10 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
-#include <QDebug>
 #include "QERecordFieldName.h"
+#include <QDebug>
 
 #define DEBUG qDebug() << "QERecordFieldName::"  << __LINE__ << __FUNCTION__ << "  "
-
 
 //------------------------------------------------------------------------------
 //
@@ -133,10 +132,10 @@ bool QERecordFieldName::pvNameIsValid (const QString & pvName)
 
 //------------------------------------------------------------------------------
 //
-#define SUFFIX_NUM   13
+#define SUFFIX_NUM   14
 
 static const char * suffixList [SUFFIX_NUM] = {
-   " NPP", " PP", " CA", " CP", " CPP", " NMS", " MS",
+   " NPP", " PP", " CA", " CP", " CPP", " NMS", " MS", " MSI",
    // truncated versions
    " N", " NP", " P", " C", " NM" , " M"
 };
