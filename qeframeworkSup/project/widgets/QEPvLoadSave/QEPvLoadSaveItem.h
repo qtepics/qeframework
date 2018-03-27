@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (C) 2013,2016,2017  Australian Synchrotron
+ *  Copyright (C) 2013,2016,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -82,7 +82,7 @@ public:
    QEPvLoadSaveItem* getParent () const;              // was parent in example
    int childCount () const;                           // fixed
    int childPosition () const;                        // own row number
-   QVariant getData (int column) const;               // was data in example
+   virtual QVariant getData (int column) const;       // was data in example
    bool insertChild (int position, QEPvLoadSaveItem* getChild); // insert single child - fixed number columns
    bool removeChildren(int position, int count);
 
@@ -150,9 +150,9 @@ protected:
    //
    QList<QEPvLoadSaveItem*> childItems;
    QEPvLoadSaveItem* parentItem;
-   QVariant value;
+   QVariant value;          // snap shot value
+   QVariant liveValue;      // loaf only
 
-private:
    // The itemData created dynamically from these members.
    //
    QString nodeName;     // alias for first item in itemData
@@ -171,6 +171,7 @@ public:
 
    // Override QEPvLoadSaveItem functions.
    //
+   QVariant getData (int column) const;
    bool getIsGroup () const { return true; }
    QEPvLoadSaveItem* clone (QEPvLoadSaveItem* parent);
    void actionConnect (QObject* actionCompleteObject,
@@ -213,6 +214,7 @@ public:
 
    // Override QEPvLoadSaveItem functions.
    //
+   QVariant getData (int column) const;
    void setNodeName (const QString& nodeName);
    bool getIsPV () const { return true; }
    QEPvLoadSaveItem* clone (QEPvLoadSaveItem* parent);
@@ -237,7 +239,6 @@ signals:
    //
    void reportActionInComplete (const QEPvLoadSaveItem* item,
                                 const QEPvLoadSaveCommon::ActionKinds action);
-
 
 private:
    QString calcNodeName () const;  // Merges three PV names into a single node name.
@@ -264,11 +265,12 @@ private:
    bool actionIsComplete;
 
 private slots:
-   void dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex);
+   void dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
+                     QCaDateTime& timeStamp, const unsigned int& variableIndex);
 
-   void setArchiveData (const QObject* userData, const bool okay, const QCaDataPointList& archiveData,
+   void setArchiveData (const QObject* userData, const bool okay,
+                        const QCaDataPointList& archiveData,
                         const QString& pvName, const QString& supplementary);
 };
-
 
 #endif    // QE_PV_LOAD_SAVE_ITEM_H

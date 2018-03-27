@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
+ *  Copyright (c) 2013,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -23,8 +23,8 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
-#ifndef QEPVLOADSAVECOMMON_H
-#define QEPVLOADSAVECOMMON_H
+#ifndef QE_PV_LOAD_SAVE_COMMON_H
+#define QE_PV_LOAD_SAVE_COMMON_H
 
 #include <QMap>
 #include <QString>
@@ -39,7 +39,25 @@
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvLoadSaveCommon : public QObject {
    Q_OBJECT
 public:
-   enum  ActionKinds { Apply, Extract, ReadArchive };
+   // Defines the completed action kinds.
+   //
+   enum ActionKinds {
+      NullAction = 0,    //
+      Apply,             //
+      Extract,           //
+      ReadArchive,       //
+      Update             //
+   };
+
+   // Defines the columns used in the model tree.
+   //
+   enum ColumnKinds {
+      NodeName = 0,      // group or PV name
+      LoadSave,          // snap shot value
+      Live,              // current value
+      Delta,             // = live - snap shot value where calculateable
+      NUMBER_OF_COLUMNS  // must be last
+   };
 
    // Define a name value map type, used by the graphical comparisioon tool.
    //
@@ -53,4 +71,4 @@ public:
                                  const PvNameValueMaps& b);
 };
 
-#endif  // QEPVLOADSAVECOMMON_H
+#endif  // QE_PV_LOAD_SAVE_COMMON_H

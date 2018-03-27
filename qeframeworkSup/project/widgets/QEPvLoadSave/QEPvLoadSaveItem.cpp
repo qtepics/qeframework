@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016,2017 Australian Synchrotron
+ *  Copyright (c) 2013,2016,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -37,7 +37,7 @@
 
 // Use by virtual functions in abstract base class that need to be overriden.
 //
-#define NOT_IMPLEMENTED                                              \
+#define NOT_OVERRIDDEN                                              \
    DEBUG << "Class: " << this->metaObject ()->className ()           \
    << " did not overide " << __FUNCTION__ << "() function"
 
@@ -95,32 +95,17 @@ int QEPvLoadSaveItem::childCount () const
 //
 int QEPvLoadSaveItem::columnCount () const
 {
-   // Number rcols fixed at 1.
+   // Number of cols fixed at 1.
    // Could split single "Name = Value" into pair ("Name, "Value")
-   return 1;
+   return QEPvLoadSaveCommon::NUMBER_OF_COLUMNS;
 }
 
 //-----------------------------------------------------------------------------
 //
-QVariant QEPvLoadSaveItem::getData (int column) const
+QVariant QEPvLoadSaveItem::getData (int /* column */) const
 {
+   NOT_OVERRIDDEN;
    QVariant result;
-
-   if (column == 0) {
-      QString valueImage = this->nodeName;
-
-      if (this->getIsPV ()) {
-         valueImage.append (" = ");
-
-         if (this->value.type() == QVariant::List) {
-            QVariantList vl = this->value.toList ();
-            valueImage.append (QString (" << %1 element array >>").arg (vl.size ()));
-         } else {
-            valueImage.append (this->value.toString ());
-         }
-      }
-      result = valueImage;
-   }
    return result;
 }
 
@@ -193,7 +178,7 @@ QEPvLoadSaveItem* QEPvLoadSaveItem::getNamedChild (const QString& searchName)
 //
 QEPvLoadSaveItem* QEPvLoadSaveItem::clone (QEPvLoadSaveItem*)
 {
-   NOT_IMPLEMENTED;
+   NOT_OVERRIDDEN;
    return NULL;
 }
 
@@ -203,7 +188,7 @@ QEPvLoadSaveCommon::PvNameValueMaps QEPvLoadSaveItem::getPvNameValueMap () const
 {
    QEPvLoadSaveCommon::PvNameValueMaps result;
 
-   NOT_IMPLEMENTED;
+   NOT_OVERRIDDEN;
 
    result.clear ();
    return result;
@@ -279,42 +264,42 @@ int QEPvLoadSaveItem::getElementCount () const
 //
 void QEPvLoadSaveItem::actionConnect (QObject*, const char*, const char*)
 {
-   NOT_IMPLEMENTED;
+   NOT_OVERRIDDEN;
 }
 
 //-----------------------------------------------------------------------------
 //
 void QEPvLoadSaveItem::extractPVData ()
 {
-   NOT_IMPLEMENTED;
+   NOT_OVERRIDDEN;
 }
 
 //-----------------------------------------------------------------------------
 //
 void QEPvLoadSaveItem::applyPVData ()
 {
-   NOT_IMPLEMENTED;
+   NOT_OVERRIDDEN;
 }
 
 //-----------------------------------------------------------------------------
 //
 void QEPvLoadSaveItem::readArchiveData (const QCaDateTime&)
 {
-   NOT_IMPLEMENTED;
+   NOT_OVERRIDDEN;
 }
 
 //-----------------------------------------------------------------------------
 //
 void QEPvLoadSaveItem::abortAction ()
 {
-   NOT_IMPLEMENTED;
+   NOT_OVERRIDDEN;
 }
 
 //-----------------------------------------------------------------------------
 //
 int QEPvLoadSaveItem::leafCount () const
 {
-   NOT_IMPLEMENTED;
+   NOT_OVERRIDDEN;
    return 0;
 }
 
@@ -364,6 +349,32 @@ QEPvLoadSaveItem* QEPvLoadSaveGroup::clone (QEPvLoadSaveItem* parent)
       theChild->clone (result);   // dispatching function
    }
 
+   return result;
+}
+
+//-----------------------------------------------------------------------------
+//
+QVariant QEPvLoadSaveGroup::getData (int column) const
+{
+   const QEPvLoadSaveCommon::ColumnKinds kind = QEPvLoadSaveCommon::ColumnKinds (column);
+   QVariant result;
+
+   switch (kind) {
+      case QEPvLoadSaveCommon::NodeName:
+         result.setValue (this->nodeName);
+         break;
+
+      case QEPvLoadSaveCommon::LoadSave:
+      case QEPvLoadSaveCommon::Live:
+      case QEPvLoadSaveCommon::Delta:
+         // Groups don't have live or delta values.
+         result.setValue (QString (""));
+         break;
+
+      default:
+         result.setValue (QString ("error"));
+         break;
+   }
    return result;
 }
 
@@ -511,12 +522,67 @@ QEPvLoadSaveItem* QEPvLoadSaveLeaf::clone (QEPvLoadSaveItem* parent)
 
 //-----------------------------------------------------------------------------
 //
+QVariant QEPvLoadSaveLeaf::getData (int column) const
+{
+   const QEPvLoadSaveCommon::ColumnKinds kind = QEPvLoadSaveCommon::ColumnKinds (column);
+   QVariant result;
+   QString valueImage;
+   double diff;
+   bool ok1, ok2;
+
+   switch (kind) {
+      case QEPvLoadSaveCommon::NodeName:
+         result.setValue (this->nodeName);
+         break;
+
+      case QEPvLoadSaveCommon::LoadSave:
+         if (this->value.type() == QVariant::List) {
+            QVariantList vl = this->value.toList ();
+            valueImage = QString (" << %1 element array >>").arg (vl.size ());
+         } else {
+            valueImage = this->value.toString ();
+         }
+
+         result.setValue  (valueImage);
+         break;
+
+      case QEPvLoadSaveCommon::Live:
+         if (this->liveValue.type() == QVariant::List) {
+            QVariantList vl = this->value.toList ();
+            valueImage = QString (" << %1 element array >>").arg (vl.size ());
+         } else {
+            valueImage = this->liveValue.toString ();
+         }
+
+         result.setValue  (valueImage);
+         break;
+
+      case QEPvLoadSaveCommon::Delta:
+         diff = this->liveValue.toDouble(&ok1) - this->value.toDouble(&ok2);
+         if (ok1 && ok2) {
+            result.setValue (diff);
+         } else {
+            result.setValue (QString ("n/a"));
+         }
+         break;
+
+      default:
+         result.setValue (QString ("error"));
+         break;
+   }
+
+   return result;
+}
+
+//-----------------------------------------------------------------------------
+//
 void QEPvLoadSaveLeaf::setNodeName (const QString& nodeName)
 {
    // Set all PV names the same
    this->setPointPvName = nodeName;
    this->readBackPvName = nodeName;
    this->archiverPvName = nodeName;
+   this->action = QEPvLoadSaveCommon::NullAction;
    this->setupQCaObjects ();
 }
 
@@ -551,8 +617,10 @@ void QEPvLoadSaveLeaf::setupQCaObjects ()
    this->qcaReadBack->setParent (this);
 
    // For the set point - we must read once to get the meta data to enable good writes.
+   // For readback - we subscribe.
    //
    this->qcaSetPoint->singleShotRead ();
+   this->qcaReadBack->subscribe();
 
    // For the read back - no read yet, but do set up the connection.
    //
@@ -578,16 +646,15 @@ void QEPvLoadSaveLeaf::actionConnect (QObject* actionCompleteObject,
 void QEPvLoadSaveLeaf::extractPVData ()
 {
    this->action = QEPvLoadSaveCommon::Extract;
-   this->actionIsComplete = false;
+   bool okay = false;
 
-   if (this->qcaReadBack)  {
-      bool status = this->qcaReadBack->singleShotRead ();
-      if (!status) {
-         this->emitReportActionComplete (false);
-      }
-   } else {
-      this->emitReportActionComplete (false);
+   if (this->qcaReadBack&& this->qcaReadBack->getDataIsAvailable()) {
+      this->value = this->liveValue;
+      okay = true;
    }
+
+   this->actionIsComplete = true;
+   this->emitReportActionComplete (okay);
 }
 
 //-----------------------------------------------------------------------------
@@ -597,8 +664,6 @@ QVariant QEPvLoadSaveLeaf::convertToNativeType (const generic::generic_types gdt
 {
    QVariant result;
    bool okay;
-
-
 
    switch (gdt) {
       case generic::GENERIC_STRING:
@@ -854,15 +919,16 @@ void QEPvLoadSaveLeaf::dataChanged (const QVariant& valueIn, QCaAlarmInfo& alarm
    if ((valueIn.type () == QVariant::ULongLong) && (n > 0)) {
       const int index = valueIn.toInt();
       if ((index >= 0) && (index < n)) {
-         this->value = enums.value (index);
+         this->liveValue = enums.value (index);
       } else {
-         this->value = valueIn;
+         this->liveValue = valueIn;
       }
    } else {
-      this->value = valueIn;
+      this->liveValue = valueIn;
    }
    this->alarmInfo = alarmInfoIn;
-   this->emitReportActionComplete (true);
+
+   emit this->reportActionComplete (this, QEPvLoadSaveCommon::Update, true);
 }
 
 //-----------------------------------------------------------------------------

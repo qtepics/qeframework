@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016,2017 Australian Synchrotron
+ *  Copyright (c) 2013,2016,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -117,11 +117,11 @@ void QEPvLoadSaveModel::modelUpdated ()
 
 //-----------------------------------------------------------------------------
 //
-void QEPvLoadSaveModel::itemUpdated (const QEPvLoadSaveItem* item)
+void QEPvLoadSaveModel::itemUpdated (const QEPvLoadSaveItem* item,
+                                     const QEPvLoadSaveCommon::ColumnKinds kind)
 {
    if (!item) return;
-
-   QModelIndex index = this->getIndex (item);
+   QModelIndex index = this->getIndex (item, int (kind));
    emit this->dataChanged (index, index);  // this causes tree view to update
 }
 
@@ -134,7 +134,7 @@ bool QEPvLoadSaveModel::addItemToModel (QEPvLoadSaveItem* item, QEPvLoadSaveItem
    // sanity checks: item must exist and specified parent.
    //
    if (item && parentItem) {
-      QModelIndex parentIndex= this->getIndex (parentItem);
+      QModelIndex parentIndex= this->getIndex (parentItem, 0);
       int number = parentItem->childCount ();
 
       this->requestedInsertItem = item;                // Save reference item - we use this in insertRows.
@@ -162,7 +162,7 @@ bool QEPvLoadSaveModel::removeItemFromModel (QEPvLoadSaveItem* item)
       QEPvLoadSaveItem* parentItem = item->getParent ();
 
       if (parentItem) {
-         QModelIndex pi = this->getIndex (parentItem);
+         QModelIndex pi = this->getIndex (parentItem, 0);
          int row = item->childPosition ();
 
          if (row >= 0) {
@@ -202,7 +202,7 @@ bool QEPvLoadSaveModel::mergeItemInToItem (QEPvLoadSaveItem* item, QEPvLoadSaveI
          // Copy value
          //
          counterPart->setNodeValue (item->getNodeValue ());
-         this->itemUpdated (counterPart);
+         this->itemUpdated (counterPart, QEPvLoadSaveCommon::NodeName);
       } else {
          // Copy children.
          //
@@ -213,7 +213,6 @@ bool QEPvLoadSaveModel::mergeItemInToItem (QEPvLoadSaveItem* item, QEPvLoadSaveI
             //
             this->mergeItemInToItem (item->getChild (j), counterPart);
          }
-
       }
 
    } else {
@@ -333,12 +332,21 @@ void QEPvLoadSaveModel::acceptActionComplete (const QEPvLoadSaveItem* item,
    switch (action) {
       case QEPvLoadSaveCommon::Extract:
       case QEPvLoadSaveCommon::ReadArchive:
-         this->itemUpdated (item);  // this causes tree view to update
+         this->itemUpdated (item, QEPvLoadSaveCommon::LoadSave);  // this causes tree view to update
+         this->itemUpdated (item, QEPvLoadSaveCommon::Delta);     // this causes tree view to update
          break;
 
       case QEPvLoadSaveCommon::Apply:
          // no change per se - do nothing.
          break;
+
+      case QEPvLoadSaveCommon::Update:
+         this->itemUpdated (item, QEPvLoadSaveCommon::Live);   // this causes tree view to update
+         this->itemUpdated (item, QEPvLoadSaveCommon::Delta);  // this causes tree view to update
+         return;   // no forward
+
+      default:
+         return;   // no forward
    }
 
    // Forward
@@ -366,9 +374,9 @@ void QEPvLoadSaveModel::selectionChanged (const QItemSelection& selected, const 
    list = selected.indexes ();
    n = list.size ();
 
-   // We expect only one item to be selected.
+   // We expect only one row to be selected.
    //
-   if (n == 1) {
+   if (n == QEPvLoadSaveCommon::NUMBER_OF_COLUMNS) {
       QModelIndex s = list.value (0);
       QEPvLoadSaveItem* item = this->indexToItem (s);
       this->selectedItem = item;
@@ -568,10 +576,14 @@ Qt::ItemFlags QEPvLoadSaveModel::flags (const QModelIndex & index) const
 //
 QVariant QEPvLoadSaveModel::headerData (int section, Qt::Orientation orientation, int role) const
 {
+   const QEPvLoadSaveCommon::ColumnKinds kind = QEPvLoadSaveCommon::ColumnKinds (section);
    if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-       switch (section) {
-       case 0:  return QVariant (this->heading);
-       default: return QVariant ("");
+       switch (kind) {
+          case QEPvLoadSaveCommon::NodeName:  return QVariant (this->heading);
+          case QEPvLoadSaveCommon::LoadSave:  return QVariant ("load/save");
+          case QEPvLoadSaveCommon::Live:      return QVariant ("live");
+          case QEPvLoadSaveCommon::Delta:     return QVariant ("delta");
+          default: return QVariant ("");
        }
    }
 
@@ -693,7 +705,6 @@ bool QEPvLoadSaveModel::removeRows (int position, int rows, const QModelIndex& p
 QEPvLoadSaveItem* QEPvLoadSaveModel::indexToItem (const QModelIndex& index) const
 {
    QEPvLoadSaveItem* result = NULL;
-
    if (index.isValid ()) {
       result = static_cast <QEPvLoadSaveItem *>(index.internalPointer ());
    }
@@ -707,8 +718,8 @@ QEPvLoadSaveItem *QEPvLoadSaveModel::getItem (const QModelIndex &index) const
    QEPvLoadSaveItem* result = this->coreItem;
 
    if (index.isValid ()) {
-       QEPvLoadSaveItem* temp;
-       temp = static_cast <QEPvLoadSaveItem *>(index.internalPointer ());
+      QEPvLoadSaveItem* temp;
+      temp = static_cast <QEPvLoadSaveItem *>(index.internalPointer ());
       if (temp) result = temp;
    }
    // If not set then still the coreItem.
@@ -717,7 +728,7 @@ QEPvLoadSaveItem *QEPvLoadSaveModel::getItem (const QModelIndex &index) const
 
 //-----------------------------------------------------------------------------
 //
-QModelIndex QEPvLoadSaveModel::getIndex (const QEPvLoadSaveItem* item)
+QModelIndex QEPvLoadSaveModel::getIndex (const QEPvLoadSaveItem* item, const int col)
 {
    QModelIndex result;  // invalid by default (which is really getCoreIndex)
 
@@ -727,7 +738,7 @@ QModelIndex QEPvLoadSaveModel::getIndex (const QEPvLoadSaveItem* item)
    if (item) {
       int row = item->childPosition ();
       if (row >= 0) {
-         result = this->createIndex (row, 0, (QEPvLoadSaveItem*)item);
+         result = this->createIndex (row, col, (QEPvLoadSaveItem*)item);
       }
    }
    return result;

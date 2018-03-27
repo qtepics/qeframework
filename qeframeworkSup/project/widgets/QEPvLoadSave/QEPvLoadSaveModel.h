@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) Australian Synchrotron 2013,2017
+ *  Copyright (c) 2013,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -96,7 +96,7 @@ public:
 
    void setupModelData (QEPvLoadSaveItem* rootItem, const QString& heading);
    void modelUpdated ();
-   void itemUpdated (const QEPvLoadSaveItem* item);
+   void itemUpdated (const QEPvLoadSaveItem* item, const QEPvLoadSaveCommon::ColumnKinds kind);
 
    bool addItemToModel (QEPvLoadSaveItem* item, QEPvLoadSaveItem* parentItem);
    bool removeItemFromModel (QEPvLoadSaveItem* item);
@@ -143,7 +143,7 @@ private:
    // Like indexToItem but returns coreItem if index is invalid.
    //
    QEPvLoadSaveItem* getItem (const QModelIndex &index) const;
-   QModelIndex getIndex (const QEPvLoadSaveItem* item);
+   QModelIndex getIndex (const QEPvLoadSaveItem* item, const int col);
    QEPvLoadSaveItem* itemAtPos (const QPoint& pos) const;
    bool processDropEvent (QEPvLoadSaveItem* item, QDropEvent *event);
    bool mergeItemInToItem (QEPvLoadSaveItem* item, QEPvLoadSaveItem* targetItem);
