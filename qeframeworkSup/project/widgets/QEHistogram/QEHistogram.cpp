@@ -16,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2014,2016 Australian Synchrotron.
+ *  Copyright (c) 2014,2016,2018  Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -24,6 +24,7 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEHistogram.h"
 #include <QDebug>
 #include <QBrush>
 #include <QMouseEvent>
@@ -31,7 +32,6 @@
 
 #include <QECommon.h>
 #include <QEScaling.h>
-#include <QEHistogram.h>
 #include <QECommon.h>
 #include <QEDisplayRanges.h>
 
@@ -885,8 +885,8 @@ type QEHistogram::get##name () const {                       \
 
 #define NO_EXTRA
 
-PROPERTY_ACCESS (int,    BarWidth,         LIMIT (value, 1, 120),                                 this->mAutoBarGapWidths = false)
-PROPERTY_ACCESS (int,    Gap,              LIMIT (value, 0, 20),                                  this->mAutoBarGapWidths= false)
+PROPERTY_ACCESS (int,    BarWidth,         LIMIT (value, 1, 120),                                 NO_EXTRA)
+PROPERTY_ACCESS (int,    Gap,              LIMIT (value, 0, 20),                                  NO_EXTRA)
 PROPERTY_ACCESS (int,    Margin,           LIMIT (value, 0, 20),                                  this->layoutA->setMargin (this->mMargin))
 PROPERTY_ACCESS (double, Minimum,          LIMIT (value, -1.0E20, this->mMaximum - MINIMUM_SPAN), this->mAutoScale = false)
 PROPERTY_ACCESS (double, Maximum,          LIMIT (value, this->mMinimum + MINIMUM_SPAN, +1.0E40), this->mAutoScale = false)
