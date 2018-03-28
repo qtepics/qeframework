@@ -44,6 +44,9 @@
 
 static const QVariant nilValue (QVariant::Invalid);
 
+// static protected
+int QEPvLoadSaveItem::readArchiveCount = 0;
+
 //=============================================================================
 //
 QEPvLoadSaveItem::QEPvLoadSaveItem (const QString & nodeNameIn,
@@ -279,6 +282,13 @@ void QEPvLoadSaveItem::extractPVData ()
 void QEPvLoadSaveItem::applyPVData ()
 {
    NOT_OVERRIDDEN;
+}
+
+//-----------------------------------------------------------------------------
+// static
+void QEPvLoadSaveItem::initReadArchiveData ()
+{
+   QEPvLoadSaveItem::readArchiveCount = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -750,10 +760,26 @@ void QEPvLoadSaveLeaf::readArchiveData (const QCaDateTime& dateTime)
 {
    this->action = QEPvLoadSaveCommon::ReadArchive;
    this->actionIsComplete = false;
+   this->readArchiveDateTime = dateTime;   // save parameter - used by delayedReadArchiveData
 
+   const int n = QEPvLoadSaveLeaf::readArchiveCount++;   // increment count
+
+   // Delay each read by 10mS. This is particularly important when extracting
+   // a large number of values from the archiver, say 1000 or more. This not
+   // only spreads the load, but allows time for the main thread to process
+   // in-comming events.
+   //
+   QTimer::singleShot (10*n, this, SLOT (delayedReadArchiveData ()));
+}
+
+//-----------------------------------------------------------------------------
+// slot
+void QEPvLoadSaveLeaf::delayedReadArchiveData ()
+{
    if (this->archiveAccess) {
       this->archiveAccess->readArchive (this, this->getNodeName (),
-                                        dateTime, dateTime, 1,
+                                        this->readArchiveDateTime,
+                                        this->readArchiveDateTime, 1,
                                         QEArchiveInterface::Linear, 0);
    } else {
       this->emitReportActionComplete (false);

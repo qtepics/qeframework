@@ -125,6 +125,10 @@ public:
    virtual bool getIsPV () const { return false; }
    virtual bool getIsGroup () const { return false; }
 
+   // Called prior to readArchiveData.
+   //
+   static void initReadArchiveData ();
+
    // If this is a leaf (PV) item then performs action on associated qca channel.
    // If this a group item then command is re-issued to each child.
    //
@@ -156,6 +160,10 @@ protected:
    // The itemData created dynamically from these members.
    //
    QString nodeName;     // alias for first item in itemData
+
+   // Archive request count - used to determine request stagger wrt time.
+   //
+   static int readArchiveCount;
 };
 
 
@@ -263,6 +271,7 @@ private:
    QCaAlarmInfo alarmInfo;
    QEPvLoadSaveCommon::ActionKinds action;
    bool actionIsComplete;
+   QCaDateTime readArchiveDateTime;
 
 private slots:
    void dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
@@ -271,6 +280,8 @@ private slots:
    void setArchiveData (const QObject* userData, const bool okay,
                         const QCaDataPointList& archiveData,
                         const QString& pvName, const QString& supplementary);
+
+   void delayedReadArchiveData ();
 };
 
 #endif    // QE_PV_LOAD_SAVE_ITEM_H

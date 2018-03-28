@@ -290,6 +290,7 @@ void QEPvLoadSaveModel::applyPVData ()
 //
 void QEPvLoadSaveModel::readArchiveData (const QCaDateTime& dateTime)
 {
+   QEPvLoadSaveItem::initReadArchiveData ();
    this->coreItem->readArchiveData (dateTime);
 }
 
