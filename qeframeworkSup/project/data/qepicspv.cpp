@@ -1,4 +1,5 @@
-/*
+/*  qepicspv.cpp
+ *
  *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
@@ -34,6 +35,7 @@
 #include "QCaObject.h"
 
 #include <QTime>
+#include <QTimer>
 #include <QCoreApplication>
 #include <QDebug>
 
@@ -292,3 +294,5 @@ void QEpicsPV::updateConnection() {
 const QStringList & QEpicsPV::getEnum() const {
   return theEnum;
 }
+
+// end

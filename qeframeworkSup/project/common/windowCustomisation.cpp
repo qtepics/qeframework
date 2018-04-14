@@ -40,6 +40,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QMenuBar>
+#include <QTimer>
 #include <QToolBar>
 #include <QEWidget.h>
 #include <QDockWidget>
