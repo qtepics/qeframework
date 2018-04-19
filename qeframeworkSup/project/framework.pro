@@ -3,7 +3,7 @@
 # $DateTime: 2018/02/25 18:55:43 $
 # Last checked in by: $Author: starritt $
 #
-# Copyright (c) 2009,2010,2016 Australian Synchrotron
+# Copyright (c) 2009,2010,2016,2018 Australian Synchrotron
 #
 # This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
