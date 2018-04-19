@@ -325,11 +325,19 @@ QString QEUtilities::enumToString (const QObject& object,
                                    const QString& enumTypeName,
                                    const int enumValue)
 {
-   const QMetaObject *mo =  object.metaObject();
+   const QMetaObject mo = *object.metaObject();
+
+   return enumToString(mo, enumTypeName, enumValue);
+}
+
+QString QEUtilities::enumToString(const QMetaObject& mo,
+                                  const QString& enumTypeName,
+                                  const int enumValue)
+{
    QString result;
 
-   for (int e = 0; e < mo->enumeratorCount(); e++) {
-      QMetaEnum metaEnum = mo->enumerator(e);
+   for (int e = 0; e < mo.enumeratorCount(); e++) {
+      QMetaEnum metaEnum = mo.enumerator(e);
       if (metaEnum.isValid () && metaEnum.name () == enumTypeName) {
          // found it.
          //
@@ -348,12 +356,23 @@ int QEUtilities::stringToEnum (const QObject& object,
                                const QString& enumImage,
                                bool* ok)
 {
-   const QMetaObject *mo =  object.metaObject();
+   const QMetaObject mo = *object.metaObject();
+
+   return stringToEnum (mo, enumTypeName, enumImage, ok);
+}
+
+//------------------------------------------------------------------------------
+//
+int QEUtilities::stringToEnum (const QMetaObject& mo,
+                               const QString& enumTypeName,
+                               const QString& enumImage,
+                               bool* ok)
+{
    int result = -1;
    bool okay = false;
 
-   for (int e = 0; e < mo->enumeratorCount(); e++) {
-      QMetaEnum metaEnum = mo->enumerator(e);
+   for (int e = 0; e < mo.enumeratorCount(); e++) {
+      QMetaEnum metaEnum = mo.enumerator(e);
       if (metaEnum.isValid () && metaEnum.name () == enumTypeName) {
          // found it.
          //

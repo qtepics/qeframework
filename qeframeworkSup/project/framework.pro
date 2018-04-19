@@ -1,7 +1,7 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #13 $
-# $DateTime: 2018/02/25 18:55:43 $
-# Last checked in by: $Author: starritt $
+# $Revision: #14 $
+# $DateTime: 2018/04/19 14:47:00 $
+# Last checked in by: $Author: pozara $
 #
 # Copyright (c) 2009,2010,2016,2018 Australian Synchrotron
 #
@@ -302,6 +302,29 @@ isEmpty( _QE_FFMPEG ) {
     LIBS += -lavutil -lavcodec -lavformat
     DEFINES += __STDC_CONSTANT_MACROS
 }
+
+# Archiver Appliance support
+#
+_ARCHAPPL_SUPPORT = $$(QE_ARCHAPPL_SUPPORT)
+
+equals(_ARCHAPPL_SUPPORT, "YES") {
+   equals( QT_MAJOR_VERSION, 4 ) {
+      message( "QE_ARCHAPPL_SUPPORT is set, however Archvier Appliance support requires Qt version 5.0 or higher." )
+      message( "The QE framework library will be only built for CA Archiver." )
+   } else {
+      message( "QE_ARCHAPPL_SUPPORT is defined. The QE framework library will be built for both CA Archiver and Archiver Appliance with Protobol Buffers." )
+      LIBS += -L../../lib/$$(EPICS_HOST_ARCH) -larchapplData
+
+      # Set runtime path for shared libraries
+      #
+      unix: QMAKE_LFLAGS += -Wl,-rpath,../../lib/$$(EPICS_HOST_ARCH)
+      DEFINES += QE_ARCHAPPL_SUPPORT
+   }
+} else {
+   message( "QE_ARCHAPPL_SUPPORT is not defined. The QE framework library will be only built for CA Archiver." )
+   message( "If you want to build it to support Archiver Appliance, set QE_ARCHAPPL_SUPPORT=YES" )
+}
+
 
 #
 # end

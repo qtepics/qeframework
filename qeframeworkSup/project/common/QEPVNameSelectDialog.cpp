@@ -57,11 +57,6 @@ QEPVNameSelectDialog::QEPVNameSelectDialog (QWidget *parent) :
                          this->ui->frame_2->minimumHeight() +
                          this->ui->frame_2->minimumHeight() );
 
-   // Initiate PV name retreval if needs be.
-   // initialise () is idempotent.
-   //
-   QEArchiveAccess::initialise ();
-
    QObject::connect (this->ui->filterEdit,  SIGNAL  (returnPressed ()),
                      this,                  SLOT    (filterEditReturnPressed ()));
 

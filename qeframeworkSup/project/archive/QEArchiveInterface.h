@@ -34,6 +34,8 @@
 #include <QList>
 #include <QStringList>
 #include <QUrl>
+#include <QNetworkRequest>
+#include <QNetworkAccessManager>
 
 #include <QCaDataPoint.h>
 #include <QCaDateTime.h>
@@ -118,8 +120,19 @@ public:
       Information,
       Archives,
       Names,
-      Values
+      Values,
+      Count
    };
+
+   enum States {
+      Unknown,
+      Updating,
+      Complete,
+      InComplete,
+      No_Response,
+      Error
+   };
+   Q_ENUMS (States)
 
    struct Context {
       QEArchiveInterface::Methods method;
@@ -129,15 +142,23 @@ public:
 
    typedef QList <QEArchiveInterface::Archive> ArchiveList;
    typedef QList<QEArchiveInterface::PVName> PVNameList;
-   typedef QList<QEArchiveInterface::ResponseValues> ResponseValueList;
+   typedef std::list<QEArchiveInterface::ResponseValues> ResponseValueList;
+
+   States state;
+   int available;
+   int read;
+   int numberPVs;
+   ArchiveList archiveList;
+   int requestIndex;
+   QTimer* timer;
 
 
    //---------------------------------------------------------------------------
    //
-   explicit QEArchiveInterface (QUrl url, QObject* parent = 0);
+   explicit QEArchiveInterface (QObject* parent = 0);
    virtual ~QEArchiveInterface ();
 
-   void setUrl (QUrl url);
+   virtual void setUrl (QUrl url);
    QUrl getUrl () const;
 
    // Returns string image of the url
@@ -153,11 +174,11 @@ public:
    // QEArchiveInterface class per se other it is returned in the signal
    // to provide the caller with signal context.
    //
-   void infoRequest (QObject* userData);
+   virtual void infoRequest (QObject* userData) = 0;
 
-   void archivesRequest (QObject* userData);
+   virtual void archivesRequest (QObject* userData) = 0;
 
-   void namesRequest (QObject* userData, const int key, QString pattern = ".*");
+   virtual void namesRequest (QObject* userData, const int key = 0, QString pattern = ".*") = 0;
 
    /* The requested_element parameter specfies the (waveform) array element required.
     * This parameter applies to all the PVs requested. If different array elements
@@ -165,18 +186,22 @@ public:
     * Note: element numbers start from 0. The default default value of 0 is suitable
     * for scalar PVs.
     */
-   void valuesRequest (QObject* userData,
-                       const int key,
+   virtual void valuesRequest (QObject* userData,
                        const QCaDateTime startTime,
                        const QCaDateTime endTime,
                        const int count, 
                        const How how,
                        const QStringList pvNames,
-                       const unsigned int requested_element = 0);
+                       const int key = 0,
+                       const unsigned int requested_element = 0) = 0;
 
    // House keeping.
    //
    static void registerMetaTypes ();
+
+protected:
+   static QCaDateTime convertArchiveToEpics (const int seconds, const int nanoSecs);
+   static void convertEpicsToArchive (const QCaDateTime& datetime, int& seconds, int& nanoSecs);
 
 signals:
    // The QObject* (1st) parameter is the userData supplied to the corresponding
@@ -186,10 +211,50 @@ signals:
    // this indicates a successfull response, and when false indicates a fault
    // condition. For the later case, the actual value parameters are undefined.
    //
-   void infoResponse     (const QObject*, const bool, const int, const QString&);
-   void archivesResponse (const QObject*, const bool, const QEArchiveInterface::ArchiveList&);
+
    void pvNamesResponse  (const QObject*, const bool, const QEArchiveInterface::PVNameList&);
    void valuesResponse   (const QObject*, const bool, const QEArchiveInterface::ResponseValueList&);
+   void infoResponse     (const QObject*, const bool, const int, const QString&);
+   void archivesResponse (const QObject*, const bool, const QEArchiveInterface::ArchiveList&);
+   void nextRequest      (const int requestIndex);
+
+private slots:
+   void timeout ();
+
+protected:
+   QUrl mUrl;
+   int pending;     // number of outstanding request/responces
+};
+
+Q_DECLARE_METATYPE (QEArchiveInterface::ArchiveList)
+Q_DECLARE_METATYPE (QEArchiveInterface::PVNameList)
+Q_DECLARE_METATYPE (QEArchiveInterface::ResponseValueList)
+Q_DECLARE_METATYPE (QEArchiveInterface::Context)
+Q_DECLARE_METATYPE (QEArchiveInterface::States)
+
+
+class QEChannelArchiveInterface : public QEArchiveInterface {
+   Q_OBJECT
+public:
+
+   explicit QEChannelArchiveInterface (QUrl url, QObject* parent = 0);
+   virtual ~QEChannelArchiveInterface ();
+
+   virtual void namesRequest (QObject* userData, const int key, QString pattern = ".*");
+   virtual void valuesRequest (QObject* userData,
+                       const QCaDateTime startTime,
+                       const QCaDateTime endTime,
+                       const int count,
+                       const How how,
+                       const QStringList pvNames,
+                       const int key = 0,
+                       const unsigned int requested_element = 0);
+
+   virtual void infoRequest (QObject* userData);
+
+   virtual void archivesRequest (QObject* userData);
+
+   virtual void setUrl (QUrl url);
 
 private:
    friend class QEArchiveInterfaceAgent;
@@ -208,12 +273,7 @@ private:
       dtDouble = 3
    };
 
-   QUrl mUrl;
-   int pending;     // number of outstanding request/responces
    MaiaXmlRpcClient *client;
-
-   static QCaDateTime convertArchiveToEpics (const int seconds, const int nanoSecs);
-   static void convertEpicsToArchive (const QCaDateTime& datetime, int& seconds, int& nanoSecs);
 
    void processInfo     (const QObject* userData, const QVariant& response);
    void processArchives (const QObject* userData, const QVariant& response);
@@ -237,12 +297,6 @@ private slots:
    void xmlRpcFault    (const QEArchiveInterface::Context& context, int error, const QString & response);
 };
 
-Q_DECLARE_METATYPE (QEArchiveInterface::ArchiveList)
-Q_DECLARE_METATYPE (QEArchiveInterface::PVNameList)
-Q_DECLARE_METATYPE (QEArchiveInterface::ResponseValueList)
-Q_DECLARE_METATYPE (QEArchiveInterface::Context)
-
-
 //------------------------------------------------------------------------------
 // Essentially a private class. It provides a means to add context (method and
 // original user data) to the signal callbacks from the MaiaXmlRpcClient object.
@@ -255,10 +309,10 @@ class QEArchiveInterfaceAgent : public QObject {
    Q_OBJECT
 
 private:
-   friend class QEArchiveInterface;
+   friend class QEChannelArchiveInterface;
 
    QEArchiveInterfaceAgent (MaiaXmlRpcClient* clientIn,
-                            QEArchiveInterface* parent);
+                            QEChannelArchiveInterface* parent);
 
    QNetworkReply* call (QEArchiveInterface::Context& contextIn,
                         QString procedure,
@@ -277,6 +331,110 @@ private slots:
    //
    void xmlRpcResponse (QVariant& response);
    void xmlRpcFault    (int error, const QString& response);
+};
+
+
+//------------------------------------------------------------------------------
+// This is a private class - network manager for Archiver Appliance. It's used
+// for managing connection and actual data retrival.
+//
+// When the data is received it emits a signal so that QEArchapplInterface can
+// start with data processing.
+//
+class QEArchapplNetworkManager : public QObject {
+   Q_OBJECT
+
+private:
+   QEArchapplNetworkManager(const QUrl& url);
+   ~QEArchapplNetworkManager();
+
+   // Values request struct contraining all needed information
+   // to retrieve values from Archiver Appliance
+   //
+   typedef struct ArchapplValuesRequest {
+      QStringList names;
+      QEArchiveInterface::How how;
+      QString startTime;
+      QString endTime;
+      int count;
+   } ValuesRequest;
+
+
+   // Archiver appliance uses two separate URLs. One is specialized in
+   // data retrieval and the other one provides all other status information
+   // about PVs and appliance itself.
+   //
+   QUrl bplURL, dataURL;
+   QNetworkAccessManager* networkManager;
+
+   void getPVs(const QEArchiveInterface::Context& context, const QString& pattern);
+   void getApplianceInfo(const QEArchiveInterface::Context& context);
+   void executeRequest(const QUrl url, const QEArchiveInterface::Context& context);
+   void getValues(const QEArchiveInterface::Context& context, const ValuesRequest& request, const unsigned int binSize);
+
+signals:
+   // Signals that a response from the Archiver Appliance is ready. The type of reponse
+   // is set in the cotext
+   //
+   void networkManagerResponse(const QEArchiveInterface::Context& context, QNetworkReply* reply);
+
+   // Signals that the request has failed
+   //
+   void networkManagerFault(const QEArchiveInterface::Context& context, const QNetworkReply::NetworkError error);
+
+private slots:
+   // Triggered from networ manager when the reply is finished and data us ready
+   //
+   void replyFinished();
+
+   // We are very popular
+   //
+   friend class QEArchapplInterface;
+};
+
+
+//------------------------------------------------------------------------------
+// Interface to EPICS Archiver Appliance
+//
+class QEArchapplInterface : public QEArchiveInterface {
+   Q_OBJECT
+public:
+
+   explicit QEArchapplInterface (QUrl url, QObject* parent = 0);
+   virtual ~QEArchapplInterface ();
+
+   // Archiver Appliance specific implementation of xxxRequest function
+   //
+   virtual void namesRequest (QObject* userData, const int key = 0, QString pattern = ".*");
+   virtual void valuesRequest (QObject* userData,
+                       const QCaDateTime startTime,
+                       const QCaDateTime endTime,
+                       const int count,
+                       const How how,
+                       const QStringList pvNames,
+                       const int key = 0,
+                       const unsigned int requested_element = 0);
+
+   virtual void infoRequest (QObject* userData);
+
+   virtual void archivesRequest (QObject* userData);
+
+public slots:
+   // Triggered by signals coming from network manager
+   //
+   void networkManagerResponse(const QEArchiveInterface::Context & context, QNetworkReply* reply);
+   void networkManagerFault(const QEArchiveInterface::Context& context, const QNetworkReply::NetworkError error);
+
+private:
+
+   QEArchapplNetworkManager* networkManager;
+
+   void processInfo     (const QObject* userData, QNetworkReply* reply);
+   void processArchives (const QObject* userData);
+   void processPvNames  (const QObject* userData, QNetworkReply* reply);
+   void processValues   (const QObject* userData, QNetworkReply* reply, const unsigned int requested_element);
+
+
 };
 
 #endif // QE_ARCHIVE_INTERFACE_H

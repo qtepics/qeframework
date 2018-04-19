@@ -16,12 +16,14 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2016,2017 Australian Synchrotron
+ *  Copyright (c) 2012-2018 Australian Synchrotron
  *
- *  Author:
+ *  Authors:
  *    Andrew Starritt
+ *    Andraz Pozar
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
+ *    andraz.pozar@synchrotron.org.au
  */
 
 /*
@@ -43,159 +45,53 @@
 
 #include <QCaDateTime.h>
 #include <QEArchiveInterface.h>
+#include <QEArchiveAccess.h>
 #include <UserMessage.h>
 #include <QEFrameworkLibraryGlobal.h>
 
-// This class provides user access to the archives and indirect usage of the
-// underlying QEArchiveManager.
+
+//------------------------------------------------------------------------------
+// The archive manager can support many different interfaces.
 //
-// Currently only handles scalar values but can/will be extended to
-// provide array data retrival.
+typedef QList <QEArchiveInterface*> ArchiveInterfaceLists;
+
+//------------------------------------------------------------------------------
+// Archive class type provides key (and name and path - these not used as such
+// but may prove to be usefull).
+// For a particualar PV, we also retrieve a start and stop time.
 //
-// NOTE: It is the creation of the first object of this class will cause the
-// QEArchiveManager to initialised if not already done so. The QEArchiveManager
-// may also be explicitly initialised prior to that by invoking one of the
-// static initialise functions.
-//
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEArchiveAccess : public QObject, UserMessage {
-   Q_OBJECT
+class KeyTimeSpec : public QEArchiveInterface::Archive {
 public:
-   explicit QEArchiveAccess (QObject* parent = 0);
-   virtual ~QEArchiveAccess ();
-
-   unsigned int getMessageSourceId ();
-   void setMessageSourceId (unsigned int messageSourceId);
-
-   static void initialise (const QString& archives, const QString& pattern);
-   static void initialise ();
-   static bool isReady ();
-   static int getNumberInterfaces ();
-   static QString getPattern ();
-   static int getNumberPVs ();
-
-   static QStringList getAllPvNames ();
-
-   // Supports getArchivePvInformation
-   //
-   struct ArchiverPvInfo {
-     int key;
-     QString path;
-     QCaDateTime startTime;
-     QCaDateTime endTime;
-   };
-
-   typedef QList<ArchiverPvInfo>  ArchiverPvInfoLists;
-
-   static bool getArchivePvInformation (const QString& pvName,
-                                        QString& effectivePvName,
-                                        ArchiverPvInfoLists& data);
-
-   // Requests re-transmission of archive status.
-   // Returned status is via archiveStatus signal.
-   // This info re-emitted on change, but this allows an (initial) status quo update.
-   //
-   void resendStatus ();
-
-   // Requests a re-read of the available PVs.
-   //
-   void reReadAvailablePVs ();
-
-   // Simple archive request - single scaler PV, or one arbitary element from
-   // a single array PV.  No extended meta data, just values + timestamp + alarm info.
-   // The data, if any, is sent via the setArchiveData signal.
-   //
-   // Returned data is via setArchiveData signal.
-   //
-   void readArchive (QObject* userData,        // provides call back signal context
-                     const QString pvName,
-                     const QCaDateTime startTime,
-                     const QCaDateTime endTime,
-                     const int count,
-                     const QEArchiveInterface::How how,
-                     const unsigned int element = 0);
-
-   enum States {
-      Unknown,
-      Updating,
-      Complete,
-      InComplete,
-      No_Response,
-      Error
-   };
-   Q_ENUMS (States)
-
-   struct Status {
-      QString hostName;  //
-      int portNumber;    //
-      QString endPoint;  //
-      States state;      //
-      int available;     // number of archives
-      int read;          // number of archives suiccessfully read
-      int numberPVs;     //
-      int pending;       // number of outstanding request/responces
-   };
-
-   typedef QList<Status> StatusList;
-
-
-   // These are essentially a private type, but must be public for metat data registration.
-   //
-   struct PVDataRequests {
-      QObject* userData;
-      int key;
-      QString pvName;
-      QCaDateTime startTime;
-      QCaDateTime endTime;
-      int count;
-      QEArchiveInterface::How how;
-      unsigned int element;
-   };
-
-   struct PVDataResponses {
-      QObject* userData;
-      bool isSuccess;
-      QCaDataPointList pointsList;
-      QString pvName;
-      QString supplementary;  // error info when not successfull
-   };
-
-signals:
-   // Signals back to users in response to above service requests.
-   //
-   void archiveStatus  (const QEArchiveAccess::StatusList& statusList);
-   void setArchiveData (const QObject* userData, const bool isOkay,
-                        const QCaDataPointList& pointsList,
-                        const QString& pvName, const QString& supplementary);
-
-   // Depricated
-   void setArchiveData (const QObject*, const bool, const QCaDataPointList&);
-
-   // Requests responses to/from the Archive Manager.
-   // NOTE: response goes to all archive access instances.
-signals:
-   void reInterogateArchives ();
-   void archiveStatusRequest ();
-   void readArchiveRequest (const QEArchiveAccess*,
-                            const QEArchiveAccess::PVDataRequests&);
-
-private slots:
-   void archiveStatusResponse (const QEArchiveAccess::StatusList&);
-
-   void readArchiveResponse (const QEArchiveAccess* archiveAccess,
-                             const QEArchiveAccess::PVDataResponses& response);
-
-   friend class QEArchiveManager;
+   QCaDateTime startTime;
+   QCaDateTime endTime;
 };
 
-// These type are distributed via the signal/slot mechanism. Must
-// declare then as such (here) and register them (within implementation).
+//------------------------------------------------------------------------------
+// Each PV may have one or more archives available on the same
+// host, e.g. a short term archive and a long term archive.
+// However we expect all archives for a particlar PV to be co-hosted.
 //
-Q_DECLARE_METATYPE (QEArchiveAccess::States)
-Q_DECLARE_METATYPE (QEArchiveAccess::Status)
-Q_DECLARE_METATYPE (QEArchiveAccess::StatusList)
-Q_DECLARE_METATYPE (QEArchiveAccess::PVDataRequests)
-Q_DECLARE_METATYPE (QEArchiveAccess::PVDataResponses)
+// This type provides a mapping from key (sparce numbers) to KeyTimeSpec
+// which contain the key itself, together with the available start/stop
+// times. This allows use to choose the key that best fits the request
+// time frame.
+//
+// Note: QHash provides faster lookups than QMap.
+//       When iterating over a QMap, the items are always sorted by key.
+//       With QHash, the items are arbitrarily ordered.
+//
+class SourceSpec {
+public:
+   QEArchiveInterface* interface;
+   QHash <int, KeyTimeSpec> keyToTimeSpecLookUp;
+};
 
+//------------------------------------------------------------------------------
+// Mapping by PV name to essentially archive source to key(s) and time range(s)
+// that support the PV.
+// NOTE: We use a map here as we want sorted keys.
+//
+typedef QMap <QString, SourceSpec> PVNameToSourceSpecLookUp;
 
 //==============================================================================
 // Private
@@ -206,11 +102,58 @@ Q_DECLARE_METATYPE (QEArchiveAccess::PVDataResponses)
 //
 // This is a singleton class - the single instance is declared in the .cpp file.
 //
-class QEArchiveManager : public QObject, UserMessage {
+class QEArchiveManager : public QObject, public UserMessage {
    Q_OBJECT
-private:
-   QEArchiveManager (const QString& archives, const QString& pattern);
 
+friend class QEArchiveAccess;
+
+private:
+   virtual bool getArchivePvInformation (QString& effectivePvName, QEArchiveAccess::ArchiverPvInfoLists& data) = 0;
+
+protected:
+   explicit QEArchiveManager ();
+
+   // Declaring but not implementing copy constructor and assignemnt operator to avoid
+   // having many copies of a singleton.
+   //
+   QEArchiveManager (QEArchiveManager const&);
+   void operator= (QEArchiveManager const&);
+
+   void clear ();
+   void resendStatus ();
+
+   QString archives;
+   QString pattern;
+   QDateTime lastReadTime;
+   QTimer* timer;
+
+   ArchiveInterfaceLists archiveInterfaceList;
+   PVNameToSourceSpecLookUp pvNameToSourceLookUp;
+
+   bool allArchivesRead;
+   int numberArchivesRead;
+   bool environmentErrorReported;
+
+   QEArchiveAccess::ArchiverTypes archiverType;
+
+signals:
+   // Signal to archiver access when the responses are ready
+   //
+   void archiveStatusResponse (const QEArchiveAccess::StatusList&);
+   void readArchiveResponse (const QEArchiveAccess*, const QEArchiveAccess::PVDataResponses&);
+
+
+protected slots:
+   // From archive access
+   //
+   virtual void readArchiveRequest (const QEArchiveAccess* archiveAccess, const QEArchiveAccess::PVDataRequests& request) = 0;
+
+   // From archive interface.
+   //
+   virtual void pvNamesResponse  (const QObject* userData, const bool isSuccess, const QEArchiveInterface::PVNameList& pvNameList) = 0;
+
+private slots:
+   // From owning thread
    // This function connects the specified the archive(s). The format of the string is
    // space separated set of one or more hostname:port/endpoint triplets, e.g.
    //
@@ -223,86 +166,76 @@ private:
    // The pattern parameter can be used to restrict the set of extracted PVs. The same
    // pattern applies of all archives. The pattern is a regular expression.
    //
-   void setup ();
-
-   // Idempotent and thread safe initialise functions.
-   // The second overloaded form uses the environment variables QE_ARCHIVE_LIST and
-   // QE_ARCHIVE_PATTERN. If QE_ARCHIVE_PATTERN is undefined then ".*" is used.
-   //
-   static void initialise (const QString& archives, const QString& pattern);
-   static void initialise ();
-
-   void clear ();
-   void resendStatus ();
-
-   QString archives;
-   QString pattern;
-   QDateTime lastReadTime;
-   QTimer* timer;
-
-   friend class QEArchiveAccess;
-
-   // Status request/response from/to archive interface objects.
-   //
-private slots:
-   void archiveStatusRequest ();                                     // from archive interface
-signals:
-   void archiveStatusResponse (const QEArchiveAccess::StatusList&);  // to archive interface
-
-
-   // Data request/response from/to archive interface objects.
-   //
-private slots:
-   void timeout ();                  // auto archiver re-interogation
-   void reInterogateArchives ();     // client requested archiver re-interogation
-   void readArchiveRequest (const QEArchiveAccess* archiveAccess,
-                            const QEArchiveAccess::PVDataRequests& request);
-
-signals:
-   void readArchiveResponse (const QEArchiveAccess*,
-                             const QEArchiveAccess::PVDataResponses&);
-
-private slots:
-   // From owning thread
    void started ();
 
-   // From archive interface.
+   // Internal slots
    //
-   void archivesResponse (const QObject* userData, const bool isSuccess, const QEArchiveInterface::ArchiveList & archiveList);
-   void pvNamesResponse  (const QObject* userData, const bool isSuccess, const QEArchiveInterface::PVNameList& pvNameList);
-   void valuesResponse   (const QObject* userData, const bool isSuccess, const QEArchiveInterface::ResponseValueList& valuesList);
+   void aboutToQuitHandler ();       // application is about to terminate
+   void timeout ();                  // auto archiver re-interogation
+   void reInterogateArchives ();     // client requested archiver re-interogation
 
-   // From ArchiveInterfacePlus
+   // From archive access
+   //
+   void archiveStatusRequest ();
+
+   // From archive interface
    //
    void nextRequest      (const int requestIndex);
+   void archivesResponse (const QObject* userData, const bool isSuccess, const QEArchiveInterface::ArchiveList & archiveListIn);
+   void valuesResponse   (const QObject* userData, const bool isSuccess, const QEArchiveInterface::ResponseValueList& valuesList);
+
 };
 
-
-// This class essentially justs extends QEArchiveInterface by adding some additional
-// status data and a timer.
+//==============================================================================
+// Implementation of archiver manager for EPICS Channel Archiver
 //
-class ArchiveInterfacePlus : public QEArchiveInterface {
+class QEChannelArchiverManager : public QEArchiveManager {
    Q_OBJECT
+
+friend class QEArchiveAccess;
+
 private:
-   explicit ArchiveInterfacePlus (QUrl url, QObject* parent = 0);
+   QEChannelArchiverManager();
 
-   QEArchiveInterface::ArchiveList archiveList;
-   QEArchiveAccess::States state;
-   int available;
-   int read;
-   int numberPVs;
+   static QEChannelArchiverManager& getInstance();
+   virtual bool getArchivePvInformation (QString& effectivePvName, QEArchiveAccess::ArchiverPvInfoLists& data);
 
-   int requestIndex;
-
-   QTimer* timer;
-
-   friend class QEArchiveManager;
-
-signals:
-   void nextRequest (const int requestIndex);
+   // Declaring but not implementing copy constructor and assignemnt operator to avoid
+   // having many copies of a singleton.
+   //
+   QEChannelArchiverManager (QEChannelArchiverManager const&);
+   void operator= (QEChannelArchiverManager const&);
 
 private slots:
-   void timeout ();
+   virtual void readArchiveRequest (const QEArchiveAccess* archiveAccess, const QEArchiveAccess::PVDataRequests& request);
+   virtual void pvNamesResponse  (const QObject* userData, const bool isSuccess, const QEArchiveInterface::PVNameList& pvNameList);
+
+};
+
+//==============================================================================
+// Implementation of archiver manager for Archiver Appliance
+//
+class QEArchapplManager : public QEArchiveManager {
+   Q_OBJECT
+
+friend class QEArchiveAccess;
+
+private:
+   QEArchapplManager();
+
+   static QEArchapplManager& getInstance();
+   virtual bool getArchivePvInformation (QString& effectivePvName, QEArchiveAccess::ArchiverPvInfoLists& data);
+
+   // Declaring but not implementing copy constructor and assignemnt operator to avoid
+   // having many copies of a singleton.
+   //
+   QEArchapplManager (QEArchapplManager const&);
+   void operator= (QEArchapplManager const&);
+
+private slots:
+   virtual void readArchiveRequest (const QEArchiveAccess* archiveAccess, const QEArchiveAccess::PVDataRequests& request);
+   virtual void pvNamesResponse  (const QObject* userData, const bool isSuccess, const QEArchiveInterface::PVNameList& pvNameList);
+
 };
 
 #endif  // QE_ARCHIVE_MANAGER_H

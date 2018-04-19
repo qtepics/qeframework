@@ -146,6 +146,18 @@ QString QCaDateTime::text()
 }
 
 /*
+  Returns an ISO 8601 string which represents the date and time
+ */
+QString QCaDateTime::ISOText() const
+{
+    // Format the date and time to millisecond resolution
+    QString out;
+    out = toString( QString( "yyyy-MM-dd'T'HH:mm:ss.zzzZ" ));
+
+    return out;
+}
+
+/*
   Returns time represented by object plus specified number of seconds.
  */
 QCaDateTime QCaDateTime::addSeconds( const double seconds ) const

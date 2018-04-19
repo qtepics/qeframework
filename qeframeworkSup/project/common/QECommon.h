@@ -165,6 +165,17 @@ public:
                                  const QString& enumTypeName,
                                  const int enumValue);
 
+    /// This function returns the image, as a QString, of a enumeration value (cast as an integer).
+    /// An invalid enumeration value returns a null string.
+    ///
+    /// Note: This functions rely on the meta object compiler (moc) generated code.
+    /// To use this functions, the enumeration type must be declared within a Q_OBJECT QObject
+    /// and the enum type qualifier with the Q_ENUMS, e.g. Q_ENUMS (Shapes).
+    ///
+    static QString enumToString (const QMetaObject& mo,
+                                 const QString& enumTypeName,
+                                 const int enumValue);
+
     /// This function returns the enumeration value given an enumeration image. The caller must
     /// cast the result to the appropriate enumeration type. The image must be exact match including
     /// case. The only tolerance allowed for is that the image is trimmed.
@@ -177,6 +188,22 @@ public:
     /// and the enum type qualifier with the Q_ENUMS, e.g. Q_ENUMS (Shapes).
     ///
     static int stringToEnum  (const QObject& object,
+                              const QString& enumTypeName,
+                              const QString& enumImage,
+                              bool* ok = 0);
+
+    /// This function returns the enumeration value given an enumeration image. The caller must
+    /// cast the result to the appropriate enumeration type. The image must be exact match including
+    /// case. The only tolerance allowed for is that the image is trimmed.
+    /// An invalid image cause this function to return -1. However, -1 is an uncommon but not invalid
+    /// enumeration value. If -1 might be a valid value, then the caller should specify the and
+    /// check the ok parameter.
+    ///
+    /// Note: This functions rely on the meta object compiler (moc) generated code.
+    /// To use this functions, the enumeration type must be declared within a Q_OBJECT QObject
+    /// and the enum type qualifier with the Q_ENUMS, e.g. Q_ENUMS (Shapes).
+    ///
+    static int stringToEnum  (const QMetaObject& mo,
                               const QString& enumTypeName,
                               const QString& enumImage,
                               bool* ok = 0);

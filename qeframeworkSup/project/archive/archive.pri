@@ -44,6 +44,7 @@ HEADERS += \
     archive/maiaFault.h \
     archive/maiaObject.h \
     archive/maiaXmlRpcClient.h \
+    archive/QEArchiveAccess.h \
     archive/QEArchiveInterface.h \
     archive/QEArchiveManager.h \
     archive/QEArchiveStatus.h  \
@@ -54,6 +55,7 @@ SOURCES += \
     archive/maiaFault.cpp \
     archive/maiaObject.cpp \
     archive/maiaXmlRpcClient.cpp \
+    archive/QEArchiveAccess.cpp \
     archive/QEArchiveInterface.cpp \
     archive/QEArchiveManager.cpp \
     archive/QEArchiveStatus.cpp  \

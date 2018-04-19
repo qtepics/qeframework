@@ -42,6 +42,7 @@ public:
     QCaDateTime( unsigned long seconds, unsigned long nanoseconds );
 
     QString text();
+    QString ISOText() const;
 
     /// Equivilent of addSecs and secsTo in base class, save that we specify the
     /// seconds as a floating point number.
