@@ -5,14 +5,14 @@ libraries.
 
 Please visit https://qtepics.github.io/index.html for more information.
 
-Quick links to variious topics below.
+## Quick docuumentation links
 
-## Release Notes
+### Release Notes
 https://qtepics.github.io/release_notes.html
 
-## Evironment Variables
+### Evironment Variables
 https://qtepics.github.io/environment_variables.html
 
-## Archiver Appliance
+### Archiver Appliance
 https://qtepics.github.io/archiver_appliance.html
 
