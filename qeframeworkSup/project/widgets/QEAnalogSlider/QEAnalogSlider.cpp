@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2013-2018 Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2014,2016, Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -465,7 +465,7 @@ void QEAnalogSlider::applyButtonClicked (bool x) {
 void QEAnalogSlider::writeNow ()
 {
    QEFloating *qca = (QEFloating *) getQcaItem (SET_POINT_VARIABLE_INDEX);
-    if (qca) { // sanity check
+   if (qca && qca->getChannelIsConnected ()) { // sanity check
       // Write the value: update database to reflect current slider position.
       //
       qca->writeFloatingElement (this->getValue ());

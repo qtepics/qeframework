@@ -2,6 +2,8 @@
  *
  *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
  *
+ *  Copyright (c) 2009-2018 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -14,8 +16,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -69,21 +69,27 @@ static qint64 msecsTo_48 (const QDateTime& self, const QDateTime& other)
 /*
   Construct an empty QCa date time
  */
-QCaDateTime::QCaDateTime() {
+QCaDateTime::QCaDateTime()
+{
     nSec = 0;
+    userTag = 0;
 }
 
 /*
   Construct a QCa date time set to the same date/time as a conventional QDateTime
  */
-QCaDateTime::QCaDateTime( QDateTime dt ) : QDateTime( dt ) {
+QCaDateTime::QCaDateTime( QDateTime dt ) : QDateTime( dt )
+{
     nSec = 0;
+    userTag = 0;
 }
 
 /*
   Construct a QCa date time set to the same date/time as an EPICS time stamp
  */
-QCaDateTime::QCaDateTime( unsigned long seconds, unsigned long nanoseconds )
+QCaDateTime::QCaDateTime( const unsigned long seconds,
+                          const unsigned long nanoseconds,
+                          const int userTagIn )
 {
     qint64 mSec;
 
@@ -109,6 +115,8 @@ QCaDateTime::QCaDateTime( unsigned long seconds, unsigned long nanoseconds )
     temp.setTime_t( seconds + EPICSQtEpocOffset );
     *this = temp.addMSecs (mSec);
 #endif
+    
+    userTag = userTagIn;
 }
 
 /*
@@ -121,6 +129,7 @@ QCaDateTime& QCaDateTime::operator=( const QCaDateTime& other )
 
     // and then copy class specific stuff.
     nSec = other.nSec;
+    userTag = other.userTag;
 
     // return value as well.
     return *this;
@@ -129,7 +138,7 @@ QCaDateTime& QCaDateTime::operator=( const QCaDateTime& other )
 /*
   Returns a string which represents the date and time
  */
-QString QCaDateTime::text()
+QString QCaDateTime::text() const
 {
     // Format the date and time to millisecond resolution
     QString out;
@@ -211,6 +220,14 @@ unsigned long QCaDateTime::getNanoSeconds() const
 
    msec = msec % 1000;
    return  (unsigned long) (msec * 1000000) + nSec;
+}
+
+/*
+  Returns original userTag - zero for CA.
+ */
+int QCaDateTime::getUserTag() const
+{
+   return userTag;
 }
 
 // end

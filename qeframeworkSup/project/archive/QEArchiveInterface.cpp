@@ -85,13 +85,10 @@ void  QEArchiveInterface::convertEpicsToArchive (const QCaDateTime& datetime, in
 }
 
 
-
 //------------------------------------------------------------------------------
 //
 QEArchiveInterface::QEArchiveInterface (QObject *parent) : QObject (parent)
 {
-   this->registerMetaTypes ();
-
    this->state = QEArchiveInterface::Unknown;
    this->available = 0;
    this->read = 0;
@@ -131,13 +128,19 @@ void QEArchiveInterface::timeout ()
 
 //------------------------------------------------------------------------------
 //
-void QEArchiveInterface::registerMetaTypes ()
+bool QEArchiveInterface::registerMetaTypes ()
 {
    qRegisterMetaType<QEArchiveInterface::ArchiveList> ("QEArchiveInterface::ArchiveList");
    qRegisterMetaType<QEArchiveInterface::PVNameList> ("QEArchiveInterface::PVNameList");
    qRegisterMetaType<QEArchiveInterface::ResponseValueList> ("QEArchiveInterface::ResponseValueList");
    qRegisterMetaType<QEArchiveInterface::Context> ("QEArchiveInterface::Context");
+   qRegisterMetaType<QEArchiveInterface::States> ("QEArchiveInterface::States");
+   return true;
 }
+
+// Elaborate on start up.
+//
+static const bool _elaborate = QEArchiveInterface::registerMetaTypes ();
 
 //------------------------------------------------------------------------------
 //

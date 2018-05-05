@@ -1,6 +1,9 @@
 /*  QCaAlarmInfo.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2018 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -25,8 +26,8 @@
 
 // CA alarm info manager
 
-#include <alarm.h>
 #include <QCaAlarmInfo.h>
+#include <alarm.h>
 
 // Default standard colors.
 // These string lists are index by alarm severity
@@ -100,15 +101,19 @@ QCaAlarmInfo::QCaAlarmInfo()
 {
     status = NO_ALARM;
     severity = NO_ALARM;
+    message = "";
 }
 
 /*
   Construct an instance given an alarm state and severity
  */
-QCaAlarmInfo::QCaAlarmInfo( unsigned short statusIn, unsigned short severityIn )
+QCaAlarmInfo::QCaAlarmInfo( const Status statusIn,
+                            const Severity severityIn,
+                            const QString& messageIn )
 {
     status = statusIn;
     severity = severityIn;
+    message = messageIn;
 }
 
 /*
@@ -119,14 +124,16 @@ QCaAlarmInfo::~QCaAlarmInfo() { }
 /*
   Equality function.
  */
-bool QCaAlarmInfo::operator==(const QCaAlarmInfo& other) const {
+bool QCaAlarmInfo::operator==(const QCaAlarmInfo& other) const
+{
     return( ( this->status == other.status ) && ( this->severity == other.severity ) );
 }
 
 /*
   InEquality function - defined in terms of == to ensure consistancy.
  */
-bool QCaAlarmInfo::operator!=(const QCaAlarmInfo& other) const {
+bool QCaAlarmInfo::operator!=(const QCaAlarmInfo& other) const
+{
     return !(*this == other);
 }
 
@@ -134,8 +141,8 @@ bool QCaAlarmInfo::operator!=(const QCaAlarmInfo& other) const {
 /*
   Return a string identifying the alarm state
  */
-QString QCaAlarmInfo::statusName() const {
-
+QString QCaAlarmInfo::statusName() const
+{
     if( status <= lastEpicsAlarmCond )
         return QString( epicsAlarmConditionStrings[status] );
     else
@@ -145,12 +152,20 @@ QString QCaAlarmInfo::statusName() const {
 /*
   Return a string identifying the alarm severity
  */
-QString QCaAlarmInfo::severityName() const {
-
+QString QCaAlarmInfo::severityName() const
+{
     if( severity <= lastEpicsAlarmSev )
         return QString( epicsAlarmSeverityStrings[severity] );
     else
         return QString( "" );
+}
+
+/*
+  Return alarm message - empty string for CA
+ */
+QString QCaAlarmInfo::messageText() const
+{
+    return message;
 }
 
 /*
@@ -224,6 +239,7 @@ QString QCaAlarmInfo::getColorName() const
 
 /*
   Return a severity that will not match any valid severity (static)
+  Not to be confused with the invalid state.
  */
 QCaAlarmInfo::Severity QCaAlarmInfo::getInvalidSeverity()
 {

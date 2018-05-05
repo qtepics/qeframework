@@ -195,9 +195,11 @@ public:
                        const int key = 0,
                        const unsigned int requested_element = 0) = 0;
 
-   // House keeping.
+   // Register these meta types.
+   // Note: This function is public for conveniance only, and is invoked by the
+   // module itself during program elaboration.
    //
-   static void registerMetaTypes ();
+   static bool registerMetaTypes ();
 
 protected:
    static QCaDateTime convertArchiveToEpics (const int seconds, const int nanoSecs);

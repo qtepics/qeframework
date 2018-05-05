@@ -2,6 +2,8 @@
  *
  *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
  *
+ *  Copyright (c) 2009-2018 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -14,8 +16,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009,2010,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -35,13 +35,16 @@
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QCaAlarmInfo
 {
 public:
+    typedef unsigned short Status;  // Alarm onfo status type.
     typedef unsigned short Severity;  // Alarm onfo severity type.
 
     // For backward compatibility.
 #   define QCAALARMINFO_SEVERITY  QCaAlarmInfo::Severity
 
     explicit QCaAlarmInfo();
-    explicit QCaAlarmInfo( const unsigned short statusIn, const unsigned short severityIn );
+    explicit QCaAlarmInfo( const Status statusIn,
+			   const Severity severityIn,
+                           const QString& message = "" );
     virtual ~QCaAlarmInfo();
 
     bool operator==(const QCaAlarmInfo& other) const;   // Return true if equal
@@ -49,6 +52,7 @@ public:
 
     QString statusName() const;       // Return the name of the current alarm state
     QString severityName() const;     // Return the name of the current alarm severity
+    QString messageText() const;      // Return alarm message - empty string for CA
     bool isInAlarm() const;           // Return true if there is an alarm
     bool isMinor() const;             // Return true if there is a minor alarm
     bool isMajor() const;             // Return true if there is a major alarm
@@ -79,8 +83,9 @@ public:
     static QStringList getDefaultColorNames();                            // Return default/standard colour names
 
 private:
-    unsigned short status;      // Alarm state
-    unsigned short severity;    // Alarm severity
+    Status   status;      // Alarm state
+    Severity severity;    // Alarm severity
+    QString message;      // Alarm message (pva)
 
     // default constant colour names
     static const QStringList defaultStyleColorNames;

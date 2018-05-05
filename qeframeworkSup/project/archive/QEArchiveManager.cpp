@@ -129,15 +129,6 @@ QEArchiveManager::QEArchiveManager() {
       this->timer = new QTimer (this);
       this->lastReadTime = QDateTime::currentDateTime ().toUTC ().addSecs (-300);
 
-      // Register status message types.
-      //
-      qRegisterMetaType<QEArchiveInterface::States> ("QEArchiveInterface::States");
-      qRegisterMetaType<QEArchiveAccess::Status> ("QEArchiveAccess::Status");
-      qRegisterMetaType<QEArchiveAccess::StatusList> ("QEArchiveAccess::StatusList");
-
-      qRegisterMetaType<QEArchiveAccess::PVDataRequests> ("QEArchiveAccess::PVDataRequests");
-      qRegisterMetaType<QEArchiveAccess::PVDataResponses> ("QEArchiveAccess::PVDataResponses");
-
       this->setSourceId (9001);
    } else {
       // Has this error already been reported??

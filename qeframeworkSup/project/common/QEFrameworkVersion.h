@@ -1,6 +1,9 @@
 /*  QEFrameworkVersion.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -48,11 +49,10 @@
 #define QE_VERSION_RELEASE    1     // Public releases containing fixes only.
 
 // During tagging the version stage should be set to production
-// During tagging the version stage should be set to production
 //
 #define QE_VERSION_STAGE_DEVELOPMENT "Development"
 #define QE_VERSION_STAGE_PRODUCTION  "Production"
-#define QE_VERSION_STAGE             QE_VERSION_STAGE_PRODUCTION
+#define QE_VERSION_STAGE             QE_VERSION_STAGE_DEVELOPMENT
 
 #define QE_VERSION_STRING     STRINGIFY(QE_VERSION_MAJOR) "." \
                               STRINGIFY(QE_VERSION_MINOR) "." \
@@ -68,18 +68,22 @@ public:
    explicit QEFrameworkVersion();
    virtual ~QEFrameworkVersion();
 
-   static unsigned int getMajor ();
-   static unsigned int getMinor ();
-   static unsigned int getRelease ();
-   static const QString getStage ();
-   static const QString getString ();
-   static const QString getDateTime ();
+   static unsigned int getMajor ();         // e.g. 3
+   static unsigned int getMinor ();         // e.g. 6
+   static unsigned int getRelease ();       // e.g. 2
+   static const QString getStage ();        // e.g. "Production"
+   static const QString getString ();       // e.g. "3.6.2 (Production)"
+   static const QString getDateTime ();     // e.g. "Apr 21 2018 16:12:08"
+
+   // Conditional compile attributes.
+   //
+   static const QString getAttributes ();   // e.g. "FFMPEG video streaming, Archiver Appliance"
 
    // Other version info
    //
-   static const QString getQtVersionStr ();
-   static const QString getQwtVersionStr ();
-   static const QString getEpicsVersionStr ();
+   static const QString getQtVersionStr ();     // e.g. "QT 5.10.0"
+   static const QString getQwtVersionStr ();    // e.g. "QWT 6.1.3"
+   static const QString getEpicsVersionStr ();  // e.g. "EPICS 7.0.1.1"
 };
 
 #endif // QE_FRAMEWORK_VERSION_H

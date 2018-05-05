@@ -304,3 +304,21 @@ bool QEArchiveAccess::getArchivePvInformation (const QString& pvName,
 
    return result;
 }
+
+//------------------------------------------------------------------------------
+// Register own meta types.
+//
+bool QEArchiveAccess::registerMetaTypes()
+{
+   qRegisterMetaType<QEArchiveAccess::Status> ("QEArchiveAccess::Status");
+   qRegisterMetaType<QEArchiveAccess::StatusList> ("QEArchiveAccess::StatusList");
+   qRegisterMetaType<QEArchiveAccess::PVDataRequests> ("QEArchiveAccess::PVDataRequests");
+   qRegisterMetaType<QEArchiveAccess::PVDataResponses> ("QEArchiveAccess::PVDataResponses");
+   return true;
+}
+
+// Elaborate on start up.
+//
+static const bool _elaborate = QEArchiveAccess::registerMetaTypes ();
+
+// end

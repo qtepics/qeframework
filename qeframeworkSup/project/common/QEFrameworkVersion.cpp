@@ -1,6 +1,9 @@
 /*  QEFrameworkVersion.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2017 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
@@ -26,6 +27,7 @@
 
 #include "QEFrameworkVersion.h"
 #include <qglobal.h>
+#include <QStringList>
 #include <epicsVersion.h>
 #include <qwt_global.h>
 
@@ -79,6 +81,29 @@ const QString QEFrameworkVersion::getString ()
 const QString QEFrameworkVersion::getDateTime ()
 {
    return QString (QE_VERSION_DATE_TIME);
+}
+
+//------------------------------------------------------------------------------
+//
+const QString QEFrameworkVersion::getAttributes ()
+{
+   QStringList result;
+
+   // Conditional compile attributes.
+   //
+   #ifdef QE_USE_MPEG
+   result.append ("FFMPEG video streaming");
+   #endif
+
+   #ifdef QE_ARCHAPPL_SUPPORT
+   result.append ("Archiver Appliance");
+   #endif
+
+   #ifdef QE_INCLUDE_PV_ACCESS
+   result.append ("PV Access");
+   #endif
+
+   return result.join (", ");
 }
 
 //------------------------------------------------------------------------------

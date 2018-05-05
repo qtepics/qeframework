@@ -175,6 +175,12 @@ public:
       QString supplementary;  // error info when not successfull
    };
 
+   // Register these meta types.
+   // Note: This function is public for conveniance only, and is invoked by the
+   // module itself during program elaboration.
+   //
+   static bool registerMetaTypes ();
+
 signals:
    // Signals back to users in response to above service requests.
    //

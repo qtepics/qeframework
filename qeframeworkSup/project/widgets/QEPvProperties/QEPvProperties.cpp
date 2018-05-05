@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2012-2018 Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012,2013,2016,2017,2018 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -604,7 +604,8 @@ qcaobject::QCaObject* QEPvProperties::createQcaItem (unsigned int variableIndex)
    // We don't need any formatting - that's looked after by the embedded QELabel,
    // but we are afrter a bit of meta data.
    //
-   qca = new qcaobject::QCaObject (pvName, this, variableIndex, SIG_VARIANT);
+   qca = new qcaobject::QCaObject (pvName, this, variableIndex,
+                                   qcaobject::QCaObject::SIG_VARIANT);
 
    // Apply currently defined array index/elements request values.
    //
@@ -898,7 +899,6 @@ void QEPvProperties::setRecordTypeValue (const QString& rtypeValue,
 void QEPvProperties::setValueConnection (QCaConnectionInfo& connectionInfo, const unsigned int&)
 {
    qcaobject::QCaObject *qca;
-   QString s;
 
    const bool isConnected = connectionInfo.isChannelConnected ();
 
@@ -916,12 +916,6 @@ void QEPvProperties::setValueConnection (QCaConnectionInfo& connectionInfo, cons
       qca = this->getQcaItem (0);
       if (qca) {
          this->hostName->setText (qca->getHostName());
-         this->fieldType->setText (qca->getFieldType());
-
-         // Assume we are looking at 1st/only element for now.
-         //
-         s.sprintf ("%d / %ld", 1,  qca->getElementCount());
-         this->indexInfo->setText (s);
          this->isFirstUpdate = true;
       }
    }
@@ -949,6 +943,15 @@ void QEPvProperties::setValueValue (const QVariant& value,
    //
    qca = this->getQcaItem (0);
    if (this->isFirstUpdate && qca) {
+      // First update - fill in some of the meta data.
+      //
+      this->fieldType->setText (qca->getFieldType ());
+
+      // Assume we are looking at 1st/only element for now.
+      //
+      QString s;
+      s.sprintf ("%d / %ld", 1,  qca->getElementCount ());
+      this->indexInfo->setText (s);
 
       // Whilst the value QELabel basically looks after itself, it benefits from
       // a helping hand. If the PV is of type DBF_CHAR and the field name
@@ -1304,13 +1307,11 @@ void QEPvProperties::restoreConfiguration (PersistanceManager* pm, restorePhases
 
    const QString formName = this->getPersistantName ();
 
-   DEBUG << formName;
    PMElement formElement = pm->getNamedConfiguration (formName);
    if (formElement.isNull ()) return;   // sainity check
 
    bool status;
    QString pvName;
-   DEBUG;
 
    status = formElement.getValue ("Name", pvName);
    if (status) {
