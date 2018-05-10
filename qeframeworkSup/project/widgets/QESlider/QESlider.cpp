@@ -1,6 +1,9 @@
 /*  QESlider.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2016 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -29,6 +30,9 @@
  */
 
 #include <QESlider.h>
+#include <QDebug>
+
+#define DEBUG qDebug () << "QESlider" << __FUNCTION__ << __LINE__
 
 /*
     Constructor with no initialisation
@@ -237,7 +241,9 @@ void QESlider::userValueChanged( const int &value) {
             // yet been established (and therefore the data type is unknown) then the user
             // interface object should be unaccessable. This code is here in the event that
             // the user can, by design or omision, still attempt a write.
-            sendMessage( "Could not write value as type is not known yet.", "QESlider::userValueChanged()",
+            //
+            sendMessage( "Could not write value as type is not known yet.",
+                         "QESlider::userValueChanged()",
                           message_types ( MESSAGE_TYPE_WARNING ) );
         }
     }
@@ -253,7 +259,7 @@ void QESlider::writeNow()
 
     // If a QCa object is present (if there is a variable to write to)
     // then write the value
-    if( qca )
+    if( qca  && qca->getChannelIsConnected () )
     {
         // Attempt to write the data if the destination data type is known.
         // It is not known until a connection is established.

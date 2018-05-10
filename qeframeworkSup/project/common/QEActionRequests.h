@@ -1,6 +1,9 @@
 /*  QEActionRequests.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2013 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -36,6 +37,8 @@
 
 
 // Forward class declarations
+// TODO Rebadge to QEWindowCreationListItem and QEComponentHostListItem
+//
 class windowCreationListItem;
 class componentHostListItem;
 
@@ -44,26 +47,36 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEActionRequests {
 public:
 
    // Type of request
-   enum Kinds { KindNone,            // no action (default, not valid in any request)
-                KindOpenFile,        // by file name
-                KindOpenFiles,       // by file names
-                KindAction,          // inbuilt application action
-                KindWidgetAction,    // inbuilt QE widget action
-                KindHostComponents };// application to host a widget on behalf of a QE widget. For example a QEImage widget can create a profile plot in a QFrame and either display it within itself or ask the application to host it is a dock window.
+   enum Kinds {
+      KindNone,            // no action (default, not valid in any request)
+      KindOpenFile,        // by file name, e.g. "detector_control.ui"
+      KindOpenFiles,       // by file names, tahe a list of windowCreationListItems
+      KindAction,          // inbuilt application action, e.g "PV Properties..."
+      KindWidgetAction,    // inbuilt QE widget action
+
+      // Application to host a widget on behalf of a QE widget. For example a
+      // QEImage widget can create a profile plot in a QFrame and either display
+      // it within itself or ask the application to host it is a dock window.
+      KindHostComponents   // componentHostListItem or list thereof.
+   };
 
 
-   enum Options { OptionOpen,        // How new windows created for the request are to be presented. May not be relevent for all requests
-                  OptionNewTab,
-                  OptionNewWindow,
-                  OptionTopDockWindow,
-                  OptionBottomDockWindow,
-                  OptionLeftDockWindow,
-                  OptionRightDockWindow,
-                  OptionTopDockWindowTabbed,
-                  OptionBottomDockWindowTabbed,
-                  OptionLeftDockWindowTabbed,
-                  OptionRightDockWindowTabbed,
-                  OptionFloatingDockWindow };
+   // How new windows created for the request are to be presented.
+   // May not be relevent for all requests
+   enum Options {
+      OptionOpen,
+      OptionNewTab,
+      OptionNewWindow,
+      OptionTopDockWindow,
+      OptionBottomDockWindow,
+      OptionLeftDockWindow,
+      OptionRightDockWindow,
+      OptionTopDockWindowTabbed,
+      OptionBottomDockWindowTabbed,
+      OptionLeftDockWindowTabbed,
+      OptionRightDockWindowTabbed,
+      OptionFloatingDockWindow
+   };
 
 
    // Predefined actions values for built in windows that consumer may provide.
@@ -151,61 +164,51 @@ private:
    QList<windowCreationListItem> windows;
    QList<componentHostListItem> components;
    QString widgetName;
-   bool initialise;     // If true, initial preperation to do this action, don't actually do it. For example, set initial checked state of menu item
+   bool initialise;     // If true, initial preperation to do this action, don't actually do it.
+                        // For example, set initial checked state of menu item
    QAction* originator; // A copy would be safer???
 };
 
+//------------------------------------------------------------------------------
 // Class to hold window creation instructions
-class windowCreationListItem
+//
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT windowCreationListItem
 {
 public:
-    windowCreationListItem(){ hidden = false;
-                              creationOption = QEActionRequests::OptionNewWindow;
-                              formHandle = QEFormMapper::nullHandle ();
-                            }
-    windowCreationListItem(windowCreationListItem* item ){ uiFile = item->uiFile;
-                                                           macroSubstitutions = item->macroSubstitutions;
-                                                           customisationName = item->customisationName;
-                                                           formHandle = item->formHandle;
-                                                           creationOption = item->creationOption;
-                                                           hidden = item->hidden;
-                                                           title = item->title; }
-    QString                   uiFile;               // .UI file to open when this item is actioned
-    QString                   macroSubstitutions;   // Macro substitutions to apply when this item is actioned
-    QString                   customisationName;    // Customisation name to apply to any main windows created when this item is actioned
-    QEFormMapper::FormHandles formHandle;           // Allows requestor to nominate a handle for the created QEForm.
-    QEActionRequests::Options creationOption;       // Creation option defining how the UI file is presented (in a new window, a tabbed dock, etc)
-    bool                      hidden;               // If true, any new dock is created hidden
-    QString                   title;                // Title of this menu item
+   windowCreationListItem ();
+   windowCreationListItem (windowCreationListItem* item);
+   ~windowCreationListItem();
+
+   QString                   uiFile;               // .UI file to open when this item is actioned
+   QString                   macroSubstitutions;   // Macro substitutions to apply when this item is actioned
+   QString                   customisationName;    // Customisation name to apply to any main windows created when this item is actioned
+   QEFormMapper::FormHandles formHandle;           // Allows requestor to nominate a handle for the created QEForm.
+   QEActionRequests::Options creationOption;       // Creation option defining how the UI file is presented (in a new window, a tabbed dock, etc)
+   bool                      hidden;               // If true, any new dock is created hidden
+   QString                   title;                // Title of this menu item
 };
 
+//------------------------------------------------------------------------------
 // Class to hold component hosting instructions.
 // (an application can host a widget on behalf of a QE widget.
-//  For example a QEImage widget can create a profile plot in a QFrame and either
-//  display it within itself or ask the application to host it is a dock window.)
-class componentHostListItem
+// For example a QEImage widget can create a profile plot in a QFrame and either
+// display it within itself or ask the application to host it is a dock window.)
+//
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT componentHostListItem
 {
 public:
-    componentHostListItem(){ widget = NULL; hidden = false; creationOption = QEActionRequests::OptionFloatingDockWindow; }
-    componentHostListItem( QWidget*                  widgetIn,
-                           QEActionRequests::Options creationOptionIn,
-                           bool                      hiddenIn,
-                           QString                   titleIn )
-                            {
-                                widget = widgetIn;
-                                creationOption = creationOptionIn;
-                                hidden = hiddenIn;
-                                title = titleIn;
-                            }
+   componentHostListItem ();
+   componentHostListItem (QWidget*                  widgetIn,
+                          QEActionRequests::Options creationOptionIn,
+                          bool                      hiddenIn,
+                          QString                   titleIn );
+   componentHostListItem (componentHostListItem* item);
+   ~componentHostListItem ();
 
-    componentHostListItem(componentHostListItem* item ){ widget = item->widget;
-                                                         creationOption = item->creationOption;
-                                                         hidden = item->hidden;
-                                                         title = item->title; }
-    QWidget*                  widget;
-    QEActionRequests::Options creationOption;
-    bool                      hidden;
-    QString                   title;
+   QWidget*                  widget;
+   QEActionRequests::Options creationOption;
+   bool                      hidden;
+   QString                   title;
 };
 
 Q_DECLARE_METATYPE (QEActionRequests)

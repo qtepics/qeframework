@@ -914,7 +914,7 @@ QEArchapplInterface::~QEArchapplInterface ()
 
 }
 
-void QEArchapplInterface::namesRequest (QObject* userData, const int key, QString pattern)
+void QEArchapplInterface::namesRequest (QObject* userData, const int /* key */, QString pattern)
 {
    Context context;
 
@@ -938,7 +938,7 @@ void QEArchapplInterface::valuesRequest (QObject* userData,
                                          const int count,
                                          const How how,
                                          const QStringList pvNames,
-                                         const int key,
+                                         const int /* key */,
                                          const unsigned int requested_element)
 {
    Context context;
@@ -1155,7 +1155,8 @@ void QEArchapplInterface::processArchives (const QObject* userData)
    emit this->archivesResponse (userData, true, PvArchives);
 }
 
-void QEArchapplInterface::processValues(const QObject* userData, QNetworkReply* reply, const unsigned int requested_element)
+void QEArchapplInterface::processValues(const QObject* userData, QNetworkReply* reply,
+                                        const unsigned int /* requested_element */)
 {
    QByteArray arrayData = reply->readAll();
 

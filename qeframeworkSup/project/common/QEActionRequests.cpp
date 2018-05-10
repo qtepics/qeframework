@@ -1,6 +1,9 @@
 /*  QEActionRequests.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
@@ -26,31 +27,33 @@
 
 #include "QEActionRequests.h"
 
-//---------------------------------------------------------------------------
+//==============================================================================
+// QEActionRequests
+//==============================================================================
 //
 QEActionRequests::QEActionRequests ()
 {
    this->kind = KindNone;
-   option = OptionNewWindow;
-   initialise = false;
-   originator = NULL;
+   this->option = OptionNewWindow;
+   this->initialise = false;
+   this->originator = NULL;
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //
 QEActionRequests::QEActionRequests( const QString& actionIn,
                                     const QString& pvName)
 {
-   kind = KindAction;
-   action = actionIn;
-   arguments << pvName;
-   option = OptionNewWindow;
-   initialise = false;
-   originator = NULL;
-   formHandle = QEFormMapper::nullHandle();
+   this->kind = KindAction;
+   this->action = actionIn;
+   this->arguments << pvName;
+   this->option = OptionNewWindow;
+   this->initialise = false;
+   this->originator = NULL;
+   this->formHandle = QEFormMapper::nullHandle();
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //
 QEActionRequests::QEActionRequests( const QString& actionIn,
                                     const QString& widgetNameIn,
@@ -58,17 +61,17 @@ QEActionRequests::QEActionRequests( const QString& actionIn,
                                     const bool& initialiseIn,
                                     QAction* originatorIn )
 {
-   kind = KindWidgetAction;
-   action = actionIn;
-   widgetName = widgetNameIn;
-   arguments = argumentsIn;
-   option = OptionNewWindow; // not required, but keep things neat
-   initialise = initialiseIn;
-   originator = originatorIn;
-   formHandle = QEFormMapper::nullHandle();
+   this->kind = KindWidgetAction;
+   this->action = actionIn;
+   this->widgetName = widgetNameIn;
+   this->arguments = argumentsIn;
+   this->option = OptionNewWindow; // not required, but keep things neat
+   this->initialise = initialiseIn;
+   this->originator = originatorIn;
+   this->formHandle = QEFormMapper::nullHandle();
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //
 QEActionRequests::QEActionRequests (const QString & filename,
                                     const QString & customisationIn,
@@ -78,57 +81,57 @@ QEActionRequests::QEActionRequests (const QString & filename,
    this->kind = KindOpenFile;
    this->arguments << filename;
    this->option = optionIn;
-   initialise = false;
-   originator = NULL;
-   customisation = customisationIn;
-   formHandle = formHandleIn;
+   this->initialise = false;
+   this->originator = NULL;
+   this->customisation = customisationIn;
+   this->formHandle = formHandleIn;
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //
 QEActionRequests::QEActionRequests( const QList<windowCreationListItem> windowsIn )
 {
-   kind = KindOpenFiles;
-   option = OptionNewWindow; // not required, but keep things neat
-   initialise = false;
-   originator = NULL;
-   formHandle = QEFormMapper::nullHandle();
+   this->kind = KindOpenFiles;
+   this->option = OptionNewWindow; // not required, but keep things neat
+   this->initialise = false;
+   this->originator = NULL;
+   this->formHandle = QEFormMapper::nullHandle();
 
    for( int i = 0; i < windowsIn.count(); i++ )
    {
-       windows.append( windowsIn.at(i) );
+       this->windows.append( windowsIn.at(i) );
    }
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //
 QEActionRequests::QEActionRequests( const componentHostListItem& componentIn )
 {
-   kind = KindHostComponents;
-   option = OptionFloatingDockWindow; // not required, but keep things neat
-   initialise = false;
-   originator = NULL;
-   formHandle = QEFormMapper::nullHandle();
-   components.append( componentIn );
+   this->kind = KindHostComponents;
+   this->option = OptionFloatingDockWindow; // not required, but keep things neat
+   this->initialise = false;
+   this->originator = NULL;
+   this->formHandle = QEFormMapper::nullHandle();
+   this->components.append (componentIn);
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //
 QEActionRequests::QEActionRequests( const QList<componentHostListItem>& componentsIn )
 {
-   kind = KindHostComponents;
-   option = OptionFloatingDockWindow; // not required, but keep things neat
-   initialise = false;
-   originator = NULL;
-   formHandle = QEFormMapper::nullHandle();
+   this->kind = KindHostComponents;
+   this->option = OptionFloatingDockWindow; // not required, but keep things neat
+   this->initialise = false;
+   this->originator = NULL;
+   this->formHandle = QEFormMapper::nullHandle();
 
    for( int i = 0; i < componentsIn.count(); i++ )
    {
-       components.append( componentsIn.at(i) );
+       this->components.append( componentsIn.at(i) );
    }
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Set and get functions.
 //
 void QEActionRequests::setKind (const Kinds kindIn)
@@ -141,7 +144,7 @@ QEActionRequests::Kinds QEActionRequests::getKind () const
    return this->kind;
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //
 void QEActionRequests::setArguments (const QStringList & argumentsIn)
 {
@@ -153,7 +156,7 @@ QStringList QEActionRequests::getArguments () const
    return this->arguments;
 }
 
-//---------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 //
 void QEActionRequests::setOption (const Options optionIn)
 {
@@ -165,74 +168,74 @@ QEActionRequests::Options QEActionRequests::getOption () const
    return this->option;
 }
 
-//---------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 //
 void QEActionRequests::setAction(const QString actionIn )
 {
-   action = actionIn;
+   this->action = actionIn;
 }
 
 QString QEActionRequests::getAction() const
 {
-   return action;
+   return this->action;
 }
 
-//---------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 //
 void QEActionRequests::setWidgetName(const QString widgetNameIn )
 {
-   widgetName = widgetNameIn;
+   this->widgetName = widgetNameIn;
 }
 
 QString QEActionRequests::getWidgetName() const
 {
-   return widgetName;
+   return this->widgetName;
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //
 void QEActionRequests::setInitialise (const bool initialiseIn )
 {
-   initialise = initialiseIn;
+   this->initialise = initialiseIn;
 }
 
 bool QEActionRequests::getInitialise() const
 {
-   return initialise;
+   return this->initialise;
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //
 void QEActionRequests::setOriginator( QAction* originatorIn )
 {
-   originator = originatorIn;
+   this->originator = originatorIn;
 }
 
 QAction* QEActionRequests::getOriginator() const
 {
-   return originator;
+   return this->originator;
 }
 
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //
 void QEActionRequests::setFormHandle (const QEFormMapper::FormHandles& formHandleIn)
 {
-   formHandle = formHandleIn;
+   this->formHandle = formHandleIn;
 }
 
 QEFormMapper::FormHandles QEActionRequests::getFormHandle () const
 {
-   return formHandle;
+   return this->formHandle;
 }
 
-//---------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 //
 QString QEActionRequests::getCustomisation() const
 {
-   return customisation;
+   return this->customisation;
 }
 
-//---------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 // Return true if creation option creates a dock
 bool QEActionRequests::isDockCreationOption( const Options createOption )
 {
@@ -261,7 +264,7 @@ bool QEActionRequests::isDockCreationOption( const Options createOption )
     return result;
 }
 
-//---------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 // Creation option creates a tabbed dock
 bool QEActionRequests::isTabbedDockCreationOption( const Options createOption )
 {
@@ -290,18 +293,86 @@ bool QEActionRequests::isTabbedDockCreationOption( const Options createOption )
     return result;
 }
 
-//---------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 //
 QList<windowCreationListItem> QEActionRequests::getWindows() const
 {
-    return windows;
+    return this->windows;
 }
 
-//---------------------------------------------------------------------------//
+//------------------------------------------------------------------------------
 //
 QList<componentHostListItem> QEActionRequests::getComponents() const
 {
-    return components;
+    return this->components;
 }
+
+
+//==============================================================================
+// windowCreationListItem
+//==============================================================================
+//
+windowCreationListItem::windowCreationListItem()
+{
+   this->hidden = false;
+   this->creationOption = QEActionRequests::OptionNewWindow;
+   this->formHandle = QEFormMapper::nullHandle ();
+}
+
+//------------------------------------------------------------------------------
+//
+windowCreationListItem::windowCreationListItem (windowCreationListItem* item)
+{
+   this->uiFile = item->uiFile;
+   this->macroSubstitutions = item->macroSubstitutions;
+   this->customisationName = item->customisationName;
+   this->formHandle = item->formHandle;
+   this->creationOption = item->creationOption;
+   this->hidden = item->hidden;
+   this->title = item->title;
+}
+
+//------------------------------------------------------------------------------
+//
+windowCreationListItem::~windowCreationListItem() {}
+
+
+//==============================================================================
+// componentHostListItem
+//==============================================================================
+//
+componentHostListItem::componentHostListItem()
+{
+   this->widget = NULL;
+   this->hidden = false;
+   this->creationOption = QEActionRequests::OptionFloatingDockWindow;
+}
+
+//------------------------------------------------------------------------------
+//
+componentHostListItem::componentHostListItem (QWidget* widgetIn,
+                                              QEActionRequests::Options creationOptionIn,
+                                              bool hiddenIn,
+                                              QString titleIn)
+{
+   this->widget = widgetIn;
+   this->creationOption = creationOptionIn;
+   this->hidden = hiddenIn;
+   this->title = titleIn;
+}
+
+//------------------------------------------------------------------------------
+//
+componentHostListItem::componentHostListItem (componentHostListItem* item)
+{
+   this->widget = item->widget;
+   this->creationOption = item->creationOption;
+   this->hidden = item->hidden;
+   this->title = item->title;
+}
+
+//------------------------------------------------------------------------------
+//
+componentHostListItem::~componentHostListItem() {}
 
 // end
