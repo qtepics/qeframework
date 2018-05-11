@@ -45,16 +45,16 @@
 
 // With Qt5.6 on windows using mingw 32 bit, found that widget defined enum properties
 // types must be declared as a meta type if the uic auto generated ui_xxx.h file is to
-// be compiled successfully; but doing this breaks Qt4.8 n Linux.
+// be compiled successfully; but doing this breaks Qt4.8 on Linux.
 //
 // TODO: The rules need to be clarified and refined.
 // Is this version related, OS related, and/or import/export related?
 // Whatever, do logic here once, as opposed to each header file.
 //
 // Rules that appear to work are that meta data declarations are required
-// when bulding against the QE linrary, but not when building the plugin itself.
+// when bulding against the QE library, but not when building the plugin itself.
 //
-// HOW DOES THIS APPLY TO A SPLT LIBRARY??
+// HOW DOES THIS APPLY TO A SPLIT LIBRARY??
 //
 #if !defined(QE_FRAMEWORK_LIBRARY)
 #  define QE_DECLARE_METATYPE_IS_REQUIRED
