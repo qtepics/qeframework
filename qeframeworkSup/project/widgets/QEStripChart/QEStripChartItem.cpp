@@ -33,6 +33,7 @@
 #include <QVariantList>
 #include <QClipboard>
 
+#include <QEAdaptationParameters.h>
 #include <QCaObject.h>
 #include <QEArchiveInterface.h>
 #include <QECommon.h>
@@ -49,12 +50,7 @@
 // archiver per PV. The Channel Access archiver interface itself supports upto
 // 10K points, but on a typical sized screen, we cannot sensibly use more points.
 //
-#define MAXIMUM_HISTORY_POINTS   5000
-
-// Defines the number of live points to be accumulated before dropping
-// older points.
-//
-#define DEFAULT_MAXIMUM_LIVE_POINTS      40000
+#define MAXIMUM_HISTORY_POINTS   8000
 
 // Can't declare black as QColor (0x000000)
 //
@@ -71,7 +67,6 @@ static const QColor item_colours [QEStripChart::NUMBER_OF_PVS] = {
     QColor (0x8F00C0), QColor (0x008FC0), QColor (0xB040B0), clBlack
 };
 
-
 static const QString letterStyle ("QWidget { background-color: #e8e8e8; }");
 static const QString pvDataStyle ("QWidget { background-color: #e0e0e0; }");
 static const QString calcStyle   ("QWidget { background-color: #e0c0e0; }");
@@ -80,6 +75,22 @@ static const QString unusedStyle ("QWidget { background-color: #c0c0c0; }");
 static const QString scaledTip  (" Note: this PV has been re-scaled ");
 static const QString regularTip (" Use context menu to modify PV attributes or double click here. ");
 
+
+//------------------------------------------------------------------------------
+// Attempt to access user specified maxium number of realtime points.
+// Default to 400K, limited to no less than 10K
+//
+// This defines the number of live points to be accumulated before dropping
+// older points.
+//
+static int getMaxRealTimePoints ()
+{
+   QEAdaptationParameters ap ("QE_");
+   int result;
+   result = ap.getInt ("stripchart_max_real_time_points", 400*1000);
+   result = MAX (result, 10*1000);
+   return result;
+}
 
 //==============================================================================
 //
@@ -98,7 +109,7 @@ QEStripChartItem::QEStripChartItem (QEStripChart* chartIn,
    //
    this->createInternalWidgets ();
 
-   this->maxRealTimePoints = DEFAULT_MAXIMUM_LIVE_POINTS;
+   this->maxRealTimePoints = getMaxRealTimePoints ();
    this->previousQcaItem = NULL;
 
    this->dataKind = NotInUse;
@@ -274,7 +285,7 @@ void QEStripChartItem::clear ()
    this->historicalTimeDataPoints.clear ();
    this->dashExists = false;
    this->realTimeDataPoints.clear ();
-   this->maxRealTimePoints = DEFAULT_MAXIMUM_LIVE_POINTS;
+   this->maxRealTimePoints = getMaxRealTimePoints ();
 
    this->useReceiveTime = false;
    this->archiveReadHow = QEArchiveInterface::Linear;
@@ -1718,12 +1729,40 @@ void QEStripChartItem::saveConfiguration (PMElement& parentElement)
    // Any config data to save? Also save expressions.
    //
    if (this->isInUse ()) {
+      QEStripChartNames meta1;
+      QEChannelArchiveInterface meta2 (QUrl (""));
+
       PMElement pvElement = parentElement.addElement ("PV");
       pvElement.addAttribute ("slot", (int) this->slot);
 
       // Note: we save the actual, i.e. substituted, PV name.
       //
       pvElement.addValue ("Name", this->getPvName ());
+
+      // Add other appropriate settings
+      //
+      int r, g, b, a;
+      this->colour.getRgb (&r, &g, &b, &a);
+
+      PMElement colourElement = pvElement.addElement ("colour");
+      colourElement.addAttribute ("red",    r);
+      colourElement.addAttribute ("green",  g);
+      colourElement.addAttribute ("blue",   b);
+      colourElement.addAttribute ("alpha",  a);
+
+      pvElement.addValue ("useReceiveTime", this->getUseReceiveTime ());
+
+      QString lineDrawModeStr;
+      lineDrawModeStr = QEUtilities::enumToString (meta1, "LineDrawModes", this->getLineDrawMode());
+      pvElement.addValue ("lineDrawMode", lineDrawModeStr);
+
+      QString linePlotModeStr;
+      linePlotModeStr = QEUtilities::enumToString (meta1, "LinePlotModes", this->getLinePlotMode());
+      pvElement.addValue ("linePlotMode", linePlotModeStr);
+
+      QString archiverHowStr;
+      archiverHowStr = QEUtilities::enumToString (meta2, "How", this->getArchiveReadHow());
+      pvElement.addValue ("archiverHow", archiverHowStr);
 
       // Save any scaling.
       //
@@ -1747,8 +1786,68 @@ void QEStripChartItem::restoreConfiguration (PMElement& parentElement)
    //
    status = pvElement.getValue ("Name", pvName);
    if (status) {
+      QEStripChartNames meta1;
+      QEChannelArchiveInterface meta2 (QUrl (""));
+
       this->setPvName (pvName, "");
+
+      // Restore other settings - iff defined.
+      //
+      PMElement colourElement = pvElement.getElement ("colour");
+      int r, g, b, a;
+      status = colourElement.getAttribute ("red",   r) &&
+               colourElement.getAttribute ("green", g) &&
+               colourElement.getAttribute ("blue",  b) &&
+               colourElement.getAttribute ("alpha", a);
+
+      if (status) {
+         QColor k;
+         k.setRgb (r, g, b, a);
+         this->setColour (k);
+      }
+
+      bool urt;
+      status = pvElement.getValue ("useReceiveTime", urt);
+      if (status) {
+         this->useReceiveTime = urt;
+      }
+
+      QString lineDrawModeStr;
+      status = pvElement.getValue ("lineDrawMode", lineDrawModeStr);
+      if (status) {
+         int ldm;
+         ldm = QEUtilities::stringToEnum (meta1, "LineDrawModes", lineDrawModeStr, &status);
+         if (status) {
+            this->lineDrawMode = QEStripChartNames::LineDrawModes (ldm);
+         }
+      }
+
+      QString linePlotModeStr;
+      status = pvElement.getValue ("linePlotMode", linePlotModeStr);
+      if (status) {
+         int lpm;
+         lpm = QEUtilities::stringToEnum (meta1, "LinePlotModes", linePlotModeStr, &status);
+         if (status) {
+            this->linePlotMode = QEStripChartNames::LinePlotModes (lpm);
+         }
+      }
+
+      QString archiverHowStr;
+      status = pvElement.getValue ("archiverHow", archiverHowStr);
+      if (status) {
+         int lpm;
+         lpm = QEUtilities::stringToEnum (meta2, "How", archiverHowStr, &status);
+         if (status) {
+            this->archiveReadHow = QEArchiveInterface::How (lpm);
+         }
+      }
+
+      // Get any scaling.
+      //
       this->scaling.restoreConfiguration (pvElement);
+
+      // And finally update the caption.
+      //
       this->setCaption ();
    }
 }

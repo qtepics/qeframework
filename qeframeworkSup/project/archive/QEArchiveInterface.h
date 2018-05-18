@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2012-2018 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012,2013,2016 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -72,6 +72,7 @@ public:
        archSevRepeat     = 0x0f10,
        archSevDisabled   = 0x0f08
    };
+   Q_ENUMS (archiveAlarmSeverity)
 
    static QString alarmSeverityName (enum archiveAlarmSeverity severity);
 
@@ -82,6 +83,7 @@ public:
       PlotBinning,
       Linear
    };
+   Q_ENUMS (How)
 
    // Available archives for given host/port/end_point - key is most important.
    //
@@ -123,6 +125,7 @@ public:
       Values,
       Count
    };
+   Q_ENUMS (Methods)
 
    enum States {
       Unknown,
@@ -213,7 +216,6 @@ signals:
    // this indicates a successfull response, and when false indicates a fault
    // condition. For the later case, the actual value parameters are undefined.
    //
-
    void pvNamesResponse  (const QObject*, const bool, const QEArchiveInterface::PVNameList&);
    void valuesResponse   (const QObject*, const bool, const QEArchiveInterface::ResponseValueList&);
    void infoResponse     (const QObject*, const bool, const int, const QString&);
