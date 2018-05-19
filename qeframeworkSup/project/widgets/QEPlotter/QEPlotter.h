@@ -593,7 +593,7 @@ private:
    void setToolTipSummary ();
    void runDataDialog (const int slot, QWidget* control);
 
-private slots:
+public slots:
    void setNewVariableName (QString variableName,
                             QString variableNameSubstitutions,
                             unsigned int variableIndex);
@@ -614,6 +614,7 @@ private slots:
                           QCaDateTime& timeStamp,
                           const unsigned int& variableIndex);
 
+private slots:
    void letterButtonClicked (bool checked);
    void checkBoxStateChanged (int state);
    void tickTimeout ();

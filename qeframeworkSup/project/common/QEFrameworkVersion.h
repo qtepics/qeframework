@@ -48,6 +48,17 @@
 #define QE_VERSION_MINOR      6     // Public releases containing new functionality (may include fixes as well)
 #define QE_VERSION_RELEASE    1     // Public releases containing fixes only.
 
+// The integer version is (major << 16) + (minor << 8) + release, and this macro
+// is used to constuct an integer version number.
+//
+#define QE_INT_VERSION(major, minor, release) (((major)<<16)|((minor)<<8)|(release))
+
+// QE_VERSION is the actual version of this version of QE framework.
+// It can be used like this to perform version specific checking
+// #if (QE_VERSION >= QE_INT_VERSION(3, 6, 1))
+//
+#define QE_VERSION QE_INT_VERSION (QE_VERSION_MAJOR, QE_VERSION_MINOR, QE_VERSION_RELEASE)
+
 // During tagging the version stage should be set to production
 //
 #define QE_VERSION_STAGE_DEVELOPMENT "Development"
