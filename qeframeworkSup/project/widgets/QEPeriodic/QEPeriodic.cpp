@@ -1,6 +1,9 @@
 /*  QEPeriodic.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2011-2018 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2011,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Rhyder
@@ -52,141 +53,165 @@
 #include <QDesignerFormWindowCursorInterface>
 
 // Table containing all static element information
-// (Another table - userInfo - contains dynamic element information that varies from instance to instance of this class)
-QEPeriodic::elementInfoStruct QEPeriodic::elementInfo[NUM_ELEMENTS] = {
-//    Number,	Atomic Weight,	Name,	Symbol, Melting Point (deg C),  Boiling  Point (deg C), Density,    Group,  Ionization energy, Table row, table column
-    {	1,	1.0079,	"Hydrogen",	"H",	-259,	-253,	0.09,	1,	13.5984,	0,	0 },
-    {	2,	4.0026,	"Helium",	"He",	-272,	-269,	0.18,	18,	24.5874,	0,	17 },
-    {	3,	6.941,	"Lithium",	"Li",	180,	1347,	0.53,	1,	5.3917,	1,	0 },
-    {	4,	9.0122,	"Beryllium",	"Be",	1278,	2970,	1.85,	2,	9.3227,	1,	1 },
-    {	5,	10.811,	"Boron",	"B",	2300,	2550,	2.34,	13,	8.298,	1,	12 },
-    {	6,	12.0107,	"Carbon",	"C",	3500,	4827,	2.26,	14,	11.2603,	1,	13 },
-    {	7,	14.0067,	"Nitrogen",	"N",	-210,	-196,	1.25,	15,	14.5341,	1,	14 },
-    {	8,	15.9994,	"Oxygen",	"O",	-218,	-183,	1.43,	16,	13.6181,	1,	15 },
-    {	9,	18.9984,	"Fluorine",	"F",	-220,	-188,	1.7,	17,	17.4228,	1,	16 },
-    {	10,	20.1797,	"Neon",	"Ne",	-249,	-246,	0.9,	18,	21.5645,	1,	17 },
-    {	11,	22.9897,	"Sodium",	"Na",	98,	883,	0.97,	1,	5.1391,	2,	0 },
-    {	12,	24.305,	"Magnesium",	"Mg",	639,	1090,	1.74,	2,	7.6462,	2,	1 },
-    {	13,	26.9815,	"Aluminum",	"Al",	660,	2467,	2.7,	13,	5.9858,	2,	12 },
-    {	14,	28.0855,	"Silicon",	"Si",	1410,	2355,	2.33,	14,	8.1517,	2,	13 },
-    {	15,	30.9738,	"Phosphorus",	"P",	44,	280,	1.82,	15,	10.4867,	2,	14 },
-    {	16,	32.065,	"Sulfur",	"S",	113,	445,	2.07,	16,	10.36,	2,	15 },
-    {	17,	35.453,	"Chlorine",	"Cl",	-101,	-35,	3.21,	17,	12.9676,	2,	16 },
-    {	18,	39.948,	"Argon",	"Ar",	-189,	-186,	1.78,	18,	15.7596,	2,	17 },
-    {	19,	39.0983,	"Potassium",	"K",	64,	774,	0.86,	1,	4.3407,	3,	0 },
-    {	20,	40.078,	"Calcium",	"Ca",	839,	1484,	1.55,	2,	6.1132,	3,	1 },
-    {	21,	44.9559,	"Scandium",	"Sc",	1539,	2832,	2.99,	3,	6.5615,	3,	2 },
-    {	22,	47.867,	"Titanium",	"Ti",	1660,	3287,	4.54,	4,	6.8281,	3,	3 },
-    {	23,	50.9415,	"Vanadium",	"V",	1890,	3380,	6.11,	5,	6.7462,	3,	4 },
-    {	24,	51.9961,	"Chromium",	"Cr",	1857,	2672,	7.19,	6,	6.7665,	3,	5 },
-    {	25,	54.938,	"Manganese",	"Mn",	1245,	1962,	7.43,	7,	7.434,	3,	6 },
-    {	26,	55.845,	"Iron",	"Fe",	1535,	2750,	7.87,	8,	7.9024,	3,	7 },
-    {	27,	58.9332,	"Cobalt",	"Co",	1495,	2870,	8.9,	9,	7.881,	3,	8 },
-    {	28,	58.6934,	"Nickel",	"Ni",	1453,	2732,	8.9,	10,	7.6398,	3,	9 },
-    {	29,	63.546,	"Copper",	"Cu",	1083,	2567,	8.96,	11,	7.7264,	3,	10 },
-    {	30,	65.39,	"Zinc",	"Zn",	420,	907,	7.13,	12,	9.3942,	3,	11 },
-    {	31,	69.723,	"Gallium",	"Ga",	30,	2403,	5.91,	13,	5.9993,	3,	12 },
-    {	32,	72.64,	"Germanium",	"Ge",	937,	2830,	5.32,	14,	7.8994,	3,	13 },
-    {	33,	74.9216,	"Arsenic",	"As",	81,	613,	5.72,	15,	9.7886,	3,	14 },
-    {	34,	78.96,	"Selenium",	"Se",	217,	685,	4.79,	16,	9.7524,	3,	15 },
-    {	35,	79.904,	"Bromine",	"Br",	-7,	59,	3.12,	17,	11.8138,	3,	16 },
-    {	36,	83.8,	"Krypton",	"Kr",	-157,	-153,	3.75,	18,	13.9996,	3,	17 },
-    {	37,	85.4678,	"Rubidium",	"Rb",	39,	688,	1.63,	1,	4.1771,	4,	0 },
-    {	38,	87.62,	"Strontium",	"Sr",	769,	1384,	2.54,	2,	5.6949,	4,	1 },
-    {	39,	88.9059,	"Yttrium",	"Y",	1523,	3337,	4.47,	3,	6.2173,	4,	2 },
-    {	40,	91.224,	"Zirconium",	"Zr",	1852,	4377,	6.51,	4,	6.6339,	4,	3 },
-    {	41,	92.9064,	"Niobium",	"Nb",	2468,	4927,	8.57,	5,	6.7589,	4,	4 },
-    {	42,	95.94,	"Molybdenum",	"Mo",	2617,	4612,	10.22,	6,	7.0924,	4,	5 },
-    {	43,	98,	"Technetium",	"Tc",	2200,	4877,	11.5,	7,	7.28,	4,	6 },
-    {	44,	101.07,	"Ruthenium",	"Ru",	2250,	3900,	12.37,	8,	7.3605,	4,	7 },
-    {	45,	102.9055,	"Rhodium",	"Rh",	1966,	3727,	12.41,	9,	7.4589,	4,	8 },
-    {	46,	106.42,	"Palladium",	"Pd",	1552,	2927,	12.02,	10,	8.3369,	4,	9 },
-    {	47,	107.8682,	"Silver",	"Ag",	962,	2212,	10.5,	11,	7.5762,	4,	10 },
-    {	48,	112.411,	"Cadmium",	"Cd",	321,	765,	8.65,	12,	8.9938,	4,	11 },
-    {	49,	114.818,	"Indium",	"In",	157,	2000,	7.31,	13,	5.7864,	4,	12 },
-    {	50,	118.71,	"Tin",	"Sn",	232,	2270,	7.31,	14,	7.3439,	4,	13 },
-    {	51,	121.76,	"Antimony",	"Sb",	630,	1750,	6.68,	15,	8.6084,	4,	14 },
-    {	52,	127.6,	"Tellurium",	"Te",	449,	990,	6.24,	16,	9.0096,	4,	15 },
-    {	53,	126.9045,	"Iodine",	"I",	114,	184,	4.93,	17,	10.4513,	4,	16 },
-    {	54,	131.293,	"Xenon",	"Xe",	-112,	-108,	5.9,	18,	12.1298,	4,	17 },
-    {	55,	132.9055,	"Cesium",	"Cs",	29,	678,	1.87,	1,	3.8939,	5,	0 },
-    {	56,	137.327,	"Barium",	"Ba",	725,	1140,	3.59,	2,	5.2117,	5,	1 },
-    {	57,	138.9055,	"Lanthanum",	"La",	920,	3469,	6.15,	3,	5.5769,	8,	2 },
-    {	58,	140.116,	"Cerium",	"Ce",	795,	3257,	6.77,	101,	5.5387,	8,	3 },
-    {	59,	140.9077,	"Praseodymium",	"Pr",	935,	3127,	6.77,	101,	5.473,	8,	4 },
-    {	60,	144.24,	"Neodymium",	"Nd",	1010,	3127,	7.01,	101,	5.525,	8,	5 },
-    {	61,	145,	"Promethium",	"Pm",	1100,	3000,	7.3,	101,	5.582,	8,	6 },
-    {	62,	150.36,	"Samarium",	"Sm",	1072,	1900,	7.52,	101,	5.6437,	8,	7 },
-    {	63,	151.964,	"Europium",	"Eu",	822,	1597,	5.24,	101,	5.6704,	8,	8 },
-    {	64,	157.25,	"Gadolinium",	"Gd",	1311,	3233,	7.9,	101,	6.1501,	8,	9 },
-    {	65,	158.9253,	"Terbium",	"Tb",	1360,	3041,	8.23,	101,	5.8638,	8,	10 },
-    {	66,	162.5,	"Dysprosium",	"Dy",	1412,	2562,	8.55,	101,	5.9389,	8,	11 },
-    {	67,	164.9303,	"Holmium",	"Ho",	1470,	2720,	8.8,	101,	6.0215,	8,	12 },
-    {	68,	167.259,	"Erbium",	"Er",	1522,	2510,	9.07,	101,	6.1077,	8,	13 },
-    {	69,	168.9342,	"Thulium",	"Tm",	1545,	1727,	9.32,	101,	6.1843,	8,	14 },
-    {	70,	173.04,	"Ytterbium",	"Yb",	824,	1466,	6.9,	101,	6.2542,	8,	15 },
-    {	71,	174.967,	"Lutetium",	"Lu",	1656,	3315,	9.84,	101,	5.4259,	8,	16 },
-    {	72,	178.49,	"Hafnium",	"Hf",	2150,	5400,	13.31,	4,	6.8251,	5,	3 },
-    {	73,	180.9479,	"Tantalum",	"Ta",	2996,	5425,	16.65,	5,	7.5496,	5,	4 },
-    {	74,	183.84,	"Tungsten",	"W",	3410,	5660,	19.35,	6,	7.864,	5,	5 },
-    {	75,	186.207,	"Rhenium",	"Re",	3180,	5627,	21.04,	7,	7.8335,	5,	6 },
-    {	76,	190.23,	"Osmium",	"Os",	3045,	5027,	22.6,	8,	8.4382,	5,	7 },
-    {	77,	192.217,	"Iridium",	"Ir",	2410,	4527,	22.4,	9,	8.967,	5,	8 },
-    {	78,	195.078,	"Platinum",	"Pt",	1772,	3827,	21.45,	10,	8.9587,	5,	9 },
-    {	79,	196.9665,	"Gold",	"Au",	1064,	2807,	19.32,	11,	9.2255,	5,	10 },
-    {	80,	200.59,	"Mercury",	"Hg",	-39,	357,	13.55,	12,	10.4375,	5,	11 },
-    {	81,	204.3833,	"Thallium",	"Tl",	303,	1457,	11.85,	13,	6.1082,	5,	12 },
-    {	82,	207.2,	"Lead",	"Pb",	327,	1740,	11.35,	14,	7.4167,	5,	13 },
-    {	83,	208.9804,	"Bismuth",	"Bi",	271,	1560,	9.75,	15,	7.2856,	5,	14 },
-    {	84,	209,	"Polonium",	"Po",	254,	962,	9.3,	16,	8.417,	5,	15 },
-    {	85,	210,	"Astatine",	"At",	302,	337,	0,	17,	9.3,	5,	16 },
-    {	86,	222,	"Radon",	"Rn",	-71,	-62,	9.73,	18,	10.7485,	5,	17 },
-    {	87,	223,	"Francium",	"Fr",	27,	677,	0,	1,	4.0727,	6,	0 },
-    {	88,	226,	"Radium",	"Ra",	700,	1737,	5.5,	2,	5.2784,	6,	1 },
-    {	89,	227,	"Actinium",	"Ac",	1050,	3200,	10.07,	3,	5.17,	9,	2 },
-    {	90,	232.0381,	"Thorium",	"Th",	1750,	4790,	11.72,	102,	6.3067,	9,	3 },
-    {	91,	231.0359,	"Protactinium",	"Pa",	1568,	0,	15.4,	102,	5.89,	9,	4 },
-    {	92,	238.0289,	"Uranium",	"U",	1132,	3818,	18.95,	102,	6.1941,	9,	5 },
-    {	93,	237,	"Neptunium",	"Np",	640,	3902,	20.2,	102,	6.2657,	9,	6 },
-    {	94,	244,	"Plutonium",	"Pu",	640,	3235,	19.84,	102,	6.0262,	9,	7 },
-    {	95,	243,	"Americium",	"Am",	994,	2607,	13.67,	102,	5.9738,	9,	8 },
-    {	96,	247,	"Curium",	"Cm",	1340,	3110,	13.5,	102,	5.9915,	9,	9 },
-    {	97,	247,	"Berkelium",	"Bk",	986,	0,	14.78,	102,	6.1979,	9,	10 },
-    {	98,	251,	"Californium",	"Cf",	900,	1470,	15.1,	102,	6.2817,	9,	11 },
-    {	99,	252,	"Einsteinium",	"Es",	860,	0,	8.84,	102,	6.42,	9,	12 },
-    {	100,	257,	"Fermium",	"Fm",	1527,	0,	0,	102,	6.5,	9,	13 },
-    {	101,	258,	"Mendelevium",	"Md",	0,	0,	0,	102,	6.58,	9,	14 },
-    {	102,	259,	"Nobelium",	"No",	827,	0,	0,	102,	6.65,	9,	15 },
-    {	103,	262,	"Lawrencium",	"Lr",	1627,	0,	0,	102,	4.9,	9,	16 },
-    {	104,	261,	"Rutherfordium",	"Rf",	2100,	5500,	23,	4,	0,	6,	3 },
-    {	105,	262,	"Dubnium",	"Db",	0,	0,	0,	5,	0,	6,	4 },
-    {	106,	266,	"Seaborgium",	"Sg",	0,	0,	0,	6,	0,	6,	5 },
-    {	107,	264,	"Bohrium",	"Bh",	0,	0,	0,	7,	0,	6,	6 },
-    {	108,	277,	"Hassium",	"Hs",	0,	0,	0,	8,	0,	6,	7 },
-    {	109,	278,	"Meitnerium",	"Mt",	0,	0,	0,	9,	0,	6,	8 },
-    {	110,	281,	"Darmstadtium",	"Ds",	0,	0,	0,	10,	0,	6,	9 },
-    {	111,	281,	"Roentgenium",	"Rg",	0,	0,	0,	11,	0,	6,	10 },
-    {	112,	285,	"Copernicium",	"Cn",	0,	0,	0,	12,	0,	6,	11 },
-    {	113,	286,	"Ununtrium",	"Uut",	0,	0,	0,	13,	0,	6,	12 },
-    {	114,	289,	"Ununquadium",	"Uuq",	0,	0,	0,	14,	0,	6,	13 },
-    {	115,	289,	"Ununpentium",	"Uup",	0,	0,	0,	15,	0,	6,	14 },
-    {	116,	293,	"Ununhexium",	"Uuh",	0,	0,	0,	16,	0,	6,	15 },
-    {	117,	294,	"Ununseptium",	"Uus",	0,	0,	0,	17,	0,	6,	16 },
-    {	118,	294,	"Ununoctium",	"Uuo",	0,	80,	13.65,	18,	0,	6,	17 }
+// (Another table - userInfo - contains dynamic element information that
+// varies from instance to instance of this class)
+//
+const QEPeriodic::elementInfoStruct QEPeriodic::elementInfo[NUM_ELEMENTS] = {
+//     .------------------------------------------------------------------------------------- Atomic Number,
+//     |    .-------------------------------------------------------------------------------- Atomic Weight
+//     |    |       .------------------------------------------------------------------------ Name
+//     |    |       |                .------------------------------------------------------- Symbol
+//     |    |       |                |        .---------------------------------------------- Melting Point (deg C)
+//     |    |       |                |        |        .------------------------------------- Boiling Point (deg C)
+//     |    |       |                |        |        |       .----------------------------- Density
+//     |    |       |                |        |        |       |       .--------------------- Group
+//     |    |       |                |        |        |       |       |   .----------------- Ionization energy,
+//     |    |       |                |        |        |       |       |   |        .-------- Table row
+//     |    |       |                |        |        |       |       |   |        |   .---- Table column
+//     |    |       |                |        |        |       |       |   |        |   |
+//     |    |       |                |        |        |       |       |   |        |   |
+   {   1,   1.0079, "Hydrogen",      "H",    -259.0,  -253.0,  0.09,   1, 13.5984,  0,  0 },
+   {   2,   4.0026, "Helium",        "He",   -272.0,  -269.0,  0.18,  18, 24.5874,  0, 18 },
+
+   {   3,   6.9410, "Lithium",       "Li",    180.0,  1347.0,  0.53,   1,  5.3917,  1,  0 },
+   {   4,   9.0122, "Beryllium",     "Be",   1278.0,  2970.0,  1.85,   2,  9.3227,  1,  1 },
+   {   5,  10.8110, "Boron",         "B",    2300.0,  2550.0,  2.34,  13,  8.2980,  1, 13 },
+   {   6,  12.0107, "Carbon",        "C",    3500.0,  4827.0,  2.26,  14, 11.2603,  1, 14 },
+   {   7,  14.0067, "Nitrogen",      "N",    -210.0,  -196.0,  1.25,  15, 14.5341,  1, 15 },
+   {   8,  15.9994, "Oxygen",        "O",    -218.0,  -183.0,  1.43,  16, 13.6181,  1, 16 },
+   {   9,  18.9984, "Fluorine",      "F",    -220.0,  -188.0,  1.70,  17, 17.4228,  1, 17 },
+   {  10,  20.1797, "Neon",          "Ne",   -249.0,  -246.0,  0.90,  18, 21.5645,  1, 18 },
+
+   {  11,  22.9897, "Sodium",        "Na",     98.0,   883.0,  0.97,   1,  5.1391,  2,  0 },
+   {  12,  24.3050, "Magnesium",     "Mg",    639.0,  1090.0,  1.74,   2,  7.6462,  2,  1 },
+   {  13,  26.9815, "Aluminum",      "Al",    660.0,  2467.0,  2.70,  13,  5.9858,  2, 13 },
+   {  14,  28.0855, "Silicon",       "Si",   1410.0,  2355.0,  2.33,  14,  8.1517,  2, 14 },
+   {  15,  30.9738, "Phosphorus",    "P",      44.0,   280.0,  1.82,  15, 10.4867,  2, 15 },
+   {  16,  32.0650, "Sulfur",        "S",     113.0,   445.0,  2.07,  16, 10.3600,  2, 16 },
+   {  17,  35.4530, "Chlorine",      "Cl",   -101.0,   -35.0,  3.21,  17, 12.9676,  2, 17 },
+   {  18,  39.9480, "Argon",         "Ar",   -189.0,  -186.0,  1.78,  18, 15.7596,  2, 18 },
+
+   {  19,  39.0983, "Potassium",     "K",      64.0,   774.0,  0.86,   1,  4.3407,  3,  0 },
+   {  20,  40.0780, "Calcium",       "Ca",    839.0,  1484.0,  1.55,   2,  6.1132,  3,  1 },
+   {  21,  44.9559, "Scandium",      "Sc",   1539.0,  2832.0,  2.99,   3,  6.5615,  3,  2 },
+   {  22,  47.8670, "Titanium",      "Ti",   1660.0,  3287.0,  4.54,   4,  6.8281,  3,  4 },
+   {  23,  50.9415, "Vanadium",      "V",    1890.0,  3380.0,  6.11,   5,  6.7462,  3,  5 },
+   {  24,  51.9961, "Chromium",      "Cr",   1857.0,  2672.0,  7.19,   6,  6.7665,  3,  6 },
+   {  25,  54.9380, "Manganese",     "Mn",   1245.0,  1962.0,  7.43,   7,  7.4340,  3,  7 },
+   {  26,  55.8450, "Iron",          "Fe",   1535.0,  2750.0,  7.87,   8,  7.9024,  3,  8 },
+   {  27,  58.9332, "Cobalt",        "Co",   1495.0,  2870.0,  8.90,   9,  7.8810,  3,  9 },
+   {  28,  58.6934, "Nickel",        "Ni",   1453.0,  2732.0,  8.90,  10,  7.6398,  3, 10 },
+   {  29,  63.5460, "Copper",        "Cu",   1083.0,  2567.0,  8.96,  11,  7.7264,  3, 11 },
+   {  30,  65.3900, "Zinc",          "Zn",    420.0,   907.0,  7.13,  12,  9.3942,  3, 12 },
+   {  31,  69.7230, "Gallium",       "Ga",     30.0,  2403.0,  5.91,  13,  5.9993,  3, 13 },
+   {  32,  72.6400, "Germanium",     "Ge",    937.0,  2830.0,  5.32,  14,  7.8994,  3, 14 },
+   {  33,  74.9216, "Arsenic",       "As",     81.0,   613.0,  5.72,  15,  9.7886,  3, 15 },
+   {  34,  78.9600, "Selenium",      "Se",    217.0,   685.0,  4.79,  16,  9.7524,  3, 16 },
+   {  35,  79.9040, "Bromine",       "Br",     -7.0,    59.0,  3.12,  17, 11.8138,  3, 17 },
+   {  36,  83.8000, "Krypton",       "Kr",   -157.0,  -153.0,  3.75,  18, 13.9996,  3, 18 },
+
+   {  37,  85.4678, "Rubidium",      "Rb",     39.0,   688.0,  1.63,   1,  4.1771,  4,  0 },
+   {  38,  87.6200, "Strontium",     "Sr",    769.0,  1384.0,  2.54,   2,  5.6949,  4,  1 },
+   {  39,  88.9059, "Yttrium",       "Y",    1523.0,  3337.0,  4.47,   3,  6.2173,  4,  2 },
+   {  40,  91.2240, "Zirconium",     "Zr",   1852.0,  4377.0,  6.51,   4,  6.6339,  4,  4 },
+   {  41,  92.9064, "Niobium",       "Nb",   2468.0,  4927.0,  8.57,   5,  6.7589,  4,  5 },
+   {  42,  95.9400, "Molybdenum",    "Mo",   2617.0,  4612.0, 10.22,   6,  7.0924,  4,  6 },
+   {  43,  98.0000, "Technetium",    "Tc",   2200.0,  4877.0, 11.50,   7,  7.2800,  4,  7 },
+   {  44, 101.0700, "Ruthenium",     "Ru",   2250.0,  3900.0, 12.37,   8,  7.3605,  4,  8 },
+   {  45, 102.9055, "Rhodium",       "Rh",   1966.0,  3727.0, 12.41,   9,  7.4589,  4,  9 },
+   {  46, 106.4200, "Palladium",     "Pd",   1552.0,  2927.0, 12.02,  10,  8.3369,  4, 10 },
+   {  47, 107.8682, "Silver",        "Ag",    962.0,  2212.0, 10.50,  11,  7.5762,  4, 11 },
+   {  48, 112.4110, "Cadmium",       "Cd",    321.0,   765.0,  8.65,  12,  8.9938,  4, 12 },
+   {  49, 114.8180, "Indium",        "In",    157.0,  2000.0,  7.31,  13,  5.7864,  4, 13 },
+   {  50, 118.7100, "Tin",           "Sn",    232.0,  2270.0,  7.31,  14,  7.3439,  4, 14 },
+   {  51, 121.7600, "Antimony",      "Sb",    630.0,  1750.0,  6.68,  15,  8.6084,  4, 15 },
+   {  52, 127.6000, "Tellurium",     "Te",    449.0,   990.0,  6.24,  16,  9.0096,  4, 16 },
+   {  53, 126.9045, "Iodine",        "I",     114.0,   184.0,  4.93,  17, 10.4513,  4, 17 },
+   {  54, 131.2930, "Xenon",         "Xe",   -112.0,  -108.0,  5.90,  18, 12.1298,  4, 18 },
+
+   {  55, 132.9055, "Cesium",        "Cs",     29.0,   678.0,  1.87,   1,  3.8939,  5,  0 },
+   {  56, 137.3270, "Barium",        "Ba",    725.0,  1140.0,  3.59,   2,  5.2117,  5,  1 },
+   {  57, 138.9055, "Lanthanum",     "La",    920.0,  3469.0,  6.15,   3,  5.5769,  5,  2 },
+   {  58, 140.1160, "Cerium",        "Ce",    795.0,  3257.0,  6.77, 101,  5.5387,  8,  4 },
+   {  59, 140.9077, "Praseodymium",  "Pr",    935.0,  3127.0,  6.77, 101,  5.4730,  8,  5 },
+   {  60, 144.2400, "Neodymium",     "Nd",   1010.0,  3127.0,  7.01, 101,  5.5250,  8,  6 },
+   {  61, 145.0000, "Promethium",    "Pm",   1100.0,  3000.0,  7.30, 101,  5.5820,  8,  7 },
+   {  62, 150.3600, "Samarium",      "Sm",   1072.0,  1900.0,  7.52, 101,  5.6437,  8,  8 },
+   {  63, 151.9640, "Europium",      "Eu",    822.0,  1597.0,  5.24, 101,  5.6704,  8,  9 },
+   {  64, 157.2500, "Gadolinium",    "Gd",   1311.0,  3233.0,  7.90, 101,  6.1501,  8, 10 },
+   {  65, 158.9253, "Terbium",       "Tb",   1360.0,  3041.0,  8.23, 101,  5.8638,  8, 11 },
+   {  66, 162.5000, "Dysprosium",    "Dy",   1412.0,  2562.0,  8.55, 101,  5.9389,  8, 12 },
+   {  67, 164.9303, "Holmium",       "Ho",   1470.0,  2720.0,  8.80, 101,  6.0215,  8, 13 },
+   {  68, 167.2590, "Erbium",        "Er",   1522.0,  2510.0,  9.07, 101,  6.1077,  8, 14 },
+   {  69, 168.9342, "Thulium",       "Tm",   1545.0,  1727.0,  9.32, 101,  6.1843,  8, 15 },
+   {  70, 173.0400, "Ytterbium",     "Yb",    824.0,  1466.0,  6.90, 101,  6.2542,  8, 16 },
+   {  71, 174.9670, "Lutetium",      "Lu",   1656.0,  3315.0,  9.84, 101,  5.4259,  8, 17 },
+   {  72, 178.4900, "Hafnium",       "Hf",   2150.0,  5400.0, 13.31,   4,  6.8251,  5,  4 },
+   {  73, 180.9479, "Tantalum",      "Ta",   2996.0,  5425.0, 16.65,   5,  7.5496,  5,  5 },
+   {  74, 183.8400, "Tungsten",      "W",    3410.0,  5660.0, 19.35,   6,  7.8640,  5,  6 },
+   {  75, 186.2070, "Rhenium",       "Re",   3180.0,  5627.0, 21.04,   7,  7.8335,  5,  7 },
+   {  76, 190.2300, "Osmium",        "Os",   3045.0,  5027.0, 22.60,   8,  8.4382,  5,  8 },
+   {  77, 192.2170, "Iridium",       "Ir",   2410.0,  4527.0, 22.40,   9,  8.9670,  5,  9 },
+   {  78, 195.0780, "Platinum",      "Pt",   1772.0,  3827.0, 21.45,  10,  8.9587,  5, 10 },
+   {  79, 196.9665, "Gold",          "Au",   1064.0,  2807.0, 19.32,  11,  9.2255,  5, 11 },
+   {  80, 200.5900, "Mercury",       "Hg",    -39.0,   357.0, 13.55,  12, 10.4375,  5, 12 },
+   {  81, 204.3833, "Thallium",      "Tl",    303.0,  1457.0, 11.85,  13,  6.1082,  5, 13 },
+   {  82, 207.2000, "Lead",          "Pb",    327.0,  1740.0, 11.35,  14,  7.4167,  5, 14 },
+   {  83, 208.9804, "Bismuth",       "Bi",    271.0,  1560.0,  9.75,  15,  7.2856,  5, 15 },
+   {  84, 209.0000, "Polonium",      "Po",    254.0,   962.0,  9.30,  16,  8.4170,  5, 16 },
+   {  85, 210.0000, "Astatine",      "At",    302.0,   337.0,  0.00,  17,  9.3000,  5, 17 },
+   {  86, 222.0000, "Radon",         "Rn",    -71.0,   -62.0,  9.73,  18, 10.7485,  5, 18 },
+
+   {  87, 223.0000, "Francium",      "Fr",     27.0,   677.0,  0.00,   1,  4.0727,  6,  0 },
+   {  88, 226.0000, "Radium",        "Ra",    700.0,  1737.0,  5.50,   2,  5.2784,  6,  1 },
+   {  89, 227.0000, "Actinium",      "Ac",   1050.0,  3200.0, 10.07,   3,  5.1700,  6,  2 },
+   {  90, 232.0381, "Thorium",       "Th",   1750.0,  4790.0, 11.72, 102,  6.3067,  9,  4 },
+   {  91, 231.0359, "Protactinium",  "Pa",   1568.0,     0.0, 15.40, 102,  5.8900,  9,  5 },
+   {  92, 238.0289, "Uranium",       "U",    1132.0,  3818.0, 18.95, 102,  6.1941,  9,  6 },
+   {  93, 237.0000, "Neptunium",     "Np",    640.0,  3902.0, 20.20, 102,  6.2657,  9,  7 },
+   {  94, 244.0000, "Plutonium",     "Pu",    640.0,  3235.0, 19.84, 102,  6.0262,  9,  8 },
+   {  95, 243.0000, "Americium",     "Am",    994.0,  2607.0, 13.67, 102,  5.9738,  9,  9 },
+   {  96, 247.0000, "Curium",        "Cm",   1340.0,  3110.0, 13.50, 102,  5.9915,  9, 10 },
+   {  97, 247.0000, "Berkelium",     "Bk",    986.0,     0.0, 14.78, 102,  6.1979,  9, 11 },
+   {  98, 251.0000, "Californium",   "Cf",    900.0,  1470.0, 15.10, 102,  6.2817,  9, 12 },
+   {  99, 252.0000, "Einsteinium",   "Es",    860.0,     0.0,  8.84, 102,  6.4200,  9, 13 },
+   { 100, 257.0000, "Fermium",       "Fm",   1527.0,     0.0,  0.00, 102,  6.5000,  9, 14 },
+   { 101, 258.0000, "Mendelevium",   "Md",      0.0,     0.0,  0.00, 102,  6.5800,  9, 15 },
+   { 102, 259.0000, "Nobelium",      "No",    827.0,     0.0,  0.00, 102,  6.6500,  9, 16 },
+   { 103, 262.0000, "Lawrencium",    "Lr",   1627.0,     0.0,  0.00, 102,  4.9000,  9, 17 },
+   { 104, 261.0000, "Rutherfordium", "Rf",   2100.0,  5500.0, 23.00,   4,  0.0000,  6,  4 },
+   { 105, 262.0000, "Dubnium",       "Db",      0.0,     0.0,  0.00,   5,  0.0000,  6,  5 },
+   { 106, 266.0000, "Seaborgium",    "Sg",      0.0,     0.0,  0.00,   6,  0.0000,  6,  6 },
+   { 107, 264.0000, "Bohrium",       "Bh",      0.0,     0.0,  0.00,   7,  0.0000,  6,  7 },
+   { 108, 277.0000, "Hassium",       "Hs",      0.0,     0.0,  0.00,   8,  0.0000,  6,  8 },
+   { 109, 278.0000, "Meitnerium",    "Mt",      0.0,     0.0,  0.00,   9,  0.0000,  6,  9 },
+   { 110, 281.0000, "Darmstadtium",  "Ds",      0.0,     0.0,  0.00,  10,  0.0000,  6, 10 },
+   { 111, 281.0000, "Roentgenium",   "Rg",      0.0,     0.0,  0.00,  11,  0.0000,  6, 11 },
+   { 112, 285.0000, "Copernicium",   "Cn",      0.0,     0.0,  0.00,  12,  0.0000,  6, 12 },
+   { 113, 286.0000, "Ununtrium",     "Uut",     0.0,     0.0,  0.00,  13,  0.0000,  6, 13 },
+   { 114, 289.0000, "Ununquadium",   "Uuq",     0.0,     0.0,  0.00,  14,  0.0000,  6, 14 },
+   { 115, 289.0000, "Ununpentium",   "Uup",     0.0,     0.0,  0.00,  15,  0.0000,  6, 15 },
+   { 116, 293.0000, "Ununhexium",    "Uuh",     0.0,     0.0,  0.00,  16,  0.0000,  6, 16 },
+   { 117, 294.0000, "Ununseptium",   "Uus",     0.0,     0.0,  0.00,  17,  0.0000,  6, 17 },
+   { 118, 294.0000, "Ununoctium",    "Uuo",     0.0,    80.0, 13.65,  18,  0.0000,  6, 18 }
 };
 
 
 /*
     Constructor with no initialisation
 */
-QEPeriodic::QEPeriodic( QWidget *parent ) : QFrame( parent ), QEWidget( this ) {
+QEPeriodic::QEPeriodic( QWidget *parent ) :
+    QFrame( parent ), QEWidget( this )
+{
     setup();
 }
 
 /*
     Constructor with known variable
 */
-QEPeriodic::QEPeriodic( const QString &variableNameIn, QWidget *parent ) : QFrame( parent ), QEWidget( this ) {
+QEPeriodic::QEPeriodic( const QString &variableNameIn, QWidget *parent ) :
+    QFrame( parent ), QEWidget( this )
+{
     setVariableName( variableNameIn, 0 );
 
     setup();
@@ -197,7 +222,10 @@ QEPeriodic::QEPeriodic( const QString &variableNameIn, QWidget *parent ) : QFram
 /*
     Setup common to all constructors
 */
-void QEPeriodic::setup() {
+void QEPeriodic::setup()
+{
+    selectedSymbol = "";
+    selectedAtomicNumber = 0;
 
     // Place element selection button to left, and readback label on right
     layout = new QHBoxLayout;
@@ -434,7 +462,7 @@ void QEPeriodic::setElement(  const QString symbol )
 
 
 // Return the user values for a given element symbol. (Not nessesarily the current element)
-bool QEPeriodic::getElementValues( QString symbol, double* value1, double* value2 )
+bool QEPeriodic::getElementValues( QString symbol, double* value1, double* value2 ) const
 {
     int i; // element index
 
@@ -457,6 +485,15 @@ bool QEPeriodic::getElementValues( QString symbol, double* value1, double* value
     return true;
 }
 
+QString QEPeriodic::getSelectedSymbol() const
+{
+    return selectedSymbol;
+}
+
+int QEPeriodic::getSelectedAtomicNumber() const
+{
+    return selectedAtomicNumber;
+}
 
 // Determine the element text required for the component (either the write button or the readback label)
 // Multiple elements may match the same values (for example, where a compound
@@ -532,13 +569,16 @@ bool QEPeriodic::getElementTextForValue( const double& value, const unsigned int
         {
             newText = elementInfo[i].symbol;
             emit dbElementChanged( userInfo[i].elementText );
+            emit dbAtomicNumberChanged( elementInfo[i].number );
         }
 
-        // If no element matched, display a neutral string and it emit an empty string
+        // If no element matched, display a neutral string and it emit an
+        // empty string and zero/null atomic number
         else
         {
             newText = "--";
             emit dbElementChanged( "" );
+            emit dbAtomicNumberChanged( 0 );
         }
         return true;
     }
@@ -676,20 +716,18 @@ void QEPeriodic::userClicked() {
     // Build a list of what buttons should be enabled
     // !! This could be build once during construction, or when userInfo enabled is changed??
     QList<bool> enabledList;
-    QList<QString> elementList;
     for( int i = 0; i < NUM_ELEMENTS; i++ )
     {
-        elementList.append( elementInfo[i].symbol );
         enabledList.append( userInfo[i].enable );
     }
 
     // Present the element selection dialog
     PeriodicDialog dialog( writeButton );
 
-    // The dialog object constructed post QEPeriodic construction -apply scaling.
+    // The dialog object constructed post QEPeriodic construction - apply scaling.
     QEScaling::applyToWidget ( &dialog );
 
-    dialog.setElement( writeButton->text(), enabledList, elementList );
+    dialog.setElement( writeButton->text(), enabledList );
     dialog.exec( writeButton );
 
     // Use the selected element
@@ -739,9 +777,13 @@ void QEPeriodic::userClicked() {
                     qca2->writeFloating( value );
                 }
 
-                // Emit a signal indicating the user has selected an element
-                emit userElementChanged( symbol );
+                // Save the (new) selected symbol/atomic number.
                 selectedSymbol = symbol;
+                selectedAtomicNumber = elementInfo[i].number;
+
+                // Emit a signals indicating the user has selected an element
+                emit userElementChanged( symbol );
+                emit userAtomicNumberChanged( selectedAtomicNumber );
 
                 break;
             }
@@ -893,7 +935,7 @@ void QEPeriodic::setSubscribe( bool subscribeIn )
     subscribe = subscribeIn;
     emit requestResend();
 }
-bool QEPeriodic::getSubscribe()
+bool QEPeriodic::getSubscribe() const
 {
     return subscribe;
 }
@@ -905,7 +947,7 @@ void QEPeriodic::setPresentationOption( presentationOptions presentationOptionIn
     updatePresentationOptions();
     emit requestResend();
 }
-QEPeriodic::presentationOptions QEPeriodic::getPresentationOption()
+QEPeriodic::presentationOptions QEPeriodic::getPresentationOption() const
 {
     return presentationOption;
 }
@@ -916,7 +958,7 @@ void QEPeriodic::setVariableType1( variableTypes variableType1In )
     variableType1 = variableType1In;
     emit requestResend();
 }
-QEPeriodic::variableTypes QEPeriodic::getVariableType1()
+QEPeriodic::variableTypes QEPeriodic::getVariableType1() const
 {
     return variableType1;
 }
@@ -927,7 +969,7 @@ void QEPeriodic::setVariableType2( variableTypes variableType2In )
     variableType2 = variableType2In;
     emit requestResend();
 }
-QEPeriodic::variableTypes QEPeriodic::getVariableType2()
+QEPeriodic::variableTypes QEPeriodic::getVariableType2() const
 {
     return variableType2;
 }
@@ -938,7 +980,7 @@ void QEPeriodic::setVariableTolerance1( double variableTolerance1In )
     variableTolerance1 = variableTolerance1In;
     emit requestResend();
 }
-double QEPeriodic::getVariableTolerance1()
+double QEPeriodic::getVariableTolerance1() const
 {
     return variableTolerance1;
 }
@@ -949,7 +991,7 @@ void QEPeriodic::setVariableTolerance2( double variableTolerance2In )
     variableTolerance2 = variableTolerance2In;
     emit requestResend();
 }
-double QEPeriodic::getVariableTolerance2()
+double QEPeriodic::getVariableTolerance2() const
 {
     return variableTolerance2;
 }
@@ -978,7 +1020,7 @@ void QEPeriodic::setUserInfoSourceOption( userInfoSourceOptions userInfoSourceOp
     }
 }
 
-QEPeriodic::userInfoSourceOptions QEPeriodic::getUserInfoSourceOption()
+QEPeriodic::userInfoSourceOptions QEPeriodic::getUserInfoSourceOption() const
 {
     return userInfoSourceOption;
 }
@@ -995,7 +1037,7 @@ void QEPeriodic::setUserInfoText( QString userInfoTextIn )
         setUserInfo( userInfoText );
     }
 }
-QString QEPeriodic::getUserInfoText()
+QString QEPeriodic::getUserInfoText() const
 {
     return userInfoText;
 }
@@ -1011,7 +1053,7 @@ void QEPeriodic::setUserInfoFile( QString userInfoFileIn )
         readUserInfoFile();
     }
 }
-QString QEPeriodic::getUserInfoFile()
+QString QEPeriodic::getUserInfoFile() const
 {
     return userInfoFile;
 }
@@ -1087,7 +1129,7 @@ void QEPeriodic::setUserInfo( QString inStr )
 // Return an XML string representing the widget's user info.
 // the user info includes attributes for each element in the table such as
 // if the element is selectable, and what the user defined values are for an element.
-QString QEPeriodic::getUserInfo()
+QString QEPeriodic::getUserInfo() const
 {
     QString outStr;
     QXmlStreamWriter xml( &outStr );

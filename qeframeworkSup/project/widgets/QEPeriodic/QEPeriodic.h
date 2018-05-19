@@ -1,6 +1,9 @@
 /*  QEPeriodic.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2011-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2011 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -38,7 +39,7 @@
 
 #define NUM_ELEMENTS 118
 
-class QEPeriodicComponentData
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPeriodicComponentData
 {
 public:
 
@@ -62,8 +63,9 @@ public:
     bool haveLastData2;
 };
 
+
 // Dynamic element information structure
-class userInfoStruct
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT userInfoStruct
 {
 public:
     userInfoStruct() { enable = false; value1 = 0.0; value2 = 0.0; }
@@ -72,6 +74,7 @@ public:
     double  value2;         // User value to be written to and compared against the second variable
     QString elementText;    // User text associated with element (emitted on element change)
 };
+
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPeriodic : public QFrame, public QEWidget {
     Q_OBJECT
@@ -102,8 +105,8 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPeriodic : public QFrame, public QEWi
         userInfoStruct array[NUM_ELEMENTS];
     };
 
-    static elementInfoStruct elementInfo[NUM_ELEMENTS];      // Array of static element information
-    userInfoStruct userInfo[NUM_ELEMENTS];                   // Array of dynamic element information
+    static const elementInfoStruct elementInfo[NUM_ELEMENTS];   // Array of static element information
+    userInfoStruct userInfo[NUM_ELEMENTS];                      // Array of dynamic element information
 
     // Element information options
     enum variableTypes { VARIABLE_TYPE_NUMBER,
@@ -120,65 +123,69 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPeriodic : public QFrame, public QEWi
 
     // subscribe
     void setSubscribe( bool subscribe );
-    bool getSubscribe();
+    bool getSubscribe() const;
 
     // presentation options
     enum presentationOptions { PRESENTATION_BUTTON_AND_LABEL,
                                PRESENTATION_BUTTON_ONLY,
                                PRESENTATION_LABEL_ONLY };
     void setPresentationOption( presentationOptions presentationOptionIn );
-    presentationOptions getPresentationOption();
+    presentationOptions getPresentationOption() const;
 
     // variable 1 type
     void setVariableType1( variableTypes variableType1In );
-    variableTypes getVariableType1();
+    variableTypes getVariableType1() const;
 
     // variable 2 type
     void setVariableType2( variableTypes variableType2In );
-    variableTypes getVariableType2();
+    variableTypes getVariableType2() const;
 
 
     // variable 1 tolerance
     void setVariableTolerance1( double variableTolerance1In );
-    double getVariableTolerance1();
+    double getVariableTolerance1() const;
 
     // variable 2 tolerance
     void setVariableTolerance2( double variableTolerance2In );
-    double getVariableTolerance2();
+    double getVariableTolerance2() const;
 
     // user info
     // Used regardless of the user info source (text property or a file)
     // This is the entire set of user information as an XML string. Not an individual element's user information
     void setUserInfo( QString userInfo );
-    QString getUserInfo();
+    QString getUserInfo() const;
 
     // User info text.
     // Used to manage the user info text property
     // This is the entire set of user information as an XML string. Not an individual element's user information
     void setUserInfoText( QString userInfo );
-    QString getUserInfoText();
+    QString getUserInfoText() const;
 
     // user info filename
     // This is name of a file containing the entire set of user information as an XML string.
     void setUserInfoFile( QString userInfoFileIn );
-    QString getUserInfoFile();
+    QString getUserInfoFile() const;
 
     // user info source options
     enum userInfoSourceOptions { USER_INFO_SOURCE_TEXT,
                                  USER_INFO_SOURCE_FILE, };
     void setUserInfoSourceOption( userInfoSourceOptions userInfoSourceOptionIn );
-    userInfoSourceOptions getUserInfoSourceOption();
+    userInfoSourceOptions getUserInfoSourceOption() const;
 
     // The user info has changed (from the user info setup dialog), so update the current user info source
     void updateUserInfoSource();
 
     // Get user values for an element
-    bool getElementValues( QString symbol, double* value1, double* value2 );
+    bool getElementValues( QString symbol, double* value1, double* value2 ) const;
 
     // Get user selected symbol for element
-    QString getSelectedSymbol(){ return selectedSymbol; }
+    QString getSelectedSymbol() const;
 
-  private slots:
+    // Get user selected atomic number for element (or 0 is none)
+    // NOTE: this is NOT the index number into elementInfo array.
+    int getSelectedAtomicNumber() const;
+
+private slots:
     void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex );
     void setElement( const double& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& );
     void userClicked();
@@ -186,20 +193,26 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPeriodic : public QFrame, public QEWi
 public slots:
     void setElement( const QString symbol );
 
-  signals:
+signals:
     /// Sent when the element is changed by the user selecting an element
     void userElementChanged( const QString& symbol );
+    void userAtomicNumberChanged( const int atomicNumber );
+
     // Note, the following signals are common to many QE widgets,
     // if changing the doxygen comments, ensure relevent changes are migrated to all instances
     /// Sent when the widget is updated following a data change
     /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
     /// For example a QList widget could log updates from this widget.
     void dbValueChanged( const double& out );
+
     /// Sent when the widget is updated following a data change
     /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
     /// For example a QList widget could log updates from this widget.
     void dbElementChanged( const QString& out );
-    /// Internal use only. Used when changing a property value to force a re-display to reflect the new property value.
+    void dbAtomicNumberChanged( const int atomicNumber );
+
+    /// Internal use only. Used when changing a property value to force a
+    /// re-display to reflect the new property value.
     void requestResend();
 
   protected:
@@ -232,6 +245,7 @@ public slots:
     QLabel* readbackLabel;
     QHBoxLayout *layout;
     QString selectedSymbol;
+    int selectedAtomicNumber;
 
     bool getElementTextForValue( const double& value, const unsigned int& variableIndex, QEPeriodicComponentData& componentData, const QString& currentText, QString& newText );
 
