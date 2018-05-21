@@ -26,8 +26,10 @@
 
 // CA alarm info manager
 
-#include <QCaAlarmInfo.h>
+/// NOTE: mingw happier if this include is first....
 #include <alarm.h>
+
+#include <QCaAlarmInfo.h>
 
 // Default standard colors.
 // These string lists are index by alarm severity
