@@ -1380,7 +1380,7 @@ long QCaObject::getIntegerValue() const
 {
    QEIntegerFormatting formatter;
    long result;
-   result = formatter.formatInteger (this->lastVariantValue);
+   result = formatter.formatInteger (this->lastVariantValue, this->arrayIndex);
    return result;
 }
 
@@ -1391,7 +1391,7 @@ double QCaObject::getFloatingValue() const
 {
    QEFloatingFormatting formatter;
    double result;
-   result = formatter.formatFloating (this->lastVariantValue);
+   result = formatter.formatFloating (this->lastVariantValue, this->arrayIndex);
    return result;
 }
 
