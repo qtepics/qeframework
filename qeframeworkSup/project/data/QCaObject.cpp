@@ -35,6 +35,8 @@
 #include <QCaEventUpdate.h>
 #include <CaRecord.h>
 #include <CaConnection.h>
+#include <QEIntegerFormatting.h>
+#include <QEFloatingFormatting.h>
 
 #define DEBUG  qDebug () << "QCaObject" << __LINE__ << __FUNCTION__ << "  "
 
@@ -1376,10 +1378,9 @@ QString QCaObject::getStringValue() const
   */
 long QCaObject::getIntegerValue() const
 {
-   bool okay;
+   QEIntegerFormatting formatter;
    long result;
-   result = lastVariantValue.toInt( &okay );
-   if( !okay ) result = 0;
+   result = formatter.formatInteger (this->lastVariantValue);
    return result;
 }
 
@@ -1388,10 +1389,9 @@ long QCaObject::getIntegerValue() const
   */
 double QCaObject::getFloatingValue() const
 {
-   bool okay;
+   QEFloatingFormatting formatter;
    double result;
-   result = lastVariantValue.toDouble( &okay );
-   if( !okay ) result = 0.0;
+   result = formatter.formatFloating (this->lastVariantValue);
    return result;
 }
 
@@ -1400,26 +1400,9 @@ double QCaObject::getFloatingValue() const
   */
 QVector<long> QCaObject::getIntegerArray () const
 {
+   QEIntegerFormatting formatter;
    QVector<long> result;
-
-   if( lastVariantValue.type () == QVariant::List ) {
-      QVariantList list = lastVariantValue.toList();
-      result.reserve( list.count() );
-      for( int j = 0; j < list.count(); j++ ){
-         bool okay;
-         long item;
-         item = list.value( j ).toInt ( &okay );
-         if( !okay )break;
-         result.append ( item );
-      }
-   } else {
-      // array of 1 element
-      bool okay;
-      long item;
-      item = lastVariantValue.toInt( &okay );
-      if( okay )result.append ( item );
-   }
-
+   result = formatter.formatIntegerArray (this->lastVariantValue);
    return result;
 }
 
@@ -1428,29 +1411,11 @@ QVector<long> QCaObject::getIntegerArray () const
   */
 QVector<double> QCaObject::getFloatingArray () const
 {
+   QEFloatingFormatting formatter;
    QVector<double> result;
-
-   if( lastVariantValue.type () == QVariant::List ) {
-      QVariantList list = lastVariantValue.toList();
-      result.reserve( list.count() );
-      for( int j = 0; j < list.count(); j++ ){
-         bool okay;
-         double item;
-         item = list.value( j ).toDouble( &okay );
-         if( !okay )break;
-         result.append ( item );
-      }
-   } else {
-      // array of 1 element
-      bool okay;
-      double item;
-      item = lastVariantValue.toDouble( &okay );
-      if( okay )result.append ( item );
-   }
-
+   result = formatter.formatFloatingArray (this->lastVariantValue);
    return result;
 }
-
 
 /*
   Return the record name (technically the process variable name).

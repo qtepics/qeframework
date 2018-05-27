@@ -1,5 +1,9 @@
-/*
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+/*  QEFloatingFormatting.h
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -24,8 +26,8 @@
 
 // Provides textual formatting for QEFloating data.
 
-#ifndef QEFLOATINGFORMATTING_H
-#define QEFLOATINGFORMATTING_H
+#ifndef QE_FLOATING_FORMATTING_H
+#define QE_FLOATING_FORMATTING_H
 
 #include <QString>
 #include <QVariant>
@@ -52,8 +54,15 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFloatingFormatting {
     //   - Format a double based on a value
     //   - Translate a double and generate a value
     //===============================================
-    double formatFloating( const QVariant &value );
+    /// Given a data value of any type, format it as an double according to the formatting instructions held by the class.
+    /// This is used to convert the QVariant value received from a QCaObject, which is still based on the data variable type, to a double.
+    double formatFloating( const QVariant &value, int arrayIndex = 0 );
+
+    /// Given a data value of any type, format it as an array of doubles according to the formatting instructions held by the class.
+    /// This is used to convert the QVariant value received from a QCaObject, which is still based on the data variable type, to a double array.
+    /// Typically used where the input QVariant value is an array of data values, but will work for any QVariant type.
     QVector<double> formatFloatingArray( const QVariant &value );
+
     QVariant formatValue( const double &floatingValue, generic::generic_types valueType );
     QVariant formatValue( const QVector<double> &floatingValue, generic::generic_types valueType );
 
@@ -87,4 +96,4 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFloatingFormatting {
     formats format;
 };
 
-#endif // QEFLOATINGFORMATTING_H
+#endif // QE_FLOATING_FORMATTING_H

@@ -1,6 +1,9 @@
 /*  QESimpleShape.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,15 +18,13 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2014,2016,2017,2018 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
 
-#include <QESimpleShape.h>
+#include "QESimpleShape.h"
 #include <alarm.h>
 #include <QDebug>
 #include <QECommon.h>
@@ -96,7 +97,6 @@ void QESimpleShape::setup ()
    // Set the initial state
    // Widget is inactive until connected.
    //
-   this->isStaticValue = false;
    this->channelValue = 0;
    this->channelAlarmColour = this->getColor (invalid, 255);
    this->edgeAlarmState = Always;
@@ -188,9 +188,7 @@ void QESimpleShape::useNewVariableNameProperty (QString variableNameIn,
 {
    ASSERT_PV_INDEX (variableIndex, return);
 
-   if (variableIndex == MAIN_PV_INDEX) this->isStaticValue = false;
-
-   // Note: essentially calls createQcaItem - provided expanded pv name is not empty.
+   // Note: essentially calls createQcaItem - provided the expanded PV name is not empty.
    //
    this->setVariableNameAndSubstitutions (variableNameIn,
                                           variableNameSubstitutionsIn,
@@ -206,35 +204,22 @@ qcaobject::QCaObject* QESimpleShape::createQcaItem (unsigned int variableIndex)
    ASSERT_PV_INDEX (variableIndex, return NULL);
 
    qcaobject::QCaObject* result = NULL;
-   QString pvName;
-   int number;
-   bool okay;
 
    if (variableIndex == MAIN_PV_INDEX) {
-      pvName = this->getSubstitutedVariableName (variableIndex);
-      number = pvName.toInt (&okay);
+      QString pvName = this->getSubstitutedVariableName (variableIndex);
 
-      // Has designer/user just set an integer (as opposed to a PV name)?.
-      // Note: no sensible PV names are just integers.
+      // Note: we have dropped the interpretation of PV name as a literal integer.
+      // Use a QSimpleShape widget instead.
       //
-      if (okay) {
-         this->isStaticValue = true;
-         this->channelValue = number;
-         this->setValue (number);
-         qDebug () << "QESimpleShape: PV name interpreted as integer depreciated - use a QSimpleShape widget instead";
-      } else {
-         // Assume it is a PV.
-         //
-         result = new QEInteger (pvName, this, &this->integerFormatting, variableIndex);
+      result = new qcaobject::QCaObject (pvName, this, variableIndex);
 
-         // Apply currently defined array index/elements request values.
-         //
-         this->setSingleVariableQCaProperties (result);
-      }
+      // Apply currently defined array index/elements request values.
+      //
+      this->setSingleVariableQCaProperties (result);
 
    } else if (variableIndex == EDGE_PV_INDEX) {
-      pvName = this->getSubstitutedVariableName (variableIndex);
-      result = new QEInteger (pvName, this, &this->integerFormatting, variableIndex);
+      QString pvName = this->getSubstitutedVariableName (variableIndex);
+      result = new qcaobject::QCaObject (pvName, this, variableIndex);
 
       // Apply currently defined array index/elements request values.
       //
@@ -268,8 +253,8 @@ void QESimpleShape::establishConnection (unsigned int variableIndex)
    // connect it to the appropriate slots.
    //
    if (qca) {
-      QObject::connect (qca,  SIGNAL (integerChanged  (const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int &)),
-                        this, SLOT   (setShapeValue   (const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int &)));
+      QObject::connect (qca,  SIGNAL (dataChanged   (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int &)),
+                        this, SLOT   (setShapeValue (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int &)));
 
       QObject::connect (qca,  SIGNAL (connectionChanged (QCaConnectionInfo&, const unsigned int &)),
                         this, SLOT   (connectionChanged (QCaConnectionInfo&, const unsigned int &)));
@@ -316,7 +301,7 @@ void QESimpleShape::connectionChanged (QCaConnectionInfo & connectionInfo,
 // Update the shape value
 // This is the slot used to recieve data updates from a QCaObject based class.
 //
-void QESimpleShape::setShapeValue (const long &valueIn, QCaAlarmInfo & alarmInfo,
+void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo & alarmInfo,
                                    QCaDateTime &, const unsigned int& variableIndex)
 {
    ASSERT_PV_INDEX (variableIndex, return);
@@ -326,7 +311,7 @@ void QESimpleShape::setShapeValue (const long &valueIn, QCaAlarmInfo & alarmInfo
 
    // Associated qca object - avoid the segmentation fault.
    //
-   qca = getQcaItem (variableIndex);
+   qca = this->getQcaItem (variableIndex);
    if (!qca) {
       return;
    }
@@ -337,6 +322,7 @@ void QESimpleShape::setShapeValue (const long &valueIn, QCaAlarmInfo & alarmInfo
          // Set up variable details used by some formatting options.
          //
          if (this->isFirstUpdate) {
+            this->stringFormatting.setArrayAction (QEStringFormatting::INDEX);
             this->stringFormatting.setDbEgu (qca->getEgu ());
             this->stringFormatting.setDbEnumerations (qca->getEnumerations ());
             this->stringFormatting.setDbPrecision (qca->getPrecision ());
@@ -357,8 +343,16 @@ void QESimpleShape::setShapeValue (const long &valueIn, QCaAlarmInfo & alarmInfo
          // This essentially stores data twice, but the QSimpleShape stores the
          // modulo value, but we want to keep actual value (for getItemText).
          //
-         this->channelValue = valueIn;
-         this->setValue ((int) valueIn);
+         if (this->getDisplayAlarmState()) {
+            // We are displaying the alarm state.
+            //
+            this->channelValue = alarmInfo.getSeverity();
+         } else {
+            // NOTE: If variant can't be converted to a number, this returns 0.
+            //
+            this->channelValue = qca->getIntegerValue ();
+         }
+         this->setValue ((int) this->channelValue);
 
          // This update is over, clear first update flag.
          //
@@ -371,7 +365,8 @@ void QESimpleShape::setShapeValue (const long &valueIn, QCaAlarmInfo & alarmInfo
          if (this->edgeAlarmState != Never) {
             selectedEdgeColour = this->getColor (alarmInfo, 255);
          } else {
-            selectedEdgeColour = this->getColourProperty (valueIn & 15);
+            int ival = qca->getIntegerValue ();
+            selectedEdgeColour = this->getColourProperty (ival & 15);
          }
          this->setEdgeColour (selectedEdgeColour);
          break;
@@ -399,13 +394,15 @@ QString QESimpleShape::getItemText ()
    switch (this->getTextFormat ()) {
       case QSimpleShape::PvText:
       case QSimpleShape::LocalEnumeration:
-
-         if (this->isStaticValue) {
-            // There is no channel - just use a plain number.
-            //
-            result.setNum (this->channelValue);
-         } else {
-            result = this->stringFormatting.formatString (this->channelValue, this->getArrayIndex ());
+         {
+            qcaobject::QCaObject* qca = this->getQcaItem (MAIN_PV_INDEX);
+            if (!qca) break;  // sanity check
+            bool isDefined;
+            QVariant value;
+            QCaAlarmInfo alarmInfo;
+            QCaDateTime timeStamp;
+            qca->getLastData (isDefined, value, alarmInfo, timeStamp);
+            result = this->stringFormatting.formatString (value, this->getArrayIndex ());
          }
          break;
 
@@ -443,7 +440,7 @@ void QESimpleShape::stringFormattingChange()
 
 //------------------------------------------------------------------------------
 //
-QESimpleShape::DisplayAlarmStateOptions QESimpleShape::getEdgeAlarmStateOptionProperty ()
+QESimpleShape::DisplayAlarmStateOptions QESimpleShape::getEdgeAlarmStateOptionProperty () const
 {
    return this->edgeAlarmState;
 }

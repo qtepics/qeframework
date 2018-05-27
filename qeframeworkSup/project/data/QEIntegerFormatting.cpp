@@ -1,6 +1,9 @@
 /*  QEIntegerFormatting.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009, 2010, 2016 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -107,13 +108,15 @@ QVariant QEIntegerFormatting::formatValue( const QVector<long> &integerValue, ge
     Generate an integer given a value, using formatting defined within this class.
     The value may be an array of variants or a single variant
 */
-long QEIntegerFormatting::formatInteger( const QVariant &value ) {
+long QEIntegerFormatting::formatInteger( const QVariant &value, const int arrayIndex )
+{
 
     // If the value is a list, get the first item from the list.
     // Otherwise, just use the value as is
     if( value.type() == QVariant::List )
     {
-        return formatIntegerNonArray( value.toList()[0] );
+        QVariant defValue( (qlonglong) 0 );
+        return formatIntegerNonArray( value.toList().value( arrayIndex, defValue ) );
     }
     else
     {

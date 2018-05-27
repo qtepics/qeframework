@@ -1,5 +1,9 @@
-/*
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+/*  QEFloatingFormatting.cpp
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -13,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -158,13 +160,15 @@ QVariant QEFloatingFormatting::formatValue( const QVector<double> &floatingValue
     Generate an floating point number given a value, using formatting defined within this class.
     The value may be an array of variants or a single variant
 */
-double QEFloatingFormatting::formatFloating( const QVariant &value ) {
+double QEFloatingFormatting::formatFloating( const QVariant &value, const int arrayIndex )
+{
 
     // If the value is a list, get the first item from the list.
     // Otherwise, just use the value as is
     if( value.type() == QVariant::List )
     {
-        return formatFloatingNonArray( value.toList()[0] );
+        QVariant defValue( (double) 0.0 );
+        return formatFloatingNonArray( value.toList().value( arrayIndex, defValue ) );
     }
     else
     {
@@ -379,3 +383,5 @@ char QEFloatingFormatting::getFormatChar() {
         default:       return 'g'; break;
     }
 }
+
+// end

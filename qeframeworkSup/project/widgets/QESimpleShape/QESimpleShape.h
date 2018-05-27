@@ -1,6 +1,9 @@
 /*  QESimpleShape.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2014,2016,2018 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
@@ -30,8 +31,6 @@
 #include <QCaVariableNamePropertyManager.h>
 #include <QEWidget.h>
 #include <QString>
-#include <QEInteger.h>
-#include <QEIntegerFormatting.h>
 #include <QEFrameworkLibraryGlobal.h>
 #include <QESingleVariableMethods.h>
 #include <QEStringFormattingMethods.h>
@@ -39,10 +38,18 @@
 
 /*!
   This class is an EPICS aware simple shape.
-  The shape is selected at design time using the shape property - refer to #Shapes for details, or may be set by the setShape function.
+
+  The shape is selected at design time using the shape property - refer to #Shapes
+  for details, or may be set by the setShape function.
+
   The colour is based on either the value of or the alarm state of a single PV.
-  When the (standard) displayAlarmState property is false, the PV value (modulo 16) is used to select one of the colours defined by the colour0 to colour15 properties.
-  When the displayAlarmState property is true, the colour is based on the alarm state, i.e. green when no alarm, yellow for minor alarm etc.
+
+  When the (standard) displayAlarmState property is false, the PV value (modulo 16)
+  is used to select one of the colours defined by the colour0 to colour15 properties.
+
+  When the displayAlarmState property is true, the colour is based on the alarm state,
+  i.e. green when no alarm, yellow for minor alarm etc.
+
   This class extends QSimpleShape in order to make it EPICS aware.
 */
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESimpleShape :
@@ -268,8 +275,8 @@ public:
     // END-STANDARD-PROPERTIES ========================================================
 
 public:
-   QESimpleShape (QWidget* parent = 0);
-   QESimpleShape (const QString & variableName, QWidget* parent = 0);
+   explicit QESimpleShape (QWidget* parent = 0);
+   explicit QESimpleShape (const QString& variableName, QWidget* parent = 0);
    ~QESimpleShape ();
 
    // Override paranet method of same name so that we can apply substitutions to
@@ -285,7 +292,7 @@ public:
    void setEdgeArrayIndex (const int arrayIndex);
    int getEdgeArrayIndex () const;
 
-   DisplayAlarmStateOptions getEdgeAlarmStateOptionProperty ();             ///< Access function for #edgeAlarmStateOption property - refer to #edgeAlarmStateOption property for details
+   DisplayAlarmStateOptions getEdgeAlarmStateOptionProperty () const;       ///< Access function for #edgeAlarmStateOption property - refer to #edgeAlarmStateOption property for details
    void setEdgeAlarmStateOptionProperty( DisplayAlarmStateOptions option);  ///< Access function for #edgeAlarmStateOption property - refer to #edgeAlarmStateOption property for details
 
 signals:
@@ -338,8 +345,6 @@ private:
    QESingleVariableMethods* edge;
 
    DisplayAlarmStateOptions edgeAlarmState;
-   QEIntegerFormatting integerFormatting;
-   bool isStaticValue;
    bool isFirstUpdate;
    int  channelValue;
    QColor channelAlarmColour;
@@ -352,7 +357,7 @@ private slots:
    void connectionChanged (QCaConnectionInfo& connectionInfo,
                            const unsigned int& variableIndex);
 
-   void setShapeValue (const long& value, QCaAlarmInfo& alarmInfo,
+   void setShapeValue (const QVariant& value, QCaAlarmInfo& alarmInfo,
                        QCaDateTime& dateTime, const unsigned int& variableIndex);
 };
 

@@ -1,6 +1,9 @@
 /*  QEIntegerFormatting.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010, 2016 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -25,8 +26,8 @@
 
 // Provides textual formatting for QEInteger data.
 
-#ifndef QEINTEGERFORMATTING_H
-#define QEINTEGERFORMATTING_H
+#ifndef QE_INTEGER_FORMATTING_H
+#define QE_INTEGER_FORMATTING_H
 
 #include <QString>
 #include <QVariant>
@@ -56,7 +57,7 @@ public:
     //===============================================
     /// Given a data value of any type, format it as an integer according to the formatting instructions held by the class.
     /// This is used to convert the QVariant value received from a QCaObject, which is still based on the data variable type, to an integer.
-    long formatInteger( const QVariant &value );
+    long formatInteger( const QVariant &value, int arrayIndex = 0 );
 
     /// Given a data value of any type, format it as an array of integers according to the formatting instructions held by the class.
     /// This is used to convert the QVariant value received from a QCaObject, which is still based on the data variable type, to an integer array.
@@ -97,4 +98,4 @@ public:
     int radix; // Positional base system to display data.
 };
 
-#endif // QEINTEGERFORMATTING_H
+#endif // QE_INTEGER_FORMATTING_H
