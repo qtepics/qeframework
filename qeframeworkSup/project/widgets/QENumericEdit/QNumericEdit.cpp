@@ -1,6 +1,9 @@
 /*  QNumericEdit.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2014-2018 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2014,2016,2018 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -148,7 +149,7 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
             double factor = pow (10.0, p);
             this->internalSetValue (this->getValue () * factor);
 
-         } else if (this->isRadixDigit (qc)) {    // Is this a digit charcter?
+         } else if (this->isRadixDigit (qc)) {    // Is this a digit character?
 
             int significance = -this->mPrecision;
 
@@ -865,8 +866,21 @@ QEFixedPointRadix::Separators QNumericEdit::getSeparator () const
 //
 void QNumericEdit::internalSetValue (const double value)
 {
-   double constrainedValue;
-   constrainedValue = LIMIT (value, this->mMinimum, this->mMaximum);
+   const double dblRadix = double (this->fpr.getRadixValue ());
+   const double modelSmall = pow (dblRadix, -this->mPrecision);
+
+   double constrainedValue = value;
+
+   if (this->mNotation == Fixed) {
+      // When fixed, ensure widget is WYSIWYG
+      // int caste truncates towards zero - select signed half.
+      //
+      const double round = value >= 0.0 ? + 0.5 : -0.5;
+      const qint64 n = (value + modelSmall * round) / modelSmall;
+      constrainedValue = n * modelSmall;
+   }
+
+   constrainedValue = LIMIT (constrainedValue, this->mMinimum, this->mMaximum);
 
    // Exponent limited to two digits.
    //
@@ -894,6 +908,7 @@ void QNumericEdit::internalSetValue (const double value)
 void QNumericEdit::setValue (const double value)
 {
    // This prevents infinite looping in the case of cyclic connections.
+   // Also prevents signals when value set programatically.
    //
    this->emitValueChangeInhibited = true;
    this->internalSetValue (value);
