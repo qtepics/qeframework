@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2014-2018 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -16,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2014 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
@@ -25,12 +25,11 @@
  *
  */
 
+#include "QEStripChartDurationDialog.h"
 #include <QDebug>
 #include <QECommon.h>
-
 #include <ui_QEStripChartDurationDialog.h>
 
-#include <QEStripChartDurationDialog.h>
 
 static const QString valid   ("QWidget { background-color: #c0e0c0; }");
 static const QString invalid ("QWidget { background-color: #e0e0a0; }");
@@ -94,7 +93,7 @@ void QEStripChartDurationDialog::calcShowDuration ()
 
    days = this->ui->spinBox->value ();
    days = LIMIT (days, 0, 9999);
-   secs = QTime ().secsTo (this->ui->endTimeEdit->time ());
+   secs = QTime (0, 0, 0, 0).secsTo (this->ui->endTimeEdit->time ());
    this->duration = secsPerDay * days + secs;
 
    this->duration = MAX (1, this->duration);
