@@ -1,6 +1,9 @@
 /*  PeriodicElementSetupForm.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2011-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2011 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -33,12 +34,16 @@ namespace Ui {
     class PeriodicElementSetupForm;
 }
 
+class userInfoStruct;
+
 class QEPLUGINLIBRARYSHARED_EXPORT PeriodicElementSetupForm : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit PeriodicElementSetupForm(QWidget *parent = 0);
+    explicit PeriodicElementSetupForm(const int element,
+                                      userInfoStruct* userInfo,
+                                      QWidget *parent = 0);
     ~PeriodicElementSetupForm();
 
 private:

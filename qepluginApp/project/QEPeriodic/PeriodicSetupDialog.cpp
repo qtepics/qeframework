@@ -1,6 +1,9 @@
 /*  PeriodicSetupDialog.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2011-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2011 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -36,6 +37,7 @@
 #include <QFrame>
 #include <QCheckBox>
 #include <QLineEdit>
+#include <QECommon.h>
 
 // Create the dialog
 PeriodicSetupDialog::PeriodicSetupDialog(QWidget *parent) :
@@ -44,60 +46,23 @@ PeriodicSetupDialog::PeriodicSetupDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    QEPeriodic *plugin = qobject_cast<QEPeriodic *>(parent);
+    if(!plugin) return;
+
     // Populate the table
     QGridLayout* periodicGrid = this->findChild<QGridLayout *>("periodicGridLayout");
     if( periodicGrid )
     {
+        periodicGrid->setSpacing( 4 );
+
         // Populate the table elements
         for( int i = 0; i < NUM_ELEMENTS; i++ )
         {
-            elements[i] = new PeriodicElementSetupForm( this );
+            elements[i] = new PeriodicElementSetupForm( i, &plugin->userInfo[i], this );
 
-            QLabel* label = elements[i]->findChild<QLabel *>("label");
-            if( label )
-            {
-                label->setText( QEPeriodic::elementInfo[i].symbol );
-            }
-
-            QFrame* frame = elements[i]->findChild<QFrame *>("frame");
-            if( frame )
-            {
-                frame->setToolTip( QEPeriodic::elementInfo[i].name );
-            }
-
-            QEPeriodic *plugin = qobject_cast<QEPeriodic *>(parent);
-            if( plugin )
-            {
-                QCheckBox* enableButton = elements[i]->findChild<QCheckBox *>("checkBoxEnable");
-                if( enableButton )
-                {
-                    enableButton->setChecked( plugin->userInfo[i].enable );
-                }
-
-                QLineEdit* value1 = elements[i]->findChild<QLineEdit *>("lineEditValue1");
-                if( value1 )
-                {
-                    value1->setText( QString::number( plugin->userInfo[i].value1 ) );
-                    value1->setCursorPosition( 0 );
-                }
-
-                QLineEdit* value2 = elements[i]->findChild<QLineEdit *>("lineEditValue2");
-                if( value2 )
-                {
-                    value2->setText( QString::number( plugin->userInfo[i].value2 ) );
-                    value2->setCursorPosition( 0 );
-                }
-
-                QLineEdit* elementText = elements[i]->findChild<QLineEdit *>("lineEditString");
-                if( elementText )
-                {
-                    elementText->setText(  plugin->userInfo[i].elementText );
-                    elementText->setCursorPosition( 0 );
-                }
-            }
-
-            periodicGrid->addWidget( elements[i], QEPeriodic::elementInfo[i].tableRow, QEPeriodic::elementInfo[i].tableCol );
-
+            periodicGrid->addWidget( elements[i],
+                                     QEPeriodic::elementInfo[i].tableRow,
+                                     QEPeriodic::elementInfo[i].tableCol );
         }
 
         // Populate unused rows and columns
@@ -106,24 +71,28 @@ PeriodicSetupDialog::PeriodicSetupDialog(QWidget *parent) :
         // ... Lanthanides indicators
         label = new QLabel( this );
         label->setText( "*" );
-        periodicGrid->addWidget( label, 5, 2 );
-        periodicGrid->setAlignment( label, Qt::AlignHCenter );
+        label->setAlignment(Qt::AlignVCenter|Qt::AlignRight);
+        label->setFixedWidth (20);
+        periodicGrid->addWidget( label, 5, 3 );
 
         label = new QLabel( this );
         label->setText( "*" );
-        periodicGrid->addWidget( label, 8, 1 );
-        periodicGrid->setAlignment( label, Qt::AlignRight );
+        label->setAlignment(Qt::AlignVCenter|Qt::AlignRight);
+        label->setFixedWidth (20);
+        periodicGrid->addWidget( label, 8, 3 );
 
         // ... Actinides indicators
         label = new QLabel( this );
         label->setText( "**" );
-        periodicGrid->addWidget( label, 6, 2 );
-        periodicGrid->setAlignment( label, Qt::AlignHCenter );
+        label->setAlignment(Qt::AlignVCenter|Qt::AlignRight);
+        label->setFixedWidth (20);
+        periodicGrid->addWidget( label, 6, 3 );
 
         label = new QLabel( this );
         label->setText( "**" );
-        periodicGrid->addWidget( label, 9, 1 );
-        periodicGrid->setAlignment( label, Qt::AlignRight );
+        label->setAlignment(Qt::AlignVCenter|Qt::AlignRight);
+        label->setFixedWidth (20);
+        periodicGrid->addWidget( label, 9, 3 );
 
         // ... Force empty row 7 to remain
         label = new QLabel( this );
@@ -133,6 +102,10 @@ PeriodicSetupDialog::PeriodicSetupDialog(QWidget *parent) :
         // Make empty row 7 narrower than the rest
         for( int i = 0; i < 10; i++ )
             periodicGrid->setRowStretch( i, (i==7) ? 2 : 10); // row 7 stretch = 2, all other rows stretch = 10
+
+        // Make "**" col 3 narrower than the rest
+        for( int i = 0; i < 19; i++ )
+            periodicGrid->setColumnStretch( i, (i==3) ? 1 : 10); // col 3 stretch = 2, all other rows stretch = 10
     }
 }
 

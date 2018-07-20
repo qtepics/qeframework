@@ -39,8 +39,12 @@ namespace Ui {
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT PeriodicDialog : public QEDialog {
     Q_OBJECT
 public:
-    PeriodicDialog(QWidget *parent = 0);
+    PeriodicDialog( QWidget *parent = 0 );
     ~PeriodicDialog();
+
+    // Colourise run-time element selection dialog
+    void setColourised( const bool colouriseIn );
+    bool isColourised() const;
 
     void setElement( QString elementIn,
                      QList<bool>& enabledList );
@@ -65,6 +69,7 @@ private:
     Ui::PeriodicDialog *m_ui;
     int selectedAtomicNumber;
     QString elementSelected;
+    bool colourise;
 
     typedef QEOneToOne <int, QPushButton*> ElementSlotButtonMap;
     ElementSlotButtonMap map;

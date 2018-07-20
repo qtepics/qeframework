@@ -1,6 +1,9 @@
 /*  PeriodicElementSetupForm.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2011-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2011 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -30,12 +31,32 @@
 
 #include "PeriodicElementSetupForm.h"
 #include "ui_PeriodicElementSetupForm.h"
+#include <QECommon.h>
+#include <QEPeriodic.h>
 
-PeriodicElementSetupForm::PeriodicElementSetupForm(QWidget *parent) :
+PeriodicElementSetupForm::PeriodicElementSetupForm(const int element,
+                                                   userInfoStruct* userInfo,
+                                                   QWidget *parent) :
     QWidget(parent),
     ui(new Ui::PeriodicElementSetupForm)
 {
     ui->setupUi(this);
+
+    const QEPeriodic::elementInfoStruct* info = &QEPeriodic::elementInfo [element];
+
+    ui->frame->setToolTip( info->name );
+    ui->checkBoxEnable->setToolTip( "Check if " + info->name + " is to be selected by user");
+    ui->checkBoxEnable->setText( info->symbol + "       ");
+    ui->checkBoxEnable->setChecked( userInfo->enable );
+    QString styleSheet;
+    styleSheet = QEUtilities::colourToStyle( QEPeriodic::categoryColour( info->category ) );
+    ui->checkBoxEnable->setStyleSheet( styleSheet );
+    ui->lineEditValue1->setText( QString::number( userInfo->value1 ) );
+    ui->lineEditValue1->setCursorPosition( 0 );
+    ui->lineEditValue2->setText( QString::number( userInfo->value2 ) );
+    ui->lineEditValue2->setCursorPosition( 0 );
+    ui->lineEditString->setText( userInfo->elementText );
+    ui->lineEditString->setCursorPosition( 0 );
 }
 
 PeriodicElementSetupForm::~PeriodicElementSetupForm()

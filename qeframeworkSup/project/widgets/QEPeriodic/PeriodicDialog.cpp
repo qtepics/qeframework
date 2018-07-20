@@ -45,54 +45,85 @@
 
 //------------------------------------------------------------------------------
 // Create the periodic selection dialog
-PeriodicDialog::PeriodicDialog(QWidget *parent) :
+PeriodicDialog::PeriodicDialog( QWidget *parent ) :
     QEDialog(parent),
     m_ui(new Ui::PeriodicDialog)
 {
     m_ui->setupUi( this );
 
-    // Ideally we would construct this dynamically using the QEPeriodic::elementInfo
-    // table just as it is done for the designer user setup form. But for now,
-    // we will go with what we have.
+    colourise = false;
+    map.clear ();    // index/button map
+
+    // Populate the table
+    // In many ways this is the same as in the plugin's PeriodicSetupDialog constructor.
     //
-    map.clear ();
-
-    // Find all the push buttons
-    QList<QPushButton *> allPButtons = this->findChildren<QPushButton *>();
-
-    for( int i = 0; i < allPButtons.size(); i++ )
+    QGridLayout* periodicGrid = m_ui->periodicGridLayout;
+    if( periodicGrid )
     {
-        // Search for buttons using button text.
-        //
-        QPushButton* button = allPButtons[i];
-        QString buttonText = button->text();
+       periodicGrid->setSpacing( 4 );
 
-        for( int j = 0; j < ARRAY_LENGTH( QEPeriodic::elementInfo ) ; j++ ) {
+       // Populate the table elements
+       for( int j = 0; j < NUM_ELEMENTS; j++ )
+       {
            const QEPeriodic::elementInfoStruct* info = &QEPeriodic::elementInfo [j];
+           QPushButton* button = new QPushButton( info->symbol, this );
 
-           if( buttonText.compare( info->symbol) == 0 ) {
-              // We have a match
-              //
-              if( map.containsF (j)) {
-                 DEBUG << "duplicate symbol" << buttonText << "slot" << j;
-              } else {
-                 map.insertF (j, button);
+           map.insertF( j, button );   // allows index/button mapping
 
-                 QObject::connect(button, SIGNAL (clicked()),
-                                  this,   SLOT   (noteElementSelected()));
+           button->setMinimumSize( 35, 23 );
+           button->setMaximumSize( 350,230 );
 
-                 button->setToolTip (QString(" %1 %2 %3 ")
-                                     .arg(info->number)
-                                     .arg (info->symbol)
-                                     .arg(info->name));
+           periodicGrid->addWidget( button, info->tableRow, info->tableCol );
 
-                 button->setMouseTracking ( true );
-                 button->installEventFilter( this );
+           QObject::connect( button, SIGNAL ( clicked() ),
+                             this,   SLOT   ( noteElementSelected()) );
 
-              }
-              break;
-           }
-        }
+           button->setToolTip ( QString(" %1  %2 ")
+                                .arg( info->name )
+                                .arg( info->number ) );
+       }
+
+       // Populate unused rows and columns
+       QLabel* label;
+
+       // ... Lanthanides indicators
+       label = new QLabel( this );
+       label->setText( "*" );
+       label->setAlignment(Qt::AlignVCenter|Qt::AlignRight);
+       label->setFixedWidth (20);
+       periodicGrid->addWidget( label, 5, 3 );
+
+       label = new QLabel( this );
+       label->setText( "*" );
+       label->setAlignment(Qt::AlignVCenter|Qt::AlignRight);
+       label->setFixedWidth (20);
+       periodicGrid->addWidget( label, 8, 3 );
+
+       // ... Actinides indicators
+       label = new QLabel( this );
+       label->setText( "**" );
+       label->setAlignment(Qt::AlignVCenter|Qt::AlignRight);
+       label->setFixedWidth (20);
+       periodicGrid->addWidget( label, 6, 3 );
+
+       label = new QLabel( this );
+       label->setText( "**" );
+       label->setAlignment(Qt::AlignVCenter|Qt::AlignRight);
+       label->setFixedWidth (20);
+       periodicGrid->addWidget( label, 9, 3 );
+
+       // ... Force empty row 7 to remain
+       label = new QLabel( this );
+       label->setText( "" );
+       periodicGrid->addWidget( label, 7, 10 );
+
+       // Make empty row 7 narrower than the rest
+       for( int i = 0; i < 10; i++ )
+           periodicGrid->setRowStretch( i, (i==7) ? 2 : 10); // row 7 stretch = 2, all other rows stretch = 10
+
+       // Make "**" col 3 narrower than the rest
+       for( int i = 0; i < 19; i++ )
+           periodicGrid->setColumnStretch( i, (i==3) ? 1 : 10); // col 3 stretch = 2, all other rows stretch = 10
     }
 
     selectedAtomicNumber = 0;
@@ -108,24 +139,35 @@ PeriodicDialog::~PeriodicDialog()
 }
 
 //------------------------------------------------------------------------------
+// Colourise user element selection dialog.
+void PeriodicDialog::setColourised (const bool colouriseIn)
+{
+    this->colourise = colouriseIn;
+}
+bool PeriodicDialog::isColourised () const
+{
+    return this->colourise;
+}
+
+//------------------------------------------------------------------------------
 // Ensure last selected items are undefined.
 int PeriodicDialog::exec( QWidget* targetWidget )
 {
-   // Clear selection
-   //
-   selectedAtomicNumber = 0;
-   elementSelected = "";
-   return QEDialog::exec( targetWidget );    // call parent
+    // Clear selection
+    //
+    selectedAtomicNumber = 0;
+    elementSelected = "";
+    return QEDialog::exec( targetWidget );    // call parent
 }
 
 //------------------------------------------------------------------------------
 // ???
-void PeriodicDialog::changeEvent(QEvent *e)
+void PeriodicDialog::changeEvent( QEvent *e )
 {
-    QDialog::changeEvent(e);
-    switch (e->type()) {
+    QDialog::changeEvent( e );
+    switch( e->type() ){
     case QEvent::LanguageChange:
-        m_ui->retranslateUi(this);
+        m_ui->retranslateUi( this );
         break;
     default:
         break;
@@ -164,8 +206,19 @@ void PeriodicDialog::setElement( QString elementIn,
         const bool itemEnabled = enabledList.value( j, false );
         button->setEnabled( itemEnabled );
 
+        if( colourise ) {
+            QColor colour = QEPeriodic::categoryColour( info->category );
+            if( itemEnabled ){
+                button->setStyleSheet( QEUtilities::colourToStyle( colour ) );
+            } else {
+                // Disabled - set bland colours.
+                colour = QEUtilities::blandColour( colour );
+                button->setStyleSheet( QEUtilities::colourToStyle( colour, QColor( "#808080" ) ) );
+            }
+        }
+
         if( itemEnabled && elementIn == info->symbol ) {
-           button->setFocus();
+            button->setFocus();
         }
     }
 }
@@ -181,8 +234,8 @@ void PeriodicDialog::setElement( QString elementIn,
 
 
 //------------------------------------------------------------------------------
-// Save the element symbol for the widget with focus (if it is a push button)
-// This is used by all the 'clicked' slots for all the element buttons
+// Save the element symbol and atomic number for the widget with focus
+// (if it is an element push button)
 void PeriodicDialog::noteElementSelected()
 {
     QPushButton* button = qobject_cast <QPushButton*>( sender () );

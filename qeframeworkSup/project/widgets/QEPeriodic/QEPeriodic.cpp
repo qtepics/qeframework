@@ -39,11 +39,12 @@
   A user defined string may be emitted on element selection.
  */
 
+#include "QEPeriodic.h"
 #include <QEScaling.h>
-#include <QEPeriodic.h>
 #include <QEString.h>
 #include <PeriodicDialog.h>
 #include <math.h>
+#include <QDebug>
 #include <QSizePolicy>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
@@ -51,6 +52,9 @@
 #include <QTextStream>
 #include <QDesignerFormWindowInterface>
 #include <QDesignerFormWindowCursorInterface>
+
+#define DEBUG  qDebug () << "QEPeriodic" << __LINE__ << __FUNCTION__ << "  "
+
 
 // Table containing all static element information
 // (Another table - userInfo - contains dynamic element information that
@@ -68,134 +72,158 @@ const QEPeriodic::elementInfoStruct QEPeriodic::elementInfo[NUM_ELEMENTS] = {
 //     |    |       |                |        |        |       |       |   .----------------- Ionization energy,
 //     |    |       |                |        |        |       |       |   |        .-------- Table row
 //     |    |       |                |        |        |       |       |   |        |   .---- Table column
-//     |    |       |                |        |        |       |       |   |        |   |
-//     |    |       |                |        |        |       |       |   |        |   |
-   {   1,   1.0079, "Hydrogen",      "H",    -259.0,  -253.0,  0.09,   1, 13.5984,  0,  0 },
-   {   2,   4.0026, "Helium",        "He",   -272.0,  -269.0,  0.18,  18, 24.5874,  0, 18 },
+//     |    |       |                |        |        |       |       |   |        |   |  .- Catagory
+//     |    |       |                |        |        |       |       |   |        |   |  |
+   {   1,   1.0079, "Hydrogen",      "H",    -259.0,  -253.0,  0.09,   1, 13.5984,  0,  0, QEPeriodic::Hydrogen  },
+   {   2,   4.0026, "Helium",        "He",   -272.0,  -269.0,  0.18,  18, 24.5874,  0, 18, QEPeriodic::NobleGas  },
 
-   {   3,   6.9410, "Lithium",       "Li",    180.0,  1347.0,  0.53,   1,  5.3917,  1,  0 },
-   {   4,   9.0122, "Beryllium",     "Be",   1278.0,  2970.0,  1.85,   2,  9.3227,  1,  1 },
-   {   5,  10.8110, "Boron",         "B",    2300.0,  2550.0,  2.34,  13,  8.2980,  1, 13 },
-   {   6,  12.0107, "Carbon",        "C",    3500.0,  4827.0,  2.26,  14, 11.2603,  1, 14 },
-   {   7,  14.0067, "Nitrogen",      "N",    -210.0,  -196.0,  1.25,  15, 14.5341,  1, 15 },
-   {   8,  15.9994, "Oxygen",        "O",    -218.0,  -183.0,  1.43,  16, 13.6181,  1, 16 },
-   {   9,  18.9984, "Fluorine",      "F",    -220.0,  -188.0,  1.70,  17, 17.4228,  1, 17 },
-   {  10,  20.1797, "Neon",          "Ne",   -249.0,  -246.0,  0.90,  18, 21.5645,  1, 18 },
+   {   3,   6.9410, "Lithium",       "Li",    180.0,  1347.0,  0.53,   1,  5.3917,  1,  0, QEPeriodic::AlkaliMetal },
+   {   4,   9.0122, "Beryllium",     "Be",   1278.0,  2970.0,  1.85,   2,  9.3227,  1,  1, QEPeriodic::AlkalineEarthMetal },
+   {   5,  10.8110, "Boron",         "B",    2300.0,  2550.0,  2.34,  13,  8.2980,  1, 13, QEPeriodic::Metalloid },
+   {   6,  12.0107, "Carbon",        "C",    3500.0,  4827.0,  2.26,  14, 11.2603,  1, 14, QEPeriodic::ReactiveNonMetal },
+   {   7,  14.0067, "Nitrogen",      "N",    -210.0,  -196.0,  1.25,  15, 14.5341,  1, 15, QEPeriodic::ReactiveNonMetal },
+   {   8,  15.9994, "Oxygen",        "O",    -218.0,  -183.0,  1.43,  16, 13.6181,  1, 16, QEPeriodic::ReactiveNonMetal },
+   {   9,  18.9984, "Fluorine",      "F",    -220.0,  -188.0,  1.70,  17, 17.4228,  1, 17, QEPeriodic::ReactiveNonMetal },
+   {  10,  20.1797, "Neon",          "Ne",   -249.0,  -246.0,  0.90,  18, 21.5645,  1, 18, QEPeriodic::NobleGas },
 
-   {  11,  22.9897, "Sodium",        "Na",     98.0,   883.0,  0.97,   1,  5.1391,  2,  0 },
-   {  12,  24.3050, "Magnesium",     "Mg",    639.0,  1090.0,  1.74,   2,  7.6462,  2,  1 },
-   {  13,  26.9815, "Aluminum",      "Al",    660.0,  2467.0,  2.70,  13,  5.9858,  2, 13 },
-   {  14,  28.0855, "Silicon",       "Si",   1410.0,  2355.0,  2.33,  14,  8.1517,  2, 14 },
-   {  15,  30.9738, "Phosphorus",    "P",      44.0,   280.0,  1.82,  15, 10.4867,  2, 15 },
-   {  16,  32.0650, "Sulfur",        "S",     113.0,   445.0,  2.07,  16, 10.3600,  2, 16 },
-   {  17,  35.4530, "Chlorine",      "Cl",   -101.0,   -35.0,  3.21,  17, 12.9676,  2, 17 },
-   {  18,  39.9480, "Argon",         "Ar",   -189.0,  -186.0,  1.78,  18, 15.7596,  2, 18 },
+   {  11,  22.9897, "Sodium",        "Na",     98.0,   883.0,  0.97,   1,  5.1391,  2,  0, QEPeriodic::AlkaliMetal },
+   {  12,  24.3050, "Magnesium",     "Mg",    639.0,  1090.0,  1.74,   2,  7.6462,  2,  1, QEPeriodic::AlkalineEarthMetal },
+   {  13,  26.9815, "Aluminum",      "Al",    660.0,  2467.0,  2.70,  13,  5.9858,  2, 13, QEPeriodic::PostTransitionMetal },
+   {  14,  28.0855, "Silicon",       "Si",   1410.0,  2355.0,  2.33,  14,  8.1517,  2, 14, QEPeriodic::Metalloid },
+   {  15,  30.9738, "Phosphorus",    "P",      44.0,   280.0,  1.82,  15, 10.4867,  2, 15, QEPeriodic::ReactiveNonMetal },
+   {  16,  32.0650, "Sulfur",        "S",     113.0,   445.0,  2.07,  16, 10.3600,  2, 16, QEPeriodic::ReactiveNonMetal },
+   {  17,  35.4530, "Chlorine",      "Cl",   -101.0,   -35.0,  3.21,  17, 12.9676,  2, 17, QEPeriodic::ReactiveNonMetal },
+   {  18,  39.9480, "Argon",         "Ar",   -189.0,  -186.0,  1.78,  18, 15.7596,  2, 18, QEPeriodic::NobleGas },
 
-   {  19,  39.0983, "Potassium",     "K",      64.0,   774.0,  0.86,   1,  4.3407,  3,  0 },
-   {  20,  40.0780, "Calcium",       "Ca",    839.0,  1484.0,  1.55,   2,  6.1132,  3,  1 },
-   {  21,  44.9559, "Scandium",      "Sc",   1539.0,  2832.0,  2.99,   3,  6.5615,  3,  2 },
-   {  22,  47.8670, "Titanium",      "Ti",   1660.0,  3287.0,  4.54,   4,  6.8281,  3,  4 },
-   {  23,  50.9415, "Vanadium",      "V",    1890.0,  3380.0,  6.11,   5,  6.7462,  3,  5 },
-   {  24,  51.9961, "Chromium",      "Cr",   1857.0,  2672.0,  7.19,   6,  6.7665,  3,  6 },
-   {  25,  54.9380, "Manganese",     "Mn",   1245.0,  1962.0,  7.43,   7,  7.4340,  3,  7 },
-   {  26,  55.8450, "Iron",          "Fe",   1535.0,  2750.0,  7.87,   8,  7.9024,  3,  8 },
-   {  27,  58.9332, "Cobalt",        "Co",   1495.0,  2870.0,  8.90,   9,  7.8810,  3,  9 },
-   {  28,  58.6934, "Nickel",        "Ni",   1453.0,  2732.0,  8.90,  10,  7.6398,  3, 10 },
-   {  29,  63.5460, "Copper",        "Cu",   1083.0,  2567.0,  8.96,  11,  7.7264,  3, 11 },
-   {  30,  65.3900, "Zinc",          "Zn",    420.0,   907.0,  7.13,  12,  9.3942,  3, 12 },
-   {  31,  69.7230, "Gallium",       "Ga",     30.0,  2403.0,  5.91,  13,  5.9993,  3, 13 },
-   {  32,  72.6400, "Germanium",     "Ge",    937.0,  2830.0,  5.32,  14,  7.8994,  3, 14 },
-   {  33,  74.9216, "Arsenic",       "As",     81.0,   613.0,  5.72,  15,  9.7886,  3, 15 },
-   {  34,  78.9600, "Selenium",      "Se",    217.0,   685.0,  4.79,  16,  9.7524,  3, 16 },
-   {  35,  79.9040, "Bromine",       "Br",     -7.0,    59.0,  3.12,  17, 11.8138,  3, 17 },
-   {  36,  83.8000, "Krypton",       "Kr",   -157.0,  -153.0,  3.75,  18, 13.9996,  3, 18 },
+   {  19,  39.0983, "Potassium",     "K",      64.0,   774.0,  0.86,   1,  4.3407,  3,  0, QEPeriodic::AlkaliMetal },
+   {  20,  40.0780, "Calcium",       "Ca",    839.0,  1484.0,  1.55,   2,  6.1132,  3,  1, QEPeriodic::AlkalineEarthMetal },
+   {  21,  44.9559, "Scandium",      "Sc",   1539.0,  2832.0,  2.99,   3,  6.5615,  3,  2, QEPeriodic::TransitionMetal },
+   {  22,  47.8670, "Titanium",      "Ti",   1660.0,  3287.0,  4.54,   4,  6.8281,  3,  4, QEPeriodic::TransitionMetal },
+   {  23,  50.9415, "Vanadium",      "V",    1890.0,  3380.0,  6.11,   5,  6.7462,  3,  5, QEPeriodic::TransitionMetal },
+   {  24,  51.9961, "Chromium",      "Cr",   1857.0,  2672.0,  7.19,   6,  6.7665,  3,  6, QEPeriodic::TransitionMetal },
+   {  25,  54.9380, "Manganese",     "Mn",   1245.0,  1962.0,  7.43,   7,  7.4340,  3,  7, QEPeriodic::TransitionMetal },
+   {  26,  55.8450, "Iron",          "Fe",   1535.0,  2750.0,  7.87,   8,  7.9024,  3,  8, QEPeriodic::TransitionMetal },
+   {  27,  58.9332, "Cobalt",        "Co",   1495.0,  2870.0,  8.90,   9,  7.8810,  3,  9, QEPeriodic::TransitionMetal },
+   {  28,  58.6934, "Nickel",        "Ni",   1453.0,  2732.0,  8.90,  10,  7.6398,  3, 10, QEPeriodic::TransitionMetal },
+   {  29,  63.5460, "Copper",        "Cu",   1083.0,  2567.0,  8.96,  11,  7.7264,  3, 11, QEPeriodic::TransitionMetal },
+   {  30,  65.3900, "Zinc",          "Zn",    420.0,   907.0,  7.13,  12,  9.3942,  3, 12, QEPeriodic::PostTransitionMetal },
+   {  31,  69.7230, "Gallium",       "Ga",     30.0,  2403.0,  5.91,  13,  5.9993,  3, 13, QEPeriodic::PostTransitionMetal },
+   {  32,  72.6400, "Germanium",     "Ge",    937.0,  2830.0,  5.32,  14,  7.8994,  3, 14, QEPeriodic::Metalloid },
+   {  33,  74.9216, "Arsenic",       "As",     81.0,   613.0,  5.72,  15,  9.7886,  3, 15, QEPeriodic::Metalloid },
+   {  34,  78.9600, "Selenium",      "Se",    217.0,   685.0,  4.79,  16,  9.7524,  3, 16, QEPeriodic::ReactiveNonMetal },
+   {  35,  79.9040, "Bromine",       "Br",     -7.0,    59.0,  3.12,  17, 11.8138,  3, 17, QEPeriodic::ReactiveNonMetal },
+   {  36,  83.8000, "Krypton",       "Kr",   -157.0,  -153.0,  3.75,  18, 13.9996,  3, 18, QEPeriodic::NobleGas },
 
-   {  37,  85.4678, "Rubidium",      "Rb",     39.0,   688.0,  1.63,   1,  4.1771,  4,  0 },
-   {  38,  87.6200, "Strontium",     "Sr",    769.0,  1384.0,  2.54,   2,  5.6949,  4,  1 },
-   {  39,  88.9059, "Yttrium",       "Y",    1523.0,  3337.0,  4.47,   3,  6.2173,  4,  2 },
-   {  40,  91.2240, "Zirconium",     "Zr",   1852.0,  4377.0,  6.51,   4,  6.6339,  4,  4 },
-   {  41,  92.9064, "Niobium",       "Nb",   2468.0,  4927.0,  8.57,   5,  6.7589,  4,  5 },
-   {  42,  95.9400, "Molybdenum",    "Mo",   2617.0,  4612.0, 10.22,   6,  7.0924,  4,  6 },
-   {  43,  98.0000, "Technetium",    "Tc",   2200.0,  4877.0, 11.50,   7,  7.2800,  4,  7 },
-   {  44, 101.0700, "Ruthenium",     "Ru",   2250.0,  3900.0, 12.37,   8,  7.3605,  4,  8 },
-   {  45, 102.9055, "Rhodium",       "Rh",   1966.0,  3727.0, 12.41,   9,  7.4589,  4,  9 },
-   {  46, 106.4200, "Palladium",     "Pd",   1552.0,  2927.0, 12.02,  10,  8.3369,  4, 10 },
-   {  47, 107.8682, "Silver",        "Ag",    962.0,  2212.0, 10.50,  11,  7.5762,  4, 11 },
-   {  48, 112.4110, "Cadmium",       "Cd",    321.0,   765.0,  8.65,  12,  8.9938,  4, 12 },
-   {  49, 114.8180, "Indium",        "In",    157.0,  2000.0,  7.31,  13,  5.7864,  4, 13 },
-   {  50, 118.7100, "Tin",           "Sn",    232.0,  2270.0,  7.31,  14,  7.3439,  4, 14 },
-   {  51, 121.7600, "Antimony",      "Sb",    630.0,  1750.0,  6.68,  15,  8.6084,  4, 15 },
-   {  52, 127.6000, "Tellurium",     "Te",    449.0,   990.0,  6.24,  16,  9.0096,  4, 16 },
-   {  53, 126.9045, "Iodine",        "I",     114.0,   184.0,  4.93,  17, 10.4513,  4, 17 },
-   {  54, 131.2930, "Xenon",         "Xe",   -112.0,  -108.0,  5.90,  18, 12.1298,  4, 18 },
+   {  37,  85.4678, "Rubidium",      "Rb",     39.0,   688.0,  1.63,   1,  4.1771,  4,  0, QEPeriodic::AlkaliMetal },
+   {  38,  87.6200, "Strontium",     "Sr",    769.0,  1384.0,  2.54,   2,  5.6949,  4,  1, QEPeriodic::AlkalineEarthMetal },
+   {  39,  88.9059, "Yttrium",       "Y",    1523.0,  3337.0,  4.47,   3,  6.2173,  4,  2, QEPeriodic::TransitionMetal },
+   {  40,  91.2240, "Zirconium",     "Zr",   1852.0,  4377.0,  6.51,   4,  6.6339,  4,  4, QEPeriodic::TransitionMetal },
+   {  41,  92.9064, "Niobium",       "Nb",   2468.0,  4927.0,  8.57,   5,  6.7589,  4,  5, QEPeriodic::TransitionMetal },
+   {  42,  95.9400, "Molybdenum",    "Mo",   2617.0,  4612.0, 10.22,   6,  7.0924,  4,  6, QEPeriodic::TransitionMetal },
+   {  43,  98.0000, "Technetium",    "Tc",   2200.0,  4877.0, 11.50,   7,  7.2800,  4,  7, QEPeriodic::TransitionMetal },
+   {  44, 101.0700, "Ruthenium",     "Ru",   2250.0,  3900.0, 12.37,   8,  7.3605,  4,  8, QEPeriodic::TransitionMetal },
+   {  45, 102.9055, "Rhodium",       "Rh",   1966.0,  3727.0, 12.41,   9,  7.4589,  4,  9, QEPeriodic::TransitionMetal },
+   {  46, 106.4200, "Palladium",     "Pd",   1552.0,  2927.0, 12.02,  10,  8.3369,  4, 10, QEPeriodic::TransitionMetal },
+   {  47, 107.8682, "Silver",        "Ag",    962.0,  2212.0, 10.50,  11,  7.5762,  4, 11, QEPeriodic::TransitionMetal },
+   {  48, 112.4110, "Cadmium",       "Cd",    321.0,   765.0,  8.65,  12,  8.9938,  4, 12, QEPeriodic::PostTransitionMetal },
+   {  49, 114.8180, "Indium",        "In",    157.0,  2000.0,  7.31,  13,  5.7864,  4, 13, QEPeriodic::PostTransitionMetal },
+   {  50, 118.7100, "Tin",           "Sn",    232.0,  2270.0,  7.31,  14,  7.3439,  4, 14, QEPeriodic::PostTransitionMetal },
+   {  51, 121.7600, "Antimony",      "Sb",    630.0,  1750.0,  6.68,  15,  8.6084,  4, 15, QEPeriodic::Metalloid },
+   {  52, 127.6000, "Tellurium",     "Te",    449.0,   990.0,  6.24,  16,  9.0096,  4, 16, QEPeriodic::Metalloid },
+   {  53, 126.9045, "Iodine",        "I",     114.0,   184.0,  4.93,  17, 10.4513,  4, 17, QEPeriodic::ReactiveNonMetal },
+   {  54, 131.2930, "Xenon",         "Xe",   -112.0,  -108.0,  5.90,  18, 12.1298,  4, 18, QEPeriodic::NobleGas },
 
-   {  55, 132.9055, "Cesium",        "Cs",     29.0,   678.0,  1.87,   1,  3.8939,  5,  0 },
-   {  56, 137.3270, "Barium",        "Ba",    725.0,  1140.0,  3.59,   2,  5.2117,  5,  1 },
-   {  57, 138.9055, "Lanthanum",     "La",    920.0,  3469.0,  6.15,   3,  5.5769,  5,  2 },
-   {  58, 140.1160, "Cerium",        "Ce",    795.0,  3257.0,  6.77, 101,  5.5387,  8,  4 },
-   {  59, 140.9077, "Praseodymium",  "Pr",    935.0,  3127.0,  6.77, 101,  5.4730,  8,  5 },
-   {  60, 144.2400, "Neodymium",     "Nd",   1010.0,  3127.0,  7.01, 101,  5.5250,  8,  6 },
-   {  61, 145.0000, "Promethium",    "Pm",   1100.0,  3000.0,  7.30, 101,  5.5820,  8,  7 },
-   {  62, 150.3600, "Samarium",      "Sm",   1072.0,  1900.0,  7.52, 101,  5.6437,  8,  8 },
-   {  63, 151.9640, "Europium",      "Eu",    822.0,  1597.0,  5.24, 101,  5.6704,  8,  9 },
-   {  64, 157.2500, "Gadolinium",    "Gd",   1311.0,  3233.0,  7.90, 101,  6.1501,  8, 10 },
-   {  65, 158.9253, "Terbium",       "Tb",   1360.0,  3041.0,  8.23, 101,  5.8638,  8, 11 },
-   {  66, 162.5000, "Dysprosium",    "Dy",   1412.0,  2562.0,  8.55, 101,  5.9389,  8, 12 },
-   {  67, 164.9303, "Holmium",       "Ho",   1470.0,  2720.0,  8.80, 101,  6.0215,  8, 13 },
-   {  68, 167.2590, "Erbium",        "Er",   1522.0,  2510.0,  9.07, 101,  6.1077,  8, 14 },
-   {  69, 168.9342, "Thulium",       "Tm",   1545.0,  1727.0,  9.32, 101,  6.1843,  8, 15 },
-   {  70, 173.0400, "Ytterbium",     "Yb",    824.0,  1466.0,  6.90, 101,  6.2542,  8, 16 },
-   {  71, 174.9670, "Lutetium",      "Lu",   1656.0,  3315.0,  9.84, 101,  5.4259,  8, 17 },
-   {  72, 178.4900, "Hafnium",       "Hf",   2150.0,  5400.0, 13.31,   4,  6.8251,  5,  4 },
-   {  73, 180.9479, "Tantalum",      "Ta",   2996.0,  5425.0, 16.65,   5,  7.5496,  5,  5 },
-   {  74, 183.8400, "Tungsten",      "W",    3410.0,  5660.0, 19.35,   6,  7.8640,  5,  6 },
-   {  75, 186.2070, "Rhenium",       "Re",   3180.0,  5627.0, 21.04,   7,  7.8335,  5,  7 },
-   {  76, 190.2300, "Osmium",        "Os",   3045.0,  5027.0, 22.60,   8,  8.4382,  5,  8 },
-   {  77, 192.2170, "Iridium",       "Ir",   2410.0,  4527.0, 22.40,   9,  8.9670,  5,  9 },
-   {  78, 195.0780, "Platinum",      "Pt",   1772.0,  3827.0, 21.45,  10,  8.9587,  5, 10 },
-   {  79, 196.9665, "Gold",          "Au",   1064.0,  2807.0, 19.32,  11,  9.2255,  5, 11 },
-   {  80, 200.5900, "Mercury",       "Hg",    -39.0,   357.0, 13.55,  12, 10.4375,  5, 12 },
-   {  81, 204.3833, "Thallium",      "Tl",    303.0,  1457.0, 11.85,  13,  6.1082,  5, 13 },
-   {  82, 207.2000, "Lead",          "Pb",    327.0,  1740.0, 11.35,  14,  7.4167,  5, 14 },
-   {  83, 208.9804, "Bismuth",       "Bi",    271.0,  1560.0,  9.75,  15,  7.2856,  5, 15 },
-   {  84, 209.0000, "Polonium",      "Po",    254.0,   962.0,  9.30,  16,  8.4170,  5, 16 },
-   {  85, 210.0000, "Astatine",      "At",    302.0,   337.0,  0.00,  17,  9.3000,  5, 17 },
-   {  86, 222.0000, "Radon",         "Rn",    -71.0,   -62.0,  9.73,  18, 10.7485,  5, 18 },
+   {  55, 132.9055, "Cesium",        "Cs",     29.0,   678.0,  1.87,   1,  3.8939,  5,  0, QEPeriodic::AlkaliMetal },
+   {  56, 137.3270, "Barium",        "Ba",    725.0,  1140.0,  3.59,   2,  5.2117,  5,  1, QEPeriodic::AlkalineEarthMetal },
+   {  57, 138.9055, "Lanthanum",     "La",    920.0,  3469.0,  6.15,   3,  5.5769,  5,  2, QEPeriodic::Lanthanide },
+   {  58, 140.1160, "Cerium",        "Ce",    795.0,  3257.0,  6.77, 101,  5.5387,  8,  4, QEPeriodic::Lanthanide },
+   {  59, 140.9077, "Praseodymium",  "Pr",    935.0,  3127.0,  6.77, 101,  5.4730,  8,  5, QEPeriodic::Lanthanide },
+   {  60, 144.2400, "Neodymium",     "Nd",   1010.0,  3127.0,  7.01, 101,  5.5250,  8,  6, QEPeriodic::Lanthanide },
+   {  61, 145.0000, "Promethium",    "Pm",   1100.0,  3000.0,  7.30, 101,  5.5820,  8,  7, QEPeriodic::Lanthanide },
+   {  62, 150.3600, "Samarium",      "Sm",   1072.0,  1900.0,  7.52, 101,  5.6437,  8,  8, QEPeriodic::Lanthanide },
+   {  63, 151.9640, "Europium",      "Eu",    822.0,  1597.0,  5.24, 101,  5.6704,  8,  9, QEPeriodic::Lanthanide },
+   {  64, 157.2500, "Gadolinium",    "Gd",   1311.0,  3233.0,  7.90, 101,  6.1501,  8, 10, QEPeriodic::Lanthanide },
+   {  65, 158.9253, "Terbium",       "Tb",   1360.0,  3041.0,  8.23, 101,  5.8638,  8, 11, QEPeriodic::Lanthanide },
+   {  66, 162.5000, "Dysprosium",    "Dy",   1412.0,  2562.0,  8.55, 101,  5.9389,  8, 12, QEPeriodic::Lanthanide },
+   {  67, 164.9303, "Holmium",       "Ho",   1470.0,  2720.0,  8.80, 101,  6.0215,  8, 13, QEPeriodic::Lanthanide },
+   {  68, 167.2590, "Erbium",        "Er",   1522.0,  2510.0,  9.07, 101,  6.1077,  8, 14, QEPeriodic::Lanthanide },
+   {  69, 168.9342, "Thulium",       "Tm",   1545.0,  1727.0,  9.32, 101,  6.1843,  8, 15, QEPeriodic::Lanthanide },
+   {  70, 173.0400, "Ytterbium",     "Yb",    824.0,  1466.0,  6.90, 101,  6.2542,  8, 16, QEPeriodic::Lanthanide },
+   {  71, 174.9670, "Lutetium",      "Lu",   1656.0,  3315.0,  9.84, 101,  5.4259,  8, 17, QEPeriodic::Lanthanide },
+   {  72, 178.4900, "Hafnium",       "Hf",   2150.0,  5400.0, 13.31,   4,  6.8251,  5,  4, QEPeriodic::TransitionMetal },
+   {  73, 180.9479, "Tantalum",      "Ta",   2996.0,  5425.0, 16.65,   5,  7.5496,  5,  5, QEPeriodic::TransitionMetal },
+   {  74, 183.8400, "Tungsten",      "W",    3410.0,  5660.0, 19.35,   6,  7.8640,  5,  6, QEPeriodic::TransitionMetal },
+   {  75, 186.2070, "Rhenium",       "Re",   3180.0,  5627.0, 21.04,   7,  7.8335,  5,  7, QEPeriodic::TransitionMetal },
+   {  76, 190.2300, "Osmium",        "Os",   3045.0,  5027.0, 22.60,   8,  8.4382,  5,  8, QEPeriodic::TransitionMetal },
+   {  77, 192.2170, "Iridium",       "Ir",   2410.0,  4527.0, 22.40,   9,  8.9670,  5,  9, QEPeriodic::TransitionMetal },
+   {  78, 195.0780, "Platinum",      "Pt",   1772.0,  3827.0, 21.45,  10,  8.9587,  5, 10, QEPeriodic::TransitionMetal },
+   {  79, 196.9665, "Gold",          "Au",   1064.0,  2807.0, 19.32,  11,  9.2255,  5, 11, QEPeriodic::TransitionMetal },
+   {  80, 200.5900, "Mercury",       "Hg",    -39.0,   357.0, 13.55,  12, 10.4375,  5, 12, QEPeriodic::PostTransitionMetal },
+   {  81, 204.3833, "Thallium",      "Tl",    303.0,  1457.0, 11.85,  13,  6.1082,  5, 13, QEPeriodic::PostTransitionMetal },
+   {  82, 207.2000, "Lead",          "Pb",    327.0,  1740.0, 11.35,  14,  7.4167,  5, 14, QEPeriodic::PostTransitionMetal },
+   {  83, 208.9804, "Bismuth",       "Bi",    271.0,  1560.0,  9.75,  15,  7.2856,  5, 15, QEPeriodic::PostTransitionMetal },
+   {  84, 209.0000, "Polonium",      "Po",    254.0,   962.0,  9.30,  16,  8.4170,  5, 16, QEPeriodic::PostTransitionMetal },
+   {  85, 210.0000, "Astatine",      "At",    302.0,   337.0,  0.00,  17,  9.3000,  5, 17, QEPeriodic::Metalloid },
+   {  86, 222.0000, "Radon",         "Rn",    -71.0,   -62.0,  9.73,  18, 10.7485,  5, 18, QEPeriodic::NobleGas },
 
-   {  87, 223.0000, "Francium",      "Fr",     27.0,   677.0,  0.00,   1,  4.0727,  6,  0 },
-   {  88, 226.0000, "Radium",        "Ra",    700.0,  1737.0,  5.50,   2,  5.2784,  6,  1 },
-   {  89, 227.0000, "Actinium",      "Ac",   1050.0,  3200.0, 10.07,   3,  5.1700,  6,  2 },
-   {  90, 232.0381, "Thorium",       "Th",   1750.0,  4790.0, 11.72, 102,  6.3067,  9,  4 },
-   {  91, 231.0359, "Protactinium",  "Pa",   1568.0,     0.0, 15.40, 102,  5.8900,  9,  5 },
-   {  92, 238.0289, "Uranium",       "U",    1132.0,  3818.0, 18.95, 102,  6.1941,  9,  6 },
-   {  93, 237.0000, "Neptunium",     "Np",    640.0,  3902.0, 20.20, 102,  6.2657,  9,  7 },
-   {  94, 244.0000, "Plutonium",     "Pu",    640.0,  3235.0, 19.84, 102,  6.0262,  9,  8 },
-   {  95, 243.0000, "Americium",     "Am",    994.0,  2607.0, 13.67, 102,  5.9738,  9,  9 },
-   {  96, 247.0000, "Curium",        "Cm",   1340.0,  3110.0, 13.50, 102,  5.9915,  9, 10 },
-   {  97, 247.0000, "Berkelium",     "Bk",    986.0,     0.0, 14.78, 102,  6.1979,  9, 11 },
-   {  98, 251.0000, "Californium",   "Cf",    900.0,  1470.0, 15.10, 102,  6.2817,  9, 12 },
-   {  99, 252.0000, "Einsteinium",   "Es",    860.0,     0.0,  8.84, 102,  6.4200,  9, 13 },
-   { 100, 257.0000, "Fermium",       "Fm",   1527.0,     0.0,  0.00, 102,  6.5000,  9, 14 },
-   { 101, 258.0000, "Mendelevium",   "Md",      0.0,     0.0,  0.00, 102,  6.5800,  9, 15 },
-   { 102, 259.0000, "Nobelium",      "No",    827.0,     0.0,  0.00, 102,  6.6500,  9, 16 },
-   { 103, 262.0000, "Lawrencium",    "Lr",   1627.0,     0.0,  0.00, 102,  4.9000,  9, 17 },
-   { 104, 261.0000, "Rutherfordium", "Rf",   2100.0,  5500.0, 23.00,   4,  0.0000,  6,  4 },
-   { 105, 262.0000, "Dubnium",       "Db",      0.0,     0.0,  0.00,   5,  0.0000,  6,  5 },
-   { 106, 266.0000, "Seaborgium",    "Sg",      0.0,     0.0,  0.00,   6,  0.0000,  6,  6 },
-   { 107, 264.0000, "Bohrium",       "Bh",      0.0,     0.0,  0.00,   7,  0.0000,  6,  7 },
-   { 108, 277.0000, "Hassium",       "Hs",      0.0,     0.0,  0.00,   8,  0.0000,  6,  8 },
-   { 109, 278.0000, "Meitnerium",    "Mt",      0.0,     0.0,  0.00,   9,  0.0000,  6,  9 },
-   { 110, 281.0000, "Darmstadtium",  "Ds",      0.0,     0.0,  0.00,  10,  0.0000,  6, 10 },
-   { 111, 281.0000, "Roentgenium",   "Rg",      0.0,     0.0,  0.00,  11,  0.0000,  6, 11 },
-   { 112, 285.0000, "Copernicium",   "Cn",      0.0,     0.0,  0.00,  12,  0.0000,  6, 12 },
-   { 113, 286.0000, "Ununtrium",     "Uut",     0.0,     0.0,  0.00,  13,  0.0000,  6, 13 },
-   { 114, 289.0000, "Ununquadium",   "Uuq",     0.0,     0.0,  0.00,  14,  0.0000,  6, 14 },
-   { 115, 289.0000, "Ununpentium",   "Uup",     0.0,     0.0,  0.00,  15,  0.0000,  6, 15 },
-   { 116, 293.0000, "Ununhexium",    "Uuh",     0.0,     0.0,  0.00,  16,  0.0000,  6, 16 },
-   { 117, 294.0000, "Ununseptium",   "Uus",     0.0,     0.0,  0.00,  17,  0.0000,  6, 17 },
-   { 118, 294.0000, "Ununoctium",    "Uuo",     0.0,    80.0, 13.65,  18,  0.0000,  6, 18 }
+   {  87, 223.0000, "Francium",      "Fr",     27.0,   677.0,  0.00,   1,  4.0727,  6,  0, QEPeriodic::AlkaliMetal },
+   {  88, 226.0000, "Radium",        "Ra",    700.0,  1737.0,  5.50,   2,  5.2784,  6,  1, QEPeriodic::AlkalineEarthMetal },
+   {  89, 227.0000, "Actinium",      "Ac",   1050.0,  3200.0, 10.07,   3,  5.1700,  6,  2, QEPeriodic::Actinide },
+   {  90, 232.0381, "Thorium",       "Th",   1750.0,  4790.0, 11.72, 102,  6.3067,  9,  4, QEPeriodic::Actinide },
+   {  91, 231.0359, "Protactinium",  "Pa",   1568.0,     0.0, 15.40, 102,  5.8900,  9,  5, QEPeriodic::Actinide },
+   {  92, 238.0289, "Uranium",       "U",    1132.0,  3818.0, 18.95, 102,  6.1941,  9,  6, QEPeriodic::Actinide },
+   {  93, 237.0000, "Neptunium",     "Np",    640.0,  3902.0, 20.20, 102,  6.2657,  9,  7, QEPeriodic::Actinide },
+   {  94, 244.0000, "Plutonium",     "Pu",    640.0,  3235.0, 19.84, 102,  6.0262,  9,  8, QEPeriodic::Actinide },
+   {  95, 243.0000, "Americium",     "Am",    994.0,  2607.0, 13.67, 102,  5.9738,  9,  9, QEPeriodic::Actinide },
+   {  96, 247.0000, "Curium",        "Cm",   1340.0,  3110.0, 13.50, 102,  5.9915,  9, 10, QEPeriodic::Actinide },
+   {  97, 247.0000, "Berkelium",     "Bk",    986.0,     0.0, 14.78, 102,  6.1979,  9, 11, QEPeriodic::Actinide },
+   {  98, 251.0000, "Californium",   "Cf",    900.0,  1470.0, 15.10, 102,  6.2817,  9, 12, QEPeriodic::Actinide },
+   {  99, 252.0000, "Einsteinium",   "Es",    860.0,     0.0,  8.84, 102,  6.4200,  9, 13, QEPeriodic::Actinide },
+   { 100, 257.0000, "Fermium",       "Fm",   1527.0,     0.0,  0.00, 102,  6.5000,  9, 14, QEPeriodic::Actinide },
+   { 101, 258.0000, "Mendelevium",   "Md",      0.0,     0.0,  0.00, 102,  6.5800,  9, 15, QEPeriodic::Actinide },
+   { 102, 259.0000, "Nobelium",      "No",    827.0,     0.0,  0.00, 102,  6.6500,  9, 16, QEPeriodic::Actinide },
+   { 103, 262.0000, "Lawrencium",    "Lr",   1627.0,     0.0,  0.00, 102,  4.9000,  9, 17, QEPeriodic::Actinide },
+   { 104, 261.0000, "Rutherfordium", "Rf",   2100.0,  5500.0, 23.00,   4,  0.0000,  6,  4, QEPeriodic::TransitionMetal },
+   { 105, 262.0000, "Dubnium",       "Db",      0.0,     0.0,  0.00,   5,  0.0000,  6,  5, QEPeriodic::TransitionMetal },
+   { 106, 266.0000, "Seaborgium",    "Sg",      0.0,     0.0,  0.00,   6,  0.0000,  6,  6, QEPeriodic::TransitionMetal },
+   { 107, 264.0000, "Bohrium",       "Bh",      0.0,     0.0,  0.00,   7,  0.0000,  6,  7, QEPeriodic::TransitionMetal },
+   { 108, 277.0000, "Hassium",       "Hs",      0.0,     0.0,  0.00,   8,  0.0000,  6,  8, QEPeriodic::TransitionMetal },
+   { 109, 278.0000, "Meitnerium",    "Mt",      0.0,     0.0,  0.00,   9,  0.0000,  6,  9, QEPeriodic::UnknownProperties },
+   { 110, 281.0000, "Darmstadtium",  "Ds",      0.0,     0.0,  0.00,  10,  0.0000,  6, 10, QEPeriodic::UnknownProperties },
+   { 111, 281.0000, "Roentgenium",   "Rg",      0.0,     0.0,  0.00,  11,  0.0000,  6, 11, QEPeriodic::UnknownProperties },
+   { 112, 285.0000, "Copernicium",   "Cn",      0.0,     0.0,  0.00,  12,  0.0000,  6, 12, QEPeriodic::PostTransitionMetal },
+   { 113, 286.0000, "Nihonium",      "Nh",      0.0,     0.0,  0.00,  13,  0.0000,  6, 13, QEPeriodic::UnknownProperties },
+   { 114, 289.0000, "Flerovium",     "Fl",      0.0,     0.0,  0.00,  14,  0.0000,  6, 14, QEPeriodic::UnknownProperties },
+   { 115, 289.0000, "Moscovium",     "Mc",      0.0,     0.0,  0.00,  15,  0.0000,  6, 15, QEPeriodic::UnknownProperties },
+   { 116, 293.0000, "Livermorium",   "Lv",      0.0,     0.0,  0.00,  16,  0.0000,  6, 16, QEPeriodic::UnknownProperties },
+   { 117, 294.0000, "Tennessine",    "Ts",      0.0,     0.0,  0.00,  17,  0.0000,  6, 17, QEPeriodic::UnknownProperties },
+   { 118, 294.0000, "Oganesson",     "Og",      0.0,    80.0, 13.65,  18,  0.0000,  6, 18, QEPeriodic::UnknownProperties }
 };
 
+
+static const QColor categoryColourMap [QEPeriodic::NUMBER_OF_CATEGORIES]
+{
+    QColor ("#d8e180"),   // 0   Hydrogen
+    QColor ("#e35457"),   // 1   Alkali metal
+    QColor ("#e5c897"),   // 2   Alkaline earth metal
+    QColor ("#e5a8a9"),   // 3   Transition metal
+    QColor ("#b4b4b4"),   // 4   Post transition metal
+    QColor ("#b3b684"),   // 5   Metalloid
+    QColor ("#d7e87c"),   // 6   Reactive non-metal
+    QColor ("#ade8e7"),   // 7   Noble gas
+    QColor ("#e6a5e8"),   // 8   Lan­thanide
+    QColor ("#e580b5"),   // 9   Actinide
+    QColor ("#d0d0d0")    // 10  Unknown properties.
+};
+
+/*
+    Get the colour associate with this catagory
+    Remainder ensure no array out of bounds errors.
+*/
+QColor QEPeriodic::categoryColour( const Category cat )
+{
+   return categoryColourMap[ int( cat ) % QEPeriodic::NUMBER_OF_CATEGORIES ];
+}
 
 /*
     Constructor with no initialisation
@@ -269,6 +297,8 @@ void QEPeriodic::setup()
     variableTolerance1 = 0.1;
     variableTolerance2 = 0.1;
     setAllowDrop( false );
+
+    colourise = false;
 
     // Set the initial state
     isConnected = false;
@@ -721,8 +751,9 @@ void QEPeriodic::userClicked() {
         enabledList.append( userInfo[i].enable );
     }
 
-    // Present the element selection dialog
+    // Present the element selection dialog - set selected colourisation option
     PeriodicDialog dialog( writeButton );
+    dialog.setColourised( colourise );
 
     // The dialog object constructed post QEPeriodic construction - apply scaling.
     QEScaling::applyToWidget ( &dialog );
@@ -1056,6 +1087,16 @@ void QEPeriodic::setUserInfoFile( QString userInfoFileIn )
 QString QEPeriodic::getUserInfoFile() const
 {
     return userInfoFile;
+}
+
+// Colourise user element selection dialog.
+void QEPeriodic::setColourised (const bool colouriseIn)
+{
+    this->colourise = colouriseIn;
+}
+bool QEPeriodic::isColourised () const
+{
+    return this->colourise;
 }
 
 // Parse and use an XML string representing the widget's user info.

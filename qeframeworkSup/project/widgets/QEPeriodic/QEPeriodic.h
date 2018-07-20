@@ -27,6 +27,7 @@
 #ifndef QE_PERIODIC_H
 #define QE_PERIODIC_H
 
+#include <QColor>
 #include <QFrame>
 #include <QPushButton>
 #include <QLabel>
@@ -42,7 +43,6 @@
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPeriodicComponentData
 {
 public:
-
     QEPeriodicComponentData()
     {
         variableIndex1 = 0;
@@ -76,10 +76,31 @@ public:
 };
 
 
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPeriodic : public QFrame, public QEWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPeriodic :
+      public QFrame, public QEWidget
+{
     Q_OBJECT
+public:
 
-  public:
+    // Category as per https://en.wikipedia.org/wiki/Periodic_table
+    //
+    enum Category {
+        Hydrogen = 0,                   // a class of its own
+        AlkaliMetal,
+        AlkalineEarthMetal,
+        TransitionMetal,
+        PostTransitionMetal,
+        Metalloid,
+        ReactiveNonMetal,
+        NobleGas,
+        Lanthanide,
+        Actinide,
+        UnknownProperties,
+        NUMBER_OF_CATEGORIES            // must be last
+    };
+
+    static QColor categoryColour (const Category cat);
+
     // Static element information structure
     struct elementInfoStruct
     {
@@ -94,6 +115,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPeriodic : public QFrame, public QEWi
         double       ionizationEnergy;  // Ionization energy: 13.5984 eV
         unsigned int tableRow;          // Index into table row representing periodic table (related to user interface, not chemistry)
         unsigned int tableCol;          // Index into table column representing periodic table (related to user interface, not chemistry)
+        Category     category;          // Category:          Hydrogen
     };
 
     QEPeriodic( QWidget *parent = 0 );
@@ -166,6 +188,10 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPeriodic : public QFrame, public QEWi
     void setUserInfoFile( QString userInfoFileIn );
     QString getUserInfoFile() const;
 
+    // Colourise run-time element selection dialog
+    void setColourised( const bool colouriseIn );
+    bool isColourised() const;
+
     // user info source options
     enum userInfoSourceOptions { USER_INFO_SOURCE_TEXT,
                                  USER_INFO_SOURCE_FILE, };
@@ -215,7 +241,7 @@ signals:
     /// re-display to reflect the new property value.
     void requestResend();
 
-  protected:
+protected:
     QEFloatingFormatting floatingFormatting;
     bool localEnabled;
     bool allowDrop;
@@ -229,7 +255,7 @@ signals:
 
     void establishConnection( unsigned int variableIndex );
 
-  private:
+private:
     void setup();
     qcaobject::QCaObject* createQcaItem( unsigned int variableIndex  );
 
@@ -246,6 +272,7 @@ signals:
     QHBoxLayout *layout;
     QString selectedSymbol;
     int selectedAtomicNumber;
+    bool colourise;
 
     bool getElementTextForValue( const double& value, const unsigned int& variableIndex, QEPeriodicComponentData& componentData, const QString& currentText, QString& newText );
 
@@ -325,6 +352,7 @@ protected:
             variableNamePropertyManagers[i].setSubstitutionsProperty( variableNameSubstitutions );
         }
     }
+
     /// Property access function for #variableSubstitutions property. This has special behaviour to work well within designer.
     QString getVariableNameSubstitutionsProperty()
     {
@@ -499,6 +527,11 @@ public:
                                userInfoSourceFile = QEPeriodic::USER_INFO_SOURCE_FILE };
     void setUserInfoSourceOptionProperty( UserInfoSourceOptions userInfoSourceOption ){ setUserInfoSourceOption( (QEPeriodic::userInfoSourceOptions)userInfoSourceOption ); }
     UserInfoSourceOptions getUserInfoSourceOptionProperty(){ return (UserInfoSourceOptions)getUserInfoSourceOption(); }
+
+    /// This property sets element colourised enable/disable on the PeridicDialog.
+    ///
+    Q_PROPERTY(bool colourised READ isColourised WRITE setColourised)
+
 };
 
 Q_DECLARE_METATYPE(QEPeriodic::userInfoStructArray)
