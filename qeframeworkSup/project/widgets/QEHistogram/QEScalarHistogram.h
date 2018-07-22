@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2014-2018 Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2014,2016 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -93,6 +93,9 @@ public:
    Q_PROPERTY (bool   logScale         READ getLogScale         WRITE setLogScale  )
    // When dislayAlarmState set ture, this property value effectively ignored.
    Q_PROPERTY (QColor backgroundColour READ getBackgroundColour WRITE setBackgroundColour)
+   Q_PROPERTY (QColor secondBgColour   READ getSecondBgColour   WRITE setSecondBgColour)
+   Q_PROPERTY (int    secondBgSize     READ getSecondBgSize     WRITE setSecondBgSize)
+   Q_PROPERTY (bool   showSecondBg     READ getShowSecondBg     WRITE setShowSecondBg)
    Q_PROPERTY (QColor barColour        READ getBarColour        WRITE setBarColour)
    Q_PROPERTY (bool   drawBorder       READ getDrawBorder       WRITE setDrawBorder)
    Q_PROPERTY (Qt::Orientation orientation READ getOrientation  WRITE setOrientation)
@@ -237,12 +240,15 @@ public:
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, int,    getBarWidth,    setBarWidth)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, int,    getMargin,      setMargin)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, bool,   getAutoBarGapWidths, setAutoBarGapWidths)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, bool,   getShowScale,  setShowScale)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, bool,   getShowGrid,   setShowGrid)
+   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, bool,   getShowScale,   setShowScale)
+   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, bool,   getShowGrid,    setShowGrid)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, bool,   getLogScale,    setLogScale)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, bool,   getDrawAxies,  setDrawAxies)
+   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, bool,   getDrawAxies,   setDrawAxies)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, bool,   getDrawBorder,  setDrawBorder)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, QColor, getBackgroundColour, setBackgroundColour)
+   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, QColor, getSecondBgColour, setSecondBgColour)
+   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, int,    getSecondBgSize, setSecondBgSize)
+   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, bool,   getShowSecondBg, setShowSecondBg)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, QColor, getBarColour,   setBarColour)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, Qt::Orientation, getOrientation, setOrientation)
 

@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2014-2018 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2014,2016 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -58,10 +58,14 @@ public:
    Q_PROPERTY (bool   drawAxies        READ getDrawAxies        WRITE setDrawAxies)
    Q_PROPERTY (bool   showScale        READ getShowScale        WRITE setShowScale)
    Q_PROPERTY (int    precision        READ getPrecision        WRITE setPrecision)
+   /// This is the value grid selection
    Q_PROPERTY (bool   showGrid         READ getShowGrid         WRITE setShowGrid)
    Q_PROPERTY (bool   logScale         READ getLogScale         WRITE setLogScale)
-   // Where possible I spell colour properly.
+   /// Where possible I spell colour properly.
    Q_PROPERTY (QColor backgroundColour READ getBackgroundColour WRITE setBackgroundColour)
+   Q_PROPERTY (QColor secondBgColour   READ getSecondBgColour   WRITE setSecondBgColour)
+   Q_PROPERTY (int    secondBgSize     READ getSecondBgSize     WRITE setSecondBgSize)
+   Q_PROPERTY (bool   showSecondBg     READ getShowSecondBg     WRITE setShowSecondBg)
    Q_PROPERTY (QColor barColour        READ getBarColour        WRITE setBarColour)
    Q_PROPERTY (bool   drawBorder       READ getDrawBorder       WRITE setDrawBorder)
 
@@ -107,6 +111,9 @@ public:
    PROPERTY_ACCESS (bool,   DrawAxies)
    PROPERTY_ACCESS (bool,   DrawBorder)
    PROPERTY_ACCESS (QColor, BackgroundColour)
+   PROPERTY_ACCESS (QColor, SecondBgColour)
+   PROPERTY_ACCESS (int,    SecondBgSize)
+   PROPERTY_ACCESS (bool,   ShowSecondBg)
    PROPERTY_ACCESS (QColor, BarColour)
    PROPERTY_ACCESS (Qt::Orientation, Orientation)
    //
@@ -155,11 +162,14 @@ private:
    int indexOfHistogramAreaPosition (const QPoint& p) const;
 
    int firstBarTopLeft () const;
-   QRect fullBarRect (const int position) const;  // within histogram area
+   QRect fullBarRect (const int position) const;  // within paintArea
+   QRect backgroundAreaRect (const int groupIndex) const;  // within paintArea
 
    QString coordinateText (const double value) const;
    int maxPaintTextWidth (QPainter& painter) const;
    void paintGrid (QPainter& painter, const QColor& penColour) const;
+
+   void paintSecondaryBackground (QPainter& painter) const;
 
    // Returns true if item position is in the paintArea
    bool paintItem (QPainter& painter, const int position, const int index) const;
@@ -206,6 +216,7 @@ private:
    //
    QColor mBarColour;
    QColor mBackgroundColour;
+   QColor mSecondBgColour;
 
    double mMinimum;
    double mMaximum;
@@ -218,7 +229,9 @@ private:
    bool mDrawAxies;
    bool mDrawBorder;
    bool mShowScale;
-   bool mShowGrid;
+   bool mShowGrid;    // value grid
+   bool mShowSecondBg;
+   int mSecondBgSize;
    bool mLogScale;
    Qt::Orientation mOrientation;
    int mTestSize;

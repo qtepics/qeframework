@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
+ *  Copyright (c) 2014-2018  Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2014,2016,2018  Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -80,6 +80,7 @@ QEHistogram::QEHistogram (QWidget *parent) : QFrame (parent)
    // And local properties.
    //
    this->mBackgroundColour = QColor (224, 224, 224);   // pale gray
+   this->mSecondBgColour   = QColor (200, 212, 224);   // blueish pale gray
    this->mBarColour = QColor (55, 155, 255);           // blue
    this->mDrawAxies = true;
    this->mDrawBorder = true;
@@ -87,6 +88,7 @@ QEHistogram::QEHistogram (QWidget *parent) : QFrame (parent)
    this->mAutoBarGapWidths = false;
    this->mShowScale = true;
    this->mShowGrid = true;
+   this->mShowSecondBg = false;
    this->mLogScale = false;
 
    this->mGap = 3;                // 0 .. 10
@@ -95,6 +97,7 @@ QEHistogram::QEHistogram (QWidget *parent) : QFrame (parent)
    this->mBaseLine = 0.0;
    this->mMinimum = 0.0;
    this->mMaximum = 10.0;
+   this->mSecondBgSize = 5;
    this->mTestSize = 0;
 
    // Create internal widgets
@@ -280,6 +283,7 @@ int QEHistogram::firstBarTopLeft () const
 //
 QRect QEHistogram::fullBarRect  (const int position) const
 {
+   const int fullWidth = this->useBarWidth + this->useGap + 1;   // also full height
    int top;
    int left;
    int right;
@@ -291,15 +295,50 @@ QRect QEHistogram::fullBarRect  (const int position) const
       top = this->paintArea.top ();
       bottom = this->paintArea.bottom ();
 
-      left = this->firstBarTopLeft () +
-            (this->useBarWidth + this->useGap + 1) * position;
+      left = this->firstBarTopLeft () + (fullWidth * position);
       right = left + this->useBarWidth;
    } else {
       left = this->paintArea.left ();
       right = this->paintArea.right ();
-      top = this->firstBarTopLeft () +
-            (this->useBarWidth + this->useGap + 1) * position;
+      top = this->firstBarTopLeft () + (fullWidth * position);
       bottom = top + this->useBarWidth;
+   }
+
+   QRect result;
+   result.setTop (top);
+   result.setLeft (left);
+   result.setBottom (bottom);
+   result.setRight (right);
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// Note: this function takes firstDisplayed into account, whereas the fullBarRect
+// function does not.
+//
+QRect QEHistogram::backgroundAreaRect (const int groupIndex) const
+{
+   const int position = groupIndex * this->mSecondBgSize - this->firstDisplayed;
+   const int fullWidth = this->useBarWidth + this->useGap + 1;   // also full height
+   int top;
+   int left;
+   int right;
+   int bottom;
+
+   // paintArea defines overall paint area.
+   //
+   if (HORIZONTAL) {
+      top = this->paintArea.top ();
+      bottom = this->paintArea.bottom ();
+
+      left = this->firstBarTopLeft () + (fullWidth * position) - (this->useGap / 2);
+      right = left + (fullWidth * this->mSecondBgSize);
+   } else {
+      left = this->paintArea.left ();
+      right = this->paintArea.right ();
+      top = this->firstBarTopLeft () + (fullWidth * position) - (this->useGap / 2);
+      bottom = top + (fullWidth * this->mSecondBgSize);
    }
 
    QRect result;
@@ -383,6 +422,48 @@ QRect QEHistogram::positionOfIndex (const int index) const
    const QPoint bottomRight = this->mapFromGlobal (this->histogramArea->mapToGlobal (temp.bottomRight ()));
 
    return QRect (topLeft, bottomRight);
+}
+
+//------------------------------------------------------------------------------
+//
+void QEHistogram::paintSecondaryBackground (QPainter& painter) const
+{
+   QBrush brush;
+   QPen pen;
+
+   if (!this->mShowSecondBg) return;  // not required.
+
+   brush.setStyle (Qt::SolidPattern);
+   brush.setColor (this->mSecondBgColour);
+   painter.setBrush (brush);
+
+   pen.setStyle (Qt::SolidLine);
+   pen.setWidth (1);
+   pen.setColor (this->mSecondBgColour);
+   painter.setPen (pen);
+
+   // Only the 'odd' groups have the alternative back ground.
+   //
+   const int axisOffset = QEScaling::scale (4);
+   const int finishBottomRight = SELECT (this->paintArea.right (),
+                                         this->paintArea.bottom () - axisOffset);
+
+   int first;
+   first = this->firstDisplayed / this->mSecondBgSize;
+   if (first %2 == 0) first--;  // must be odd and round down.
+   first = MIN(1, first);
+
+   int last = 1199;   // +infinity sanity check
+   for (int j = first; j <= last; j += 2) {
+      QRect bgArea = this->backgroundAreaRect (j);
+
+      if (HORIZONTAL) {
+         if (bgArea.left () >= finishBottomRight) break;    // Off to the side
+      } else {
+         if (bgArea.top ()  >= finishBottomRight) break;    // Off to the side
+      }
+      painter.drawRect (bgArea);
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -474,6 +555,7 @@ bool QEHistogram::paintItem (QPainter& painter,
    brush.setColor (colour);
    painter.setBrush (brush);
 
+   pen.setStyle (Qt::SolidLine);
    pen.setWidth (1);
    if (this->mDrawBorder) {
       // Use darker version of the color for the boarder.
@@ -618,7 +700,7 @@ void QEHistogram::paintAllItems ()
    }
    this->axisPainter->setPenColour (penColour);
 
-   // Draw everything with antialiasing off.
+   // Draw everything with anti-aliasing off.
    //
    QPainter painter (this->histogramArea);
    painter.setRenderHint (QPainter::Antialiasing, false);
@@ -711,6 +793,7 @@ void QEHistogram::paintAllItems ()
 
    // Do grid and axis - note this might tweak useMinimum/useMaximum.
    //
+   this->paintSecondaryBackground (painter);
    this->paintGrid (painter, penColour);
 
    this->useGap = this->mGap;
@@ -896,9 +979,12 @@ PROPERTY_ACCESS (bool,   AutoBarGapWidths, value,                               
 PROPERTY_ACCESS (bool,   ShowScale,        value,                                                 this->axisPainter->setVisible (this->mShowScale))
 PROPERTY_ACCESS (bool,   ShowGrid,         value,                                                 NO_EXTRA)
 PROPERTY_ACCESS (bool,   LogScale,         value,                                                 NO_EXTRA)
-PROPERTY_ACCESS (bool,   DrawAxies,        value,                                                 this->axisPainter->setHasAxisLine(this->mDrawAxies);)
+PROPERTY_ACCESS (bool,   DrawAxies,        value,                                                 this->axisPainter->setHasAxisLine (this->mDrawAxies);)
 PROPERTY_ACCESS (bool,   DrawBorder,       value,                                                 NO_EXTRA)
 PROPERTY_ACCESS (QColor, BackgroundColour, value,                                                 NO_EXTRA)
+PROPERTY_ACCESS (QColor, SecondBgColour,   value,                                                 NO_EXTRA)
+PROPERTY_ACCESS (int,    SecondBgSize,     LIMIT (value, 1, 100),                                 NO_EXTRA)
+PROPERTY_ACCESS (bool,   ShowSecondBg,     value,                                                 NO_EXTRA)
 PROPERTY_ACCESS (QColor, BarColour,        value,                                                 NO_EXTRA)
 PROPERTY_ACCESS (int,    TestSize,         LIMIT (value, 0, MAX_CAPACITY),                        this->createTestData ())
 
