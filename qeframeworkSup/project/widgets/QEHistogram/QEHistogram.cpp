@@ -451,7 +451,7 @@ void QEHistogram::paintSecondaryBackground (QPainter& painter) const
    int first;
    first = this->firstDisplayed / this->mSecondBgSize;
    if (first %2 == 0) first--;  // must be odd and round down.
-   first = MIN(1, first);
+   first = MAX (1, first);
 
    int last = 1199;   // +infinity sanity check
    for (int j = first; j <= last; j += 2) {
