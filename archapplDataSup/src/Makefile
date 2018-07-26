@@ -1,7 +1,7 @@
 # $File: //ASP/tec/gui/qeframework/trunk/archapplDataSup/src/Makefile $
-# $Revision: #1 $
-# $DateTime: 2018/04/19 13:50:10 $
-# Last checked in by: $Author: starritt $
+# $Revision: #2 $
+# $DateTime: 2018/07/24 10:38:38 $
+# Last checked in by: $Author: pozara $
 #
 # Makefile to build a library that parses Google Protocol Buffers data recieved from Archiver Appliance
 #
@@ -40,7 +40,7 @@ check-env:
 ifdef PROTOBUF_LIB_DIR
    LDFLAGS += -L$(PROTOBUF_LIB_DIR)
 else
-	$(warning PROTOBUF_LIB_DIR is undefined which could result in protobuf library not being found)
+   $(warning PROTOBUF_LIB_DIR is undefined which could result in protobuf library not being found)
 endif
 
 # Link protobuf library and object files into libraries
