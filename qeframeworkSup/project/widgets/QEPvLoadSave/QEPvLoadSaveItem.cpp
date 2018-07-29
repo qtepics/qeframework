@@ -1,6 +1,9 @@
 /*  QEPvLoadSaveItem.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2016,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -537,8 +538,6 @@ QVariant QEPvLoadSaveLeaf::getData (int column) const
    const QEPvLoadSaveCommon::ColumnKinds kind = QEPvLoadSaveCommon::ColumnKinds (column);
    QVariant result;
    QString valueImage;
-   double diff;
-   bool ok1, ok2;
 
    switch (kind) {
       case QEPvLoadSaveCommon::NodeName:
@@ -568,9 +567,22 @@ QVariant QEPvLoadSaveLeaf::getData (int column) const
          break;
 
       case QEPvLoadSaveCommon::Delta:
-         diff = this->liveValue.toDouble(&ok1) - this->value.toDouble(&ok2);
-         if (ok1 && ok2) {
-            result.setValue (diff);
+         if ((this->liveValue.type() != QVariant::Invalid) &&
+             (this->value.type() != QVariant::Invalid))
+         {
+            // Both values are defined.
+            //
+            bool ok1, ok2;
+            double diff = this->liveValue.toDouble (&ok1) - this->value.toDouble (&ok2);
+            if (ok1 && ok2) {
+               // Numerical value - we can calculate a numeric difference.
+               //
+               result.setValue (diff);
+            } else if (this->liveValue == this->value) {
+               result.setValue (QString ("identical"));
+            } else {
+               result.setValue (QString ("different"));
+            }
          } else {
             result.setValue (QString ("n/a"));
          }
