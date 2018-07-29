@@ -474,10 +474,17 @@ void QEPeriodic::setElement(  const QString symbol )
     selectedSymbol = symbol;
     // If symbol did not match an enabled element, do nothing
     if( i == NUM_ELEMENTS )
-    {   // can be used as a user prefered initail text, ie no element is selected - can be empty string, "--" and something else
-        writeButton->setText( symbol );
+    {   // can be used as a user prefered initial text, ie no element is selected - can be empty string, "--" and something else
+        if( writeButton )
+        {
+            writeButton->setText( symbol );
+        }
+        selectedAtomicNumber = 0;
         return;
     }
+
+    // Also set the selected atomic number.
+    selectedAtomicNumber = elementInfo[i].number;
 
     // Set the button and readback text
     if( writeButton )
@@ -490,6 +497,36 @@ void QEPeriodic::setElement(  const QString symbol )
     }
 }
 
+// Implement a slot to set the current text of the push button
+// This is the slot used to recieve signals specifying an element atomic number.
+void QEPeriodic::setAtomicNumber( const int atomicNumber )
+{
+    // If atomic number is out of range, then essentially do nothing
+    if( (atomicNumber < 1) || (atomicNumber > NUM_ELEMENTS)) {
+        //
+        selectedAtomicNumber = 0;
+        selectedSymbol = "--";
+        if( writeButton )
+        {
+            writeButton->setText( selectedSymbol );
+        }
+        return;
+    }
+
+    // Set the write button and readback text
+    // NOTE: We know that atomicNumber 1 element is in array positon 0 etc.
+    //
+    selectedAtomicNumber = atomicNumber;
+    selectedSymbol = elementInfo[atomicNumber - 1].symbol;
+    if( writeButton )
+    {
+        writeButton->setText( selectedSymbol );
+    }
+    if( readbackLabel )
+    {
+        readbackLabel->setText( selectedSymbol );
+    }
+}
 
 // Return the user values for a given element symbol. (Not nessesarily the current element)
 bool QEPeriodic::getElementValues( QString symbol, double* value1, double* value2 ) const

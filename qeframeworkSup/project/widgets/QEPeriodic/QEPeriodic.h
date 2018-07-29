@@ -218,6 +218,7 @@ private slots:
 
 public slots:
     void setElement( const QString symbol );
+    void setAtomicNumber( const int atomicNumber );
 
 signals:
     /// Sent when the element is changed by the user selecting an element
@@ -270,8 +271,8 @@ private:
     QPushButton* writeButton;
     QLabel* readbackLabel;
     QHBoxLayout *layout;
-    QString selectedSymbol;
-    int selectedAtomicNumber;
+    QString selectedSymbol;      // TODO: we have two soruces of truth.
+    int selectedAtomicNumber;    //       we need to fix this.
     bool colourise;
 
     bool getElementTextForValue( const double& value, const unsigned int& variableIndex, QEPeriodicComponentData& componentData, const QString& currentText, QString& newText );
