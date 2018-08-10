@@ -1024,6 +1024,45 @@ void QEAnalogIndicator::setValue (const int valueIn)
 }
 
 //------------------------------------------------------------------------------
+// Ensure  max - min >= minimum span for all updated
+//
+void QEAnalogIndicator::setMinimum (const double minimum)
+{
+   this->mMinimum = minimum;
+
+   // Ensure consistant.
+   //
+   this->mMaximum = MAX (this->mMaximum, this->mMinimum + MINIMUM_SPAN);
+   this->update();
+}
+
+//------------------------------------------------------------------------------
+//
+double QEAnalogIndicator::getMinimum () const
+{
+   return this->mMinimum;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAnalogIndicator::setMaximum (const double maximum)
+{
+   this->mMaximum = maximum;
+
+   // Ensure consistant.
+   //
+   this->mMinimum = MIN (this->mMinimum, this->mMaximum - MINIMUM_SPAN);
+   this->update ();
+}
+
+//------------------------------------------------------------------------------
+//
+double QEAnalogIndicator::getMaximum () const
+{
+   return this->mMaximum;
+}
+
+//------------------------------------------------------------------------------
 // Standard propery access macro.
 //
 #define PROPERTY_ACCESS(type, name, convert)                 \
@@ -1069,12 +1108,6 @@ PROPERTY_ACCESS (bool, ShowScale, value)
 PROPERTY_ACCESS (bool, LogScale, value)
 
 PROPERTY_ACCESS (double, Value, value)
-
-// Ensure  max - min >= minimum span for all updated
-//
-PROPERTY_ACCESS (double, Minimum, MIN (value, this->mMaximum - MINIMUM_SPAN) )
-
-PROPERTY_ACCESS (double, Maximum, MAX (value, this->mMinimum + MINIMUM_SPAN) )
 
 PROPERTY_ACCESS (bool, IsActive, value)
 
