@@ -1,6 +1,9 @@
 /*  QEPluginWidgetManagers.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2017-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -44,7 +45,7 @@
 #include <QEPluginLibrary_global.h>
 
 /// This module provides the manager class associated with each regular QE widget
-/// provided by the QE Plugin library apart from QEMenyButton and QEPeriodoc.
+/// provided by the QE Plugin library apart from QEMenuButton and QEPeriodoc.
 //
 //------------------------------------------------------------------------------
 // While the bulk of the class defintion can be provided by the declare
@@ -298,6 +299,17 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEDescriptionLabelManager :
    Q_INTERFACES (QDesignerCustomWidgetInterface)
    QE_DECLARE_PLUGIN_MANAGER (QEDescriptionLabel)
 };
+
+//------------------------------------------------------------------------------
+//
+class QEPLUGINLIBRARYSHARED_EXPORT QELCDNumberManager :
+      public QObject, public QDesignerCustomWidgetInterface
+{
+   Q_OBJECT
+   Q_INTERFACES (QDesignerCustomWidgetInterface)
+   QE_DECLARE_PLUGIN_MANAGER (QELCDNumber)
+};
+
 
 //------------------------------------------------------------------------------
 //

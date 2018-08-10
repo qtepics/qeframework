@@ -4,6 +4,8 @@
 # the Australian Synchrotron. This file is included into and as part
 # of the overall framework qeplugins.pro project file.
 #
+# Copyright (c) 2017-2018 Australian Synchrotron
+#
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -16,8 +18,6 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
-#
-# Copyright (c) 2017 Australian Synchrotron
 #
 # Author:
 #   Andrew Starritt
@@ -61,6 +61,7 @@ OTHER_FILES += qeplugin/QEGeneralEdit.png
 OTHER_FILES += qeplugin/QEGroupBox.png
 OTHER_FILES += qeplugin/QEHistogram.png
 OTHER_FILES += qeplugin/QEImage.png
+OTHER_FILES += qeplugin/QELCDNumber.png
 OTHER_FILES += qeplugin/QEMenuButton.png
 OTHER_FILES += qeplugin/QENumericEdit.png
 OTHER_FILES += qeplugin/QEPeriodic.png

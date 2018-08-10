@@ -1,6 +1,9 @@
 /*  QEPluginWidgetManagers.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2017-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -52,6 +53,7 @@
 #include <QEWaveformHistogram.h>
 #include <QEImage.h>
 #include <QELabel.h>
+#include <QELCDNumber.h>
 #include <QELineEdit.h>
 #include <QELink.h>
 #include <QELog.h>
@@ -110,6 +112,7 @@ QE_IMPLEMENT_PLUGIN_MANAGER (QEWaveformHistogram, QEGRAPHIC,  ":/qe/plugin/QEWav
 QE_IMPLEMENT_PLUGIN_MANAGER (QEImage,             QEGRAPHIC,  ":/qe/plugin/QEImage.png",             false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QELabel,             QEMONITOR,  ":/qe/plugin/QELabel.png",             false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEDescriptionLabel,  QEMONITOR,  ":/qe/plugin/QEDescriptionLabel.png",  false)
+QE_IMPLEMENT_PLUGIN_MANAGER (QELCDNumber,         QEMONITOR,  ":/qe/plugin/QELCDNumber.png",         false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QELineEdit,          QECONTROL,  ":/qe/plugin/QELineEdit.png",          false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QELink,              QESUPPORT,  ":/qe/plugin/QELink.png",              false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QECalcout,           QESUPPORT,  ":/qe/plugin/QECalcout.png",           false)

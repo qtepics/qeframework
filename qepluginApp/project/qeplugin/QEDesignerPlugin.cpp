@@ -1,6 +1,9 @@
 /*  QEDesignerPlugin.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009,2010,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -49,6 +50,7 @@ QEWidgets::QEWidgets(QObject *parent) : QObject(parent) {
     widgets.append(new QEImageManager(this));
     widgets.append(new QELabelManager(this));
     widgets.append(new QEDescriptionLabelManager(this));
+    widgets.append(new QELCDNumberManager(this));
     widgets.append(new QELineEditManager(this));
     widgets.append(new QELogManager(this));
     widgets.append(new QELoginManager(this));
