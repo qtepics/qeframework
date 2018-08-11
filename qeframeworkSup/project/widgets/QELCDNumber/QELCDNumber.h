@@ -91,7 +91,7 @@ public:
     Q_PROPERTY (bool smallDecimalPoint                READ smallDecimalPoint WRITE setSmallDecimalPoint)
     Q_PROPERTY (QLCDNumber::SegmentStyle segmentStyle READ segmentStyle      WRITE setSegmentStyle)
 
-    // A sub set of the standard string formatting,
+    // A sub set of the standard string formatting.
     //
     /// Precision used when formatting floating point numbers. The default is 4.
     /// This is only used if useDbPrecision is false.
@@ -107,7 +107,7 @@ public:
                      Scientific  = QEStringFormatting::NOTATION_SCIENTIFIC,         ///< Refer to QEStringFormatting::NOTATION_SCIENTIFIC for details
                      Automatic   = QEStringFormatting::NOTATION_AUTOMATIC           ///< Refer to QEStringFormatting::NOTATION_AUTOMATIC for details
                    };
-    Q_ENUMS(Notations)
+    Q_ENUMS (Notations)
 
     /// Notation used for numerical formatting. Default is fixed.
     ///
@@ -130,7 +130,9 @@ public:
     explicit QELCDNumber (const QString& variableName, QWidget *parent = 0);
 
     /// Destruction
-    virtual ~QELCDNumber() {}
+    virtual ~QELCDNumber();
+
+    QSize sizeHint () const;                             ///< Size hint for designer.
 
     void setNotationProperty (Notations notation);       ///< Access function for #notation property - refer to #notation property for details
     Notations getNotationProperty() const;               ///< Access function for #notation property - refer to #notation property for details
@@ -162,18 +164,20 @@ signals:
     ///
     void dbConnectionChanged (const bool& isConnected);
 
-    /// Internal use only. Used when changing a property value to force a re-display to reflect the new property value.
+    /// Internal use only. Used when changing a property value to force a
+    /// re-display to reflect the new property value.
+    ///
     void requestResend();
 
 protected:
-    qcaobject::QCaObject* createQcaItem( unsigned int variableIndex );
-    void establishConnection( unsigned int variableIndex );
-    void stringFormattingChange() { emit requestResend();  }
+    qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+    void establishConnection (unsigned int variableIndex);
+    void stringFormattingChange() { emit this->requestResend(); }
 
     // Drag and Drop
-    void dragEnterEvent(QDragEnterEvent *event) { qcaDragEnterEvent( event ); }
-    void dropEvent(QDropEvent *event)           { qcaDropEvent( event ); }
-    void mousePressEvent(QMouseEvent *event)    { qcaMousePressEvent( event ); }
+    void dragEnterEvent (QDragEnterEvent *event) { this->qcaDragEnterEvent (event); }
+    void dropEvent (QDropEvent *event)           { this->qcaDropEvent (event); }
+    void mousePressEvent (QMouseEvent *event)    { this->qcaMousePressEvent (event); }
 
     // Use default setDrop and getDrop
 
@@ -194,9 +198,11 @@ private:
     QVariant lastValue;
 
 private slots:
-    void connectionChanged (QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex);
+    void connectionChanged (QCaConnectionInfo& connectionInfo,
+                            const unsigned int& variableIndex);
 
-    void setPvValue (const double& value, QCaAlarmInfo&, QCaDateTime&, const unsigned int&);
+    void setPvValue (const double& value, QCaAlarmInfo&,
+                     QCaDateTime&, const unsigned int&);
 
     void useNewVariableNameProperty (QString variableNameIn,
                                      QString variableNameSubstitutionsIn,

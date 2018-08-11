@@ -61,6 +61,17 @@ QELCDNumber::QELCDNumber (const QString & variableNameIn,
 }
 
 //------------------------------------------------------------------------------
+//
+QELCDNumber::~QELCDNumber() { }   // place holder
+
+//------------------------------------------------------------------------------
+//
+QSize QELCDNumber::sizeHint () const
+{
+   return QSize (64, 24);
+}
+
+//------------------------------------------------------------------------------
 // Setup common to all constructors
 //
 void QELCDNumber::setup ()
