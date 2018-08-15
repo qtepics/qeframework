@@ -1,6 +1,9 @@
 /*  persistanceManager.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2016 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -32,8 +33,8 @@
  * Refer to persistanceManager.cpp for further details
  */
 
-#ifndef PERSISTANCE_MANAGER_H
-#define PERSISTANCE_MANAGER_H
+#ifndef QE_PERSISTANCE_MANAGER_H
+#define QE_PERSISTANCE_MANAGER_H
 
 #include <QObject>
 #include <QHash>
@@ -71,15 +72,13 @@ public:
     void save();      // Save the current configuration
     void restore();   // Restore a configuration
 
+    enum saveRestoreOptions { SAVE, RESTORE_APPLICATION, RESTORE_QEFRAMEWORK };
 
-
-
-enum saveRestoreOptions { SAVE, RESTORE_APPLICATION, RESTORE_QEFRAMEWORK };
-  signals:
+signals:
     // Internal use only. Send when a save or restore is needed.
     void saveRestore( SaveRestoreSignal::saveRestoreOptions option );   // Saving or restoring
 
-  private:
+private:
     PersistanceManager* owner;
 };
 
@@ -153,21 +152,40 @@ class QEWidget;   // differed
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT PersistanceManager : public QXmlDefaultHandler
 {
 public:
-
     friend class PMElement;
 
-    PersistanceManager();   // Construction
+    explicit PersistanceManager();   // Construction
+    ~PersistanceManager();           // Destruction
 
     // Main kickstarter methods
-    QObject* getSaveRestoreObject();                                                                  // Get a reference to the object that will supply save and restore signals
-    void     save( const QString fileName, const QString rootName, const QString configName, const bool warnUser );        // Save the current configuration
-    void     restore( const QString fileName, const QString rootName, const QString configName );     // Restore a configuration
-    void     saveWidget( QEWidget* qewidget, const QString fileName,                                  // Save the current configuration of nominated QEWidget
-                         const QString rootName, const QString configName );                          //
-    void     restoreWidget( QEWidget* qewidget, const QString fileName,                               // Restore a configuration of nominated QEWidget
-                            const QString rootName, const QString configName );                       //
-    bool     restoring;                                                                               // True if a restore is in progress
-    bool     isRestoring();                                                                           // Returns true if a restore is in progress
+
+    // Get a reference to the object that will supply save and restore signals
+    QObject* getSaveRestoreObject();
+
+    // Save the current configuration
+    void save( const QString fileName,
+               const QString rootName,
+               const QString configName,
+               const bool warnUser );
+
+    // Restore a configuration
+    void restore( const QString fileName,
+                  const QString rootName,
+                  const QString configName );
+
+    // Save the current configuration of nominated QEWidget
+    void saveWidget( QEWidget* qewidget,
+                     const QString fileName,
+                     const QString rootName,
+                     const QString configName );
+
+    // Restore a configuration of nominated QEWidget
+    void restoreWidget( QEWidget* qewidget,
+                        const QString fileName,
+                        const QString rootName,
+                        const QString configName );
+
+    bool isRestoring() const;  // Returns true if a restore is in progress
 
     // Helper methods to build configuration data
     PMElement addNamedConfiguration( QString name );               // Add a named configuration. Used during a save signal. The returned element is then loaded with configuration data
@@ -182,10 +200,12 @@ public:
     static QString defaultName;
 
 private:
+    class ResourceLocker;   // differed
+
     void saveProlog( const QString fileName, const QString rootName, const QString configName, const bool warnUser );   // common save/saveWidget functionality
     void saveEpilog( const QString fileName, const bool warnUser );                                                     // common save/saveWidget functionality
 
-    bool openRead( const QString fileName, const QString rootName, const bool fileExpected, const bool warnUser );// Open and read the configuration file. fileExpected is true if the file must be present
+    bool openRead( const QString fileName, const QString rootName, const bool fileExpected, const bool warnUser );     // Open and read the configuration file. fileExpected is true if the file must be present
 
     PMElement addElement( QDomElement parent, QString name );               // Add an element, return the new added element
 
@@ -217,6 +237,7 @@ private:
     bool getElementAttribute( QDomElement element, QString name, QString& val ); // Get a named string attribute from an element
 
 
+    bool restoring;                     // True if a restore is in progress
     SaveRestoreSignal signal;           // Save/Restore signal object. One instance to signal all QE Widgets and applications
 
     QDomDocument doc;                   // Save and restore xml document
@@ -225,4 +246,4 @@ private:
     QDomElement docElem;                // Configuration document
 };
 
-#endif // PERSISTANCE_MANAGER_H
+#endif // QE_PERSISTANCE_MANAGER_H

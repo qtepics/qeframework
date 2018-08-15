@@ -1,6 +1,9 @@
 /*  persistanceManager.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2016 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -128,6 +129,32 @@
 #include <QMessageBox>
 #include <QEWidget.h>
 
+// QLockFile introduced in Qt 5.1 - fake it for earlier versions.
+//
+#if QT_VERSION >= 0x050100
+
+#include <QLockFile>
+
+// Prevent multiple processes from accessing concurrently the same resource.
+//
+class PersistanceManager::ResourceLocker : public QLockFile {
+public:
+    ResourceLocker (const QString &filename ) :  QLockFile( filename ) {}
+};
+
+#else
+
+class PersistanceManager::ResourceLocker {
+public:
+    ResourceLocker( const QString & ) {}
+    ~ResourceLocker() {}
+    bool tryLock(int = 0) { return true; }
+};
+
+#endif
+
+#define DEBUG qDebug () << "persistanceManager" << __LINE__ << __FUNCTION__ << "  "
+
 #define CONFIG_COMPONENT_KEY "Component"
 
 QString PersistanceManager::defaultName("Default");
@@ -142,11 +169,17 @@ PersistanceManager::PersistanceManager()
     doc = QDomDocument( "QEConfig" );
 }
 
+// Destruction - place holder
+PersistanceManager::~PersistanceManager() { }
+
 //=========================================================
 
 // Save the current configuration - set up
 //
-void PersistanceManager::saveProlog( const QString fileName, const QString rootName, const QString configName, const bool warnUser )
+void PersistanceManager::saveProlog( const QString fileName,
+                                     const QString rootName,
+                                     const QString configName,
+                                     const bool warnUser )
 {
     // Try to read the configuration file we are saving to
     // If OK, remove the configuration we are overwriting if present.
@@ -215,32 +248,54 @@ void PersistanceManager::saveProlog( const QString fileName, const QString rootN
 }
 
 // Save the current configuration
-void PersistanceManager::save( const QString fileName, const QString rootName, const QString configName, const bool warnUser )
+void PersistanceManager::save( const QString fileName,
+                               const QString rootName,
+                               const QString configName,
+                               const bool warnUser )
 {
-    // Initialise saving
-    saveProlog( fileName, rootName, configName, warnUser );
+    const QString lockFileName = QString ("%1.lck").arg (fileName);
+    PersistanceManager::ResourceLocker lockFile (lockFileName);
 
-    // Notify any interested objects to contribute their persistant data
-    signal.save();
+    // Attempt to get the lock file - allow a 50 mSec grace.
+    //
+    if( lockFile.tryLock( 50 ) ) {
+        // Initialise saving
+        saveProlog( fileName, rootName, configName, warnUser );
 
-    // Finalise saving
-    saveEpilog( fileName, warnUser );
+        // Notify any interested objects to contribute their persistant data
+        signal.save();
+
+        // Finalise saving
+        saveEpilog( fileName, warnUser );
+
+    } else {
+        DEBUG << "failed to lock file" << lockFileName;
+    }
 }
 
 // Save the current configuration of a single widget
 void PersistanceManager::saveWidget( QEWidget* qewidget, const QString fileName,
                                      const QString rootName, const QString configName )
 {
-    if( !qewidget ) return;
+    if( !qewidget ) return;    // sanity check
 
-    // Initialise saving
-    saveProlog( fileName, rootName, configName, true );
+    const QString lockFileName = QString ("%1.lck").arg (fileName);
+    PersistanceManager::ResourceLocker lockFile (lockFileName);
 
-    // Request object save its persistant data
-    qewidget->saveConfiguration( this );
+    // Attempt to get the lock file - allow a 50 mSec grace.
+    //
+    if( lockFile.tryLock( 50 ) ) {
+        // Initialise saving
+        saveProlog( fileName, rootName, configName, true );
 
-    // Finalise saving
-    saveEpilog( fileName, true );
+        // Request object save its persistant data
+        qewidget->saveConfiguration( this );
+
+        // Finalise saving
+        saveEpilog( fileName, true );
+    } else {
+        DEBUG << "failed to lock file" << lockFileName;
+    }
 }
 
 // Save the current configuration - tidy up
@@ -274,19 +329,31 @@ void PersistanceManager::saveEpilog( const QString fileName, const bool warnUser
 //=========================================================
 
 // Restore a configuration
-void PersistanceManager::restore( const QString fileName, const QString rootName, const QString configName )
+void PersistanceManager::restore( const QString fileName,
+                                  const QString rootName,
+                                  const QString configName )
 {
-    if( !openRead( fileName, rootName, true, true ) )
-    {
-        return;
+    const QString lockFileName = QString ("%1.lck").arg (fileName);
+    PersistanceManager::ResourceLocker lockFile (lockFileName);
+
+    // Attempt to get the lock file - allow a 50 mSec grace.
+    //
+    if( lockFile.tryLock( 50 ) ) {
+
+        if( !openRead( fileName, rootName, true, true ) )
+        {
+            return;
+        }
+
+        config = getElement( docElem, "Config", "Name", configName );
+
+        // Notify any interested objects to collect their persistant data
+        restoring = true;
+        signal.restore();
+        restoring = false;
+    } else {
+        DEBUG << "failed to lock file" << lockFileName;
     }
-
-    config = getElement( docElem, "Config", "Name", configName );
-
-    // Notify any interested objects to collect their persistant data
-    restoring = true;
-    signal.restore();
-    restoring = false;
 }
 
 // Restore a configuration of a single widget
@@ -296,21 +363,33 @@ void PersistanceManager::restoreWidget( QEWidget* qewidget, const QString fileNa
 {
     if( !qewidget ) return;
 
-    if( !openRead( fileName, rootName, true, true ) )
-    {
-        return;
-    }
-    config = getElement( docElem, "Config", "Name", configName );
+    const QString lockFileName = QString ("%1.lck").arg (fileName);
+    PersistanceManager::ResourceLocker lockFile (lockFileName);
 
-    // Request object restore its persistant data
-    restoring = true;
-    qewidget->restoreConfiguration( this, QEWidget::FRAMEWORK );
-    restoring = false;
+    // Attempt to get the lock file - allow a 50 mSec grace.
+    //
+    if( lockFile.tryLock( 50 ) ) {
+
+        if( !openRead( fileName, rootName, true, true ) )
+        {
+            return;
+        }
+
+        config = getElement( docElem, "Config", "Name", configName );
+
+        // Request object restore its persistant data
+        restoring = true;
+        qewidget->restoreConfiguration( this, QEWidget::FRAMEWORK );
+        restoring = false;
+
+    } else {
+        DEBUG << "failed to lock file" << lockFileName;
+    }
 }
 
 // Returns true if a restore is in progress.
 // Used when QE widgets are being created to determine if they are being restored
-bool PersistanceManager::isRestoring()
+bool PersistanceManager::isRestoring() const
 {
     return restoring;
 }
