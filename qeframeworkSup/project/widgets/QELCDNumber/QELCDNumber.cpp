@@ -76,6 +76,10 @@ QSize QELCDNumber::sizeHint () const
 //
 void QELCDNumber::setup ()
 {
+   // Override parant default properties.
+   //
+   this->setVariableAsToolTip (true);
+
    // Create internal widget.
    //
    this->internalWidget = new QLCDNumber (this);
