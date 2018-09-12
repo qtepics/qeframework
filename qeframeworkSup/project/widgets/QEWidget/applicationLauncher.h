@@ -1,6 +1,7 @@
 /*  applicationLauncher.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2016 Australian Synchrotron
+ *  Copyright (c) 2012-2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -68,21 +69,22 @@ private:
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT applicationLauncher
 {
 public:
-
-    applicationLauncher();
+    explicit applicationLauncher();
     ~applicationLauncher();
 
     void launchImage( VariableNameManager* variableNameManager, QImage image );
     void launch( VariableNameManager* variableNameManager, QObject* receiver );
-    void launchCommon( VariableNameManager* variableNameManager, QTemporaryFile* tempFile = NULL, QObject* receiver = NULL );
+    void launchCommon( VariableNameManager* variableNameManager,
+                       QTemporaryFile* tempFile = NULL,
+                       QObject* receiver = NULL );
 
     // Program String
-    void setProgram( QString programIn ){ program = programIn; }
-    QString getProgram(){ return program; }
+    void setProgram( const QString programIn ) { program = programIn; }
+    QString getProgram() const { return program; }
 
     // Arguments String
-    void setArguments( QStringList argumentsIn ){ arguments = argumentsIn; }
-    QStringList getArguments(){ return  arguments; }
+    void setArguments( const QStringList argumentsIn ) { arguments = argumentsIn; }
+    QStringList getArguments() const { return  arguments; }
 
     // Startup option
     enum programStartupOptions { PSO_NONE,         // Just run the program
@@ -91,8 +93,8 @@ public:
                                  PSO_STDOUTPUT };  // Run the program, and send output to standard output and standard error
 
 
-    void setProgramStartupOption( programStartupOptions programStartupOptionIn ){ programStartupOption = programStartupOptionIn; }
-    programStartupOptions getProgramStartupOption(){ return programStartupOption; }
+    void setProgramStartupOption( const programStartupOptions programStartupOptionIn ){ programStartupOption = programStartupOptionIn; }
+    programStartupOptions getProgramStartupOption() const { return programStartupOption; }
 
 protected:
 
