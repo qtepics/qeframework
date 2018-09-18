@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2017-2018 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -16,16 +18,14 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2017 Australian Synchrotron
- *
  *  Author:
  *    Andraz Pozar
  *  Contact details:
  *    andraz.pozar@synchrotron.org.au
  */
 
-#ifndef QEARCHIVEACCESS_H
-#define QEARCHIVEACCESS_H
+#ifndef QE_ARCHIVE_ACCESS_H
+#define QE_ARCHIVE_ACCESS_H
 
 #include <QList>
 #include <QMetaType>
@@ -223,4 +223,4 @@ Q_DECLARE_METATYPE (QEArchiveAccess::StatusList)
 Q_DECLARE_METATYPE (QEArchiveAccess::PVDataRequests)
 Q_DECLARE_METATYPE (QEArchiveAccess::PVDataResponses)
 
-#endif // QEARCHIVEACCESS_H
+#endif // QE_ARCHIVE_ACCESS_H
