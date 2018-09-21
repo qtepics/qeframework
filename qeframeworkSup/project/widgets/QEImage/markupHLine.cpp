@@ -214,7 +214,7 @@ QCursor markupHLine::defaultCursor()
     return owner->getHLineCursor();
 }
 
-void markupHLine::nonInteractiveUpdate( QPoint p1, QPoint )
+void markupHLine::nonInteractiveUpdate( QPoint p1, QPoint, double )
 {
     y = p1.y();
     setArea();

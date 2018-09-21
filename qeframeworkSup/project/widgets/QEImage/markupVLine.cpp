@@ -214,7 +214,7 @@ QCursor markupVLine::defaultCursor()
     return owner->getVLineCursor();
 }
 
-void markupVLine::nonInteractiveUpdate( QPoint p1, QPoint )
+void markupVLine::nonInteractiveUpdate( QPoint p1, QPoint, double )
 {
     x = p1.x();
     setArea();

@@ -1,6 +1,9 @@
 /*  markupItem.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012,2016 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -79,7 +80,7 @@ public:
     virtual QPoint       getPoint1()=0;                                             // Return the first point of the markup (starting point for a line, top left corner for a rectangle, etc)
     virtual QPoint       getPoint2()=0;                                             // Return the second point of the markup (end point for a line, bottom right corner for a rectangle, etc)
     virtual QCursor      defaultCursor()=0;                                         // Return the default cursor for the markup.
-    virtual void         nonInteractiveUpdate( QPoint, QPoint ) {}                  // Only implemented by those objects that are updated by data such as region of interest
+    virtual void         nonInteractiveUpdate( QPoint, QPoint, double ) {}          // Only implemented by those objects that are updated by data such as region of interest - rotation only for ellipse
 
     void          setThickness( const unsigned int thicknessIn );                   // Set the thickness of a markup where relevent.
     unsigned int  getThickness();

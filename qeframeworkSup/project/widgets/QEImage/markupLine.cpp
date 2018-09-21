@@ -378,7 +378,7 @@ QCursor markupLine::defaultCursor()
     return owner->getLineCursor();
 }
 
-void markupLine::nonInteractiveUpdate( QPoint p1, QPoint p2 )
+void markupLine::nonInteractiveUpdate( QPoint p1, QPoint p2, double )
 {
     start = p1;
     end = p2;

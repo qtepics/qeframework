@@ -1,5 +1,9 @@
-/*
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+/*  videowidget.cpp
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -13,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -30,6 +32,10 @@
 
 #include "videowidget.h"
 #include <QPainter>
+#include <QDebug>
+
+#define DEBUG qDebug() << "videowidget"  << __LINE__ << __FUNCTION__ << "  "
+
 
 #define PANNING_CURSOR Qt::CrossCursor
 
@@ -127,7 +133,7 @@ void VideoWidget::setNewImage( QImage image, QCaDateTime& time )
     // The scaling is set up on the first image (here), and each resize (in the resize event)
     if( firstImage )
     {
-        markupResize( getScale() );
+        markupResize( getXScale() );
     }
 
     // Cause a repaint with the new image
@@ -220,7 +226,7 @@ void VideoWidget::resizeEvent( QResizeEvent *event )
     }
 
     // Ensure the markups match the new size
-    markupResize( getScale() );
+    markupResize( getXScale() );
 }
 
 // Act on a markup change
@@ -269,13 +275,13 @@ QPoint VideoWidget::scaleImagePoint( QPoint pnt )
 // Return an ordinate from the displayed image as an ordinate in the original image
 int VideoWidget::scaleOrdinate( int ord )
 {
-    return (int)((double)ord / getScale());
+    return (int)((double)ord / getXScale());
 }
 
 // Return an ordinate from the original image as an ordinate in the displayed image
 int VideoWidget::scaleImageOrdinate( int ord )
 {
-    return (int)((double)ord * getScale());
+    return (int)((double)ord * getXScale());
 }
 
 // Return the displayed size of the current image
@@ -284,8 +290,14 @@ QSize VideoWidget::getImageSize()
     return currentImage.size();
 }
 
-// Return the scale of the displayed image
-double VideoWidget::getScale()
+// Return true if displaying an image
+bool VideoWidget::hasCurrentImage()
+{
+    return !currentImage.isNull();
+}
+
+// Return the horizontal scale of the displayed image
+double VideoWidget::getXScale() const
 {
     // If for any reason a scale can't be determined, return scale of 1.0
     if( currentImage.isNull() || currentImage.width() == 0 || width() == 0)
@@ -294,6 +306,18 @@ double VideoWidget::getScale()
     // Return the horizontal scale of the displayed image
     return (double)width() / (double)currentImage.width();
 }
+
+// Return the vertical scale of the displayed image
+double VideoWidget::getYScale() const
+{
+    // If for any reason a scale can't be determined, return scale of 1.0
+    if( currentImage.isNull() || currentImage.height() == 0 || height() == 0)
+        return 1.0;
+
+    // Return the vertical scale of the displayed image
+    return (double)height() / (double)currentImage.height();
+}
+
 
 // The mouse has been pressed over the image
 void VideoWidget::mousePressEvent( QMouseEvent* event)
@@ -337,8 +361,8 @@ void VideoWidget::mouseReleaseEvent ( QMouseEvent* event )
 void VideoWidget::mouseMoveEvent( QMouseEvent* event )
 {
     // Report position for pixel info logging
-    pixelInfoPos.setX( int ( (double)(event->pos().x()) / getScale() ) );
-    pixelInfoPos.setY( int ( (double)(event->pos().y()) / getScale() ) );
+    pixelInfoPos.setX( int ( (double)(event->pos().x()) / getXScale() ) );
+    pixelInfoPos.setY( int ( (double)(event->pos().y()) / getXScale() ) );
     emit currentPixelInfo( pixelInfoPos );
 
     // Pass the event to the markup system. It will use it if appropriate.
@@ -420,3 +444,5 @@ void VideoWidget::setPanning( bool panningIn )
         setCursor( PANNING_CURSOR );
     }
 }
+
+// end

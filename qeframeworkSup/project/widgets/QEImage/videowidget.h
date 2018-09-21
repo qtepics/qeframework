@@ -1,5 +1,9 @@
-/*
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+/*  videowidget.h
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -28,8 +30,8 @@
  This class manages zooming the image simply by setting the widget size as required and drawing into it. Qt then performs the scaling required.
  */
 
-#ifndef VIDEOWIDGET_H
-#define VIDEOWIDGET_H
+#ifndef QE_VIDEO_WIDGET_H
+#define QE_VIDEO_WIDGET_H
 
 #include <QWidget>
 #include <imageMarkup.h>
@@ -54,9 +56,8 @@ public:
 
     QImage getImage(){ return refImage; }
     QSize getImageSize();
-    bool hasCurrentImage(){ return !currentImage.isNull(); }                 // Return true if displaying an image
-
-    void markupChange();                                    // The markup overlay has changed, redraw them all
+    bool hasCurrentImage();                         // Return true if displaying an image
+    void markupChange();                            // The markup overlay has changed, redraw them all
 
 protected:
     void paintEvent(QPaintEvent*);
@@ -89,7 +90,8 @@ private:
     QImage refImage;                  // Latest camera image at the same resolution as the display - used for erasing markups when they are moved
     void   createRefImage();          // Create a reference image the same size as currently being viewed.
 
-    double getScale();
+    double getXScale() const;         // Currently only this used - markups zoom incorrectly when X stretch != Y stretch
+    double getYScale() const;         // Place holder function.
 
     bool panning;       // If true user is dragging image with mouse (rather than performing any markup)
     QPoint panStart;
@@ -97,4 +99,4 @@ private:
     QPoint pixelInfoPos;    // Current pixel under pointer
 };
 
-#endif // VIDEOWIDGET_H
+#endif // QE_VIDEO_WIDGET_H

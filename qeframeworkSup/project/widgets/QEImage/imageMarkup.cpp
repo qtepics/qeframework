@@ -1,5 +1,9 @@
-/*
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+/*  imageMarkup.cpp
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -13,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012, 2013 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -39,7 +41,9 @@
 
 #include <imageContextMenu.h>
 #include <imageMarkupLegendSetText.h>
+#include <QDebug>
 
+#define DEBUG qDebug() << "imageMarkup"  << __LINE__ << __FUNCTION__ << "  "
 
 // Constructor
 imageMarkup::imageMarkup()
@@ -482,9 +486,9 @@ void imageMarkup::markupLineProfileChange( QPoint start, QPoint end, bool displa
 
 // An ellipse markup value has changed.
 // Update the markup
-void imageMarkup::markupEllipseValueChange( QPoint start, QPoint end, bool displayMarkups )
+void imageMarkup::markupEllipseValueChange( QPoint start, QPoint end, double rotation, bool displayMarkups )
 {
-    markupValueChange( MARKUP_ID_ELLIPSE, displayMarkups, start, end );
+    markupValueChange( MARKUP_ID_ELLIPSE, displayMarkups, start, end, rotation );
 }
 
 // A target value has changed.
@@ -503,7 +507,7 @@ void imageMarkup::markupBeamValueChange( QPoint point, bool displayMarkups )
 
 // A markup related value has changed.
 // Update any markup if required.
-void imageMarkup::markupValueChange( int markup, bool displayMarkups, QPoint p1, QPoint p2 )
+void imageMarkup::markupValueChange( int markup, bool displayMarkups, QPoint p1, QPoint p2, double rotation )
 {
     // If the markup is active (being dragged, for instance) then don't fiddle with it.
     if( markup == activeItem )
@@ -526,7 +530,7 @@ void imageMarkup::markupValueChange( int markup, bool displayMarkups, QPoint p1,
     }
 
     // Update the markup
-    items[markup]->nonInteractiveUpdate( p1, p2 );
+    items[markup]->nonInteractiveUpdate( p1, p2, rotation );
 
     // Extend the area to update and update it
     changedAreas.append( scaleArea( items[markup]->area, items[markup]->scalableArea ) );
@@ -1050,3 +1054,5 @@ QRect imageMarkup::scaleArea( QRect area, QRect scaledArea )
                   scaledArea.width()  * zoomScale + (area.width() - scaledArea.width() + 1 ),
                   scaledArea.height() * zoomScale + (area.height() - scaledArea.height()) + 1 );
 }
+
+// end

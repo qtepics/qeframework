@@ -1,5 +1,9 @@
-/*
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+/*  imageMarkups.h
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -13,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -60,8 +62,8 @@
         VideoWidget calls imageMarkup::setMarkupTime() to note the time a new image has been presented.
 */
 
-#ifndef IMAGEMARKUP_H
-#define IMAGEMARKUP_H
+#ifndef QE_IMAGE_MARKUP_H
+#define QE_IMAGE_MARKUP_H
 
 //#include <QObject>
 #include <QCaDateTime.h>
@@ -142,9 +144,9 @@ public:
     void markupLineProfileChange( QPoint start, QPoint end, bool displayMarkups );   // Arbitrary profile data has changed. Change markups to match
     void markupTargetValueChange( QPoint point, bool displayMarkups );               // Target position data has changed. Change markup to match
     void markupBeamValueChange( QPoint point, bool displayMarkups );                 // Beam position data has changed. Change markup to match
-    void markupEllipseValueChange( QPoint point1, QPoint point2, bool displayMarkups ); // Ellipse position data has changed. Change markup to match
+    void markupEllipseValueChange( QPoint point1, QPoint point2, double rotation, bool displayMarkups ); // Ellipse position data has changed. Change markup to match
 
-    void markupValueChange( int markup, bool displayMarkups, QPoint p1, QPoint p2 = QPoint() ); // A markup related value has changed. Change markups to match
+    void markupValueChange( int markup, bool displayMarkups, QPoint p1, QPoint p2 = QPoint(), double rotation = 0.0 ); // A markup related value has changed. Change markups to match
 
     // The following are only public so they may be accessed by (internal) markup items.
     QVector<markupItem*> items;                                 // List of markup items
@@ -198,7 +200,7 @@ protected:
     virtual void markupAction( markupIds mode, bool complete, bool clearing, QPoint point1, QPoint point2, unsigned int thickness )=0;     // There is an application task to do in response to user interaction with the markups
 
 private:
-    double zoomScale;   // Scale factor to be applied when drawing markups
+    double zoomScale;   // Scale factor to be applied when drawing markups - need X and Y zoom for stretch
     QSize imageSize;    // Original image size
 
     void setActiveItem( const QPoint& pos );                            // Determine if the user clicked over an interactive, visible item
@@ -232,4 +234,4 @@ private:
 
 };
 
-#endif // IMAGEMARKUP_H
+#endif // QE_IMAGE_MARKUP_H

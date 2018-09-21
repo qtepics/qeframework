@@ -1,5 +1,9 @@
-/*
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+/*  markupEllipse.h
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2014-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -13,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2014 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -31,8 +33,8 @@
  reflect variables defining a centroid.
 */
 
-#ifndef MARKUPELLIPSE_H
-#define MARKUPELLIPSE_H
+#ifndef QE_MARKUP_ELLIPSE_H
+#define QE_MARKUP_ELLIPSE_H
 
 #include <markupItem.h>
 
@@ -60,12 +62,13 @@ public:
     QPoint getPoint2();
     QCursor defaultCursor();
 
-    void nonInteractiveUpdate(  QPoint p1, QPoint p2 );
+    void nonInteractiveUpdate(  QPoint p1, QPoint p2, double rotation );
     //==================================================================
 
 
 private:
     QRect rect; // Rectangle enclosing the ellipse
+    double rotation;  // Angle of rotation of the ellipse - clockwise in degrees
 };
 
-#endif // MARKUPELLIPSE_H
+#endif // QE_MARKUP_ELLIPSE_H

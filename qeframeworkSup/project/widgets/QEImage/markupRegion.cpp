@@ -365,7 +365,7 @@ QCursor markupRegion::defaultCursor()
     return owner->getRegionCursor();
 }
 
-void markupRegion::nonInteractiveUpdate( QPoint p1, QPoint p2 )
+void markupRegion::nonInteractiveUpdate( QPoint p1, QPoint p2, double )
 {
     // Set the region area from p1 and p2
     rect.setTopLeft( p1 );

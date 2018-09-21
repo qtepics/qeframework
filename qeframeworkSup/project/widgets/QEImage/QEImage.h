@@ -63,17 +63,21 @@ class profilePlot;
 
 // Class to keep track of a rectangular area such as region of interest or profile line information
 // As data arrives, this class is used to record it.
+// Note: the rotation member currently only used for the ellipse. Create an EllipseAreaInfo sub-class?
+//
 class areaInfo
 {
     public:
         // Construction
-        areaInfo() { haveX1 = false; haveY1 = false; haveX2 = false; haveY2 = false; }
+        areaInfo() { haveX1 = false; haveY1 = false; haveX2 = false; haveY2 = false;
+                     haveR = false ; rotation = 0.0; }
 
         // Set elements
         void setX1( long x ) { p1.setX( x ); haveX1 = true; }
         void setY1( long y ) { p1.setY( y ); haveY1 = true; }
         void setX2( long x ) { p2.setX( x ); haveX2 = true; }
         void setY2( long y ) { p2.setY( y ); haveY2 = true; }
+        void setR( double r ) { rotation = r; haveR = true; }
 
         void setX( long x ) { int w = p2.x()-p1.x(); p1.setX( x ); p2.setX( x+w ); haveX1 = true; }
         void setY( long y ) { int h = p2.y()-p1.y(); p1.setY( y ); p2.setY( y+h ); haveY1 = true; }
@@ -88,6 +92,7 @@ class areaInfo
         void clearY1() { haveY1 = false; }
         void clearX2() { haveX2 = false; }
         void clearY2() { haveY2 = false; }
+        void clearR()  { haveR = false; }
 
         void clearX() { clearX1(); }
         void clearY() { clearY1(); }
@@ -100,13 +105,18 @@ class areaInfo
         QPoint getPoint1() { return p1; }
         QPoint getPoint2() { return p2; }
 
+        bool hasRotation () { return haveR; }
+        double getRotation () { return haveR ? rotation : 0.0; }
+
     private:
         QPoint p1;
         QPoint p2;
+        double rotation;
         bool haveX1;
         bool haveY1;
         bool haveX2;
         bool haveY2;
+        bool haveR;   // rotation
 };
 
 // Class to keep track of a point such as beam or target information
@@ -532,9 +542,12 @@ public:
                           PROFILE_V3_VARIABLE, PROFILE_V3_THICKNESS_VARIABLE,
                           PROFILE_V4_VARIABLE, PROFILE_V4_THICKNESS_VARIABLE,
                           PROFILE_V5_VARIABLE, PROFILE_V5_THICKNESS_VARIABLE,
-                          LINE_PROFILE_X1_VARIABLE, LINE_PROFILE_Y1_VARIABLE, LINE_PROFILE_X2_VARIABLE, LINE_PROFILE_Y2_VARIABLE, LINE_PROFILE_THICKNESS_VARIABLE,
+                          LINE_PROFILE_X1_VARIABLE, LINE_PROFILE_Y1_VARIABLE,
+                          LINE_PROFILE_X2_VARIABLE, LINE_PROFILE_Y2_VARIABLE,
+                          LINE_PROFILE_THICKNESS_VARIABLE,
                           PROFILE_H_ARRAY, PROFILE_V_ARRAY, PROFILE_LINE_ARRAY,
-                          ELLIPSE_X_VARIABLE, ELLIPSE_Y_VARIABLE, ELLIPSE_W_VARIABLE, ELLIPSE_H_VARIABLE,
+                          ELLIPSE_X_VARIABLE, ELLIPSE_Y_VARIABLE,
+                          ELLIPSE_W_VARIABLE, ELLIPSE_H_VARIABLE, ELLIPSE_R_VARIABLE,
 
                           QEIMAGE_NUM_VARIABLES /*Must be last*/ };
 
@@ -568,6 +581,7 @@ private slots:
     void setProfile( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
     void setTargeting( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
     void setEllipse( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
+    void setEllipseFloat( const double& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
 
     // Menu choice slots
     void vSlice1SelectModeClicked();
@@ -1300,6 +1314,11 @@ protected:
     /// EPICS variable name (CA PV).
     /// This variable is used to read an ellipse height
     Q_PROPERTY(QString ellipseHVariable READ getVariableName65Property WRITE setVariableName65Property)
+
+    VARIABLE_PROPERTY_ACCESS(66)
+    /// EPICS variable name (CA PV).
+    /// This variable is used to read an ellipse height
+    Q_PROPERTY(QString ellipseRotationVariable READ getVariableName66Property WRITE setVariableName66Property)
 
 #undef VARIABLE_PROPERTY_ACCESS
 

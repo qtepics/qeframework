@@ -56,7 +56,7 @@ public:
     QPoint getPoint2();
     QCursor defaultCursor();
 
-    void nonInteractiveUpdate(  QPoint p1, QPoint p2 );
+    void nonInteractiveUpdate(  QPoint p1, QPoint p2, double rotation );
     //==================================================================
 
 private:

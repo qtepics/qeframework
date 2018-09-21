@@ -1,5 +1,9 @@
-/*
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+/*  markupEllipse.cpp
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2014-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2014 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -28,9 +30,15 @@
 
 #include <markupEllipse.h>
 #include <imageMarkup.h>
+#include <QDebug>
 
-markupEllipse::markupEllipse( imageMarkup* ownerIn, const bool interactiveIn, const bool reportOnMoveIn, const QString legendIn ) : markupItem( ownerIn, OVER_AREA, interactiveIn, reportOnMoveIn, legendIn )
+#define DEBUG qDebug() << "markupEllipse"  << __LINE__ << __FUNCTION__ << "  "
+
+markupEllipse::markupEllipse( imageMarkup* ownerIn, const bool interactiveIn,
+                              const bool reportOnMoveIn, const QString legendIn )
+    : markupItem( ownerIn, OVER_AREA, interactiveIn, reportOnMoveIn, legendIn )
 {
+    rotation = 0.0;
 }
 
 void markupEllipse::drawMarkup( QPainter& p )
@@ -43,8 +51,20 @@ void markupEllipse::drawMarkup( QPainter& p )
     scaledRect.setWidth( rect.width() * scale );
     scaledRect.setHeight( rect.height() * scale );
 
-    // Draw markup
+    // Setup markup rotation transform
+    const QPointF c = scaledRect.center();
+    const QTransform transform =
+            QTransform()
+            .translate (+c.x(),+c.y())
+            .rotate(rotation)
+            .translate (-c.x(),-c.y());
+
+    p.setTransform( transform );
+
+    // Draw markup with rotation
     p.drawEllipse( scaledRect );
+
+    p.resetTransform();
 
     // Draw markup legend
     drawLegend( p, scaledRect.topLeft() );
@@ -110,7 +130,7 @@ QCursor markupEllipse::cursorForHandle( const markupItem::markupHandles /*handle
     //        default: return defaultCursor();
     //    }
 
-        return defaultCursor();
+    return defaultCursor();
 }
 
 QPoint markupEllipse::getPoint1()
@@ -128,9 +148,12 @@ QCursor markupEllipse::defaultCursor()
     return Qt::CrossCursor;
 }
 
-void markupEllipse::nonInteractiveUpdate( QPoint p1, QPoint p2 )
+void markupEllipse::nonInteractiveUpdate( QPoint p1, QPoint p2, double rotationIn )
 {
     rect.setTopLeft( p1 );
     rect.setBottomRight( p2 );
+    rotation = rotationIn;
     setArea();
 }
+
+// end

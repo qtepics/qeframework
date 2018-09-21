@@ -1,6 +1,9 @@
 /*  QEimage.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -678,6 +679,7 @@ qcaobject::QCaObject* QEImage::createQcaItem( unsigned int variableIndex ) {
         case PROFILE_H_ARRAY:
         case PROFILE_V_ARRAY:
         case PROFILE_LINE_ARRAY:
+        case ELLIPSE_R_VARIABLE:
 
             return new QEFloating( getSubstitutedVariableName( variableIndex ), this, &floatingFormatting, variableIndex );
 
@@ -896,6 +898,18 @@ void QEImage::establishConnection( unsigned int variableIndex ) {
             {
                 QObject::connect( qca,  SIGNAL( integerChanged( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                                   this, SLOT( setEllipse( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
+                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo& ) ),
+                                  this, SLOT( connectionChanged( QCaConnectionInfo& ) ) );
+                QObject::connect( this, SIGNAL( requestResend() ),
+                                  qca, SLOT( resendLastData() ) );
+            }
+            break;
+
+        case ELLIPSE_R_VARIABLE:
+            if(  qca )
+            {
+                QObject::connect( qca,  SIGNAL( floatingChanged( const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
+                                  this, SLOT( setEllipseFloat(   const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
                 QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo& ) ),
                                   this, SLOT( connectionChanged( QCaConnectionInfo& ) ) );
                 QObject::connect( this, SIGNAL( requestResend() ),
@@ -1430,6 +1444,41 @@ void QEImage::setEllipse( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTim
     }
 }
 
+/*
+    Update the Ellipse displays if any
+    This is the slot used to recieve rotation angle - clockwise in degrees.
+ */
+void QEImage::setEllipseFloat( const double& value, QCaAlarmInfo& alarmInfo,
+                               QCaDateTime&, const unsigned int& variableIndex)
+{
+    // If invalid, mark the appropriate profile info as not present
+    if( alarmInfo.isInvalid() )
+    {
+        switch( variableIndex )
+        {
+            case ELLIPSE_R_VARIABLE: ellipseInfo.clearR(); break;
+        }
+    }
+
+    // Good data. Save the ellipse data (and note it is present) then if the
+    // markup is visible, update it
+    else
+    {
+        // Save the ellipse data
+        switch( variableIndex )
+        {
+            case ELLIPSE_R_VARIABLE: ellipseInfo.setR( value ); break;
+        }
+
+        // If there is an image, present the ellipse data
+        // (if there is no image, the profile data will be used when one arrives)
+        if( videoWidget->hasCurrentImage() )
+        {
+            useEllipseData();
+        }
+    }
+}
+
 // Apply the ellipse data.
 // This can be done once all ellipse data is available and an image is available
 // (the image is needed to determine scaling)
@@ -1453,9 +1502,14 @@ void QEImage::useEllipseData()
                 break;
         }
 
-        // Scale, flip, and rotate the area then display the markup
+        // Scale, flip, and rotate the area then display the markup and the markup rotation to match
         QRect rotateFlipArea = iProcessor.rotateFlipToImageRectangle( area );
-        videoWidget->markupEllipseValueChange( rotateFlipArea.topLeft(), rotateFlipArea.bottomRight(), displayMarkups );
+        double rotation = ellipseInfo.getRotation();
+        if( iProcessor.getFlipHoz() != iProcessor.getFlipVert() ){
+            rotation = -rotation;
+        }
+        videoWidget->markupEllipseValueChange( rotateFlipArea.topLeft(), rotateFlipArea.bottomRight(),
+                                               rotation, displayMarkups );
     }
 }
 
@@ -1746,6 +1800,8 @@ QSize QEImage::getVideoDestinationSize()
 // Set the video widget size so it will match the processed image.
 void QEImage::setImageSize()
 {
+    int sx, sy;
+
     // Do nothing if there are no image dimensions yet
     if( !iProcessor.getImageBuffWidth() || !iProcessor.getImageBuffHeight() )
         return;
@@ -1755,19 +1811,21 @@ void QEImage::setImageSize()
     {
         // Zoom the image
         case RESIZE_OPTION_ZOOM:
-            videoWidget->resize( (int)((double)iProcessor.rotatedImageBuffWidth() * zoom / 100 * XStretch),
-                                 (int)((double)iProcessor.rotatedImageBuffHeight() * zoom / 100 * YStretch) );
+            sx = (double)iProcessor.rotatedImageBuffWidth()  * zoom / 100.0 * XStretch;
+            sy = (double)iProcessor.rotatedImageBuffHeight() * zoom / 100.0 * YStretch;
+            videoWidget->resize( sx, sy );
             break;
 
         // Resize the image to fit exactly within the QCaItem
         case RESIZE_OPTION_FIT:
             QSize destSize = getVideoDestinationSize();
             double vScale = (double)(destSize.height()) / (double)(iProcessor.rotatedImageBuffHeight());
-            double hScale = (double)(destSize.width()) / (double)(iProcessor.rotatedImageBuffWidth());
-            double scale = (hScale<vScale)?hScale:vScale;
+            double hScale = (double)(destSize.width())  / (double)(iProcessor.rotatedImageBuffWidth());
+            double scale = MIN( hScale, vScale );
 
-            videoWidget->resize( (int)((double)iProcessor.rotatedImageBuffWidth()  * scale * XStretch),
-                                 (int)((double)iProcessor.rotatedImageBuffHeight() * scale * YStretch) );
+            sx = (double)iProcessor.rotatedImageBuffWidth()  * scale * XStretch;
+            sy = (double)iProcessor.rotatedImageBuffHeight() * scale * YStretch;
+            videoWidget->resize( sx, sy );
             zoom = scale * 100;
 
             // Update the info area

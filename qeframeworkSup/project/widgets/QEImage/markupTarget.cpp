@@ -123,7 +123,7 @@ QCursor markupCrosshair1::defaultCursor()
     return owner->getTargetCursor();
 }
 
-void markupCrosshair1::nonInteractiveUpdate( QPoint p1, QPoint )
+void markupCrosshair1::nonInteractiveUpdate( QPoint p1, QPoint, double )
 {
     pos = p1;
     setArea();
