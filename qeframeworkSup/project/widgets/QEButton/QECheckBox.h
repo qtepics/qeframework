@@ -1,6 +1,9 @@
 /*  QECheckBox.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009,2010,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -467,10 +468,13 @@ public:
     Q_PROPERTY(UpdateOptions updateOption READ getUpdateOptionProperty WRITE setUpdateOptionProperty)
 
     /// User friendly enumerations for updateOption property - refer to QEGenericButton::updateOptions for details.
-    enum UpdateOptions { Text        = QEGenericButton::UPDATE_TEXT,           ///< Data updates will update the button text
-                         Icon        = QEGenericButton::UPDATE_ICON,           ///< Data updates will update the button icon
-                         TextAndIcon = QEGenericButton::UPDATE_TEXT_AND_ICON,  ///< Data updates will update the button text and icon
-                         State       = QEGenericButton::UPDATE_STATE           ///< Data updates will update the button state (checked or unchecked)
+    enum UpdateOptions { Text             = QEGenericButton::UPDATE_TEXT,             ///< Data updates will update the button text
+                         Icon             = QEGenericButton::UPDATE_ICON,             ///< Data updates will update the button icon
+                         TextAndIcon      = QEGenericButton::UPDATE_TEXT_AND_ICON,    ///< Data updates will update the button text and icon
+                         State            = QEGenericButton::UPDATE_STATE,            ///< Data updates will update the button state (checked or unchecked)
+                         TextAndState     = QEGenericButton::UPDATE_TEXT_AND_STATE,   ///< Data updates will update the button text and state
+                         IconAndState     = QEGenericButton::UPDATE_ICON_AND_STATE,   ///< Data updates will update the button icon and state
+                         TextIconAndState = QEGenericButton::UPDATE_TEXT_ICON_AND_STATE  ///< Data updates will update the button - the lot
                        };
 
     /// Pixmap to display if updateOption is Icon or TextAndIcon and data value translates to an index of 0

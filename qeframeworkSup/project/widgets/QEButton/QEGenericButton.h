@@ -1,6 +1,9 @@
 /*  QEGenericButton.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009,2010,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -57,11 +58,18 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGenericButton :
                               VAR_DISV,        // DISV field of primary - set iff disableWhenRecordDisabled true
                               NUMBER_OF_VARIABLES };  // Maximum number of variables.
 
-    enum updateOptions { UPDATE_TEXT, UPDATE_ICON, UPDATE_TEXT_AND_ICON, UPDATE_STATE };
-
-//    enum programStartupOptions { PSO_NONE,         // Just run the program
-//                                 PSO_TERMINAL,     // Run the program in a termainal
-//                                 PSO_LOGOUTPUT };  // Run the program, and log the output in the QE message system
+    // Applicable when subscribe is set true.
+    // Would have liked to use a flag, but want to maintain backward compatibility.
+    //
+    enum updateOptions { UPDATE_NONE                = 0x00,  // For completeness
+                         UPDATE_TEXT                = 0x01,  // Update text
+                         UPDATE_ICON                = 0x02,  // Update icon
+                         UPDATE_TEXT_AND_ICON       = 0x03,
+                         UPDATE_STATE               = 0x04,  // Update state - inc. alarm state
+                         UPDATE_TEXT_AND_STATE      = 0x05,
+                         UPDATE_ICON_AND_STATE      = 0x06,
+                         UPDATE_TEXT_ICON_AND_STATE = 0x07
+                       };
 
     // subscribe
     void setSubscribe( bool subscribe );

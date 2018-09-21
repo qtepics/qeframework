@@ -1,6 +1,7 @@
 /*  QEGenericButton.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +16,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2017 Australian Synchrotron
+ *  Copyright (c) 2009-2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -227,7 +228,7 @@ void QEGenericButton::establishConnection( unsigned int variableIndex ) {
     case VAR_PRIMARY:     // Primary readback variable
         // Get updates if subscribing and  there is no alternate read back.
         if( subscribe && getSubstitutedVariableName( 1/*1=Alternate readback variable*/ ).isEmpty() ){
-            if( updateOption == UPDATE_TEXT || updateOption == UPDATE_TEXT_AND_ICON)
+            if( (updateOption & UPDATE_TEXT) == UPDATE_TEXT )
             {
                 setButtonText( "" );
             }
@@ -242,7 +243,7 @@ void QEGenericButton::establishConnection( unsigned int variableIndex ) {
     case VAR_READBACK:     // Alternate readback variable
         // Get updates if subscribing.
         if( subscribe ){
-            if( updateOption == UPDATE_TEXT || updateOption == UPDATE_TEXT_AND_ICON)
+            if( (updateOption & UPDATE_TEXT) == UPDATE_TEXT )
             {
                 setButtonText( "" );
             }
@@ -424,19 +425,19 @@ void QEGenericButton::setGenericButtonText( const QString& text, QCaAlarmInfo& a
 
     // Update the button state if required
     // Display checked if text matches what is written when checked
-    if( updateOption == UPDATE_STATE )
+    if( (updateOption & UPDATE_STATE) == UPDATE_STATE )
     {
         setButtonState( !text.compare( clickCheckedText ) );
     }
 
     // Update the text if required
-    if( updateOption == UPDATE_TEXT || updateOption == UPDATE_TEXT_AND_ICON )
+    if( (updateOption & UPDATE_TEXT) == UPDATE_TEXT )
     {
         setButtonText( text );
     }
 
     // Update the icon if required
-    if( updateOption == UPDATE_ICON || updateOption == UPDATE_TEXT_AND_ICON )
+    if( (updateOption & UPDATE_ICON) == UPDATE_ICON )
     {
         QIcon icon;
         icon.addPixmap( getDataPixmap( text ) );
