@@ -397,11 +397,13 @@ QString QESimpleShape::getItemText ()
          {
             qcaobject::QCaObject* qca = this->getQcaItem (MAIN_PV_INDEX);
             if (!qca) break;  // sanity check
+            if (!qca->getChannelIsConnected ()) break;
             bool isDefined;
             QVariant value;
             QCaAlarmInfo alarmInfo;
             QCaDateTime timeStamp;
             qca->getLastData (isDefined, value, alarmInfo, timeStamp);
+            if (!isDefined) break;
             result = this->stringFormatting.formatString (value, this->getArrayIndex ());
          }
          break;

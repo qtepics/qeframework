@@ -116,6 +116,8 @@ void QEAnalogSlider::commonSetup ()
    this->autoMaximum = 10.0;
    this->autoPrecision = 1;
 
+   this->stringFormatting.setArrayAction (QEStringFormatting::INDEX);
+
    // Use default context menu.
    //
    this->setupContextMenu ();
