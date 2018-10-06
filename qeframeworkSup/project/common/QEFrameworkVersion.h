@@ -46,7 +46,7 @@
 //
 #define QE_VERSION_MAJOR      3     // Public releases that include interface or paradigm changes that may require changes to the way the framework is used.
 #define QE_VERSION_MINOR      6     // Public releases containing new functionality (may include fixes as well)
-#define QE_VERSION_RELEASE    1     // Public releases containing fixes only.
+#define QE_VERSION_RELEASE    2     // Public releases containing fixes only.
 
 // The integer version is (major << 16) + (minor << 8) + release, and this macro
 // is used to constuct an integer version number.
@@ -63,7 +63,7 @@
 //
 #define QE_VERSION_STAGE_DEVELOPMENT "Development"
 #define QE_VERSION_STAGE_PRODUCTION  "Production"
-#define QE_VERSION_STAGE             QE_VERSION_STAGE_DEVELOPMENT
+#define QE_VERSION_STAGE             QE_VERSION_STAGE_PRODUCTION
 
 #define QE_VERSION_STRING     STRINGIFY(QE_VERSION_MAJOR) "." \
                               STRINGIFY(QE_VERSION_MINOR) "." \
