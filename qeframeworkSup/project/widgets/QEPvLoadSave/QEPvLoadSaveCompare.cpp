@@ -1,6 +1,9 @@
 /*  QEPvLoadSaveCompare.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2015-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2015,2016 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -204,6 +205,7 @@ void QEPvLoadSaveCompare::updateHistogram ()
    const double minDisplay = this->scale / 25.0;
 
    QEHistogram* hgram = this->ui->comparison;  // create alias.
+   hgram->clear();     // clear any old data
    hgram->setMinimum (-this->scale);
    hgram->setMaximum (+this->scale);
    // cannot set major/minor coords (yet).

@@ -207,6 +207,9 @@ void QEArchiveManager::started ()
             interface = new QEChannelArchiveInterface (url, this);
             break;
          case (QEArchiveAccess::ARCHAPPL):
+            if (!url.path().endsWith("/")) {
+               url.setPath(url.path() + "/");
+            }
             interface = new QEArchapplInterface (url, this);
             break;
          default:
