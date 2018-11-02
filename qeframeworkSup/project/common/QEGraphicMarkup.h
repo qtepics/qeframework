@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2014-2018 Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2014,2016 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -44,8 +44,11 @@ class QEGraphic;  // differed declaration - avoid mutual header inclusion
 //
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGraphicMarkup {
 public:
-   explicit QEGraphicMarkup (QEGraphicNames::Markups markup, QEGraphic* owner);
+   explicit QEGraphicMarkup (const QEGraphicNames::Markups markup,
+                             QEGraphic* owner);
    virtual ~QEGraphicMarkup ();
+
+   QEGraphicNames::Markups getMarkup () const;
 
    void setCurrentPosition (const QPointF& currentPosition);
    QPointF getCurrentPosition () const;

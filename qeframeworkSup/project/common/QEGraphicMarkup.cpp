@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2014-2018 Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2014,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -45,8 +45,9 @@
 // QEGraphicMarkup - base class
 //=============================================================================
 //
-QEGraphicMarkup::QEGraphicMarkup (QEGraphicNames::Markups markupIn, QEGraphic* ownerIn) :
-    markup (markupIn)
+QEGraphicMarkup::QEGraphicMarkup (const QEGraphicNames::Markups markupIn,
+                                  QEGraphic* ownerIn) :
+   markup (markupIn)
 {
    this->owner = ownerIn;
    this->positon = QPointF (0.0, 0.0);
@@ -70,6 +71,13 @@ QEGraphicMarkup::QEGraphicMarkup (QEGraphicNames::Markups markupIn, QEGraphic* o
 //
 QEGraphicMarkup::~QEGraphicMarkup ()
 {
+}
+
+//-----------------------------------------------------------------------------
+//
+QEGraphicNames::Markups QEGraphicMarkup::getMarkup () const
+{
+   return this->markup;
 }
 
 //-----------------------------------------------------------------------------
