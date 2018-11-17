@@ -825,11 +825,26 @@ void QEStripChart::plotMouseMove  (const QPointF& position)
    f.sprintf ("    Value: %+.10g", position.y ());
    mouseReadOut.append (f);
 
+   // Is the line markup "on show"?
+   //
    if (this->plotArea->getSlopeIsDefined (slope)) {
       const double dt = slope.x ();
       const double dy = slope.y ();
 
-      f = QEUtilities::intervalToString (dt, 1, false);
+      // Calc delta time precision
+      //
+      int prec;
+      if (dt < 1.0) {
+         prec = 3;
+      } else if (dt < 10.0) {
+         prec = 2;
+      } else if (dt < 300.0) {   // 5 minutes
+         prec = 1;
+      } else {
+         prec = 0;
+      }
+
+      f = QEUtilities::intervalToString (dt, prec, false);
       mouseReadOut.append (QString  ("    dt: %1 ").arg (f));
 
       f.sprintf ("  dy: %+.6g", dy);
@@ -1399,11 +1414,11 @@ void QEStripChart::durationSelected (const int seconds)
 //
 void QEStripChart::selectDuration ()
 {
-   int n;
    this->durationDialog->setDuration (this->getDuration ());
-   n = this->durationDialog->exec (this->toolBar);
+   const int n = this->durationDialog->exec (this->toolBar);
    if (n == 1) {
-      this->setDuration (this->durationDialog->getDuration ());
+      const int d = this->durationDialog->getDuration ();
+      this->setDuration (d);
    }
 }
 
