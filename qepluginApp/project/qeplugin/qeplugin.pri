@@ -51,6 +51,7 @@ OTHER_FILES += qeplugin/QECalcout.png
 OTHER_FILES += qeplugin/QECheckBox.png
 OTHER_FILES += qeplugin/QEComboBox.png
 OTHER_FILES += qeplugin/QEConfiguredLayout.png
+OTHER_FILES += qeplugin/QECorrelation.png
 OTHER_FILES += qeplugin/QEDescriptionLabel.png
 OTHER_FILES += qeplugin/QEFileBrowser.png
 OTHER_FILES += qeplugin/QEFileImage.png

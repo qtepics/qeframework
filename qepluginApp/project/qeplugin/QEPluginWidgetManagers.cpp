@@ -40,6 +40,7 @@
 #include <QERadioButton.h>
 #include <QEComboBox.h>
 #include <QEConfiguredLayout.h>
+#include <QECorrelation.h>
 #include <QEFileBrowser.h>
 #include <QEFileImage.h>
 #include <QEForm.h>
@@ -98,6 +99,7 @@ QE_IMPLEMENT_PLUGIN_MANAGER (QEPushButton,        QECONTROL,  ":/qe/plugin/QEPus
 QE_IMPLEMENT_PLUGIN_MANAGER (QERadioButton,       QECONTROL,  ":/qe/plugin/QERadioButton.png",       false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEComboBox,          QECONTROL,  ":/qe/plugin/QEComboBox.png",          false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEConfiguredLayout,  QESUPPORT,  ":/qe/plugin/QEConfiguredLayout.png",  false)
+QE_IMPLEMENT_PLUGIN_MANAGER (QECorrelation,       QETOOL,     ":/qe/plugin/QECorrelation.png",       false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEFileBrowser,       QECONTROL,  ":/qe/plugin/QEFileBrowser.png",       false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEFileImage,         QEMONITOR,  ":/qe/plugin/QEFileImage.png",         false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEForm,              QESUPPORT,  ":/qe/plugin/QEForm.png",              false)

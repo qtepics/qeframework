@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #15 $
-# $DateTime: 2018/08/10 19:57:18 $
+# $Revision: #16 $
+# $DateTime: 2018/11/20 19:33:19 $
 # Last checked in by: $Author: starritt $
 #
 # Copyright (c) 2009,2010,2016,2018 Australian Synchrotron
@@ -166,6 +166,7 @@ include (widgets/QEButton/QEButton.pri)
 include (widgets/QECalcout/QECalcout.pri)
 include (widgets/QEComboBox/QEComboBox.pri)
 include (widgets/QEConfiguredLayout/QEConfiguredLayout.pri)
+include (widgets/QECorrelation/QECorrelation.pri)
 include (widgets/QEFileBrowser/QEFileBrowser.pri)
 include (widgets/QEFileImage/QEFileImage.pri)
 include (widgets/QEForm/QEForm.pri)

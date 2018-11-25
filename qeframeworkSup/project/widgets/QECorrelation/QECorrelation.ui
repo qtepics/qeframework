@@ -1,0 +1,847 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>QECorrelation</class>
+ <widget class="QWidget" name="QECorrelation">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>672</width>
+    <height>536</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>672</width>
+    <height>536</height>
+   </size>
+  </property>
+  <property name="font">
+   <font>
+    <pointsize>8</pointsize>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>PV Correlation</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="Main_Form_Panel">
+     <property name="font">
+      <font>
+       <family>Sans Serif</family>
+       <pointsize>8</pointsize>
+      </font>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <item>
+       <widget class="QFrame" name="Contol_Panel">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>136</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>136</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Sans Serif</family>
+          <pointsize>8</pointsize>
+         </font>
+        </property>
+        <widget class="QLabel" name="Label2">
+         <property name="geometry">
+          <rect>
+           <x>4</x>
+           <y>43</y>
+           <width>132</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string>QLabel { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="text">
+          <string>Sample period (secs): </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="Label1">
+         <property name="geometry">
+          <rect>
+           <x>216</x>
+           <y>43</y>
+           <width>104</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string>QLabel { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="text">
+          <string>Maximum points: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="Label3">
+         <property name="geometry">
+          <rect>
+           <x>388</x>
+           <y>43</y>
+           <width>164</width>
+           <height>13</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Maximum correlation period</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="Maximum_Sample_Label">
+         <property name="geometry">
+          <rect>
+           <x>556</x>
+           <y>41</y>
+           <width>100</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string>QLabel { background-color: rgb(224,224,224); }</string>
+         </property>
+         <property name="text">
+          <string> 0 00:00:40 </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="indent">
+          <number>4</number>
+         </property>
+        </widget>
+        <widget class="QLabel" name="Label5">
+         <property name="geometry">
+          <rect>
+           <x>4</x>
+           <y>69</y>
+           <width>108</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string>QLabel { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="text">
+          <string>Correlation factor: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="Correlation_Value_Label">
+         <property name="geometry">
+          <rect>
+           <x>120</x>
+           <y>69</y>
+           <width>84</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string>QLabel { background-color: rgb(224,224,224); } QLabel { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="text">
+          <string>+0.4560 </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="indent">
+          <number>6</number>
+         </property>
+        </widget>
+        <widget class="QLabel" name="Label4">
+         <property name="geometry">
+          <rect>
+           <x>216</x>
+           <y>69</y>
+           <width>104</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string>QLabel { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="text">
+          <string>Number of points: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="Number_Points_Label">
+         <property name="geometry">
+          <rect>
+           <x>324</x>
+           <y>69</y>
+           <width>52</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string>QLabel { background-color: rgb(224,224,224); } QLabel { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="text">
+          <string>123 </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="indent">
+          <number>4</number>
+         </property>
+        </widget>
+        <widget class="QLabel" name="Label6">
+         <property name="geometry">
+          <rect>
+           <x>388</x>
+           <y>69</y>
+           <width>164</width>
+           <height>13</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Current correlation period</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="Ongoing_Sample_Label">
+         <property name="geometry">
+          <rect>
+           <x>556</x>
+           <y>67</y>
+           <width>100</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string>QLabel { background-color: rgb(224,224,224); }</string>
+         </property>
+         <property name="text">
+          <string> 0 00:00:40 </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="indent">
+          <number>4</number>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="Clear_Count_Button">
+         <property name="geometry">
+          <rect>
+           <x>364</x>
+           <y>6</y>
+           <width>59</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="styleSheet">
+          <string>QPushButton { background-color: rgb(255,255,160); } QPushButton { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="text">
+          <string>Clear</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="Time_Select_Button">
+         <property name="geometry">
+          <rect>
+           <x>432</x>
+           <y>6</y>
+           <width>28</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <family>Sans Serif</family>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>Select Start/End Times</string>
+         </property>
+         <property name="styleSheet">
+          <string>QPushButton { background-color: rgb(236,233,216); } QPushButton { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../QEStripChart/QEStripChart.qrc">
+           <normaloff>:/qe/stripchart/select_date_times.png</normaloff>:/qe/stripchart/select_date_times.png</iconset>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="ColourSpeedButton1">
+         <property name="geometry">
+          <rect>
+           <x>12</x>
+           <y>6</y>
+           <width>59</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="styleSheet">
+          <string>QPushButton { background-color: rgb(236,233,216); } QPushButton { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="text">
+          <string>Dots</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="ColourSpeedButton2">
+         <property name="geometry">
+          <rect>
+           <x>72</x>
+           <y>6</y>
+           <width>59</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="styleSheet">
+          <string>QPushButton { background-color: rgb(236,233,216); } QPushButton { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="text">
+          <string>Lines</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="Manual_Scale_Button">
+         <property name="geometry">
+          <rect>
+           <x>212</x>
+           <y>6</y>
+           <width>67</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>Select manual plot scale</string>
+         </property>
+         <property name="styleSheet">
+          <string>QPushButton { background-color: rgb(236,233,216); } QPushButton { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="text">
+          <string>Manual</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="Data_Scale_Button">
+         <property name="geometry">
+          <rect>
+           <x>280</x>
+           <y>6</y>
+           <width>67</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>Scale to displayed data range</string>
+         </property>
+         <property name="styleSheet">
+          <string>QPushButton { background-color: rgb(236,233,216); } QPushButton { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="text">
+          <string>Data</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="Dynamic_Scale_Button">
+         <property name="geometry">
+          <rect>
+           <x>144</x>
+           <y>6</y>
+           <width>67</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>Use dynamic plot scaling</string>
+         </property>
+         <property name="styleSheet">
+          <string>QPushButton { background-color: rgb(236,233,216); } QPushButton { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="text">
+          <string>Dynamic</string>
+         </property>
+        </widget>
+        <widget class="QNumericEdit" name="Sample_Interval_Edit">
+         <property name="geometry">
+          <rect>
+           <x>136</x>
+           <y>41</y>
+           <width>68</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <family>Sans Serif</family>
+          </font>
+         </property>
+         <property name="toolTip">
+          <string>Sample interval</string>
+         </property>
+         <property name="styleSheet">
+          <string>QNumericEdit { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="leadingZeros">
+          <number>4</number>
+         </property>
+         <property name="precision">
+          <number>1</number>
+         </property>
+         <property name="minimum">
+          <double>0.200000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>3600.000000000000000</double>
+         </property>
+         <property name="value">
+          <double>1.000000000000000</double>
+         </property>
+        </widget>
+        <widget class="QNumericEdit" name="Number_Samples_Edit">
+         <property name="geometry">
+          <rect>
+           <x>320</x>
+           <y>41</y>
+           <width>56</width>
+           <height>23</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <family>Sans Serif</family>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string>QNumericEdit { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="leadingZeros">
+          <number>4</number>
+         </property>
+         <property name="precision">
+          <number>0</number>
+         </property>
+         <property name="minimum">
+          <double>4.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>5000.000000000000000</double>
+         </property>
+         <property name="value">
+          <double>600.000000000000000</double>
+         </property>
+        </widget>
+        <widget class="QWidget" name="Panel_1" native="true">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>92</y>
+           <width>660</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <widget class="QELabel" name="CA_DataLabel1">
+          <property name="geometry">
+           <rect>
+            <x>476</x>
+            <y>2</y>
+            <width>180</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <family>Sans Serif</family>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+          <property name="indent">
+           <number>6</number>
+          </property>
+          <property name="defaultStyle" stdset="0">
+           <string>QELabel { background-color: rgb(224,224,224); }</string>
+          </property>
+          <property name="precision">
+           <number>3</number>
+          </property>
+          <property name="useDbPrecision">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>- </string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="PV_Label1">
+          <property name="geometry">
+           <rect>
+            <x>38</x>
+            <y>2</y>
+            <width>430</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <family>Sans Serif</family>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QLabel { background-color: rgb(220,0,0); } QLabel { color: rgb(255,255,255); }</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          </property>
+          <property name="indent">
+           <number>6</number>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="X_Letter_Button">
+          <property name="geometry">
+           <rect>
+            <x>8</x>
+            <y>1</y>
+            <width>24</width>
+            <height>18</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>8</pointsize>
+           </font>
+          </property>
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
+          <property name="text">
+           <string>X</string>
+          </property>
+         </widget>
+        </widget>
+        <widget class="QWidget" name="Panel_2" native="true">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>112</y>
+           <width>660</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <widget class="QELabel" name="CA_DataLabel2">
+          <property name="geometry">
+           <rect>
+            <x>476</x>
+            <y>2</y>
+            <width>180</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <family>Sans Serif</family>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+          <property name="indent">
+           <number>6</number>
+          </property>
+          <property name="defaultStyle" stdset="0">
+           <string>QELabel { background-color: rgb(224,224,224); }</string>
+          </property>
+          <property name="precision">
+           <number>3</number>
+          </property>
+          <property name="useDbPrecision">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>- </string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="PV_Label2">
+          <property name="geometry">
+           <rect>
+            <x>38</x>
+            <y>2</y>
+            <width>430</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <family>Sans Serif</family>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string>QLabel { background-color: rgb(0,192,0); } QLabel { color: rgb(0,0,0); }</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          </property>
+          <property name="indent">
+           <number>6</number>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="Y_Letter_Button">
+          <property name="geometry">
+           <rect>
+            <x>8</x>
+            <y>1</y>
+            <width>24</width>
+            <height>18</height>
+           </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>8</pointsize>
+           </font>
+          </property>
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
+          <property name="text">
+           <string>Y</string>
+          </property>
+         </widget>
+        </widget>
+        <widget class="QPushButton" name="loadButton">
+         <property name="geometry">
+          <rect>
+           <x>596</x>
+           <y>6</y>
+           <width>28</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>28</width>
+           <height>26</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>28</width>
+           <height>26</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string> Load PV Correlation configuration </string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../QEStripChart/QEStripChart.qrc">
+           <normaloff>:/qe/stripchart/open_file.png</normaloff>:/qe/stripchart/open_file.png</iconset>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="saveButton">
+         <property name="geometry">
+          <rect>
+           <x>628</x>
+           <y>6</y>
+           <width>28</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>28</width>
+           <height>26</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>28</width>
+           <height>26</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string> Save PV Correlation configuration </string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../QEStripChart/QEStripChart.qrc">
+           <normaloff>:/qe/stripchart/save_file.png</normaloff>:/qe/stripchart/save_file.png</iconset>
+         </property>
+        </widget>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="Plane" native="true">
+        <property name="font">
+         <font>
+          <family>Sans Serif</family>
+          <pointsize>8</pointsize>
+         </font>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QELabel</class>
+   <extends>QLabel</extends>
+   <header>QELabel.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QNumericEdit</class>
+   <extends>QWidget</extends>
+   <header>QNumericEdit.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../QEStripChart/QEStripChart.qrc"/>
+ </resources>
+ <connections/>
+</ui>

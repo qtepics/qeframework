@@ -42,6 +42,7 @@ QEWidgets::QEWidgets(QObject *parent) : QObject(parent) {
     widgets.append(new QECheckBoxManager(this));
     widgets.append(new QEComboBoxManager(this));
     widgets.append(new QEConfiguredLayoutManager(this));
+    widgets.append(new QECorrelationManager(this));
     widgets.append(new QEFileBrowserManager(this));
     widgets.append(new QEFileImageManager(this));
     widgets.append(new QEFormManager(this));

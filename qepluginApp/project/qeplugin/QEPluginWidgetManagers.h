@@ -162,6 +162,16 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEConfiguredLayoutManager :
 
 //------------------------------------------------------------------------------
 //
+class QEPLUGINLIBRARYSHARED_EXPORT QECorrelationManager :
+      public QObject, public QDesignerCustomWidgetInterface
+{
+   Q_OBJECT
+   Q_INTERFACES (QDesignerCustomWidgetInterface)
+   QE_DECLARE_PLUGIN_MANAGER (QECorrelation)
+};
+
+//------------------------------------------------------------------------------
+//
 class QEPLUGINLIBRARYSHARED_EXPORT QEFileBrowserManager :
       public QObject, public QDesignerCustomWidgetInterface
 {
@@ -567,7 +577,6 @@ class QEPLUGINLIBRARYSHARED_EXPORT QETableManager :
    QE_DECLARE_PLUGIN_MANAGER (QETable)
 };
 
-
 //------------------------------------------------------------------------------
 //
 class QEPLUGINLIBRARYSHARED_EXPORT QEArchiveNameSearchManager :
@@ -587,5 +596,6 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEArchiveStatusManager :
    Q_INTERFACES (QDesignerCustomWidgetInterface)
    QE_DECLARE_PLUGIN_MANAGER (QEArchiveStatus)
 };
+
 
 #endif // QE_PLUGIN_WIDGET_MANAGERS_H
