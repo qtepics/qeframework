@@ -461,8 +461,15 @@ QString QECorrelation::copyVariable ()
 //
 QVariant QECorrelation::copyData ()
 {
-   QVariant result;
-   return result;
+   QString text;
+
+   text.append (QString ("\nx\ty\n"));
+
+   for (int j = 0; j < xData.count (); j++) {
+      text.append (QString ("%1\t%2\n").arg (this->xData[j]).arg (this->yData[j]));
+   }
+
+   return QVariant (text);
 }
 
 //------------------------------------------------------------------------------

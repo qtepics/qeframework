@@ -13,7 +13,7 @@
   <property name="minimumSize">
    <size>
     <width>672</width>
-    <height>536</height>
+    <height>300</height>
    </size>
   </property>
   <property name="font">
@@ -41,7 +41,6 @@
     <widget class="QFrame" name="Main_Form_Panel">
      <property name="font">
       <font>
-       <family>Sans Serif</family>
        <pointsize>8</pointsize>
       </font>
      </property>
@@ -77,7 +76,6 @@
         </property>
         <property name="font">
          <font>
-          <family>Sans Serif</family>
           <pointsize>8</pointsize>
          </font>
         </property>
@@ -817,7 +815,6 @@
        <widget class="QWidget" name="Plane" native="true">
         <property name="font">
          <font>
-          <family>Sans Serif</family>
           <pointsize>8</pointsize>
          </font>
         </property>

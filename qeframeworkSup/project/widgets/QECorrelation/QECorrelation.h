@@ -54,8 +54,8 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QECorrelation : public QEAbstractDynami
 {
    Q_OBJECT
 public:
-   Q_PROPERTY (QString xVariableName   READ getXVariableName  WRITE setXVariableName)
-   Q_PROPERTY (QString yVariableName   READ getYVariableName  WRITE setYVariableName)
+   Q_PROPERTY (QString variableX   READ getXVariableName  WRITE setXVariableName)
+   Q_PROPERTY (QString variableY   READ getYVariableName  WRITE setYVariableName)
 
    /// Default macro substitutions. The default is no substitutions.
    /// The format is NAME1=VALUE1[,] NAME2=VALUE2...
@@ -64,8 +64,8 @@ public:
    //
    Q_PROPERTY (QString variableSubstitutions READ getVariableSubstitutions WRITE setVariableSubstitutions)
 
-   Q_PROPERTY (bool xLogarithmic       READ getXLogarithmic      WRITE setXLogarithmic)
-   Q_PROPERTY (bool yLogarithmic       READ getYLogarithmic      WRITE setYLogarithmic)
+   Q_PROPERTY (bool xLogarithmic   READ getXLogarithmic   WRITE setXLogarithmic)
+   Q_PROPERTY (bool yLogarithmic   READ getYLogarithmic   WRITE setYLogarithmic)
 
 public:
    explicit QECorrelation (QWidget *parent = 0);
