@@ -270,6 +270,11 @@ void QECorrelation::setup ()
 
    this->plotArea->setAvailableMarkups (QEGraphicNames::Area | QEGraphicNames::Line);
 
+   // Set default sample and number of points
+   //
+   this->setSampleInterval (1.0);
+   this->setNumberPoints (600);
+
    // Set up timers.
    //
    QObject::connect (this->sampleTimer, SIGNAL (timeout ()),
@@ -603,6 +608,38 @@ QString QECorrelation::getVariableSubstitutions () const
    // Either one of the name managers can provide the subsitutions.
    //
    return this->xVariableNameManager.getSubstitutionsProperty ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QECorrelation::setSampleInterval (const double interval)
+{
+   this->mSampleInterval = LIMIT (interval, 0.2, 3600.0);
+   this->uiForm->Sample_Interval_Edit->setValue (this->mSampleInterval);
+   this->updateDataArrays ();
+}
+
+//------------------------------------------------------------------------------
+//
+double QECorrelation::getSampleInterval () const
+{
+   return this->mSampleInterval;
+}
+
+//------------------------------------------------------------------------------
+//
+void QECorrelation::setNumberPoints (const int number)
+{
+   this->mNumberPoints = LIMIT (number, 4, 5000);
+   this->uiForm->Number_Samples_Edit->setValue (this->mNumberPoints);
+   this->updateDataArrays ();
+}
+
+//------------------------------------------------------------------------------
+//
+int QECorrelation::getNumberPoints () const
+{
+   return this->mNumberPoints;
 }
 
 //------------------------------------------------------------------------------
