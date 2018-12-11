@@ -198,10 +198,12 @@ void QECorrelation::setup ()
 
    // Tag X PV and Y PV items
    //
+   QECorrelation::tagWidget (this->uiForm->Panel_1,         xPvIndex);
    QECorrelation::tagWidget (this->uiForm->CA_DataLabel1,   xPvIndex);
    QECorrelation::tagWidget (this->uiForm->PV_Label1,       xPvIndex);
    QECorrelation::tagWidget (this->uiForm->X_Letter_Button, xPvIndex);
 
+   QECorrelation::tagWidget (this->uiForm->Panel_2,         yPvIndex);
    QECorrelation::tagWidget (this->uiForm->CA_DataLabel2,   yPvIndex);
    QECorrelation::tagWidget (this->uiForm->PV_Label2,       yPvIndex);
    QECorrelation::tagWidget (this->uiForm->Y_Letter_Button, yPvIndex);
