@@ -31,7 +31,7 @@ PROJECT_NAME           = "EPICS QT Framework"
 # This could be handy for archiving the generated documentation or
 # if some version control system is used.
 
-PROJECT_NUMBER         = 3.4.2
+PROJECT_NUMBER         = 3.6.2
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer a
@@ -51,7 +51,6 @@ PROJECT_LOGO           =
 # If a relative path is entered, it will be relative to the location
 # where doxygen was started. If left blank the current directory will be used.
 
-#OUTPUT_DIRECTORY       = /home/rhydera/epicsqt/documentation/
 OUTPUT_DIRECTORY       = ../../documentation/
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create
@@ -604,9 +603,58 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-#INPUT = /home/rhydera/epicsqt/documentation/source /home/rhydera/epicsqt/framework/data/include /home/rhydera/epicsqt/framework/data/src /home/rhydera/epicsqt/framework/widgets/include /home/rhydera/epicsqt/#framework/widgets/src /home/rhydera/epicsqt/framework/plugins/include /home/rhydera/epicsqt/framework/plugins/src
+INPUT  = . ./images \
+.fw/adaptation_parameters \
+.fw/api \
+.fw/archive \
+.fw/common \
+.fw/data \
+.fw/widgets/QEAbstractWidget \
+.fw/widgets/QEAnalogIndicator \
+.fw/widgets/QEAnalogProgressBar \
+.fw/widgets/QEAnalogSlider \
+.fw/widgets/QEBitStatus \
+.fw/widgets/QEButton \
+.fw/widgets/QECalcout \
+.fw/widgets/QEComboBox \
+.fw/widgets/QEConfiguredLayout \
+.fw/widgets/QECorrelation \
+.fw/widgets/QEFileBrowser \
+.fw/widgets/QEFileImage \
+.fw/widgets/QEForm \
+.fw/widgets/QEFormGrid \
+.fw/widgets/QEFrame \
+.fw/widgets/QEGeneralEdit \
+.fw/widgets/QEGroupBox \
+.fw/widgets/QEHistogram \
+.fw/widgets/QEImage \
+.fw/widgets/QELCDNumber \
+.fw/widgets/QELabel \
+.fw/widgets/QELineEdit \
+.fw/widgets/QELink \
+.fw/widgets/QELog \
+.fw/widgets/QELogin \
+.fw/widgets/QEMenuButton \
+.fw/widgets/QENumericEdit \
+.fw/widgets/QEPeriodic \
+.fw/widgets/QEPlot \
+.fw/widgets/QEPlotter \
+.fw/widgets/QEPvLoadSave \
+.fw/widgets/QEPvProperties \
+.fw/widgets/QERadioGroup \
+.fw/widgets/QERecipe \
+.fw/widgets/QEResizeableFrame \
+.fw/widgets/QEScratchPad \
+.fw/widgets/QEScript \
+.fw/widgets/QEShape \
+.fw/widgets/QESimpleShape \
+.fw/widgets/QESlider \
+.fw/widgets/QESpinBox \
+.fw/widgets/QEStripChart \
+.fw/widgets/QESubstitutedLabel \
+.fw/widgets/QETable \
+.fw/widgets/QEWidget
 
-INPUT  = . ./images ../../framework/data ../../framework/widgets/QEAbstractWidget ../../framework/widgets/QEAnalogIndicator ../../framework/widgets/QEAnalogProgressBar ../../framework/widgets/QEAnalogSlider ../../framework/widgets/QEBitStatus ../../framework/widgets/QEButton ../../framework/widgets/QEComboBox ../../framework/widgets/QEConfiguredLayout ../../framework/widgets/QEFileBrowser ../../framework/widgets/QEFileImage ../../framework/widgets/QEForm ../../framework/widgets/QEFormGrid ../../framework/widgets/QEFrame ../../framework/widgets/QEGeneralEdit ../../framework/widgets/QEGroupBox ../../framework/widgets/QEHistogram ../../framework/widgets/QEImage ../../framework/widgets/QELabel ../../framework/widgets/QELineEdit ../../framework/widgets/QELink ../../framework/widgets/QELog ../../framework/widgets/QELogin ../../framework/widgets/QEMenuButton ../../framework/widgets/QENumericEdit ../../framework/widgets/QEPeriodic ../../framework/widgets/QEPlot ../../framework/widgets/QEPlotter ../../framework/widgets/QEPvLoadSave ../../framework/widgets/QEPvProperties ../../framework/widgets/QERadioGroup ../../framework/widgets/QERecipe ../../framework/widgets/QEResizeableFrame ../../framework/widgets/QEScratchPad ../../framework/widgets/QEScript ../../framework/widgets/QEShape ../../framework/widgets/QESimpleShape ../../framework/widgets/QESlider ../../framework/widgets/QESpinBox ../../framework/widgets/QEStripChart ../../framework/widgets/QESubstitutedLabel ../../framework/widgets/QETable
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -636,7 +684,7 @@ RECURSIVE              = YES
 # excluded from the INPUT source files. This way you can easily exclude a
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                = ../../framework/widgets/include/styleManager.h ../../framework/widgets/include/VariableNameManager.h ../../framework/widgets/QESlider/QESliderManager.h ../../framework/widgets/QEGroupBox/QEGroupBoxManager.h ../../framework/widgets/QEFrame/QEFrameManager.h ../../framework/widgets/QEAnalogProgressBar/QEAnalogProgressBarManager.h ../../framework/widgets/QEComboBox/QEComboBoxManager.h ../../framework/widgets/QEFileBrowser/QEFileBrowserManager.h ../../framework/widgets/QEBitStatus/QEBitStatusManager.h ../../framework/widgets/QEBitStatus/QBitStatusManager.h ../../framework/widgets/QEPlot/QEPlotManager.h ../../framework/widgets/QEImage/QEImageManager.h ../../framework/widgets/QELog/QELogManager.h ../../framework/widgets/QELink/QELinkManager.h ../../framework/widgets/QEPeriodic/QEPeriodicManager.h ../../framework/widgets/QEShape/QEShapeManager.h ../../framework/widgets/QEForm/QEFormManager.h ../../framework/widgets/QELogin/QELoginManager.h ../../framework/widgets/QELabel/QELabelManager.h ../../framework/widgets/QESubstitutedLabel/QESubstitutedLabelManager.h ../../framework/widgets/QEScript/QEScriptManager.h ../../framework/widgets/QEStripChart/QEStripChartManager.h ../../framework/widgets/QEButton/QEPushButtonManager.h ../../framework/widgets/QEButton/QERadioButtonManager.h ../../framework/widgets/QEAnalogIndicator/QEAnalogIndicatorManager.h ../../framework/widgets/QESpinBox/QESpinBoxManager.h ../../framework/widgets/QERecipe/QERecipeManager.h ../../framework/widgets/QELineEdit/QELineEditManager.cpp ../../framework/archive/QEArchiveManager.h ../../framework/widgets/src/styleManager.cpp ../../framework/widgets/src/VariableNameManager.cpp ../../framework/widgets/QESlider/QESliderManager.cpp ../../framework/widgets/QEGroupBox/QEGroupBoxManager.cpp ../../framework/widgets/QEFrame/QEFrameManager.cpp ../../framework/widgets/QEAnalogProgressBar/QEAnalogProgressBarManager.cpp ../../framework/widgets/QEComboBox/QEComboBoxManager.cpp ../../framework/widgets/QEFileBrowser/QEFileBrowserManager.cpp ../../framework/widgets/QEBitStatus/QEBitStatusManager.cpp ../../framework/widgets/QEBitStatus/QBitStatusManager.cpp ../../framework/widgets/QEPlot/QEPlotManager.cpp ../../framework/widgets/QEImage/QEImageManager.cpp ../../framework/widgets/QELog/QELogManager.cpp ../../framework/widgets/QELink/QELinkManager.cpp ../../framework/widgets/QEPeriodic/QEPeriodicManager.cpp ../../framework/widgets/QEShape/QEShapeManager.cpp ../../framework/widgets/QEForm/QEFormManager.cpp ../../framework/widgets/QELogin/QELoginManager.cpp ../../framework/widgets/QELabel/QELabelManager.cpp ../../framework/widgets/QESubstitutedLabel/QESubstitutedLabelManager.cpp ../../framework/widgets/QEScript/QEScriptManager.cpp ../../framework/widgets/QEStripChart/QEStripChartManager.cpp ../../framework/widgets/QEButton/QEPushButtonManager.cpp ../../framework/widgets/QEButton/QERadioButtonManager.cpp ../../framework/widgets/QEAnalogIndicator/QEAnalogIndicatorManager.cpp ../../framework/widgets/QESpinBox/QESpinBoxManager.cpp ../../framework/widgets/QERecipe/QERecipeManager.cpp ../../framework/widgets/QELineEdit/QELineEditManager.cpp ../../framework/archive/QEArchiveManager.cpp
+EXCLUDE                = 
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
