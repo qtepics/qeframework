@@ -63,7 +63,7 @@
 //
 #define QE_VERSION_STAGE_DEVELOPMENT "Development"
 #define QE_VERSION_STAGE_PRODUCTION  "Production"
-#define QE_VERSION_STAGE             QE_VERSION_STAGE_PRODUCTION
+#define QE_VERSION_STAGE             QE_VERSION_STAGE_DEVELOPMENT
 
 #define QE_VERSION_STRING     STRINGIFY(QE_VERSION_MAJOR) "." \
                               STRINGIFY(QE_VERSION_MINOR) "." \

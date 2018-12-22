@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2012-2018 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012,2016,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -52,7 +52,7 @@
 #include <QEResizeableFrame.h>
 #include <QEPVNameSelectDialog.h>
 #include <QEGraphicNames.h>
-#include <QEArchiveManager.h>
+#include <QEArchiveAccess.h>
 
 #include "QEStripChartNames.h"
 #include "QEStripChartToolBar.h"

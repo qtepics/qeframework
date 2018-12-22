@@ -129,7 +129,7 @@ QE_IMPLEMENT_PLUGIN_MANAGER (QEPvProperties,      QETOOL,     ":/qe/plugin/QEPvP
 QE_IMPLEMENT_PLUGIN_MANAGER (QRadioGroup,         QETOOL,     ":/qe/plugin/QRadioGroup.png",         false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QERadioGroup,        QECONTROL,  ":/qe/plugin/QERadioGroup.png",        false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QERecipe,            QESUPPORT,  ":/qe/plugin/QERecipe.png",            false)
-QE_IMPLEMENT_PLUGIN_MANAGER (QEResizeableFrame,   QETOOL,     ":/qe/plugin/QEResizeableFrame.png",   false)
+QE_IMPLEMENT_PLUGIN_MANAGER (QEResizeableFrame,   QETOOL,     ":/qe/plugin/QEResizeableFrame.png",   true)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEScratchPad,        QETOOL,     ":/qe/plugin/QEScratchPad.png",        false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEScript,            QESUPPORT,  ":/qe/plugin/QEScript.png",            false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEShape,             QEMONITOR,  ":/qe/plugin/QEShape.png",             false)

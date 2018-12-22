@@ -1,6 +1,9 @@
 /* QEAdaptationParameters.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2018 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,22 +18,18 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEAdaptationParameters.h"
 #include <QDebug>
 
-#include "QEAdaptationParameters.h"
+#define DEBUG qDebug () << "QEAdaptationParameters" << __LINE__ << __FUNCTION__ << "  "
 
-#define DEBUG qDebug () << "QEAdaptationParameters::" << __FUNCTION__ << __LINE__
-
-
-// Note: in the original AS Delphi framework, we use the [General] section, but
+// Note: in the original AS Delphi framework, we used the [General] section, but
 // in the Qt world this has special meaning.
 //
 static const QString prefix = "Adaptation/";

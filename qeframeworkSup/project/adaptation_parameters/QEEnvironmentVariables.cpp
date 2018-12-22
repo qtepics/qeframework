@@ -1,6 +1,9 @@
 /*  QEAdaptationParameters.cpp $
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2018 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -77,10 +78,10 @@ bool QEEnvironmentVariables::getBool (const QString &name, const bool defaultVal
    QString sval;
 
    sval = this->getString (name, "");
-   if (sval == "1" || sval.toUpper() == "TRUE") {
+   if (sval == "1" || sval.toUpper() == "TRUE" || sval.toUpper() == "YES") {
       result = true;
-   } else if (sval == "0" || sval.toUpper() == "FALSE") {
-      result = true;
+   } else if (sval == "0" || sval.toUpper() == "FALSE" || sval.toUpper() == "NO") {
+      result = false;
    } else {
       result = defaultValue;
    }

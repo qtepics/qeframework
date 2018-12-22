@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
+ *  Copyright (c) 2012-2018 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -16,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2016,2017 Australian Synchrotron
- *
  *  Author:
  *    Ricardo Fernandes
  *  Contact details:
@@ -25,167 +25,313 @@
  */
 
 #include <QELog.h>
+#include <QDebug>
+#include <QList>
+#include <QStringList>
 #include <QMessageBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QFileDialog>
 #include <QHeaderView>
+#include <QECommon.h>
 
-// =============================================================================
-//  QELOG METHODS
-// =============================================================================
-QELog::QELog (QWidget* parent) : QWidget (parent), QEWidget (this)
+#define DEBUG qDebug() << "QELog" << __LINE__ << __FUNCTION__ << "  "
+
+
+//==============================================================================
+// UserMessageReceiver - direct crib from kubili
+//==============================================================================
+// We don't use the form as a message receiver as it may not exist before
+// messages are created.
+//
+class QELog::UserMessageReceiver : public UserMessage {
+public:
+   explicit UserMessageReceiver ();
+   ~UserMessageReceiver ();
+
+   void registerLogWidget (QELog* logWidget);
+   void deregisterLogWidget (QELog* logWidget);
+
+protected:
+   // override parent class virtual function
+   //
+   void newMessage (QString message, message_types mt);
+
+private:
+   struct MessageData {
+      QDateTime dateTime;
+      QString message;
+      message_types mt;
+   };
+
+   typedef QList <MessageData> MessageDataList;
+   MessageDataList messageDataCache;
+   QELog* logWidget;   // only one for now.
+};
+
+//------------------------------------------------------------------------------
+//
+QELog::UserMessageReceiver::UserMessageReceiver () : UserMessage ()
 {
-   QFont qFont;
+   this->logWidget = NULL;
+   this->messageDataCache.clear();
 
-   qTableWidgetLog = new _QTableWidgetLog (this);
-   qCheckBoxInfoMessage = new QCheckBox (this);
-   qCheckBoxWarningMessage = new QCheckBox (this);
-   qCheckBoxErrorMessage = new QCheckBox (this);
-   qPushButtonClear = new QPushButton (this);
-   qPushButtonSave = new QPushButton (this);
+   // Grab any and all messages.
+   //
+   this->setFormFilter (MESSAGE_FILTER_ANY);
+   this->setSourceFilter (MESSAGE_FILTER_ANY);
+}
 
-   qTableWidgetLog->setColumnCount (3);
-   qTableWidgetLog->setHorizontalHeaderItem (0, new QTableWidgetItem ("Time"));
-   qTableWidgetLog->setHorizontalHeaderItem (1, new QTableWidgetItem ("Type"));
-   qTableWidgetLog->setHorizontalHeaderItem (2, new QTableWidgetItem ("Message"));
-   qTableWidgetLog->setToolTip ("Current log messages");
-   qTableWidgetLog->setEditTriggers (QAbstractItemView::NoEditTriggers);
-   qTableWidgetLog->setSelectionBehavior (QAbstractItemView::SelectRows);
-   qTableWidgetLog->setSelectionMode (QAbstractItemView::SingleSelection);
-   qTableWidgetLog->verticalHeader ()->hide ();
-   qFont.setPointSize (9);
-   qTableWidgetLog->setFont (qFont);
+//------------------------------------------------------------------------------
+// Place holder
+QELog::UserMessageReceiver::~UserMessageReceiver () { }
 
-   qCheckBoxInfoMessage->setText ("Info messages");
-   qCheckBoxInfoMessage->setToolTip ("Show/hide info messages");
-   qCheckBoxInfoMessage->setChecked (true);
-   QObject::connect (qCheckBoxInfoMessage, SIGNAL (toggled (bool)), this,
-                     SLOT (checkBoxInfoToggled (bool)));
-
-   qCheckBoxWarningMessage->setText ("Warning messages");
-   qCheckBoxWarningMessage->setToolTip ("Show/hide warning messages");
-   qCheckBoxWarningMessage->setChecked (true);
-   QObject::connect (qCheckBoxWarningMessage, SIGNAL (toggled (bool)), this,
-                     SLOT (checkBoxWarningToggled (bool)));
-
-   qCheckBoxErrorMessage->setText ("Error messages");
-   qCheckBoxErrorMessage->setToolTip ("Show/hide error messages");
-   qCheckBoxErrorMessage->setChecked (true);
-   QObject::connect (qCheckBoxErrorMessage, SIGNAL (toggled (bool)), this,
-                     SLOT (checkBoxErrorToggled (bool)));
-
-   qPushButtonClear->setText ("Clear");
-   qPushButtonClear->setToolTip ("Clear log messages");
-   QObject::connect (qPushButtonClear, SIGNAL (clicked ()), this, SLOT (buttonClearClicked ()));
-
-   qPushButtonSave->setText ("Save");
-   qPushButtonSave->setToolTip ("Save log messages");
-   QObject::connect (qPushButtonSave, SIGNAL (clicked ()), this, SLOT (buttonSaveClicked ()));
-
-   setInfoColor (QColor (0, 0, 255));
-   setWarningColor (QColor (255, 160, 0));
-   setErrorColor (QColor (255, 0, 0));
-   setScrollToBottom (true);
-   setOptionsLayout (Bottom);
-
-   clearLog ();
-
-   // Set up the UserMessage class to match on any messages from widgets on the same form by default
-   setFormFilter (MESSAGE_FILTER_MATCH);
-   setSourceFilter (MESSAGE_FILTER_NONE);
-
-   // Set the form ID to use when matching the form of received message
-   setChildFormId (getFormId ());
+//------------------------------------------------------------------------------
+//
+void QELog::UserMessageReceiver::registerLogWidget (QELog* logWidgetIn)
+{
+   this->logWidget = logWidgetIn;
+   while (this->messageDataCache.count() > 0) {
+      const MessageData md = this->messageDataCache.value (0);
+      this->logWidget->processMessage (md.message, md.mt, md.dateTime);
+      this->messageDataCache.removeFirst ();
+   }
 }
 
 //------------------------------------------------------------------------------
 //
-QELog::~QELog () {}
+void QELog::UserMessageReceiver::deregisterLogWidget (QELog* logWidgetIn)
+{
+   if (this->logWidget == logWidgetIn) this->logWidget = NULL;
+}
+
+//------------------------------------------------------------------------------
+// overrides parent function
+void QELog::UserMessageReceiver::newMessage (QString message, message_types mt)
+{
+   // Filter for events - skip status messages
+   //
+   if ((mt.kind_set & MESSAGE_KIND_EVENT) != 0) {
+
+      const QDateTime dateTime = QDateTime::currentDateTime();
+
+      // If the form has been created and it has registered then send info
+      // otherwise store until form is registered.
+      //
+      if (this->logWidget) {
+         this->logWidget->processMessage (message, mt, dateTime);
+      } else {
+         // Keep upto a maximum of 1000 messages.
+         //
+         if (this->messageDataCache.length() >= 1000) {
+            this->messageDataCache.removeFirst ();
+         }
+
+         MessageData md;
+         md.dateTime = dateTime;
+         md.message = message;
+         md.mt = mt;
+         this->messageDataCache.append (md);
+      }
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+static QELog::UserMessageReceiver messageReceiver;
+
+
+// =============================================================================
+//  QELOG METHODS
+// =============================================================================
+QELog::QELog (QWidget* parent) : QEFrame (parent)
+{
+   QFont qFont;
+
+   // Set the default frame settings.
+   //
+   this->setFrameShape (QFrame::NoFrame);
+   this->setFrameShadow (QFrame::Plain);
+
+   this->isMaster = false;
+   this->mainLayoutMargin = 6;
+
+   this->qTableWidgetLog = new QTableWidget (this);
+   this->qCheckBoxInfoMessage = new QCheckBox (this);
+   this->qCheckBoxWarningMessage = new QCheckBox (this);
+   this->qCheckBoxErrorMessage = new QCheckBox (this);
+   this->qPushButtonClear = new QPushButton (this);
+   this->qPushButtonSave = new QPushButton (this);
+
+   this->qTableWidgetLog->setColumnCount (3);
+   this->qTableWidgetLog->setHorizontalHeaderItem (0, new QTableWidgetItem ("Time"));
+   this->qTableWidgetLog->setHorizontalHeaderItem (1, new QTableWidgetItem ("Type"));
+   this->qTableWidgetLog->setHorizontalHeaderItem (2, new QTableWidgetItem ("Message"));
+   this->qTableWidgetLog->setColumnWidth (0, 156);
+   this->qTableWidgetLog->setColumnWidth (1, 80);
+   this->qTableWidgetLog->horizontalHeader()->setStretchLastSection (true);
+   this->qTableWidgetLog->setToolTip ("Current log messages");
+   this->qTableWidgetLog->setEditTriggers (QAbstractItemView::NoEditTriggers);
+   this->qTableWidgetLog->setSelectionBehavior (QAbstractItemView::SelectRows);
+   this->qTableWidgetLog->setSelectionMode (QAbstractItemView::SingleSelection);
+   this->qTableWidgetLog->verticalHeader ()->hide ();
+   qFont = this->qTableWidgetLog->font();
+   qFont.setPointSize (9);
+   this->qTableWidgetLog->setFont (qFont);
+
+   this->qCheckBoxInfoMessage->setText ("Info messages");
+   this->qCheckBoxInfoMessage->setToolTip ("Show/hide info messages");
+   this->qCheckBoxInfoMessage->setChecked (true);
+   QObject::connect (this->qCheckBoxInfoMessage, SIGNAL (toggled (bool)),
+                     this, SLOT (checkBoxInfoToggled (bool)));
+
+   this->qCheckBoxWarningMessage->setText ("Warning messages");
+   this->qCheckBoxWarningMessage->setToolTip ("Show/hide warning messages");
+   this->qCheckBoxWarningMessage->setChecked (true);
+   QObject::connect (this->qCheckBoxWarningMessage, SIGNAL (toggled (bool)),
+                     this, SLOT (checkBoxWarningToggled (bool)));
+
+   this->qCheckBoxErrorMessage->setText ("Error messages");
+   this->qCheckBoxErrorMessage->setToolTip ("Show/hide error messages");
+   this->qCheckBoxErrorMessage->setChecked (true);
+   QObject::connect (this->qCheckBoxErrorMessage, SIGNAL (toggled (bool)),
+                     this, SLOT (checkBoxErrorToggled (bool)));
+
+   this->qPushButtonClear->setText ("Clear");
+   this->qPushButtonClear->setToolTip ("Clear log messages");
+   QObject::connect (this->qPushButtonClear, SIGNAL (clicked ()),
+                     this, SLOT (buttonClearClicked ()));
+
+   this->qPushButtonSave->setText ("Save");
+   this->qPushButtonSave->setToolTip ("Save log messages");
+
+   QObject::connect (this->qPushButtonSave, SIGNAL (clicked ()),
+                     this, SLOT (buttonSaveClicked ()));
+
+   this->setInfoColor (QColor (0, 0, 255));
+   this->setWarningColor (QColor (255, 160, 0));
+   this->setErrorColor (QColor (255, 0, 0));
+   this->setScrollToBottom (true);
+   this->setOptionsLayout (Bottom);
+
+   this->clearLog ();
+
+   // Set up the UserMessage class to match on any messages from widgets on the same form by default
+   this->setFormFilter (MESSAGE_FILTER_MATCH);
+   this->setSourceFilter (MESSAGE_FILTER_NONE);
+
+   // Set the form ID to use when matching the form of received message
+   this->setChildFormId (this->getFormId ());
+
+   DEBUG;
+}
+
+//------------------------------------------------------------------------------
+//
+QELog::~QELog ()
+{
+   messageReceiver.deregisterLogWidget (this);
+}
+
+//------------------------------------------------------------------------------
+//
+void QELog::resizeEvent(QResizeEvent* )
+{
+   // Get current point size
+   //
+   const int ps = this->qTableWidgetLog->font().pointSize();
+
+   // The col widths 156/80 based on a point size of 9 - apply size scale.
+   //
+   this->qTableWidgetLog->setColumnWidth (0, (156 * ps) / 9);
+   this->qTableWidgetLog->setColumnWidth (1, (80 * ps) / 9);
+   this->qTableWidgetLog->horizontalHeader()->setStretchLastSection (true);
+}
 
 //------------------------------------------------------------------------------
 //
 void QELog::setShowColumnTime (bool pValue)
 {
-   qTableWidgetLog->setColumnHidden (0, pValue == false);
-   qTableWidgetLog->refreshSize ();
+   this->qTableWidgetLog->setColumnHidden (0, pValue == false);
+   // qTableWidgetLog->refreshSize ();
 }
 
 //------------------------------------------------------------------------------
 //
-bool QELog::getShowColumnTime ()
+bool QELog::getShowColumnTime () const
 {
-   return (qTableWidgetLog->isColumnHidden (0) == false);
+   return (this->qTableWidgetLog->isColumnHidden (0) == false);
 }
 
 //------------------------------------------------------------------------------
 //
 void QELog::setShowColumnType (bool pValue)
 {
-   qTableWidgetLog->setColumnHidden (1, pValue == false);
-   qTableWidgetLog->refreshSize ();
+   this->qTableWidgetLog->setColumnHidden (1, pValue == false);
+   // this->qTableWidgetLog->refreshSize ();
 }
 
 //------------------------------------------------------------------------------
 //
-bool QELog::getShowColumnType ()
+bool QELog::getShowColumnType () const
 {
-   return (qTableWidgetLog->isColumnHidden (1) == false);
+   return (this->qTableWidgetLog->isColumnHidden (1) == false);
 }
 
 //------------------------------------------------------------------------------
 //
 void QELog::setShowColumnMessage (bool pValue)
 {
-   qTableWidgetLog->setColumnHidden (2, pValue == false);
-   qTableWidgetLog->refreshSize ();
+   this->qTableWidgetLog->setColumnHidden (2, pValue == false);
+   // this->qTableWidgetLog->refreshSize ();
 }
 
 //------------------------------------------------------------------------------
 //
-bool QELog::getShowColumnMessage ()
+bool QELog::getShowColumnMessage () const
 {
-   return (qTableWidgetLog->isColumnHidden (2) == false);
+   return (this->qTableWidgetLog->isColumnHidden (2) == false);
 }
 
 //------------------------------------------------------------------------------
 //
 void QELog::setShowMessageFilter (bool pValue)
 {
-   qCheckBoxInfoMessage->setVisible (pValue);
-   qCheckBoxWarningMessage->setVisible (pValue);
-   qCheckBoxErrorMessage->setVisible (pValue);
+   this->qCheckBoxInfoMessage->setVisible (pValue);
+   this->qCheckBoxWarningMessage->setVisible (pValue);
+   this->qCheckBoxErrorMessage->setVisible (pValue);
 }
 
 //------------------------------------------------------------------------------
 //
-bool QELog::getShowMessageFilter ()
+bool QELog::getShowMessageFilter () const
 {
-   return qCheckBoxInfoMessage->isVisible ();
+   return this->qCheckBoxInfoMessage->isVisible ();
 }
 
 //------------------------------------------------------------------------------
 //
 void QELog::setShowClear (bool pValue)
 {
-   qPushButtonClear->setVisible (pValue);
+   this->qPushButtonClear->setVisible (pValue);
 }
 
 //------------------------------------------------------------------------------
 //
-bool QELog::getShowClear ()
+bool QELog::getShowClear () const
 {
-   return qPushButtonClear->isVisible ();
+   return this->qPushButtonClear->isVisible ();
 }
 
 //------------------------------------------------------------------------------
 //
 void QELog::buttonClearClicked ()
 {
-   if (QMessageBox::
-       question (this, "Info", "Do you want to clear the log messages?", QMessageBox::Yes,
-                 QMessageBox::No) == QMessageBox::Yes) {
-      clearLog ();
+   int answer = QMessageBox::
+                question (this, "Info", "Do you want to clear the log messages?",
+                          QMessageBox::Yes, QMessageBox::No);
+   if (answer == QMessageBox::Yes) {
+      this->clearLog ();
    }
 }
 
@@ -193,29 +339,30 @@ void QELog::buttonClearClicked ()
 //
 void QELog::setShowSave (bool pValue)
 {
-   qPushButtonSave->setVisible (pValue);
+   this->qPushButtonSave->setVisible (pValue);
 }
 
 //------------------------------------------------------------------------------
 //
-bool QELog::getShowSave ()
+bool QELog::getShowSave () const
 {
-   return qPushButtonSave->isVisible ();
+   return this->qPushButtonSave->isVisible ();
 }
 
 //------------------------------------------------------------------------------
 //
-void QELog::setOptionsLayout (int pValue)
+void QELog::setOptionsLayout (optionsLayoutProperty pValue)
 {
-   QLayout *qLayoutMain;
-   QLayout *qLayoutChild;
+   QLayout* qLayoutMain;
+   QLayout* qLayoutChild;
 
    delete layout ();
 
    switch (pValue) {
       case Top:
-         optionsLayout = Top;
+         this->optionsLayout = Top;
          qLayoutMain = new QVBoxLayout (this);
+         qLayoutMain->setMargin (this->mainLayoutMargin);
          qLayoutChild = new QHBoxLayout ();
          qLayoutChild->addWidget (qCheckBoxInfoMessage);
          qLayoutChild->addWidget (qCheckBoxWarningMessage);
@@ -229,8 +376,9 @@ void QELog::setOptionsLayout (int pValue)
          break;
 
       case Bottom:
-         optionsLayout = Bottom;
+         this->optionsLayout = Bottom;
          qLayoutMain = new QVBoxLayout (this);
+         qLayoutMain->setMargin (this->mainLayoutMargin);
          qLayoutChild = new QHBoxLayout ();
          qLayoutMain->addWidget (qTableWidgetLog);
          qLayoutChild->addWidget (qCheckBoxInfoMessage);
@@ -244,8 +392,9 @@ void QELog::setOptionsLayout (int pValue)
          break;
 
       case Left:
-         optionsLayout = Left;
+         this->optionsLayout = Left;
          qLayoutMain = new QHBoxLayout (this);
+         qLayoutMain->setMargin (this->mainLayoutMargin);
          qLayoutChild = new QVBoxLayout ();
          qLayoutChild->addWidget (qCheckBoxInfoMessage);
          qLayoutChild->addWidget (qCheckBoxWarningMessage);
@@ -257,8 +406,9 @@ void QELog::setOptionsLayout (int pValue)
          break;
 
       case Right:
-         optionsLayout = Right;
+         this->optionsLayout = Right;
          qLayoutMain = new QHBoxLayout (this);
+         qLayoutMain->setMargin (this->mainLayoutMargin);
          qLayoutChild = new QVBoxLayout ();
          qLayoutChild->addWidget (qCheckBoxInfoMessage);
          qLayoutChild->addWidget (qCheckBoxWarningMessage);
@@ -272,26 +422,43 @@ void QELog::setOptionsLayout (int pValue)
 
 //------------------------------------------------------------------------------
 //
-int QELog::getOptionsLayout ()
+QELog::optionsLayoutProperty QELog::getOptionsLayout () const
 {
-   return optionsLayout;
+   return this->optionsLayout;
 }
 
 //------------------------------------------------------------------------------
 //
 void QELog::setScrollToBottom (bool pValue)
 {
-   scrollToBottom = pValue;
-   if (scrollToBottom) {
-      qTableWidgetLog->scrollToBottom ();
+   this->isScrollToBottom = pValue;
+   if (this->isScrollToBottom) {
+      this->qTableWidgetLog->scrollToBottom ();
    }
 }
 
 //------------------------------------------------------------------------------
 //
-bool QELog::getScrollToBottom ()
+bool QELog::getScrollToBottom () const
 {
-   return scrollToBottom;
+   return this->isScrollToBottom;
+}
+
+//------------------------------------------------------------------------------
+//
+void QELog::setMaster (const bool isMasterIn)
+{
+   this->isMaster = isMasterIn;
+   if (this->isMaster) {
+      messageReceiver.registerLogWidget (this);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+bool QELog::getMaster () const
+{
+   return this->isMaster;
 }
 
 //------------------------------------------------------------------------------
@@ -303,14 +470,14 @@ void QELog::setInfoColor (QColor pValue)
                                         QString::number (pValue.red ()) + ", " +
                                         QString::number (pValue.green ()) + ", " +
                                         QString::number (pValue.blue ()) + ")}");
-   refreshLog ();
+   this->refreshLog ();
 }
 
 //------------------------------------------------------------------------------
 //
-QColor QELog::getInfoColor ()
+QColor QELog::getInfoColor () const
 {
-   return qColorInfo;
+   return this->qColorInfo;
 }
 
 //------------------------------------------------------------------------------
@@ -322,14 +489,14 @@ void QELog::setWarningColor (QColor pValue)
                                            QString::number (pValue.red ()) + ", " +
                                            QString::number (pValue.green ()) + ", " +
                                            QString::number (pValue.blue ()) + ")}");
-   refreshLog ();
+   this->refreshLog ();
 }
 
 //------------------------------------------------------------------------------
 //
-QColor QELog::getWarningColor ()
+QColor QELog::getWarningColor () const
 {
-   return qColorWarning;
+   return this->qColorWarning;
 }
 
 //------------------------------------------------------------------------------
@@ -341,35 +508,35 @@ void QELog::setErrorColor (QColor pValue)
                                          QString::number (pValue.red ()) + ", " +
                                          QString::number (pValue.green ()) + ", " +
                                          QString::number (pValue.blue ()) + ")}");
-   refreshLog ();
+   this->refreshLog ();
 }
 
 //------------------------------------------------------------------------------
 //
-QColor QELog::getErrorColor ()
+QColor QELog::getErrorColor () const
 {
-   return qColorError;
+   return this->qColorError;
 }
 
 //------------------------------------------------------------------------------
 //
 void QELog::checkBoxInfoToggled (bool)
 {
-   refreshLog ();
+   this->refreshLog ();
 }
 
 //------------------------------------------------------------------------------
 //
 void QELog::checkBoxWarningToggled (bool)
 {
-   refreshLog ();
+   this->refreshLog ();
 }
 
 //------------------------------------------------------------------------------
 //
 void QELog::checkBoxErrorToggled (bool)
 {
-   refreshLog ();
+   this->refreshLog ();
 }
 
 //------------------------------------------------------------------------------
@@ -391,24 +558,29 @@ void QELog::buttonSaveClicked ()
       if (file->open (QFile::WriteOnly | QFile::Text)) {
          QTextStream stream (file);
          for (i = 0; i < qTableWidgetLog->rowCount (); i++) {
-            if (qTableWidgetLog->isRowHidden (i) == false) {
-               if (getShowColumnTime ()) {
-                  line = qTableWidgetLog->item (i, 0)->text ();
+            if (this->qTableWidgetLog->isRowHidden (i) == false) {
+               if (this->getShowColumnTime ()) {
+                  line = this->qTableWidgetLog->item (i, 0)->text ();
                } else {
                   line = "";
                }
-               if (getShowColumnType ()) {
+               if (this->getShowColumnType ()) {
+                  QString typeText = this->qTableWidgetLog->item (i, 1)->text ();
+                  while (typeText.length() < 7) {
+                     typeText.append(" ");
+                  }
+
                   if (line.isEmpty ()) {
-                     line = qTableWidgetLog->item (i, 1)->text ();
+                     line = typeText;
                   } else {
-                     line += ", " + qTableWidgetLog->item (i, 1)->text ();
+                     line += ", " + typeText;
                   }
                }
-               if (getShowColumnMessage ()) {
+               if (this->getShowColumnMessage ()) {
                   if (line.isEmpty ()) {
-                     line = qTableWidgetLog->item (i, 2)->text ();
+                     line = this->qTableWidgetLog->item (i, 2)->text ();
                   } else {
-                     line += ", " + qTableWidgetLog->item (i, 2)->text ();
+                     line += ", " + this->qTableWidgetLog->item (i, 2)->text ();
                   }
                }
                stream << line << "\n";
@@ -430,232 +602,171 @@ void QELog::buttonSaveClicked ()
 //
 void QELog::clearLog ()
 {
-   qTableWidgetLog->setRowCount (0);
-   qPushButtonClear->setEnabled (false);
-   qPushButtonSave->setEnabled (false);
+   this->qTableWidgetLog->setRowCount (0);
+   this->qPushButtonClear->setEnabled (false);
+   this->qPushButtonSave->setEnabled (false);
 }
 
 //------------------------------------------------------------------------------
 //
-void QELog::addLog (int pType, QString pMessage)
+void QELog::addLog (int pType, QString pMessage,
+                    const QDateTime& dateTime)
 {
    QTableWidgetItem *qTableWidgetItem;
    QString type;
    QColor color;
-   int i;
 
    switch (pType) {
       case MESSAGE_TYPE_INFO:
          type = "INFO";
-         color = qColorInfo;
+         color = this->qColorInfo;
          break;
 
       case MESSAGE_TYPE_WARNING:
          type = "WARNING";
-         color = qColorWarning;
+         color = this->qColorWarning;
          break;
 
       case MESSAGE_TYPE_ERROR:
          type = "ERROR";
-         color = qColorError;
+         color = this->qColorError;
          break;
 
       default:
-         type = "";
+         DEBUG << "unexpected message type:" << int (pType);
+         return;
    }
 
-   if (type.isEmpty () == false) {
-      i = qTableWidgetLog->rowCount ();
-      qTableWidgetLog->insertRow (i);
-      if (type == "INFO") {
-         qTableWidgetLog->setRowHidden (i, qCheckBoxInfoMessage->isChecked () == false);
-      } else if (type == "WARNING") {
-         qTableWidgetLog->setRowHidden (i, qCheckBoxWarningMessage->isChecked () == false);
-      } else {
-         qTableWidgetLog->setRowHidden (i, qCheckBoxErrorMessage->isChecked () == false);
-      }
-      qTableWidgetItem =
-            new QTableWidgetItem (QDateTime ().currentDateTime ().
-                                  toString ("yyyy/MM/dd - hh:mm:ss"));
-      qTableWidgetItem->setTextColor (color);
-      qTableWidgetLog->setItem (i, 0, qTableWidgetItem);
-      qTableWidgetItem = new QTableWidgetItem (type);
-      qTableWidgetItem->setTextColor (color);
-      qTableWidgetLog->setItem (i, 1, qTableWidgetItem);
-      qTableWidgetItem = new QTableWidgetItem (pMessage);
-      qTableWidgetItem->setTextColor (color);
-      qTableWidgetLog->setItem (i, 2, qTableWidgetItem);
-      if (scrollToBottom) {
-         qTableWidgetLog->scrollToBottom ();
-      }
-      qPushButtonClear->setEnabled (true);
-      qPushButtonSave->setEnabled (true);
+   int i = this->qTableWidgetLog->rowCount ();
+   this->qTableWidgetLog->insertRow (i);
+   if (type == "INFO") {
+      qTableWidgetLog->setRowHidden (i, !this->qCheckBoxInfoMessage->isChecked ());
+   } else if (type == "WARNING") {
+      qTableWidgetLog->setRowHidden (i, !this->qCheckBoxWarningMessage->isChecked ());
+   } else {
+      qTableWidgetLog->setRowHidden (i, !this->qCheckBoxErrorMessage->isChecked ());
    }
+
+   qTableWidgetItem =
+         new QTableWidgetItem (dateTime.toString ("yyyy/MM/dd - hh:mm:ss"));
+   qTableWidgetItem->setTextColor (color);
+   this->qTableWidgetLog->setItem (i, 0, qTableWidgetItem);
+
+   qTableWidgetItem = new QTableWidgetItem (type);
+   qTableWidgetItem->setTextColor (color);
+   this->qTableWidgetLog->setItem (i, 1, qTableWidgetItem);
+
+   qTableWidgetItem = new QTableWidgetItem (pMessage);
+   qTableWidgetItem->setTextColor (color);
+   this->qTableWidgetLog->setItem (i, 2, qTableWidgetItem);
+
+   if (this->isScrollToBottom) {
+      this->qTableWidgetLog->scrollToBottom ();
+   }
+
+   this->qPushButtonClear->setEnabled (true);
+   this->qPushButtonSave->setEnabled (true);
 }
 
 //------------------------------------------------------------------------------
 //
 void QELog::refreshLog ()
 {
-   QTableWidgetItem *qTableWidgetItem;
    QColor color;
-   int i;
 
-   for (i = 0; i < qTableWidgetLog->rowCount (); i++) {
+   for (int i = 0; i < this->qTableWidgetLog->rowCount (); i++) {
 
-      qTableWidgetItem = qTableWidgetLog->item (i, 1);
+      QTableWidgetItem* qTableWidgetItem = this->qTableWidgetLog->item (i, 1);
 
       if (qTableWidgetItem->text () == "INFO") {
-         qTableWidgetLog->setRowHidden (i, qCheckBoxInfoMessage->isChecked () == false);
-         color = qColorInfo;
+         this->qTableWidgetLog->setRowHidden (i, !this->qCheckBoxInfoMessage->isChecked ());
+         color = this->qColorInfo;
       } else if (qTableWidgetItem->text () == "WARNING") {
-         qTableWidgetLog->setRowHidden (i, qCheckBoxWarningMessage->isChecked () == false);
-         color = qColorWarning;
+         this->qTableWidgetLog->setRowHidden (i, !this->qCheckBoxWarningMessage->isChecked ());
+         color = this->qColorWarning;
       } else {
-         qTableWidgetLog->setRowHidden (i, qCheckBoxErrorMessage->isChecked () == false);
-         color = qColorError;
+         this->qTableWidgetLog->setRowHidden (i, !this->qCheckBoxErrorMessage->isChecked ());
+         color = this->qColorError;
       }
 
       qTableWidgetItem->setTextColor (color);
 
-      qTableWidgetItem = qTableWidgetLog->item (i, 0);
+      qTableWidgetItem = this->qTableWidgetLog->item (i, 0);
       qTableWidgetItem->setTextColor (color);
 
-      qTableWidgetItem = qTableWidgetLog->item (i, 2);
+      qTableWidgetItem = this->qTableWidgetLog->item (i, 2);
       qTableWidgetItem->setTextColor (color);
-
    }
 }
 
 //------------------------------------------------------------------------------
 //
-void QELog::setOptionsLayoutProperty (optionsLayoutProperty pOptionsLayout)
+void QELog::setMargin (int marginIn)
 {
-   setOptionsLayout ((optionsLayoutProperty) pOptionsLayout);
+   this->mainLayoutMargin = LIMIT (marginIn, -1, 32);
+   QLayout* layout = this->layout();
+   if (layout) {
+      layout->setMargin (this->mainLayoutMargin);
+   }
 }
 
 //------------------------------------------------------------------------------
 //
-QELog::optionsLayoutProperty QELog::getOptionsLayoutProperty ()
+int QELog::getMargin () const
 {
-   return (optionsLayoutProperty) getOptionsLayout ();
+   return this->mainLayoutMargin;
 }
 
 //------------------------------------------------------------------------------
 //
-QELog::MessageFilterOptions QELog::getMessageFormFilter ()
+QELog::MessageFilterOptions QELog::getMessageFormFilter () const
 {
-   return (MessageFilterOptions) getFormFilter ();
+   return MessageFilterOptions (this->getFormFilter ());
 }
 
 //------------------------------------------------------------------------------
 //
 void QELog::setMessageFormFilter (MessageFilterOptions messageFormFilter)
 {
-   setFormFilter ((message_filter_options) messageFormFilter);
+   this->setFormFilter (message_filter_options (messageFormFilter));
 }
 
 //------------------------------------------------------------------------------
 //
-QELog::MessageFilterOptions QELog::getMessageSourceFilter ()
+QELog::MessageFilterOptions QELog::getMessageSourceFilter () const
 {
-   return (MessageFilterOptions) getSourceFilter ();
+   return MessageFilterOptions (this->getSourceFilter ());
 }
 
 //------------------------------------------------------------------------------
 //
 void QELog::setMessageSourceFilter (MessageFilterOptions messageSourceFilter)
 {
-   setSourceFilter ((message_filter_options) messageSourceFilter);
+   this->setSourceFilter (message_filter_options (messageSourceFilter));
 }
 
 //------------------------------------------------------------------------------
 // Receive new log messages from other QEWidgets.
+//
 void QELog::newMessage (QString msg, message_types type)
 {
-   // Add the message to the log
+   // Add the message to the log - time stamp now
+   //
    if ((type.kind_set & MESSAGE_KIND_EVENT) != 0) {
-      addLog (type.severity, msg);
+      this->addLog (type.severity, msg, QDateTime::currentDateTime ());
    }
-}
-
-
-// =============================================================================
-//  _QTABLEWIDGETLOG METHODS
-// =============================================================================
-_QTableWidgetLog::_QTableWidgetLog (QWidget * pParent):QTableWidget (pParent)
-{
-   initialized = false;
 }
 
 //------------------------------------------------------------------------------
 //
-void _QTableWidgetLog::refreshSize ()
+void QELog::processMessage (const QString& msg,
+                            const message_types type,
+                            const QDateTime& dateTime)
 {
-   int sizeColumn0;
-   int sizeColumn1;
-   int sizeColumn2;
-
-
-   if (isColumnHidden (0)) {
-      if (isColumnHidden (1)) {
-         if (isColumnHidden (2)) {
-            sizeColumn0 = 0;
-            sizeColumn1 = 0;
-            sizeColumn2 = 0;
-         } else {
-            sizeColumn0 = 0;
-            sizeColumn1 = 0;
-            sizeColumn2 = width ();
-         }
-      } else {
-         if (isColumnHidden (2)) {
-            sizeColumn0 = 0;
-            sizeColumn1 = width ();
-            sizeColumn2 = 0;
-         } else {
-            sizeColumn0 = 0;
-            sizeColumn1 = 1 * width () / 5;
-            sizeColumn2 = 4 * width () / 5 - 1;
-         }
-      }
-   } else {
-      if (isColumnHidden (1)) {
-         if (isColumnHidden (2)) {
-            sizeColumn0 = width ();
-            sizeColumn1 = 0;
-            sizeColumn2 = 0;
-         } else {
-            sizeColumn0 = 1 * width () / 5;
-            sizeColumn1 = 0;
-            sizeColumn2 = 4 * width () / 5 - 1;
-         }
-      } else {
-         if (isColumnHidden (2)) {
-            sizeColumn0 = width () / 2;
-            sizeColumn1 = width () / 2 - 1;
-            sizeColumn2 = 0;
-         } else {
-            sizeColumn0 = 1 * width () / 5;
-            sizeColumn1 = 1 * width () / 5;
-            sizeColumn2 = 3 * width () / 5 - 1;
-         }
-      }
-   }
-
-   setColumnWidth (0, sizeColumn0);
-   setColumnWidth (1, sizeColumn1);
-   setColumnWidth (2, sizeColumn2);
-}
-
-//------------------------------------------------------------------------------
-//
-void _QTableWidgetLog::resizeEvent (QResizeEvent *)
-{
-   // TODO: this condition should always be execute when inside Qt Designer
-   if (initialized == false) {
-      refreshSize ();
-      initialized = true;
+   // Add the message to the log - use saved time stamp
+   //
+   if ((type.kind_set & MESSAGE_KIND_EVENT) != 0) {
+      this->addLog (type.severity, msg, dateTime);
    }
 }
 

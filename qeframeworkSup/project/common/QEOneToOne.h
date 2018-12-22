@@ -34,8 +34,8 @@
 /// This template provides a one-to-one mapping from one type, the Domain type,
 /// to a another, possiblely the same, type, the CoDomain type. Despite the
 /// terminology used here (i.e. domain/codomain), the association between the two
-/// types is symetrical, therefore QEOneToOne <T1, T2> provides the exact same
-/// functionality as QEOneToOne <T2, T1>
+/// types is symetrical, therefore QEOneToOne <T1, T2> provides the effectively
+/// the same functionality as QEOneToOne <T2, T1>
 ///
 /// Most functions are available in both forward (domain to co-domain) and in the
 /// inverse (co-domain to domain) modes of operation. These are named as <func>F
@@ -116,7 +116,7 @@ public:
       return this-> inverse.value (key, defaultValue);
    }
 
-   /// Removes the assoication containing specified key.
+   /// Removes the association containing specified key.
    ///
    bool removeF (const D& dkey) {
       const C& ckey = this->valueF (dkey);

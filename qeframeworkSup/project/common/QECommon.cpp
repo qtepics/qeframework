@@ -615,7 +615,8 @@ void QEUtilities::debugWidgetHierarchy (const QWidget* root,
                root->objectName ().toStdString().c_str(),
                root->metaObject()->className ());
 
-   b2.sprintf (" (%3d,%3d)  (%3d,%3d)  (%3d,%3d)",
+   b2.sprintf (" (%3d,%4d %3dx%3d)  (%3dx%3d)  (%3dx%3d)",
+               root->geometry().x(), root->geometry().y(),
                root->size().width(), root->size().height(),
                root->minimumWidth(), root->minimumHeight(),
                root->maximumWidth(), root->maximumHeight());

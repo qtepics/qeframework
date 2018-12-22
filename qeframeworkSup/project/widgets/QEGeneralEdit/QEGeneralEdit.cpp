@@ -25,7 +25,7 @@
 
 #include "QEGeneralEdit.h"
 
-// In this context, we are a user of the QEPlugin library as we are using
+// In this context, we are a user of the QEFramework library as we are using
 // the moc generated ui_QEGeneralEdit.h file that needs access the meta
 // types to be declared.
 //
