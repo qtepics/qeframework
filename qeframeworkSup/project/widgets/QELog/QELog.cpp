@@ -222,8 +222,6 @@ QELog::QELog (QWidget* parent) : QEFrame (parent)
 
    // Set the form ID to use when matching the form of received message
    this->setChildFormId (this->getFormId ());
-
-   DEBUG;
 }
 
 //------------------------------------------------------------------------------
