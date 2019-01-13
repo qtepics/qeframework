@@ -1,6 +1,9 @@
 /*  UserMessage.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -35,6 +36,7 @@
  */
 
 #include <UserMessage.h>
+#include <QELog.h>
 
 // Static variables used to manage message signals and slots.
 UserMessageSignal UserMessage::userMessageSignal;
@@ -91,6 +93,10 @@ UserMessage::UserMessage()
     // Establish the connection between the common message signaler, and this instance's message slot
     QObject::connect( &userMessageSignal, SIGNAL( message( QString, message_types, unsigned int, unsigned int, UserMessage* ) ),
                       &userMessageSlot, SLOT( message( QString, message_types, unsigned int, unsigned int, UserMessage* ) ) );
+
+    // Create the QELog master message receiver.
+    //
+    QELog::createUserMessageReceiver();  // static
 }
 
 // Destruction

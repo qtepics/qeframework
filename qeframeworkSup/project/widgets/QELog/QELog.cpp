@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (c) 2012-2018 Australian Synchrotron
+ *  Copyright (c) 2012-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -137,9 +137,22 @@ void QELog::UserMessageReceiver::newMessage (QString message, message_types mt)
 }
 
 //------------------------------------------------------------------------------
+// Alas allocating a new object here at elaboration time causes a seg fault on
+// Windows with some versions of Qt (Qt5.6). So we do a delayed construction,
+// invoked by any other UserMessage object construction.
 //
-static QELog::UserMessageReceiver messageReceiver;
+static QELog::UserMessageReceiver* messageReceiver = NULL;
 
+//------------------------------------------------------------------------------
+// static
+void QELog::createUserMessageReceiver ()
+{
+   // messageReceiver is a singleton.
+   //
+   if (!messageReceiver) {
+      messageReceiver = new QELog::UserMessageReceiver();
+   }
+}
 
 // =============================================================================
 //  QELOG METHODS
@@ -228,7 +241,9 @@ QELog::QELog (QWidget* parent) : QEFrame (parent)
 //
 QELog::~QELog ()
 {
-   messageReceiver.deregisterLogWidget (this);
+   if (messageReceiver) {
+      messageReceiver->deregisterLogWidget (this);
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -447,8 +462,8 @@ bool QELog::getScrollToBottom () const
 void QELog::setMaster (const bool isMasterIn)
 {
    this->isMaster = isMasterIn;
-   if (this->isMaster) {
-      messageReceiver.registerLogWidget (this);
+   if (this->isMaster && messageReceiver) {
+      messageReceiver->registerLogWidget (this);
    }
 }
 
