@@ -39,7 +39,7 @@
 
 
 //==============================================================================
-// UserMessageReceiver - direct crib from kubili
+// UserMessageReceiver - almost a direct crib from kubili
 //==============================================================================
 // We don't use the form as a message receiver as it may not exist before
 // messages are created.
@@ -91,6 +91,8 @@ QELog::UserMessageReceiver::~UserMessageReceiver () { }
 void QELog::UserMessageReceiver::registerLogWidget (QELog* logWidgetIn)
 {
    this->logWidget = logWidgetIn;
+   if (!this->logWidget) return;  // null logWidget - ignore.
+
    while (this->messageDataCache.count() > 0) {
       const MessageData md = this->messageDataCache.value (0);
       this->logWidget->processMessage (md.message, md.mt, md.dateTime);
@@ -109,30 +111,30 @@ void QELog::UserMessageReceiver::deregisterLogWidget (QELog* logWidgetIn)
 // overrides parent function
 void QELog::UserMessageReceiver::newMessage (QString message, message_types mt)
 {
+   // Has the logWidget registered? If so, it's own newMessage function
+   // handles the receiving of messages - we are now essentially inactive.
+   //
+   if (this->logWidget) return;
+
    // Filter for events - skip status messages
    //
    if ((mt.kind_set & MESSAGE_KIND_EVENT) != 0) {
 
       const QDateTime dateTime = QDateTime::currentDateTime();
 
-      // If the form has been created and it has registered then send info
-      // otherwise store until form is registered.
+      // Store until form is registered.
+      // Keep upto a maximum of 1000 messages.
+      // This limit is somewhat arbitary.
       //
-      if (this->logWidget) {
-         this->logWidget->processMessage (message, mt, dateTime);
-      } else {
-         // Keep upto a maximum of 1000 messages.
-         //
-         if (this->messageDataCache.length() >= 1000) {
-            this->messageDataCache.removeFirst ();
-         }
-
-         MessageData md;
-         md.dateTime = dateTime;
-         md.message = message;
-         md.mt = mt;
-         this->messageDataCache.append (md);
+      if (this->messageDataCache.length() >= 1000) {
+         this->messageDataCache.removeFirst ();
       }
+
+      MessageData md;
+      md.dateTime = dateTime;
+      md.message = message;
+      md.mt = mt;
+      this->messageDataCache.append (md);
    }
 }
 
@@ -140,8 +142,10 @@ void QELog::UserMessageReceiver::newMessage (QString message, message_types mt)
 // Alas allocating a new object here at elaboration time causes a seg fault on
 // Windows with some versions of Qt (Qt5.6). So we do a delayed construction,
 // invoked by any other UserMessage object construction.
+// Note: we must avoid infinite loops.
 //
 static QELog::UserMessageReceiver* messageReceiver = NULL;
+static bool constructionStarted = false;
 
 //------------------------------------------------------------------------------
 // static
@@ -149,7 +153,8 @@ void QELog::createUserMessageReceiver ()
 {
    // messageReceiver is a singleton.
    //
-   if (!messageReceiver) {
+   if (!constructionStarted && !messageReceiver) {
+      constructionStarted = true;   // avoid infinite loops
       messageReceiver = new QELog::UserMessageReceiver();
    }
 }
