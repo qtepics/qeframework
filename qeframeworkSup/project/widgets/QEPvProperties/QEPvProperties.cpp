@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2018 Australian Synchrotron.
+ *  Copyright (c) 2012-2019 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -120,7 +120,7 @@ static void initialiseRecordSpecs ()
 #define WIDGET_DEFAULT_WIDTH      448
 #define WIDGET_DEFAULT_HEIGHT     696
 
-#define ENUMERATIONS_MIN_HEIGHT   12
+#define ENUMERATIONS_MIN_HEIGHT   18
 #define ENUMERATIONS_MAX_HEIGHT   100
 #define NUMBER_OF_ENUMERATIONS    32
 

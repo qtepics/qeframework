@@ -48,7 +48,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QTimeEdit" name="endTimeEdit"/>
+      <widget class="QTimeEdit" name="endTimeEdit">
+       <property name="displayFormat">
+        <string>h:mm:ss</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
