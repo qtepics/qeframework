@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2012-2019 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -1389,7 +1389,8 @@ void QEStripChartItem::writeTraceToFile ()
    QString filename;
 
    filename = QFileDialog::getSaveFileName
-         (this, "Select output trace file", "./", "Text files(*.txt);;All files(*.*)");
+         (this, "Select output trace file", this->chart->getDefaultDir (),
+          "Text files(*.txt);;All files(*.*)");
 
    if (filename.isEmpty ()) {
       return;
@@ -1403,7 +1404,7 @@ void QEStripChartItem::writeTraceToFile ()
 
    QTextStream ts (&file);
 
-   ts << "#   No  TimeStamp                     Relative Time    Value                Okay     Severity    Status\n";
+   ts << "#   No  TimeStamp                      Relative Time    Value                Okay     Severity    Status\n";
 
    QCaDataPointList dataPoints = this->determinePlotPoints ();
 

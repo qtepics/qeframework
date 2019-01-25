@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2012-2019 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012,2016 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -98,8 +98,16 @@ QString QCaDataPoint::toString () const
    severityText = QEArchiveInterface::alarmSeverityName (severity);
    statusText = this->alarm.statusName();
 
+   // At some timme the MMM (from the format string) changed from "Jan" to "Jan."
+   // So much for backward compatibility. Lose the "." if it exists.
+   //
+   QString dateTimeImage = datetime.toString (stdFormat);
+   if (dateTimeImage [6] == '.') {
+      dateTimeImage = dateTimeImage.remove (6, 1);
+   }
+
    result = QString ("%1  %2  %3  %4  %5  %6")
-               .arg (this->datetime.toString (stdFormat), 20)
+               .arg (dateTimeImage, 20)
                .arg (zone)
                .arg (this->value, 16, 'e', 8)
                .arg (valid, 10)
@@ -131,8 +139,16 @@ QString QCaDataPoint::toString (const QCaDateTime& originDateTime) const
    //
    relative = originDateTime.secondsTo (this->datetime);
 
+   // At some timme the MMM (from the format string) changed from "Jan" to "Jan."
+   // So much for backward compatibility. Lose the "." if it exists.
+   //
+   QString dateTimeImage = datetime.toString (stdFormat);
+   if (dateTimeImage [6] == '.') {
+      dateTimeImage = dateTimeImage.remove (6, 1);
+   }
+
    result = QString ("%1  %2  %3  %4  %5  %6  %7")
-               .arg (this->datetime.toString (stdFormat), 20)
+               .arg (dateTimeImage, 20)
                .arg (zone)
                .arg (relative, 16, 'f', 3)
                .arg (this->value, 16, 'e', 8)

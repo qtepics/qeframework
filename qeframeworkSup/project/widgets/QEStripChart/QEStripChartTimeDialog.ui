@@ -102,7 +102,11 @@
          </widget>
         </item>
         <item>
-         <widget class="QTimeEdit" name="startTimeEdit"/>
+         <widget class="QTimeEdit" name="startTimeEdit">
+          <property name="displayFormat">
+           <string>hh:mm:ss</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -174,7 +178,11 @@
          </widget>
         </item>
         <item>
-         <widget class="QTimeEdit" name="endTimeEdit"/>
+         <widget class="QTimeEdit" name="endTimeEdit">
+          <property name="displayFormat">
+           <string>hh:mm:ss</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
