@@ -1,6 +1,9 @@
 /*  imageProperties.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2015-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2015 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -102,9 +103,20 @@ void imageProperties::setWidthHeightFromDimensions()
     }
 }
 
+void imageProperties::setBitDepth( unsigned int bitDepthIn )
+{
+    // Invalidate pixel look up table if bit depth changes (it will be regenerated with the new depth when next needed)
+    if( bitDepth != bitDepthIn )
+    {
+        pixelLookupValid = false;
+    }
+    bitDepth = bitDepthIn;
+}
+
+
 // Present information about the image.
 // This is usefull when trying to determine why an image is not displaying well.
-QString imageProperties::getInfoText()
+QString imageProperties::getInfoText() const
 {
     // Build the image information string
     QString about;
@@ -115,22 +127,7 @@ QString imageProperties::getInfoText()
     about.append( QString( "\nHeight (pixels) taken from dimension variables or height variable: %1" ).arg( imageBuffHeight ));
     about.append( QString( "\nPixel depth taken from data type variable, bit depth variable or bit depth property: %1" ).arg( bitDepth ));
 
-    QString name;
-    switch( formatOption )
-    {
-        case imageDataFormats::MONO:        name = "Monochrome";         break;
-        case imageDataFormats::BAYERGB:     name = "Bayer (Green/Blue)"; break;
-        case imageDataFormats::BAYERBG:     name = "Bayer (Blue/Green)"; break;
-        case imageDataFormats::BAYERGR:     name = "Bayer (Green/Red)";  break;
-        case imageDataFormats::BAYERRG:     name = "Bayer (red/Green)";  break;
-        case imageDataFormats::RGB1:        name = "8 bit RGB";          break;
-        case imageDataFormats::RGB2:        name = "RGB2???";            break;
-        case imageDataFormats::RGB3:        name = "RGB3???";            break;
-        case imageDataFormats::YUV444:      name = "???bit YUV444";      break;
-        case imageDataFormats::YUV422:      name = "???bit YUV422";      break;
-        case imageDataFormats::YUV421:      name = "???bit YUV421";      break;
-    }
-
+    QString name = imageDataFormats::getFormatInformation (formatOption);
     about.append( QString( "\nExpected format: " ).append( name ));
 
     about.append( "\n\nFirst bytes of raw image data:\n   ");
@@ -172,7 +169,7 @@ QString imageProperties::getInfoText()
 }
 
 // Return the current image format
-imageDataFormats::formatOptions imageProperties::getFormat()
+imageDataFormats::formatOptions imageProperties::getFormat() const
 {
     return formatOption;
 }
@@ -195,29 +192,14 @@ void imageProperties::setFormat( imageDataFormats::formatOptions formatIn )
 bool imageProperties::setFormat( const QString& text )
 {
     imageDataFormats::formatOptions newFormatOption;
+    const bool result = imageDataFormats::convertToFormatOption (text, newFormatOption);
 
-    // Interpret Area detector formats
-    if     ( !text.compare( "Mono" ) )         newFormatOption = imageDataFormats::MONO;
-    else if( !text.compare( "Bayer" ) )        newFormatOption = imageDataFormats::BAYERRG;
-    else if( !text.compare( "BayerGB" ) )      newFormatOption = imageDataFormats::BAYERGB;
-    else if( !text.compare( "BayerBG" ) )      newFormatOption = imageDataFormats::BAYERBG;
-    else if( !text.compare( "BayerGR" ) )      newFormatOption = imageDataFormats::BAYERGR;
-    else if( !text.compare( "BayerRG" ) )      newFormatOption = imageDataFormats::BAYERRG;
-    else if( !text.compare( "RGB1" ) )         newFormatOption = imageDataFormats::RGB1;
-    else if( !text.compare( "RGB2" ) )         newFormatOption = imageDataFormats::RGB2;
-    else if( !text.compare( "RGB3" ) )         newFormatOption = imageDataFormats::RGB3;
-    else if( !text.compare( "YUV444" ) )       newFormatOption = imageDataFormats::YUV444;
-    else if( !text.compare( "YUV422" ) )       newFormatOption = imageDataFormats::YUV422;
-    else if( !text.compare( "YUV421" ) )       newFormatOption = imageDataFormats::YUV421;
-
-    // Unknown format text
-    else
-    {
-        // !!! warn unexpected format
-        return false;
+    if( result ) {
+        // Format text recognozed, use it
+        formatOption = newFormatOption;
     }
 
-    // Format text recognozed, use it
-    formatOption = newFormatOption;
-    return true;
+    return result;  // return success or otherwise to caller
 }
+
+// end

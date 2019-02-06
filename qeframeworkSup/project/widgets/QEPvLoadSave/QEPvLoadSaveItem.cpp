@@ -24,15 +24,16 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEPvLoadSaveItem.h"
+#include "QEPvLoadSave.h"
+
 #include <QDebug>
 #include <QFrame>
 #include <QModelIndex>
 #include <QPushButton>
 #include <QWidget>
-
 #include <QECommon.h>
-#include "QEPvLoadSave.h"
-#include "QEPvLoadSaveItem.h"
+#include <QEVectorVariants.h>
 
 #define DEBUG  qDebug () << "QEPvLoadSaveItem" << __LINE__ << __FUNCTION__ << "  "
 
@@ -548,6 +549,11 @@ QVariant QEPvLoadSaveLeaf::getData (int column) const
          if (this->value.type() == QVariant::List) {
             QVariantList vl = this->value.toList ();
             valueImage = QString (" << %1 element array >>").arg (vl.size ());
+
+         } else if (QEVectorVariants::isVectorVariant(this->value)) {
+            int n = QEVectorVariants::vectorCount (this->value);
+            valueImage = QString (" << %1 element vector >>").arg (n);
+
          } else {
             valueImage = this->value.toString ();
          }
@@ -559,6 +565,11 @@ QVariant QEPvLoadSaveLeaf::getData (int column) const
          if (this->liveValue.type() == QVariant::List) {
             QVariantList vl = this->value.toList ();
             valueImage = QString (" << %1 element array >>").arg (vl.size ());
+
+         } else if (QEVectorVariants::isVectorVariant(this->liveValue)) {
+            int n = QEVectorVariants::vectorCount (this->liveValue);
+            valueImage = QString (" << %1 element vector >>").arg (n);
+
          } else {
             valueImage = this->liveValue.toString ();
          }
@@ -670,7 +681,7 @@ void QEPvLoadSaveLeaf::extractPVData ()
    this->action = QEPvLoadSaveCommon::Extract;
    bool okay = false;
 
-   if (this->qcaReadBack&& this->qcaReadBack->getDataIsAvailable()) {
+   if (this->qcaReadBack && this->qcaReadBack->getDataIsAvailable()) {
       this->value = this->liveValue;
       okay = true;
    }
@@ -746,6 +757,7 @@ void QEPvLoadSaveLeaf::applyPVData ()
       // before writing to the PV server.
       //
       QVariant nativeValue;
+
       if (this->value.type() == QVariant::List) {
          QVariantList valueList = this->value.toList ();
          const int n = valueList.count ();
@@ -754,6 +766,11 @@ void QEPvLoadSaveLeaf::applyPVData ()
             nativeList.append (this->convertToNativeType (gdt, valueList.value (j)));
          }
          nativeValue = QVariant (nativeList);
+
+      } else if (QEVectorVariants::isVectorVariant (this->value)) {
+
+         nativeValue = this->value;
+
       } else {
          // Scalar - Just use value as is, and let EPICS IOC do any required conversion.
          nativeValue = this->value;
@@ -954,9 +971,10 @@ void QEPvLoadSaveLeaf::dataChanged (const QVariant& valueIn, QCaAlarmInfo& alarm
    //
    const QStringList enums = this->qcaReadBack->getEnumerations ();
    const int n = enums.count ();
-   if ((valueIn.type () == QVariant::ULongLong) && (n > 0)) {
-      const int index = valueIn.toInt();
-      if ((index >= 0) && (index < n)) {
+   if (n > 0) {
+      bool okay;
+      const int index = valueIn.toInt (&okay);
+      if (okay && (index >= 0) && (index < n)) {
          this->liveValue = enums.value (index);
       } else {
          this->liveValue = valueIn;

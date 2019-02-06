@@ -24,7 +24,7 @@
  *    andrew.rhyder@synchrotron.org.au
  */
 
-// Provides textual formatting for QEFloating data.
+// Provides floating (double) values for QEFloating data.
 
 #ifndef QE_FLOATING_FORMATTING_H
 #define QE_FLOATING_FORMATTING_H
@@ -36,7 +36,7 @@
 #include <QEFrameworkLibraryGlobal.h>
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFloatingFormatting {
-  public:
+public:
 
     // Formatting enumerations
     enum formats { FORMAT_e = 'e',   // format as [-]9.9e[+|-]999
@@ -47,7 +47,8 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFloatingFormatting {
 
 
     // Construction
-    QEFloatingFormatting();
+    explicit QEFloatingFormatting();
+    ~QEFloatingFormatting();
 
     //===============================================
     // Main functions of this class:
@@ -56,40 +57,40 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFloatingFormatting {
     //===============================================
     /// Given a data value of any type, format it as an double according to the formatting instructions held by the class.
     /// This is used to convert the QVariant value received from a QCaObject, which is still based on the data variable type, to a double.
-    double formatFloating( const QVariant &value, int arrayIndex = 0 );
+    double formatFloating( const QVariant &value, int arrayIndex = 0 ) const;
 
     /// Given a data value of any type, format it as an array of doubles according to the formatting instructions held by the class.
     /// This is used to convert the QVariant value received from a QCaObject, which is still based on the data variable type, to a double array.
     /// Typically used where the input QVariant value is an array of data values, but will work for any QVariant type.
-    QVector<double> formatFloatingArray( const QVariant &value );
+    QVector<double> formatFloatingArray( const QVariant &value ) const;
 
-    QVariant formatValue( const double &floatingValue, generic::generic_types valueType );
-    QVariant formatValue( const QVector<double> &floatingValue, generic::generic_types valueType );
+    QVariant formatValue( const double &floatingValue, generic::generic_types valueType ) const;
+    QVariant formatValue( const QVector<double> &floatingValue, generic::generic_types valueType ) const;
 
     // Functions to configure the formatting
     void setPrecision( unsigned int precision );
     void setFormat( formats format );
 
     // Functions to read the formatting configuration
-    unsigned int getPrecision();
-    int getFormat();
+    unsigned int getPrecision() const;
+    formats getFormat() const;
 
-  private:
+private:
     // Private functions to read the formatting configuration
-    char getFormatChar();
+    char getFormatChar() const;
 
     // Type specific conversion functions
-    double formatFromFloating( const QVariant &value );
-    double formatFromInteger( const QVariant &value );
-    double formatFromUnsignedInteger( const QVariant &value );
-    double formatFromString( const QVariant &value );
-    double formatFromTime( const QVariant &value );
+    double formatFromFloating( const QVariant &value ) const;
+    double formatFromInteger( const QVariant &value ) const;
+    double formatFromUnsignedInteger( const QVariant &value ) const;
+    double formatFromString( const QVariant &value ) const;
+    double formatFromTime( const QVariant &value ) const;
 
     // Common functions
-    double formatFloatingNonArray( const QVariant &value );
+    double formatFloatingNonArray( const QVariant &value ) const;
 
     // Error reporting
-    double formatFailure( QString message );
+    double formatFailure( QString message ) const;
 
     // Formatting configuration
     unsigned int precision;

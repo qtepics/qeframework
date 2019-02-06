@@ -2,6 +2,8 @@
  *
  *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
  *
+ *  Copyright (c) 2009-2018 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010, 2016 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -26,7 +26,8 @@
 // Integer specific wrapper for QCaObject.
 
 #include <QEInteger.h>
-#include <QtDebug>
+#include <QDebug>
+#include <QEVectorVariants.h>
 
 #define DEBUG  qDebug () << "QEInteger" << __LINE__ << __FUNCTION__ << "  "
 
@@ -90,8 +91,10 @@ void QEInteger::writeInteger( const QVector<long> &data )
 /*
     Slot to recieve data updates from the base QCaObject and generate integer updates.
 */
-void QEInteger::convertVariant( const QVariant &value, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex ) {
-    if( value.type() == QVariant::List )
+void QEInteger::convertVariant( const QVariant &value, QCaAlarmInfo& alarmInfo,
+                                QCaDateTime& timeStamp, const unsigned int& variableIndex )
+{
+    if( (value.type() == QVariant::List) || QEVectorVariants::isVectorVariant( value ) )
     {
         emit integerArrayChanged( integerFormat->formatIntegerArray( value ), alarmInfo, timeStamp, variableIndex );
 

@@ -2,6 +2,8 @@
  *
  *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
  *
+ *  Copyright (c) 2009-2018 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010, 2016 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -26,7 +26,8 @@
 // Floating specific wrapper for QCaObject.
 
 #include <QEFloating.h>
-#include <QtDebug>
+#include <QDebug>
+#include <QEVectorVariants.h>
 
 #define DEBUG  qDebug () << "QEFloating" << __LINE__ << __FUNCTION__ << "  "
 
@@ -35,13 +36,17 @@
 */
 QEFloating::QEFloating( QString recordName, QObject *eventObject,
                         QEFloatingFormatting *floatingFormattingIn,
-                        unsigned int variableIndexIn ) : QCaObject( recordName, eventObject, variableIndexIn ) {
+                        unsigned int variableIndexIn ) :
+   QCaObject( recordName, eventObject, variableIndexIn )
+{
     initialise( floatingFormattingIn );
 }
 
 QEFloating::QEFloating( QString recordName, QObject *eventObject,
                         QEFloatingFormatting *floatingFormattingIn,
-                        unsigned int variableIndexIn, UserMessage* userMessageIn ) : QCaObject( recordName, eventObject, variableIndexIn, userMessageIn ) {
+                        unsigned int variableIndexIn, UserMessage* userMessageIn ) :
+   QCaObject( recordName, eventObject, variableIndexIn, userMessageIn )
+{
     initialise( floatingFormattingIn );
 }
 
@@ -89,9 +94,11 @@ void QEFloating::writeFloating( const QVector<double> &data ) {
 /*
     Slot to recieve data updates from the base QCaObject and generate floating updates.
 */
-void QEFloating::convertVariant( const QVariant &value, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int&  variableIndex ) {
+void QEFloating::convertVariant( const QVariant &value, QCaAlarmInfo& alarmInfo,
+                                 QCaDateTime& timeStamp, const unsigned int& variableIndex )
+{
 
-    if( value.type() == QVariant::List )
+    if( ( value.type() == QVariant::List ) || QEVectorVariants::isVectorVariant( value ) )
     {
         emit floatingArrayChanged( floatingFormat->formatFloatingArray( value ), alarmInfo, timeStamp, variableIndex );
 

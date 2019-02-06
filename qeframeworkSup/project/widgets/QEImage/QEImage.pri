@@ -103,6 +103,7 @@ SOURCES += \
     widgets/QEImage/QEImageOptionsDialog.cpp \
     widgets/QEImage/QEImageMarkupThickness.cpp \
     widgets/QEImage/fullScreenWindow.cpp \
+    widgets/QEImage/imageDataFormats.cpp \
     widgets/QEImage/markupDisplayMenu.cpp \
     widgets/QEImage/recording.cpp \
     widgets/QEImage/screenSelectDialog.cpp \

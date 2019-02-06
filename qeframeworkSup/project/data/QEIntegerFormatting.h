@@ -24,7 +24,7 @@
  *    andrew.rhyder@synchrotron.org.au
  */
 
-// Provides textual formatting for QEInteger data.
+// Provides integer (long) values for QEInteger data.
 
 #ifndef QE_INTEGER_FORMATTING_H
 #define QE_INTEGER_FORMATTING_H
@@ -36,19 +36,18 @@
 #include <QEFrameworkLibraryGlobal.h>
 
 /*!
-    This class holds formatting instructions and uses them to convert between an integer and a QVariant of any type.
+    This class holds formatting instructions and uses them to convert to/from an integer and a QVariant of any type.
     It is generally set up with it's formatting instructions and then passed to a QEInteger class that will sink and source integer data to widgets or other code.
     It is used to convert data to and from a QCaObject (which sources and sinks data in the form of a QVariant where
     the QVariant reflects the underlying variable data type) and the QEInteger class.
     An example of a requirement for integer data is a combo box which must determine an integer index to select a menu option.
  */
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEIntegerFormatting {
-
 public:
 
     // Construction
-    /// Constructor
-    QEIntegerFormatting();
+   explicit QEIntegerFormatting();
+   ~QEIntegerFormatting();
 
     //===============================================
     // Main functions of this class:
@@ -57,45 +56,41 @@ public:
     //===============================================
     /// Given a data value of any type, format it as an integer according to the formatting instructions held by the class.
     /// This is used to convert the QVariant value received from a QCaObject, which is still based on the data variable type, to an integer.
-    long formatInteger( const QVariant &value, int arrayIndex = 0 );
+    long formatInteger( const QVariant &value, int arrayIndex = 0 ) const;
 
     /// Given a data value of any type, format it as an array of integers according to the formatting instructions held by the class.
     /// This is used to convert the QVariant value received from a QCaObject, which is still based on the data variable type, to an integer array.
     /// Typically used where the input QVariant value is an array of data values, but will work for any QVariant type.
-    QVector<long> formatIntegerArray( const QVariant &value );
+    QVector<long> formatIntegerArray( const QVariant &value ) const;
 
     /// Given an integer value, format it as a data value of the specified type, according to the formatting instructions held by the class.
     /// This is used when writing integer data to a QCaObject.
-    QVariant formatValue( const long &integerValue, generic::generic_types valueType );
-    QVariant formatValue( const QVector<long> &integerValue, generic::generic_types valueType );
+    QVariant formatValue( const long &integerValue, generic::generic_types valueType ) const;
+    QVariant formatValue( const QVector<long> &integerValue, generic::generic_types valueType ) const;
 
     // Functions to configure the formatting
     /// Set the radix used for all conversions. Default is 10.
     void setRadix( unsigned int radix );
 
-    // Functions to read the formatting configuration
-    /// Get the precision used for all conversions
-    unsigned int getPrecision();
-
     /// Get the radix used for all conversions.
-    unsigned int getRadix();
+    unsigned int getRadix() const;
 
   private:
     // Type specific conversion functions
-    long formatFromFloating( const QVariant &value );
-    long formatFromInteger( const QVariant &value );
-    long formatFromUnsignedInteger( const QVariant &value );
-    long formatFromString( const QVariant &value );
-    long formatFromTime( const QVariant &value );
+    long formatFromFloating( const QVariant &value ) const;
+    long formatFromInteger( const QVariant &value ) const;
+    long formatFromUnsignedInteger( const QVariant &value ) const;
+    long formatFromString( const QVariant &value ) const;
+    long formatFromTime( const QVariant &value ) const;
 
     // Common functions
-    long formatIntegerNonArray( const QVariant &value );
+    long formatIntegerNonArray( const QVariant &value ) const;
 
     // Error reporting
-    long formatFailure( QString message );
+    long formatFailure( QString message ) const;
 
     // Formatting configuration
-    int radix; // Positional base system to display data.
+    int radix;      // Positional base system to display data.
 };
 
 #endif // QE_INTEGER_FORMATTING_H

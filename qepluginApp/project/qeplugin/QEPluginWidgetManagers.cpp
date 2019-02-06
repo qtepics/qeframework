@@ -81,6 +81,7 @@
 #include <QEStripChart.h>
 #include <QESubstitutedLabel.h>
 #include <QETable.h>
+#include <QENTTable.h>
 #include <QEArchiveNameSearch.h>
 #include <QEArchiveStatus.h>
 
@@ -140,6 +141,7 @@ QE_IMPLEMENT_PLUGIN_MANAGER (QESpinBox,           QECONTROL,  ":/qe/plugin/QESpi
 QE_IMPLEMENT_PLUGIN_MANAGER (QEStripChart,        QEGRAPHIC,  ":/qe/plugin/QEStripChart.png",        false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QESubstitutedLabel,  QESUPPORT,  ":/qe/plugin/QESubstitutedLabel.png",  false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QETable,             QEMONITOR,  ":/qe/plugin/QETable.png",             false)
+QE_IMPLEMENT_PLUGIN_MANAGER (QENTTable,           QEMONITOR,  ":/qe/plugin/QENTTable.png",           false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEArchiveNameSearch, QEARCHIVE,  ":/qe/plugin/QEArchiveNameSearch.png", false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEArchiveStatus,     QEARCHIVE,  ":/qe/plugin/QEArchiveStatus.png",     false)
 

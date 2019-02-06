@@ -29,14 +29,12 @@ INCLUDEPATH += \
    data
 
 HEADERS += \
+   data/Generic.h \
    data/QCaAlarmInfo.h \
    data/QCaConnectionInfo.h \
    data/QCaDataPoint.h \
    data/QCaDateTime.h \
-   data/QCaEventFilter.h \
-   data/QCaEventUpdate.h \
    data/QCaObject.h \
-   data/QCaStateMachine.h \
    data/QCaVariableNamePropertyManager.h \
    data/QEByteArray.h \
    data/QEFloating.h \
@@ -52,14 +50,12 @@ HEADERS += \
 
 
 SOURCES += \
+   data/Generic.cpp \
    data/QCaAlarmInfo.cpp \
    data/QCaConnectionInfo.cpp \
    data/QCaDataPoint.cpp \
    data/QCaDateTime.cpp \
-   data/QCaEventFilter.cpp \
-   data/QCaEventUpdate.cpp \
    data/QCaObject.cpp \
-   data/QCaStateMachine.cpp \
    data/QCaVariableNamePropertyManager.cpp \
    data/QEByteArray.cpp \
    data/QEFloating.cpp \

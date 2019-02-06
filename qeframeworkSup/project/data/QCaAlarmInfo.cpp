@@ -1,7 +1,6 @@
 /*  QCaAlarmInfo.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the
- *  Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
  *
  *  Copyright (c) 2009-2018 Australian Synchrotron
  *
@@ -26,10 +25,9 @@
 
 // CA alarm info manager
 
-/// NOTE: mingw happier if this include is first....
-#include <alarm.h>
-
 #include <QCaAlarmInfo.h>
+#include <alarm.h>
+#include <acai_client_types.h>
 
 // Default standard colors.
 // These string lists are index by alarm severity
@@ -145,21 +143,18 @@ bool QCaAlarmInfo::operator!=(const QCaAlarmInfo& other) const
  */
 QString QCaAlarmInfo::statusName() const
 {
-    if( status <= lastEpicsAlarmCond )
-        return QString( epicsAlarmConditionStrings[status] );
-    else
-        return QString( "" );
+    // TODO - PVA status strings are differnt.
+    ACAI::ClientAlarmCondition condition = ACAI::ClientAlarmCondition( status );
+    return QString::fromStdString( ACAI::alarmStatusImage( condition ) );
 }
 
 /*
   Return a string identifying the alarm severity
  */
-QString QCaAlarmInfo::severityName() const
-{
-    if( severity <= lastEpicsAlarmSev )
-        return QString( epicsAlarmSeverityStrings[severity] );
-    else
-        return QString( "" );
+QString QCaAlarmInfo::severityName() const {
+
+    ACAI::ClientAlarmSeverity sevr = ACAI::ClientAlarmSeverity( severity );
+    return QString::fromStdString( ACAI::alarmSeverityImage( sevr ) );
 }
 
 /*
@@ -195,6 +190,7 @@ bool QCaAlarmInfo::isMajor() const {
   Return true if there is an invalid alarm
  */
 bool QCaAlarmInfo::isInvalid() const {
+    return !ACAI::alarmSeverityIsValid( ACAI::ClientAlarmSeverity( severity ) );
     return( severity == INVALID_ALARM );
 }
 
@@ -245,7 +241,7 @@ QString QCaAlarmInfo::getColorName() const
  */
 QCaAlarmInfo::Severity QCaAlarmInfo::getInvalidSeverity()
 {
-    return ALARM_NSEV;
+    return ACAI::CLIENT_ALARM_NSEV;
 }
 
 /*

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2018 Australian Synchrotron
+ *  Copyright (c) 2012-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -45,8 +45,8 @@
 // (Also, after tagging QE_VERSION_STAGE should be set to QE_VERSION_STAGE_DEVELOPMENT)
 //
 #define QE_VERSION_MAJOR      3     // Public releases that include interface or paradigm changes that may require changes to the way the framework is used.
-#define QE_VERSION_MINOR      6     // Public releases containing new functionality (may include fixes as well)
-#define QE_VERSION_RELEASE    4     // Public releases containing fixes only.
+#define QE_VERSION_MINOR      7     // Public releases containing new functionality (may include fixes as well)
+#define QE_VERSION_RELEASE    1     // Public releases containing fixes only.
 
 // The integer version is (major << 16) + (minor << 8) + release, and this macro
 // is used to constuct an integer version number.
@@ -63,7 +63,7 @@
 //
 #define QE_VERSION_STAGE_DEVELOPMENT "Development"
 #define QE_VERSION_STAGE_PRODUCTION  "Production"
-#define QE_VERSION_STAGE             QE_VERSION_STAGE_PRODUCTION
+#define QE_VERSION_STAGE             QE_VERSION_STAGE_DEVELOPMENT
 
 #define QE_VERSION_STRING     STRINGIFY(QE_VERSION_MAJOR) "." \
                               STRINGIFY(QE_VERSION_MINOR) "." \
@@ -95,6 +95,7 @@ public:
    static const QString getQtVersionStr ();     // e.g. "QT 5.10.0"
    static const QString getQwtVersionStr ();    // e.g. "QWT 6.1.3"
    static const QString getEpicsVersionStr ();  // e.g. "EPICS 7.0.1.1"
+   static const QString getAcaiVersionStr ();   // e.g. "ACAI 1.4.4"
 };
 
 #endif // QE_FRAMEWORK_VERSION_H

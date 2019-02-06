@@ -1,6 +1,9 @@
 /*  QEStringFormatting.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009,2010,2015,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -48,9 +49,12 @@ public:
                    FORMAT_FLOATING,             ///< Format as a floating point number
                    FORMAT_INTEGER,              ///< Format as an integer
                    FORMAT_UNSIGNEDINTEGER,      ///< Format as an unsigned integer
-                   FORMAT_TIME,                 ///< Format as a time
+                   FORMAT_TIME,                 ///< Format as a time - value must be in seconds
                    FORMAT_LOCAL_ENUMERATE,      ///< Format as a selection from the local enumerations set by setLocalEnumeration()
-                   FORMAT_STRING                ///< Format as a string
+                   FORMAT_STRING,               ///< Format as a string
+                   // Specials for specific PVA varient types
+                   FORMAT_NT_TABLE,             ///< Format as a NTTable
+                   FORMAT_NT_IMAGE              ///< Format as a NTNDArray
                };
 
     /// \enum notations
@@ -76,7 +80,8 @@ public:
                     };
 
     // Construction
-    QEStringFormatting();
+    explicit QEStringFormatting();
+    ~QEStringFormatting();
 
     //===============================================
     // Main functions of this class:
@@ -84,8 +89,9 @@ public:
     //   - Translate a string and generate a value
     //===============================================
     QString formatString( const QVariant& value, int arrayIndex = 0 ) const;  // default depricated and will be removed.
-    QVariant formatValue( const QString& text, bool& ok );
-    QVariant formatValue( const QVector<QString>& text, bool& ok );
+
+    QVariant formatValue( const QString& text, bool& ok ) const;
+    QVariant formatValue( const QVector<QString>& text, bool& ok ) const;
 
 
     // Functions to set up formatting information from the database
@@ -145,7 +151,7 @@ private:
                        const notations notation,
                        const bool forceSign,
                        const int zeros,
-                       const int prec);
+                       const int prec) const;
 
     // Error reporting
     void formatFailure( QString message );

@@ -1,6 +1,9 @@
 /*  VariableManager.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2015-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015,2016,2018 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -24,13 +25,17 @@
  */
 
 /*
-  This class is used as a base for QEWidget and provides services for
-  managing CA process variable connections. Refer to VariableManager.h for a full class description
+  This class is used as a base for QEWidget and provides services for managing CA process
+  variable connections. Refer to VariableManager.h for a full class description
  */
 
-#include <VariableManager.h>
+#include "VariableManager.h"
+#include <QDebug>
 #include <QCaObject.h>
 
+#define DEBUG qDebug () << "VariableManager" << __LINE__ << __FUNCTION__ << "  "
+
+//------------------------------------------------------------------------------
 // Constructor
 //
 VariableManager::VariableManager()
@@ -41,6 +46,7 @@ VariableManager::VariableManager()
     qcaItem = 0;
 }
 
+//------------------------------------------------------------------------------
 // Destruction:
 // Delete all variable sources for the widgeet
 //
@@ -56,13 +62,13 @@ VariableManager::~VariableManager()
     qcaItem = NULL;
 }
 
+//------------------------------------------------------------------------------
 // Set the number of variables that will be used for this widget.
 // Create an array of QCaObject based objects to suit.
 // This is called by the CA aware widgets based on this class, such as a QELabel.
 //
 void VariableManager::setNumVariables( unsigned int numVariablesIn )
 {
-
     // Get the number of variables that will be used by this widget
     // Don't accept zero or the qca array will be invalid
     if( numVariablesIn ) {
@@ -81,28 +87,33 @@ void VariableManager::setNumVariables( unsigned int numVariablesIn )
     }
 }
 
+//------------------------------------------------------------------------------
 // Initiate updates.
 // This is only required when QE widgets are loaded within a form and not directly by 'designer'.
-// When loaded directly by 'designer' they are activated (a CA connection is established) as soon as either
-// the variable name or variable name substitution properties are set
+// When loaded directly by 'designer' they are activated (a CA connection is established) as
+// soon as either the variable name or variable name substitution properties are set
 //
 void VariableManager::activate()
 {
-    // For each variable, ask the CA aware widget based on this class to initiate updates and to set up
-    // whatever signal/slot connections are required to make use of data updates.
-    // Note, establish connection is a virtual function of the VariableNameManager class and is normally
-    // called by that class when a variable name is defined or changed
-    for( unsigned int i = 0; i < numVariables; i++ )
+    // For each variable, ask the CA aware widget based on this class to initiate updates
+    // and to set up whatever signal/slot connections are required to make use of data updates.
+    // Note, establish connection is a virtual function of the VariableNameManager class
+    // and is normally called by that class when a variable name is defined or changed
+    for( unsigned int i = 0; i < numVariables; i++ ) {
         establishConnection( i );
+    }
 
-    // Ask the widget to perform any tasks which should only be done once all other widgets have been created.
-    // For example, if a widget wants to notify other widgets through signals during construction, other widgets
-    // may not be present yet to recieve the signals. This type of notification could be held off untill now.
+    // Ask the widget to perform any tasks which should only be done once all other widgets
+    // have been created.  For example, if a widget wants to notify other widgets through
+    // signals during construction, other widgets may not be present yet to recieve the
+    // signals. This type of notification could be held off untill now.
     activated();
 }
 
+//------------------------------------------------------------------------------
 // Terminate updates.
 // This has been provided for third party (non QEGui) applications using the framework.
+// Specifically, this is used by kubili.
 //
 void VariableManager::deactivate()
 {
@@ -111,14 +122,15 @@ void VariableManager::deactivate()
 
     // Delete all the QCaObject instances
     for( unsigned int i = 0; i < numVariables; i++ ) {
-        deleteQcaItem( i, false );
+        deleteQcaItem( i, true );
     }
 }
 
-
+//------------------------------------------------------------------------------
 // Create a CA connection and initiates updates if required.
-// This is called by the establishConnection function of CA aware widgets based on this class, such as a QELabel.
-// If successfull it will return the QCaObject based object supplying data update signals
+// This is called by the establishConnection function of CA aware widgets based on
+// this class, such as a QELabel. If successfull it will return the QCaObject based
+// object supplying data update signals.
 //
 qcaobject::QCaObject* VariableManager::createVariable( unsigned int variableIndex,
                                                        const bool do_subscribe )
@@ -144,8 +156,11 @@ qcaobject::QCaObject* VariableManager::createVariable( unsigned int variableInde
 
             qcaItem[variableIndex]->setUserMessage( (UserMessage*)this );
 
-            if( do_subscribe )
+            if( do_subscribe ) {
                 qcaItem[variableIndex]->subscribe();
+            } else {
+                qcaItem[variableIndex]->connectChannel();   // just connect
+            }
         }
     }
 
@@ -153,6 +168,7 @@ qcaobject::QCaObject* VariableManager::createVariable( unsigned int variableInde
     return qcaItem[variableIndex];
 }
 
+//------------------------------------------------------------------------------
 // Default implementation of createQcaItem().
 // Usually a QE widgets will request a connection be established by this class and this class will
 // call back the QE widgets for it to create the specific flavour of QCaObject required using this function.
@@ -164,6 +180,7 @@ qcaobject::QCaObject* VariableManager::createQcaItem( unsigned int )
     return NULL;
 }
 
+//------------------------------------------------------------------------------
 // Default implementation of establishConnection().
 // Usually a QE widgets will request a connection be established by this class and this class will
 // call back the QE widgets for it to establish a connection on a newly created QCaObject using this function.
@@ -174,12 +191,13 @@ void VariableManager::establishConnection( unsigned int )
 {
 }
 
+//------------------------------------------------------------------------------
 // Default implementation of activated().
 // Widgets may have tasks which should only be done once all other widgets have been created.
 // For example, if a widget wants to notify other widgets through signals during construction, other widgets
 // may not be present yet to recieve the signals. This type of notification could be held off untill now.
 //
-void VariableManager::activated()
+void VariableManager::activated ()
 {
 }
 
@@ -190,10 +208,13 @@ void VariableManager::deactivated ()
 {
 }
 
+//------------------------------------------------------------------------------
 // Return a reference to one of the qCaObjects used to stream CA data updates to the widget
 // This is called by CA aware widgets based on this class, such as a QELabel, mainly when they
 // want to connect to its signals to recieve data updates.
-qcaobject::QCaObject* VariableManager::getQcaItem( unsigned int variableIndex ) const {
+//
+qcaobject::QCaObject* VariableManager::getQcaItem( unsigned int variableIndex ) const
+{
     // If the index is invalid return NULL.
     // This same test is also valid if qcaItem has never been set up yet as numVariables will be zero
     if( variableIndex >= numVariables )
@@ -203,11 +224,13 @@ qcaobject::QCaObject* VariableManager::getQcaItem( unsigned int variableIndex ) 
     return qcaItem[variableIndex];
 }
 
+//------------------------------------------------------------------------------
 // Remove any previous QCaObject created to supply CA data updates for a variable name
 // If the object connected to the QCaObject is being destroyed it is not good to receive signals
 // so the disconnect parameter should be true in this case
 //
-void VariableManager::deleteQcaItem( unsigned int variableIndex, bool disconnect ) {
+void VariableManager::deleteQcaItem( unsigned int variableIndex, bool disconnect )
+{
     // If the index is invalid do nothing.
     // This same test is also valid if qcaItem has never been set up yet as numVariables will be zero
     if( variableIndex >= numVariables )
@@ -233,7 +256,7 @@ void VariableManager::deleteQcaItem( unsigned int variableIndex, bool disconnect
     }
 }
 
-
+//------------------------------------------------------------------------------
 // Perform a single shot read on all variables.
 // Widgets may be write only and do not need to subscribe (subscribe property is false).
 // When not subscribing it may still be usefull to do a single shot read to get initial
@@ -261,8 +284,8 @@ void VariableManager::writeNow()
     qDebug() << "default VariableManager::writeNow - this function should be overridden";
 }
 
-using namespace qcastatemachine;
 
+//------------------------------------------------------------------------------
 // Return references to the current count of disconnections.
 // The plugin library (and therefore the static connection and disconnection counts)
 // can be mapped twice (on Windows at least). So it is no use just referencing these
@@ -273,9 +296,10 @@ using namespace qcastatemachine;
 //
 int* VariableManager::getDisconnectedCountRef() const
 {
-    return &ConnectionQCaStateMachine::disconnectedCount;
+    return qcaobject::QCaObject::getDisconnectedCountRef ();
 }
 
+//------------------------------------------------------------------------------
 // Return references to the current count of connections.
 // The plugin library (and therefore the static connection and disconnection counts)
 // can be mapped twice (on Windows at least). So it is no use just referencing these
@@ -286,7 +310,7 @@ int* VariableManager::getDisconnectedCountRef() const
 //
 int* VariableManager::getConnectedCountRef() const
 {
-    return &ConnectionQCaStateMachine::connectedCount;
+    return qcaobject::QCaObject::getConnectedCountRef();
 }
 
 // end

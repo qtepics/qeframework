@@ -1,9 +1,9 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qepluginApp/project/qeplugin.pro $
-# $Revision: #2 $
-# $DateTime: 2018/02/06 16:06:52 $
+# $Revision: #3 $
+# $DateTime: 2018/12/22 17:36:51 $
 # Last checked in by: $Author: starritt $
 #
-# Copyright (c) 2017 Australian Synchrotron
+# Copyright (c) 2017-2018 Australian Synchrotron
 #
 # This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
 # The EPICS QT Framework is free software: you can redistribute it and/or modify

@@ -27,7 +27,10 @@
 // Provides textual formatting for QEInteger data.
 
 #include <QEIntegerFormatting.h>
-#include <QtDebug>
+#include <QDebug>
+#include <QEVectorVariants.h>
+
+#define DEBUG qDebug () << "QEIntegerFormatting" << __LINE__ << __FUNCTION__ << "  "
 
 /*
     ???
@@ -37,6 +40,8 @@ QEIntegerFormatting::QEIntegerFormatting() {
     radix = 10;
 }
 
+QEIntegerFormatting::~QEIntegerFormatting() { }
+
 /*
     Generate a value given an integer, using formatting defined within this class.
     The formatting mainly applies if formatting as a string. For example, what is
@@ -44,7 +49,9 @@ QEIntegerFormatting::QEIntegerFormatting() {
     The formatting could include properties related to other types. For example, generate
     an error if attempting to convert a negative integer to an unsigned integer.
 */
-QVariant QEIntegerFormatting::formatValue( const long &integerValue, generic::generic_types valueType ) {
+QVariant QEIntegerFormatting::formatValue( const long &integerValue,
+                                           generic::generic_types valueType ) const
+{
     switch( valueType ) {
         case generic::GENERIC_STRING :
         {
@@ -93,7 +100,8 @@ QVariant QEIntegerFormatting::formatValue( const long &integerValue, generic::ge
     The formatting could include properties related to other types. For example, generate
     an error if attempting to convert a negative integer to an unsigned integer.
 */
-QVariant QEIntegerFormatting::formatValue( const QVector<long> &integerValue, generic::generic_types valueType )
+QVariant QEIntegerFormatting::formatValue( const QVector<long> &integerValue,
+                                           generic::generic_types valueType ) const
 {
    QList<QVariant> array;
    int arraySize = integerValue.size();
@@ -108,15 +116,20 @@ QVariant QEIntegerFormatting::formatValue( const QVector<long> &integerValue, ge
     Generate an integer given a value, using formatting defined within this class.
     The value may be an array of variants or a single variant
 */
-long QEIntegerFormatting::formatInteger( const QVariant &value, const int arrayIndex )
+long QEIntegerFormatting::formatInteger( const QVariant &value, const int arrayIndex ) const
 {
 
-    // If the value is a list, get the first item from the list.
+    // If the value is a list, get the specified item from the list.
     // Otherwise, just use the value as is
     if( value.type() == QVariant::List )
     {
         QVariant defValue( (qlonglong) 0 );
         return formatIntegerNonArray( value.toList().value( arrayIndex, defValue ) );
+
+    } else if( QEVectorVariants::isVectorVariant( value ) ){
+        // This is one of our vectors.
+        //
+        return QEVectorVariants::getIntegerValue ( value, arrayIndex, 0.0 );
     }
     else
     {
@@ -127,7 +140,8 @@ long QEIntegerFormatting::formatInteger( const QVariant &value, const int arrayI
 /*
     Generate an integer array given a value, using formatting defined within this class.
 */
-QVector<long> QEIntegerFormatting::formatIntegerArray( const QVariant &value ) {
+QVector<long> QEIntegerFormatting::formatIntegerArray( const QVariant &value ) const
+{
 
     QVector<long> returnValue;
 
@@ -141,10 +155,17 @@ QVector<long> QEIntegerFormatting::formatIntegerArray( const QVariant &value ) {
         }
     }
 
-    // The value is not a list so build a list with a single long
     else
     {
-        returnValue.append( formatIntegerNonArray( value ));
+        // Is it a vector variant, can we convert to a QVector<long> ?
+        //
+        bool okay;
+        returnValue = QEVectorVariants::convertToIntegerVector (value, okay);
+
+        if( !okay ){
+            // The value is not a list/vector so build a list with a single double
+            returnValue.append( formatIntegerNonArray( value ));
+        }
     }
 
     return returnValue;
@@ -153,7 +174,8 @@ QVector<long> QEIntegerFormatting::formatIntegerArray( const QVariant &value ) {
 /*
     Generate an integer given a value, using formatting defined within this class.
 */
-long QEIntegerFormatting::formatIntegerNonArray( const QVariant &value ) {
+long QEIntegerFormatting::formatIntegerNonArray( const QVariant &value ) const
+{
     // Determine the format from the variant type.
     // Only the types used to store ca data are used. any other type is considered a failure.
     switch( value.type() ) {
@@ -161,10 +183,14 @@ long QEIntegerFormatting::formatIntegerNonArray( const QVariant &value ) {
         {
             return formatFromFloating( value );
         }
+        case QVariant::Int :
         case QVariant::LongLong :
         {
             return value.toLongLong(); // No conversion requried. Stored in variant as required type
-        }
+        }        
+        case QVariant::Bool :
+        case QVariant::Char :
+        case QVariant::UInt :
         case QVariant::ULongLong :
         {
             return formatFromUnsignedInteger( value );
@@ -175,7 +201,7 @@ long QEIntegerFormatting::formatIntegerNonArray( const QVariant &value ) {
         }
         default :
         {
-            return formatFailure( QString( "Bug in QEIntegerFormatting::formatInteger(). The QVariant type was not expected" ) );
+            return formatFailure( QString( "QEIntegerFormatting::formatFloating - unexpected QVariant type %1." ).arg( value.typeName() ) );
         }
     }
 }
@@ -185,7 +211,8 @@ long QEIntegerFormatting::formatIntegerNonArray( const QVariant &value ) {
     Convert the variant value to a long. It may or may not be a longlong type variant. If it is - good,
     there will be no conversion problems.
 */
-long QEIntegerFormatting::formatFromFloating( const QVariant &value ) {
+long QEIntegerFormatting::formatFromFloating( const QVariant &value ) const
+{
     // Extract the value as an integer using whatever conversion the QVariant uses.
     //
     // Note, this will not pick up if the QVariant type is not one of the types used to represent CA data.
@@ -210,7 +237,8 @@ long QEIntegerFormatting::formatFromFloating( const QVariant &value ) {
     Convert the variant value to a long. It may or may not be a longlong type variant. If it is - good,
     there will be no conversion problems.
 */
-long QEIntegerFormatting::formatFromUnsignedInteger( const QVariant &value ) {
+long QEIntegerFormatting::formatFromUnsignedInteger( const QVariant &value ) const
+{
     // Extract the value as a long using whatever conversion the QVariant uses.
     //
     // Note, this will not pick up if the QVariant type is not one of the types used to represent CA data.
@@ -235,7 +263,8 @@ long QEIntegerFormatting::formatFromUnsignedInteger( const QVariant &value ) {
     Convert the variant value to an unsigned long. It may or may not be a ulonglong type variant. If it is - good,
     there will be no conversion problems.
 */
-long QEIntegerFormatting::formatFromString( const QVariant &value ) {
+long QEIntegerFormatting::formatFromString( const QVariant &value ) const
+{
     // Extract the value as a long using whatever conversion the QVariant uses.
     // If that fails, try extracting the value as a double using whatever conversion the QVariant uses, then cast it as a long.
     //
@@ -272,7 +301,8 @@ long QEIntegerFormatting::formatFromString( const QVariant &value ) {
     Convert the variant value to a long. It may or may not be a longlong type variant. If it is - good,
     there will be no conversion problems.
 */
-long QEIntegerFormatting::formatFromTime( const QVariant &value ) {
+long QEIntegerFormatting::formatFromTime( const QVariant &value ) const
+{
     //??? what is the ca time format and how do you convert it to an integer?
     // Should there be conversion properties such as 'convert to minutes', 'convert to hours'.
     return value.toLongLong();
@@ -281,7 +311,8 @@ long QEIntegerFormatting::formatFromTime( const QVariant &value ) {
 /*
     Do something with the fact that the value could not be formatted as requested.
 */
-long QEIntegerFormatting::formatFailure( QString message ) {
+long QEIntegerFormatting::formatFailure( QString message ) const
+{
     // Log the format failure if required.
     qDebug() << message;
 
@@ -297,7 +328,8 @@ long QEIntegerFormatting::formatFailure( QString message ) {
     be base 2, 8, 10, or 16.
     ??? if radix processing beocomes significant, create a radix class that can be used for both QEIntegerFormatting and QEStringFormatting.
 */
-void QEIntegerFormatting::setRadix( unsigned int radixIn ) {
+void QEIntegerFormatting::setRadix( unsigned int radixIn )
+{
     if( radixIn >= 2 )
         radix = radixIn;
 }
@@ -305,7 +337,8 @@ void QEIntegerFormatting::setRadix( unsigned int radixIn ) {
 /*
     Get the numerical base. See setRadix() for the use of 'radix'.
 */
-unsigned int QEIntegerFormatting::getRadix() {
+unsigned int QEIntegerFormatting::getRadix() const
+{
     return radix;
 }
 

@@ -1,5 +1,9 @@
-/*
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+/*  QCaConnectionInfo.h
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -24,8 +26,8 @@
 
 // Manage CA connection information
 
-#ifndef QCACONNECTIONINFO_H
-#define QCACONNECTIONINFO_H
+#ifndef QCA_CONNECTION_INFO_H
+#define QCA_CONNECTION_INFO_H
 
 #include <QEFrameworkLibraryGlobal.h>
 #include <QString>
@@ -33,19 +35,30 @@
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QCaConnectionInfo
 {
 public:
-    QCaConnectionInfo();
-    QCaConnectionInfo( unsigned short channelStateIn, unsigned short linkStateIn, QString recordName );
+    // These were previously declared in CaConnection.h
+    //
+    enum link_states { LINK_UP, LINK_DOWN, LINK_UNKNOWN };
 
-    bool isChannelConnected();   // Return true if the channel is connected
-    bool isLinkUp();             // Return true if the link is up
-    QString variable();          // Return the variable name. Usefull if same slot is used for reporting multiple QCa connections
+    enum channel_states { NEVER_CONNECTED, PREVIOUSLY_CONNECTED,
+                          CONNECTED, CLOSED, CHANNEL_UNKNOWN };
+
+    explicit QCaConnectionInfo();
+    explicit QCaConnectionInfo( const channel_states channelStateIn,
+                                const link_states linkStateIn,
+                                const QString& pvName );
+    ~QCaConnectionInfo();
+
+    bool isChannelConnected() const;  // Return true if the channel is connected
+
+    Q_DECL_DEPRECATED
+    bool isLinkUp() const;            // Return true if the link is up
+
+    QString variable() const;         // Return the variable name. Usefull if same slot is used for reporting multiple QCa connections
 
 private:
-    unsigned short channelState;    // Channel status
-    unsigned short linkState;       // Link status
-    QString variableName;           // record name
-
-
+    channel_states channelState;      // Channel status
+    link_states linkState;            // Link status
+    QString variableName;             // record name
 };
 
-#endif // QCACONNECTIONINFO_H
+#endif // QCA_CONNECTION_INFO_H

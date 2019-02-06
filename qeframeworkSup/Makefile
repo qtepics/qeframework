@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/Makefile $
-# $Revision: #9 $
-# $DateTime: 2017/07/07 11:21:59 $
+# $Revision: #10 $
+# $DateTime: 2018/12/22 18:03:10 $
 # Last checked in by: $Author: starritt $
 #
 # This make file is the bridge beween the EPICS build system and the Qt project qmake/make paradigm.
@@ -26,7 +26,13 @@ include $(TOP)/configure/CONFIG
 # Note use of := which avoids "*** Recursive variable `EPICS_BASE' references itself (eventually)" error
 #
 export EPICS_BASE := $(EPICS_BASE)
+export ACAI := $(ACAI)
 
+# Are we running EPICS 7.0 or later
+#
+ifdef BASE_7_0
+export EPICS_BASE_7_0 := $(BASE_7_0)
+endif
 
 # Commands
 #

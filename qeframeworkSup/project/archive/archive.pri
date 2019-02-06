@@ -27,13 +27,6 @@
 
 QT += xml network
 
-_QE_ARCHIVE_LIST = $$(QE_ARCHIVE_LIST)
-isEmpty( _QE_ARCHIVE_LIST ) {
-    warning( "QE_ARCHIVE_LIST is not defined. That's OK, but if you want to be able to access the PV Channel Archive data, e.g. to backfill" )
-    warning( "the QEStripChart widget from you should define this environment variable to be a space delimited list of your archiver URLs." )
-    warning( "For example: 'archiver.synchrotron.org.au:80/cgi-bin/ArchiveDataServer1.cgi archiver.synchrotron.org.au:80/cgi-bin/ArchiveDataServer2.cgi'" )
-}
-
 OTHER_FILES += \
     archive/drag_icon.png
 

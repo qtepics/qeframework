@@ -1,6 +1,9 @@
 /*  QEimage.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -569,8 +570,14 @@ private slots:
                        unsigned long width, unsigned long height,
                        imageDataFormats::formatOptions format, unsigned int depth );
 
+    // PV Access Image/NDArray data update slot
+    void setPvaImage( const QVariant& value,
+                      QCaAlarmInfo& alarmInfo,
+                      QCaDateTime& timeStamp,
+                      const unsigned int& variableIndex );
+
     // QCa data update slots
-    void connectionChanged( QCaConnectionInfo& connectionInfo );
+    void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex);
     void setImage( const QByteArray& image, unsigned long dataSize, QCaAlarmInfo&, QCaDateTime&, const unsigned int& );
     void setFormat( const QString& text, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
     void setBitDepth( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
@@ -757,6 +764,7 @@ signals:
 
     QCAALARMINFO_SEVERITY lastSeverity;
     bool isConnected;
+    bool isFirstImageUpdate;
 
     bool imageSizeSet;      // Flag the video widget size has been set (setImageSize() has been called and done something)
     void setImageSize();    // Set the video widget size so it will match the processed image.

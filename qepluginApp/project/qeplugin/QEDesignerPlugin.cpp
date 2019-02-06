@@ -78,6 +78,12 @@ QEWidgets::QEWidgets(QObject *parent) : QObject(parent) {
     widgets.append(new QETableManager(this));
     widgets.append(new QEWaveformHistogramManager(this));
 
+    // PVA Access only widgets
+    // If QE_PVACCESS_SUPPORT is not YES, this widget still exists but is
+    // essntially non functional.
+    //
+    widgets.append(new QENTTableManager(this));
+
     // Non-EPICS aware framework widgets.
     //
     widgets.append(new QEAnalogIndicatorManager(this));

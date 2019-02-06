@@ -1,9 +1,9 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #16 $
-# $DateTime: 2018/11/20 19:33:19 $
+# $Revision: #17 $
+# $DateTime: 2018/12/22 18:03:10 $
 # Last checked in by: $Author: starritt $
 #
-# Copyright (c) 2009,2010,2016,2018 Australian Synchrotron
+# Copyright (c) 2009-2018 Australian Synchrotron
 #
 # This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
@@ -49,9 +49,9 @@ win32QMAKE_LFLAGS += -Wl,-enable-auto-import
 #==========================================================
 # _MINGW=TRUE is now automatically defined when needed
 # See line 86 (approx).
-
 #===========================================================
 # Project configuration
+
 # Points to the target directoy in which lib/EPICS_HOST_ARCH/QEFramework
 # will be created. This follows the regular EPICS Makefile paradigm.
 #
@@ -81,6 +81,12 @@ isEmpty( _EPICS_BASE ) {
 _EPICS_HOST_ARCH = $$(EPICS_HOST_ARCH)
 isEmpty( _EPICS_HOST_ARCH ) {
     error( "EPICS_HOST_ARCH must be defined. Ensure EPICS is installed and EPICS_HOST_ARCH environment variable is defined." )
+}
+
+_ACAI = $$(ACAI)
+isEmpty( _ACAI ) {
+    error( "ACAI must be defined. Ensure ACAI is installed and ACAI is defined, typically in your configure/RELEASE file." )
+    # ACAI is available from:  https://github.com/andrewstarritt/acai.git
 }
 
 # Define _MINGW if using a MinGW compiler
@@ -133,7 +139,8 @@ win32:DEFINES += EPICS_CALL_DLL
 
 #===========================================================
 # Include MPEG streaming into QEImage widget
-# If mpeg streaming is required, define environment variable QE_FFMPEG (on windows, this must point to the FFMPEG directory)
+# If mpeg streaming is required, define environment variable QE_FFMPEG
+# (on windows, this must point to the FFMPEG directory)
 
 _QE_FFMPEG = $$(QE_FFMPEG)
 isEmpty( _QE_FFMPEG ) {
@@ -153,7 +160,7 @@ isEmpty( _QE_FFMPEG ) {
 #
 include (adaptation_parameters/adaptation_parameters.pri)
 include (common/common.pri)
-include (api/api.pri)
+include (protocol/protocol.pri)
 include (data/data.pri)
 include (archive/archive.pri)
 include (widgets/QEWidget/QEWidget.pri)
@@ -231,6 +238,47 @@ LIBS += -L$$(EPICS_BASE)/lib/$$(EPICS_HOST_ARCH) -lca -lCom
 # Set runtime path for shared libraries
 #
 unix: QMAKE_LFLAGS += -Wl,-rpath,$$(EPICS_BASE)/lib/$$(EPICS_HOST_ARCH)
+
+_PVACCESS_SUPPORT = $$(QE_PVACCESS_SUPPORT)
+equals(_PVACCESS_SUPPORT, "YES") {
+
+    _EPICS_BASE_7_0=$$(EPICS_BASE_7_0)
+
+    isEmpty( _EPICS_BASE_7_0 ) {
+        message( "QE_PVACCESS_SUPPORT is set, however PV Access support requires EPICS BASE 7.0 or higher." )
+        message( "The QE framework library will be built for Channel Access only." )
+    } else {
+
+        # This currently assumes EPICS 7. Maybe we could allow EPICS 4 builds as well.
+        #
+        message( "QE_PVACCESS_SUPPORT is defined. The QE framework library will be built for both CA and PVA. ")
+ 
+        # Let the code 'know' to include PV Access related stuff.
+        #
+        DEFINES += QE_PVACCESS_SUPPORT
+
+        # If you are using EPICS 4, modify the following to reference  EPICS 4 libraries.
+        #
+        LIBS += -L$$(EPICS_BASE)/lib/$$(EPICS_HOST_ARCH) -lpvData  -lpvAccess -lnt
+
+    }
+    
+} else {
+    message( "QE_PVACCESS_SUPPORT is not defined. The QE framework library will not include PV Access support." )
+    message( "If you want to build with PV Access support, set environment variable QE_PVACCESS_SUPPORT=YES" )
+}
+
+
+#===========================================================
+# Set up ACAI
+#
+INCLUDEPATH += $$(ACAI)/include
+LIBS += -L$$(ACAI)/lib/$$(EPICS_HOST_ARCH) -lacai
+
+# Set runtime path for shared libraries
+#
+unix: QMAKE_LFLAGS += -Wl,-rpath,$$(ACAI)/lib/$$(EPICS_HOST_ARCH)
+
 
 #===========================================================
 # QWT
@@ -314,7 +362,8 @@ equals(_ARCHAPPL_SUPPORT, "YES") {
       message( "QE_ARCHAPPL_SUPPORT is set, however Archvier Appliance support requires Qt version 5.0 or higher." )
       message( "The QE framework library will be only built for CA Archiver." )
    } else {
-      message( "QE_ARCHAPPL_SUPPORT is defined. The QE framework library will be built for both CA Archiver and Archiver Appliance with Protobol Buffers." )
+      message( "QE_ARCHAPPL_SUPPORT is defined. The QE framework library will be built" )
+      message( "...: for both CA Archive and Archiver Appliance with Protobol Buffers." )
       LIBS += -L../../lib/$$(EPICS_HOST_ARCH) -larchapplData
 
       # Set runtime path for shared libraries
@@ -326,7 +375,6 @@ equals(_ARCHAPPL_SUPPORT, "YES") {
    message( "QE_ARCHAPPL_SUPPORT is not defined. The QE framework library will be only built for CA Archiver." )
    message( "If you want to build it to support Archiver Appliance, set QE_ARCHAPPL_SUPPORT=YES" )
 }
-
 
 #
 # end

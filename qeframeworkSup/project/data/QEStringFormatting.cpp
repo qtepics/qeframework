@@ -2,6 +2,8 @@
  *
  *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
  *
+ *  Copyright (c) 2009-2018 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2015,2016,2017 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -28,6 +28,9 @@
 #include <math.h>
 #include <QDebug>
 #include <QECommon.h>
+#include <QEVectorVariants.h>
+#include <QENTTableData.h>
+#include <QENTNDArrayData.h>
 
 #define DEBUG qDebug () << "QEStringFormatting" << __LINE__ << __FUNCTION__ << "  "
 
@@ -57,6 +60,8 @@ QEStringFormatting::QEStringFormatting() {
    // Initialise database information
    dbPrecision = 0;
 }
+
+QEStringFormatting::~QEStringFormatting() {}    // place holder
 
 /*
     Set up the precision specified by the database.
@@ -89,7 +94,7 @@ void QEStringFormatting::setDbEnumerations( QStringList enumerations )
     If the value can be formatted the formatted value is returned and 'ok' is true.
     If the value can't be formatted an error string is returned and 'ok' is false
 */
-QVariant QEStringFormatting::formatValue( const QString& text, bool& ok )
+QVariant QEStringFormatting::formatValue( const QString& text, bool& ok ) const
 {
    // Init
    ok = false;
@@ -195,6 +200,10 @@ QVariant QEStringFormatting::formatValue( const QString& text, bool& ok )
             ok = true;
             break;
 
+         case FORMAT_NT_TABLE:
+         case FORMAT_NT_IMAGE:
+            ok = false;
+            break;
       };
    }
 
@@ -281,6 +290,11 @@ QVariant QEStringFormatting::formatValue( const QString& text, bool& ok )
             list.append( QVariant( unitlessText ));
             ok = true;
             break;
+
+         case FORMAT_NT_TABLE:
+         case FORMAT_NT_IMAGE:
+            ok = false;
+            break;
       }
       value = list;
    }
@@ -293,7 +307,7 @@ QVariant QEStringFormatting::formatValue( const QString& text, bool& ok )
     If all the values can be formatted the formatted value is returned and 'ok' is true.
     If any of the values can't be formatted an error string is returned and 'ok' is false
  */
-QVariant QEStringFormatting::formatValue( const QVector<QString>& text, bool& ok )
+QVariant QEStringFormatting::formatValue( const QVector<QString>& text, bool& ok ) const
 {
    QVariantList result;
    int n = text.count();
@@ -360,8 +374,21 @@ void QEStringFormatting::determineDbFormat( const QVariant &value )
          dbFormat = FORMAT_STRING;
          break;
 
+      case QVariant::UserType:
+         if( QENTTableData::isAssignableVariant( value ) ){
+            dbFormat = FORMAT_NT_TABLE;
+            break;
+         }
+         if( QENTNDArrayData::isAssignableVariant( value ) ){
+            dbFormat = FORMAT_NT_IMAGE;
+            break;
+         }
+
+         ///  ****** else fall through  ******
       default:
-         formatFailure( QString( "Bug in QEStringFormatting::determineDbFormatting(). The QVariant type was not expected" ) );
+         formatFailure( QString( "QEStringFormatting::%1:%2 - unexpected QVariant type '%3' %4." )
+                        .arg( __LINE__ ).arg( __FUNCTION__ )
+                        .arg( value.typeName() ).arg( t ) );
          break;
    }
 }
@@ -431,18 +458,18 @@ QString QEStringFormatting::insertSeparators( const QString& image) const
 
 /* Experimental - proof of concept.
    Creates an image of a real floating point number.
-   notation controls meaning of prec:
+   The notation controls meaning of prec:
       when NOTATION_FIXED =>       prec is precision
       when NOTATION_SCIENTIFIC =>  prec is precision
       when NOTATION_AUTOMATIC =>   prec is significance
-   When forceSign is true, result always include a leading '+'
+   When forceSign is true, result always include a leading sign '+' or '-'
    zeros sepifies the minimum number of leading zeros.
  */
 QString QEStringFormatting::realImage( const double item,
                                        const notations notation,
                                        const bool forceSign,
                                        const int zeros,
-                                       const int prec )
+                                       const int prec ) const
 {
    double absValue = ABS( item );
    int tw = 0;
@@ -490,17 +517,51 @@ QString QEStringFormatting::realImage( const double item,
 */
 QString QEStringFormatting::formatString( const QVariant& value, int arrayIndex ) const
 {
-   QEStringFormatting* self = (QEStringFormatting*) this;   // this works as modified members are just used as temp. variables.
+   // This works as modified members are just used as temp. variables.
+   // Flag as mutable??
+   //
+   QEStringFormatting* self = (QEStringFormatting*) this;
    QString result;
    bool isNumeric = false;
 
-   if( value.type() != QVariant::List ){
+   const int valueType = value.type();
+   if( (valueType != QVariant::List) &&
+       (valueType != QVariant::StringList) &&
+       !QEVectorVariants::isVectorVariant(value) )
+   {
       // "Simple" scalar
       result = self->formatElementString( value, isNumeric );
 
    } else {
-      // Array variable
-      const QVariantList valueArray = value.toList();
+      // Array variable / or vector variant.
+      //
+      QVariantList valueArray;
+      bool okay =false;
+
+      if( valueType == QVariant::List ){
+          valueArray = value.toList();
+          okay = true;
+
+      } else if( valueType == QVariant::StringList ){
+          // Convert QVariant::StringList to QVariantList of QString
+          // To much conversion - refactor and tidy up.
+          //
+          QStringList temp = value.toStringList();
+          for( int j = 0; j < temp.count(); j++ ){
+              valueArray.append( QVariant( temp.value( j, "" ) ) );
+          }
+          okay = true;
+
+      } else {
+          // Must be a vector variant.
+          valueArray = QEVectorVariants::convertToVariantList( value, okay );
+      }
+
+      if (!okay) {
+         self->formatFailure( QString ( "Conversion to QVariantList failed") );
+         return "---";
+      }
+
       const int number = valueArray.count ();
 
       switch( arrayAction ) {
@@ -567,7 +628,9 @@ QString QEStringFormatting::formatString( const QVariant& value, int arrayIndex 
    }
 
    // Add units if required, if there are any present, and if the text is not an error message
-   int eguLen = dbEgu.length(); // ??? Why cant this be in the 'if' statement? If it is it never adds an egu
+   // ??? Why cant this be in the 'if' statement?  If it is it never adds an egu
+   //
+   int eguLen = dbEgu.length();
    if( isNumeric && addUnits && (eguLen > 0) && (format != FORMAT_TIME) )
    {
       result.append( " " ).append( dbEgu );
@@ -579,7 +642,8 @@ QString QEStringFormatting::formatString( const QVariant& value, int arrayIndex 
 /*
     Generate a string given an element value, using formatting defined within this class.
 */
-QString QEStringFormatting::formatElementString( const QVariant& value, bool& isNumeric ) {
+QString QEStringFormatting::formatElementString( const QVariant& value, bool& isNumeric )
+{
    // Examine the value and note the matching format
    // This sets dbFormat which is used by following switch statements
    determineDbFormat( value );
@@ -645,8 +709,19 @@ QString QEStringFormatting::formatElementString( const QVariant& value, bool& is
                      formatFromString( value );
                      break;
 
+                  case FORMAT_NT_TABLE:
+                     // Can't display an NT Table as a string.
+                     stream << "{{NTTable}}";
+                     break;
+
+                  case FORMAT_NT_IMAGE:
+                     // Can't display an NT NDArray (image) as a string.
+                     stream << "{{NTNDArray}}";
+                     break;
+
                   default:
-                     formatFailure( QString( "Bug in QEStringFormatting::formatString(). The QVariant type was not expected" ) );
+                     formatFailure( QString( "QEStringFormatting::%1 - unexpected dbFormat %2." )
+                                    .arg( __FUNCTION__ ).arg ( dbFormat ) );
                      break;
                }
             }

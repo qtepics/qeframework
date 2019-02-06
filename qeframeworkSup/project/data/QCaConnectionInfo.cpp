@@ -1,4 +1,5 @@
-/*
+/*  CaConnection.cpp
+ *
  *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
@@ -14,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
+ *  Copyright (c) 2009,2010,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -24,7 +25,6 @@
 
 // CA connection info manager
 
-#include <CaConnection.h>
 #include <QCaConnectionInfo.h>
 
 /*
@@ -33,37 +33,50 @@
  */
 QCaConnectionInfo::QCaConnectionInfo()
 {
-    channelState = caconnection::CHANNEL_UNKNOWN;
-    linkState = caconnection::LINK_UNKNOWN;
+    channelState = CHANNEL_UNKNOWN;
+    linkState = LINK_UNKNOWN;
 }
 
 /*
   Construct an instance given a channel and link state
  */
-QCaConnectionInfo::QCaConnectionInfo( unsigned short channelStateIn, unsigned short linkStateIn, QString variableNameIn ) {
+QCaConnectionInfo::QCaConnectionInfo( const channel_states channelStateIn,
+                                      const link_states linkStateIn,
+                                      const QString& variableNameIn )
+{
     channelState = channelStateIn;
     linkState = linkStateIn;
     variableName = variableNameIn;
 }
 
 /*
+   Destruct - place holder
+ */
+QCaConnectionInfo::~QCaConnectionInfo() { }
+
+/*
   Return true if the channel is connected
  */
-bool QCaConnectionInfo::isChannelConnected() {
-    return( channelState == caconnection::CONNECTED );
+bool QCaConnectionInfo::isChannelConnected() const
+{
+    return( channelState == CONNECTED );
 }
 
 /*
-  Return true if the link is up
+  Return true if the link is up - deprecated
  */
-bool QCaConnectionInfo::isLinkUp() {
-    return( linkState == caconnection::LINK_UP );
+bool QCaConnectionInfo::isLinkUp() const
+{
+    return( linkState == LINK_UP );
 }
 
 /*
  Return the variable name
  Usefull if same slot is used for reporting multiple QCa connections
  */
-QString QCaConnectionInfo::variable() {
+QString QCaConnectionInfo::variable() const
+{
     return variableName;
 }
+
+// end

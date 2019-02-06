@@ -86,6 +86,7 @@ OTHER_FILES += qeplugin/QESpinBox.png
 OTHER_FILES += qeplugin/QEStripChart.png
 OTHER_FILES += qeplugin/QESubstitutedLabel.png
 OTHER_FILES += qeplugin/QETable.png
+OTHER_FILES += qeplugin/QENTTable.png
 OTHER_FILES += qeplugin/QEWaveformHistogram.png
 OTHER_FILES += qeplugin/QNumericEdit.png
 OTHER_FILES += qeplugin/QRadioGroup.png

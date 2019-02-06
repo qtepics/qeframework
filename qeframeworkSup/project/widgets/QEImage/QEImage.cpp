@@ -48,6 +48,7 @@
 #include <QEInteger.h>
 #include <QEFloating.h>
 #include <QEString.h>
+#include <QENTNDArrayData.h>
 #include <imageContextMenu.h>
 #include <windowCustomisation.h>
 #include <screenSelectDialog.h>
@@ -227,8 +228,6 @@ void QEImage::setup()
                       this,        SLOT  ( pan( QPoint ) ) );
     QObject::connect( videoWidget, SIGNAL( redraw() ),
                       this,        SLOT  ( redraw() ) );
-
-
 
 
     // Create zoom sub menu
@@ -695,9 +694,7 @@ qcaobject::QCaObject* QEImage::createQcaItem( unsigned int variableIndex ) {
 */
 void QEImage::establishConnection( unsigned int variableIndex ) {
 
-    // Do nothing regarding the image until the width and height are available
-    if( variableIndex == IMAGE_VARIABLE && iProcessor.getImageBuffWidth() == 0 && iProcessor.getImageBuffHeight() == 0 )
-       return;
+    // IMAGE_VARIABLE width and height are available check has been moved to processing.
 
     // Create a connection.
     // If successfull, the QCaObject object that will supply data update signals will be returned
@@ -707,12 +704,18 @@ void QEImage::establishConnection( unsigned int variableIndex ) {
     {
         // Connect the image waveform record to the display image
         case IMAGE_VARIABLE:
-            if(  qca )
+            if( qca )
             {
                 QObject::connect( qca,  SIGNAL( byteArrayChanged( const QByteArray&, unsigned long, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                                   this, SLOT( setImage( const QByteArray&, unsigned long, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo& ) ),
-                                  this, SLOT( connectionChanged( QCaConnectionInfo& ) ) );
+
+                // Note: we connect to receive the 'raw' variant data for PVA image data
+                //
+                QObject::connect (qca, SIGNAL (dataChanged (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
+                                  this, SLOT  (setPvaImage (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+
+                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
+                                  this, SLOT  ( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
                 QObject::connect( this, SIGNAL( requestResend() ),
                                   qca, SLOT( resendLastData() ) );
             }
@@ -723,8 +726,8 @@ void QEImage::establishConnection( unsigned int variableIndex ) {
             {
                 QObject::connect( qca,  SIGNAL( stringChanged( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                                   this, SLOT( setFormat( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo& ) ),
-                                  this, SLOT( connectionChanged( QCaConnectionInfo& ) ) );
+                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
+                                  this, SLOT  ( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
                 QObject::connect( this, SIGNAL( requestResend() ),
                                   qca, SLOT( resendLastData() ) );
             }
@@ -736,8 +739,8 @@ void QEImage::establishConnection( unsigned int variableIndex ) {
             {
                 QObject::connect( qca,  SIGNAL( integerChanged( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                                   this, SLOT( setBitDepth( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo& ) ),
-                                  this, SLOT( connectionChanged( QCaConnectionInfo& ) ) );
+                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
+                                  this, SLOT  ( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
                 QObject::connect( this, SIGNAL( requestResend() ),
                                   qca, SLOT( resendLastData() ) );
             }
@@ -749,8 +752,8 @@ void QEImage::establishConnection( unsigned int variableIndex ) {
             {
                 QObject::connect( qca,  SIGNAL( stringChanged( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                                   this, SLOT( setDataType( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo& ) ),
-                                  this, SLOT( connectionChanged( QCaConnectionInfo& ) ) );
+                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
+                                  this, SLOT  ( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
                 QObject::connect( this, SIGNAL( requestResend() ),
                                   qca, SLOT( resendLastData() ) );
             }
@@ -767,8 +770,8 @@ void QEImage::establishConnection( unsigned int variableIndex ) {
             {
                 QObject::connect( qca,  SIGNAL( integerChanged( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                                   this, SLOT( setDimension( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo& ) ),
-                                  this, SLOT( connectionChanged( QCaConnectionInfo& ) ) );
+                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
+                                  this, SLOT  ( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
                 QObject::connect( this, SIGNAL( requestResend() ),
                                   qca, SLOT( resendLastData() ) );
             }
@@ -782,8 +785,8 @@ void QEImage::establishConnection( unsigned int variableIndex ) {
             {
                 QObject::connect( qca,  SIGNAL( integerChanged( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                                   this, SLOT( setClipping( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo& ) ),
-                                  this, SLOT( connectionChanged( QCaConnectionInfo& ) ) );
+                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
+                                  this, SLOT  ( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
                 QObject::connect( this, SIGNAL( requestResend() ),
                                   qca, SLOT( resendLastData() ) );
             }
@@ -814,8 +817,8 @@ void QEImage::establishConnection( unsigned int variableIndex ) {
             {
                 QObject::connect( qca,  SIGNAL( integerChanged( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                                   this, SLOT( setROI( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo& ) ),
-                                  this, SLOT( connectionChanged( QCaConnectionInfo& ) ) );
+                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
+                                  this, SLOT  ( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
                 QObject::connect( this, SIGNAL( requestResend() ),
                                   qca, SLOT( resendLastData() ) );
             }
@@ -852,8 +855,8 @@ void QEImage::establishConnection( unsigned int variableIndex ) {
             {
                 QObject::connect( qca,  SIGNAL( integerChanged( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                                   this, SLOT( setProfile( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo& ) ),
-                                  this, SLOT( connectionChanged( QCaConnectionInfo& ) ) );
+                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
+                                  this, SLOT  ( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
                 QObject::connect( this, SIGNAL( requestResend() ),
                                   qca, SLOT( resendLastData() ) );
             }
@@ -870,8 +873,8 @@ void QEImage::establishConnection( unsigned int variableIndex ) {
             {
                 QObject::connect( qca,  SIGNAL( integerChanged( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                                   this, SLOT( setTargeting( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo& ) ),
-                                  this, SLOT( connectionChanged( QCaConnectionInfo& ) ) );
+                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
+                                  this, SLOT  ( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
                 QObject::connect( this, SIGNAL( requestResend() ),
                                   qca, SLOT( resendLastData() ) );
             }
@@ -898,8 +901,8 @@ void QEImage::establishConnection( unsigned int variableIndex ) {
             {
                 QObject::connect( qca,  SIGNAL( integerChanged( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                                   this, SLOT( setEllipse( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo& ) ),
-                                  this, SLOT( connectionChanged( QCaConnectionInfo& ) ) );
+                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
+                                  this, SLOT  ( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
                 QObject::connect( this, SIGNAL( requestResend() ),
                                   qca, SLOT( resendLastData() ) );
             }
@@ -910,8 +913,8 @@ void QEImage::establishConnection( unsigned int variableIndex ) {
             {
                 QObject::connect( qca,  SIGNAL( floatingChanged( const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                                   this, SLOT( setEllipseFloat(   const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo& ) ),
-                                  this, SLOT( connectionChanged( QCaConnectionInfo& ) ) );
+                QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
+                                  this, SLOT  ( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
                 QObject::connect( this, SIGNAL( requestResend() ),
                                   qca, SLOT( resendLastData() ) );
             }
@@ -929,10 +932,29 @@ void QEImage::establishConnection( unsigned int variableIndex ) {
     Change how the label looks and change the tool tip
     This is the slot used to recieve connection updates from a QCaObject based class.
  */
-void QEImage::connectionChanged( QCaConnectionInfo& connectionInfo )
+void QEImage::connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex )
 {
     // Note the connected state
     isConnected = connectionInfo.isChannelConnected();
+
+    qcaobject::QCaObject* qca = getQcaItem( variableIndex );
+    switch( (variableIndexes)variableIndex )
+    {
+        // Connect the image waveform record to the display image
+        case IMAGE_VARIABLE:
+            this->isFirstImageUpdate = true;
+            if( qca && qca->isPvaChannel() ){
+                // PVA channel suppied as QENTImageData varient.
+                //
+                qca->setSignalsToSend( qcaobject::QCaObject::SIG_VARIANT );
+            }
+            break;
+
+        default:
+            // no action
+            break;
+    }
+
 
 // Don't perform standard connection action (grey out widget and all its dialogs, and place disconnected in tooltip)
 // If
@@ -1661,8 +1683,54 @@ void QEImage::setDataImage( const QByteArray& imageIn,
     QCaDateTime dateTime = QCaDateTime( QDateTime::currentDateTime() );
 
     // Call the standard CA set image
-    setImage( imageIn, dataSize, alarmInfo, dateTime, 0 );
+    setImage( imageIn, dataSize, alarmInfo, dateTime, IMAGE_VARIABLE );
 }
+
+/*
+    Update the image
+    This is the slot used to recieve data updates via PV Access.
+ */
+void QEImage::setPvaImage( const QVariant& value,
+                           QCaAlarmInfo& alarmInfo,
+                           QCaDateTime& timeStamp,
+                           const unsigned int& variableIndex )
+{
+    if (variableIndex != IMAGE_VARIABLE) {
+       DEBUG << "unexpected variableIndex" << variableIndex;
+       return;
+    }
+
+    QENTNDArrayData imageData;
+
+    if (!imageData.assignFromVariant (value)) {
+       if (this->isFirstImageUpdate) {
+          DEBUG << "PV" << this->getSubstitutedVariableName (variableIndex)
+                << "does not provides NTNDArray data";
+       }
+       this->isFirstImageUpdate = false;
+       return;
+    }
+
+    // set the format
+    setFormatOption( imageData.getFormat() );
+
+    // Set the image bit depth
+    iProcessor.setBitDepth( imageData.getBitDepth() );
+
+    iProcessor.setElementsPerPixel( imageData.getBytesPerPixel() );
+
+    // Set the image dimensions to match the image size
+    iProcessor.setImageBuffWidth( imageData.getWidth() );
+    iProcessor.setImageBuffHeight( imageData.getHeight() );
+
+    // Update the image buffer according to the new size.
+    setImageSize();
+
+    // Call the standard CA set image
+    setImage( imageData.getData(), imageData.getBytesPerPixel(),
+              alarmInfo, timeStamp, variableIndex );
+}
+
 
 /*
     Update the image
@@ -1678,6 +1746,12 @@ void QEImage::setImage( const QByteArray& imageIn,
                         QCaDateTime& time,
                         const unsigned int& )
 {
+    // Do nothing regarding the image until the width and height are available
+    if( iProcessor.getImageBuffWidth() == 0 || iProcessor.getImageBuffHeight() == 0 )
+    {
+        return;
+    }
+
     // If the display is paused, do nothing
     if (paused)
     {

@@ -1,6 +1,9 @@
 /*  imageProperties.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2015-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,16 +18,14 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
  *    andrew.rhyder@synchrotron.org.au
  */
 
-#ifndef IMAGEPROPERTIES_H
-#define IMAGEPROPERTIES_H
+#ifndef QE_IMAGE_PROPERTIES_H
+#define QE_IMAGE_PROPERTIES_H
 
 #include "QCaDateTime.h"
 #include "imageDataFormats.h"
@@ -105,43 +106,36 @@ public:
 
     // Image attribut set and get functions
     void setRotation( rotationOptions rotationIn ){ rotation = rotationIn; }
-    rotationOptions getRotation(){ return rotation; }
+    rotationOptions getRotation() const { return rotation; }
 
     void setFlipVert( bool flipVertIn ){ flipVert = flipVertIn; }
-    bool getFlipVert(){ return flipVert; }
+    bool getFlipVert() const { return flipVert; }
 
     void setFlipHoz( bool flipHozIn ){ flipHoz = flipHozIn; }
-    bool getFlipHoz(){ return flipHoz; }
+    bool getFlipHoz() const { return flipHoz; }
 
     void setImageBuffWidth( unsigned long imageBuffWidthIn ){ imageBuffWidth = imageBuffWidthIn; }
     void setImageBuffHeight( unsigned long imageBuffHeightIn ){ imageBuffHeight = imageBuffHeightIn; }
 
-    unsigned long getImageBuffWidth(){ return imageBuffWidth; }
-    unsigned long getImageBuffHeight(){ return imageBuffHeight; }
+    unsigned long getImageBuffWidth() const { return imageBuffWidth; }
+    unsigned long getImageBuffHeight() const { return imageBuffHeight; }
 
-    imageDataFormats::formatOptions getFormat();
+    imageDataFormats::formatOptions getFormat() const;
     void setFormat( imageDataFormats::formatOptions formatIn );
     bool setFormat( const QString& text );
 
-    void setBitDepth( unsigned int bitDepthIn )
-    {
-        // Invalidate pixel look up table if bit depth changes (it will be regenerated with the new depth when next needed)
-        if( bitDepth != bitDepthIn )
-        {
-            pixelLookupValid = false;
-        }
-        bitDepth = bitDepthIn;
-    }
-    unsigned int getBitDepth(){ return bitDepth; }
+    void setBitDepth( unsigned int bitDepth );
+    unsigned int getBitDepth() const { return bitDepth; }
 
-    void setElementsPerPixel( unsigned long elementsPerPixelIn ){ elementsPerPixel = elementsPerPixelIn; }//LOCK ACCESS???
+    void setElementsPerPixel( unsigned long elementsPerPixelIn ){ elementsPerPixel = elementsPerPixelIn; }  //LOCK ACCESS???
+    unsigned long getElementsPerPixel () const { return elementsPerPixel; }
 
     void setImageDisplayProperties( imageDisplayProperties* imageDisplayPropsIn ){ imageDisplayProps = imageDisplayPropsIn; }
 
     // Methods to force reprocessing
     void setWidthHeightFromDimensions();  ///< // Update the image dimensions (width and height) from the area detector dimension variables.
     void invalidatePixelLookup(){ pixelLookupValid = false; } ///< recalculate (when next requried) pixel summary information
-    QString getInfoText();                ///< Generate textual information regarding the current image
+    QString getInfoText() const;         ///< Generate textual information regarding the current image
 
 protected:
 
@@ -186,4 +180,4 @@ protected:
     bool flipHoz;               // True if horizontal flip option set
 };
 
-#endif // IMAGEPROPERTIES_H
+#endif // QE_IMAGE_PROPERTIES_H
