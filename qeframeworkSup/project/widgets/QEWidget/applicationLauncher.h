@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2012-2019 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012-2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -72,19 +72,19 @@ public:
     explicit applicationLauncher();
     ~applicationLauncher();
 
-    void launchImage( VariableNameManager* variableNameManager, QImage image );
-    void launch( VariableNameManager* variableNameManager, QObject* receiver );
-    void launchCommon( VariableNameManager* variableNameManager,
+    void launchImage( const VariableNameManager* variableNameManager, QImage image );
+    void launch( const VariableNameManager* variableNameManager, QObject* receiver );
+    void launchCommon( const VariableNameManager* variableNameManager,
                        QTemporaryFile* tempFile = NULL,
                        QObject* receiver = NULL );
 
     // Program String
-    void setProgram( const QString programIn ) { program = programIn; }
-    QString getProgram() const { return program; }
+    void setProgram( const QString programIn );
+    QString getProgram() const;
 
     // Arguments String
-    void setArguments( const QStringList argumentsIn ) { arguments = argumentsIn; }
-    QStringList getArguments() const { return  arguments; }
+    void setArguments( const QStringList argumentsIn );
+    QStringList getArguments() const;
 
     // Startup option
     enum programStartupOptions { PSO_NONE,         // Just run the program
@@ -93,12 +93,8 @@ public:
                                  PSO_STDOUTPUT };  // Run the program, and send output to standard output and standard error
 
 
-    void setProgramStartupOption( const programStartupOptions programStartupOptionIn ){ programStartupOption = programStartupOptionIn; }
-    programStartupOptions getProgramStartupOption() const { return programStartupOption; }
-
-protected:
-
-private slots:
+    void setProgramStartupOption( const programStartupOptions programStartupOptionIn );
+    programStartupOptions getProgramStartupOption() const;
 
 private:
     QString program;        // Program to run
