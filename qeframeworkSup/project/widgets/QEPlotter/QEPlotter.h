@@ -1,6 +1,9 @@
 /*  QEPlotter.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2019 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2014,2016,2017,2018 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -64,8 +65,10 @@
 //
 class QEGraphic;
 
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlotter : public QEAbstractDynamicWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlotter : public QEAbstractDynamicWidget
+{
    Q_OBJECT
+public:
 
    /// Default macro substitutions. The default is no substitutions.
    /// The format is NAME1=VALUE1[,] NAME2=VALUE2...
@@ -80,6 +83,17 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlotter : public QEAbstractDynamicWid
    Q_PROPERTY (bool toolBarIsVisible   READ getToolBarVisible    WRITE setToolBarVisible)
    Q_PROPERTY (bool pvItemsIsVisible   READ getPvItemsVisible    WRITE setPvItemsVisible)
    Q_PROPERTY (bool statusIsVisible    READ getStatusVisible     WRITE setStatusVisible)
+
+   // normal/reverse - default is normal.
+   // Keep same enum names as strip chart
+   enum VideoModes {
+      normal,          // white background
+      reverse          // black backgound
+   };
+
+   Q_ENUMS (VideoModes)
+
+   Q_PROPERTY (VideoModes videoMode    READ getVideoMode         WRITE setVideoMode)
 
    // Default is false - i.e. linear
    Q_PROPERTY (bool xLogarithmic       READ getXLogarithmic      WRITE setXLogarithmic)
@@ -240,6 +254,9 @@ public:
 
    void setAxisEnableY (bool axisEnableY);
    bool getAxisEnableY () const;
+
+   void setVideoMode (const VideoModes mode);
+   VideoModes getVideoMode () const;
 
    void setXLogarithmic (bool visible);
    bool getXLogarithmic () const;
@@ -637,5 +654,9 @@ private slots:
 
    friend class DataSets;
 };
+
+#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
+Q_DECLARE_METATYPE (QEPlotter::VideoModes)
+#endif
 
 #endif // QE_PLOTTER_H
