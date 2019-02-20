@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #17 $
-# $DateTime: 2018/12/22 18:03:10 $
+# $Revision: #18 $
+# $DateTime: 2019/02/20 17:50:07 $
 # Last checked in by: $Author: starritt $
 #
 # Copyright (c) 2009-2018 Australian Synchrotron
@@ -85,8 +85,8 @@ isEmpty( _EPICS_HOST_ARCH ) {
 
 _ACAI = $$(ACAI)
 isEmpty( _ACAI ) {
-    error( "ACAI must be defined. Ensure ACAI is installed and ACAI is defined, typically in your configure/RELEASE file." )
-    # ACAI is available from:  https://github.com/andrewstarritt/acai.git
+    message ( "ACAI must be defined. Ensure ACAI is installed and the ACAI environment variable is defined," )
+    error ( "  typically in your configure/RELEASE file. It is available from: https://github.com/andrewstarritt/acai.git" )
 }
 
 # Define _MINGW if using a MinGW compiler
@@ -239,29 +239,22 @@ LIBS += -L$$(EPICS_BASE)/lib/$$(EPICS_HOST_ARCH) -lca -lCom
 #
 unix: QMAKE_LFLAGS += -Wl,-rpath,$$(EPICS_BASE)/lib/$$(EPICS_HOST_ARCH)
 
+# For headless build QE_PVACCESS_SUPPORT is set in qeframeworkSup Makefile if using EPICS 7 or later.
+#
 _PVACCESS_SUPPORT = $$(QE_PVACCESS_SUPPORT)
 equals(_PVACCESS_SUPPORT, "YES") {
 
-    _EPICS_BASE_7_0=$$(EPICS_BASE_7_0)
-
-    isEmpty( _EPICS_BASE_7_0 ) {
-        message( "QE_PVACCESS_SUPPORT is set, however PV Access support requires EPICS BASE 7.0 or higher." )
-        message( "The QE framework library will be built for Channel Access only." )
-    } else {
-
-        # This currently assumes EPICS 7. Maybe we could allow EPICS 4 builds as well.
-        #
-        message( "QE_PVACCESS_SUPPORT is defined. The QE framework library will be built for both CA and PVA. ")
+    # This currently assumes EPICS 7. Maybe we could allow EPICS 4 builds as well.
+    #
+    message( "QE_PVACCESS_SUPPORT is defined. The QE framework library will be built for both CA and PVA. ")
  
-        # Let the code 'know' to include PV Access related stuff.
-        #
-        DEFINES += QE_PVACCESS_SUPPORT
+    # Let the code 'know' to include PV Access related stuff.
+    #
+    DEFINES += QE_PVACCESS_SUPPORT
 
-        # If you are using EPICS 4, modify the following to reference  EPICS 4 libraries.
-        #
-        LIBS += -L$$(EPICS_BASE)/lib/$$(EPICS_HOST_ARCH) -lpvData  -lpvAccess -lnt
-
-    }
+    # If you are using EPICS 4, modify the following to reference  EPICS 4 libraries.
+    #
+    LIBS += -L$$(EPICS_BASE)/lib/$$(EPICS_HOST_ARCH) -lpvData  -lpvAccess -lnt
     
 } else {
     message( "QE_PVACCESS_SUPPORT is not defined. The QE framework library will not include PV Access support." )
