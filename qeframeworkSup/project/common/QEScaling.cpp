@@ -639,7 +639,7 @@ void QEScaling::rescaleWidget (QWidget* widget, const double newScale)
 
 //------------------------------------------------------------------------------
 // static
-void QEScaling::getWidgetScaling (QWidget* widget, int& m, int& d)
+void QEScaling::getWidgetScaling (const QWidget* widget, int& m, int& d)
 {
    // Ensure not erroneous.
    //
