@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2018 Australian Synchrotron
+ *  Copyright (c) 2013-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -70,6 +70,7 @@ QESimpleShape::QESimpleShape (const QString& variableNameIn, QWidget* parent) :
 }
 
 //-----------------------------------------------------------------------------
+//
 QESimpleShape::~QESimpleShape ()
 {
     if (this->edge) delete this->edge;
@@ -463,7 +464,13 @@ void QESimpleShape::setEdgeAlarmStateOptionProperty (DisplayAlarmStateOptions op
 //
 QString QESimpleShape::copyVariable ()
 {
-   return this->getSubstitutedVariableName (MAIN_PV_INDEX);
+   QString result;
+   result = this->getSubstitutedVariableName (MAIN_PV_INDEX);
+   if (!result.isEmpty()) {
+      result.append (" ");
+   }
+   result.append (this->getSubstitutedVariableName (EDGE_PV_INDEX));
+   return result;
 }
 
 //------------------------------------------------------------------------------
@@ -477,8 +484,22 @@ QVariant QESimpleShape::copyData ()
 //
 void QESimpleShape::paste (QVariant v)
 {
-   this->setVariableName (v.toString (), MAIN_PV_INDEX);
-   this->establishConnection (MAIN_PV_INDEX);
+   QStringList pvNameList;
+
+   // v.toSring is a bit limiting when v is a StringList or a List of Strings, so
+   // use common variantToStringList function which handles these options.
+   //
+   pvNameList = QEUtilities::variantToStringList (v);
+
+   if (pvNameList.count() >= 1) {
+      this->setVariableName (pvNameList.value (0, ""), MAIN_PV_INDEX);
+      this->establishConnection (MAIN_PV_INDEX);
+   }
+
+   if (pvNameList.count() >= 2) {
+      this->setVariableName (pvNameList.value (1, ""), EDGE_PV_INDEX);
+      this->establishConnection (EDGE_PV_INDEX);
+   }
 }
 
 // end

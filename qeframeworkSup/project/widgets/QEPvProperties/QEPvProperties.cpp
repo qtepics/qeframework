@@ -1417,6 +1417,17 @@ int QEPvProperties::addPvName (const QString& pvName)
 
 //------------------------------------------------------------------------------
 //
+void QEPvProperties::addPvNameList (const QStringList& pvNameList)
+{
+   // Reverse order to mitigate the normal order reversal used by addPvName.
+   //
+   for (int j = pvNameList.count () - 1; j >= 0; j--) {
+      this->addPvName (pvNameList.value (j));
+   }
+}
+
+//------------------------------------------------------------------------------
+//
 void QEPvProperties::clearAllPvNames ()
 {
    this->setPvName ("");
