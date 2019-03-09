@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018 Australian Synchrotron
+ *  Copyright (C) 2018-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -80,40 +80,44 @@ bool QENTTableData::assignFrom (nmt::NTTable::const_shared_pointer table)
    //
    QStringList labelsTemp;
    QList < QVariantList > dataTemp;
+   pvd::shared_vector<const std::string> labelNames;
 
-   pvd::shared_vector<const std::string> labelsVector;
-   table->getLabels()->getAs (labelsVector);
-   epics::pvData::StringArray colNames = table->getColumnNames ();
+   table->getLabels()->getAs (labelNames);
+   const int numberLabels = labelNames.size();
+
+   // NOTE: I had to fix this in 7.0.2 - line 274 of nttable.cpp
+   //
+   //  return pvValue->getStructure()->getFieldNames();
+   //  // return pvNTTable->getStructure()->getFieldNames();
+   //
+   pvd::StringArray colNames = table->getColumnNames ();
+   const int numberColumns = colNames.size();
 
    // We assume the getLabels and the getColumnNames are the same order.
    //
-   ASSERT (labelsVector.size() == colNames.size(), "labels and columns names sizes mist match")
+   // DEBUG << "labelsVector.size()" << numberLabels << "colNames.size()"  << numberColumns;
+   ASSERT (numberLabels == numberColumns, "labels and columns sizes must match")
 
-   for (pvd::shared_vector<const std::string>::iterator
-        item = labelsVector.begin ();
-        item != labelsVector.end (); ++item)
-   {
-      labelsTemp.append (QString::fromStdString (*item));
-   }
+   for (int col = 0; col < numberColumns; col++) {
 
-   for (epics::pvData::StringArray::iterator
-        item = colNames.begin ();
-        item != colNames.end (); ++item)
-   {
-      epics::pvData::PVFieldPtr colDataField = table->getColumn (*item);
+      labelsTemp.append (QString::fromStdString (labelNames [col]));
+
+      const std::string columnName = colNames [col];
+
+      epics::pvData::PVFieldPtr colDataField = table->getColumn (columnName);
       ASSERT (colDataField.get(), "Null column data");
 
       const pvd::Type fieldType = colDataField->getField ()->getType ();
       ASSERT (fieldType == pvd::scalarArray, "column data field is not a scalarArray");
 
       pvd::PVScalarArray::const_shared_pointer colDataArray =
-                TR1::static_pointer_cast < const pvd::PVScalarArray > (colDataField);
+            TR1::static_pointer_cast < const pvd::PVScalarArray > (colDataField);
 
       // MAYBE: The variant could become one of the array vector type variants
       // defined in QEVariants or a QStringList variant.
       //
-      const QVariantList col = QEPvaData::scalarArrayToQVariantList (colDataArray);
-      dataTemp.append (col);
+      const QVariantList colData = QEPvaData::scalarArrayToQVariantList (colDataArray);
+      dataTemp.append (colData);
    }
 
    this->labels = labelsTemp;
