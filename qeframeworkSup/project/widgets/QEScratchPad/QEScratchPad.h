@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2018 Australian Synchrotron
+ *  Copyright (c) 2013-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -54,7 +54,10 @@
 /// This class is a direct re-implementation of TScratch_Pad_Form out of the
 /// Delphi OPI framework.
 ///
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEScratchPad : public QEAbstractDynamicWidget, QEQuickSort {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEScratchPad : 
+   public QEAbstractDynamicWidget, 
+   protected QEQuickSort 
+{
    Q_OBJECT
 public:
    static const int NUMBER_OF_ITEMS = 72;

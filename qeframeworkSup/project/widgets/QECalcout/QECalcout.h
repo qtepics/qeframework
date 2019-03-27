@@ -1,6 +1,9 @@
 /*  QECalcout.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2018-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -54,7 +55,7 @@
 /// done in an IOC. It can then be archived, alarmed, plotted, and be available
 /// to any other EPICS client.
 ///
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QECalcout : public QLabel, QEWidget
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QECalcout : public QLabel, public QEWidget
 {
    Q_OBJECT
 
