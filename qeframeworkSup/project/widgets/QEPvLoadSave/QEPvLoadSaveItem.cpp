@@ -37,9 +37,9 @@
 
 #define DEBUG  qDebug () << "QEPvLoadSaveItem" << __LINE__ << __FUNCTION__ << "  "
 
-// Use by virtual functions in abstract base class that need to be overriden.
+// Used by virtual functions in abstract base class that need to be overriden.
 //
-#define NOT_OVERRIDDEN                                              \
+#define NOT_OVERRIDDEN                                               \
    DEBUG << "Class: " << this->metaObject ()->className ()           \
    << " did not overide " << __FUNCTION__ << "() function"
 
@@ -165,9 +165,8 @@ bool QEPvLoadSaveItem::removeChildren(int position, int count)
 QEPvLoadSaveItem* QEPvLoadSaveItem::getNamedChild (const QString& searchName)
 {
    QEPvLoadSaveItem* result = NULL;
-   int r;
 
-   for (r = 0; r < this->childCount(); r++) {
+   for (int r = 0; r < this->childCount(); r++) {
       QEPvLoadSaveItem* child = this->getChild (r);
       if (child->getNodeName () == searchName) {
          // found it.
@@ -312,7 +311,17 @@ void QEPvLoadSaveItem::abortAction ()
 int QEPvLoadSaveItem::leafCount () const
 {
    NOT_OVERRIDDEN;
-   return 0;
+   return 0;   // avoid compiler warning
+}
+
+//-----------------------------------------------------------------------------
+//
+QEPvLoadSaveCommon::StatusSummary QEPvLoadSaveItem::getStatusSummary () const
+{
+   NOT_OVERRIDDEN;
+   QEPvLoadSaveCommon::StatusSummary result;
+   QEPvLoadSaveCommon::clear (result);
+   return result;   // avoid compiler warning
 }
 
 //-----------------------------------------------------------------------------
@@ -370,6 +379,7 @@ QVariant QEPvLoadSaveGroup::getData (int column) const
 {
    const QEPvLoadSaveCommon::ColumnKinds kind = QEPvLoadSaveCommon::ColumnKinds (column);
    QVariant result;
+   QEPvLoadSaveCommon::StatusSummary summary;
 
    switch (kind) {
       case QEPvLoadSaveCommon::NodeName:
@@ -378,9 +388,16 @@ QVariant QEPvLoadSaveGroup::getData (int column) const
 
       case QEPvLoadSaveCommon::LoadSave:
       case QEPvLoadSaveCommon::Live:
-      case QEPvLoadSaveCommon::Delta:
          // Groups don't have live or delta values.
          result.setValue (QString (""));
+         break;
+
+      case QEPvLoadSaveCommon::Delta:
+         summary = this->getStatusSummary();
+         result.setValue (QString ("(%1, %2, %3)")
+                          .arg(summary.isEqualCount)
+                          .arg(summary.isNotEqualCount)
+                          .arg(summary.isNotAplicableCount));
          break;
 
       default:
@@ -450,6 +467,22 @@ int QEPvLoadSaveGroup::leafCount () const
    for (int j = 0; j < this->childItems.count(); j++) {
       QEPvLoadSaveItem* item = this->getChild (j);
       if (item) result += item->leafCount ();
+   }
+   return result;
+}
+
+//-----------------------------------------------------------------------------
+//
+QEPvLoadSaveCommon::StatusSummary QEPvLoadSaveGroup::getStatusSummary () const
+{
+   QEPvLoadSaveCommon::StatusSummary result;
+   QEPvLoadSaveCommon::clear (result);
+
+   for (int j = 0; j < this->childItems.count(); j++) {
+      QEPvLoadSaveItem* item = this->getChild (j);
+      if (item) {
+         result = QEPvLoadSaveCommon::merge (result, item->getStatusSummary ());
+      }
    }
    return result;
 }
@@ -834,6 +867,30 @@ int QEPvLoadSaveLeaf::leafCount () const
 
 //-----------------------------------------------------------------------------
 //
+QEPvLoadSaveCommon::StatusSummary QEPvLoadSaveLeaf::getStatusSummary () const
+{
+   QEPvLoadSaveCommon::StatusSummary result;
+   QEPvLoadSaveCommon::clear (result);    // set all zero
+
+   if ((this->liveValue.type() != QVariant::Invalid) &&
+       (this->value.type() != QVariant::Invalid))
+   {
+      // Both values are defined.
+      //
+      if (this->liveValue == this->value) {
+         result.isEqualCount = 1;
+      } else {
+         result.isNotEqualCount = 1;
+      }
+   } else {
+      result.isNotAplicableCount = 1;
+   }
+
+   return result;
+}
+
+//-----------------------------------------------------------------------------
+//
 QEPvLoadSaveCommon::PvNameValueMaps QEPvLoadSaveLeaf::getPvNameValueMap () const
 {
    QEPvLoadSaveCommon::PvNameValueMaps result;
@@ -842,7 +899,7 @@ QEPvLoadSaveCommon::PvNameValueMaps QEPvLoadSaveLeaf::getPvNameValueMap () const
 
    result.clear ();
 
-   // Can this current value be sensible represtened as a double value??
+   // Can this current value be sensible represented as a double value??
    //
    dval = this->value .toDouble (&okay);
    if (okay) {

@@ -1,6 +1,9 @@
 /*  QEPvLoadSaveModel.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2016,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -118,11 +119,20 @@ void QEPvLoadSaveModel::modelUpdated ()
 //-----------------------------------------------------------------------------
 //
 void QEPvLoadSaveModel::itemUpdated (const QEPvLoadSaveItem* item,
-                                     const QEPvLoadSaveCommon::ColumnKinds kind)
+                                     const QEPvLoadSaveCommon::ColumnKinds kind,
+                                     const bool updateParent)
 {
    if (!item) return;
    QModelIndex index = this->getIndex (item, int (kind));
    emit this->dataChanged (index, index);  // this causes tree view to update
+
+   if (updateParent) {
+      // Call this method recursively - ensure we stop.
+      QEPvLoadSaveItem* parentItem = item->getParent();
+      if (parentItem && (parentItem != this->coreItem)) {
+         this->itemUpdated (parentItem, kind, updateParent);
+      }
+   }
 }
 
 //-----------------------------------------------------------------------------
@@ -202,7 +212,7 @@ bool QEPvLoadSaveModel::mergeItemInToItem (QEPvLoadSaveItem* item, QEPvLoadSaveI
          // Copy value
          //
          counterPart->setNodeValue (item->getNodeValue ());
-         this->itemUpdated (counterPart, QEPvLoadSaveCommon::NodeName);
+         this->itemUpdated (counterPart, QEPvLoadSaveCommon::NodeName, false);
       } else {
          // Copy children.
          //
@@ -333,8 +343,8 @@ void QEPvLoadSaveModel::acceptActionComplete (const QEPvLoadSaveItem* item,
    switch (action) {
       case QEPvLoadSaveCommon::Extract:
       case QEPvLoadSaveCommon::ReadArchive:
-         this->itemUpdated (item, QEPvLoadSaveCommon::LoadSave);  // this causes tree view to update
-         this->itemUpdated (item, QEPvLoadSaveCommon::Delta);     // this causes tree view to update
+         this->itemUpdated (item, QEPvLoadSaveCommon::LoadSave, false);  // this causes tree view to update
+         this->itemUpdated (item, QEPvLoadSaveCommon::Delta, true);      // this causes tree view to update
          break;
 
       case QEPvLoadSaveCommon::Apply:
@@ -342,8 +352,8 @@ void QEPvLoadSaveModel::acceptActionComplete (const QEPvLoadSaveItem* item,
          break;
 
       case QEPvLoadSaveCommon::Update:
-         this->itemUpdated (item, QEPvLoadSaveCommon::Live);   // this causes tree view to update
-         this->itemUpdated (item, QEPvLoadSaveCommon::Delta);  // this causes tree view to update
+         this->itemUpdated (item, QEPvLoadSaveCommon::Live, false);   // this causes tree view to update
+         this->itemUpdated (item, QEPvLoadSaveCommon::Delta, true);   // this causes tree view to update
          return;   // no forward
 
       default:

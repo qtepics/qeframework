@@ -1,6 +1,9 @@
 /*  QEPvLoadSaveModel.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -96,7 +97,9 @@ public:
 
    void setupModelData (QEPvLoadSaveItem* rootItem, const QString& heading);
    void modelUpdated ();
-   void itemUpdated (const QEPvLoadSaveItem* item, const QEPvLoadSaveCommon::ColumnKinds kind);
+   void itemUpdated (const QEPvLoadSaveItem* item,
+                     const QEPvLoadSaveCommon::ColumnKinds kind,
+                     const bool updateParent);
 
    bool addItemToModel (QEPvLoadSaveItem* item, QEPvLoadSaveItem* parentItem);
    bool removeItemFromModel (QEPvLoadSaveItem* item);
@@ -152,7 +155,7 @@ private:
    QTreeView* treeView;                       // the associated tree view widget
    QItemSelectionModel* treeSelectionModel;   // manages tree selections
 
-   QEPvLoadSaveItem *coreItem;  // the tree view root (as opposed to user root) - must exist - provides headings
+   QEPvLoadSaveItem* coreItem;  // the tree view root (as opposed to user root) - must exist - provides headings
    QString heading;             // heading text.
 
    QEPvLoadSaveItem* selectedItem;            // the most recently selected item - if any.
