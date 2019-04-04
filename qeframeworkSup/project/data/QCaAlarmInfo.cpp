@@ -1,8 +1,9 @@
 /*  QCaAlarmInfo.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +29,7 @@
 #include <QCaAlarmInfo.h>
 #include <alarm.h>
 #include <acai_client_types.h>
+#include <QEArchiveInterface.h>
 
 // Default standard colors.
 // These string lists are index by alarm severity
@@ -151,10 +153,20 @@ QString QCaAlarmInfo::statusName() const
 /*
   Return a string identifying the alarm severity
  */
-QString QCaAlarmInfo::severityName() const {
+QString QCaAlarmInfo::severityName() const
+{
+    QString result;
 
-    ACAI::ClientAlarmSeverity sevr = ACAI::ClientAlarmSeverity( severity );
-    return QString::fromStdString( ACAI::alarmSeverityImage( sevr ) );
+    if ((severity & 0x0f00) == 0x0f00) {
+        // Do CA archiver severity specials.
+        //
+        QEArchiveInterface::archiveAlarmSeverity sevr = QEArchiveInterface::archiveAlarmSeverity (severity);
+        result = QEArchiveInterface::alarmSeverityName (sevr);
+    } else {
+        ACAI::ClientAlarmSeverity sevr = ACAI::ClientAlarmSeverity( severity );
+        result = QString::fromStdString( ACAI::alarmSeverityImage( sevr ) );
+    }
+    return result;
 }
 
 /*
