@@ -1201,7 +1201,7 @@ void QEArchapplInterface::processValues(const QObject* userData, QNetworkReply* 
       //
       QCaDataPoint dataPoint;
       dataPoint.value = onePointData.value;
-      dataPoint.alarm = QCaAlarmInfo(onePointData.severity, onePointData.status);
+      dataPoint.alarm = QCaAlarmInfo(onePointData.status, onePointData.severity);
       dataPoint.datetime = caDateTime;
       dataPointList.append(dataPoint);
 
