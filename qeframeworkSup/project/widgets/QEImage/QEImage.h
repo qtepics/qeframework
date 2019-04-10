@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2018 Australian Synchrotron
+ *  Copyright (c) 2012-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -66,7 +66,7 @@ class profilePlot;
 // As data arrives, this class is used to record it.
 // Note: the rotation member currently only used for the ellipse. Create an EllipseAreaInfo sub-class?
 //
-class areaInfo
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT areaInfo
 {
     public:
         // Construction
@@ -122,7 +122,8 @@ class areaInfo
 
 // Class to keep track of a point such as beam or target information
 // As data arrives, this class is used to record it.
-class pointInfo
+//
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT pointInfo
 {
     public:
         // Construction

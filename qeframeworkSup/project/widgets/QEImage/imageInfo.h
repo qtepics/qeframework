@@ -1,5 +1,9 @@
-/*
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+/*  imageinfo.h
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,25 +18,25 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
  *    andrew.rhyder@synchrotron.org.au
  */
 
-#ifndef IMAGEINFO_H
-#define IMAGEINFO_H
+#ifndef QE_IMAGE_INFO_H
+#define QE_IMAGE_INFO_H
 
 #include <QGridLayout>
 #include <QLabel>
 #include <QFrame>
 #include <QDateTime>
+#include <QEFrameworkLibraryGlobal.h>
 
 #define UPDATE_INDICATOR_SIZE 20
 #define UPDATE_INDICATOR_STEPS 32
-class imageUpdateIndicator : public QWidget
+
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT imageUpdateIndicator : public QWidget
 {
 public:
     imageUpdateIndicator();
@@ -45,7 +49,7 @@ private:
     QList<QRect> lines;
 };
 
-class imageInfo
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT imageInfo
 {
 public:
     imageInfo();                                            // Initialise the information area
@@ -107,4 +111,4 @@ private:
     imageUpdateIndicator* updateIndicator;
 };
 
-#endif // IMAGEINFO_H
+#endif // QE_IMAGE_INFO_H
