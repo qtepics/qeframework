@@ -468,7 +468,8 @@ public:
     Q_PROPERTY(UpdateOptions updateOption READ getUpdateOptionProperty WRITE setUpdateOptionProperty)
 
     /// User friendly enumerations for updateOption property - refer to QEGenericButton::updateOptions for details.
-    enum UpdateOptions { Text             = QEGenericButton::UPDATE_TEXT,             ///< Data updates will update the button text
+    enum UpdateOptions { NoUpdate         = QEGenericButton::UPDATE_NONE,             ///< Data updates will not update button
+                         Text             = QEGenericButton::UPDATE_TEXT,             ///< Data updates will update the button text
                          Icon             = QEGenericButton::UPDATE_ICON,             ///< Data updates will update the button icon
                          TextAndIcon      = QEGenericButton::UPDATE_TEXT_AND_ICON,    ///< Data updates will update the button text and icon
                          State            = QEGenericButton::UPDATE_STATE,            ///< Data updates will update the button state (checked or unchecked)
