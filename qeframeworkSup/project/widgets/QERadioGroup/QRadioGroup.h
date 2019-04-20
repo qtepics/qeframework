@@ -142,6 +142,7 @@ private:
    void internalSetValue (const int value);
    QAbstractButton* createButton (QWidget* parent);
    void reCreateAllButtons ();
+   void commonSetup (const QString& title);
    void setButtonText ();
    void setButtonLayout ();
 

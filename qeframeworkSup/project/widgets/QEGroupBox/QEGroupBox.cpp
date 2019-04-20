@@ -32,7 +32,16 @@
 //------------------------------------------------------------------------------
 //
 QEGroupBox::QEGroupBox (QWidget *parent) :
-   QEGroupBox (" QEGroupBox ", parent) {}
+   QGroupBox (parent), QEWidget (this)
+{
+   this->setSubstitutedTitleProperty (" QEGroupBox ");
+
+   // This is not an EPICS aware widget.
+   //
+   this->setVariableAsToolTip (false);
+   this->setAllowDrop (false);
+   this->setNumVariables (0);
+}
 
 //------------------------------------------------------------------------------
 //

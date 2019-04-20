@@ -37,13 +37,24 @@
 // Constructor with no initialisation
 //
 QRadioGroup::QRadioGroup (QWidget* parent) :
-   QRadioGroup (" QRadioGroup ", parent) { }
+   QGroupBox (parent)
+{
+   this->commonSetup (" QRadioGroup ");
+}
 
 //-----------------------------------------------------------------------------
 // Constructor with title.
 //
 QRadioGroup::QRadioGroup (const QString& title, QWidget* parent) :
-   QGroupBox (title, parent)
+   QGroupBox (parent)
+{
+   this->commonSetup (title);
+}
+
+//-----------------------------------------------------------------------------
+// Setup common to all constructors
+//
+void QRadioGroup::commonSetup (const QString& title)
 {
    this->setMinimumSize (120, 40);
 

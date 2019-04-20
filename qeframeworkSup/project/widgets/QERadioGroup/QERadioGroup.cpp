@@ -83,7 +83,7 @@ void QERadioGroup::commonSetup (const QString& title)
 {
    // Create internal widget.
    //
-   this->internalWidget = new QRadioGroup (title, this);
+   this->internalWidget = new QRadioGroup (this);
 
    // Copy actual widget size policy to the containing widget, then ensure
    // internal widget will expand to fill container widget.
@@ -146,6 +146,8 @@ void QERadioGroup::commonSetup (const QString& title)
    QObject::connect
        (&this->titleVnpm, SIGNAL (newVariableNameProperty  (QString, QString, unsigned int)),
         this,             SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+
+   this->setSubstitutedTitleProperty (title);
 
    // Some events must be applied to the internal widgets
    //
