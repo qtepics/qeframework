@@ -1,6 +1,9 @@
 /*  QRadioGroup.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2014-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2017 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
@@ -30,36 +31,25 @@
 #include <QPushButton>
 #include <QECommon.h>
 
-
 #define DEBUG qDebug () << "QRadioGroup"  << __LINE__<< __FUNCTION__ << " "
 
 //-----------------------------------------------------------------------------
 // Constructor with no initialisation
 //
 QRadioGroup::QRadioGroup (QWidget* parent) :
-   QGroupBox (" QRadioGroup ", parent)
-{
-   this->commonSetup ();
-}
+   QRadioGroup (" QRadioGroup ", parent) { }
 
 //-----------------------------------------------------------------------------
-// Constructor with title and known variable
+// Constructor with title.
 //
 QRadioGroup::QRadioGroup (const QString& title, QWidget* parent) :
    QGroupBox (title, parent)
-{
-   this->commonSetup ();
-}
-
-//-----------------------------------------------------------------------------
-// Setup common to all constructors
-//
-void QRadioGroup::commonSetup ()
 {
    this->setMinimumSize (120, 40);
 
    // Set up default properties
    //
+   this->setOwnTitle (title);
    this->cols = 2;
    this->space = 4;
    this->buttonStyle = Radio;
@@ -382,6 +372,23 @@ void QRadioGroup::setValue (const int indexIn)
 int QRadioGroup::getValue () const
 {
    return this->currentIndex;
+}
+
+//------------------------------------------------------------------------------
+//
+void QRadioGroup::setOwnTitle (const QString& titleIn)
+{
+   this->ownTitle = titleIn;
+   // Treat "-" as special null value. As actual null string get re-interpreted
+   // as the default, i.e. " QERadioGroup "
+   this->setTitle (this->ownTitle == "-" ? "" : this->ownTitle);
+}
+
+//------------------------------------------------------------------------------
+//
+QString QRadioGroup::getOwnTitle () const
+{
+   return this->ownTitle;
 }
 
 //------------------------------------------------------------------------------

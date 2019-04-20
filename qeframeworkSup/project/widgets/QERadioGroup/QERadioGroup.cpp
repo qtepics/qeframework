@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2014-2019  Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2014,2016,2017,2018 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -55,7 +55,7 @@ QERadioGroup::QERadioGroup (const QString& variableNameIn, QWidget* parent) :
 {
    this->commonSetup (" QERadioGroup ");
    this->setVariableName (variableNameIn, PV_VARIABLE_INDEX);
-   activate();
+   this->activate();
 }
 
 //-----------------------------------------------------------------------------
@@ -120,7 +120,7 @@ void QERadioGroup::commonSetup (const QString& title)
    //
    this->setVariableAsToolTip (true);
    this->setAllowDrop (false);
-   this->setDisplayAlarmState (true);
+   this->setDisplayAlarmStateOption (standardProperties::DISPLAY_ALARM_STATE_ALWAYS);
    this->useDbEnumerations = true;      // as opposed to local enumeations.
 
    // Set the initial state
@@ -146,6 +146,10 @@ void QERadioGroup::commonSetup (const QString& title)
    QObject::connect
        (&this->titleVnpm, SIGNAL (newVariableNameProperty  (QString, QString, unsigned int)),
         this,             SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+
+   // Some events must be applied to the internal widgets
+   //
+   this->installEventFilter (this);
 }
 
 //---------------------------------------------------------------------------------
@@ -153,6 +157,32 @@ void QERadioGroup::commonSetup (const QString& title)
 QSize QERadioGroup::sizeHint () const
 {
    return QSize (200, 80);
+}
+
+//---------------------------------------------------------------------------------
+// QEAbstractWidget (parent class) captures some of these events and does not
+// call appropriate virtual function.  So must intercept there events here.
+//
+bool QERadioGroup::eventFilter (QObject* watched, QEvent* event)
+{
+   const QEvent::Type type = event->type ();
+   bool result = false;
+
+   switch (type) {
+      case QEvent::FontChange:
+         if (watched == this) {
+            // Propagate font change to embedded buttons.
+            //
+            this->internalWidget->setFont (this->font());
+            result = QEAbstractWidget::event (event);   // call parent fuction;
+         }
+         break;
+
+      default:
+         result = false;
+   }
+
+   return result;
 }
 
 //------------------------------------------------------------------------------
@@ -443,21 +473,18 @@ void QERadioGroup::useNewVariableNameProperty (QString variableName,
 {
    this->setVariableNameAndSubstitutions (variableName, substitutions, variableIndex);
 
-
    // Both the variable name and the title use the same useNewVariableNameProperty slot.
    //
    if (variableIndex == TITLE_VARIABLE_INDEX) {
       QString title = this->getSubstitutedVariableName (variableIndex);
-      this->internalWidget->setTitle (title);
+      this->internalWidget->setOwnTitle (title);
    }
 }
-
 
 //==============================================================================
 // Properties
 // Update variable name etc.
 //
-
 //------------------------------------------------------------------------------
 //
 void QERadioGroup::setVariableNameSubstitutionsProperty (const QString& substitutions)

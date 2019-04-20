@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2014-2019  Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2014,2017  Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -60,6 +60,8 @@ public:
 
    Q_ENUMS (ButtonOrders)
 
+   // Hide parent title property.
+   Q_PROPERTY (QString title                         READ getOwnTitle     WRITE setOwnTitle)
    Q_PROPERTY (QRadioGroup::ButtonStyles buttonStyle READ getButtonStyle  WRITE setButtonStyle)
    Q_PROPERTY (QRadioGroup::ButtonOrders buttonOrder READ getButtonOrder  WRITE setButtonOrder)
    Q_PROPERTY (int columns                           READ getColumns      WRITE setColumns)
@@ -73,6 +75,7 @@ public:
    explicit QRadioGroup (QWidget* parent = 0);
 
    /// Create with a group title.
+   /// Note "-" is intepreted as an empty title.
    ///
    explicit QRadioGroup (const QString& title, QWidget* parent = 0);
 
@@ -87,6 +90,11 @@ public slots:
    void setValue (const int value);  // use -1 for no selection.
 public:
    int getValue () const;
+
+   // Note: "-" is intepreted as an empty title.
+   //
+   void setOwnTitle (const QString& title);
+   QString getOwnTitle () const;
 
    void setStrings (const QStringList& strings);
    QStringList getStrings () const;
@@ -119,6 +127,7 @@ private:
    QAbstractButtonList buttonList;
    QAbstractButton *noSelectionButton;
 
+   QString ownTitle;
    QStringList strings;
 
    int currentIndex;
@@ -133,7 +142,6 @@ private:
    void internalSetValue (const int value);
    QAbstractButton* createButton (QWidget* parent);
    void reCreateAllButtons ();
-   void commonSetup ();
    void setButtonText ();
    void setButtonLayout ();
 

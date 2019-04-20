@@ -1,6 +1,9 @@
 /*  QEGroupBox.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,21 +18,28 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
 
-#include <QEGroupBox.h>
+#include "QEGroupBox.h"
+#include <QDebug>
+
+#define DEBUG qDebug () << "QEGroupBox"  << __LINE__<< __FUNCTION__ << " "
 
 //------------------------------------------------------------------------------
 //
-QEGroupBox::QEGroupBox (QWidget *parent) : QGroupBox (parent), QEWidget (this)
+QEGroupBox::QEGroupBox (QWidget *parent) :
+   QEGroupBox (" QEGroupBox ", parent) {}
+
+//------------------------------------------------------------------------------
+//
+QEGroupBox::QEGroupBox (const QString& title, QWidget* parent) :
+   QGroupBox (title, parent), QEWidget (this)
 {
-   this->setTitle (" QEGroupBox ");
+   this->setSubstitutedTitleProperty (title);
 
    // This is not an EPICS aware widget.
    //
@@ -40,72 +50,59 @@ QEGroupBox::QEGroupBox (QWidget *parent) : QGroupBox (parent), QEWidget (this)
 
 //------------------------------------------------------------------------------
 //
-QEGroupBox::QEGroupBox (const QString& title, QWidget* parent) : QGroupBox (title, parent), QEWidget (this)
+QEGroupBox::~QEGroupBox () { }
+
+//------------------------------------------------------------------------------
+//
+QSize QEGroupBox::sizeHint () const
 {
-   // This is not an EPICS aware widget.
-   //
-   this->setVariableAsToolTip (false);
-   this->setAllowDrop (false);
-   this->setNumVariables (0);
-   }
-
-//------------------------------------------------------------------------------
-//
-QEGroupBox::~QEGroupBox () {
+   return QSize (120, 80);
 }
 
-//------------------------------------------------------------------------------
-//
-QSize QEGroupBox::sizeHint () const {
-    return QSize (120, 80);
-}
-
-// end
 
 //==============================================================================
 // Property convenience functions
-
-
 // label text (prior to substitution)
-void QEGroupBox::setSubstitutedTitleProperty( QString substitutedTitleIn )
+//
+void QEGroupBox::setSubstitutedTitleProperty (const QString substitutedTitleIn)
 {
-    bool wasBlank = substitutedTitle.isEmpty();
-    substitutedTitle = substitutedTitleIn;
+   this->ownSubstitutedTitle = substitutedTitleIn;
 
-    // Update the group box'x title.
-    // But don't do it if the title was already displaying something and the
-    // text-to-be-substituted is just being re-set to blank). This behaviour will
-    // mean the normal label 'title' property can be used if text substitution is
-    // not required. Without this the user would always have to use the substitutedTitle property.
-    if (!( !title().isEmpty() && wasBlank && substitutedTitleIn.isEmpty() ))
-    {
-        setTitle( substituteThis( substitutedTitleIn ));
-    }
+   // Now update the QGroupBox title.
+   // Treat "-" as special null value. As actual null string get re-interpreted
+   // as the default, i.e. " QEGroupBox "
+   //
+   const QString ownTitle = this->substituteThis (this->ownSubstitutedTitle);
+   this->setTitle (ownTitle == "-" ? "" : ownTitle);
 }
 
-QString QEGroupBox::getSubstitutedTitleProperty()
+//------------------------------------------------------------------------------
+//
+QString QEGroupBox::getSubstitutedTitleProperty() const
 {
-    return substitutedTitle;
+   return this->ownSubstitutedTitle;
 }
 
+//------------------------------------------------------------------------------
 // title text substitutions
-void QEGroupBox::setSubstitutionsProperty( QString macroSubstitutionsIn )
+void QEGroupBox::setSubstitutionsProperty(const QString macroSubstitutionsIn)
 {
-    // Set the substitutions
-    setVariableNameSubstitutions( macroSubstitutionsIn );
+   // Set the substitutions
+   //
+   this->setVariableNameSubstitutions (macroSubstitutionsIn);
 
-    // Update the group box's title to use the new substitutions.
-    // But don't do it if the title was already displaying something and the
-    // text-to-be-substituted is just being re-set to blank). This behaviour will
-    // mean the normal label 'title' property can be used if text substitution is
-    // not required. Without this the user would always have to use the substitutedTitle property.
-    if (!( !title().isEmpty() && substitutedTitle.isEmpty() ))
-    {
-        setTitle( substituteThis( substitutedTitle ));
-    }
+   // Treat "-" as special null value. As actual null string get re-interpreted
+   // as the default, i.e. " QEGroupBox "
+   //
+   const QString ownTitle = this->substituteThis (this->ownSubstitutedTitle);
+   this->setTitle (ownTitle == "-" ? "" : ownTitle);
 }
 
-QString QEGroupBox::getSubstitutionsProperty()
+//------------------------------------------------------------------------------
+//
+QString QEGroupBox::getSubstitutionsProperty() const
 {
-    return getVariableNameSubstitutions();
+   return this->getVariableNameSubstitutions();
 }
+
+// end

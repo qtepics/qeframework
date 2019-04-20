@@ -1,6 +1,9 @@
 /*  QEGroupBox.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -37,9 +38,28 @@
 // See QEFrame as well.
 //
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGroupBox :
-      public QGroupBox, public QEWidget {
-
+      public QGroupBox, public QEWidget
+{
 Q_OBJECT
+
+    // QEGroupBox specific properties ==========================================
+    //
+    /// Group box title text to be substituted.
+    /// This text will be copied to the group box title text after applying any
+    /// macro substitutions from the variableSubstitutions property.
+    /// The substitutedTitle property is depricated and included for backward
+    /// compatabilty only and not presented on designer.
+    /// The title property hides the parent title property.
+    ///
+    Q_PROPERTY (QString ownSubstitutedTitle READ getSubstitutedTitleProperty WRITE setSubstitutedTitleProperty  DESIGNABLE false)
+    Q_PROPERTY (QString title            READ getSubstitutedTitleProperty WRITE setSubstitutedTitleProperty)
+
+    /// Text substitutions.
+    /// These substitutions are applied to the 'substitutedTitle' property prior to copying it to the label text.
+    Q_PROPERTY(QString textSubstitutions READ getSubstitutionsProperty WRITE setSubstitutionsProperty)
+    //
+    // End QEGroupBox specific properties ======================================
+
 
     // BEGIN-STANDARD-PROPERTIES ======================================================
     // Standard properties
@@ -156,14 +176,6 @@ public:
 public:
     // END-STANDARD-PROPERTIES ========================================================
 
-    /// Group box title text to be substituted.
-    /// This text will be copied to the group box title text after applying any macro substitutions from the textSubstitutions property
-    Q_PROPERTY(QString substitutedTitle READ getSubstitutedTitleProperty WRITE setSubstitutedTitleProperty)
-
-    /// Text substitutions.
-    /// These substitutions are applied to the 'substitutedTitle' property prior to copying it to the label text.
-    Q_PROPERTY(QString textSubstitutions READ getSubstitutionsProperty WRITE setSubstitutionsProperty)
-
 public:
     explicit QEGroupBox (QWidget *parent = 0);
     explicit QEGroupBox (const QString &title, QWidget* parent=0);
@@ -172,16 +184,16 @@ public:
     QSize sizeHint () const;
 
 protected:
-    // Must be accessable by derived classes, e.g. QERadioGroup.
+    // Make accessable/overridable by derived classes.
     //
-    virtual void setSubstitutionsProperty( QString macroSubstitutionsIn );
-    QString getSubstitutionsProperty();
+    virtual void setSubstitutionsProperty (const QString macroSubstitutions);
+    virtual QString getSubstitutionsProperty () const;
+
+    virtual void setSubstitutedTitleProperty (const QString ownSubstitutedTitle);
+    virtual QString getSubstitutedTitleProperty () const;
 
 private:
-    void setSubstitutedTitleProperty( QString substitutedTitleIn );
-    QString getSubstitutedTitleProperty();
-
-    QString substitutedTitle;
+    QString ownSubstitutedTitle;
 };
 
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
