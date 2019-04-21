@@ -1,6 +1,9 @@
 /*  QEAnalogProgressBar.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2011-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2011,2016,2017 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
@@ -28,19 +29,17 @@
   It is tighly integrated with the base class QEWidget. Refer to QEWidget.cpp for details
  */
 
+#include "QEAnalogProgressBar.h"
 #include <alarm.h>
-
 #include <QDebug>
 #include <QECommon.h>
-#include <QEAnalogProgressBar.h>
 #include <QCaObject.h>
 #include <QEStringFormatting.h>
 
-#define DEBUG qDebug () << "QEAnalogProgressBar" << __FUNCTION__ << __LINE__
+#define DEBUG qDebug () << "QEAnalogProgressBar" << __LINE__ << __FUNCTION__ << "  "
 
 #define ALARM_SATURATION      128
 #define NO_ALARM_SATURATION    32
-
 
 #define PV_VARIABLE_INDEX      0
 
@@ -128,7 +127,6 @@ qcaobject::QCaObject* QEAnalogProgressBar::createQcaItem (unsigned int variableI
    return result;
 }
 
-
 //------------------------------------------------------------------------------
 // Start updating.
 // Implementation of VariableNameManager's virtual funtion to establish a
@@ -153,10 +151,9 @@ void QEAnalogProgressBar::establishConnection (unsigned int variableIndex)
                         this, SLOT  (connectionChanged (QCaConnectionInfo &,const unsigned int&)));
 
       QObject::connect (this, SIGNAL (requestResend ()),
-                        qca,  SLOT (resendLastData ()));
+                        qca,  SLOT  (resendLastData ()));
    }
 }
-
 
 //------------------------------------------------------------------------------
 // Act on a connection change.
@@ -190,25 +187,106 @@ void QEAnalogProgressBar::connectionChanged (QCaConnectionInfo& connectionInfo,
    this->emitDbConnectionChanged (variableIndex);
 }
 
-/* ----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// Determine if alarm colour to be used.
+//
+bool QEAnalogProgressBar::useAlarmColours (QCaAlarmInfo& alarmInfo) const
+{
+   qcaobject::QCaObject* qca = this->getQcaItem (PV_VARIABLE_INDEX);
+   if (!qca) return false;
+   if (!qca->getDataIsAvailable()) return false;
+
+   bool isDefined;
+   QVariant value;
+   QCaDateTime timeStamp;
+   qca->getLastData (isDefined, value, alarmInfo, timeStamp);
+   if (!isDefined) return false;
+
+   bool result = true;
+   switch (this->getDisplayAlarmStateOption()) {
+
+     case standardProperties::DISPLAY_ALARM_STATE_NEVER:
+         result = false;
+         break;
+
+     case standardProperties::DISPLAY_ALARM_STATE_ALWAYS:
+         result = true;
+         break;
+
+     case standardProperties::DISPLAY_ALARM_STATE_WHEN_IN_ALARM:
+         result = alarmInfo.isInAlarm();
+         break;
+   }
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// virtual override
+//
+QColor QEAnalogProgressBar::getBackgroundPaintColour () const
+{
+   QColor result;
+   QCaAlarmInfo alarmInfo;
+
+   // Is alarm colour in use and appicable to the background colour?
+   //
+   if (this->useAlarmColours (alarmInfo) &&
+       this->getAlarmSeverityDisplayMode () == background) {
+
+      // Use low saturation when no alarm, otherwise set a medium saturation level.
+      //
+      int saturation = (alarmInfo.getSeverity () == NO_ALARM) ? NO_ALARM_SATURATION : ALARM_SATURATION;
+      result = this->getColor (alarmInfo, saturation);
+
+   } else {
+      // No connection or no data or not in use - just use parent function.
+      //
+      result = QEAnalogIndicator::getBackgroundPaintColour ();
+   }
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// virtual override
+//
+QColor QEAnalogProgressBar::getForegroundPaintColour () const
+{
+   QColor result;
+   QCaAlarmInfo alarmInfo;
+
+   // Is alarm colour in use and appicable to the foreground colour?
+   //
+   if (this->useAlarmColours (alarmInfo) &&
+       this->getAlarmSeverityDisplayMode () == foreground) {
+      // Use low saturation when no alarm, otherwise set a medium saturation level.
+      //
+      int saturation = ALARM_SATURATION;
+      result = this->getColor (alarmInfo, saturation);
+
+   } else {
+      // No connection or no data or not in use - just use parent function.
+      //
+      result = QEAnalogIndicator::getForegroundPaintColour ();
+   }
+   return result;
+}
+
 //------------------------------------------------------------------------------
 // Provide image, e.g. with EGU if appropriate
+// virtual override
 //
- */
-QString QEAnalogProgressBar::getTextImage ()
+QString QEAnalogProgressBar::getTextImage () const
 {
    return this->theImage;
 }
 
-
-/* ----------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 // Create a single thresholds and colour band item.
 //
- */
 QEAnalogIndicator::Band QEAnalogProgressBar::createBand (const double lower,
                                                          const double upper,
-                                                         unsigned short severity)
+                                                         unsigned short severity) const
 {
    Band result;
    QCaAlarmInfo alarmInfo (0, severity);
@@ -223,21 +301,19 @@ QEAnalogIndicator::Band QEAnalogProgressBar::createBand (const double lower,
    return result;
 }
 
-/* ----------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 // Create a list of alarm thresholds and colours.
+// virtual override
 //
-*/
-QEAnalogIndicator::BandList QEAnalogProgressBar::getBandList ()
+QEAnalogIndicator::BandList QEAnalogProgressBar::getBandList () const
 {
    BandList result;
-   qcaobject::QCaObject * qca;
 
    result.clear ();
 
    // Associated qca object - avoid the segmentation fault.
    //
-   qca = getQcaItem (0);
+   qcaobject::QCaObject* qca = this->getQcaItem (PV_VARIABLE_INDEX);
    if (qca) {
       const double dispLower = this->getMinimum ();
       const double dispUpper = this->getMaximum ();
@@ -285,25 +361,18 @@ QEAnalogIndicator::BandList QEAnalogProgressBar::getBandList ()
          }
       }
    }
-
    return result;
 }
 
-
-/* ----------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 // Update the progress bar value
 // This is the slot used to recieve data updates from a QCaObject based class.
 //
-*/
-void QEAnalogProgressBar::setProgressBarValue (const double &value,
-                                               QCaAlarmInfo & alarmInfo,
-                                               QCaDateTime &,
+void QEAnalogProgressBar::setProgressBarValue (const double& value,
+                                               QCaAlarmInfo& alarmInfo,
+                                               QCaDateTime&,
                                                const unsigned int& variableIndex)
 {
-   qcaobject::QCaObject * qca;
-   int saturation;
-
    // If not enabled then do nothing.
    // NOTE: the regular isEnabled is hidden by function in the standard properties
    //
@@ -312,11 +381,8 @@ void QEAnalogProgressBar::setProgressBarValue (const double &value,
 
    // Associated qca object - avoid the segmentation fault.
    //
-   qca = getQcaItem (0);
-   if (!qca)
-      return;
-
-   if (isFirstUpdate) {
+   qcaobject::QCaObject* qca = this->getQcaItem (PV_VARIABLE_INDEX);
+   if (this->isFirstUpdate && qca) {
 
       // Set up variable details used by some formatting options
       //
@@ -351,31 +417,7 @@ void QEAnalogProgressBar::setProgressBarValue (const double &value,
    // Update the progress bar
    //
    this->setValue (value);
-
-   // Choose the alarm state to display.
-   // If not displaying the alarm state, use a default 'no alarm' structure. This is
-   // required so the any display of an alarm state is reverted if the displayAlarmState
-   // property changes while displaying an alarm.
-   QCaAlarmInfo ai;
-   if (getDisplayAlarmState ()) {
-      ai = alarmInfo;
-   }
-
-   switch (this->getAlarmSeverityDisplayMode ()) {
-      case foreground:
-         // Use low saturation when no alarm, otherwise set a medium saturation level.
-         //
-         saturation = ALARM_SATURATION;
-         this->setForegroundColour (getColor (ai, saturation));
-         break;
-
-      case background:
-         // Use low saturation when no alarm, otherwise set a medium saturation level.
-         //
-         saturation = (ai.getSeverity () == NO_ALARM) ? NO_ALARM_SATURATION : ALARM_SATURATION;
-         this->setBackgroundColour (getColor (ai, saturation));
-         break;
-   }
+   this->update ();   // always update and redraw
 
    // Invoke common alarm handling processing.
    // Although this sets widget style, we invoke for tool tip processing only.
@@ -388,14 +430,13 @@ void QEAnalogProgressBar::setProgressBarValue (const double &value,
    this->emitDbValueChanged (variableIndex);
 
    // This update is over, clear first update flag.
+   //
    this->isFirstUpdate = false;
 }
 
-/* ----------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 // Update variable name etc.
 //
-*/
 void QEAnalogProgressBar::useNewVariableNameProperty (QString variableNameIn,
                                                       QString variableNameSubstitutionsIn,
                                                       unsigned int variableIndex)
@@ -403,87 +444,58 @@ void QEAnalogProgressBar::useNewVariableNameProperty (QString variableNameIn,
    this->setVariableNameAndSubstitutions (variableNameIn, variableNameSubstitutionsIn, variableIndex);
 }
 
-
 //==============================================================================
-// Drag drop
-void QEAnalogProgressBar::setDrop (QVariant drop)
-{
-   this->setVariableName (drop.toString (), 0);
-   this->establishConnection (0);
-}
-
-QVariant QEAnalogProgressBar::getDrop ()
-{
-   if (isDraggingVariable ())
-      return QVariant (copyVariable ());
-   else
-      return copyData ();
-}
-
-//==============================================================================
-// Copy (no paste)
+// Copy/paste
 //
 QString QEAnalogProgressBar::copyVariable ()
 {
-   return this-> getSubstitutedVariableName (0);
+   return this->getSubstitutedVariableName (PV_VARIABLE_INDEX);
 }
 
+//------------------------------------------------------------------------------
+//
 QVariant QEAnalogProgressBar::copyData ()
 {
    return QVariant (this->getValue ());
 }
 
 //------------------------------------------------------------------------------
+//
+void QEAnalogProgressBar::paste (QVariant s)
+{
+   this->setVariableName (s.toString (), PV_VARIABLE_INDEX);
+   this->establishConnection (PV_VARIABLE_INDEX);
+}
+
+//------------------------------------------------------------------------------
 // useDbDisplayLimits
+//
 void QEAnalogProgressBar::setUseDbDisplayLimits (bool useDbDisplayLimitsIn)
 {
    this->useDbDisplayLimits = useDbDisplayLimitsIn;
 }
 
 //------------------------------------------------------------------------------
-bool QEAnalogProgressBar::getUseDbDisplayLimits ()
+//
+bool QEAnalogProgressBar::getUseDbDisplayLimits () const
 {
    return this->useDbDisplayLimits;
 }
 
 //------------------------------------------------------------------------------
-void QEAnalogProgressBar::setAlarmSeverityDisplayMode (AlarmSeverityDisplayModes value)
+//
+void QEAnalogProgressBar::setAlarmSeverityDisplayMode (const AlarmSeverityDisplayModes mode)
 {
-   if (this->alarmSeverityDisplayMode != value) {
-
-      // case on old value and restore colour
-      //
-      switch (this->alarmSeverityDisplayMode) {
-         case foreground:
-            this->setForegroundColour (this->savedForegroundColour);
-            break;
-
-         case background:
-            this->setBackgroundColour (this->savedBackgroundColour);
-            break;
-      }
-
-      // Do actual property update.
-      //
-      this->alarmSeverityDisplayMode = value;
-
-      // case on new value and restore colour
-      //
-      switch (this->alarmSeverityDisplayMode) {
-         case foreground:
-            this->savedForegroundColour = this->getForegroundColour ();
-            break;
-
-         case background:
-            this->savedBackgroundColour = this->getBackgroundColour ();
-            break;
-      }
+   if (this->alarmSeverityDisplayMode != mode) {
+      this->alarmSeverityDisplayMode = mode;
+      this->update ();
    }
 }
 
 //------------------------------------------------------------------------------
 //
-QEAnalogProgressBar::AlarmSeverityDisplayModes QEAnalogProgressBar::getAlarmSeverityDisplayMode ()
+QEAnalogProgressBar::AlarmSeverityDisplayModes
+QEAnalogProgressBar::getAlarmSeverityDisplayMode () const
 {
    return this->alarmSeverityDisplayMode;
 }

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012 Australian Synchrotron
+ *  Copyright (c) 2012-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -25,15 +25,13 @@
  */
 
 /*
-  This class adds common property support to all QE widgets where the support involves interaction with the QWidget.
-  Any common property support that requires a greater scope than the QWidget is managed in QEWidget.
+  This class adds common property support to all QE widgets where the support
+  involves interaction with the QWidget.  Any common property support that
+  requires a greater scope than the QWidget is managed in QEWidget.
 */
 
-#include <standardProperties.h>
+#include "standardProperties.h"
 #include <QEWidget.h>
-//#include <QCoreApplication>
-//#include <QFileInfo>
-
 
 // Construction.
 standardProperties::standardProperties( QWidget* ownerIn )
@@ -61,7 +59,7 @@ standardProperties::standardProperties( QWidget* ownerIn )
 }
 
 // !!
-userLevelTypes::userLevels standardProperties::getUserLevelVisibility()
+userLevelTypes::userLevels standardProperties::getUserLevelVisibility() const
 {
     return visibilityLevel;
 }
@@ -72,7 +70,7 @@ void standardProperties::setUserLevelVisibility( userLevelTypes::userLevels leve
     setSuperVisibility();
 }
 
-userLevelTypes::userLevels standardProperties::getUserLevelEnabled()
+userLevelTypes::userLevels standardProperties::getUserLevelEnabled() const
 {
     return enabledLevel;
 }
@@ -153,7 +151,7 @@ void standardProperties::setRunVisible( bool visibleIn )
     setSuperVisibility();
 }
 
-bool standardProperties::getRunVisible()
+bool standardProperties::getRunVisible() const
 {
     return applicationVisibility;
 }
@@ -166,7 +164,7 @@ void standardProperties::setDisplayAlarmState( bool displayAlarmStateIn )
 }
 
 // DEPRECATED. USE displayAlarmStateOptions getDisplayAlarmStateOption() INSTEAD
-bool standardProperties::getDisplayAlarmState()
+bool standardProperties::getDisplayAlarmState() const
 {
     return displayAlarmState != DISPLAY_ALARM_STATE_NEVER;
 }
@@ -177,7 +175,8 @@ void standardProperties::setDisplayAlarmStateOption( displayAlarmStateOptions di
     displayAlarmState = displayAlarmStateIn;
 }
 
-standardProperties::displayAlarmStateOptions standardProperties::getDisplayAlarmStateOption()
+standardProperties::displayAlarmStateOptions
+standardProperties::getDisplayAlarmStateOption() const
 {
     return displayAlarmState;
 }

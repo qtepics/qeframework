@@ -1,6 +1,9 @@
 /*  QEAnalogProgressBar.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2011-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2011,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -42,9 +43,9 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAnalogProgressBar :
       public QEAnalogIndicator,
       public QEWidget,
       public QESingleVariableMethods,
-      public QEStringFormattingMethods  {
-
-Q_OBJECT
+      public QEStringFormattingMethods
+{
+    Q_OBJECT
 
     // BEGIN-SINGLE-VARIABLE-V2-PROPERTIES ===============================================
     // Single Variable properties
@@ -206,7 +207,8 @@ public:
 
     /// Visualise the EPICS alarm severity
     ///
-    Q_PROPERTY( AlarmSeverityDisplayModes alarmSeverityDisplayMode READ getAlarmSeverityDisplayMode WRITE setAlarmSeverityDisplayMode )
+    Q_PROPERTY( AlarmSeverityDisplayModes alarmSeverityDisplayMode
+                READ getAlarmSeverityDisplayMode WRITE setAlarmSeverityDisplayMode )
 
     // Display properties
     /// Use the EPICS database display limits
@@ -363,11 +365,16 @@ public:
 
 public:
     /// Create without a variable.
-    /// Use setVariableNameProperty() and setSubstitutionsProperty() to define a variable and, optionally, macro substitutions later.
+    /// Use setVariableNameProperty() and setSubstitutionsProperty() to define
+    /// a variable and, optionally, macro substitutions later.
+    ///
     QEAnalogProgressBar( QWidget *parent = 0 );
+
     /// Create with a variable.
     /// A connection is automatically established.
-    /// If macro substitutions are required, create without a variable and set the variable and macro substitutions after creation.
+    /// If macro substitutions are required, create without a variable and set
+    /// the variable and macro substitutions after creation.
+    ///
     QEAnalogProgressBar( const QString &variableName, QWidget *parent = 0 );
 
     /// Destruction
@@ -376,11 +383,11 @@ public:
     // useDbDisplayLimits, e.g. as specified by LOPR and HOPR fields for ai, ao, longin
     // and longout record types, to call setAnalogMinimum and setAnalogMaximum.
     //
-    void setUseDbDisplayLimits( bool useDbDisplayLimitsIn );                ///< Access function for #useDbDisplayLimits property - refer to #useDbDisplayLimits property for details
-    bool getUseDbDisplayLimits();                                           ///< Access function for #useDbDisplayLimits property - refer to #useDbDisplayLimits property for details
+    void setUseDbDisplayLimits (bool useDbDisplayLimitsIn);                  ///< Access function for #useDbDisplayLimits property - refer to #useDbDisplayLimits property for details
+    bool getUseDbDisplayLimits () const;                                     ///< Access function for #useDbDisplayLimits property - refer to #useDbDisplayLimits property for details
 
-    void setAlarmSeverityDisplayMode( AlarmSeverityDisplayModes value );    ///< Access function for #AlarmSeverityDisplayModes property - refer to #AlarmSeverityDisplayModes property for details
-    AlarmSeverityDisplayModes getAlarmSeverityDisplayMode ();               ///< Access function for #AlarmSeverityDisplayModes property - refer to #AlarmSeverityDisplayModes property for details
+    void setAlarmSeverityDisplayMode (const AlarmSeverityDisplayModes mode); ///< Access function for #AlarmSeverityDisplayModes property - refer to #AlarmSeverityDisplayModes property for details
+    AlarmSeverityDisplayModes getAlarmSeverityDisplayMode () const;          ///< Access function for #AlarmSeverityDisplayModes property - refer to #AlarmSeverityDisplayModes property for details
 
 signals:
     // Note, the following signals are common to many QE widgets,
@@ -402,41 +409,45 @@ signals:
     /// Applied to provary varible.
     void dbConnectionChanged (const bool& isConnected);
 
-    /// Internal use only. Used when changing a property value to force a re-display to reflect the new property value.
+    /// Internal use only. Used when changing a property value to force a
+    /// re-display to reflect the new property value.
     void requestResend();
 
 protected:
     void establishConnection( unsigned int variableIndex );
+    qcaobject::QCaObject* createQcaItem( unsigned int variableIndex );
     void stringFormattingChange() { emit requestResend();  }
 
     // Drag and Drop
     void dragEnterEvent(QDragEnterEvent *event) { qcaDragEnterEvent( event ); }
     void dropEvent(QDropEvent *event)           { qcaDropEvent( event ); }
     void mousePressEvent(QMouseEvent *event)    { qcaMousePressEvent( event ); }
-    void setDrop( QVariant drop );
-    QVariant getDrop();
+    // Use default getDrop/setDrop
 
     // Copy paste
-    QString copyVariable();
-    QVariant copyData();
+    QString copyVariable ();
+    QVariant copyData ();
+    void paste (QVariant s);
 
-    // QEAnalogIndicator hook functions.
+    // Override QEAnalogIndicator hook functions.
     //
-    QString getTextImage ();
-    BandList getBandList ();
+    QColor getBackgroundPaintColour () const;
+    QColor getForegroundPaintColour () const;
+
+    QString getTextImage () const;
+    BandList getBandList () const;
 
 private:
     void setup();
-    qcaobject::QCaObject* createQcaItem( unsigned int variableIndex );
-    Band createBand (const double lower, const double upper,  unsigned short severity);
+    bool useAlarmColours (QCaAlarmInfo& alarmInfo) const;
+    Band createBand (const double lower, const double upper,
+                     unsigned short severity) const;
 
     QEFloatingFormatting floatingFormatting;
     bool useDbPrecison;
     bool useDbDisplayLimits;
     AlarmSeverityDisplayModes alarmSeverityDisplayMode;
     bool isFirstUpdate;
-    QColor savedForegroundColour;
-    QColor savedBackgroundColour;
     QString theImage;
 
 private slots:

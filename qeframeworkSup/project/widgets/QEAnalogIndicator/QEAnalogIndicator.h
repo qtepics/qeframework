@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2018 Australian Synchrotron
+ *  Copyright (c) 2011-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -155,14 +155,6 @@ private:
     int mMajorMinorRatio;
     int mLogScaleInterval;
 
-    // Note: the getXxxxColour functions (line 160-ish) gets the Xxxx property colour.
-    // The getXxxxPaintColour functions return actual colour to for drawing the widget.
-    //
-    QColor getBorderPaintColour () const;
-    QColor getBackgroundPaintColour () const;
-    QColor getForegroundPaintColour () const;
-    QColor getFontPaintColour () const;
-
     void paintEvent (QPaintEvent *event);
 
     bool isLeftRight () const;
@@ -192,10 +184,19 @@ private:
     double calcFraction (const double value);
 
 protected:
-    // Returns thetest image to be displayed.
+    // Note: the getXxxxColour functions (line 190-ish) gets the Xxxx property colour.
+    // The getXxxxPaintColour functions return actual colour to for drawing the widget.
     // This may be overridden by a derived class.
     //
-    virtual QString getTextImage ();
+    virtual QColor getBorderPaintColour () const;
+    virtual QColor getBackgroundPaintColour () const;
+    virtual QColor getForegroundPaintColour () const;
+    virtual QColor getFontPaintColour () const;
+
+    // Returns the text image to be displayed.
+    // This may be overridden by a derived class.
+    //
+    virtual QString getTextImage () const;
 
     struct Band {
        double lower;
@@ -204,7 +205,8 @@ protected:
     };
 
     class BandList : public QList <Band> { };
-    virtual BandList getBandList ();
+
+    virtual BandList getBandList () const;
 
     void setIsActive (const bool value);
     bool getIsActive () const;

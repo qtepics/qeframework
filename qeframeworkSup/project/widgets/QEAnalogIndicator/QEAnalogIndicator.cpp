@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2018 Australian Synchrotron
+ *  Copyright (c) 2011-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -41,7 +41,7 @@
 #define  _USE_MATH_DEFINES
 #include <math.h>
 
-#define DEBUG qDebug () << __FUNCTION__ << __LINE__
+#define DEBUG qDebug () "QEAnalogIndicator" << __LINE__ << __FUNCTION__ << "  "
 
 #define MINIMUM_SPAN        0.000001
 #define RADIANS_PER_DEGREE  (M_PI / 180.0)
@@ -949,7 +949,7 @@ void QEAnalogIndicator::paintEvent (QPaintEvent * /* event - make warning go awa
 
 //------------------------------------------------------------------------------
 //
-QString QEAnalogIndicator::getTextImage ()
+QString QEAnalogIndicator::getTextImage () const
 {
    QString result;
 
@@ -959,7 +959,7 @@ QString QEAnalogIndicator::getTextImage ()
 
 //------------------------------------------------------------------------------
 //
-QEAnalogIndicator::BandList QEAnalogIndicator::getBandList ()
+QEAnalogIndicator::BandList QEAnalogIndicator::getBandList () const
 {
    BandList result;
 

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012 Australian Synchrotron
+ *  Copyright (c) 2012-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -45,10 +45,10 @@ public:
        DISPLAY_ALARM_STATE_WHEN_IN_ALARM
     };
 
-    userLevelTypes::userLevels getUserLevelVisibility();
+    userLevelTypes::userLevels getUserLevelVisibility() const;
     void setUserLevelVisibility( userLevelTypes::userLevels level );
 
-    userLevelTypes::userLevels getUserLevelEnabled();
+    userLevelTypes::userLevels getUserLevelEnabled() const;
     void setUserLevelEnabled( userLevelTypes::userLevels level );
 
     bool getApplicationEnabled() const;
@@ -56,16 +56,20 @@ public:
 
     // visible (widget is visible outside 'Designer')
     void setRunVisible( bool visibleIn );
-    bool getRunVisible();
+    bool getRunVisible() const;
 
-    void setDisplayAlarmState( bool displayAlarmStateIn ); // DEPRECATED. USE setDisplayAlarmStateOption(displayAlarmStateOptions) INSTEAD
-    bool getDisplayAlarmState();  // DEPRECATED. USE displayAlarmStateOptions getDisplayAlarmStateOption() INSTEAD
+    // DEPRECATED. USE setDisplayAlarmStateOption(displayAlarmStateOptions) INSTEAD
+    Q_DECL_DEPRECATED
+    void setDisplayAlarmState( bool displayAlarmStateIn );
+
+    // DEPRECATED. USE displayAlarmStateOptions getDisplayAlarmStateOption() INSTEAD
+    Q_DECL_DEPRECATED
+    bool getDisplayAlarmState() const;
 
     void setDisplayAlarmStateOption( displayAlarmStateOptions displayAlarmStateIn );
-    displayAlarmStateOptions getDisplayAlarmStateOption();
+    displayAlarmStateOptions getDisplayAlarmStateOption() const;
 
 protected:
-
     void checkVisibilityEnabledLevel( userLevelTypes::userLevels level );
 
 private:
