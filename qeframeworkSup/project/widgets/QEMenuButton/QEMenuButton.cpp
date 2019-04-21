@@ -1,6 +1,9 @@
 /*  QEMenuButton.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2015-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,23 +18,20 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015,2016,2017 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEMenuButton.h"
 #include <QDebug>
-
 #include <QECommon.h>
 #include <QEStringFormatting.h>
 #include <QEMenuButtonData.h>
 #include <QEMenuButtonModel.h>
-#include <QEMenuButton.h>
 
-#define DEBUG  qDebug () << "QEMenuButton:" << __FUNCTION__ << __LINE__
+#define DEBUG  qDebug () << "QEMenuButton" << __LINE__ << __FUNCTION__ << " "
 
 #define ACTION_DATA  "QE_MENU_BUTTON_ACTION_DATA"
 
@@ -119,7 +119,7 @@ QEMenuButton::~QEMenuButton ()
 //
 QSize QEMenuButton::sizeHint () const
 {
-   return QSize (110, 27);
+   return QSize (110, 25);
 }
 
 //------------------------------------------------------------------------------
@@ -194,6 +194,9 @@ void QEMenuButton::menuTriggered (QAction* action)
    //
    if (!buttonData.variable.isEmpty()) {
       qcaobject::QCaObject* qca = new qcaobject::QCaObject (buttonData.variable, this, 0);
+
+      // Store the required action data as a dynamic qca property.
+      //
       qca->setProperty (ACTION_DATA, action->data ());
 
       // We are writing, only need wait for a successful connection.
@@ -201,6 +204,11 @@ void QEMenuButton::menuTriggered (QAction* action)
       //
       QObject::connect (qca,  SIGNAL (connectionChanged (QCaConnectionInfo&, const unsigned int&)),
                         this, SLOT   (connectionChanged (QCaConnectionInfo&, const unsigned int&)));
+
+      // Need to explicity subscribe, singleShotRead or connectChannel
+      // As we are write only, connectChannel will do.
+      //
+      qca->connectChannel ();
    }
 }
 
@@ -230,7 +238,7 @@ void QEMenuButton::writeToVariable (qcaobject::QCaObject* qca)
          break;
 
       case QEStringFormatting::FORMAT_DEFAULT:
-         // TODO - fix this option, but go with string for now.
+         /// TODO - fix this option, but go with string for now.
 
       case QEStringFormatting::FORMAT_STRING:
          pvData = QVariant (buttonData.variableValue);
@@ -254,7 +262,8 @@ void QEMenuButton::writeToVariable (qcaobject::QCaObject* qca)
             << buttonData.format <<  " failed.";
    }
 
-   // TODO: initate timed delete of the qca object - or can we just delete it now??
+   // The object will be deleted when control returns to the event loop.
+   // Or can we just delete it now??
    //
    qca->deleteLater();
 }
@@ -315,6 +324,38 @@ void QEMenuButton::setLabelTextProperty (const QString& labelTextIn)
 QString QEMenuButton::getLabelTextProperty() const
 {
    return this->button->text ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEMenuButton::setIcon (const QIcon& icon)
+{
+   if (this->button) {
+      this->button->setIcon (icon);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+QIcon QEMenuButton::getIcon () const
+{
+   return this->button->icon ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEMenuButton::setIconSize (const QSize& size)
+{
+   if (this->button) {
+      this->button->setIconSize (size);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+QSize QEMenuButton::getIconSize () const
+{
+   return this->button->iconSize ();
 }
 
 //------------------------------------------------------------------------------

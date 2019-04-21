@@ -1,6 +1,9 @@
 /*  QEMenuButton.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2015-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015,2017,2018 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
@@ -29,6 +30,7 @@
 #include <QAction>
 #include <QColor>
 #include <QHBoxLayout>
+#include <QIcon>
 #include <QMetaType>
 #include <QMenu>
 #include <QPushButton>
@@ -71,7 +73,12 @@ public:
    Q_PROPERTY (QString defaultSubstitutions READ getSubstitutionsProperty WRITE setSubstitutionsProperty)
 
    /// Label Text
+   // TODO - rebadge to text
    Q_PROPERTY (QString labelText READ getLabelTextProperty WRITE setLabelTextProperty)
+
+   ///
+   Q_PROPERTY (QIcon icon     READ getIcon WRITE setIcon)
+   Q_PROPERTY (QSize iconSize READ getIconSize WRITE setIconSize)
 
    // This property stores the user info.
    // The "Edit User Info..." context menu item must be used to edit this.
@@ -88,15 +95,25 @@ public:
    void setSubstitutionsProperty (const QString& substitutions);
    QString getSubstitutionsProperty () const;
 
-   // Label text must be mapped to the button
+   // Label text must be mapped to the button.
+   // Note: currently, any substitutions apply to the menu items only, not
+   // the button text.
+   //
    void setLabelTextProperty (const QString& labelText);
    QString getLabelTextProperty () const;
+
+   void setIcon (const QIcon& icon);
+   QIcon getIcon () const;
+
+   void setIconSize (const QSize& size);
+   QSize getIconSize () const;
 
    void setMenuString (const QString& s);
    QString getMenuString () const;
 
 signals:
-   /// Internal use only. Request a new GUI is created. Typically, this is caught by the QEGui application.
+   /// Internal use only. Request a new GUI is created. Typically, this is caught
+   /// by the QEGui or bespoke display manager application's requestAction slot.
    void newGui (const QEActionRequests& request);
 
 protected:
