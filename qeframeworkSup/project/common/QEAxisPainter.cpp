@@ -467,16 +467,18 @@ bool QEAxisPainter::isLeftRight () const
 
 //------------------------------------------------------------------------------
 //
-void QEAxisPainter::paintEvent (QPaintEvent *)
+void QEAxisPainter::draw (QWidget* widget)
 {
+   if (!widget) return;  // sanity check
+
    // Tick sizes on axis
    //
    const int markerTick = 14;
    const int minorTick = 5;
    const int majorTick = 10;
-   const int pointSize = this->font ().pointSize();
+   const int pointSize = widget->font ().pointSize();
 
-   QPainter painter (this);
+   QPainter painter (widget);
    QPen pen;
    QBrush brush;
    QColor penColour;
@@ -496,8 +498,8 @@ void QEAxisPainter::paintEvent (QPaintEvent *)
    // Alias/edge adjustment.
    // Note: Actual size appears to be 1 less than widget width/height.
    //
-   width  = this->geometry ().width () - 1;
-   height = this->geometry ().height () - 1;
+   width  = widget->geometry ().width () - 1;
+   height = widget->geometry ().height () - 1;
 
    switch (this->mOrientation) {
 
@@ -685,17 +687,30 @@ void QEAxisPainter::paintEvent (QPaintEvent *)
    if (this->mAutoFixedSize) {
       if(this->isLeftRight ()) {
          int requiredHeight = maxTextHeight + markerTick + this->mGap;
-         if ((this->minimumHeight () != requiredHeight) &&
-             (this->maximumHeight () != requiredHeight)) {
-            this->setFixedHeight (requiredHeight);
+         if ((widget->minimumHeight () != requiredHeight) &&
+             (widget->maximumHeight () != requiredHeight)) {
+            widget->setFixedHeight (requiredHeight);
          }
       } else {
          int requiredWidth = maxTextWidth + markerTick + this->mGap;
-         if ((this->minimumWidth () != requiredWidth) &&
-             (this->maximumWidth () != requiredWidth)) {
-            this->setFixedWidth (requiredWidth);
+         if ((widget->minimumWidth () != requiredWidth) &&
+             (widget->maximumWidth () != requiredWidth)) {
+            widget->setFixedWidth (requiredWidth);
          }
       }
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAxisPainter::paintEvent (QPaintEvent *)
+{
+   // Do we have a parent?
+   // Would we even get a paint event if we didn't?
+   //
+   QWidget* p = qobject_cast <QWidget*>(this->parent());
+   if (p) {
+      this->draw (this);
    }
 }
 
@@ -709,10 +724,10 @@ double QEAxisPainter::calcFraction (const double x)
    //
    if (this->getLogScale ()) {
       result = (LOG10 (x)              - LOG10 (this->mMinimum)) /
-            (LOG10 (this->mMaximum) - LOG10 (this->mMinimum));
+               (LOG10 (this->mMaximum) - LOG10 (this->mMinimum));
    } else {
       result = (x              - this->mMinimum) /
-            (this->mMaximum - this->mMinimum);
+               (this->mMaximum - this->mMinimum);
    }
    result = LIMIT (result, 0.0, 1.0);
 

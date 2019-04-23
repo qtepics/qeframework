@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2015-2019 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2015,2016 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -36,24 +36,31 @@
 
 #include <QEFrameworkLibraryGlobal.h>
 
-// Support widget for QAnalogSlider (and maybe in future) for QAnalogIndicator
-// It could be promoted to a plugin widget in its own right if ever necessary.
-//
+/// This class provides a support widget for QAnalogSlider, QEDistribution,
+/// QEHistogram, and maybe in  the future for QAnalogIndicator.
+/// This class can also be used as a non widget object by constructing it without
+/// a parent and calling the draw function with the target widget as parameter.
+///
+/// It could be promoted to a plugin widget in its own right if ever necessary
+/// by adding properties and calling it up in the plugin library.
+///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAxisPainter : public QWidget {
    Q_OBJECT
 public:
    /// \enum    Orientations
    /// The orientation of the axis
-   enum Orientations { Left_To_Right,      ///< Left to right
-                       Top_To_Bottom,      ///< Top to bottom
-                       Right_To_Left,      ///< Right to left
-                       Bottom_To_Top       ///< Bottom to top
-                   };
+   enum Orientations { 
+       Left_To_Right,      ///< Left to right
+       Top_To_Bottom,      ///< Top to bottom
+       Right_To_Left,      ///< Right to left
+       Bottom_To_Top       ///< Bottom to top
+   };
    Q_ENUMS (Orientations)
 
-   enum TextPositions { BelowLeft,  ///< Below when Orientation is horizontal, Left when Orientation is vertical
-                        AboveRight  ///< Above when Orientation is horizontal, Right when Orientation is vertical
-                      };
+   enum TextPositions {
+       BelowLeft,  ///< Below when Orientation is horizontal, Left when Orientation is vertical
+       AboveRight  ///< Above when Orientation is horizontal, Right when Orientation is vertical
+   };
    Q_ENUMS (TextPositions)
 
 #define NUMBER_OF_MARKERS   4
@@ -72,7 +79,7 @@ public:
    double getMaximum () const;
 
    // Set display module, e.g. 24.0 for hours in a day, or 360.0 for degrees.
-   // Zero means no modulo processing.
+   // Zero means no modulo processing. Default is 0.0
    //
    void setModulo (const double modulo);
    double getModulo () const;
@@ -121,9 +128,9 @@ public:
    void setPenColour (const QColor colour);
    QColor getPenColour () const;
 
-   // Set/get axis start/finish indentation with respect to widget width when the
-   // orientation is horizontal, or with respect to widget height when the orientation
-   // is vertical. Default is 20.
+   // Set/get axis start/finish indentation with respect to widget width when
+   // the orientation is horizontal, or with respect to widget height when the
+   // orientation is vertical. Default is 20.
    //
    void setIndent (const int topLeftIndent,
                    const int rightBottomIndent);
@@ -133,9 +140,9 @@ public:
    void setIndent (const int indent);  // sets top/left and right/bottom to same value.
    int getIndent  () const;            // returns average
 
-   // Set/get axis gap or margin from top edge of the widget when the orientation is
-   // horizontal, or the vertical gap from the left/right edge when the orientation
-   // vertical. Default is 2.
+   // Set/get axis gap or margin from top edge of the widget when the orientation
+   // is horizontal, or the vertical gap from the left/right edge when the
+   // orientation vertical. Default is 2.
    //
    void setGap (const int gap);
    int getGap  () const;
@@ -161,9 +168,14 @@ public:
    double getMarkerValue (const int index) const;
 
    // Set/get the band background colours. Default is an empty list.
+   // Often used to denote major/minor alarm ranges.
    //
    void setColourBandList (const QEColourBandList& bandList);
    QEColourBandList getColourBandList () const;
+
+   // Draw the axis on the nominated widget.
+   //
+   void draw (QWidget* widget);
 
 protected:
    void paintEvent (QPaintEvent *event);
