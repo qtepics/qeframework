@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2017-2018 Australian Synchrotron
+ *  Copyright (c) 2017-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -41,9 +41,11 @@
 #include <QEComboBox.h>
 #include <QEConfiguredLayout.h>
 #include <QECorrelation.h>
+#include <QEDistribution.h>
 #include <QEFileBrowser.h>
 #include <QEFileImage.h>
 #include <QEForm.h>
+#include <QEFormStateChange.h>
 #include <QEFormGrid.h>
 #include <QEFrame.h>
 #include <QEPvFrame.h>
@@ -101,9 +103,11 @@ QE_IMPLEMENT_PLUGIN_MANAGER (QERadioButton,       QECONTROL,  ":/qe/plugin/QERad
 QE_IMPLEMENT_PLUGIN_MANAGER (QEComboBox,          QECONTROL,  ":/qe/plugin/QEComboBox.png",          false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEConfiguredLayout,  QESUPPORT,  ":/qe/plugin/QEConfiguredLayout.png",  false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QECorrelation,       QEGRAPHIC,  ":/qe/plugin/QECorrelation.png",       false)
+QE_IMPLEMENT_PLUGIN_MANAGER (QEDistribution,      QEGRAPHIC,  ":/qe/plugin/QEDistribution.png",      false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEFileBrowser,       QECONTROL,  ":/qe/plugin/QEFileBrowser.png",       false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEFileImage,         QEMONITOR,  ":/qe/plugin/QEFileImage.png",         false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEForm,              QESUPPORT,  ":/qe/plugin/QEForm.png",              false)
+QE_IMPLEMENT_PLUGIN_MANAGER (QEFormStateChange,   QESUPPORT,  ":/qe/plugin/QEFormStateChange.png",   false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEFormGrid,          QESUPPORT,  ":/qe/plugin/QEFormGrid.png",          false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEFrame,             QESUPPORT,  ":/qe/plugin/QEFrame.png",             true)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEPvFrame,           QEMONITOR,  ":/qe/plugin/QEPvFrame.png",           true)

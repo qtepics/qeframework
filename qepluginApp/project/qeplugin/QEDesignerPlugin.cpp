@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -30,11 +30,13 @@
 #include <QEMenuButtonManager.h>
 #include <QEPeriodicManager.h>
 
-/*
-    Add all plugins that will be provided in QT Designer.
-*/
+//------------------------------------------------------------------------------
+// Add all plugins that will be provided in QT Designer.
+//
 QEWidgets::QEWidgets(QObject *parent) : QObject(parent) {
     // note: maintain in alphabetical order.
+    // this affects the order as they appear in designer.
+    //
     widgets.append(new QEAnalogProgressBarManager(this));
     widgets.append(new QEAnalogSliderManager(this));
     widgets.append(new QEBitStatusManager(this));
@@ -43,10 +45,12 @@ QEWidgets::QEWidgets(QObject *parent) : QObject(parent) {
     widgets.append(new QEComboBoxManager(this));
     widgets.append(new QEConfiguredLayoutManager(this));
     widgets.append(new QECorrelationManager(this));
+    widgets.append(new QEDistributionManager(this));
     widgets.append(new QEFileBrowserManager(this));
     widgets.append(new QEFileImageManager(this));
-    widgets.append(new QEFormManager(this));
     widgets.append(new QEFormGridManager(this));
+    widgets.append(new QEFormManager(this));
+    widgets.append(new QEFormStateChangeManager(this));
     widgets.append(new QEGeneralEditManager(this));
     widgets.append(new QEImageManager(this));
     widgets.append(new QELabelManager(this));

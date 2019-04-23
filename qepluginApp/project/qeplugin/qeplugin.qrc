@@ -13,10 +13,12 @@
         <file>QEComboBox.png</file>
         <file>QEConfiguredLayout.png</file>
         <file>QECorrelation.png</file>
+        <file>QEDistribution.png</file>
         <file>QEDescriptionLabel.png</file>
         <file>QEFileBrowser.png</file>
         <file>QEFileImage.png</file>
         <file>QEForm.png</file>
+        <file>QEFormStateChange.png</file>
         <file>QEFormGrid.png</file>
         <file>QEFrame.png</file>
         <file>QEGeneralEdit.png</file>
