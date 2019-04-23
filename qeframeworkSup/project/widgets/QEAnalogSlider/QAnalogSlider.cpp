@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2018 Australian Synchrotron
+ *  Copyright (c) 2015-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -24,16 +24,14 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QAnalogSlider.h"
 #include <stdio.h>
 #include <QDebug>
-
 #include <QPushButton>
 #include <QEPlatform.h>
 #include <QECommon.h>
 
-#include "QAnalogSlider.h"
-
-#define DEBUG qDebug () << "QAnalogSlider" << __FUNCTION__ << __LINE__
+#define DEBUG qDebug () << "QAnalogSlider" << __LINE__ << __FUNCTION__ << "  "
 
 // Keep these consistent with Axis Painter.
 //
@@ -552,18 +550,32 @@ void QAnalogSlider::sliderPositionChanged (const int posn)
 
 //------------------------------------------------------------------------------
 //
-void QAnalogSlider::saveButtonClicked (bool)
+void QAnalogSlider::setSavedValue (const double savedValueIn)
 {
-   this->savedValue = this->getValue ();
+   this->savedValue = savedValueIn;
 
    QString format;
    QString x;
 
    format.sprintf ("%%+0.%df", this->mPrecision);
-   x.sprintf(format.toStdString().c_str(), this->savedValue);
+   x.sprintf (format.toStdString().c_str(), this->savedValue);
    this->leftImage->setText (x);
 
    this->axisPainter->setMarkerValue (SAVE_REVERT_MARKER, this->savedValue);
+}
+
+//------------------------------------------------------------------------------
+//
+double QAnalogSlider::getSavedValue () const
+{
+   return this->savedValue;
+}
+
+//------------------------------------------------------------------------------
+//
+void QAnalogSlider::saveButtonClicked (bool)
+{
+   this->setSavedValue (this->getValue ());
 }
 
 //------------------------------------------------------------------------------
