@@ -52,6 +52,8 @@
 //
 #define MAXIMUM_HISTORY_POINTS   8000
 
+#define CALC_DEADBAND            1.0e-20
+
 // Can't declare black as QColor (0x000000)
 //
 static const QColor clWhite (0xFF, 0xFF, 0xFF, 0xFF);
@@ -362,6 +364,7 @@ void QEStripChartItem::setPvName (const QString& pvName, const QString& substitu
       this->lastExpressionValueIsDefined = false;
 
       this->dataKind = CalculationData;
+      this->inUseMenu->setIsCalculation (true);
       this->caLabel->setStyleSheet (calcStyle);
       this->setCaption ();
 
@@ -371,6 +374,7 @@ void QEStripChartItem::setPvName (const QString& pvName, const QString& substitu
       this->caLabel->activate();
       this->caLabel->setStyleSheet (pvDataStyle);
       this->dataKind = PVData;
+      this->inUseMenu->setIsCalculation (false);
       this->setCaption ();
 
       // Set up connections.
@@ -871,7 +875,7 @@ void QEStripChartItem::calculateAndUpdate (const QCaDateTime& datetimeIn,
       //
       double delta = value - this->lastExpressionValue;
       delta = ABS (delta);
-      if (delta < 1.0e-20) {
+      if (delta < CALC_DEADBAND) {
          // Insignificant change.
          //
          return;
@@ -880,7 +884,8 @@ void QEStripChartItem::calculateAndUpdate (const QCaDateTime& datetimeIn,
 
    // Form data point and "send" to PV data update slot function.
    //
-   QCaAlarmInfo alarm (0, okay ? NO_ALARM : INVALID_ALARM);
+   QCaAlarmInfo alarm (okay ? NO_ALARM : CALC_ALARM,       // status
+                       okay ? NO_ALARM : INVALID_ALARM);   // severity
    this->setDataValue (QVariant (value), alarm, datetime, 0);
 
    // Save for next update so that we can detect status change or dead band exceeded.
@@ -1151,7 +1156,7 @@ void QEStripChartItem::setArchiveData (const QObject* userData, const bool okay,
 //
 void QEStripChartItem::readArchive ()
 {
-   if (!this->isPvData ()) return;  // sainity check
+   if (!this->isPvData ()) return;  // sanity check
 
    const double chartDuration =  this->chart->getDuration();  // in seconds
 
@@ -1204,7 +1209,147 @@ void QEStripChartItem::readArchive ()
 
 //------------------------------------------------------------------------------
 //
-void QEStripChartItem:: normalise () {
+void QEStripChartItem::recalcualteBufferedValues ()
+{
+   const QCaDateTime start_time = this->chart->getStartDateTime ();
+   const QCaDateTime end_time = this->chart->getEndDateTime ();
+   const double duration = this->chart->getDuration ();
+
+   if (!this->isCalculation ()) return;    // sanity check
+   if (!this->expressionIsValid) return;   // sanity check
+
+   QCaDataPointList pointListList [QEStripChart::NUMBER_OF_PVS];
+   int indexList [QEStripChart::NUMBER_OF_PVS];
+
+   // First grab the current data for all items on the chart/
+   //
+   for (int slot = 0; slot < QEStripChart::NUMBER_OF_PVS; slot++) {
+      QEStripChartItem* item = this->chart->getItem (slot);
+      if (item && item->isInUse ()) {
+         pointListList [slot] = item->determinePlotPoints ();
+      } else {
+         pointListList [slot].clear();
+      }
+   }
+
+   // Aim for approx 4000 points, but set min delata the same as the
+   // realtime delta.
+   //
+   qint64 deltaTimeMS = (1000 * duration) / 4000;
+   if (deltaTimeMS < 100) deltaTimeMS = 100;
+
+   QCaDataPointList result;
+   const int n = 1000 * duration / deltaTimeMS + 2;
+   result.reserve (n);
+
+   // intialise time indices
+   //
+   for (int slot = 0; slot < QEStripChart::NUMBER_OF_PVS; slot++) {
+      indexList [slot] = 0;
+   }
+
+   // We keep tack of the previos item so that we can sensibily check
+   // for insignificant value changes.
+   //
+   double previousValue = 0.0;
+   bool previousWasOkay = false;
+
+   for (QCaDateTime time = start_time; time <= end_time; time = time.addMSecs(deltaTimeMS)) {
+
+      QEStripChartItem::CalcInputs values;
+
+      // First initialise all values - undefined artifacts yield zero.
+      //
+      for (int slot = 0; slot < QEStripChart::NUMBER_OF_PVS; slot++) {
+         values [slot] = 0.0;
+      }
+
+      // Find appropriate data indicies.
+      //
+      bool atLeastOneInput = false;
+
+      for (int slot = 0; slot < QEStripChart::NUMBER_OF_PVS; slot++) {
+         // update index while time of the index is < time
+         //
+         int w = indexList [slot];
+         while ((w+1 < pointListList [slot].count()) &&
+                (pointListList [slot].value(w+1).datetime < time)) w++;
+         indexList [slot] = w;
+
+         if (w < pointListList [slot].count()) {
+             QCaDataPoint datum = pointListList [slot].value(w);
+             if (datum.datetime < time && datum.isDisplayable()) {
+                values [slot] = datum.value;
+                atLeastOneInput = true;
+             }
+         }
+      }
+
+      QCaDataPoint resultItem;
+      bool isOkay = false;
+
+      if (atLeastOneInput) {
+         // Form user arguments for expression evaluation.
+         //
+         QEExpressionEvaluation::CalculateArguments userArgs;
+         for (int i = 0; i < ARRAY_LENGTH (userArgs [0]); i++) {
+            double vi = (i < QEStripChart::NUMBER_OF_PVS) ? values [i] : 0.0;
+            userArgs [QEExpressionEvaluation::Normal][i] = vi;
+            userArgs [QEExpressionEvaluation::Primed][i] = 0.0;
+         }
+
+         // Run the calculation.
+         //
+         resultItem.value = this->calculator->evaluate (userArgs, &isOkay);
+
+         // Check for NaN / Infinte  ans set alarm status accordingly.
+         //
+         if (QEPlatform::isNaN (resultItem.value) || QEPlatform::isInf (resultItem.value) ) {
+            isOkay = false;
+         }
+      } else {
+         isOkay = false;
+         resultItem.value = 0.0;
+      }
+
+      resultItem.datetime = time;
+      QCaAlarmInfo alarm (isOkay ? NO_ALARM : CALC_ALARM,       // status
+                          isOkay ? NO_ALARM : INVALID_ALARM);   // severity
+      resultItem.alarm = alarm;
+
+      if (isOkay && previousWasOkay) {
+         // Was valid - is still valid.
+         //
+         double delta = resultItem.value - previousValue;
+         delta = ABS (delta);
+         if (delta < CALC_DEADBAND) {
+            // Insignificant change.
+            //
+            continue;
+         }
+      }
+
+      // Don't add non-displayable items at start of the result data set.
+      //
+      if (isOkay || (result.count() > 0)) {
+         result.append (resultItem);
+
+         // Lastly setup previous item state info for next time through the loop.
+         //
+         previousValue = resultItem.value;
+         previousWasOkay = isOkay;
+      }
+   }
+
+   // Lastly inject as quazi historical/archive data.
+   // This handles preserving and merging this data with the current real time data
+   //
+   this->setArchiveData (this, true, result, this->getPvName(), "recalcualteBufferedValues");
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChartItem::normalise () {
    // Just leverage off the context menu handler.
    //
    this->contextMenuSelected (QEStripChartNames::SCCM_SCALE_PV_AUTO);
@@ -1514,6 +1659,10 @@ void QEStripChartItem::contextMenuSelected (const QEStripChartNames::ContextMenu
 
       case QEStripChartNames::SCCM_READ_ARCHIVE:
          this->readArchive();
+         break;
+
+      case QEStripChartNames::SCCM_RECALCULATE:
+         this->recalcualteBufferedValues();
          break;
 
       case  QEStripChartNames::SCCM_SCALE_CHART_AUTO:

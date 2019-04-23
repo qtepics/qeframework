@@ -1,6 +1,9 @@
 /*  QEStripChartContextMenu.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -46,7 +47,17 @@ public:
    explicit QEStripChartContextMenu (bool inUse, QWidget *parent = 0);
    virtual ~QEStripChartContextMenu ();
 
-   void setPredefinedNames (const QStringList & pvList);
+   // Allow setting of specific action attributes.
+   //
+   void setActionChecked (const QEStripChartNames::ContextMenuOptions option, const bool checked);
+   void setActionEnabled (const QEStripChartNames::ContextMenuOptions option, const bool enabled);
+   void setActionVisible (const QEStripChartNames::ContextMenuOptions option, const bool visible);
+   void setActionText    (const QEStripChartNames::ContextMenuOptions option, const QString& caption);
+
+   // Conveniance functions for above.
+   //
+   void setIsCalculation   (const bool isCalculation);
+   void setPredefinedNames (const QStringList& pvList);
    void setUseReceiveTime  (const bool useReceiveTime);
    void setArchiveReadHow  (const QEArchiveInterface::How how);
    void setLineDrawMode    (const QEStripChartNames::LineDrawModes mode);
@@ -60,20 +71,14 @@ signals:
 private:
    bool inUse;
 
-   QAction *predefinedPVs [QEStripChartNames::NumberPrefefinedItems];
+   QAction* actionList [QEStripChartNames::NumberMenuItems];
 
    // Utility function to create and set up an action.
    //
-   QAction* make (QMenu *parent,
+   QAction* make (QMenu* parent,
                   const QString &caption,
                   const bool checkable,
                   const QEStripChartNames::ContextMenuOptions option);
-
-   QAction* serverTime;
-   QAction* clientTime;
-   QAction* archiveModeActions [5];
-   QAction* lineDrawModeActions [3];
-   QAction* linePlotModeActions [2];
 
 private slots:
    void contextMenuTriggered (QAction* selectedItem);

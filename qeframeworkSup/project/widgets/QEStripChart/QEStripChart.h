@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2018 Australian Synchrotron
+ *  Copyright (c) 2012-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -69,7 +69,9 @@ class QEGraphic;
 //
 class QEStripChartItem;
 
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStripChart : public QEAbstractDynamicWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStripChart :
+   public QEAbstractDynamicWidget
+{
    Q_OBJECT
 
 public:
@@ -244,9 +246,8 @@ protected:
    void evaluateAllowDrop ();
 
 private:
-   // Recalculates plots chart data
-   //
-   void recalculateData ();                 // set flag to trigger a recalculation
+   void doCurrentValueCalculations ();      // calculates based on current chart values
+
    void plotData ();
    QDateTime timeAt (const double x) const; // get time corresponding to graphic x coord.
 

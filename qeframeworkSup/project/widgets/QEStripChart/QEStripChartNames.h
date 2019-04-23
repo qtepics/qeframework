@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2013-2019 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -127,6 +127,7 @@ public:
       // Item specific menu options.
       //
       SCCM_READ_ARCHIVE,
+      SCCM_RECALCULATE,
       //
       SCCM_SCALE_CHART_AUTO,
       SCCM_SCALE_CHART_PLOTTED,
@@ -180,6 +181,8 @@ public:
    //
    static const ContextMenuOptions ContextMenuItemFirst = SCCM_READ_ARCHIVE;
    static const ContextMenuOptions ContextMenuItemLast  = SCCM_PREDEFINED_10;
+
+   static const int NumberMenuItems = (ContextMenuItemLast - ContextMenuItemFirst + 1);
    static const int NumberPrefefinedItems = (SCCM_PREDEFINED_10 - SCCM_PREDEFINED_01 + 1);
 };
 

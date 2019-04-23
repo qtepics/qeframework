@@ -106,9 +106,10 @@ public:
    QEDisplayRanges getLoprHopr (bool doScale);          // returns CA specified operating range
    QEDisplayRanges getDisplayedMinMax (bool doScale);   // returns range of values currently plotted
    QEDisplayRanges getBufferedMinMax (bool doScale);    // returns range of values that could be plotted
-   QCaDataPointList determinePlotPoints ();
+   QCaDataPointList determinePlotPoints ();             // returns set of points currently displayed
 
    void readArchive ();                                 // initiate archive read request
+   void recalcualteBufferedValues();                    // re-calculate values.
    void normalise ();                                   // scale LOPR/HOPR to 0 .. 100
    void plotData ();
 

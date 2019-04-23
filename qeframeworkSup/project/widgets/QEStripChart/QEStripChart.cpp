@@ -514,7 +514,7 @@ const QCaDataPoint* QEStripChart::findNearestPoint (const QPointF& posn,
 
 //------------------------------------------------------------------------------
 //
-void QEStripChart::recalculateData ()
+void QEStripChart::doCurrentValueCalculations ()
 {
    const QCaDateTime datetime = QCaDateTime::currentDateTime ().toUTC ();
 
@@ -1277,7 +1277,7 @@ void QEStripChart::tickTimeout ()
 
    // Evaluate at (approx) 10 Hz.
    if ((this->tickTimerCount % 2) == 0) {
-      this->recalculateData ();
+      this->doCurrentValueCalculations ();
    }
 
    if ((this->tickTimerCount % 20) == 0) {

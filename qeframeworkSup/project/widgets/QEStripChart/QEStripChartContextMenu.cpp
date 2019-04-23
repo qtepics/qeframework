@@ -1,6 +1,9 @@
 /*  QEStripChartContextMenu.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -38,37 +39,24 @@ QEStripChartContextMenu::QEStripChartContextMenu (bool inUseIn, QWidget *parent)
 {
    QMenu *menu;
    QAction *action;
-   QEStripChartNames::ContextMenuOptions option;
-
-   unsigned int j;
 
    this->inUse = inUseIn;
 
+   // Ensure all actions are null unless otherwise defined.
+   //
+   for (int j = 0; j < ARRAY_LENGTH (this->actionList); j++) {
+      this->actionList [j] = NULL;
+   }
+
    this->setTitle ("PV Item");
-
-   this->serverTime = NULL;
-   this->clientTime = NULL;
-
-   for (j = 0; j < ARRAY_LENGTH (this->archiveModeActions); j++) {
-      this->archiveModeActions [j] = NULL;
-   }
-
-   for (j = 0; j < ARRAY_LENGTH (this->lineDrawModeActions); j++) {
-      this->lineDrawModeActions [j] = NULL;
-   }
-
-   for (j = 0; j < ARRAY_LENGTH (this->linePlotModeActions); j++) {
-      this->linePlotModeActions [j] = NULL;
-   }
-
-   for (j = 0 ; j < ARRAY_LENGTH (this->predefinedPVs); j++) {
-      this->predefinedPVs [j] = NULL;
-   }
 
    // Note: action items are not enabled until corresponding functionallity is implemented.
    //
    if (inUseIn) {
       this->make (this, "Read Archive",                        false, QEStripChartNames::SCCM_READ_ARCHIVE);
+      this->make (this, "Re Calculate",                        false, QEStripChartNames::SCCM_RECALCULATE);
+
+      this->setIsCalculation (false);
 
       menu = new QMenu ("Scale chart to this PV's", this);
       this->addMenu (menu);
@@ -88,35 +76,23 @@ QEStripChartContextMenu::QEStripChartContextMenu (bool inUseIn, QWidget *parent)
       menu = new QMenu ("Mode", this);
       this->addMenu (menu);
 
-      this->linePlotModeActions [QEStripChartNames::lpmRectangular] =
       this->make (menu, "Rectangular",                         true,  QEStripChartNames::SCCM_PLOT_RECTANGULAR);
-      this->linePlotModeActions [QEStripChartNames::lpmSmooth] =
       this->make (menu, "Smooth",                              true,  QEStripChartNames::SCCM_PLOT_SMOOTH);
 
-      this->serverTime =
       this->make (menu, "User PV Process Time",                true,  QEStripChartNames::SCCM_PLOT_SERVER_TIME);
-      this->clientTime =
       this->make (menu, "Use Receive Time",                    true,  QEStripChartNames::SCCM_PLOT_CLIENT_TIME);
 
       menu->addSeparator();
-      this->archiveModeActions [QEArchiveInterface::Linear] =
       this->make (menu, "Linear",                              true,  QEStripChartNames::SCCM_ARCH_LINEAR);
-      this->archiveModeActions [QEArchiveInterface::PlotBinning] =
       this->make (menu, "Plot Binning",                        true,  QEStripChartNames::SCCM_ARCH_PLOTBIN);
-      this->archiveModeActions [QEArchiveInterface::Raw] =
       this->make (menu, "Raw",                                 true,  QEStripChartNames::SCCM_ARCH_RAW);
-      this->archiveModeActions [QEArchiveInterface::SpreadSheet] =
       this->make (menu, "Spread Sheet",                        true,  QEStripChartNames::SCCM_ARCH_SHEET);
-      this->archiveModeActions [QEArchiveInterface::Averaged] =
       this->make (menu, "Averaged",                            true,  QEStripChartNames::SCCM_ARCH_AVERAGED);
 
       menu = new QMenu ("Line", this);
       this->addMenu (menu);
-      this->lineDrawModeActions [QEStripChartNames::ldmHide] =
       this->make (menu, "Hide",                                true,  QEStripChartNames::SCCM_LINE_HIDE);
-      this->lineDrawModeActions [QEStripChartNames::ldmRegular] =
       this->make (menu, "Regular",                             true,  QEStripChartNames::SCCM_LINE_REGULAR);
-      this->lineDrawModeActions [QEStripChartNames::ldmBold] =
       this->make (menu, "Bold",                                true,  QEStripChartNames::SCCM_LINE_BOLD);
       this->make (menu, "Colour...",                           false, QEStripChartNames::SCCM_LINE_COLOUR);
 
@@ -137,11 +113,11 @@ QEStripChartContextMenu::QEStripChartContextMenu (bool inUseIn, QWidget *parent)
       this->make (this, "Colour...",                           false, QEStripChartNames::SCCM_LINE_COLOUR);
       this->addSeparator ();
 
-      for (j = 0 ; j < ARRAY_LENGTH (this->predefinedPVs); j++) {
+      for (int j = 0 ; j < QEStripChartNames::NumberPrefefinedItems; j++) {
+         QEStripChartNames::ContextMenuOptions option;
          option = QEStripChartNames::ContextMenuOptions (QEStripChartNames::SCCM_PREDEFINED_01 + j);
          action = this->make (this, "", false, option);
          action->setVisible (false);
-         this->predefinedPVs [j] = action;
       }
    }
 
@@ -156,20 +132,65 @@ QEStripChartContextMenu::~QEStripChartContextMenu ()
    // no special action
 }
 
+
 //------------------------------------------------------------------------------
 //
-void QEStripChartContextMenu::setPredefinedNames (const QStringList & pvList)
+#define SET_ACTION(attribute)                                                  \
+void QEStripChartContextMenu::setAction##attribute                             \
+      (const QEStripChartNames::ContextMenuOptions option,                     \
+       const bool value)                                                       \
+{                                                                              \
+   const int t = option - QEStripChartNames::ContextMenuItemFirst;             \
+   if (t >= 0 && t < ARRAY_LENGTH (this->actionList)) {                        \
+      QAction* action = this->actionList [t];                                  \
+      if (action) action->set##attribute (value);                              \
+   }                                                                           \
+}
+
+
+SET_ACTION (Checked)
+SET_ACTION (Enabled)
+SET_ACTION (Visible)
+
+#undef SET_ACTION
+
+
+//------------------------------------------------------------------------------
+//
+void QEStripChartContextMenu::setActionText
+    (const QEStripChartNames::ContextMenuOptions option, const QString& caption)
 {
-   if (!this->inUse) {
-      for (int j = 0 ; j < ARRAY_LENGTH (this->predefinedPVs); j++) {
-         QAction* action = this->predefinedPVs [j];
-         if (!action) continue;
-         if ((int) j < pvList.count ()) {
-            action->setText (pvList.value(j) + " ");
-            action->setVisible (true);
-         } else {
-            action->setVisible (false);
-         }
+   const int t = option - QEStripChartNames::ContextMenuItemFirst;
+   if (t >= 0 && t < ARRAY_LENGTH (this->actionList)) {
+      QAction* action = this->actionList [t];
+      if (action) action->setText (caption);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChartContextMenu::setIsCalculation (const bool isCalculation)
+{
+   // Go Visible ??
+   this->setActionEnabled (QEStripChartNames::SCCM_READ_ARCHIVE, !isCalculation);
+   this->setActionEnabled (QEStripChartNames::SCCM_RECALCULATE,  isCalculation);
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChartContextMenu::setPredefinedNames (const QStringList& pvList)
+{
+   if (this->inUse) return;
+
+   for (int j = 0 ; j < QEStripChartNames::NumberPrefefinedItems; j++) {
+      QEStripChartNames::ContextMenuOptions option;
+      option = QEStripChartNames::ContextMenuOptions (QEStripChartNames::SCCM_PREDEFINED_01 + j);
+
+      if (j < pvList.count ()) {
+         this->setActionText(option, pvList.value(j) + " ");
+         this->setActionVisible (option, true);
+      } else {
+         this->setActionVisible (option, false);
       }
    }
 }
@@ -178,22 +199,27 @@ void QEStripChartContextMenu::setPredefinedNames (const QStringList & pvList)
 //
 void QEStripChartContextMenu::setUseReceiveTime  (const bool useReceiveTime)
 {
-   if (this->serverTime) {
-      this->serverTime->setChecked (!useReceiveTime);
-   }
-   if (this->clientTime) {
-      this->clientTime->setChecked (useReceiveTime);
-   }
+   this->setActionChecked (QEStripChartNames::SCCM_PLOT_SERVER_TIME, !useReceiveTime);
+   this->setActionChecked (QEStripChartNames::SCCM_PLOT_CLIENT_TIME, useReceiveTime);
 }
 
 //------------------------------------------------------------------------------
 //
 void QEStripChartContextMenu::setArchiveReadHow (const QEArchiveInterface::How how)
 {
-   for (int j = 0; j < ARRAY_LENGTH (this->archiveModeActions); j++) {
-      QAction* action = this->archiveModeActions [j];
-      if (!action) continue;
-      action->setChecked (j == (int) how);
+   // Maps How types to options.
+   // NOTE: If the QEArchiveInterface::How defition changes, so must this.
+   //
+   static const QEStripChartNames::ContextMenuOptions optionMap [] = {
+      QEStripChartNames::SCCM_ARCH_RAW,
+      QEStripChartNames::SCCM_ARCH_SHEET,
+      QEStripChartNames::SCCM_ARCH_AVERAGED,
+      QEStripChartNames::SCCM_ARCH_PLOTBIN,
+      QEStripChartNames::SCCM_ARCH_LINEAR
+   };
+
+   for (int j = 0; j < ARRAY_LENGTH (optionMap); j++) {
+      this->setActionChecked (optionMap [j], (j == int(how)));
    }
 }
 
@@ -201,21 +227,34 @@ void QEStripChartContextMenu::setArchiveReadHow (const QEArchiveInterface::How h
 //
 void QEStripChartContextMenu::setLineDrawMode (const QEStripChartNames::LineDrawModes mode)
 {
-   for (int j = 0; j < ARRAY_LENGTH (this->lineDrawModeActions); j++) {
-      QAction* action = this->lineDrawModeActions [j];
-      if (!action) continue;
-      action->setChecked (j == (int) mode);
+   // Maps How types to options.
+   // NOTE: If the LineDrawModes defition changes, so must this.
+   //
+   static const QEStripChartNames::ContextMenuOptions optionMap [] = {
+      QEStripChartNames::SCCM_LINE_HIDE,
+      QEStripChartNames::SCCM_LINE_REGULAR,
+      QEStripChartNames::SCCM_LINE_BOLD
+   };
+
+   for (int j = 0; j < ARRAY_LENGTH (optionMap); j++) {
+      this->setActionChecked (optionMap [j], (j == int(mode)));
    }
 }
 
 //------------------------------------------------------------------------------
 //
-void QEStripChartContextMenu::setLinePlotMode  (const QEStripChartNames::LinePlotModes mode)
+void QEStripChartContextMenu::setLinePlotMode (const QEStripChartNames::LinePlotModes mode)
 {
-   for (int j = 0; j < ARRAY_LENGTH (this->linePlotModeActions); j++) {
-      QAction* action = this->linePlotModeActions [j];
-      if (!action) continue;
-      action->setChecked (j == (int) mode);
+   // Maps How types to options.
+   // NOTE: If the LinePlotModes defition changes, so must this.
+   //
+   static const QEStripChartNames::ContextMenuOptions optionMap [] = {
+      QEStripChartNames::SCCM_PLOT_RECTANGULAR,
+      QEStripChartNames::SCCM_PLOT_SMOOTH
+   };
+
+   for (int j = 0; j < ARRAY_LENGTH (optionMap); j++) {
+      this->setActionChecked (optionMap [j], (j == int(mode)));
    }
 }
 
@@ -242,10 +281,17 @@ QAction* QEStripChartContextMenu::make (QMenu* parent,
                                         const bool checkable,
                                         const QEStripChartNames::ContextMenuOptions option)
 {
-   QAction* action = new QAction (caption, parent);
-   action->setCheckable (checkable);
-   action->setData (QVariant (int (option)));
-   parent->addAction (action);
+   const int t =  option - QEStripChartNames::ContextMenuItemFirst;
+
+   QAction* action = NULL;
+
+   if ((t >= 0) && (t < ARRAY_LENGTH (this->actionList))) {
+      action = new QAction (caption + " ", parent);
+      action->setCheckable (checkable);
+      action->setData (QVariant (int (option)));
+      parent->addAction (action);
+      this->actionList [t] = action;  // save in action list
+   }
    return action;
 }
 
