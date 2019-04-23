@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2012-2019 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -16,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012-2018 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *    Andraz Pozar
@@ -26,8 +26,8 @@
  *    andraz.pozar@synchrotron.org.au
  */
 
+#include "QEArchiveManager.h"
 #include <stdlib.h>
-
 #include <QApplication>
 #include <QDebug>
 #include <QHash>
@@ -40,8 +40,6 @@
 
 #include <QECommon.h>
 #include <QEAdaptationParameters.h>
-
-#include <QEArchiveManager.h>
 
 #define DEBUG  qDebug () << "QEArchiveManager" << __LINE__ <<  __FUNCTION__  << "  "
 
@@ -94,7 +92,7 @@ class QEArchiveThread : public QThread {
 // Local Data
 //==============================================================================
 // We declare these items here as opposed as static members of the class because
-// the later made all the EPICS plugin widgets "go away" in designer.
+// the latter made all the EPICS plugin widgets "go away" in designer.
 // I think the are issues when QObjects declared in header files.
 //
 
@@ -121,12 +119,11 @@ QEArchiveManager::QEArchiveManager() {
    this->allArchivesRead = false;
    this->numberArchivesRead = 0;
    this->environmentErrorReported = false;
+   this->timer = new QTimer (this);
 
    if (!archives.isEmpty ()) {
       this->archives = archives;
       this->pattern = pattern;
-
-      this->timer = new QTimer (this);
       this->lastReadTime = QDateTime::currentDateTime ().toUTC ().addSecs (-300);
 
       this->setSourceId (9001);
@@ -158,7 +155,7 @@ void QEArchiveManager::started ()
    QStringList archiveList;
    QString item;
    QUrl url;
-   QEArchiveInterface* interface;
+   QEArchiveInterface* interface = NULL;
 
    // Connect to the about to quit signal.
    // Note: qApp is defined in QApplication
