@@ -43,7 +43,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGenericEdit :
     Q_OBJECT
     Q_PROPERTY(QString text READ text WRITE setText DESIGNABLE false)
 
-    // BEGIN-SINGLE-VARIABLE-V2-PROPERTIES ===============================================
+    // BEGIN-SINGLE-VARIABLE-V3-PROPERTIES ===============================================
     // Single Variable properties
     // These properties should be identical for every widget using a single variable.
     // WHEN MAKING CHANGES: Use the update_widget_properties script in the resources
@@ -68,7 +68,7 @@ public:
     ///
     Q_PROPERTY (int arrayIndex READ getArrayIndex WRITE setArrayIndex)
     //
-    // END-SINGLE-VARIABLE-V2-PROPERTIES =================================================
+    // END-SINGLE-VARIABLE-V3-PROPERTIES =================================================
 
 
     //=================================================================================
