@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2018 Australian Synchrotron
+ *  Copyright (c) 2013-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -37,6 +37,7 @@
 #define QE_PERSISTANCE_MANAGER_H
 
 #include <QObject>
+#include <QColor>
 #include <QHash>
 #include <QStringList>
 #include <QXmlStreamWriter>
@@ -116,6 +117,7 @@ public:
     void addValue( QString name, int value );               // Add an integer value
     void addValue( QString name, double value );            // Add a double value
     void addValue( QString name, QString value );           // Add a string value
+    void addValue( QString name, const QColor& value );     // Add a colour value
 
     void addAttribute( QString name, bool value );          // Add a boolean attribute
     void addAttribute( QString name, int value );           // Add an integer attribute
@@ -133,6 +135,7 @@ public:
     bool getValue( QString name, int& val );                // Get an integer value
     bool getValue( QString name, double& val );             // Get a double value
     bool getValue( QString name, QString& val );            // Get a string value
+    bool getValue( QString name, QColor& val );             // Get a colour value
 
     bool getAttribute( QString name, bool& val );           // Get a named boolean attribute from an element
     bool getAttribute( QString name, int& val );            // Get a named integer attribute from an element
@@ -213,6 +216,7 @@ private:
     void addValue( QDomElement parent, QString name, int value );           // Add an integer value to an element
     void addValue( QDomElement parent, QString name, double value );        // Add a double value to an element
     void addValue( QDomElement parent, QString name, QString value );       // Add a string value to an element
+    void addValue( QDomElement parent, QString name, const QColor& value ); // Add a colour value to an element
 
     void addAttribute( QDomElement element, QString name, bool value );     // Add a boolean attribute to an element
     void addAttribute( QDomElement element, QString name, int value );      // Add an integer attribute to an element
@@ -230,6 +234,7 @@ private:
     bool getElementValue( QDomElement element, QString name, int& val );         // Get a named integer value from an element
     bool getElementValue( QDomElement element, QString name, double& val );      // Get a named double value from an element
     bool getElementValue( QDomElement element, QString name, QString& val );     // Get a named string value from an element
+    bool getElementValue( QDomElement element, QString name, QColor& val );      // Get a named colour value from an element
 
     bool getElementAttribute( QDomElement element, QString name, bool& val );    // Get a named boolean attribute from an element
     bool getElementAttribute( QDomElement element, QString name, int& val );     // Get a named integer attribute from an element

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2018 Australian Synchrotron
+ *  Copyright (c) 2013-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -752,6 +752,27 @@ bool PersistanceManager::getElementValue( QDomElement element, QString name, QSt
     return true;
 }
 
+// Get a named colour value from an element
+bool PersistanceManager::getElementValue( QDomElement element, QString name, QColor& val )
+{
+    QDomElement colourElement = getElement( element, name );
+    if( colourElement.isNull() || !colourElement.isElement() )
+    {
+        return false;
+    }
+
+    int r, g, b, a;
+    if (getElementAttribute( colourElement, "red",    r ) &&
+        getElementAttribute( colourElement, "green",  g ) &&
+        getElementAttribute( colourElement, "blue",   b ) &&
+        getElementAttribute( colourElement, "alpha",  a ))
+    {
+        val.setRgb( r, g, b, a );
+        return true;
+    }
+    return false;
+}
+
 //=========================================================
 
 // Get a named boolean attribute from an element
@@ -892,6 +913,21 @@ void PersistanceManager::addValue( QDomElement parent, QString name, QString val
     element.appendChild( text );
 }
 
+// Add a colour value to an element
+// No value per se - just attributes.
+void PersistanceManager::addValue( QDomElement parent, QString name, const QColor& value )
+{
+   QDomElement element = doc.createElement( name );
+   parent.appendChild( element );
+
+   int r, g, b, a;
+   value.getRgb (&r, &g, &b, &a);
+   element.setAttribute( "red",    r );
+   element.setAttribute( "green",  g );
+   element.setAttribute( "blue",   b );
+   element.setAttribute( "alpha",  a );
+}
+
 //=========================================================
 
 // Add a boolean attribute to an element
@@ -967,6 +1003,12 @@ void PMElement::addValue( QString name, double value )
 void PMElement::addValue( QString name, QString value )
 {
     return owner->addValue( *this, name, value );
+}
+
+// Add a color value
+void PMElement::addValue( QString name, const QColor& value )
+{
+   return owner->addValue( *this, name, value );
 }
 
 //============================
@@ -1049,6 +1091,12 @@ bool PMElement::getValue( QString name, double& val )
 
 // Get a string value
 bool PMElement::getValue( QString name, QString& val )
+{
+    return owner->getElementValue( *this, name, val );
+}
+
+// Get a colour value
+bool PMElement::getValue( QString name, QColor& val )
 {
     return owner->getElementValue( *this, name, val );
 }
