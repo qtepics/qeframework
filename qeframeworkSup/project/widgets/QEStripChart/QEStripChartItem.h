@@ -97,19 +97,23 @@ public:
 public slots:
    void setColour (const QColor& colour);    // also used by colour dialog
 public:
-   QColor getColour ();
+   QColor getColour () const;
 
    // For each of these three function whren the bool doScale parameter is true, the
    // return range item is scaled using the current PV scale. When false, the "raw"
    // value is returned.
    //
-   QEDisplayRanges getLoprHopr (bool doScale);          // returns CA specified operating range
-   QEDisplayRanges getDisplayedMinMax (bool doScale);   // returns range of values currently plotted
-   QEDisplayRanges getBufferedMinMax (bool doScale);    // returns range of values that could be plotted
-   QCaDataPointList determinePlotPoints ();             // returns set of points currently displayed
+   QEDisplayRanges getLoprHopr (bool doScale) const;          // returns CA specified operating range
+   QEDisplayRanges getDisplayedMinMax (bool doScale) const;   // returns range of values currently plotted
+   QEDisplayRanges getBufferedMinMax (bool doScale) const;    // returns range of values that could be plotted
+
+   // returns set of points currently displayed when doBuffered is false.
+   // returns set of points currently buffered when doBuffered is true.
+   //
+   QCaDataPointList extractPlotPoints (const bool doBuffered) const;
 
    void readArchive ();                                 // initiate archive read request
-   void recalcualteBufferedValues();                    // re-calculate values.
+   void recalcualteBufferedValues ();                   // re-calculate values.
    void normalise ();                                   // scale LOPR/HOPR to 0 .. 100
    void plotData ();
 
@@ -147,14 +151,14 @@ protected:
    bool eventFilter (QObject *obj, QEvent *event);
 
 private:
-   qcaobject::QCaObject* getQcaItem ();   // Return reference to QELabel used to stream CA updates
-   void connectQcaSignals ();             // Performs qca connections if needs be.
+   qcaobject::QCaObject* getQcaItem () const; // Return reference to QELabel used to stream CA updates
+   void connectQcaSignals ();                 // Performs qca connections if needs be.
    void setCaption ();
    void clear ();
    void highLight (bool isHigh);
    void addRealTimeDataPoint (const QCaDataPoint& point);
 
-   QPen getPen ();
+   QPen getPen () const;
    void plotDataPoints (const QCaDataPointList& dataPoints,
                         const bool isRealTime,
                         const Qt::PenStyle penStyle,

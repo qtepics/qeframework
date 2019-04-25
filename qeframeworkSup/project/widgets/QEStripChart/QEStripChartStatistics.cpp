@@ -96,7 +96,7 @@ QEStripChartStatistics::~QEStripChartStatistics()
 void QEStripChartStatistics::updateClicked (bool)
 {
    if (this->owner) {
-      processDataList (this->owner->determinePlotPoints ());
+      processDataList (this->owner->extractPlotPoints (false));
    }
 }
 

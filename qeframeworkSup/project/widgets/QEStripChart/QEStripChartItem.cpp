@@ -303,7 +303,7 @@ void QEStripChartItem::clear ()
 
 //------------------------------------------------------------------------------
 //
-qcaobject::QCaObject* QEStripChartItem::getQcaItem ()
+qcaobject::QCaObject* QEStripChartItem::getQcaItem () const
 {
    // We "know" that a QELabel has only one PV.
    //
@@ -468,7 +468,7 @@ bool QEStripChartItem::isCalculation () const
 
 //------------------------------------------------------------------------------
 //
-QEDisplayRanges QEStripChartItem::getLoprHopr (bool doScale)
+QEDisplayRanges QEStripChartItem::getLoprHopr (bool doScale) const
 {
    QEDisplayRanges result;
    qcaobject::QCaObject *qca;
@@ -502,7 +502,7 @@ QEDisplayRanges QEStripChartItem::getLoprHopr (bool doScale)
 
 //------------------------------------------------------------------------------
 //
-QEDisplayRanges QEStripChartItem::getDisplayedMinMax (bool doScale)
+QEDisplayRanges QEStripChartItem::getDisplayedMinMax (bool doScale) const
 {
    QEDisplayRanges result;
 
@@ -516,7 +516,7 @@ QEDisplayRanges QEStripChartItem::getDisplayedMinMax (bool doScale)
 
 //------------------------------------------------------------------------------
 //
-QEDisplayRanges QEStripChartItem::getBufferedMinMax (bool doScale)
+QEDisplayRanges QEStripChartItem::getBufferedMinMax (bool doScale) const
 {
    QEDisplayRanges result;
 
@@ -726,18 +726,13 @@ void QEStripChartItem::plotDataPoints (const QCaDataPointList& dataPoints,
 
 //------------------------------------------------------------------------------
 //
-QCaDataPointList QEStripChartItem::determinePlotPoints ()
+QCaDataPointList QEStripChartItem::extractPlotPoints (const bool doBuffered) const
 {
    const QCaDateTime end_time = this->chart->getEndDateTime ();
    const double duration = this->chart->getDuration ();
 
    QCaDataPointList result;
-
-   int count;
-   QCaDataPoint point;
-   double t;
-   bool isFirst;
-   QCaDataPointList* listArray [2];
+   const QCaDataPointList* listArray [2];
 
    // Create an array so that we loop over both lists.
    //
@@ -745,28 +740,31 @@ QCaDataPointList QEStripChartItem::determinePlotPoints ()
    listArray [1] = &this->realTimeDataPoints;
 
    for (int i = 0; i < 2; i++) {
-      QCaDataPointList* list = listArray [i];
-      isFirst = true;
-      count = list->count ();
+      const QCaDataPointList* list = listArray [i];
+      bool isFirst = true;
+      int count = list->count ();
       for (int j = 0; j < count; j++) {
-         point = list->value (j);
+         QCaDataPoint point = list->value (j);
 
          // Calculate the time of this point (in seconds) relative to the end of the chart.
+         // This is used to determine if included in the set of data.
          //
-         t = end_time.secondsTo (point.datetime);
+         double t = end_time.secondsTo (point.datetime);
+         if (doBuffered) t = 0.0;  // force inclusion.
 
          if ((t >= -duration) && (t <= 0.0)) {
             // Point time is within current time range of the chart.
             //
             if (isFirst && (j > 0)) {
-               // do one previous point.
+               // do the previous point iff it exists.
                //
                result.append (list->value (j - 1));
             }
             isFirst = false;
             result.append (point);
          } else if (t > 0.0) {
-            // do one follwing point, then  skip the rest.
+            // do one following point, then  skip the rest.
+            //
             result.append (point);
             break;
          }
@@ -1211,48 +1209,66 @@ void QEStripChartItem::readArchive ()
 //
 void QEStripChartItem::recalcualteBufferedValues ()
 {
-   const QCaDateTime start_time = this->chart->getStartDateTime ();
-   const QCaDateTime end_time = this->chart->getEndDateTime ();
-   const double duration = this->chart->getDuration ();
-
    if (!this->isCalculation ()) return;    // sanity check
    if (!this->expressionIsValid) return;   // sanity check
 
    QCaDataPointList pointListList [QEStripChart::NUMBER_OF_PVS];
    int indexList [QEStripChart::NUMBER_OF_PVS];
 
-   // First grab the current data for all items on the chart/
+   // First grab the current data for all items on the chart except our own.
    //
-   for (int slot = 0; slot < QEStripChart::NUMBER_OF_PVS; slot++) {
-      QEStripChartItem* item = this->chart->getItem (slot);
-      if (item && item->isInUse ()) {
-         pointListList [slot] = item->determinePlotPoints ();
+   for (int j = 0; j < QEStripChart::NUMBER_OF_PVS; j++) {
+      QEStripChartItem* item = this->chart->getItem (j);
+      if ((j != this->slot) && item && item->isInUse ()) {
+         pointListList [j] = item->extractPlotPoints (true); // get all points
       } else {
-         pointListList [slot].clear();
+         pointListList [j].clear();
       }
    }
 
-   // Aim for approx 4000 points, but set min delata the same as the
-   // realtime delta.
+   // Find first start time
    //
-   qint64 deltaTimeMS = (1000 * duration) / 4000;
+   QCaDateTime start_time = QCaDateTime::currentDateTime().toUTC ();
+   for (int j = 0; j < QEStripChart::NUMBER_OF_PVS; j++) {
+      if (pointListList [j].count() > 0) {
+         QCaDataPoint datum = pointListList [j].value (0);
+         start_time = MIN (start_time, datum.datetime);
+      }
+   }
+
+   // Find last end time
+   //
+   QCaDateTime end_time = start_time;
+   for (int j = 0; j < QEStripChart::NUMBER_OF_PVS; j++) {
+      if (pointListList [j].count () > 0) {
+         QCaDataPoint datum = pointListList [j].last();
+         end_time = MAX (end_time, datum.datetime);
+      }
+   }
+
+   const double duration = start_time.secondsTo (end_time);
+
+   // Aim for approx MAXIMUM_HISTORY_POINTS points, but set min delta the same
+   // as the the realtime delta.
+   //
+   qint64 deltaTimeMS = qint64 (1000 * duration) / MAXIMUM_HISTORY_POINTS;
    if (deltaTimeMS < 100) deltaTimeMS = 100;
 
    QCaDataPointList result;
-   const int n = 1000 * duration / deltaTimeMS + 2;
+   const int n = (1000 * duration) / deltaTimeMS + 2;
    result.reserve (n);
 
-   // intialise time indices
+   // initialise time indices
    //
    for (int slot = 0; slot < QEStripChart::NUMBER_OF_PVS; slot++) {
       indexList [slot] = 0;
    }
 
-   // We keep tack of the previos item so that we can sensibily check
-   // for insignificant value changes.
+   // We keep track of the previous item so that we can sensibily check
+   // for insignificant value/status changes.
    //
    double previousValue = 0.0;
-   bool previousWasOkay = false;
+   QCaAlarmInfo previousAlarm (CALC_ALARM, INVALID_ALARM);
 
    for (QCaDateTime time = start_time; time <= end_time; time = time.addMSecs(deltaTimeMS)) {
 
@@ -1268,26 +1284,28 @@ void QEStripChartItem::recalcualteBufferedValues ()
       //
       bool atLeastOneInput = false;
 
-      for (int slot = 0; slot < QEStripChart::NUMBER_OF_PVS; slot++) {
-         // update index while time of the index is < time
+      for (int j = 0; j < QEStripChart::NUMBER_OF_PVS; j++) {
+         // update index to find most recent point with a time
+         // less than or equal to time.
          //
-         int w = indexList [slot];
-         while ((w+1 < pointListList [slot].count()) &&
-                (pointListList [slot].value(w+1).datetime < time)) w++;
-         indexList [slot] = w;
+         int w = indexList [j];
+         while ((w+1 < pointListList [j].count()) &&
+                (pointListList [j].value(w+1).datetime < time)) w++;
+         indexList [j] = w;
 
-         if (w < pointListList [slot].count()) {
-             QCaDataPoint datum = pointListList [slot].value(w);
-             if (datum.datetime < time && datum.isDisplayable()) {
-                values [slot] = datum.value;
+         if (w < pointListList [j].count()) {
+             QCaDataPoint datum = pointListList [j].value (w);
+             if (datum.datetime <= time && datum.isDisplayable()) {
+                values [j] = datum.value;
                 atLeastOneInput = true;
              }
          }
       }
 
       QCaDataPoint resultItem;
-      bool isOkay = false;
+      resultItem.datetime = time;
 
+      bool isOkay = false;
       if (atLeastOneInput) {
          // Form user arguments for expression evaluation.
          //
@@ -1304,40 +1322,36 @@ void QEStripChartItem::recalcualteBufferedValues ()
 
          // Check for NaN / Infinte  ans set alarm status accordingly.
          //
-         if (QEPlatform::isNaN (resultItem.value) || QEPlatform::isInf (resultItem.value) ) {
+         if (QEPlatform::isNaN (resultItem.value) || QEPlatform::isInf (resultItem.value)) {
             isOkay = false;
          }
       } else {
+         // No input - set not okay
          isOkay = false;
+
+         // set zero so that we don't trigger CALC_DEADBAND check.
          resultItem.value = 0.0;
       }
 
-      resultItem.datetime = time;
       QCaAlarmInfo alarm (isOkay ? NO_ALARM : CALC_ALARM,       // status
                           isOkay ? NO_ALARM : INVALID_ALARM);   // severity
       resultItem.alarm = alarm;
 
-      if (isOkay && previousWasOkay) {
-         // Was valid - is still valid.
-         //
-         double delta = resultItem.value - previousValue;
-         delta = ABS (delta);
-         if (delta < CALC_DEADBAND) {
-            // Insignificant change.
-            //
-            continue;
-         }
-      }
-
-      // Don't add non-displayable items at start of the result data set.
+      // Is this the first point or has there been a significant change of value
+      // or status since previous point.
       //
-      if (isOkay || (result.count() > 0)) {
+      if ((result.count() == 0) ||
+          (resultItem.alarm != previousAlarm) ||
+          (ABS (resultItem.value - previousValue) > CALC_DEADBAND))
+      {
+         // Yes - this is asignificant change.
+         //
          result.append (resultItem);
 
-         // Lastly setup previous item state info for next time through the loop.
+         // Save previous item state info for next time through the loop.
          //
          previousValue = resultItem.value;
-         previousWasOkay = isOkay;
+         previousAlarm = resultItem.alarm;
       }
    }
 
@@ -1357,7 +1371,7 @@ void QEStripChartItem::normalise () {
 
 //------------------------------------------------------------------------------
 //
-QColor QEStripChartItem::getColour ()
+QColor QEStripChartItem::getColour () const
 {
    return this->colour;
 }
@@ -1390,7 +1404,7 @@ void QEStripChartItem::highLight (bool isHigh)
 
 //------------------------------------------------------------------------------
 //
-QPen QEStripChartItem::getPen ()
+QPen QEStripChartItem::getPen () const
 {
    QPen result (this->getColour ());
 
@@ -1551,7 +1565,7 @@ void QEStripChartItem::writeTraceToFile ()
 
    ts << "#   No  TimeStamp                      Relative Time    Value                Okay     Severity    Status\n";
 
-   QCaDataPointList dataPoints = this->determinePlotPoints ();
+   QCaDataPointList dataPoints = this->extractPlotPoints (false);
 
    dataPoints.toStream (ts, true, true);
    file.close ();
@@ -1563,7 +1577,7 @@ void QEStripChartItem::generateStatistics ()
 {
    qcaobject::QCaObject* qca = this->getQcaItem ();
    QString egu = qca ? qca->getEgu() : "";
-   QCaDataPointList dataPoints = this->determinePlotPoints ();
+   QCaDataPointList dataPoints = this->extractPlotPoints (false);
    QEStripChartStatistics* pvStatistics;
 
    // Create new statistic widget.
