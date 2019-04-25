@@ -215,7 +215,14 @@ void QEStripChartStatistics::processDataList (const QCaDataPointList& dataList)
 
    // Variance:  mean (x^2) - mean (x)^2
    //
-   const double variance = (sumValueSquared / sumWeight) - (this->valueMean * this->valueMean);
+   double variance = (sumValueSquared / sumWeight) -
+                     (this->valueMean * this->valueMean);
+
+   // Rounding errors can lead to very small negative variance values (of the
+   // order of -8.8e-16) which leads to NaN standard deviation values which then
+   // causes a whole heap of issues: ensure the variance is non-negative.
+   //
+   variance = MAX (variance, 0.0);
    this->valueStdDev = sqrt (variance);
 
    // Least Squares

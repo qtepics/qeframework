@@ -886,8 +886,17 @@ void QEDistribution::setPvValue (const double& value, QCaAlarmInfo& alarmInfo,
       this->valueSquaredSum += value*value;
 
       this->valueMean = this->valueSum / this->valueCount;
+
+      // Variance:  mean (x^2) - mean (x)^2
+      //
       double variance = (this->valueSquaredSum / this->valueCount) -
                         (this->valueMean*this->valueMean);
+
+      // Rounding errors can lead to very small negative variance values (of the
+      // order of -8.8e-16) which leads to NaN standard deviation values which then
+      // causes a whole heap of issues: ensure the variance is non-negative.
+      //
+      variance = MAX (variance, 0.0);
       this->valueStdDev = sqrt (variance);
 
       this->countValueLabel->setNum (int (this->valueCount));
