@@ -40,11 +40,10 @@
 
 #include <QEArchiveAccess.h>
 #include <QECommon.h>
-#include <QEFrame.h>
+#include <QEAbstractDynamicWidget.h>
 #include <QEFloatingFormatting.h>
 #include <QEStringFormatting.h>
 #include <QEAxisPainter.h>
-#include <QEFrame.h>
 #include <QEResizeableFrame.h>
 #include <QESingleVariableMethods.h>
 #include <QEPVNameSelectDialog.h>
@@ -57,7 +56,7 @@
 /// in that it bins values.
 ///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEDistribution :
-      public QEFrame,
+      public QEAbstractDynamicWidget,
       public QESingleVariableMethods
 {
    Q_OBJECT
@@ -191,6 +190,12 @@ signals:
    void dbValueChanged (const double& out);    // signal as floating if applicable
    void dbValueChanged (const bool& out);      // signal as bool: value != 0 if applicable
 
+public:
+   // Override QEAbstractDynamicWidget functions - required.
+   //
+   int addPvName (const QString& pvName);
+   void clearAllPvNames ();
+
 protected:
     bool eventFilter (QObject* watched, QEvent* event);
 
@@ -208,6 +213,12 @@ protected:
     QString copyVariable();
     QVariant copyData();
     void paste (QVariant v);
+
+    // override other virtual functions
+    //
+    void saveConfiguration (PersistanceManager* pm);
+    void restoreConfiguration (PersistanceManager* pm, restorePhases restorePhase);
+
     void setReadOut (const QString& text);
 
 private:

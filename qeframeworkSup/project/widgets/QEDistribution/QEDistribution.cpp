@@ -54,7 +54,7 @@ QTimer* QEDistribution::tickTimer = NULL;
 //------------------------------------------------------------------------------
 //
 QEDistribution::QEDistribution (QWidget* parent) :
-   QEFrame (parent),
+   QEAbstractDynamicWidget (parent),
    QESingleVariableMethods (this, PV_VARIABLE_INDEX)
 {
    this->setup ();
@@ -64,7 +64,7 @@ QEDistribution::QEDistribution (QWidget* parent) :
 //
 QEDistribution::QEDistribution (const QString& variableNameIn,
                                 QWidget* parent) :
-   QEFrame (parent),
+   QEAbstractDynamicWidget (parent),
    QESingleVariableMethods (this, PV_VARIABLE_INDEX)
 {
    this->setup ();
@@ -91,7 +91,7 @@ void QEDistribution::setup()
    // Configure the panel and create contents
    //
    this->setFrameShape (QFrame::Panel);
-   this->setFrameShadow (QFrame::Plain);
+   this->setFrameShadow (QFrame::Sunken);
 
    this->mNumberStdDevs = 3;
    this->mIsRectangular = true;
@@ -749,6 +749,21 @@ QColor QEDistribution::getGaussianColour () const
 
 //------------------------------------------------------------------------------
 //
+int QEDistribution::addPvName (const QString& pvName)
+{
+   this->setPvName (pvName);
+   return PV_VARIABLE_INDEX;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEDistribution::clearAllPvNames ()
+{
+    this->setPvName ("");
+}
+
+//------------------------------------------------------------------------------
+// programtic call
 void QEDistribution::setPvName (const QString& pvName)
 {
    this->resetDistibution ();
@@ -1033,6 +1048,91 @@ void QEDistribution::paste (QVariant v)
 {
    QString newName = v.toString ();
    this->setPvName (newName);
+}
+
+//------------------------------------------------------------------------------
+//
+void QEDistribution::saveConfiguration (PersistanceManager* pm)
+{
+   const QString formName = this->getPersistantName();
+
+   PMElement formElement = pm->addNamedConfiguration (formName);
+
+   // Note: we save the subsituted name (as opposed to template name and any macros).
+   //
+   QString pvName;
+   pvName= this->getSubstitutedVariableName (PV_VARIABLE_INDEX);
+   formElement.addValue ("PvName", pvName);
+
+   formElement.addValue ("NumberStdDevs", this->getNumberStdDevs ());
+   formElement.addValue ("IsRectangular", this->getIsRectangular ());
+   formElement.addValue ("EdgeWidth", this->  getEdgeWidth ());
+   formElement.addValue ("ShowGaussian", this-> getShowGaussian ());
+   formElement.addValue ("GaussianWidth", this-> getGaussianWidth ());
+   formElement.addValue ("BackgroundColour", this->getBackgroundColour ());
+   formElement.addValue ("EdgeColour", this-> getEdgeColour ());
+   formElement.addValue ("FillColour", this-> getFillColour ());
+   formElement.addValue ("GaussianColour", this-> getGaussianColour ());
+}
+
+//------------------------------------------------------------------------------
+//
+void QEDistribution::restoreConfiguration (PersistanceManager* pm,
+                                           restorePhases restorePhase)
+{
+   if (restorePhase != FRAMEWORK) return;
+
+   const QString formName = this->getPersistantName ();
+   PMElement formElement = pm->getNamedConfiguration (formName);
+   if (formElement.isNull ()) return;   // sainity check
+
+   bool status;
+   QString pvName;
+   double d;
+   bool b;
+   int i;
+   QColor k;
+
+   status = formElement.getValue ("PvName", pvName);
+   if (status) {
+      this->setPvName (pvName);
+   }
+   status = formElement.getValue ("NumberStdDevs", d);
+   if (status) {
+      this->setNumberStdDevs (d);
+   }
+   status = formElement.getValue ("IsRectangular", b);
+   if (status) {
+      this->setIsRectangular (b);
+   }
+   status = formElement.getValue ("EdgeWidth", i);
+   if (status) {
+      this->setEdgeWidth (i);
+   }
+   status = formElement.getValue ("ShowGaussian", b);
+   if (status) {
+      this->setShowGaussian (b);
+   }
+   status = formElement.getValue ("GaussianWidth", i);
+   if (status) {
+      this->setGaussianWidth (i);
+   }
+   status = formElement.getValue ("BackgroundColour", k);
+   if (status) {
+      this->setBackgroundColour (k);
+   }
+   status = formElement.getValue ("EdgeColour", k);
+   if (status) {
+      this->setEdgeColour (k);
+   }
+   status = formElement.getValue ("FillColour", k);
+   if (status) {
+      this->setFillColour (k);
+   }
+   status = formElement.getValue ("GaussianColour", k);
+   if (status) {
+      this->setGaussianColour (k);
+   }
 }
 
 //------------------------------------------------------------------------------
