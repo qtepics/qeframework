@@ -53,24 +53,29 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFormStateChange :
 
 public:
    /// The variable to write to on open
-   Q_PROPERTY (QString variableOpen  READ getOpenVariableNameProperty  WRITE setOpenVariableNameProperty)
+   Q_PROPERTY (QString variableOpen
+               READ getOpenVariableNameProperty
+               WRITE setOpenVariableNameProperty)
 
    /// The variable to write to on close. May be the same as the open variable.
-   Q_PROPERTY (QString variableClose READ getCloseVariableNameProperty WRITE setCloseVariableNameProperty)
+   Q_PROPERTY (QString variableClose
+               READ getCloseVariableNameProperty
+               WRITE setCloseVariableNameProperty)
 
    /// The default variable subsitutions - same for both open and close variables.
-   Q_PROPERTY (QString variableSubstitutions READ getVariableNameSubstitutionsProperty
-                                             WRITE setVariableNameSubstitutionsProperty)
+   Q_PROPERTY (QString variableSubstitutions
+               READ getVariableNameSubstitutionsProperty
+               WRITE setVariableNameSubstitutionsProperty)
 
-   /// \enum    Formats
+   /// \enum  Formats
    /// User friendly enumerations for format property - refer to QEStringFormatting::formats for details.
-   //
+   /// Not all formats are available.
+   ///
    enum Formats { Default          = QEStringFormatting::FORMAT_DEFAULT,            ///< Format as best appropriate for the data type
                   Floating         = QEStringFormatting::FORMAT_FLOATING,           ///< Format as a floating point number
                   Integer          = QEStringFormatting::FORMAT_INTEGER,            ///< Format as an integer
                   UnsignedInteger  = QEStringFormatting::FORMAT_UNSIGNEDINTEGER,    ///< Format as an unsigned integer
-                  Time             = QEStringFormatting::FORMAT_TIME,               ///< Format as a time
-                  LocalEnumeration = QEStringFormatting::FORMAT_LOCAL_ENUMERATE     ///< Format as a selection from the #localEnumeration property
+                  String           = QEStringFormatting::FORMAT_STRING              ///< Format as a string
                };
    Q_ENUMS(Formats)
 
@@ -83,12 +88,10 @@ public:
    Q_PROPERTY (Formats format             READ getFormatProperty WRITE setFormatProperty)
 
    Q_PROPERTY (QString openText           READ getOpenText       WRITE setOpenText)       /// value to write on open
-   Q_PROPERTY (bool writeOnOpen           READ getWriteOnOpen    WRITE setWriteOnOpen)    /// determines if value is written
    Q_PROPERTY (QString openProgram        READ getOpenProgram    WRITE setOpenProgram)    /// program to run
    Q_PROPERTY (QStringList openArguments  READ getOpenArguments  WRITE setOpenArguments)  /// program arguments
 
    Q_PROPERTY (QString closeText          READ getCloseText      WRITE setCloseText)      /// value to write on close
-   Q_PROPERTY (bool writeOnClose          READ getWriteOnClose   WRITE setWriteOnClose)   /// determines if value is written
    Q_PROPERTY (QString closeProgram       READ getCloseProgram   WRITE setCloseProgram)   /// program to run
    Q_PROPERTY (QStringList closeArguments READ getCloseArguments WRITE setCloseArguments) /// program arguments
 
@@ -119,9 +122,6 @@ public:
    void setOpenText(const QString text);
    QString getOpenText() const;
 
-   void setWriteOnOpen(const bool value);
-   bool getWriteOnOpen() const;
-
    void setOpenProgram(const QString program);
    QString getOpenProgram() const;
 
@@ -133,9 +133,6 @@ public:
 
    void setCloseText(const QString value);
    QString getCloseText() const;
-
-   void setWriteOnClose(const bool value);
-   bool getWriteOnClose() const;
 
    void setCloseProgram(const QString program);
    QString getCloseProgram() const;
@@ -152,11 +149,10 @@ public:
 protected:
    QSize sizeHint ();
    void paintEvent (QPaintEvent* event);   // draw something as design time
-   bool eventFilter (QObject* watched, QEvent* event);
 
    qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
    void establishConnection (unsigned int variableIndex);
-   void stringFormattingChange ();
+   void stringFormattingChange ();         // must be defined, but not used.
 
 private:
    void setup ();
@@ -164,17 +160,15 @@ private:
    class Actions;  // differed
    Actions* actionList [NUMBER_OF_VARIABLES];
 
-   QMainWindow* mainWindow;
-
 private slots:
-   void windowOpened();
-   void windowClosed();
+   void windowOpened();   // actually called when object created
+   void windowClosed();   // and deleted.
    void newVariableNameProperty (QString variableNameIn,
                                  QString variableNameSubstitutionsIn,
                                  unsigned int variableIndex);
 };
 
-#ifdef EXP_DECLARE_METATYPE_IS_REQUIRED
+#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
 Q_DECLARE_METATYPE (QEFormStateChange::Formats)
 #endif
 

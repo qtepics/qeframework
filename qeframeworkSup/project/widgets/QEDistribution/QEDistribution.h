@@ -330,7 +330,7 @@ private slots:
    void tickTimeout ();
 };
 
-#ifdef EXP_DECLARE_METATYPE_IS_REQUIRED
+#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
 // place holder
 #endif
 

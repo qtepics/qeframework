@@ -50,22 +50,19 @@ public:
    QCaVariableNamePropertyManager vnpm;
    applicationLauncher launcher;
    QString text;
-   bool doWrite;
 };
 
 //------------------------------------------------------------------------------
 //
 QEFormStateChange::Actions::Actions (const VariableIndicies indexIn,
-                                 const QEFormStateChange* ownerIn) :
+                                     const QEFormStateChange* ownerIn) :
    index (indexIn),
    owner (ownerIn)
 {
    this->text = "1";
-   this->doWrite = true;
-
    this->vnpm.setVariableIndex (this->index);
-   QObject::connect (&this->vnpm, SIGNAL ( newVariableNameProperty (QString, QString, unsigned int)),
-                     this->owner, SLOT (   newVariableNameProperty (QString, QString, unsigned int)));
+   QObject::connect (&this->vnpm, SIGNAL (newVariableNameProperty (QString, QString, unsigned int)),
+                     this->owner, SLOT   (newVariableNameProperty (QString, QString, unsigned int)));
 
 }
 
@@ -81,13 +78,14 @@ void QEFormStateChange::Actions::doAction ()
    //
    if (QEWidget::inDesigner ()) return;
 
-   if (this->doWrite) {
-      QEString* qca = dynamic_cast <QEString*> (this->owner->getQcaItem (this->index));
-      if (qca && qca->getChannelIsConnected ()) {
-         qca->writeStringElement (this->text);   // performs required formatting
-      }
+   QEString* qca = dynamic_cast <QEString*> (this->owner->getQcaItem (this->index));
+   if (qca && qca->getChannelIsConnected ()) {
+      qca->writeStringElement (this->text);   // performs required formatting
    }
 
+   // If there is a command to run, then run it, with substitutions applied to
+   // the command and arguments.
+   //
    const VariableNameManager* vm;
    vm = static_cast<const VariableNameManager*> (this->owner);
    this->launcher.launch (vm, NULL);
@@ -155,8 +153,6 @@ void QEFormStateChange::setup ()
    this->setMinimumSize (8,8);
    this->setMaximumSize (24,24);
 
-   this->mainWindow = NULL;
-
    // Set up data
    //
    this->setNumVariables (NUMBER_OF_VARIABLES);
@@ -168,7 +164,7 @@ void QEFormStateChange::setup ()
 
    // Allow time for the openVariable to connect.
    // 100 mS is a bit arbitary.
-   // Maybe bwe can be a bit smarter.
+   // Maybe we can be a bit smarter.
    //
    QTimer::singleShot (100, this, SLOT (windowOpened ()));
 }
@@ -187,6 +183,8 @@ void QEFormStateChange::setOpenVariableNameProperty (const QString pvName)
    this->actionList [viOpen]->vnpm.setVariableNameProperty (pvName);
 }
 
+//------------------------------------------------------------------------------
+//
 QString QEFormStateChange::getOpenVariableNameProperty () const
 {
    return this->actionList [viOpen]->vnpm.getVariableNameProperty ();
@@ -199,6 +197,8 @@ void QEFormStateChange::setCloseVariableNameProperty (const QString pvName)
    this->actionList [viClose]->vnpm.setVariableNameProperty (pvName);
 }
 
+//------------------------------------------------------------------------------
+//
 QString QEFormStateChange::getCloseVariableNameProperty () const
 {
    return this->actionList [viClose]->vnpm.getVariableNameProperty ();
@@ -215,6 +215,8 @@ void QEFormStateChange::setVariableNameSubstitutionsProperty (const QString valu
    }
 }
 
+//------------------------------------------------------------------------------
+//
 QString QEFormStateChange::getVariableNameSubstitutionsProperty () const
 {
    // Either one of the name managers can provide the subsitutions.
@@ -229,21 +231,11 @@ void QEFormStateChange::setOpenText (const QString value)
    this->actionList [viOpen]->text = value;
 }
 
+//------------------------------------------------------------------------------
+//
 QString QEFormStateChange::getOpenText () const
 {
    return this->actionList [viOpen]->text;
-}
-
-//------------------------------------------------------------------------------
-//
-void QEFormStateChange::setWriteOnOpen (const bool value)
-{
-   this->actionList [viOpen]->doWrite = value;
-}
-
-bool QEFormStateChange::getWriteOnOpen () const
-{
-   return this->actionList [viOpen]->doWrite;
 }
 
 //------------------------------------------------------------------------------
@@ -253,6 +245,8 @@ void QEFormStateChange::setOpenProgram (const QString progarm)
    this->actionList [viOpen]->launcher.setProgram (progarm);
 }
 
+//------------------------------------------------------------------------------
+//
 QString QEFormStateChange::getOpenProgram () const
 {
    return this->actionList [viOpen]->launcher.getProgram ();
@@ -265,6 +259,8 @@ void QEFormStateChange::setOpenArguments (const QStringList arguments)
    this->actionList [viOpen]->launcher.setArguments (arguments);
 }
 
+//------------------------------------------------------------------------------
+//
 QStringList QEFormStateChange::getOpenArguments () const
 {
    return this->actionList [viOpen]->launcher.getArguments ();
@@ -277,21 +273,11 @@ void QEFormStateChange::setCloseText (const QString value)
    this->actionList [viClose]->text = value;
 }
 
+//------------------------------------------------------------------------------
+//
 QString QEFormStateChange::getCloseText () const
 {
    return this->actionList [viClose]->text;
-}
-
-//------------------------------------------------------------------------------
-//
-void QEFormStateChange::setWriteOnClose (const bool value)
-{
-   this->actionList [viClose]->doWrite = value;
-}
-
-bool QEFormStateChange::getWriteOnClose () const
-{
-   return this->actionList [viClose]->doWrite;
 }
 
 //------------------------------------------------------------------------------
@@ -301,6 +287,8 @@ void QEFormStateChange::setCloseProgram (const QString progarm)
    this->actionList [viClose]->launcher.setProgram (progarm);
 }
 
+//------------------------------------------------------------------------------
+//
 QString QEFormStateChange::getCloseProgram () const
 {
    return this->actionList [viClose]->launcher.getProgram ();
@@ -313,6 +301,8 @@ void QEFormStateChange::setCloseArguments (const QStringList arguments)
    this->actionList [viClose]->launcher.setArguments (arguments);
 }
 
+//------------------------------------------------------------------------------
+//
 QStringList QEFormStateChange::getCloseArguments () const
 {
    return this->actionList [viClose]->launcher.getArguments ();
@@ -325,6 +315,8 @@ void QEFormStateChange::setFormatProperty (const Formats format)
    this->setFormat (QEStringFormatting::formats (format) );
 }
 
+//------------------------------------------------------------------------------
+//
 QEFormStateChange::Formats QEFormStateChange::getFormatProperty () const
 {
    return Formats (this->getFormat ());
@@ -351,36 +343,9 @@ void QEFormStateChange::paintEvent (QPaintEvent* /* event */)
 }
 
 //------------------------------------------------------------------------------
-//
-bool QEFormStateChange::eventFilter (QObject* watched, QEvent* event)
-{
-   const QEvent::Type type = event->type ();
-
-   switch (type) {
-      case QEvent::WindowStateChange:
-         if (watched == this->mainWindow) {
-            if (this->mainWindow->isMinimized()) {
-               DEBUG << "Minimized";
-            } else if (this->mainWindow->isMaximized()) {
-               DEBUG << "Maximized";
-            } else {
-               DEBUG << "other";
-            }
-            return true;
-         }
-         break;
-
-      default:
-         break;
-   }
-
-   return false;
-
-}
-
-//------------------------------------------------------------------------------
-// Implementation of QEWidget's virtual funtion to create the specific type of QCaObject required.
-// For a label a QCaObject that streams strings is required.
+// Implementation of QEWidget's virtual funtion to create the specific type of
+// QCaObject required. For a QEFormStateChange, a QCaObject that accepts strings
+// is required.
 //
 qcaobject::QCaObject* QEFormStateChange::createQcaItem (unsigned int variableIndex)
 {
@@ -401,8 +366,8 @@ void QEFormStateChange::establishConnection (unsigned int variableIndex)
 {
    if (variableIndex >= NUMBER_OF_VARIABLES) return;
 
-   // Create a connection.
-   // qcaobject::QCaObject* qca =
+   // Create a connection. We don't need any connection/update signals.
+   //
    this->createConnection (variableIndex, false);
 }
 
@@ -415,20 +380,6 @@ void QEFormStateChange::stringFormattingChange () { }
 void QEFormStateChange::windowOpened ()
 {
    this->actionList [viOpen]->doAction ();
-
-   // Window opened - now we can search for the QMainWindow
-   //
-   this->mainWindow = NULL;
-   QWidget* ancestor = this;
-   while (ancestor) {
-      this->mainWindow = dynamic_cast <QMainWindow*> (ancestor);
-      if (this->mainWindow) {
-         // found it
-         this->mainWindow->installEventFilter (this);
-         break;
-      }
-      ancestor = dynamic_cast <QWidget*> (ancestor->parent());
-   }
 }
 
 //------------------------------------------------------------------------------
@@ -440,12 +391,12 @@ void QEFormStateChange::windowClosed ()
 
 //------------------------------------------------------------------------------
 //
-void QEFormStateChange::newVariableNameProperty (QString variableName,
-                                             QString substitutions,
-                                             unsigned int variableIndex)
+void QEFormStateChange::newVariableNameProperty (QString pvName,
+                                                 QString subs,
+                                                 unsigned int vi)
 {
-   if (variableIndex >= NUMBER_OF_VARIABLES) return;
-   this->setVariableNameAndSubstitutions (variableName, substitutions, variableIndex);
+   if (vi >= NUMBER_OF_VARIABLES) return;
+   this->setVariableNameAndSubstitutions (pvName, subs, vi);
 }
 
 // end
