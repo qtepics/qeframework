@@ -1,6 +1,9 @@
 /*  QEGenericEdit.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009,2010,2012,2016 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -340,7 +341,7 @@ protected:
     virtual QVariant getValue() = 0;
     virtual bool writeData( const QVariant & value, QString& message ) = 0;
 
-public:
+public slots:
     // write the text value (of the underlying QLineEdit object) into the PV immediately
     void writeNow ();
 

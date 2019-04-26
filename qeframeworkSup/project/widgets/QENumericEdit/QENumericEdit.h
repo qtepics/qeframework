@@ -204,10 +204,6 @@ public:
    /// Destruction
    virtual ~QENumericEdit ();
 
-   // Write the value (of the underlying QNumericEdit object) into the PV immediately.
-   //
-   void writeNow ();
-
    double getValue () const;
    void setValue (const double value, const bool isUserUpdate = false);  // as opposed to system update
 
@@ -284,6 +280,10 @@ signals:
    void dbConnectionChanged (const bool& isConnected);
 
 public slots:
+   // Write the value (of the underlying QNumericEdit object) into the PV immediately.
+   //
+   void writeNow ();
+
    /// Update the default style applied to this widget.
    void setDefaultStyle (const QString& style) { this->setStyleDefault (style); }
 

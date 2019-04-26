@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -39,7 +39,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QECheckBox : public QCheckBox, public Q
 {
     Q_OBJECT
 
-  public:
+public:
     /// Create without a variable.
     /// Use setVariableNameProperty() and setSubstitutionsProperty() to define a variable and, optionally, macro substitutions later.
     QECheckBox( QWidget *parent = 0 );
@@ -49,6 +49,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QECheckBox : public QCheckBox, public Q
     /// If macro substitutions are required, create without a variable and set the variable and macro substitutions after creation.
     QECheckBox( const QString& variableName, QWidget *parent = 0 );
 
+public slots:
     // write the click/clockChecked/press/release text value (of the associated button object) into the PV immediately
     void writeNow() { processWriteNow( isChecked () ); }
 

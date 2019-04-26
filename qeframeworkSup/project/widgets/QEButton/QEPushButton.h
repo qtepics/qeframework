@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -56,10 +56,11 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPushButton : public QPushButton, publ
     /// Destructor
     ~QEPushButton();
 
+public slots:
     // write the click/clockChecked/press/release text value (of the associated button object) into the PV immediately
     void writeNow() { processWriteNow( isChecked () ); }
 
-  private slots:
+private slots:
     void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex ) { QEGenericButton::connectionChanged( connectionInfo, variableIndex ); }
     void setButtonText( const QString& text, QCaAlarmInfo& alarmInfo, QCaDateTime& timestamp, const unsigned int& variableIndex ) { setGenericButtonText( text, alarmInfo, timestamp, variableIndex); }
     void userPressed() { QEGenericButton::userPressed(); }

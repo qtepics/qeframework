@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2013-2019 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2014,2016 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -252,7 +252,6 @@ public:
    virtual ~QEAnalogSlider();
 
    void activated ();
-   void writeNow ();
 
    // Override single variable property methods' function of same name.
    // Must apply to both PV substitutions.
@@ -300,6 +299,11 @@ signals:
    /// Sent when the widget state updated following a channel connection change
    /// Applied to provary varible.
    void dbConnectionChanged (const bool& isConnected);
+
+public slots:
+   // Write the value (of the underlying QAnalogSlider object) to the PV immediately.
+   //
+   void writeNow ();
 
 protected:
    // override QEWidget fnctions.

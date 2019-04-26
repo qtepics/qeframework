@@ -38,7 +38,7 @@
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QERadioButton : public QRadioButton, public QEGenericButton {
     Q_OBJECT
 
-  public:
+public:
     /// Create without a variable.
     /// Use setVariableNameProperty() and setSubstitutionsProperty() to define a variable and, optionally, macro substitutions later.
     QERadioButton( QWidget *parent = 0 );
@@ -48,6 +48,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QERadioButton : public QRadioButton, pu
     /// If macro substitutions are required, create without a variable and set the variable and macro substitutions after creation.
     QERadioButton( const QString& variableName, QWidget *parent = 0 );
 
+public slots:
     // write the click/clockChecked/press/release text value (of the associated button object) into the PV immediately
     void writeNow() { processWriteNow( isChecked () ); }
 
