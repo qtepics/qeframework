@@ -6878,6 +6878,8 @@ AFLDS
 LMT
 MT
 EVID
+
+# Libera Brillance+ only
 Va
 Vb
 Vc
@@ -6886,5 +6888,11 @@ X
 Y
 Q
 Sum
+
+# Digit 500 only
+Ch1
+Ch2
+Ch3
+Ch4
 
 # end
