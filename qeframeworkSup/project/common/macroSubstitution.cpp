@@ -26,6 +26,7 @@
 
 #include "macroSubstitution.h"
 #include <QDebug>
+#include <QtGlobal>
 
 #define DEBUG qDebug () << "macroSubstitution" << __LINE__  << __FUNCTION__ << "  "
 
@@ -516,11 +517,15 @@ const macroSubstitution macroSubstitutionList::getItem (const int i) const
 //
 QDebug operator<< (QDebug dbg, const macroSubstitution& item)
 {
+#if QT_VERSION >= 0x050400
    dbg.noquote();
+#endif
    dbg << QString ("macroSubstitution('%1' => '%2')")
           .arg (item.getKey ())
           .arg (item.getValue ());
+#if QT_VERSION >= 0x050400
    dbg.quote();
+#endif
    dbg.maybeSpace ();
    return dbg;
 }
