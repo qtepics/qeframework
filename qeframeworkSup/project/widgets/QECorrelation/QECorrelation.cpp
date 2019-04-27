@@ -137,7 +137,7 @@ void QECorrelation::setup ()
    this->setFrameShadow (QFrame::Sunken);
 
    this->setAllowDrop (true);
-   this->setDisplayAlarmState (false);
+   this->setDisplayAlarmStateOption (standardProperties::DISPLAY_ALARM_STATE_NEVER);
 
    // Use default context menu.
    //
@@ -394,9 +394,11 @@ qcaobject::QCaObject* QECorrelation::createQcaItem (unsigned int variableIndex)
 
 //------------------------------------------------------------------------------
 //
-void QECorrelation::establishConnection (unsigned int variableIndex)
+void QECorrelation::establishConnection (unsigned int variableIndex )
 {
-   DEBUG << "unexpected call, variableIndex = " << variableIndex;
+   // A framework feature is that there is always at least one variable.
+   if (variableIndex > 0)
+      DEBUG << "unexpected call, variableIndex = " << variableIndex;
 }
 
 //------------------------------------------------------------------------------
@@ -456,7 +458,7 @@ QString QECorrelation::copyVariable ()
    QString yPvName = this->getPvName (yPvIndex);
 
    if (xPvName.isEmpty() || yPvName.isEmpty()) {
-      // On of both are empty
+      // One of both are empty
       result = xPvName + yPvName;
    } else {
       result = xPvName + " " + yPvName;
