@@ -1226,23 +1226,29 @@ void QEStripChartItem::recalcualteBufferedValues ()
       }
    }
 
-   // Find first start time
+   // Find first start time of the PVs. Exclude the start time of any calculations.
    //
    QCaDateTime start_time = QCaDateTime::currentDateTime().toUTC ();
    for (int j = 0; j < QEStripChart::NUMBER_OF_PVS; j++) {
-      if (pointListList [j].count() > 0) {
-         QCaDataPoint datum = pointListList [j].value (0);
-         start_time = MIN (start_time, datum.datetime);
+      QEStripChartItem* item = this->chart->getItem (j);
+      if ((j != this->slot) && item && item->isPvData ()) {
+         if (pointListList [j].count() > 0) {
+            QCaDataPoint datum = pointListList [j].value (0);
+            start_time = MIN (start_time, datum.datetime);
+         }
       }
    }
 
-   // Find last end time
+   // Find last end time of the PVs. Exclude the start time of any calculations.
    //
    QCaDateTime end_time = start_time;
    for (int j = 0; j < QEStripChart::NUMBER_OF_PVS; j++) {
-      if (pointListList [j].count () > 0) {
-         QCaDataPoint datum = pointListList [j].last();
-         end_time = MAX (end_time, datum.datetime);
+      QEStripChartItem* item = this->chart->getItem (j);
+      if ((j != this->slot) && item && item->isPvData ()) {
+         if (pointListList [j].count () > 0) {
+            QCaDataPoint datum = pointListList [j].last();
+            end_time = MAX (end_time, datum.datetime);
+         }
       }
    }
 
