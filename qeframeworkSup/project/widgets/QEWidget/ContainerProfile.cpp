@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018  Australian Synchrotron
+ *  Copyright (c) 2009-2019  Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,6 +31,7 @@
 #include <QDir>
 #include <QEWidget.h>
 #include <QtDebug>
+#include <macroSubstitution.h>
 
 #define DEBUG qDebug() << "ContainerProfile" << __LINE__ << __FUNCTION__ << "  "
 
@@ -407,8 +408,17 @@ void ContainerProfile::addPriorityMacroSubstitutions( QString macroSubstitutions
 {
     QEPublishedProfile* publishedProfile = ContainerProfile::getPublishedProfile();
 
+    QString presubPriority = macroSubstitutionsIn;
+
+    // Pre substitute priority substitutions in case user has specified AA=$(AA)
+    //
+    for (int j = 0 ; j < publishedProfile->macroSubstitutions.count(); j++) {
+       macroSubstitutionList parts = macroSubstitutionList (publishedProfile->macroSubstitutions.value(j));
+       presubPriority = parts.substitute(presubPriority);
+    }
+
     if( publishedProfile->profileDefined  )
-        publishedProfile->macroSubstitutions.prepend( macroSubstitutionsIn );
+        publishedProfile->macroSubstitutions.prepend( presubPriority );
 }
 
 /* -----------------------------------------------------------------------------

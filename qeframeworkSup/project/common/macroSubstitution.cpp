@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2018 Australian Synchrotron
+ *  Copyright (c) 2014-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -48,6 +48,20 @@ macroSubstitution::macroSubstitution (const QString& keyIn, const QString& value
 // Destructor
 //
 macroSubstitution::~macroSubstitution () { }
+
+//------------------------------------------------------------------------------
+//
+const QString macroSubstitution::getKey () const
+{
+   return this->key;
+}
+
+//------------------------------------------------------------------------------
+//
+const QString macroSubstitution::getValue () const
+{
+   return this->value;
+}
 
 
 //==============================================================================
@@ -366,28 +380,42 @@ QString macroSubstitutionList::substitute (const QString& string) const
    static const int numberOfPasses = 10;
 
    QString result = string;
+   const int count = this->parts.count ();
+
+   // Anything to do? Skip if input is empty or does noy even contain
+   // a '$' character or the number of substitution elements is zero.
+   // Avoids a lot debug clutter (when debugging) and may speed things
+   // up a bit.
+   // 
+   if (result.isEmpty() ||
+       !result.contains('$') ||
+       (count == 0)) return result;
 
    // Apply the substitutions
-   // We apply multiple times to allow for deferencencing,
+   // We apply multiple times to allow for dereferencing,
    // i.e. supposed  AA='$(BB)' and BB='CC'
    // On pass 1 $(AA) becones $(BB), on pass 2 $(BB) becomes CC
    // We limit the number of passes to ten to avoid infinite loops
    //
-   const int count = this->parts.count ();
    for (int j = 1; j <= numberOfPasses; j++) {
       const QString preSubstitutionResult = result;
       for (int i = 0; i < count; i++) {
          macroSubstitution part = this->parts.at (i);
          substituteKey (result, part.key, part.value);
       }
-      // No change on this pass - all done.
+
+      // If no change on this pass - all done.
       //
       if (result == preSubstitutionResult) break;
+
+      // There was a change - go again unless limit exceeded.
+      //
       if (j == numberOfPasses) {
          DEBUG << string << "expansion requires more than"
                << numberOfPasses << " passes.";
       }
    }
+
    return result;
 }
 
@@ -434,9 +462,9 @@ int macroSubstitutionList::getCount () const
 //------------------------------------------------------------------------------
 // Return a key
 //
-const QString macroSubstitutionList::getKey (const unsigned int i) const
+const QString macroSubstitutionList::getKey (const int i) const
 {
-   if ((int) i < this->parts.count ()) {
+   if ((i >= 0) && (i < this->parts.count ())) {
       return this->parts.at (i).key;
    } else {
       return QString ();
@@ -447,9 +475,9 @@ const QString macroSubstitutionList::getKey (const unsigned int i) const
 // Return a value (given a position index inthe macro substitution list)
 // Return an empty string if index is out of range
 //
-const QString macroSubstitutionList::getValue (const unsigned int i) const
+const QString macroSubstitutionList::getValue (const int i) const
 {
-   if ((int) i < this->parts.count ()) {
+   if ((i >= 0) && (i < this->parts.count ())) {
       return this->parts.at (i).value;
    } else {
       return QString ();
@@ -470,6 +498,44 @@ const QString macroSubstitutionList::getValue (const QString& keyIn) const
       }
    }
    return QString ();
+}
+
+//------------------------------------------------------------------------------
+// Extract substitution item (given an index)
+//
+const macroSubstitution macroSubstitutionList::getItem (const int i) const
+{
+   macroSubstitution defaultItem;
+   return this->parts.value (i, defaultItem);
+}
+
+
+//==============================================================================
+// Debug functions
+//==============================================================================
+//
+QDebug operator<< (QDebug dbg, const macroSubstitution& item)
+{
+   dbg.noquote();
+   dbg << QString ("macroSubstitution('%1' => '%2')")
+          .arg (item.getKey ())
+          .arg (item.getValue ());
+   dbg.quote();
+   dbg.maybeSpace ();
+   return dbg;
+}
+
+//------------------------------------------------------------------------------
+//
+QDebug operator<< (QDebug dbg, const macroSubstitutionList& list)
+{
+   const int count = list.getCount ();
+
+   for (int i = 0; i < count; i++) {
+      dbg  << "\n  " << i << list.getItem(i);
+   }
+   dbg.maybeSpace ();
+   return dbg;
 }
 
 // end
