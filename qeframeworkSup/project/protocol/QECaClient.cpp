@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018 Australian Synchrotron
+ *  Copyright (C) 2018-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -169,6 +169,7 @@ bool QECaClient::putPvData (const QVariant& value)
 {
    bool result = false;
    bool okay;
+   QString extra = "";
 
    if (value.type () != QVariant::List) {
       // Process as scaler
@@ -218,6 +219,7 @@ bool QECaClient::putPvData (const QVariant& value)
             result = false;
             break;
       }
+      extra = QString(", type %1.").arg (value.typeName ());
    } else {
       // Process as array.
       //
@@ -262,6 +264,7 @@ bool QECaClient::putPvData (const QVariant& value)
             result = false;
             break;
       }
+      extra = QString(" list of %1.").arg (firstValue.typeName ());
    }
 
    // Report error - if we can.
@@ -276,7 +279,7 @@ bool QECaClient::putPvData (const QVariant& value)
          data = data.left( 18 ) + "..." + data.right( 18 );
       }
       msg.append( data );
-      msg.append( "." );
+      msg.append( extra );
 
       if( !this->isConnected() ){
          msg.append( " Channel disconnected." );
