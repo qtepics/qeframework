@@ -43,7 +43,7 @@ public:
 
     explicit QCaAlarmInfo();
     explicit QCaAlarmInfo( const Status statusIn,
-			   const Severity severityIn,
+                           const Severity severityIn,
                            const QString& message = "" );
     virtual ~QCaAlarmInfo();
 

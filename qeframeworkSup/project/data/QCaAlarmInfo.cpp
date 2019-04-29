@@ -181,7 +181,7 @@ QString QCaAlarmInfo::messageText() const
   Return true if there is an alarm
  */
 bool QCaAlarmInfo::isInAlarm() const {
-    return( status != NO_ALARM );
+    return( severity != NO_ALARM );
 }
 
 /*
