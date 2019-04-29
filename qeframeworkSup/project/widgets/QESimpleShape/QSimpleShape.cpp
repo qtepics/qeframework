@@ -1,6 +1,9 @@
 /*  QSimpleShape.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2014-2019 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2014,2016,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -124,8 +125,8 @@ void QSimpleShape::paintEvent (QPaintEvent*)
    // work variables
    int numPoints, ds;
    int p, q;
-   int x0, x1, x2, x3;
-   int y0, y1, y2, y3;
+   int xc, x0, x1, x2, x3;
+   int yc, y0, y1, y2, y3;
    double dx, dy;
 
    // Get basic colour property.
@@ -529,6 +530,146 @@ void QSimpleShape::paintEvent (QPaintEvent*)
          painter.drawPolygon (polygon, numPoints + 1);
          break;
 
+      case pentagon:
+         // 5 point polygon. Vertices lie on corresponding ellipse.
+         //
+         dx = double (rect.right ()  - rect.left ())/1000.0;
+         dy = double (rect.bottom () - rect.top ())/1000.0;
+         x0 = rect.left ();
+         y0 = rect.top ();
+
+         p = 0;
+         polygon[p++]  = QPoint (x0 + 500*dx, y0 +   0*dy);
+         polygon[p++]  = QPoint (x0 + 976*dx, y0 + 345*dy);
+         polygon[p++]  = QPoint (x0 + 794*dx, y0 + 905*dy);
+         polygon[p++]  = QPoint (x0 + 206*dx, y0 + 905*dy);
+         polygon[p++]  = QPoint (x0 +  24*dx, y0 + 345*dy);
+         polygon[p++]  = polygon[0];            // close loop
+         painter.drawPolygon (polygon, p);
+         break;
+
+      case star:
+         // 10 point star. Outer vertices lie on corresponding ellipse.
+         //
+         dx = double (rect.right ()  - rect.left ())/1000.0;
+         dy = double (rect.bottom () - rect.top ())/1000.0;
+         x0 = rect.left ();
+         y0 = rect.top ();
+
+         p = 0;
+         polygon[p++]  = QPoint (x0 + 500*dx, y0 +   0*dy);
+         polygon[p++]  = QPoint (x0 + 612*dx, y0 + 345*dy);
+         polygon[p++]  = QPoint (x0 + 976*dx, y0 + 345*dy);
+         polygon[p++]  = QPoint (x0 + 682*dx, y0 + 559*dy);
+         polygon[p++]  = QPoint (x0 + 794*dx, y0 + 905*dy);
+         polygon[p++]  = QPoint (x0 + 500*dx, y0 + 691*dy);
+         polygon[p++]  = QPoint (x0 + 206*dx, y0 + 905*dy);
+         polygon[p++]  = QPoint (x0 + 318*dx, y0 + 559*dy);
+         polygon[p++]  = QPoint (x0 +  24*dx, y0 + 345*dy);
+         polygon[p++]  = QPoint (x0 + 388*dx, y0 + 345*dy);
+         polygon[p++]  = polygon[0];            // close loop
+         painter.drawPolygon (polygon, p);
+         break;
+
+      case plus:
+         sum = 100;
+         f = 50 - this->percentSize;
+         g = sum - f;
+         x1 = (g * rect.left () + f * rect.right ()) / sum;
+         x2 = (f * rect.left () + g * rect.right ()) / sum;
+         y1 = (g * rect.top ()  + f * rect.bottom ()) / sum;
+         y2 = (f * rect.top ()  + g * rect.bottom ()) / sum;
+
+         p = 0;
+         polygon[p++] = QPoint (x1,            rect.top ());
+         polygon[p++] = QPoint (x2,            rect.top ());
+         polygon[p++] = QPoint (x2,            y1);
+         polygon[p++] = QPoint (rect.right (), y1);
+         polygon[p++] = QPoint (rect.right (), y2);
+         polygon[p++] = QPoint (x2,            y2);
+         polygon[p++] = QPoint (x2,            rect.bottom ());
+         polygon[p++] = QPoint (x1,            rect.bottom ());
+         polygon[p++] = QPoint (x1,            y2);
+         polygon[p++] = QPoint (rect.left (),  y2);
+         polygon[p++] = QPoint (rect.left (),  y1);
+         polygon[p++] = QPoint (x1,            y1);
+         polygon[p++] = polygon[0];            // close loop
+         painter.drawPolygon (polygon, p);
+         break;
+
+      case cross:
+         xc = (rect.left () + rect.right ())  / 2;
+         yc = (rect.top ()  + rect.bottom ()) / 2;
+
+         sum = 100;
+         f = this->percentSize;
+         g = sum - f;
+         x0 = (g * rect.left () + f * rect.right ()) / sum;
+         x3 = (f * rect.left () + g * rect.right ()) / sum;
+         y0 = (g * rect.top ()  + f * rect.bottom ()) / sum;
+         y3 = (f * rect.top ()  + g * rect.bottom ()) / sum;
+
+         f = 50 - this->percentSize;
+         g = sum - f;
+         x1 = (g * rect.left () + f * rect.right ()) / sum;
+         x2 = (f * rect.left () + g * rect.right ()) / sum;
+         y1 = (g * rect.top ()  + f * rect.bottom ()) / sum;
+         y2 = (f * rect.top ()  + g * rect.bottom ()) / sum;
+
+         p = 0;
+         polygon[p++] = QPoint (rect.left (),  rect.top ());
+         polygon[p++] = QPoint (x0,            rect.top ());
+         polygon[p++] = QPoint (xc,            y1);
+         polygon[p++] = QPoint (x3,            rect.top ());
+         polygon[p++] = QPoint (rect.right (), rect.top ());
+         polygon[p++] = QPoint (rect.right (),  y0);
+         polygon[p++] = QPoint (x2,            yc);
+         polygon[p++] = QPoint (rect.right (), y3);
+         polygon[p++] = QPoint (rect.right (), rect.bottom ());
+         polygon[p++] = QPoint (x3,            rect.bottom ());
+         polygon[p++] = QPoint (xc,            y2);
+         polygon[p++] = QPoint (x0,            rect.bottom ());
+         polygon[p++] = QPoint (rect.left (),  rect.bottom ());
+         polygon[p++] = QPoint (rect.left (),  y3);
+         polygon[p++] = QPoint (x1,            yc);
+         polygon[p++] = QPoint (rect.left (),  y0);
+         polygon[p++] = polygon[0];            // close loop
+         painter.drawPolygon (polygon, p);
+         break;
+
+     case australia:
+         // And just for fun ....
+         dx = double (rect.right ()  - rect.left ())/100.0;
+         dy = double (rect.bottom () - rect.top ())/100.0;
+         x0 = rect.left ();
+         y0 = rect.top ();
+
+         // Mainland map
+         p = 0;
+         polygon[p++]  = QPoint (x0 + 10*dx,  y0 + 74*dy);
+         polygon[p++]  = QPoint (x0 +  1*dx,  y0 + 37*dy);
+         polygon[p++]  = QPoint (x0 + 35*dx,  y0 +  6*dy);
+         polygon[p++]  = QPoint (x0 + 55*dx,  y0 +  6*dy);
+         polygon[p++]  = QPoint (x0 + 55*dx,  y0 + 13*dy);
+         polygon[p++]  = QPoint (x0 + 68*dx,  y0 + 20*dy);
+         polygon[p++]  = QPoint (x0 + 74*dx,  y0 +  2*dy);
+         polygon[p++]  = QPoint (x0 + 98*dx,  y0 + 38*dy);
+         polygon[p++]  = QPoint (x0 + 98*dx,  y0 + 58*dy);
+         polygon[p++]  = QPoint (x0 + 84*dx,  y0 + 81*dy);
+         polygon[p++]  = QPoint (x0 + 69*dx,  y0 + 81*dy);
+         polygon[p++]  = QPoint (x0 + 42*dx,  y0 + 59*dy);
+         polygon[p++]  = polygon[0];            // close loop
+         painter.drawPolygon (polygon, p);
+
+         // Now do the map of tassie
+         p = 0;
+         polygon[p++]  = QPoint (x0 + 70*dx,  y0 + 86*dy);
+         polygon[p++]  = QPoint (x0 + 83*dx,  y0 + 86*dy);
+         polygon[p++]  = QPoint (x0 + 76*dx,  y0 + 98*dy);
+         polygon[p++]  = polygon[0];            // close loop
+         painter.drawPolygon (polygon, p);
+         break;
+
       default:
          break;
    }
@@ -688,7 +829,10 @@ int QSimpleShape::getSemiCycles () const
 void QSimpleShape::setPercentSize (const int percentSizeIn)
 {
    this->percentSize = LIMIT (percentSizeIn, 1, 50);
-    if ((this->shape == snakeHorizontal) || (this->shape == snakeVertical)) {
+    if ((this->shape == snakeHorizontal) ||
+        (this->shape == snakeVertical) ||
+        (this->shape == plus) ||
+        (this->shape == cross)) {
        this->update ();
    }
 }
@@ -742,6 +886,12 @@ QStringList QSimpleShape::getStateSet () const
    return this->stateSet;
 }
 
+//------------------------------------------------------------------------------
+//
+void QSimpleShape::setShape (const int value)
+{
+   this->setShape (Shapes (value));
+}
 
 //------------------------------------------------------------------------------
 //

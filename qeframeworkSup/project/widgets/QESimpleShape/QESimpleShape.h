@@ -101,7 +101,8 @@ public:
     Q_PROPERTY (int edgeElementsRequired READ getEdgeElementsRequired     WRITE setEdgeElementsRequired)
     Q_PROPERTY (int edgeArrayIndex       READ getEdgeArrayIndex           WRITE setEdgeArrayIndex)
 
-    Q_PROPERTY (DisplayAlarmStateOptions edgeAlarmStateOption READ getEdgeAlarmStateOptionProperty WRITE setEdgeAlarmStateOptionProperty)
+    Q_PROPERTY (DisplayAlarmStateOptions edgeAlarmStateOption READ getEdgeAlarmStateOptionProperty
+                                                              WRITE setEdgeAlarmStateOptionProperty)
 
     //----------------------------------------------------------------------------------
     /// If true (default), add engineering units supplied with the data.
@@ -342,12 +343,16 @@ protected:
 private:
    void setup ();
 
+   // Returns true if alarm colours should be used.
+   bool useAlarmColours (const standardProperties::displayAlarmStateOptions option,
+                         const QCaAlarmInfo& alarmInfo) const;
+
    QESingleVariableMethods* edge;
 
-   DisplayAlarmStateOptions edgeAlarmState;
+   standardProperties::displayAlarmStateOptions edgeAlarmState;
    bool isFirstUpdate;
    int  channelValue;
-   QColor channelAlarmColour;
+   QColor fillColour;
 
 private slots:
    void useNewVariableNameProperty (QString variableName,

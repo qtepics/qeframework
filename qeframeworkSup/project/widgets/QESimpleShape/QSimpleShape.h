@@ -1,6 +1,9 @@
 /*  QSimpleShape.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2014-2019 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2014,2016,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -48,7 +49,7 @@ public:
                  triangleTopRight, triangleBottomRight, triangleBottomLeft, triangleTopLeft,
                  diamond, equalDiamond, arrowUp, arrowDown, arrowLeft, arrowRight,
                  crossHorizontal, crossVertical, hexagon, octogon,
-                 snakeHorizontal, snakeVertical };
+                 snakeHorizontal, snakeVertical, pentagon, star, plus, cross, australia };
    Q_ENUMS (Shapes)
 
    /// Nominated shape
@@ -177,6 +178,10 @@ public:
    void setStateSet (const QStringList& stateSet);
    QStringList getStateSet () const;
 
+public slots:
+   // Allows shape to be selected by a signal from another widget. 
+   void setShape (const int value);
+public:
    void setShape (const Shapes value);
    Shapes getShape () const;
 

@@ -99,8 +99,8 @@ void QESimpleShape::setup ()
    // Widget is inactive until connected.
    //
    this->channelValue = 0;
-   this->channelAlarmColour = this->getColor (invalid, 255);
-   this->edgeAlarmState = Always;
+   this->fillColour = this->getColor (invalid, 255);
+   this->edgeAlarmState = DISPLAY_ALARM_STATE_ALWAYS;
 
    // Use default context menu.
    //
@@ -124,7 +124,7 @@ void QESimpleShape::activated ()
    //
    this->setIsActive (false);
    this->channelValue = 0;
-   this->channelAlarmColour = QColor ("#ffffff");   // white
+   this->fillColour = QColor ("#ffffff");   // white
    this->setValue (0);
 }
 
@@ -302,8 +302,8 @@ void QESimpleShape::connectionChanged (QCaConnectionInfo & connectionInfo,
 // Update the shape value
 // This is the slot used to recieve data updates from a QCaObject based class.
 //
-void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo & alarmInfo,
-                                   QCaDateTime &, const unsigned int& variableIndex)
+void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo& alarmInfo,
+                                   QCaDateTime&, const unsigned int& variableIndex)
 {
    ASSERT_PV_INDEX (variableIndex, return);
 
@@ -335,25 +335,36 @@ void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo &
             this->stringFormatting.setFormat (QEStringFormatting::FORMAT_DEFAULT);
          }
 
-         // Save alarm colour.
-         // Must do before we set value as getItemColour will get called.
-         //
-         this->channelAlarmColour = this->getColor (alarmInfo, 255);
-
          // Save value and update the shape value.
          // This essentially stores data twice, but the QSimpleShape stores the
          // modulo value, but we want to keep actual value (for getItemText).
          //
-         if (this->getDisplayAlarmState()) {
+         if (this->useAlarmColours (this->getDisplayAlarmStateOption(), alarmInfo)) {
             // We are displaying the alarm state.
             //
             this->channelValue = alarmInfo.getSeverity();
+
+            // Save alarm colour.
+            // Must do before we set value as getItemColour will get called.
+            //
+            this->fillColour = this->getColor (alarmInfo, 255);
+
          } else {
             // NOTE: If variant can't be converted to a number, this returns 0.
             //
-            this->channelValue = qca->getIntegerValue ();
+            this->channelValue = int (qca->getIntegerValue ());
+
+            // Save regular colour. This is essentall the same logic as in QSimpleShape
+            // We want the modulo value to get the colour.
+            // Note: % operator is remainder not modulo, so need to be smarter.
+            //
+            int mod = this->getModulus();
+            int val = this->channelValue % mod;
+            if (val < 0) val += mod;
+            this->fillColour = this->getColourProperty (val);
          }
-         this->setValue ((int) this->channelValue);
+
+         this->setValue (this->channelValue);
 
          // This update is over, clear first update flag.
          //
@@ -363,17 +374,17 @@ void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo &
       case EDGE_PV_INDEX:
          // For now (at least) we treat everything not Never as Always.
          //
-         if (this->edgeAlarmState != Never) {
+         if (this->useAlarmColours (this->edgeAlarmState, alarmInfo)) {
             selectedEdgeColour = this->getColor (alarmInfo, 255);
          } else {
-            int ival = qca->getIntegerValue ();
+            int ival = int (qca->getIntegerValue ());
             selectedEdgeColour = this->getColourProperty (ival & 15);
          }
          this->setEdgeColour (selectedEdgeColour);
          break;
    }
 
-   // Invoke tool tip handling directly. We don;t want to interfer with the style
+   // Invoke tool tip handling directly. We don't want to interfere with the style
    // as widget draws it's own stuff with own, possibly clear, colours.
    //
    this->updateToolTipAlarm (alarmInfo.severityName (), variableIndex);
@@ -384,6 +395,30 @@ void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo &
    if (variableIndex == MAIN_PV_INDEX) {
       this->emitDbValueChanged (MAIN_PV_INDEX);
    }
+}
+
+//------------------------------------------------------------------------------
+// Determine if alarm colour to be used.
+//
+bool QESimpleShape::useAlarmColours (const standardProperties::displayAlarmStateOptions option,
+                                     const QCaAlarmInfo& alarmInfo) const
+{
+   bool result = true;
+   switch (option) {
+     case standardProperties::DISPLAY_ALARM_STATE_NEVER:
+         result = false;
+         break;
+
+     case standardProperties::DISPLAY_ALARM_STATE_ALWAYS:
+         result = true;
+         break;
+
+     case standardProperties::DISPLAY_ALARM_STATE_WHEN_IN_ALARM:
+         result = alarmInfo.isInAlarm();
+         break;
+   }
+
+   return result;
 }
 
 //------------------------------------------------------------------------------
@@ -423,15 +458,7 @@ QString QESimpleShape::getItemText ()
 //
 QColor QESimpleShape::getItemColour ()
 {
-   QColor result;
-
-   if (this->getDisplayAlarmState ()) {
-      result = this->channelAlarmColour;
-   } else {
-      // Just use base class function as is.
-      result = QSimpleShape::getItemColour ();
-   }
-   return result;
+   return this->fillColour;
 }
 
 //------------------------------------------------------------------------------
@@ -445,14 +472,15 @@ void QESimpleShape::stringFormattingChange()
 //
 QESimpleShape::DisplayAlarmStateOptions QESimpleShape::getEdgeAlarmStateOptionProperty () const
 {
-   return this->edgeAlarmState;
+   return DisplayAlarmStateOptions (this->edgeAlarmState);
 }
 
 //------------------------------------------------------------------------------
 //
 void QESimpleShape::setEdgeAlarmStateOptionProperty (DisplayAlarmStateOptions option)
 {
-   this->edgeAlarmState = option;
+   this->edgeAlarmState = standardProperties::displayAlarmStateOptions (option);
+
    // Force update (if we can).
    //
    qcaobject::QCaObject* qca = this->getQcaItem (EDGE_PV_INDEX);
