@@ -1220,7 +1220,7 @@ void QEStripChartItem::recalcualteBufferedValues ()
    for (int j = 0; j < QEStripChart::NUMBER_OF_PVS; j++) {
       QEStripChartItem* item = this->chart->getItem (j);
       if ((j != this->slot) && item && item->isInUse ()) {
-         pointListList [j] = item->extractPlotPoints (true); // get all points
+         pointListList [j] = item->extractPlotPoints (false); // only displayed points
       } else {
          pointListList [j].clear();
       }
