@@ -40,6 +40,8 @@
 
 #include <QECommon.h>
 #include <QEAdaptationParameters.h>
+#include <QEPvNameUri.h>
+
 
 #define DEBUG  qDebug () << "QEArchiveManager" << __LINE__ <<  __FUNCTION__  << "  "
 
@@ -102,6 +104,7 @@ class QEArchiveThread : public QThread {
 static QMutex *singletonMutex = new QMutex ();
 static QEArchiveThread *singletonThread = NULL;
 static QMutex *archiveDataMutex = new QMutex ();
+
 
 //==============================================================================
 // QEArchiveManager Class Methods
@@ -414,8 +417,64 @@ void QEArchiveManager::valuesResponse (const QObject* userData,
    this->resendStatus ();
 }
 
+//------------------------------------------------------------------------------
+//
+bool QEArchiveManager::containsPvName (const QString pvName,
+                                       QString& effectivePvName)
+{
+   bool result;
 
+   // Attempt to decode the given name into a protocol and an actual PV name.
+   // If not specified, the 'ca://' Channel Access protocol is the default.
+   //
+   QEPvNameUri uri;
+   result = uri.decodeUri (pvName, /* strict=> */ false);
+   if (!result) {
+      DEBUG << "PV protocol identification failed for:" << pvName;
+      this->sendMessage (QString("PV protocol identification failed for: %1").arg (pvName),
+                         message_types (MESSAGE_TYPE_WARNING));
+      return false;
+   }
 
+   // Extract the PV name sans protocol qualifier.
+   //
+   effectivePvName = uri.getPvName ();
+
+   QEPvNameUri::Protocol protocol = uri.getProtocol ();
+   if (protocol != QEPvNameUri::ca) {
+      DEBUG << "Only Channel Access protocol archiving is supported:" << pvName;
+      this->sendMessage (QString("Only Channel Access protocol archiving is supported: %1").arg (pvName),
+                         message_types (MESSAGE_TYPE_WARNING));
+      return false;
+   }
+
+   // Is this PV currently being archived?
+   //
+   result = this->pvNameToSourceLookUp.contains (effectivePvName);
+   if (!result) {
+      // No - the PV 'as is' is not archived.
+      // If user has requested XXXXXX.VAL, check if XXXXXX is archived.
+      // Similarly, if user requested YYYYYY, check if YYYYYY.VAL is archived.
+      //
+      if (effectivePvName.right (4) == ".VAL") {
+         // Remove the .VAL field and try again.
+         //
+         effectivePvName.chop (4);
+      } else {
+         // Add .VAL and try again.
+         //
+         effectivePvName.append (".VAL");
+      }
+      result = this->pvNameToSourceLookUp.contains (effectivePvName);
+   }
+
+   return result;
+}
+
+//==============================================================================
+// QEChannelArchiverManager Class Methods
+//==============================================================================
+//
 QEChannelArchiverManager& QEChannelArchiverManager::getInstance()
 {
    static QEChannelArchiverManager* instance = NULL;
@@ -451,8 +510,8 @@ QEChannelArchiverManager::QEChannelArchiverManager() : QEArchiveManager() { }
 //------------------------------------------------------------------------------
 //
 void QEChannelArchiverManager::pvNamesResponse (const QObject * userData,
-                                        const bool isSuccess,
-                                        const QEArchiveInterface::PVNameList &pvNameList)
+                                                const bool isSuccess,
+                                                const QEArchiveInterface::PVNameList &pvNameList)
 {
    QMutexLocker locker (archiveDataMutex);
 
@@ -554,7 +613,7 @@ void QEChannelArchiverManager::pvNamesResponse (const QObject * userData,
 //------------------------------------------------------------------------------
 //
 void QEChannelArchiverManager::readArchiveRequest (const QEArchiveAccess* archiveAccess,
-                                           const QEArchiveAccess::PVDataRequests& request)
+                                                   const QEArchiveAccess::PVDataRequests& request)
 {
    QMutexLocker locker (archiveDataMutex);
 
@@ -584,26 +643,7 @@ void QEChannelArchiverManager::readArchiveRequest (const QEArchiveAccess* archiv
 
    // Is this PV currently being archived?
    //
-   effectivePvName = request.pvName;
-
-   isKnownPVName = pvNameToSourceLookUp.contains (effectivePvName);
-   if (!isKnownPVName) {
-      // No - the PV 'as is' is not archived.
-      // If user has requested XXXXXX.VAL, check if XXXXXX is archived.
-      // Similarly, if user requested YYYYYY, check if YYYYYY.VAL archived.
-      //
-      if (effectivePvName.right (4) == ".VAL") {
-         // Remove the .VAL field and try again.
-         //
-         effectivePvName.chop (4);
-      } else {
-         // Add .VAL and try again.
-         //
-         effectivePvName.append (".VAL");
-      }
-      isKnownPVName = pvNameToSourceLookUp.contains (effectivePvName);
-   }
-
+   isKnownPVName = this->containsPvName (request.pvName, effectivePvName);
    if (isKnownPVName) {
       sourceSpec = pvNameToSourceLookUp.value (effectivePvName);
 
@@ -634,7 +674,7 @@ void QEChannelArchiverManager::readArchiveRequest (const QEArchiveAccess* archiv
 
          // Create a reasponse context.
          //
-         ValuesResponseContext* context = new  ValuesResponseContext (archiveAccess, request.pvName, request.userData);
+         ValuesResponseContext* context = new ValuesResponseContext (archiveAccess, request.pvName, request.userData);
 
          // The interface signals return data to the valuesResponse slot in the QEArchiveManager
          // object which (using supplied context) emits QEArchiveAccess setArchiveData signal on behalf
@@ -667,31 +707,15 @@ void QEChannelArchiverManager::readArchiveRequest (const QEArchiveAccess* archiv
    }
 }
 
+//------------------------------------------------------------------------------
+//
 bool QEChannelArchiverManager::getArchivePvInformation (QString& effectivePvName,
-                                               QEArchiveAccess::ArchiverPvInfoLists& data)
+                                                        QEArchiveAccess::ArchiverPvInfoLists& data)
 {
    bool result = false;
 
-   // TODO: refactor this code snippet - see readArchiveRequest
-   //
-   bool isKnownPVName = pvNameToSourceLookUp.contains (effectivePvName);
-   if (!isKnownPVName) {
-      // No - the PV 'as is' is not archived.
-      // If user has requested XXXXXX.VAL, check if XXXXXX is archived.
-      // Similarly, if user requested YYYYYY, check if YYYYYY.VAL archived.
-      //
-      if (effectivePvName.right (4) == ".VAL") {
-         // Remove the .VAL field and try again.
-         //
-         effectivePvName.chop (4);
-      } else {
-         // Add .VAL and try again.
-         //
-         effectivePvName.append (".VAL");
-      }
-      isKnownPVName = pvNameToSourceLookUp.contains (effectivePvName);
-   }
-
+   const QString tempName = effectivePvName;
+   bool isKnownPVName = this->containsPvName (tempName, effectivePvName);
    if (isKnownPVName) {
       SourceSpec sourceSpec = pvNameToSourceLookUp.value (effectivePvName);
       QList<int> keys;
@@ -717,7 +741,10 @@ bool QEChannelArchiverManager::getArchivePvInformation (QString& effectivePvName
    return result;
 }
 
-
+//==============================================================================
+// QEArchapplManager Class Methods
+//==============================================================================
+//
 QEArchapplManager& QEArchapplManager::getInstance()
 {
    static QEArchapplManager* instance = NULL;
@@ -747,10 +774,15 @@ QEArchapplManager& QEArchapplManager::getInstance()
    return *instance;
 }
 
+//------------------------------------------------------------------------------
+//
 QEArchapplManager::QEArchapplManager() : QEArchiveManager() { }
 
+//------------------------------------------------------------------------------
+//
 void QEArchapplManager::readArchiveRequest (const QEArchiveAccess* archiveAccess,
-                         const QEArchiveAccess::PVDataRequests& request) {
+                                            const QEArchiveAccess::PVDataRequests& request)
+{
 
    QMutexLocker locker (archiveDataMutex);
 
@@ -771,26 +803,7 @@ void QEArchapplManager::readArchiveRequest (const QEArchiveAccess* archiveAccess
 
    // Is this PV currently being archived?
    //
-   effectivePvName = request.pvName;
-
-   isKnownPVName = pvNameToSourceLookUp.contains (effectivePvName);
-   if (!isKnownPVName) {
-      // No - the PV 'as is' is not archived.
-      // If user has requested XXXXXX.VAL, check if XXXXXX is archived.
-      // Similarly, if user requested YYYYYY, check if YYYYYY.VAL archived.
-      //
-      if (effectivePvName.right (4) == ".VAL") {
-         // Remove the .VAL field and try again.
-         //
-         effectivePvName.chop (4);
-      } else {
-         // Add .VAL and try again.
-         //
-         effectivePvName.append (".VAL");
-      }
-      isKnownPVName = pvNameToSourceLookUp.contains (effectivePvName);
-   }
-
+   isKnownPVName = this->containsPvName (request.pvName, effectivePvName);
    if (isKnownPVName) {
       sourceSpec = pvNameToSourceLookUp.value (effectivePvName);
 
@@ -821,7 +834,11 @@ void QEArchapplManager::readArchiveRequest (const QEArchiveAccess* archiveAccess
    }
 }
 
-void QEArchapplManager::pvNamesResponse  (const QObject* userData, const bool isSuccess, const QEArchiveInterface::PVNameList& pvNameList) {
+//------------------------------------------------------------------------------
+//
+void QEArchapplManager::pvNamesResponse  (const QObject* userData, const bool isSuccess,
+                                          const QEArchiveInterface::PVNameList& pvNameList)
+{
    QMutexLocker locker (archiveDataMutex);
 
    NamesResponseContext *context = (NamesResponseContext *) userData;
@@ -890,31 +907,15 @@ void QEArchapplManager::pvNamesResponse  (const QObject* userData, const bool is
    this->resendStatus ();
 }
 
+//------------------------------------------------------------------------------
+//
 bool QEArchapplManager::getArchivePvInformation (QString& effectivePvName,
-                                               QEArchiveAccess::ArchiverPvInfoLists& data)
+                                                 QEArchiveAccess::ArchiverPvInfoLists& data)
 {
    bool result = false;
 
-   // TODO: refactor this code snippet - see readArchiveRequest
-   //
-   bool isKnownPVName = pvNameToSourceLookUp.contains (effectivePvName);
-   if (!isKnownPVName) {
-      // No - the PV 'as is' is not archived.
-      // If user has requested XXXXXX.VAL, check if XXXXXX is archived.
-      // Similarly, if user requested YYYYYY, check if YYYYYY.VAL archived.
-      //
-      if (effectivePvName.right (4) == ".VAL") {
-         // Remove the .VAL field and try again.
-         //
-         effectivePvName.chop (4);
-      } else {
-         // Add .VAL and try again.
-         //
-         effectivePvName.append (".VAL");
-      }
-      isKnownPVName = pvNameToSourceLookUp.contains (effectivePvName);
-   }
-
+   const QString tempName = effectivePvName;
+   bool isKnownPVName = this->containsPvName (tempName, effectivePvName);
    if (isKnownPVName) {
       SourceSpec sourceSpec = pvNameToSourceLookUp.value (effectivePvName);
 

@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2012-2019 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012-2018 Australian Synchrotron
  *
  *  Authors:
  *    Andrew Starritt
@@ -108,7 +108,8 @@ class QEArchiveManager : public QObject, public UserMessage {
 friend class QEArchiveAccess;
 
 private:
-   virtual bool getArchivePvInformation (QString& effectivePvName, QEArchiveAccess::ArchiverPvInfoLists& data) = 0;
+   virtual bool getArchivePvInformation (QString& effectivePvName,
+                                         QEArchiveAccess::ArchiverPvInfoLists& data) = 0;
 
 protected:
    explicit QEArchiveManager ();
@@ -121,6 +122,14 @@ protected:
 
    void clear ();
    void resendStatus ();
+
+   // Checks if the specified PV is archived. This is a smart check:
+   // a) it removes any protocol qualifier (e.g. ca://); and
+   // b) takes care of the {record name} and {record namer}.VAL ambiguity.
+   // The actual archived name is returned in effectivePvName provided the
+   // return value is true.
+   //
+   bool containsPvName (const QString pvName, QString& effectivePvName);
 
    QString archives;
    QString pattern;
@@ -146,11 +155,13 @@ signals:
 protected slots:
    // From archive access
    //
-   virtual void readArchiveRequest (const QEArchiveAccess* archiveAccess, const QEArchiveAccess::PVDataRequests& request) = 0;
+   virtual void readArchiveRequest (const QEArchiveAccess* archiveAccess,
+                                    const QEArchiveAccess::PVDataRequests& request) = 0;
 
    // From archive interface.
    //
-   virtual void pvNamesResponse  (const QObject* userData, const bool isSuccess, const QEArchiveInterface::PVNameList& pvNameList) = 0;
+   virtual void pvNamesResponse  (const QObject* userData, const bool isSuccess,
+                                  const QEArchiveInterface::PVNameList& pvNameList) = 0;
 
 private slots:
    // From owning thread
@@ -198,7 +209,7 @@ private:
    QEChannelArchiverManager();
 
    static QEChannelArchiverManager& getInstance();
-   virtual bool getArchivePvInformation (QString& effectivePvName, QEArchiveAccess::ArchiverPvInfoLists& data);
+   bool getArchivePvInformation (QString& effectivePvName, QEArchiveAccess::ArchiverPvInfoLists& data);
 
    // Declaring but not implementing copy constructor and assignemnt operator to avoid
    // having many copies of a singleton.
@@ -207,8 +218,8 @@ private:
    void operator= (QEChannelArchiverManager const&);
 
 private slots:
-   virtual void readArchiveRequest (const QEArchiveAccess* archiveAccess, const QEArchiveAccess::PVDataRequests& request);
-   virtual void pvNamesResponse  (const QObject* userData, const bool isSuccess, const QEArchiveInterface::PVNameList& pvNameList);
+   void readArchiveRequest (const QEArchiveAccess* archiveAccess, const QEArchiveAccess::PVDataRequests& request);
+   void pvNamesResponse  (const QObject* userData, const bool isSuccess, const QEArchiveInterface::PVNameList& pvNameList);
 
 };
 
@@ -224,7 +235,7 @@ private:
    QEArchapplManager();
 
    static QEArchapplManager& getInstance();
-   virtual bool getArchivePvInformation (QString& effectivePvName, QEArchiveAccess::ArchiverPvInfoLists& data);
+   bool getArchivePvInformation (QString& effectivePvName, QEArchiveAccess::ArchiverPvInfoLists& data);
 
    // Declaring but not implementing copy constructor and assignemnt operator to avoid
    // having many copies of a singleton.
@@ -233,8 +244,8 @@ private:
    void operator= (QEArchapplManager const&);
 
 private slots:
-   virtual void readArchiveRequest (const QEArchiveAccess* archiveAccess, const QEArchiveAccess::PVDataRequests& request);
-   virtual void pvNamesResponse  (const QObject* userData, const bool isSuccess, const QEArchiveInterface::PVNameList& pvNameList);
+   void readArchiveRequest (const QEArchiveAccess* archiveAccess, const QEArchiveAccess::PVDataRequests& request);
+   void pvNamesResponse  (const QObject* userData, const bool isSuccess, const QEArchiveInterface::PVNameList& pvNameList);
 
 };
 
