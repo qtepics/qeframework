@@ -46,8 +46,11 @@ QSimpleShape::QSimpleShape (QWidget* parent) : QWidget (parent)
    this->fixedText = "";
    this->isActive = true;
    this->edgeWidth = 1;
+   this->edgeStyle = Qt::SolidLine;
    this->semiCycles = 8;
    this->percentSize = 10;
+   this->centreAngle = 0;
+   this->spanAngle = 90;
    this->flashStateIsOn = false;
 
    this->edgeColour     = QColor (0,   0,   0);        // black
@@ -165,6 +168,7 @@ void QSimpleShape::paintEvent (QPaintEvent*)
    }
 
    pen.setWidth (ew);
+   pen.setStyle (this->edgeStyle);
    painter.setPen (pen);
 
    brush.setStyle (Qt::SolidPattern);
@@ -637,7 +641,19 @@ void QSimpleShape::paintEvent (QPaintEvent*)
          painter.drawPolygon (polygon, p);
          break;
 
-     case australia:
+      case roundpie:
+         this->equaliseRect (rect);
+         // fall through
+      case pie:
+         // The startAngle and spanAngle must be specified in 1/16th of a degree.
+         // We increment clockwise about 0, drawPie increments anti-clockwise from 90
+         //
+         f = 8 * (180 - (2*this->centreAngle - this->spanAngle));
+         g = - 16 * this->spanAngle;
+         painter.drawPie (rect, f, g);
+         break;
+
+     default:
          // And just for fun ....
          dx = double (rect.right ()  - rect.left ())/100.0;
          dy = double (rect.bottom () - rect.top ())/100.0;
@@ -668,9 +684,6 @@ void QSimpleShape::paintEvent (QPaintEvent*)
          polygon[p++]  = QPoint (x0 + 76*dx,  y0 + 98*dy);
          polygon[p++]  = polygon[0];            // close loop
          painter.drawPolygon (polygon, p);
-         break;
-
-      default:
          break;
    }
 
@@ -842,6 +855,57 @@ void QSimpleShape::setPercentSize (const int percentSizeIn)
 int QSimpleShape::getPercentSize () const
 {
    return this->percentSize;
+}
+
+//------------------------------------------------------------------------------
+//
+void QSimpleShape::setCentreAngle (const int angleIn)
+{
+   this->centreAngle = angleIn;
+   while (this->centreAngle > +180) this->centreAngle -= 360;
+   while (this->centreAngle < -180) this->centreAngle += 360;
+   if ((this->shape == roundpie) || (this->shape == pie)) {
+      this->update ();
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+int QSimpleShape::getCentreAngle () const
+{
+   return this->centreAngle;
+}
+
+//------------------------------------------------------------------------------
+//
+void QSimpleShape::setSpanAngle (const int spanIn)
+{
+   this->spanAngle = LIMIT (spanIn, 0, 360);
+   if ((this->shape == roundpie) || (this->shape == pie)) {
+       this->update ();
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+int QSimpleShape::getSpanAngle () const
+{
+   return this->spanAngle;
+}
+
+//------------------------------------------------------------------------------
+//
+void QSimpleShape::setEdgeStyle (const Qt::PenStyle penStyleIn)
+{
+   this->edgeStyle = penStyleIn;
+   this->update ();
+}
+
+//------------------------------------------------------------------------------
+//
+Qt::PenStyle QSimpleShape::getEdgeStyle () const
+{
+   return this->edgeStyle;
 }
 
 //------------------------------------------------------------------------------

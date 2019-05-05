@@ -49,7 +49,8 @@ public:
                  triangleTopRight, triangleBottomRight, triangleBottomLeft, triangleTopLeft,
                  diamond, equalDiamond, arrowUp, arrowDown, arrowLeft, arrowRight,
                  crossHorizontal, crossVertical, hexagon, octogon,
-                 snakeHorizontal, snakeVertical, pentagon, star, plus, cross, australia };
+                 snakeHorizontal, snakeVertical, pentagon, star, plus, cross,
+                 roundpie, pie };
    Q_ENUMS (Shapes)
 
    /// Nominated shape
@@ -60,6 +61,9 @@ public:
    /// If edge width set to 0, then shape colour used for edge/boarder colour.
    Q_PROPERTY (int    edgeWidth   READ getEdgeWidth   WRITE setEdgeWidth)
 
+   /// Edge style - default is solid line
+   Q_PROPERTY (Qt::PenStyle edgeStyle  READ getEdgeStyle     WRITE setEdgeStyle)
+
    /// Number of semi-cycles - range 1 to 30 - default is 8.
    /// Only applies to serpentine items.
    Q_PROPERTY (int    semiCycles  READ getSemiCycles  WRITE setSemiCycles)
@@ -69,6 +73,13 @@ public:
    /// Range 1 to 50, default 10%
    /// Only applies to serpentine items.
    Q_PROPERTY (int    percentSize READ getPercentSize WRITE setPercentSize)
+
+   /// The pie centre angle in degrees.
+   /// Zero represents a vertical centerline and angles increment clockwise.
+   Q_PROPERTY (int    centreAngle READ getCentreAngle WRITE setCentreAngle)
+
+   /// The span of the pie in degrees
+   Q_PROPERTY (int    spanAngle   READ getSpanAngle   WRITE setSpanAngle)
 
    /// Shape value - range 0 to 15 - default is zero.
    Q_PROPERTY (int    value       READ getValue       WRITE setValue)
@@ -107,7 +118,7 @@ public:
    // Group various colours together.
    // There order here is the order shown in designer.
    //
-   /// Edge color - default is black
+   /// Edge colour - default is black
    Q_PROPERTY (QColor edgeColour     READ getEdgeColour      WRITE setEdgeColour)
 
    /// Flash offColour - default is clear.
@@ -194,6 +205,15 @@ public:
    void setPercentSize (const int value);
    int getPercentSize () const;
 
+   void setCentreAngle (const int angle);
+   int getCentreAngle () const;
+
+   void setSpanAngle (const int span);
+   int getSpanAngle () const;
+
+   void setEdgeStyle (const Qt::PenStyle penStyle);
+   Qt::PenStyle getEdgeStyle () const;
+
    void setEdgeColour (const QColor value);
    QColor getEdgeColour () const;
 
@@ -249,6 +269,8 @@ public:
 #undef PROPERTY_ACCESS
 
 protected:
+   void paintEvent (QPaintEvent* event);
+
    // Allows drived class to do specials as required, e.g. PV text or
    // the alarm severity colour.
    //
@@ -263,7 +285,6 @@ private:
    // (painter.drawText aligns bottom left corner on given point).
    //
    void drawText (QPainter& painter, const QPoint& textCentre, const QString& text);
-   void paintEvent (QPaintEvent* event);
 
    Shapes shape;
    QStringList stateSet;
@@ -274,6 +295,9 @@ private:
    int edgeWidth;
    int semiCycles;
    int percentSize;
+   int centreAngle;
+   int spanAngle;
+   Qt::PenStyle edgeStyle;
    QColor flashOffColour;
    QColor edgeColour;
    QColor colourList [16];
