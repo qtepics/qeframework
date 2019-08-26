@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2013-2019 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -16,14 +18,15 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016,2017 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  *
  */
+
+#include "QEStripChartToolBar.h"
+#include "QEStripChartUtilities.h"
 
 #include <QDebug>
 #include <QComboBox>
@@ -40,9 +43,6 @@
 #include <QCaDateTime.h>
 #include <QEScaling.h>
 #include <QEAdaptationParameters.h>
-
-#include "QEStripChartUtilities.h"
-#include "QEStripChartToolBar.h"
 
 #define DEBUG qDebug () << "QEStripChartToolBar:" << __LINE__ << __FUNCTION__ << " "
 
@@ -245,6 +245,7 @@ QEStripChartToolBar::OwnTabWidget::OwnTabWidget (QEStripChartToolBar* parent) : 
    left = 4;
    for (int j = 0 ; j < NUMBER_OF_BUTTONS; j++) {
       button = new QPushButton (tabParent);
+      button->setFont (font);    // set reduced fontsize.
 
       // Set up icon or caption text.
       //
@@ -350,7 +351,7 @@ QEStripChartToolBar::OwnTabWidget::OwnTabWidget (QEStripChartToolBar* parent) : 
 
    top = 4;   // first row
    left = 4;
-   this->timeRefLabel =   createLabel ("Time References", tabParent, left, top, 100, labelHeight);   // left top width height
+   this->timeRefLabel =   createLabel ("Time References", tabParent, left, top, 108, labelHeight);   // left top width height
    this->time1 =          createLabel ("", tabParent, left, top, 224, labelHeight, true);
    this->time2 =          createLabel ("", tabParent, left, top, 224, labelHeight, true);
    left += 12;
@@ -359,7 +360,7 @@ QEStripChartToolBar::OwnTabWidget::OwnTabWidget (QEStripChartToolBar* parent) : 
 
    top = 24;   // second row
    left = 4;
-   this->valueRefLabel =  createLabel ("Value References", tabParent, left, top, 100, labelHeight);
+   this->valueRefLabel =  createLabel ("Value References", tabParent, left, top, 108, labelHeight);
    this->value1 =         createLabel ("", tabParent, left,  top, 140, labelHeight, true);
    this->value2 =         createLabel ("", tabParent, left,  top, 140, labelHeight, true);
    this->valueDelta1 =    createLabel ("", tabParent, left,  top, 140, labelHeight, true);
@@ -404,12 +405,12 @@ QLabel* QEStripChartToolBar::OwnTabWidget::createLabel (const QString& text, QWi
    if (enhance) {
       // Yes - use larger font size and set background.
       font.setPointSize (this->originalPointSize);
-      result->setFont (font);
       result->setStyleSheet ("QLabel { background-color: #e8e8e8; }");
    } else {
       // No - use smaller font size.
       font.setPointSize (this->reducedPointSize);
    }
+   result->setFont (font);
    result->setIndent (6);
 
    return result;
@@ -432,11 +433,14 @@ static QString floatToString (const double value, const int precision)
 
    // The troub. with 'g' mode is that it does not honour precision.
    //
-   if ((av == 0.0) || ((av >= low_fixed_limit) && (av <= high_fixed_limit))) {
+   if (av == 0.0) {
+      result = QString ("%1").arg (value, 0, 'f', precision - 1);
+   } else if ((av >= low_fixed_limit) && (av <= high_fixed_limit)) {
       result = QString ("%1").arg (value, 0, 'f', precision - magnitude);
    } else {
       result = QString ("%1").arg (value, 0, 'e', precision);
    }
+
    return result;
 }
 
