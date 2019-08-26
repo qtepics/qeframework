@@ -232,6 +232,16 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEFormGridManager :
 
 //------------------------------------------------------------------------------
 //
+class QEPLUGINLIBRARYSHARED_EXPORT QEDynamicFormGridManager :
+      public QObject, public QDesignerCustomWidgetInterface
+{
+   Q_OBJECT
+   Q_INTERFACES (QDesignerCustomWidgetInterface)
+   QE_DECLARE_PLUGIN_MANAGER (QEDynamicFormGrid)
+};
+
+//------------------------------------------------------------------------------
+//
 class QEPLUGINLIBRARYSHARED_EXPORT QEFrameManager :
       public QObject, public QDesignerCustomWidgetInterface
 {

@@ -47,6 +47,7 @@
 #include <QEForm.h>
 #include <QEFormStateChange.h>
 #include <QEFormGrid.h>
+#include <QEDynamicFormGrid.h>
 #include <QEFrame.h>
 #include <QEPvFrame.h>
 #include <QEGeneralEdit.h>
@@ -109,6 +110,7 @@ QE_IMPLEMENT_PLUGIN_MANAGER (QEFileImage,         QEMONITOR,  ":/qe/plugin/QEFil
 QE_IMPLEMENT_PLUGIN_MANAGER (QEForm,              QESUPPORT,  ":/qe/plugin/QEForm.png",              false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEFormStateChange,   QESUPPORT,  ":/qe/plugin/QEFormStateChange.png",   false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEFormGrid,          QESUPPORT,  ":/qe/plugin/QEFormGrid.png",          false)
+QE_IMPLEMENT_PLUGIN_MANAGER (QEDynamicFormGrid,   QESUPPORT,  ":/qe/plugin/QEDynamicFormGrid.png",   false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEFrame,             QESUPPORT,  ":/qe/plugin/QEFrame.png",             true)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEPvFrame,           QEMONITOR,  ":/qe/plugin/QEPvFrame.png",           true)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEGeneralEdit,       QECONTROL,  ":/qe/plugin/QEGeneralEdit.png",       false)
