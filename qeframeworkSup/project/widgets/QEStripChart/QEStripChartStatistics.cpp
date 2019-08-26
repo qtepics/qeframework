@@ -279,13 +279,20 @@ void QEStripChartStatistics::processDataList (const QCaDataPointList& dataList)
    for (int j = 0; j < n; j++) {
       const QCaDataPoint point = dataList.value (j);
       if (point.isDisplayable()) {
-         const double slot = (point.value - x_plot_min) / plotDelta;
+         // Avoid divide by zero, and the hence the creation of a NaN slot value
+         //
+         const double slot = (point.value - x_plot_min) / MAX (plotDelta, 1.0e-20);
 
          // Check for out of range values.
          //
          if (slot < 0.0 || slot >= this->distributionCount) continue;
 
          const int s = int (slot);
+
+         // Belts 'n' braces
+         //
+         if (s < 0 || s >= this->distributionCount) continue;
+
          this->distributionData [s] += 1;
       }
    }

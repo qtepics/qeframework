@@ -475,13 +475,21 @@ void QEDistribution::updateDistribution ()
    const int n = this->historicalData.count();
    for (int i = 0; i < n; i++) {
       const double value = this->historicalData.value (i);
-      const double slot = (value - x_plot_min) / plotDelta;
+
+      // Avoid divide by zero, and the hence the creation of a NaN slot value
+      //
+      const double slot = (value - x_plot_min) / MAX (plotDelta, 1.0e-20);
 
       // Check for out of range values.
       //
       if (slot < 0.0 || slot >= this->distributionCount) continue;
 
       const int s = int (slot);
+
+      // Belts 'n' braces
+      //
+      if (s < 0 || s >= this->distributionCount) continue;
+
       this->distributionData [s] += 1;
    }
 
