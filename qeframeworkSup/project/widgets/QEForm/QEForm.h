@@ -1,6 +1,9 @@
 /*  QEForm.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009,2010,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -38,7 +39,7 @@
 #include <QEFormMapper.h>
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEForm : public QEAbstractWidget,
-                                            public QEMapable
+                                                  public QEMapable
 {
     Q_OBJECT
     public:
@@ -78,16 +79,16 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEForm : public QEAbstractWidget,
 
     public slots:
         bool readUiFile();                                                   /// Read a .ui file and present it within this QEForm
-        void requestAction( const QEActionRequests& request ){ startGui( request ); } /// Slot for launching a new gui. Used by QE buttons and QEForm as the default action for launching a gui.
+        void requestAction( const QEActionRequests& request );               /// Slot for launching a new gui. Used by QE buttons and QEForm as the default action for launching a gui.
 
     private slots:
         void fileChanged ( const QString & path );
         // Note, in QEForm, the standard variable name mechanism is used for the UI file name
-        void useNewVariableNameProperty( QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex ) // !! move into Standard Properties section??
-        {
-            setVariableNameAndSubstitutions(variableNameIn, variableNameSubstitutionsIn, variableIndex);
-        }
-        void reloadLater(); // Slot for delaying form loading until after existing events have been processed
+        void useNewVariableNameProperty( QString variableNameIn,
+                                         QString variableNameSubstitutionsIn,
+                                         unsigned int variableIndex );
+        void reloadLater();           // Slot for delaying form loading until after existing events have been processed
+        void resetCurrentPath();      // Slot for delaying resetting the current directory.
 
     protected:
         void establishConnection( unsigned int variableIndex );
@@ -106,6 +107,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEForm : public QEAbstractWidget,
         bool alertIfUINoFound;        // True if the UI file could not be read. No alert is required, for example, when a partial UI file name is being typed in Designer
         bool fileMonitoringIsEnabled; // Only when true  does form honor any fileChanged signals from fileMon.
         QEFileMonitor fileMon;
+        QString savedCurrentPath;
 
         void newMessage( QString msg, message_types type );
         void resizeEvent ( QResizeEvent * event );

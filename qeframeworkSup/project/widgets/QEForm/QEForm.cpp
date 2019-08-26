@@ -1,6 +1,9 @@
 /*  QEForm.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -39,26 +40,32 @@
     This class can be used directly (within a GUI application) as the top level form, or as a designer plugin class.
 */
 
+#include "QEForm.h"
+#include <QDebug>
 #include <QUiLoader>
 #include <QString>
 #include <QDir>
 #include <QFileInfo>
 #include <QVBoxLayout>
 #include <QPainter>
-#include <QtDebug>
 #include <QEScaling.h>
-#include <QEForm.h>
 #include <ContainerProfile.h>
 #include <QEWidget.h>
 #include <macroSubstitution.h>
 
 
+#define DEBUG qDebug() << "QEForm"  << __LINE__ << __FUNCTION__ << "  "
+
 // Constructor.
-// No UI file is read. After construction uiFileName (and macroSubstitution) properties must be set and then QEForm::readUiFile() called.
-// If this QEForm is itself a sub-form of some other QEForm, all properties will be set by the UI Loader as it reads the UI file for the parent form,
-// then the QEForm::establishConnection() will be called by the QE widget 'activation' mechanism where each widget is 'activated' after a QEForm
-// has been loaded by the UI Loader. For many QE widgets 'activation' means establish a CA connection to data sources. For
-// QEForm widgets 'activation' means read the UI file.
+// No UI file is read. After construction uiFileName (and macroSubstitution)
+// properties must be set and then QEForm::readUiFile() called.  If this QEForm
+// is itself a sub-form of some other QEForm, all properties will be set by the
+// UI Loader as it reads the UI file for the parent form, then the
+// QEForm::establishConnection() will be called by the QE widget 'activation'
+// mechanism where each widget is 'activated' after a QEForm has been loaded by
+// the UI Loader. For many QE widgets 'activation' means establish a CA connection
+// to data sources. For QEForm widgets 'activation' means read the UI file.
+//
 QEForm::QEForm( QWidget* parent ) : QEAbstractWidget( parent ), QEMapable ( this )
 {
     // Common construction.
@@ -92,6 +99,8 @@ void QEForm::commonInit( const bool alertIfUINoFoundIn, const bool loadManuallyI
     // If loadManually is set true, it will not load automatically when QE widgets are 'activated' (when updates are initiated)
     // If loadManually is set false, this QEForm widget will load itself when QE widgets are 'activated' (when updates are initiated)
     loadManually = loadManuallyIn;
+
+    savedCurrentPath = "";
 
     setAcceptDrops(true);
 
@@ -233,6 +242,7 @@ bool QEForm::readUiFile()
 
     // Assume file is bad
     bool fileLoaded = false;
+    savedCurrentPath = "";
 
     // If no name has been provided...
     if (uiFileName.isEmpty())
@@ -339,16 +349,20 @@ bool QEForm::readUiFile()
                 // location of any reference file has been maintained from designer environment
                 // to the deployed environment.
                 //
-                QString savedCurrentPath = QDir::currentPath();
+                savedCurrentPath = QDir::currentPath();
 
                 // Find fullUiFileName containing directory name.
                 QString loaderPath = QFileInfo (fullUiFileName).dir().path ();
 
-                QDir::setCurrent( loaderPath );
+                bool b = QDir::setCurrent( loaderPath );
+                if (!b) DEBUG << "set loader path " << loaderPath << " failed";
+
                 ui = loader.load( uiFile );
 
-                // Change directory back to where we were.
-                QDir::setCurrent (savedCurrentPath);
+                // Set zero time timer to restore current directory.
+                // Do not know why this works, but it does.
+                //
+                QTimer::singleShot( 0, this, SLOT( resetCurrentPath() ) );
             }
             uiFile->close();
 
@@ -496,6 +510,24 @@ bool QEForm::readUiFile()
     return fileLoaded;
 }
 
+//------------------------------------------------------------------------------
+//
+void QEForm::resetCurrentPath () {
+    if ( !savedCurrentPath.isEmpty() )
+    {
+        // Change directory back to where we were.
+        //
+        QDir::setCurrent (savedCurrentPath);
+    }
+}
+
+//------------------------------------------------------------------------------
+//
+void QEForm::requestAction( const QEActionRequests& request )
+{
+    startGui( request );
+}
+
 // Display or clear a placeholder.
 // A place holder is placed in the form if the form cannot be populated.
 // (Either no file name has been provided, or the file cannot be opened.)
@@ -628,7 +660,8 @@ void QEForm::reloadFile()
 }
 
 // Slot for reloading the file if it has changed.
-// It doesn't matter if it has been deleted, a reload attempt will still tell the user what they need to know - that the file has gone.
+// It doesn't matter if it has been deleted, a reload attempt will still tell
+// the user what they need to know - that the file has gone.
 void QEForm::fileChanged ( const QString & /*path*/ )
 {
     // Only action if monitoring is enabled.
@@ -641,8 +674,18 @@ void QEForm::fileChanged ( const QString & /*path*/ )
     }
 }
 
+//------------------------------------------------------------------------------
+//
+void QEForm::useNewVariableNameProperty( QString variableNameIn,
+                                         QString variableNameSubstitutionsIn,
+                                         unsigned int variableIndex )
+{
+    setVariableNameAndSubstitutions( variableNameIn, variableNameSubstitutionsIn, variableIndex );
+}
+
 // Receive new log messages.
-// This widget doesn't do anything itself with messages, but it can regenerate the message as if it came from itself.
+// This widget doesn't do anything itself with messages, but it can regenerate
+// the message as if it came from itself.
 void QEForm::newMessage( QString msg, message_types type )
 {
     // A QEForm deals with any message it receives from widgets it contains by resending it with its own form and source ids.
