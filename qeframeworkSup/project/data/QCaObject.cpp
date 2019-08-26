@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -49,6 +49,10 @@ using namespace qcaobject;
 int QCaObject::totalChannelCount = 0;
 int QCaObject::disconnectedCount = 0;
 int QCaObject::connectedCount = 0;
+
+// Each created QCaObject is given a unique idtentity.
+//
+QCaObject::ObjectIdentity QCaObject::nextObjectIdentity = 0;
 
 //------------------------------------------------------------------------------
 // static
@@ -102,6 +106,11 @@ void QCaObject::initialise( const QString& newRecordName,
                             SignalsToSendFlags signalsToSendIn,
                             priorities priorityIn )
 {
+   // Allocate a new object identity for this QCaObject.
+   // We do not worry about wrap arround.
+   //
+   this->objectIdentity = ++QCaObject::nextObjectIdentity;
+
    // Ensure client object pointers are null.
    //
    this->caClient = NULL;
@@ -446,6 +455,20 @@ QVector<double> QCaObject::getFloatingArray () const
    QVector<double> result;
    result = formatter.formatFloatingArray (this->getVariant());
    return result;
+}
+
+//------------------------------------------------------------------------------
+// static
+QCaObject::ObjectIdentity QCaObject::nullObjectIdentity ()
+{
+   return 0;
+}
+
+//------------------------------------------------------------------------------
+//
+QCaObject::ObjectIdentity QCaObject::getObjectIdentity () const
+{
+   return this->objectIdentity;
 }
 
 //------------------------------------------------------------------------------

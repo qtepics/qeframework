@@ -112,7 +112,7 @@ QEStripChartItem::QEStripChartItem (QEStripChart* chartIn,
    this->createInternalWidgets ();
 
    this->maxRealTimePoints = getMaxRealTimePoints ();
-   this->previousQcaItem = NULL;
+   this->previousIdentity = qcaobject::QCaObject::nullObjectIdentity();
 
    this->dataKind = NotInUse;
    this->calculator = new QEExpressionEvaluation (false);
@@ -279,7 +279,7 @@ void QEStripChartItem::clear ()
    this->caLabel->setVariableNameAndSubstitutions ("", "", 0);
    this->caLabel->setText ("-");
    this->caLabel->setStyleSheet (unusedStyle);
-   this->previousQcaItem = NULL;
+   this->previousIdentity = qcaobject::QCaObject::nullObjectIdentity();
 
    this->displayedMinMax.clear ();
    this->historicalMinMax.clear ();
@@ -290,7 +290,7 @@ void QEStripChartItem::clear ()
    this->maxRealTimePoints = getMaxRealTimePoints ();
 
    this->useReceiveTime = false;
-   this->archiveReadHow = QEArchiveInterface::Linear;
+   this->archiveReadHow = QEArchiveInterface::PlotBinning;
    this->lineDrawMode = QEStripChartNames::ldmRegular;
    this->linePlotMode = QEStripChartNames::lpmRectangular;
 
@@ -316,12 +316,14 @@ void QEStripChartItem::connectQcaSignals ()
 {
    qcaobject::QCaObject* qca;
 
-   // Set up connection if we can/if we need to.
+   // Set up connections if we can/if we need to.
    //
    qca = this->getQcaItem ();
 
-   if (qca && (qca != this->previousQcaItem)) {
-      this->previousQcaItem = qca;
+   if (qca && (qca->getObjectIdentity() != this->previousIdentity)) {
+      // Save the new identity and connect signals.
+      //
+      this->previousIdentity = qca->getObjectIdentity();
 
       QObject::connect (qca, SIGNAL (connectionChanged (QCaConnectionInfo&, const unsigned int& ) ),
                         this,  SLOT (setDataConnection (QCaConnectionInfo&, const unsigned int& ) ) );
@@ -943,7 +945,7 @@ void QEStripChartItem::addRealTimeDataPoint (const QCaDataPoint& point)
 
 //------------------------------------------------------------------------------
 //
-void QEStripChartItem::setDataConnection (QCaConnectionInfo& connectionInfo, const unsigned int& )
+void QEStripChartItem::setDataConnection (QCaConnectionInfo& connectionInfo, const unsigned int&)
 {
    QCaDataPoint point;
 
@@ -967,7 +969,7 @@ void QEStripChartItem::setDataConnection (QCaConnectionInfo& connectionInfo, con
 //------------------------------------------------------------------------------
 //
 void QEStripChartItem::setDataValue (const QVariant& value, QCaAlarmInfo& alarm,
-                                     QCaDateTime& datetime, const unsigned int& )
+                                     QCaDateTime& datetime, const unsigned int&)
 {
    QVariant input;
    double y;

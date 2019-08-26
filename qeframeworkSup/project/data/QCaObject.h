@@ -159,6 +159,13 @@ public:
    QVector<long> getIntegerArray () const;
    QVector<double> getFloatingArray () const;
 
+   // Identity type. The type should be considered private.
+   //
+   typedef quint64 ObjectIdentity;
+
+   static ObjectIdentity nullObjectIdentity ();    // provides the null identifier value
+   ObjectIdentity getObjectIdentity () const;
+
 signals:
    void dataChanged( const QVariant& value, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex );
    void dataChanged( const QByteArray& value, unsigned long dataSize, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex );
@@ -200,6 +207,9 @@ private:
    QVariant getVariant () const;
    QByteArray getByteArray () const;
 
+   quint64 objectIdentity;   // this object's identity
+   static ObjectIdentity nextObjectIdentity;
+   
    static int disconnectedCount;
    static int connectedCount;
    static int totalChannelCount;
