@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2013-2019 Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2014,2016 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -48,6 +48,7 @@
 #include <QEGraphicNames.h>
 #include <QEFrameworkLibraryGlobal.h>
 #include <QEDisplayRanges.h>
+#include <persistanceManager.h>
 
 class QEGraphicMarkup;  // differed declaration
 
@@ -73,8 +74,7 @@ class QEGraphicMarkup;  // differed declaration
 /// h) Provides wrapper functions to hide QWT version API changes.
 ///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGraphic :
-      public QWidget,
-      public QEGraphicNames
+      public QWidget
 {
    Q_OBJECT
 public:
@@ -99,33 +99,33 @@ public:
 
    // Set/Get the set of in use, i.e. permitted, markups.
    //
-   void setAvailableMarkups (const MarkupFlags graphicMarkupsSet);
-   MarkupFlags getAvailableMarkups () const;
+   void setAvailableMarkups (const QEGraphicNames::MarkupFlags graphicMarkupsSet);
+   QEGraphicNames::MarkupFlags getAvailableMarkups () const;
 
    // Set/Get the markup visible.
    //
-   void setMarkupVisible (const Markups markup, const bool isVisible);
-   bool getMarkupVisible (const Markups markup) const;
+   void setMarkupVisible (const QEGraphicNames::Markups markup, const bool isVisible);
+   bool getMarkupVisible (const QEGraphicNames::Markups markup) const;
 
    // Set/Get the markup enabled.
    //
-   void setMarkupEnabled (const Markups markup, const bool isEnabled);
-   bool getMarkupEnabled (const Markups markup) const;
+   void setMarkupEnabled (const QEGraphicNames::Markups markup, const bool isEnabled);
+   bool getMarkupEnabled (const QEGraphicNames::Markups markup) const;
 
    // Set/Get the markup selected.
    //
-   void setMarkupSelected (const Markups markup, const bool selected);
-   bool getMarkupIsSelected (const Markups markup) const;
+   void setMarkupSelected (const QEGraphicNames::Markups markup, const bool selected);
+   bool getMarkupIsSelected (const QEGraphicNames::Markups markup) const;
 
    // When a mark has only an x or y postion, the y or x value is ignored.
    //
-   void setMarkupPosition (const Markups markup, const QPointF& position);
-   QPointF getMarkupPosition (const Markups markup) const;
+   void setMarkupPosition (const QEGraphicNames::Markups markup, const QPointF& position);
+   QPointF getMarkupPosition (const QEGraphicNames::Markups markup) const;
 
    // Set/Get the markup text.
    //
-   void setMarkupData (const Markups markup, const QVariant& text);
-   QVariant getMarkupData (const Markups markup) const;
+   void setMarkupData (const QEGraphicNames::Markups markup, const QVariant& text);
+   QVariant getMarkupData (const QEGraphicNames::Markups markup) const;
 
    // NOTE: Depricated - use setMarkupPosition/setMarkupVisible instead.
    //
@@ -146,8 +146,8 @@ public:
     * @param yAxis Which Y axis should the yData be plotted against. If not
     * provided left axis is used by default
     */
-   void plotCurveData (const DoubleVector& xData,
-                       const DoubleVector& yData,
+   void plotCurveData (const QEGraphicNames::DoubleVector& xData,
+                       const QEGraphicNames::DoubleVector& yData,
                        const QwtPlot::Axis yAxis = QwtPlot::yLeft);
 
    /**
@@ -163,17 +163,18 @@ public:
     */
    void drawText (const QPointF& posn,
                   const QString& text,
-                  const TextPositions option,
+                  const QEGraphicNames::TextPositions option,
                   bool isCentred = true);
 
    void drawText (const QPoint& posn,
                   const QString& text,
-                  const TextPositions option,
+                  const QEGraphicNames::TextPositions option,
                   bool isCentred = true);
 
 
    void setXRange (const double min, const double max,
-                   const AxisMajorIntervalModes mode, const double value,
+                   const QEGraphicNames::AxisMajorIntervalModes mode,
+                   const double value,
                    const bool immediate);
 
    /**
@@ -185,7 +186,8 @@ public:
    void getXRange (double& min, double& max) const;
 
    void setYRange (const double min, const double max,
-                   const AxisMajorIntervalModes mode, const double value,
+                   const QEGraphicNames::AxisMajorIntervalModes mode,
+                   const double value,
                    const bool immediate,
                    const QwtPlot::Axis selectedYAxis = QwtPlot::yLeft);
 
@@ -371,6 +373,11 @@ public:
    //
    QwtPlot* getEmbeddedQwtPlot () const;
 
+   // Save/restore all markup configuration
+   //
+   void saveConfiguration (PMElement & parentElement);
+   void restoreConfiguration (PMElement & parentElement);
+   
 signals:
    void mouseMove     (const QPointF& posn);
    void wheelRotate   (const QPointF& posn, const int delta);
@@ -400,7 +407,8 @@ private:
       ~Axis ();
 
       void setRange (const double min, const double max,
-                     const AxisMajorIntervalModes mode, const double value,
+                     const QEGraphicNames::AxisMajorIntervalModes mode,
+                     const double value,
                      const bool immediate);
       void getRange (double& min, double& max);
       bool doDynamicRescaling ();
@@ -435,7 +443,7 @@ private:
       QEDisplayRanges target;    // wehere we are going
       QEDisplayRanges current;   // where we are now
       int transitionCount;
-      AxisMajorIntervalModes intervalMode;
+      QEGraphicNames::AxisMajorIntervalModes intervalMode;
       double intervalValue;
       bool axisEnabled;
 
@@ -469,10 +477,12 @@ private:
    QEGraphicMarkup* mouseIsOverMarkup ();
    void plotMarkups ();
 
-   void plotMarkupCurveData (const DoubleVector& xData, const DoubleVector& yData);
+   void plotMarkupCurveData (const QEGraphicNames::DoubleVector& xData,
+                             const QEGraphicNames::DoubleVector& yData);
 
    // Creates curve data using left/right Y axis
-   QwtPlotCurve* createCurveData (const DoubleVector& xData, const DoubleVector& yData,
+   QwtPlotCurve* createCurveData (const QEGraphicNames::DoubleVector& xData,
+                                  const QEGraphicNames::DoubleVector& yData,
                                   const QwtPlot::Axis selectedYAxis = QwtPlot::yLeft);
 
    // Relases and replots markups, then calls QwtPlot replot
@@ -487,13 +497,7 @@ private:
    Axis* yAxisLeft;
    Axis* yAxisRight;
 
-   // Provide a mapping from Markups enum to actual mark up object.
-   // We use a map (as opposed to a hash) because the iteration order is predictable
-   // and consistant.
-   //
-   typedef QMap <Markups, QEGraphicMarkup*> QEGraphicMarkupSets;
-   typedef QList<Markups> MarkupLists;
-   QEGraphicMarkupSets* graphicMarkupsSet;      // set of available markups.
+   QEGraphicNames::QEGraphicMarkupsSets* graphicMarkupsSet;  // a set of available markups.
 
    QHBoxLayout* layout;                         // controls plot layout within QEGraphic
    OwnPlot* plot;                               // Essentially QwtPlot

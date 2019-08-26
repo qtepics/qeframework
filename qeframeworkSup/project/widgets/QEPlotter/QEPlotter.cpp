@@ -37,6 +37,7 @@
 #include <qwt_plot_canvas.h>
 #include <qwt_plot_grid.h>
 #include <qwt_plot_curve.h>
+#include <QEGraphicNames.h>
 #include <QEGraphic.h>
 
 #include <QEPlatform.h>
@@ -592,7 +593,7 @@ QEPlotter::QEPlotter (QWidget* parent) : QEAbstractDynamicWidget (parent)
    this->alaisSetChangeInhibited = false;
 
    this->setAllowDrop (false);
-   this->setDisplayAlarmState (false);
+   this->setDisplayAlarmStateOption (standardProperties::DISPLAY_ALARM_STATE_NEVER);
 
    // Set up a connection to recieve variable name property changes
    //
@@ -2505,8 +2506,8 @@ void QEPlotter::plot ()
       yMax = this->fixedMaxY;
    }
 
-   this->plotArea->setXRange (xMin, xMax, QEGraphic::SelectBySize, 40, false);
-   this->plotArea->setYRange (yMin, yMax, QEGraphic::SelectBySize, 40, false);
+   this->plotArea->setXRange (xMin, xMax, QEGraphicNames::SelectBySize, 40, false);
+   this->plotArea->setYRange (yMin, yMax, QEGraphicNames::SelectBySize, 40, false);
 
    this->plotArea->replot ();
 

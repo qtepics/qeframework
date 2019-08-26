@@ -36,6 +36,7 @@
 #include <QClipboard>
 #include <QDebug>
 #include <QVariant>
+#include <QEGraphicNames.h>
 #include <QEGraphic.h>
 #include <ui_QECorrelation.h>
 
@@ -799,8 +800,8 @@ void QECorrelation::reDrawPlane ()
    //
    this->plotArea->releaseCurves ();
 
-   this->plotArea->setXRange (TX_Min, TX_Max, QEGraphic::SelectByValue, 5, false);
-   this->plotArea->setYRange (TY_Min, TY_Max, QEGraphic::SelectByValue, 5, false);
+   this->plotArea->setXRange (TX_Min, TX_Max, QEGraphicNames::SelectByValue, 5, false);
+   this->plotArea->setYRange (TY_Min, TY_Max, QEGraphicNames::SelectByValue, 5, false);
 
 
    // Set up brackground and grid.

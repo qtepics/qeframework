@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2018 Australian Synchrotron.
+ *  Copyright (c) 2013-2019 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -121,7 +121,7 @@ QEGraphic::Axis::Axis (QwtPlot* plotIn, const int axisIdIn)
    this->source = this->current;
    this->target = this->current;
    this->transitionCount = 0;
-   this->intervalMode = QEGraphic::SelectByValue;
+   this->intervalMode = QEGraphicNames::SelectByValue;
    this->intervalValue = 8.0;
    this->determineAxisScale ();
 }
@@ -136,7 +136,8 @@ QEGraphic::Axis::~Axis ()
 //------------------------------------------------------------------------------
 //
 void QEGraphic::Axis::setRange (const double minIn, const double maxIn,
-                                const AxisMajorIntervalModes modeIn, const double valueIn,
+                                const QEGraphicNames::AxisMajorIntervalModes modeIn,
+                                const double valueIn,
                                 const bool immediate)
 {
    QEDisplayRanges newTarget;
@@ -229,7 +230,7 @@ void QEGraphic::Axis::determineAxisScale ()
       //
       switch (this->intervalMode) {
 
-         case QEGraphic::UserInterval:
+         case QEGraphicNames::UserInterval:
             // Use knows what he/she is doing.
             //
             this->useMin = current.getMinimum ();
@@ -237,12 +238,12 @@ void QEGraphic::Axis::determineAxisScale ()
             this->useStep = this->intervalValue;
             break;
 
-         case  QEGraphic::SelectByValue:
+         case QEGraphicNames::SelectByValue:
             number = this->intervalValue;
             current.adjustMinMax (number, false, this->useMin, this->useMax, this->useStep);
             break;
 
-         case QEGraphic::SelectBySize:
+         case QEGraphicNames::SelectBySize:
             // Set size determined based on the pixel size of the widget.
             //
             switch (this->axisId) {
@@ -456,25 +457,11 @@ void QEGraphic::construct ()
    this->yAxisLeft = new Axis (this->plot, QwtPlot::yLeft);
    this->yAxisRight = new Axis (this->plot, QwtPlot::yRight);
 
-   // Construct markups and insert into marksup set.
+   // Construct markups set.
    //
-   this->graphicMarkupsSet = new QEGraphicMarkupSets;
-   this->graphicMarkupsSet->insert (Area,             new QEGraphicAreaMarkup (this));
-   this->graphicMarkupsSet->insert (Line,             new QEGraphicLineMarkup (this));
-   this->graphicMarkupsSet->insert (Box,              new QEGraphicBoxMarkup (this));
-   this->graphicMarkupsSet->insert (CrossHair,        new QEGraphicCrosshairsMarkup (this));
+   this->graphicMarkupsSet = QEGraphicNames::createGraphicMarkupsSet (this);
 
-   // There are multiple instances - we need to be explicit.
-   this->graphicMarkupsSet->insert (HorizontalLine_1, new QEGraphicHorizontalMarkup (HorizontalLine_1, this));
-   this->graphicMarkupsSet->insert (HorizontalLine_2, new QEGraphicHorizontalMarkup (HorizontalLine_2, this));
-   this->graphicMarkupsSet->insert (HorizontalLine_3, new QEGraphicHorizontalMarkup (HorizontalLine_3, this));
-   this->graphicMarkupsSet->insert (HorizontalLine_4, new QEGraphicHorizontalMarkup (HorizontalLine_4, this));
-   this->graphicMarkupsSet->insert (VerticalLine_1,   new QEGraphicVerticalMarkup (VerticalLine_1, this));
-   this->graphicMarkupsSet->insert (VerticalLine_2,   new QEGraphicVerticalMarkup (VerticalLine_2, this));
-   this->graphicMarkupsSet->insert (VerticalLine_3,   new QEGraphicVerticalMarkup (VerticalLine_3, this));
-   this->graphicMarkupsSet->insert (VerticalLine_4,   new QEGraphicVerticalMarkup (VerticalLine_4, this));
-
-   this->setAvailableMarkups (None);  // default availability
+   this->setAvailableMarkups (QEGraphicNames::None);  // default availability
 
    // Set defaults.
    //
@@ -526,14 +513,7 @@ QEGraphic::~QEGraphic ()
    delete this->yAxisLeft;
    delete this->yAxisRight;
 
-   const MarkupLists keys = this->graphicMarkupsSet->keys ();
-   for (int j = 0; j < keys.count (); j++) {
-      QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (keys.value (j), NULL);
-      if (graphicMarkup) {
-         delete graphicMarkup;
-      }
-   }
-   this->graphicMarkupsSet->clear ();
+   QEGraphicNames::cleanGraphicMarkupsSet (*this->graphicMarkupsSet);
    delete this->graphicMarkupsSet;
 }
 
@@ -582,6 +562,20 @@ QwtPlot* QEGraphic::getEmbeddedQwtPlot () const
 
 //------------------------------------------------------------------------------
 //
+void QEGraphic::saveConfiguration (PMElement& parentElement)
+{
+   QEGraphicNames::saveConfiguration (*this->graphicMarkupsSet, parentElement);
+}
+
+//------------------------------------------------------------------------------
+//
+void QEGraphic::restoreConfiguration (PMElement & parentElement)
+{
+   QEGraphicNames::restoreConfiguration (*this->graphicMarkupsSet, parentElement);
+}
+
+//------------------------------------------------------------------------------
+//
 bool QEGraphic::doDynamicRescaling (const QwtPlot::Axis selectedYAxis)
 {
    bool result;
@@ -625,11 +619,11 @@ void QEGraphic::setGridPen (const QPen& pen)
 
 //------------------------------------------------------------------------------
 //
-void QEGraphic::setAvailableMarkups (const MarkupFlags markupFlag)
+void QEGraphic::setAvailableMarkups (const QEGraphicNames::MarkupFlags markupFlag)
 {
-   const MarkupLists keys = this->graphicMarkupsSet->keys ();
+   const QEGraphicNames::MarkupLists keys = this->graphicMarkupsSet->keys ();
    for (int j = 0; j < keys.count (); j++) {
-      const Markups markup = keys.value (j);
+      const QEGraphicNames::Markups markup = keys.value (j);
       QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (markup, NULL);
       if (graphicMarkup) {
          graphicMarkup->setInUse (markup & markupFlag);
@@ -639,13 +633,13 @@ void QEGraphic::setAvailableMarkups (const MarkupFlags markupFlag)
 
 //------------------------------------------------------------------------------
 //
-QEGraphic::MarkupFlags QEGraphic::getAvailableMarkups () const
+QEGraphicNames::MarkupFlags QEGraphic::getAvailableMarkups () const
 {
-   QEGraphic::MarkupFlags result = None;
+   QEGraphicNames::MarkupFlags result = QEGraphicNames::None;
 
-   const MarkupLists keys = this->graphicMarkupsSet->keys ();
+   const QEGraphicNames::MarkupLists keys = this->graphicMarkupsSet->keys ();
    for (int j = 0; j < keys.count (); j++) {
-      const Markups markup = keys.value (j);
+      const QEGraphicNames::Markups markup = keys.value (j);
       QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (markup, NULL);
       if (graphicMarkup) {
          if (graphicMarkup->isInUse ()) {
@@ -658,7 +652,7 @@ QEGraphic::MarkupFlags QEGraphic::getAvailableMarkups () const
 
 //------------------------------------------------------------------------------
 //
-void QEGraphic::setMarkupVisible (const Markups markup, const bool isVisible)
+void QEGraphic::setMarkupVisible (const QEGraphicNames::Markups markup, const bool isVisible)
 {
    QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (markup, NULL);
    if (graphicMarkup && graphicMarkup->isInUse ()) {
@@ -668,7 +662,7 @@ void QEGraphic::setMarkupVisible (const Markups markup, const bool isVisible)
 
 //------------------------------------------------------------------------------
 //
-bool QEGraphic::getMarkupVisible (const Markups markup) const
+bool QEGraphic::getMarkupVisible (const QEGraphicNames::Markups markup) const
 {
    bool result = false;
    QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (markup, NULL);
@@ -680,7 +674,7 @@ bool QEGraphic::getMarkupVisible (const Markups markup) const
 
 //------------------------------------------------------------------------------
 //
-void QEGraphic::setMarkupEnabled (const Markups markup, const bool isEnabled)
+void QEGraphic::setMarkupEnabled (const QEGraphicNames::Markups markup, const bool isEnabled)
 {
    QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (markup, NULL);
    if (graphicMarkup && graphicMarkup->isInUse ()) {
@@ -690,7 +684,7 @@ void QEGraphic::setMarkupEnabled (const Markups markup, const bool isEnabled)
 
 //------------------------------------------------------------------------------
 //
-bool QEGraphic::getMarkupEnabled (const Markups markup) const
+bool QEGraphic::getMarkupEnabled (const QEGraphicNames::Markups markup) const
 {
    bool result = false;
    QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (markup, NULL);
@@ -702,7 +696,7 @@ bool QEGraphic::getMarkupEnabled (const Markups markup) const
 
 //------------------------------------------------------------------------------
 //
-void QEGraphic::setMarkupSelected (const Markups markup, const bool selected)
+void QEGraphic::setMarkupSelected (const QEGraphicNames::Markups markup, const bool selected)
 {
    QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (markup, NULL);
    if (graphicMarkup && graphicMarkup->isInUse ()) {
@@ -712,7 +706,7 @@ void QEGraphic::setMarkupSelected (const Markups markup, const bool selected)
 
 //------------------------------------------------------------------------------
 //
-bool QEGraphic::getMarkupIsSelected (const Markups markup) const
+bool QEGraphic::getMarkupIsSelected (const QEGraphicNames::Markups markup) const
 {
    bool result = false;
    QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (markup, NULL);
@@ -724,7 +718,7 @@ bool QEGraphic::getMarkupIsSelected (const Markups markup) const
 
 //------------------------------------------------------------------------------
 //
-void QEGraphic::setMarkupPosition (const Markups markup, const QPointF& position)
+void QEGraphic::setMarkupPosition (const QEGraphicNames::Markups markup, const QPointF& position)
 {
    QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (markup, NULL);
    if (graphicMarkup && graphicMarkup->isInUse ()) {
@@ -734,7 +728,7 @@ void QEGraphic::setMarkupPosition (const Markups markup, const QPointF& position
 
 //------------------------------------------------------------------------------
 //
-QPointF QEGraphic::getMarkupPosition (const Markups markup) const
+QPointF QEGraphic::getMarkupPosition (const QEGraphicNames::Markups markup) const
 {
    QPointF result (0.0, 0.0);
    QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (markup, NULL);
@@ -746,7 +740,7 @@ QPointF QEGraphic::getMarkupPosition (const Markups markup) const
 
 //------------------------------------------------------------------------------
 //
-void QEGraphic::setMarkupData (const Markups markup, const QVariant& data)
+void QEGraphic::setMarkupData (const QEGraphicNames::Markups markup, const QVariant& data)
 {
    QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (markup, NULL);
    if (graphicMarkup && graphicMarkup->isInUse ()) {
@@ -756,7 +750,7 @@ void QEGraphic::setMarkupData (const Markups markup, const QVariant& data)
 
 //------------------------------------------------------------------------------
 //
-QVariant QEGraphic::getMarkupData (const Markups markup) const
+QVariant QEGraphic::getMarkupData (const QEGraphicNames::Markups markup) const
 {
    QVariant result = QVariant (QVariant::Invalid);
    QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (markup, NULL);
@@ -770,22 +764,22 @@ QVariant QEGraphic::getMarkupData (const Markups markup) const
 // Depreciated
 void QEGraphic::setCrosshairsVisible (const bool isVisible)
 {
-   this->setMarkupVisible (QEGraphic::CrossHair, isVisible);
+   this->setMarkupVisible (QEGraphicNames::CrossHair, isVisible);
 }
 
 //------------------------------------------------------------------------------
 // Depreciated
 void QEGraphic::setCrosshairsVisible (const bool isVisible, const QPointF& position)
 {
-   this->setMarkupVisible (QEGraphic::CrossHair, isVisible);
-   this->setMarkupPosition (QEGraphic::CrossHair, position);
+   this->setMarkupVisible (QEGraphicNames::CrossHair, isVisible);
+   this->setMarkupPosition (QEGraphicNames::CrossHair, position);
 }
 
 //------------------------------------------------------------------------------
 // Depreciated
 bool QEGraphic::getCrosshairsVisible () const
 {
-   return this->getMarkupVisible (QEGraphic::CrossHair);
+   return this->getMarkupVisible (QEGraphicNames::CrossHair);
 }
 
 //------------------------------------------------------------------------------
@@ -870,8 +864,8 @@ void QEGraphic::attchOwnCurve (QwtPlotCurve* curve)
 
 //------------------------------------------------------------------------------
 //
-QwtPlotCurve* QEGraphic::createCurveData (const DoubleVector& xData,
-                                          const DoubleVector& yData,
+QwtPlotCurve* QEGraphic::createCurveData (const QEGraphicNames::DoubleVector& xData,
+                                          const QEGraphicNames::DoubleVector& yData,
                                           const QwtPlot::Axis selectedYAxis)
 {
    const int curveLength = MIN (xData.size (), yData.size ());
@@ -879,8 +873,8 @@ QwtPlotCurve* QEGraphic::createCurveData (const DoubleVector& xData,
    if (curveLength <= 1) return NULL;  // sainity check
 
    QwtPlotCurve* curve;
-   DoubleVector useXData;
-   DoubleVector useYData;
+   QEGraphicNames::DoubleVector useXData;
+   QEGraphicNames::DoubleVector useYData;
    curve = new QwtPlotCurve ();
 
    // Set curve propeties using current curve attributes.
@@ -924,8 +918,8 @@ QwtPlotCurve* QEGraphic::createCurveData (const DoubleVector& xData,
 
 //------------------------------------------------------------------------------
 //
-void QEGraphic::plotCurveData (const DoubleVector& xData,
-                               const DoubleVector& yData,
+void QEGraphic::plotCurveData (const QEGraphicNames::DoubleVector& xData,
+                               const QEGraphicNames::DoubleVector& yData,
                                const QwtPlot::Axis yAxis)
 {
    QwtPlotCurve* curve;
@@ -935,7 +929,8 @@ void QEGraphic::plotCurveData (const DoubleVector& xData,
 
 //------------------------------------------------------------------------------
 //
-void QEGraphic::plotMarkupCurveData (const DoubleVector& xData, const DoubleVector& yData)
+void QEGraphic::plotMarkupCurveData (const QEGraphicNames::DoubleVector& xData,
+                                     const QEGraphicNames::DoubleVector& yData)
 {
    QwtPlotCurve* curve;
    curve = this->createCurveData (xData, yData);
@@ -946,7 +941,7 @@ void QEGraphic::plotMarkupCurveData (const DoubleVector& xData, const DoubleVect
 //
 void QEGraphic::plotMarkups ()
 {
-   const MarkupLists keys = this->graphicMarkupsSet->keys ();
+   const QEGraphicNames::MarkupLists keys = this->graphicMarkupsSet->keys ();
    for (int j = 0; j < keys.count (); j++) {
       QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (keys.value (j), NULL);
       if (graphicMarkup) {
@@ -969,13 +964,13 @@ void QEGraphic::graphicReplot ()
 //
 void QEGraphic::drawText (const QPointF& posn,
                           const QString& text,
-                          const TextPositions option,
+                          const QEGraphicNames::TextPositions option,
                           bool isCentred)
 {
    TextItems item;
 
    // We store real-world postions.
-   if (option == QEGraphic::RealWorldPosition) {
+   if (option == QEGraphicNames::RealWorldPosition) {
       item.position = posn;
    } else {
       item.position = this->pointToReal (posn);
@@ -992,7 +987,7 @@ void QEGraphic::drawText (const QPointF& posn,
 //
 void QEGraphic::drawText (const QPoint& posn,
                           const QString& text,
-                          const TextPositions option,
+                          const QEGraphicNames::TextPositions option,
                           bool isCentred)
 {
    this->drawText (QPointF (posn), text, option, isCentred);
@@ -1246,7 +1241,7 @@ QEGraphicMarkup* QEGraphic::mouseIsOverMarkup ()
    search = NULL;
    minDistance = 100000;  // some unfeasible large distance. A real distance much smaller.
 
-   const MarkupLists keys = this->graphicMarkupsSet->keys ();
+   const QEGraphicNames::MarkupLists keys = this->graphicMarkupsSet->keys ();
    for (int j = 0; j < keys.count (); j++) {
       QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (keys.value (j), NULL);
       if (graphicMarkup) {
@@ -1282,9 +1277,9 @@ void QEGraphic::canvasMousePress (QMouseEvent* mouseEvent)
    // We can always "find" the Area and Line markups.
    //
    if (button == Qt::LeftButton) {
-      search = this->graphicMarkupsSet->value (QEGraphic::Area, NULL);
+      search = this->graphicMarkupsSet->value (QEGraphicNames::Area, NULL);
    } else if (button == MIDDLE_BUTTON) {
-      search = this->graphicMarkupsSet->value (QEGraphic::Line, NULL);
+      search = this->graphicMarkupsSet->value (QEGraphicNames::Line, NULL);
    }
 
    // Is press over/closer an existing/visible markup?
@@ -1294,8 +1289,8 @@ void QEGraphic::canvasMousePress (QMouseEvent* mouseEvent)
    if (target) {
       // Don't allow box to override line.
       bool lineAndBox;
-      lineAndBox = (search && search->getMarkup() == QEGraphic::Line) &&
-                   (target && target->getMarkup() == QEGraphic::Box);
+      lineAndBox = (search && search->getMarkup() == QEGraphicNames::Line) &&
+                   (target && target->getMarkup() == QEGraphicNames::Box);
 
       if (!lineAndBox) {
          search = target;
@@ -1308,7 +1303,7 @@ void QEGraphic::canvasMousePress (QMouseEvent* mouseEvent)
       search->setSelected (true);
    }
 
-   const MarkupLists keys = this->graphicMarkupsSet->keys ();
+   const QEGraphicNames::MarkupLists keys = this->graphicMarkupsSet->keys ();
    for (int j = 0; j < keys.count (); j++) {
       QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (keys.value (j), NULL);
       if (graphicMarkup && graphicMarkup->isSelected ()) {
@@ -1334,7 +1329,7 @@ void QEGraphic::canvasMouseRelease (QMouseEvent* mouseEvent)
    button = mouseEvent->button ();
    this->realMousePosition = this->pointToReal (mouseEvent->pos ());
 
-   const MarkupLists keys = this->graphicMarkupsSet->keys ();
+   const QEGraphicNames::MarkupLists keys = this->graphicMarkupsSet->keys ();
    for (int j = 0; j < keys.count (); j++) {
       QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (keys.value (j), NULL);
       if (graphicMarkup && graphicMarkup->isSelected ()) {
@@ -1360,7 +1355,7 @@ void QEGraphic::canvasMouseMove (QMouseEvent* mouseEvent, const bool isButtonAct
    this->realMousePosition = this->pointToReal (mouseEvent->pos ());
 
    replotIsRequired = false;
-   MarkupLists keys = this->graphicMarkupsSet->keys ();
+   QEGraphicNames::MarkupLists keys = this->graphicMarkupsSet->keys ();
    for (int j = 0; j < keys.count (); j++) {
       QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (keys.value (j), NULL);
       if (graphicMarkup && graphicMarkup->isSelected ()) {
@@ -1454,7 +1449,8 @@ bool QEGraphic::eventFilter (QObject* obj, QEvent* event)
 //------------------------------------------------------------------------------
 //
 void QEGraphic::setXRange (const double min, const double max,
-                           const AxisMajorIntervalModes mode, const double value,
+                           const QEGraphicNames::AxisMajorIntervalModes mode,
+                           const double value,
                            const bool immediate)
 {
    this->xAxis->setRange (min, max, mode, value, immediate);
@@ -1471,7 +1467,8 @@ void QEGraphic::getXRange (double& min, double& max) const
 //------------------------------------------------------------------------------
 //
 void QEGraphic::setYRange (const double min, const double max,
-                           const AxisMajorIntervalModes mode, const double value,
+                           const QEGraphicNames::AxisMajorIntervalModes mode,
+                           const double value,
                            const bool immediate, const QwtPlot::Axis selectedYAxis)
 {
    this->axisFromPosition (selectedYAxis)->setRange (min, max, mode, value, immediate);

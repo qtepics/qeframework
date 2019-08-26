@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2018 Australian Synchrotron.
+ *  Copyright (c) 2014-2019 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -35,6 +35,7 @@
 #include <QPoint>
 #include <QVariant>
 #include <QEGraphicNames.h>
+#include <persistanceManager.h>
 #include <QEFrameworkLibraryGlobal.h>
 
 class QEGraphic;  // differed declaration - avoid mutual header inclusion
@@ -55,6 +56,11 @@ public:
 
    void setData (const QVariant& data);
    QVariant getData () const;
+
+   // Save/restore a markup configuration
+   //
+   void saveConfiguration (PMElement& parentElement);
+   void restoreConfiguration (PMElement& parentElement);
 
    virtual void setInUse (const bool inUse);   // in use or permitted.
    virtual bool isInUse () const;

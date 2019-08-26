@@ -54,6 +54,7 @@
 #include <qwt_plot_canvas.h>
 #include <qwt_plot_grid.h>
 #include <qwt_plot_curve.h>
+#include <QEGraphicNames.h>
 #include <QEGraphic.h>
 
 #include <alarm.h>
@@ -218,7 +219,7 @@ void QEPVNameLists::constructor () {
       QStringList pvNameList = predefined.split (' ', QString::SkipEmptyParts);
 
       // Processin reverse order (as use insert into list with prependOrMoveToFirst).
-      // We dont use append as this do not check for duplicates.
+      // We don't use append as this do not check for duplicates.
       //
       int number = pvNameList.count();
       for (int j = number - 1; j >= 0; j--) {
@@ -619,8 +620,10 @@ void QEStripChart::plotData ()
       this->calcDisplayMinMax ();
    }
 
-   this->plotArea->setYRange (this->getYMinimum (), this->getYMaximum (), QEGraphic::SelectBySize, 40, false);
-   this->plotArea->setXRange (-d/this->timeScale, 0.0, QEGraphic::SelectByValue, 5, false);
+   this->plotArea->setYRange (this->getYMinimum (), this->getYMaximum (),
+                              QEGraphicNames::SelectBySize, 40, false);
+   this->plotArea->setXRange (-d/this->timeScale, 0.0,
+                              QEGraphicNames::SelectByValue, 5, false);
 
    if (this->plotArea->getMarkupEnabled (QEGraphicNames::Box)) {
       QEStripChartItem* item = this->getItem (this->selectedPointSlot);
@@ -1075,8 +1078,10 @@ QEStripChart::QEStripChart (QWidget * parent) : QEAbstractDynamicWidget (parent)
    this->selectedPointDateTime = this->endDateTime;
 
    this->plotArea->setXScale (1.0 / this->timeScale);
-   this->plotArea->setXRange (-this->duration / this->timeScale, 0.0, QEGraphic::SelectByValue, 5, true);
-   this->plotArea->setYRange (this->yMinimum, this->yMaximum, QEGraphic::SelectBySize, 40, true);
+   this->plotArea->setXRange (-this->duration / this->timeScale, 0.0,
+                              QEGraphicNames::SelectByValue, 5, true);
+   this->plotArea->setYRange (this->yMinimum, this->yMaximum,
+                              QEGraphicNames::SelectBySize, 40, true);
 
    // Variables are managed by the strip chart item widgets.
    //
@@ -1749,6 +1754,10 @@ void QEStripChart::saveConfiguration (PersistanceManager* pm)
    this->captureState (chartState);
    chartState.saveConfiguration (formElement);
 
+   // Capture markup states.
+   //
+   this->plotArea->saveConfiguration (formElement);
+
    // Save each active PV.
    //
    PMElement pvListElement = formElement.addElement ("PV_List");
@@ -1783,6 +1792,10 @@ void QEStripChart::restoreConfiguration (PersistanceManager* pm, restorePhases r
    QEStripChartState chartState;
    chartState.restoreConfiguration (formElement);
    this->applyState (chartState);
+
+   // Restore markup states.
+   //
+   this->plotArea->restoreConfiguration (formElement);
 
    // Restore each PV.
    //

@@ -73,6 +73,7 @@ SOURCES += \
    common/QEPVNameSelectDialog.cpp \
    common/QEGraphic.cpp \
    common/QEGraphicMarkup.cpp \
+   common/QEGraphicNames.cpp \
    common/QEPlatform.cpp \
    common/QEQuickSort.cpp \
    common/QERecordFieldName.cpp \

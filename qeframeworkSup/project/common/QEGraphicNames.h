@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2013-2019 Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -16,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2014,2016 Australian Synchrotron.
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
@@ -27,16 +27,26 @@
 #ifndef QE_GRAPHIC_NAMES_H
 #define QE_GRAPHIC_NAMES_H
 
+#include <QList>
+#include <QMap>
+#include <QObject>
 #include <QVector>
+#include <QString>
+
+#include <persistanceManager.h>
 #include <QEFrameworkLibraryGlobal.h>
 
-// Define grapjic specific names (enumerations). We use a class as opposed to
-// a namespace so that QEGraphic and QEGraphicMarkup classes can just inherit
-// from this class.
-//
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGraphicNames {
-public:
+class QEGraphic;        // differed declaration
+class QEGraphicMarkup;  // differed declaration
 
+// We use a QObject class as opposed to a namespace as this allows us leverage
+// off the meta object compiler output, specifically allows us to use the
+// enumToString and stringToEnum functions in QEUtilities.
+//
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGraphicNames : public QObject
+{
+   Q_OBJECT
+public:
    typedef QVector<double> DoubleVector;
 
    // Controls the mode of operation of the drawText functions.
@@ -58,6 +68,8 @@ public:
 
    // Markup selection enumeration values and associated flags.
    //
+   Q_ENUMS (Markups)
+
    enum Markups {
       None              = 0x0000,
       Area              = 0x0001,
@@ -80,8 +92,42 @@ public:
    // or hash/map of markups The associated operator declaration is at end of
    // header outside of class.
 
+   // This function returns the image, as a QString, of a enumeration value.
+   // An invalid enumeration value returns a null string.
+   //
+   static QString markupToString (const Markups value);
+
+   // This function returns the enumeration value given an enumeration image.
+   // The image must be exact match including case. The only tolerance allowed
+   // for is that the image is trimmed.
+   // An invalid image cause this function to return -1.
+   // The caller may also specify and check ok.
+   //
+   static Markups stringToMarkup (const QString& image, bool* ok = 0);
+
+   // Provide a mapping from Markups enum to actual mark up object.
+   // We use a map (as opposed to a hash) because the iteration order is
+   // predictable and consistant.
+   //
+   typedef QMap <Markups, QEGraphicMarkup*> QEGraphicMarkupsSets;
+   typedef QList<Markups> MarkupLists;
+
+   // Create a set of available markups.
+   //
+   static QEGraphicMarkupsSets* createGraphicMarkupsSet (QEGraphic* owner);
+
+   // Cleans the markupsSet, but does not delete the object itself..
+   //
+   static void cleanGraphicMarkupsSet (QEGraphicMarkupsSets& markupsSet);
+
+   // Save/restore a markup configuration
+   //
+   static void saveConfiguration (QEGraphicMarkupsSets& markupsSet, PMElement& parentElement);
+   static void restoreConfiguration (QEGraphicMarkupsSets& markupsSet, PMElement& parentElement);
+
 protected:
-   explicit QEGraphicNames () { }
+   explicit QEGraphicNames ();
+   virtual ~QEGraphicNames ();
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS (QEGraphicNames::MarkupFlags)

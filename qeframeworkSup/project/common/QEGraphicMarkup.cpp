@@ -110,6 +110,45 @@ QVariant QEGraphicMarkup::getData () const
 
 //-----------------------------------------------------------------------------
 //
+void QEGraphicMarkup::saveConfiguration (PMElement& parentElement)
+{
+   const QString elementName = QEGraphicNames::markupToString (this->markup);
+
+   if (parentElement.isNull ()) return;
+   PMElement element = parentElement.addElement (elementName);
+   if (element.isNull ()) return;
+
+   element.addValue ("inUse", this->inUse);
+   element.addValue ("visible", this->visible);
+   element.addValue ("enabled", this->enabled);
+   element.addValue ("selected", this->selected);
+   element.addValue ("positon_x", this->positon.x());
+   element.addValue ("positon_y", this->positon.y());
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEGraphicMarkup::restoreConfiguration (PMElement& parentElement)
+{
+   const QString elementName = QEGraphicNames::markupToString (this->markup);
+   bool status;
+   double px, py;
+
+   if (parentElement.isNull ()) return;
+   PMElement element = parentElement.getElement (elementName);
+   if (element.isNull ()) return;
+
+   status = element.getValue ("inUse", this->inUse);
+   status = element.getValue ("visible", this->visible);
+   status = element.getValue ("enabled", this->enabled);
+   status = element.getValue ("selected", this->selected);
+   status = element.getValue ("positon_x", px);
+   status = element.getValue ("positon_y", py);
+   this->positon = QPointF (px, py);
+}
+
+//-----------------------------------------------------------------------------
+//
 QCursor QEGraphicMarkup::getCursor () const
 {
    return this->cursor;
