@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2018 Australian Synchrotron
+ *  Copyright (c) 2012-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -172,8 +172,9 @@ void QEImage::setup()
 
     imageUse = IMAGE_USE_DISPLAY;
 
-    // With so many variables involved, don't bother alterning the presentation of the widget when any one variable goes into alarm
-    setDisplayAlarmState( false );
+    // With so many variables involved, don't bother alterning the presentation
+    // of the widget when any one variable goes into alarm
+    setDisplayAlarmStateOption( DISPLAY_ALARM_STATE_NEVER );
 
     // Prepare to interact with whatever application is hosting this widget.
     // For example, the QEGui application can host docks and toolbars for QE widgets
@@ -1217,13 +1218,16 @@ void QEImage::setROI( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, 
 // (the image is needed to determine scaling)
 void QEImage::useROIData( const unsigned int& variableIndex )
 {
-#define USE_ROI_DATA( IS_ENABLED, IS_DISPLAY, N )                                                      \
-    if( sMenu->isEnabled( imageContextMenu::IS_ENABLED ) && mdMenu->isDisplayed( imageContextMenu::IS_DISPLAY ) && roiInfo[N].getStatus() )         \
-    {                                                                                             \
-        QRect rotateFlipArea = iProcessor.rotateFlipToImageRectangle( roiInfo[N].getArea() );     \
-        videoWidget->markupRegionValueChange( N, rotateFlipArea, displayMarkups );                \
-    }                                                                                             \
+#define USE_ROI_DATA( IS_ENABLED, IS_DISPLAY, N )                                               \
+    if( sMenu->isEnabled( imageContextMenu::IS_ENABLED ) &&                                     \
+        mdMenu->isDisplayed( imageContextMenu::IS_DISPLAY ) &&                                  \
+        roiInfo[N].getStatus() )                                                                \
+    {                                                                                           \
+        QRect rotateFlipArea = iProcessor.rotateFlipToImageRectangle( roiInfo[N].getArea() );   \
+        videoWidget->markupRegionValueChange( N, rotateFlipArea, displayMarkups );              \
+    }                                                                                           \
     break;
+
 
     switch( variableIndex )
     {
@@ -2432,9 +2436,10 @@ void QEImage::saveClicked()
 }
 
 // Update the video widget if the QEImage has changed
-void QEImage::resizeEvent(QResizeEvent* )
+void QEImage::resizeEvent( QResizeEvent* )
 {
     setImageSize();
+    displayImage();
 }
 
 
@@ -5758,3 +5763,5 @@ void QEImage::restoreConfiguration (PersistanceManager* pm, restorePhases restor
         initScrollPosSet = false;
     }
 }
+
+// end
