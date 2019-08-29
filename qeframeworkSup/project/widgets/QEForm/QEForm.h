@@ -88,7 +88,6 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEForm : public QEAbstractWidget,
                                          QString variableNameSubstitutionsIn,
                                          unsigned int variableIndex );
         void reloadLater();           // Slot for delaying form loading until after existing events have been processed
-        void resetCurrentPath();      // Slot for delaying resetting the current directory.
 
     protected:
         void establishConnection( unsigned int variableIndex );
@@ -121,6 +120,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEForm : public QEAbstractWidget,
         void saveConfiguration( PersistanceManager* pm );
         void restoreConfiguration( PersistanceManager* pm, restorePhases restorePhase );
         void reloadFile();
+        void resetCurrentPath();                // Reset the current directory.
 
         void setupWindowTitle( QString filename );    // Setup the title used to the name of the top level widget title, if it has one, or to the file name
 

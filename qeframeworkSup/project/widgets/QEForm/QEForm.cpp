@@ -359,10 +359,9 @@ bool QEForm::readUiFile()
 
                 ui = loader.load( uiFile );
 
-                // Set zero time timer to restore current directory.
-                // Do not know why this works, but it does.
+                // Now reset the current path back to where we were.
                 //
-                QTimer::singleShot( 0, this, SLOT( resetCurrentPath() ) );
+                resetCurrentPath();
             }
             uiFile->close();
 
