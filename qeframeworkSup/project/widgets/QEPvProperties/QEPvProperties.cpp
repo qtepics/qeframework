@@ -433,7 +433,7 @@ void QEPvProperties::common_setup ()
    // By default, the PV properties widget does not display the alarm state.
    // The internal VALue widget does this on our behalf.
    //
-   this->setDisplayAlarmState (false);
+   this->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_NEVER);
 
    // Use standard context menu for overall widget.
    //

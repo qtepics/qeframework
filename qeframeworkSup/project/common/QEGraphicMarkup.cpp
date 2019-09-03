@@ -138,13 +138,15 @@ void QEGraphicMarkup::restoreConfiguration (PMElement& parentElement)
    PMElement element = parentElement.getElement (elementName);
    if (element.isNull ()) return;
 
-   status = element.getValue ("inUse", this->inUse);
-   status = element.getValue ("visible", this->visible);
-   status = element.getValue ("enabled", this->enabled);
-   status = element.getValue ("selected", this->selected);
-   status = element.getValue ("positon_x", px);
-   status = element.getValue ("positon_y", py);
-   this->positon = QPointF (px, py);
+   element.getValue ("inUse", this->inUse);
+   element.getValue ("visible", this->visible);
+   element.getValue ("enabled", this->enabled);
+   element.getValue ("selected", this->selected);
+   status  = element.getValue ("positon_x", px);
+   status &= element.getValue ("positon_y", py);
+   if (status) {
+      this->positon = QPointF (px, py);
+   }
 }
 
 //-----------------------------------------------------------------------------

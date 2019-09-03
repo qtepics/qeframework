@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2018 Australian Synchrotron
+ *  Copyright (c) 2013-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -149,7 +149,7 @@ void QEScratchPad::createInternalWidgets ()
       item->pvName->setStyleSheet (QEUtilities::colourToStyle (clNotInUse));
 
       item->description = new QELabel (item->frame);
-      item->description->setDisplayAlarmState (false);
+      item->description->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_NEVER);
       item->description->setText ("");
       item->description->setIndent (indent);
       item->description->setSizePolicy (QSizePolicy::Ignored, QSizePolicy::Preferred);
@@ -157,7 +157,7 @@ void QEScratchPad::createInternalWidgets ()
       item->description->setEditPvUserLevel (level);
 
       item->value = new QELabel (item->frame);
-      item->value->setDisplayAlarmState (true);
+      item->value->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_ALWAYS);
       item->value->setText ("");
       item->value->setIndent (indent);
       item->value->setSizePolicy (QSizePolicy::Ignored, QSizePolicy::Preferred);
@@ -271,7 +271,7 @@ QEScratchPad::QEScratchPad (QWidget* parent) : QEAbstractDynamicWidget (parent),
    this->emitPvNameSetChangeInhibited = false;
 
    this->setAllowDrop (true);
-   this->setDisplayAlarmState (false);
+   this->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_NEVER);
 
    // Use default context menu.
    //

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2018 Australian Synchrotron.
+ *  Copyright (c) 2013-2019 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -132,7 +132,7 @@ void QENumericEdit::commonSetup ()
    //
    this->setVariableAsToolTip (true);
    this->setAllowDrop (false);
-   this->setDisplayAlarmState (true);
+   this->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_ALWAYS);
 
    // Use default context menu.
    // Note: Turn off the menu for the internal QNumericEdit and QLineEdit widgets.
