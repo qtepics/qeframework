@@ -33,6 +33,7 @@
 #include "standardProperties.h"
 #include <QEWidget.h>
 
+//------------------------------------------------------------------------------
 // Construction.
 standardProperties::standardProperties( QWidget* ownerIn )
 {
@@ -58,29 +59,37 @@ standardProperties::standardProperties( QWidget* ownerIn )
     displayAlarmState = DISPLAY_ALARM_STATE_ALWAYS;
 }
 
+//------------------------------------------------------------------------------
 // !!
 userLevelTypes::userLevels standardProperties::getUserLevelVisibility() const
 {
     return visibilityLevel;
 }
 
+//------------------------------------------------------------------------------
+//
 void standardProperties::setUserLevelVisibility( userLevelTypes::userLevels levelIn )
 {
     visibilityLevel = levelIn;
     setSuperVisibility();
 }
 
+//------------------------------------------------------------------------------
+//
 userLevelTypes::userLevels standardProperties::getUserLevelEnabled() const
 {
     return enabledLevel;
 }
 
+//------------------------------------------------------------------------------
+//
 void standardProperties::setUserLevelEnabled( userLevelTypes::userLevels levelIn )
 {
     enabledLevel = levelIn;
     setSuperEnabled();
 }
 
+//------------------------------------------------------------------------------
 // Set the enabled/disabled state of the widget according to user level
 void standardProperties::setSuperEnabled()
 {
@@ -107,6 +116,7 @@ void standardProperties::setSuperEnabled()
     }
 }
 
+//------------------------------------------------------------------------------
 // Set the visibility of the widget.
 // Generally it is visible or not according to 'applicationVisibility', however this can be overridden
 // if it is not the appropriate user level, or running within designer
@@ -131,6 +141,7 @@ void standardProperties::setSuperVisibility()
     owner->setVisible( vis );
 }
 
+//------------------------------------------------------------------------------
 // Given a user level, note the new level and determine if the widget should be visible or enabled
 void standardProperties::checkVisibilityEnabledLevel( userLevelTypes::userLevels level )
 {
@@ -144,6 +155,7 @@ void standardProperties::checkVisibilityEnabledLevel( userLevelTypes::userLevels
     setSuperVisibility();
 }
 
+//------------------------------------------------------------------------------
 // visible (widget is visible outside 'Designer')
 void standardProperties::setRunVisible( bool visibleIn )
 {
@@ -151,11 +163,14 @@ void standardProperties::setRunVisible( bool visibleIn )
     setSuperVisibility();
 }
 
+//------------------------------------------------------------------------------
+//
 bool standardProperties::getRunVisible() const
 {
     return applicationVisibility;
 }
 
+//------------------------------------------------------------------------------
 // DEPRECATED. USE setDisplayAlarmStateOption(displayAlarmStateOptions) INSTEAD
 // displayAlarmState. If set (default) widget will indicate the alarm state of any variable data is displaying.
 void standardProperties::setDisplayAlarmState( bool displayAlarmStateIn )
@@ -163,22 +178,49 @@ void standardProperties::setDisplayAlarmState( bool displayAlarmStateIn )
     displayAlarmState = displayAlarmStateIn?DISPLAY_ALARM_STATE_ALWAYS:DISPLAY_ALARM_STATE_NEVER;
 }
 
+//------------------------------------------------------------------------------
 // DEPRECATED. USE displayAlarmStateOptions getDisplayAlarmStateOption() INSTEAD
 bool standardProperties::getDisplayAlarmState() const
 {
     return displayAlarmState != DISPLAY_ALARM_STATE_NEVER;
 }
 
+//------------------------------------------------------------------------------
 // displayAlarmState. If set (default) widget will indicate the alarm state of any variable data is displaying.
 void standardProperties::setDisplayAlarmStateOption( displayAlarmStateOptions displayAlarmStateIn )
 {
     displayAlarmState = displayAlarmStateIn;
 }
 
+//------------------------------------------------------------------------------
+//
 standardProperties::displayAlarmStateOptions
 standardProperties::getDisplayAlarmStateOption() const
 {
     return displayAlarmState;
+}
+
+//------------------------------------------------------------------------------
+//
+bool standardProperties::getUseAlarmState( const QCaAlarmInfo& alarmInfo ) const
+{
+   bool result = true;
+   switch( getDisplayAlarmStateOption() ){
+
+     case DISPLAY_ALARM_STATE_NEVER:
+         result = false;
+         break;
+
+     case DISPLAY_ALARM_STATE_ALWAYS:
+         result = true;
+         break;
+
+     case DISPLAY_ALARM_STATE_WHEN_IN_ALARM:
+         result = alarmInfo.isInAlarm();
+         break;
+   }
+
+   return result;
 }
 
 // end

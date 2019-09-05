@@ -202,23 +202,7 @@ bool QEAnalogProgressBar::useAlarmColours (QCaAlarmInfo& alarmInfo) const
    qca->getLastData (isDefined, value, alarmInfo, timeStamp);
    if (!isDefined) return false;
 
-   bool result = true;
-   switch (this->getDisplayAlarmStateOption()) {
-
-     case standardProperties::DISPLAY_ALARM_STATE_NEVER:
-         result = false;
-         break;
-
-     case standardProperties::DISPLAY_ALARM_STATE_ALWAYS:
-         result = true;
-         break;
-
-     case standardProperties::DISPLAY_ALARM_STATE_WHEN_IN_ALARM:
-         result = alarmInfo.isInAlarm();
-         break;
-   }
-
-   return result;
+   return this->getUseAlarmState (alarmInfo);
 }
 
 //------------------------------------------------------------------------------

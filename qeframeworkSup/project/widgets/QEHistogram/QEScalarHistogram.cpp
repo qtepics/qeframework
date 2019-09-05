@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2014-2019 Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -16,21 +18,18 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2014,2016 Australian Synchrotron.
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
 
-
+#include "QEScalarHistogram.h"
 #include <QDebug>
 #include <QECommon.h>
 #include <QCaObject.h>
-#include <QEScalarHistogram.h>
 
-#define DEBUG  qDebug () << "QEScalarHistogram" << __FUNCTION__ << __LINE__
+#define DEBUG  qDebug () << "QEScalarHistogram" << __LINE__ << __FUNCTION__ << "  "
 
 //------------------------------------------------------------------------------
 // Constructor with no initialisation
@@ -258,7 +257,7 @@ void QEScalarHistogram::setChannelValue (const double& value,
 
    QColor colour;
 
-   if (this->getDisplayAlarmState ()) {
+   if (this->getUseAlarmState (alarmInfo)) {
       colour = this->getColor (alarmInfo, 255);
    } else {
       colour = this->histogram->getBarColour ();

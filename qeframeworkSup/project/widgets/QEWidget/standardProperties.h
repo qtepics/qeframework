@@ -28,6 +28,7 @@
 #define QE_STANDARD_PROPERTIES_H
 
 #include <QWidget>
+#include <QCaAlarmInfo.h>
 #include <ContainerProfile.h>
 
 class  QE_FRAMEWORK_LIBRARY_SHARED_EXPORT standardProperties
@@ -68,6 +69,10 @@ public:
 
     void setDisplayAlarmStateOption( displayAlarmStateOptions displayAlarmStateIn );
     displayAlarmStateOptions getDisplayAlarmStateOption() const;
+
+    // Utility function to determine if the alarm state colour is to be used.
+    //
+    bool getUseAlarmState( const QCaAlarmInfo& alarmInfo ) const;
 
 protected:
     void checkVisibilityEnabledLevel( userLevelTypes::userLevels level );
