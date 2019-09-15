@@ -33,7 +33,9 @@
 //------------------------------------------------------------------------------
 // Constructor with no initialisation
 //
-QEWaveformHistogram::QEWaveformHistogram (QWidget * parent) : QEFrame (parent)
+QEWaveformHistogram::QEWaveformHistogram (QWidget * parent) :
+   QEFrame (parent),
+   QEStringFormattingMethods ()
 {
    // Set default property values
    // Super class....
@@ -62,6 +64,11 @@ QEWaveformHistogram::QEWaveformHistogram (QWidget * parent) : QEFrame (parent)
                      this,            SLOT   (mouseIndexPressedSlot (const int, const Qt::MouseButton)));
 
    this->mScaleMode = Manual;
+   this->setPrecision (6);
+   this->setFormat (QEStringFormatting::FORMAT_DEFAULT);
+   this->setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
+   this->setUseDbPrecision (false);
+   this->setAddUnits (true);
    this->isFirstUpdate = true;
 
    // Set up data
@@ -111,7 +118,6 @@ qcaobject::QCaObject* QEWaveformHistogram::createQcaItem (unsigned int pvi)
 
    return result;
 }
-
 
 //------------------------------------------------------------------------------
 // Start updating.
@@ -342,6 +348,48 @@ QEWaveformHistogram::ScaleModes QEWaveformHistogram::getScaleMode () const
 
 //------------------------------------------------------------------------------
 //
+void QEWaveformHistogram::setReadoutPrecision (const int readoutPrecisionIn)
+{
+   this->setPrecision (readoutPrecisionIn);
+}
+
+//------------------------------------------------------------------------------
+//
+int QEWaveformHistogram::getReadoutPrecision () const
+{
+   return this->getPrecision ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEWaveformHistogram::setReadoutFormat (const Formats formatIn)
+{
+   this->setFormat (QEStringFormatting::formats (formatIn));
+}
+
+//------------------------------------------------------------------------------
+//
+QEWaveformHistogram::Formats QEWaveformHistogram::getReadoutFormat() const
+{
+   return Formats (this->getFormat());
+}
+
+//------------------------------------------------------------------------------
+//
+void QEWaveformHistogram::setReadoutNotation (const Notations notationIn)
+{
+   this->setNotation (QEStringFormatting::notations (notationIn));
+}
+
+//------------------------------------------------------------------------------
+//
+QEWaveformHistogram::Notations QEWaveformHistogram::getReadoutNotation () const
+{
+   return Notations (this->getNotation());
+}
+
+//------------------------------------------------------------------------------
+//
 void QEWaveformHistogram::setReadOut (const QString& text)
 {
    message_types mt (MESSAGE_TYPE_INFO, MESSAGE_KIND_STATUS);
@@ -375,8 +423,8 @@ void QEWaveformHistogram::genReadOut (const int index)
 
       if (isDefined) {
          value = valueList.toList ().value (index);
-         text.append (" ").append (value.toString ());
-         text.append(" ").append (qca->getEgu ());
+         this->stringFormatting.setDbEgu (qca->getEgu ());
+         text.append (" ").append (this->stringFormatting.formatString (value));
       } else {
          text.append ("  undefined.");
       }

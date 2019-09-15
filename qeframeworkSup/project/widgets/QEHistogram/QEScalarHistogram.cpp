@@ -34,7 +34,9 @@
 //------------------------------------------------------------------------------
 // Constructor with no initialisation
 //
-QEScalarHistogram::QEScalarHistogram (QWidget * parent) : QEFrame (parent)
+QEScalarHistogram::QEScalarHistogram (QWidget * parent) :
+   QEFrame (parent),
+   QEStringFormattingMethods ()
 {
    // Set default property values
    // Super class....
@@ -61,6 +63,12 @@ QEScalarHistogram::QEScalarHistogram (QWidget * parent) : QEFrame (parent)
 
    QObject::connect (this->histogram, SIGNAL (mouseIndexPressed    (const int, const Qt::MouseButton)),
                      this,            SLOT   (mouseIndexPressedSlot (const int, const Qt::MouseButton)));
+
+   this->setPrecision (6);
+   this->setFormat (QEStringFormatting::FORMAT_DEFAULT);
+   this->setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
+   this->setUseDbPrecision (false);
+   this->setAddUnits (true);
 
    this->mScaleMode = Manual;
 
@@ -350,6 +358,48 @@ QEScalarHistogram::ScaleModes QEScalarHistogram::getScaleMode () const
 
 //------------------------------------------------------------------------------
 //
+void QEScalarHistogram::setReadoutPrecision (const int readoutPrecisionIn)
+{
+   this->setPrecision (readoutPrecisionIn);
+}
+
+//------------------------------------------------------------------------------
+//
+int QEScalarHistogram::getReadoutPrecision () const
+{
+   return this->getPrecision ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEScalarHistogram::setReadoutFormat (const Formats formatIn)
+{
+   this->setFormat (QEStringFormatting::formats (formatIn));
+}
+
+//------------------------------------------------------------------------------
+//
+QEScalarHistogram::Formats QEScalarHistogram::getReadoutFormat() const
+{
+   return Formats (this->getFormat());
+}
+
+//------------------------------------------------------------------------------
+//
+void QEScalarHistogram::setReadoutNotation (const Notations notationIn)
+{
+   this->setNotation (QEStringFormatting::notations (notationIn));
+}
+
+//------------------------------------------------------------------------------
+//
+QEScalarHistogram::Notations QEScalarHistogram::getReadoutNotation () const
+{
+   return Notations (this->getNotation());
+}
+
+//------------------------------------------------------------------------------
+//
 void QEScalarHistogram::setReadOut (const QString& text)
 {
    message_types mt (MESSAGE_TYPE_INFO, MESSAGE_KIND_STATUS);
@@ -378,8 +428,8 @@ void QEScalarHistogram::genReadOut (const int index)
 
       text = qca->getRecordName ();
       if (isDefined) {
-         text.append (" ").append (value.toString ());
-         text.append(" ").append (qca->getEgu ());
+         this->stringFormatting.setDbEgu (qca->getEgu ());
+         text.append (" ").append (this->stringFormatting.formatString (value));
       } else {
          text.append ("  undefined.");
       }

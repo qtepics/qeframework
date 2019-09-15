@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2018 Australian Synchrotron.
+ *  Copyright (c) 2014-2019 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -37,6 +37,8 @@
 #include <QEWidget.h>
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
+#include <QEStringFormatting.h>
+#include <QEStringFormattingMethods.h>
 #include <QCaVariableNamePropertyManager.h>
 #include <QEFrameworkLibraryGlobal.h>
 
@@ -55,7 +57,10 @@
 // Maximum number of variables.
 #define QE_HISTOGRAM_NUMBER_VARIABLES 120
 
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEScalarHistogram:public QEFrame {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEScalarHistogram:
+      public QEFrame,
+      public QEStringFormattingMethods
+{
    Q_OBJECT
 
    // All standard properties are inherited from QEFrame.
@@ -74,8 +79,30 @@ public:
       Auto,                ///< Dynamically scale based on minimum/maximum displayed value
       OperationalRange     ///< Use process variable operational range (LOPR/HOPR).
    };
-
    Q_ENUMS (ScaleModes)
+
+   /// \enum
+   /// User friendly enumerations for format property - refer to QEStringFormatting::formats for details.
+   ///
+   enum Formats {
+      Default          = QEStringFormatting::FORMAT_DEFAULT,            ///< Format as best appropriate for the data type
+      Floating         = QEStringFormatting::FORMAT_FLOATING,           ///< Format as a floating point number
+      Integer          = QEStringFormatting::FORMAT_INTEGER,            ///< Format as an integer
+      UnsignedInteger  = QEStringFormatting::FORMAT_UNSIGNEDINTEGER,    ///< Format as an unsigned integer
+      Time             = QEStringFormatting::FORMAT_TIME,               ///< Format as a time
+      LocalEnumeration = QEStringFormatting::FORMAT_LOCAL_ENUMERATE     ///< Format as a selection from the #localEnumeration property
+   };
+   Q_ENUMS (Formats)
+
+   /// \enum
+   /// User friendly enumerations for notation property - refer to QEStringFormatting::notations for details.
+   ///
+   enum Notations {
+      Fixed       = QEStringFormatting::NOTATION_FIXED,              ///< Refer to QEStringFormatting::NOTATION_FIXED for details
+      Scientific  = QEStringFormatting::NOTATION_SCIENTIFIC,         ///< Refer to QEStringFormatting::NOTATION_SCIENTIFIC for details
+      Automatic   = QEStringFormatting::NOTATION_AUTOMATIC           ///< Refer to QEStringFormatting::NOTATION_AUTOMATIC for details
+   };
+   Q_ENUMS (Notations)
 
    // Histogram properties
    //
@@ -99,6 +126,11 @@ public:
    Q_PROPERTY (QColor barColour        READ getBarColour        WRITE setBarColour)
    Q_PROPERTY (bool   drawBorder       READ getDrawBorder       WRITE setDrawBorder)
    Q_PROPERTY (Qt::Orientation orientation READ getOrientation  WRITE setOrientation)
+
+   // Readout formatting
+   Q_PROPERTY (int       readoutPrecision  READ getReadoutPrecision WRITE setReadoutPrecision)
+   Q_PROPERTY (Formats   readoutFormat     READ getReadoutFormat    WRITE setReadoutFormat)
+   Q_PROPERTY (Notations readoutNotation   READ getReadoutNotation  WRITE setReadoutNotation)
 
    /// EPICS variable names (CA PV).
    // Note variableN uses variable index N-1.
@@ -231,6 +263,15 @@ public:
    void setScaleMode (const ScaleModes scaleMode);
    ScaleModes getScaleMode () const;
 
+   void setReadoutPrecision (const int readoutPrecision);
+   int getReadoutPrecision () const;
+
+   void setReadoutFormat (const Formats format);
+   Formats getReadoutFormat() const;
+
+   void setReadoutNotation (const Notations notation);
+   Notations getReadoutNotation () const;
+
    // Expose access to the internal widget's set/get functions.
    //
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, double, getMinimum,     setMinimum)
@@ -268,6 +309,8 @@ protected:
    void dropEvent (QDropEvent* event)           { this->qcaDropEvent (event);       }
    void mousePressEvent (QMouseEvent* event)    { this->qcaMousePressEvent (event); }
    // This widget uses the setDrop/getDrop defined in QEWidget which is copy/paste.
+
+   void stringFormattingChange() { }
 
    // Copy paste
    QString copyVariable ();
@@ -445,6 +488,8 @@ private:
 
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
 Q_DECLARE_METATYPE (QEScalarHistogram::ScaleModes)
+Q_DECLARE_METATYPE (QEScalarHistogram::Formats)
+Q_DECLARE_METATYPE (QEScalarHistogram::Notations)
 #endif
 
 #endif // QE_SCALAR_HISTOGRAM_H
