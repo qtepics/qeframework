@@ -1,6 +1,9 @@
 /*  contextMenu.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2011-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2011,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -97,7 +98,7 @@ public:
 
     bool isDraggingVariable();                          // Return the global 'is dragging variable' flag (Dragging variable is true, draging data if false)
 
-    // buildContextMenu support functions. Where as most sub classes jist append action items to the
+    // buildContextMenu support functions. Where as most sub classes just append action items to the
     // menu constructed by its parent class, these function allow action items to be inserted into the
     // menu before/after the noninated menu option value. These functions return false if the specified
     // option was not found.
@@ -121,7 +122,7 @@ protected:
     void setConsumer (QObject *consumer);               // Set the consumer of the signal generted by this object
 
 private:
-    QEContextMenuObject* object;                          // Our own QObject based class to managing signals and slots
+    QEContextMenuObject* object;                        // Our own QObject based class to managing signals and slots
     void doCopyVariable();                              // 'Copy Variable' was selected from the menu
     void doCopyData();                                  // 'Copy Data' was selected from the menu
     void doPaste();                                     // 'Paste' was selected from the menu
