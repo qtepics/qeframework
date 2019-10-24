@@ -1180,7 +1180,7 @@ bool QEPvaClient::dataIsAvailable () const { return false; }
 QString QEPvaClient::getId () const { return ""; }
 QString QEPvaClient::getRemoteAddress() const { return ""; }
 QString QEPvaClient::getEgu() const { return ""; }
-unsigned int QEPvaClient::getPrecision() const { return 0; }
+int QEPvaClient::getPrecision() const { return 0; }
 unsigned int QEPvaClient::dataElementCount () const { return 0; }
 double QEPvaClient::getDisplayLimitHigh() const { return 0.0; }
 double QEPvaClient::getDisplayLimitLow() const { return 0.0; }
