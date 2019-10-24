@@ -326,7 +326,7 @@ QVariant QEStringFormatting::formatValue( const QVector<QString>& text, bool& ok
 
 // Determine the format that will be used when interpreting a value to write,
 // or when presenting a value for which default formatting has been requested.
-void QEStringFormatting::determineDbFormat( const QVariant &value )
+void QEStringFormatting::determineDbFormat( const QVariant &value ) const
 {
    // Assume default formatting, and only a single value
    dbFormat = FORMAT_DEFAULT;
@@ -403,7 +403,7 @@ void QEStringFormatting::determineDbFormat( const QVariant &value )
 /*
     Set strem numbers flags
  */
-void QEStringFormatting::applyForceSign ()
+void QEStringFormatting::applyForceSign () const
 {
    QTextStream::NumberFlags nf = stream.numberFlags();
 
@@ -524,10 +524,6 @@ QString QEStringFormatting::realImage( const double item,
 */
 QString QEStringFormatting::formatString( const QVariant& value, int arrayIndex ) const
 {
-   // This works as modified members are just used as temp. variables.
-   // Flag as mutable??
-   //
-   QEStringFormatting* self = (QEStringFormatting*) this;
    QString result;
    bool isNumeric = false;
 
@@ -537,7 +533,7 @@ QString QEStringFormatting::formatString( const QVariant& value, int arrayIndex 
        !QEVectorVariants::isVectorVariant(value) )
    {
       // "Simple" scalar
-      result = self->formatElementString( value, isNumeric );
+      result = this->formatElementString( value, isNumeric );
 
    } else {
       // Array variable / or vector variant.
@@ -565,7 +561,7 @@ QString QEStringFormatting::formatString( const QVariant& value, int arrayIndex 
       }
 
       if (!okay) {
-         self->formatFailure( QString ( "Conversion to QVariantList failed") );
+         this->formatFailure( QString ( "Conversion to QVariantList failed") );
          return "---";
       }
 
@@ -580,7 +576,7 @@ QString QEStringFormatting::formatString( const QVariant& value, int arrayIndex 
             for( int j = 0; j < number; j++ ){
                QVariant element = valueArray.value (j);
                QString elementString;
-               elementString = self->formatElementString( element, isNumeric );
+               elementString = this->formatElementString( element, isNumeric );
 
                if( j > 0 )result.append ( " " );
                result.append( elementString );
@@ -623,12 +619,12 @@ QString QEStringFormatting::formatString( const QVariant& value, int arrayIndex 
             if( ( arrayIndex >= 0 ) && ( arrayIndex < number ) )
             {
                QVariant element = valueArray.value( arrayIndex );
-               result = self->formatElementString( element, isNumeric );
+               result = this->formatElementString( element, isNumeric );
             }
             break;
 
          default:
-            self->formatFailure( QString ( "Invalid arrayAction: %d" ).arg ( (int) arrayAction ));
+            this->formatFailure( QString ( "Invalid arrayAction: %d" ).arg ( (int) arrayAction ));
             result = "---";
             break;
       }
@@ -649,7 +645,7 @@ QString QEStringFormatting::formatString( const QVariant& value, int arrayIndex 
 /*
     Generate a string given an element value, using formatting defined within this class.
 */
-QString QEStringFormatting::formatElementString( const QVariant& value, bool& isNumeric )
+QString QEStringFormatting::formatElementString( const QVariant& value, bool& isNumeric ) const
 {
    // Examine the value and note the matching format
    // This sets dbFormat which is used by following switch statements
@@ -787,7 +783,8 @@ QString QEStringFormatting::formatElementString( const QVariant& value, bool& is
     Then format it as a string using the formatting information stored in this
     class.
 */
-void QEStringFormatting::formatFromFloating( const QVariant &value ) {
+void QEStringFormatting::formatFromFloating( const QVariant &value ) const
+{
    // Extract the value as a double using whatever conversion the QVariant uses.
    //
    // Note, this will not pick up if the QVariant type is not one of the types used to represent CA data.
@@ -878,7 +875,8 @@ void QEStringFormatting::formatFromFloating( const QVariant &value ) {
     there will be no conversion problems.
     Then format it as a string using the formatting information stored in this class.
 */
-void QEStringFormatting::formatFromInteger( const QVariant &value ) {
+void QEStringFormatting::formatFromInteger( const QVariant &value ) const
+{
    // Extract the value as a long using whatever conversion the QVariant uses.
    //
    // Note, this will not pick up if the QVariant type is not one of the types used to represent CA data.
@@ -928,7 +926,8 @@ void QEStringFormatting::formatFromInteger( const QVariant &value ) {
     there will be no conversion problems.
     Then format it as a string using the formatting information stored in this class.
 */
-void QEStringFormatting::formatFromUnsignedInteger( const QVariant &value ) {
+void QEStringFormatting::formatFromUnsignedInteger( const QVariant &value ) const
+{
    // Extract the value as an unsigned long using whatever conversion the QVariant uses.
    //
    // Note, this will not pick up if the QVariant type is not one of the types used to represent CA data.
@@ -977,7 +976,8 @@ void QEStringFormatting::formatFromUnsignedInteger( const QVariant &value ) {
     If the value is numeric, then the value is compared to the numeric interpretation of the enumeration values,
     if the value is textual, then the value is compared to the textual enumeration values.
 */
-void QEStringFormatting::formatFromEnumeration( const QVariant &value ) {
+void QEStringFormatting::formatFromEnumeration( const QVariant &value ) const
+{
 
    bool match;   // dummy needed by API
    stream << localEnumerations.valueToText( value, match );
@@ -988,7 +988,8 @@ void QEStringFormatting::formatFromEnumeration( const QVariant &value ) {
     This method was written to convert a QVariant of type ??? (the type used to represent times in CA),
     but should cope with a variant of any type.
 */
-void QEStringFormatting::formatFromTime( const QVariant &value ) {
+void QEStringFormatting::formatFromTime( const QVariant &value ) const
+{
    bool okay;
    double seconds;
    double time;
@@ -1052,7 +1053,8 @@ void QEStringFormatting::formatFromTime( const QVariant &value ) {
 /*
     Format a variant value as a string representation of a string. (Not a big ask!)
 */
-void QEStringFormatting::formatFromString( const QVariant& value ) {
+void QEStringFormatting::formatFromString( const QVariant& value ) const
+{
    // Generate the text
    stream << value.toString(); // No conversion requried. Stored in variant as required type
 }
@@ -1061,7 +1063,8 @@ void QEStringFormatting::formatFromString( const QVariant& value ) {
     Do something with the fact that the value could not be formatted as
     requested.
 */
-void QEStringFormatting::formatFailure( QString message ) {
+void QEStringFormatting::formatFailure( QString message ) const
+{
    // Log the format failure if required.
    //???
    qDebug() << message;

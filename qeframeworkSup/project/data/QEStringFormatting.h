@@ -132,21 +132,21 @@ public:
 private:
     // isNumeric set true iff value is numeric data.
     //
-    QString formatElementString( const QVariant& value, bool& isNumeric );
+    QString formatElementString( const QVariant& value, bool& isNumeric ) const;
 
     // Type specific conversion functions
     // TODO: These SHOULD be rebadged formatToFloatingString etc.
     //
-    void formatFromFloating( const QVariant& value );
-    void formatFromInteger( const QVariant& value );
-    void formatFromUnsignedInteger( const QVariant& value );
-    void formatFromTime( const QVariant& value );
-    void formatFromEnumeration( const QVariant& value );
-    void formatFromString( const QVariant &value );
+    void formatFromFloating( const QVariant& value ) const;
+    void formatFromInteger( const QVariant& value ) const;
+    void formatFromUnsignedInteger( const QVariant& value ) const;
+    void formatFromTime( const QVariant& value ) const;
+    void formatFromEnumeration( const QVariant& value ) const;
+    void formatFromString( const QVariant &value ) const;
 
     // Utility functions
-    void determineDbFormat( const QVariant &value );
-    void applyForceSign ();
+    void determineDbFormat( const QVariant &value ) const;
+    void applyForceSign () const;
     QString insertSeparators( const QString& image ) const;
     QString realImage (const double item,
                        const notations notation,
@@ -155,11 +155,13 @@ private:
                        const int prec) const;
 
     // Error reporting
-    void formatFailure( QString message );
+    void formatFailure( QString message ) const;
 
     // Formatted output string
-    QTextStream stream;
-    QString outStr;
+    mutable QTextStream stream;
+    mutable QString outStr;
+    mutable formats dbFormat;        // Format determined from read value (Floating, integer, etc).
+    mutable bool dbFormatArray;      // True if read value is an array
 
     // Database information
     QString dbEgu;
@@ -172,10 +174,8 @@ private:
     bool trailingZeros;              // Add trailing zeros when required (up to the precision).
     bool forceSign;                  // Add "+" for numeric values >= 0
     formats format;                  // Presentation required (Floating, integer, etc).
-    formats dbFormat;                // Format determined from read value (Floating, integer, etc).
     notations notation;              // Required notation for floating point formats
     separators separator;            // Thousands separator (applies to numeric values only)
-    bool dbFormatArray;              // True if read value is an array
     bool addUnits;                   // Flag use engineering units from database
     int precision;                   // Floating point precision. Used if 'useDbPrecision' is false.
     QELocalEnumeration localEnumerations;  // Local enumeration values.
