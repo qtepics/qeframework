@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018 Australian Synchrotron
+ *  Copyright (C) 2018-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -84,7 +84,7 @@ public:
    QString getRemoteAddress() const;
 
    QString getEgu () const;
-   unsigned int getPrecision() const;
+   int getPrecision() const;
    unsigned int dataElementCount () const;
    double getDisplayLimitHigh () const;
    double getDisplayLimitLow () const;

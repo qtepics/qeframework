@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -54,7 +54,8 @@ public:
                    FORMAT_STRING,               ///< Format as a string
                    // Specials for specific PVA varient types
                    FORMAT_NT_TABLE,             ///< Format as a NTTable
-                   FORMAT_NT_IMAGE              ///< Format as a NTNDArray
+                   FORMAT_NT_IMAGE,             ///< Format as a NTNDArray
+                   FORMAT_OPAQUE                ///< Format as opaque, i.e. unknown/unhandled type.
                };
 
     /// \enum notations

@@ -43,6 +43,9 @@ SOURCES += $$PROTOCOL/QENTNDArrayData.cpp
 HEADERS += $$PROTOCOL/QENTTableData.h
 SOURCES += $$PROTOCOL/QENTTableData.cpp
 
+HEADERS += $$PROTOCOL/QEOpaqueData.h
+SOURCES += $$PROTOCOL/QEOpaqueData.cpp
+
 HEADERS += $$PROTOCOL/QEVectorVariants.h
 SOURCES += $$PROTOCOL/QEVectorVariants.cpp
 

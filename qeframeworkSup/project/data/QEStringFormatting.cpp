@@ -2,7 +2,7 @@
  *
  *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,6 +31,7 @@
 #include <QEVectorVariants.h>
 #include <QENTTableData.h>
 #include <QENTNDArrayData.h>
+#include <QEOpaqueData.h>
 
 #define DEBUG qDebug () << "QEStringFormatting" << __LINE__ << __FUNCTION__ << "  "
 
@@ -202,6 +203,7 @@ QVariant QEStringFormatting::formatValue( const QString& text, bool& ok ) const
 
          case FORMAT_NT_TABLE:
          case FORMAT_NT_IMAGE:
+         case FORMAT_OPAQUE:
             ok = false;
             break;
       };
@@ -293,6 +295,7 @@ QVariant QEStringFormatting::formatValue( const QString& text, bool& ok ) const
 
          case FORMAT_NT_TABLE:
          case FORMAT_NT_IMAGE:
+         case FORMAT_OPAQUE:
             ok = false;
             break;
       }
@@ -381,6 +384,10 @@ void QEStringFormatting::determineDbFormat( const QVariant &value )
          }
          if( QENTNDArrayData::isAssignableVariant( value ) ){
             dbFormat = FORMAT_NT_IMAGE;
+            break;
+         }
+         if( QEOpaqueData::isAssignableVariant( value ) ){
+            dbFormat = FORMAT_OPAQUE;
             break;
          }
 
@@ -717,6 +724,11 @@ QString QEStringFormatting::formatElementString( const QVariant& value, bool& is
                   case FORMAT_NT_IMAGE:
                      // Can't display an NT NDArray (image) as a string.
                      stream << "{{NTNDArray}}";
+                     break;
+
+                  case FORMAT_OPAQUE:
+                     // Can't display an opaque (unknown) as a string.
+                     stream << "{{opaque}}";
                      break;
 
                   default:

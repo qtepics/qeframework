@@ -916,16 +916,9 @@ QStringList QEPvaClient::getEnumerations () const
 
 //------------------------------------------------------------------------------
 //
-unsigned int QEPvaClient::getPrecision () const
+int QEPvaClient::getPrecision () const
 {
-   unsigned int result = 0;
-
-   // Format string is of the form: '%2g'
-   const char *pszString = this->display.format.toStdString().c_str();
-
-   sscanf (pszString, "%%%uf", &result);
-
-   return result;
+   return this->display.precision;
 }
 
 //------------------------------------------------------------------------------

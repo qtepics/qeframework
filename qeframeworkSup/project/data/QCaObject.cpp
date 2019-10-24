@@ -581,11 +581,12 @@ QStringList QCaObject::getEnumerations() const
 //------------------------------------------------------------------------------
 // Return the precision, if any
 //
-unsigned int  QCaObject::getPrecision() const
+unsigned int QCaObject::getPrecision() const
 {
-   unsigned int result = 0;
+   int result = 0;
    RESULT_SELECT (precision, getPrecision);
-   return result;
+   if (result < 0) result = 0;
+   return unsigned (result);   // TODO: consider changing getPrecision to return int
 }
 
 //------------------------------------------------------------------------------

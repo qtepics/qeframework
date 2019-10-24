@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018 Australian Synchrotron
+ *  Copyright (C) 2018-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -148,9 +148,10 @@ public:
       bool isDefined;
       double limitLow;
       double limitHigh;
-      QString description ;
-      QString format;    // e.g.   %3g
+      QString description;
       QString units;
+      int precision;
+      // QString format;  - replaced by form - this is TBD
    };
 
    //---------------------------------------------------------------------------
@@ -204,7 +205,7 @@ public:
       int lowWarningSeverity;
       int highWarningSeverity;
       int highAlarmSeverity;
-      double hysteresis;
+      int hysteresis;    // since 7.0.3 this is now byte for all scalar/scalarArray types.
    };
 
    // Converts a PV Access PV value field to a QVariant.

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (C) 2018 Australian Synchrotron
+ *  Copyright (C) 2018-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,17 +31,19 @@
 
 #include <QDebug>
 #include <pv/nt.h>
+
 #include <pv/ntscalar.h>
 #include <pv/ntscalarArray.h>
 #include <pv/ntenum.h>
 #include <pv/nttable.h>
 #include <pv/ntndarray.h>
+
 #include <pv/pvType.h>
 #include <pv/pvIntrospect.h>
 #include <QEVectorVariants.h>
 #include <QENTTableData.h>
 #include <QENTNDArrayData.h>
-
+#include <QEOpaqueData.h>
 
 #define DEBUG qDebug() << "QEPvaData" << __LINE__ << __FUNCTION__ << "  "
 
@@ -137,8 +139,8 @@ QEPvaData::Display::Display ()
    this->limitLow = 0.0;
    this->limitHigh = 0.0;
    this->description = "";
-   this->format = "";
    this->units = "";
+   this->precision = 0;
 }
 
 QEPvaData::Display::~Display () { } // place holder
@@ -154,8 +156,8 @@ void QEPvaData::Display::assign (const Display& other)
       this->limitLow = 0.0;
       this->limitHigh = 0.0;
       this->description = "";
-      this->format = "";
       this->units = "";
+      this->precision = 0;
    }
 }
 
@@ -199,7 +201,7 @@ QEPvaData::ValueAlarm::ValueAlarm ()
    this->lowWarningSeverity = 0;
    this->highWarningSeverity = 0;
    this->highAlarmSeverity = 0;
-   this->hysteresis = 0.0;
+   this->hysteresis = 0;
 }
 
 QEPvaData::ValueAlarm::~ValueAlarm () { } // place holder
@@ -221,7 +223,7 @@ void QEPvaData::ValueAlarm::assign (const ValueAlarm& other)
       this->lowWarningSeverity = 0;
       this->highWarningSeverity = 0;
       this->highAlarmSeverity = 0;
-      this->hysteresis = 0.0;
+      this->hysteresis = 0;
    }
 }
 
@@ -239,10 +241,9 @@ static const QString scalarTypeId = "epics:nt/NTScalar:";              //
 static const QString arrayTypeId  = "epics:nt/NTScalarArray:";         //
 static const QString enumTypeId   = "epics:nt/NTEnum:";                //
 static const QString tableTypeId  = "epics:nt/NTTable:";               //
-static const QString imageTypeId  = "epics:nt/NTNDArray:";             // TBD
+static const QString imageTypeId  = "epics:nt/NTNDArray:";             //
 
 static const QVariant nullVariant;
-
 
 #define ASSERT(condition, message) {                                           \
       if (!(condition)) {                                                      \
@@ -262,16 +263,19 @@ bool QEPvaData::extractValue (PVStructureSharedPtr& pv, QVariant& value)
    bool result = false;
    value = nullVariant;
 
+   // Note: since base-7.0.3, had to switch to wrapUnsafe for NTScalar and NTScalarArray.
+   //
    if (epics::nt::NTScalar::is_a (pv)) {
-      epics::nt::NTScalar::const_shared_pointer item = epics::nt::NTScalar::wrap (pv);
-      ASSERT (item.get() != NULL, "NTScalar::wrap yielded null");
+      epics::nt::NTScalar::const_shared_pointer item = epics::nt::NTScalar::wrapUnsafe (pv);
+      ASSERT (item.get() != NULL, "NTScalar::wrapUnsafe yielded null");
+
       pvd::PVScalar::const_shared_pointer scalar = item->getValue<const pvd::PVScalar>();
       result = QEPvaData::extractScalar (scalar, value);
 
 
    } else if (epics::nt::NTScalarArray::is_a (pv)) {
-      epics::nt::NTScalarArray::const_shared_pointer item = epics::nt::NTScalarArray::wrap (pv);
-      ASSERT (item.get() != NULL, "NTScalarArray::wrap yielded null");
+      epics::nt::NTScalarArray::const_shared_pointer item = epics::nt::NTScalarArray::wrapUnsafe (pv);
+      ASSERT (item.get() != NULL, "NTScalarArray::wrapUnsafe yielded null");
       pvd::PVScalarArray::const_shared_pointer scalarArray = item->getValue<const pvd::PVScalarArray>();
       result = QEPvaData::extractScalarArray (scalarArray, value);
 
@@ -318,13 +322,18 @@ bool QEPvaData::extractValue (PVStructureSharedPtr& pv, QVariant& value)
 
    }
 
-   // Repeat above with isCompatible()
    else {
+      // Unknown/unhandled types.
+      //
       const pvd::StructureConstPtr ptr = pv->getStructure();
-      const QString typeName = ptr ? QString::fromStdString (ptr->getID ()) : QString ("null structure");
 
-      DEBUG << "unhandled:" << typeName ;
-      result = false;
+      QEOpaqueData opaque;
+      result = opaque.assignFrom (ptr);
+      if (result) {
+         value = opaque.toVariant ();
+      } else {
+         DEBUG << "opaque to varient failed.";
+      }
    }
 
    return result;
@@ -1032,8 +1041,9 @@ bool QEPvaData::Display::extract (const PVStructureConstPtr& pv)
    ASSIGN_MEMBER (display, limitLow,    pvd::PVDouble, double);
    ASSIGN_MEMBER (display, limitHigh,   pvd::PVDouble, double);
    ASSIGN_MEMBER (display, description, pvd::PVString, QString::fromStdString);
-   ASSIGN_MEMBER (display, format,      pvd::PVString, QString::fromStdString);
    ASSIGN_MEMBER (display, units,       pvd::PVString, QString::fromStdString);
+   ASSIGN_MEMBER (display, precision,   pvd::PVInt,    int);
+   // format replaced by form - TBD
    this->isDefined = true;
    return true;
 }
@@ -1098,15 +1108,15 @@ bool QEPvaData::ValueAlarm::extract (const PVStructureConstPtr& pv)
          ASSIGN_MEMBER (valueAlarm, lowWarningLimit,     pvd::PVBoolean,  double);
          ASSIGN_MEMBER (valueAlarm, highWarningLimit,    pvd::PVBoolean,  double);
          ASSIGN_MEMBER (valueAlarm, highAlarmLimit,      pvd::PVBoolean,  double);
-         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVBoolean,  double);
+         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVByte,     int);
          break;
 
       case pvd::pvByte:
-         ASSIGN_MEMBER (valueAlarm, lowAlarmLimit,       pvd::PVByte,  double);
-         ASSIGN_MEMBER (valueAlarm, lowWarningLimit,     pvd::PVByte,  double);
-         ASSIGN_MEMBER (valueAlarm, highWarningLimit,    pvd::PVByte,  double);
-         ASSIGN_MEMBER (valueAlarm, highAlarmLimit,      pvd::PVByte,  double);
-         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVByte,  double);
+         ASSIGN_MEMBER (valueAlarm, lowAlarmLimit,       pvd::PVByte,   double);
+         ASSIGN_MEMBER (valueAlarm, lowWarningLimit,     pvd::PVByte,   double);
+         ASSIGN_MEMBER (valueAlarm, highWarningLimit,    pvd::PVByte,   double);
+         ASSIGN_MEMBER (valueAlarm, highAlarmLimit,      pvd::PVByte,   double);
+         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVByte,   int);
          break;
 
       case pvd::pvShort:
@@ -1114,23 +1124,23 @@ bool QEPvaData::ValueAlarm::extract (const PVStructureConstPtr& pv)
          ASSIGN_MEMBER (valueAlarm, lowWarningLimit,     pvd::PVShort,  double);
          ASSIGN_MEMBER (valueAlarm, highWarningLimit,    pvd::PVShort,  double);
          ASSIGN_MEMBER (valueAlarm, highAlarmLimit,      pvd::PVShort,  double);
-         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVShort,  double);
+         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVByte,   int);
          break;
 
       case pvd::pvInt:
-         ASSIGN_MEMBER (valueAlarm, lowAlarmLimit,       pvd::PVInt,  double);
-         ASSIGN_MEMBER (valueAlarm, lowWarningLimit,     pvd::PVInt,  double);
-         ASSIGN_MEMBER (valueAlarm, highWarningLimit,    pvd::PVInt,  double);
-         ASSIGN_MEMBER (valueAlarm, highAlarmLimit,      pvd::PVInt,  double);
-         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVInt,  double);
+         ASSIGN_MEMBER (valueAlarm, lowAlarmLimit,       pvd::PVInt,    double);
+         ASSIGN_MEMBER (valueAlarm, lowWarningLimit,     pvd::PVInt,    double);
+         ASSIGN_MEMBER (valueAlarm, highWarningLimit,    pvd::PVInt,    double);
+         ASSIGN_MEMBER (valueAlarm, highAlarmLimit,      pvd::PVInt,    double);
+         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVByte,   int);
          break;
 
       case pvd::pvLong:
-         ASSIGN_MEMBER (valueAlarm, lowAlarmLimit,       pvd::PVLong,  double);
-         ASSIGN_MEMBER (valueAlarm, lowWarningLimit,     pvd::PVLong,  double);
-         ASSIGN_MEMBER (valueAlarm, highWarningLimit,    pvd::PVLong,  double);
-         ASSIGN_MEMBER (valueAlarm, highAlarmLimit,      pvd::PVLong,  double);
-         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVLong,  double);
+         ASSIGN_MEMBER (valueAlarm, lowAlarmLimit,       pvd::PVLong,   double);
+         ASSIGN_MEMBER (valueAlarm, lowWarningLimit,     pvd::PVLong,   double);
+         ASSIGN_MEMBER (valueAlarm, highWarningLimit,    pvd::PVLong,   double);
+         ASSIGN_MEMBER (valueAlarm, highAlarmLimit,      pvd::PVLong,   double);
+         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVByte,   int);
          break;
 
       case pvd::pvUByte:
@@ -1138,23 +1148,23 @@ bool QEPvaData::ValueAlarm::extract (const PVStructureConstPtr& pv)
          ASSIGN_MEMBER (valueAlarm, lowWarningLimit,     pvd::PVUByte,  double);
          ASSIGN_MEMBER (valueAlarm, highWarningLimit,    pvd::PVUByte,  double);
          ASSIGN_MEMBER (valueAlarm, highAlarmLimit,      pvd::PVUByte,  double);
-         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVUByte,  double);
+         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVByte,   int);
          break;
 
       case pvd::pvUShort:
-         ASSIGN_MEMBER (valueAlarm, lowAlarmLimit,       pvd::PVUShort,  double);
-         ASSIGN_MEMBER (valueAlarm, lowWarningLimit,     pvd::PVUShort,  double);
-         ASSIGN_MEMBER (valueAlarm, highWarningLimit,    pvd::PVUShort,  double);
-         ASSIGN_MEMBER (valueAlarm, highAlarmLimit,      pvd::PVUShort,  double);
-         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVUShort,  double);
+         ASSIGN_MEMBER (valueAlarm, lowAlarmLimit,       pvd::PVUShort, double);
+         ASSIGN_MEMBER (valueAlarm, lowWarningLimit,     pvd::PVUShort, double);
+         ASSIGN_MEMBER (valueAlarm, highWarningLimit,    pvd::PVUShort, double);
+         ASSIGN_MEMBER (valueAlarm, highAlarmLimit,      pvd::PVUShort, double);
+         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVByte,   int);
          break;
 
       case pvd::pvUInt:
-         ASSIGN_MEMBER (valueAlarm, lowAlarmLimit,       pvd::PVUInt,  double);
-         ASSIGN_MEMBER (valueAlarm, lowWarningLimit,     pvd::PVUInt,  double);
-         ASSIGN_MEMBER (valueAlarm, highWarningLimit,    pvd::PVUInt,  double);
-         ASSIGN_MEMBER (valueAlarm, highAlarmLimit,      pvd::PVUInt,  double);
-         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVUInt,  double);
+         ASSIGN_MEMBER (valueAlarm, lowAlarmLimit,       pvd::PVUInt,   double);
+         ASSIGN_MEMBER (valueAlarm, lowWarningLimit,     pvd::PVUInt,   double);
+         ASSIGN_MEMBER (valueAlarm, highWarningLimit,    pvd::PVUInt,   double);
+         ASSIGN_MEMBER (valueAlarm, highAlarmLimit,      pvd::PVUInt,   double);
+         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVByte,   int);
          break;
 
       case pvd::pvULong:
@@ -1162,7 +1172,7 @@ bool QEPvaData::ValueAlarm::extract (const PVStructureConstPtr& pv)
          ASSIGN_MEMBER (valueAlarm, lowWarningLimit,     pvd::PVULong,  double);
          ASSIGN_MEMBER (valueAlarm, highWarningLimit,    pvd::PVULong,  double);
          ASSIGN_MEMBER (valueAlarm, highAlarmLimit,      pvd::PVULong,  double);
-         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVULong,  double);
+         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVByte,   int);
          break;
 
       case pvd::pvFloat:
@@ -1170,7 +1180,7 @@ bool QEPvaData::ValueAlarm::extract (const PVStructureConstPtr& pv)
          ASSIGN_MEMBER (valueAlarm, lowWarningLimit,     pvd::PVFloat,  double);
          ASSIGN_MEMBER (valueAlarm, highWarningLimit,    pvd::PVFloat,  double);
          ASSIGN_MEMBER (valueAlarm, highAlarmLimit,      pvd::PVFloat,  double);
-         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVFloat,  double);
+         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVByte,   int);
          break;
 
       case pvd::pvDouble:
@@ -1178,7 +1188,7 @@ bool QEPvaData::ValueAlarm::extract (const PVStructureConstPtr& pv)
          ASSIGN_MEMBER (valueAlarm, lowWarningLimit,     pvd::PVDouble,  double);
          ASSIGN_MEMBER (valueAlarm, highWarningLimit,    pvd::PVDouble,  double);
          ASSIGN_MEMBER (valueAlarm, highAlarmLimit,      pvd::PVDouble,  double);
-         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVDouble,  double);
+         ASSIGN_MEMBER (valueAlarm, hysteresis,          pvd::PVByte,    int);
          break;
 
       case pvd::pvString:
@@ -1201,3 +1211,4 @@ bool QEPvaData::ValueAlarm::extract (const PVStructureConstPtr& pv)
 #endif  // QE_INCLUDE_PV_ACCESS
 
 // end
+
