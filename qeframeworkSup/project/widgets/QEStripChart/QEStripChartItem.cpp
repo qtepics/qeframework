@@ -1747,9 +1747,26 @@ void QEStripChartItem::contextMenuSelected (const QEStripChartNames::ContextMenu
          break;
 
       case QEStripChartNames::SCCM_SCALE_PV_PLOTTED:
+      case QEStripChartNames::SCCM_SCALE_PV_PLOTTED_UPPER:
+      case QEStripChartNames::SCCM_SCALE_PV_PLOTTED_LOWER:
+      case QEStripChartNames::SCCM_SCALE_PV_PLOTTED_CENTRE:
+
          range = this->getDisplayedMinMax (false);
          status = range.getMinMax (min, max);
          if (status) {
+            // We adjust the plotted min/max values as oposed to the chart min/max values.
+            // It amounts to the same thing.
+            //
+            const double delta = max - min;
+            if (option == QEStripChartNames::SCCM_SCALE_PV_PLOTTED_UPPER) {
+               min -= 2.0*delta;
+            } else if (option == QEStripChartNames::SCCM_SCALE_PV_PLOTTED_LOWER) {
+               max += 2.0*delta;
+            } else if (option == QEStripChartNames::SCCM_SCALE_PV_PLOTTED_CENTRE) {
+               min -= delta;
+               max += delta;
+            }
+
             this->scaling.map (min, max, this->chart->getYMinimum (), this->chart->getYMaximum ());
             this->setCaption ();
             this->chart->setReplotIsRequired ();
@@ -1766,7 +1783,7 @@ void QEStripChartItem::contextMenuSelected (const QEStripChartNames::ContextMenu
          }
          break;
 
-      case QEStripChartNames::SCCM_SCALE_PV_CENTRE:
+      case QEStripChartNames::SCCM_SCALE_PV_FIRST_CENTRE:
          if (this->firstPointIsDefined) {
             midway = (chart->getYMinimum () + this->chart->getYMaximum () ) / 2.0;
             this->scaling.set (this->firstPoint.value, 1.0, midway);

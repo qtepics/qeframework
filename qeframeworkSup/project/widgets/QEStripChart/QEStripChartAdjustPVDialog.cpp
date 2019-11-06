@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2012-2019 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -69,6 +69,14 @@ QEStripChartAdjustPVDialog::QEStripChartAdjustPVDialog (QWidget *parent) :
    QObject::connect (this->ui->bufferedButton, SIGNAL (clicked               (bool)),
                      this,                     SLOT   (bufferedButtonClicked (bool)));
 
+   QObject::connect (this->ui->lowerButton,    SIGNAL (clicked             (bool)),
+                     this,                     SLOT   (lowerButtonClicked  (bool)));
+
+   QObject::connect (this->ui->centreButton,   SIGNAL (clicked             (bool)),
+                     this,                     SLOT   (centreButtonClicked (bool)));
+
+   QObject::connect (this->ui->upperButton,    SIGNAL (clicked             (bool)),
+                     this,                     SLOT   (upperButtonClicked  (bool)));
 }
 
 //------------------------------------------------------------------------------
@@ -197,6 +205,50 @@ void QEStripChartAdjustPVDialog::bufferedButtonClicked (bool)
    this->useSelectedRange (this->buffered);
 }
 
+//------------------------------------------------------------------------------
+//
+void QEStripChartAdjustPVDialog::lowerButtonClicked (bool)
+{
+   double min;
+   double max;
+   bool okay = this->plotted.getMinMax (min, max);
+   double delta = max - min;
+
+   // useSelectedRange map to chartMinMax, so we compensate.
+   //
+   QEDisplayRanges modified (min, max + 2.0*delta);
+   this->useSelectedRange (modified);
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChartAdjustPVDialog::centreButtonClicked (bool)
+{
+   double min;
+   double max;
+   bool okay = this->plotted.getMinMax (min, max);
+   double delta = max - min;
+
+   // useSelectedRange map to chartMinMax, so we compensate.
+   //
+   QEDisplayRanges modified (min - delta, max + delta);
+   this->useSelectedRange (modified);
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChartAdjustPVDialog::upperButtonClicked (bool)
+{
+   double min;
+   double max;
+   bool okay = this->plotted.getMinMax (min, max);
+   double delta = max - min;
+
+   // useSelectedRange map to chartMinMax, so we compensate.
+   //
+   QEDisplayRanges modified (min - 2.0*delta, max);
+   this->useSelectedRange (modified);
+}
 
 //------------------------------------------------------------------------------
 // User has pressed OK

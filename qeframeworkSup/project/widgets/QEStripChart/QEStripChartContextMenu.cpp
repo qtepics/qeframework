@@ -70,8 +70,11 @@ QEStripChartContextMenu::QEStripChartContextMenu (bool inUseIn, QWidget *parent)
       this->make (menu, "General...",                          false, QEStripChartNames::SCCM_SCALE_PV_GENERAL);
       this->make (menu, "HOPR/LOPR values map to chart range", false, QEStripChartNames::SCCM_SCALE_PV_AUTO);
       this->make (menu, "Plotted values map to chart range",   false, QEStripChartNames::SCCM_SCALE_PV_PLOTTED);
+      this->make (menu, "Plotted values map to upper 3rd of chart",    false, QEStripChartNames::SCCM_SCALE_PV_PLOTTED_UPPER);
+      this->make (menu, "Plotted values map to centre 3rd of chart",   false, QEStripChartNames::SCCM_SCALE_PV_PLOTTED_CENTRE);
+      this->make (menu, "Plotted values map to lower 3rd of chart",    false, QEStripChartNames::SCCM_SCALE_PV_PLOTTED_LOWER);
       this->make (menu, "Buffered values map to chart range",  false, QEStripChartNames::SCCM_SCALE_PV_BUFFERED);
-      this->make (menu, "First value maps to chart centre",    false, QEStripChartNames::SCCM_SCALE_PV_CENTRE);
+      this->make (menu, "First value maps to chart centre",    false, QEStripChartNames::SCCM_SCALE_PV_FIRST_CENTRE);
 
       menu = new QMenu ("Mode", this);
       this->addMenu (menu);
