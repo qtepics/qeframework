@@ -63,7 +63,7 @@
 //
 #define QE_VERSION_STAGE_DEVELOPMENT "Development"
 #define QE_VERSION_STAGE_PRODUCTION  "Production"
-#define QE_VERSION_STAGE             QE_VERSION_STAGE_DEVELOPMENT
+#define QE_VERSION_STAGE             QE_VERSION_STAGE_PRODUCTION
 
 #define QE_VERSION_STRING     STRINGIFY(QE_VERSION_MAJOR) "." \
                               STRINGIFY(QE_VERSION_MINOR) "." \
@@ -80,11 +80,11 @@ public:
    virtual ~QEFrameworkVersion();
 
    static unsigned int getMajor ();         // e.g. 3
-   static unsigned int getMinor ();         // e.g. 6
+   static unsigned int getMinor ();         // e.g. 7
    static unsigned int getRelease ();       // e.g. 2
    static const QString getStage ();        // e.g. "Production"
-   static const QString getString ();       // e.g. "3.6.2 (Production)"
-   static const QString getDateTime ();     // e.g. "Apr 21 2018 16:12:08"
+   static const QString getString ();       // e.g. "3.7.2 (Production)"
+   static const QString getDateTime ();     // e.g. "Nov 7 2019 16:12:08"
 
    // Conditional compile attributes.
    //
@@ -95,7 +95,7 @@ public:
    static const QString getQtVersionStr ();     // e.g. "QT 5.10.0"
    static const QString getQwtVersionStr ();    // e.g. "QWT 6.1.3"
    static const QString getEpicsVersionStr ();  // e.g. "EPICS 7.0.1.1"
-   static const QString getAcaiVersionStr ();   // e.g. "ACAI 1.4.4"
+   static const QString getAcaiVersionStr ();   // e.g. "ACAI 1.5.4"
 };
 
 #endif // QE_FRAMEWORK_VERSION_H
