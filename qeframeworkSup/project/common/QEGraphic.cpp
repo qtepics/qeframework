@@ -517,6 +517,19 @@ QEGraphic::~QEGraphic ()
    delete this->graphicMarkupsSet;
 }
 
+//------------------------------------------------------------------------------
+//
+void QEGraphic::setTitle (const QString& title)
+{
+   this->plot->setTitle (title);
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEGraphic::getTitle () const
+{
+   return this->plot->title ().text ();
+}
 
 //------------------------------------------------------------------------------
 //
@@ -615,6 +628,21 @@ void QEGraphic::setBackgroundColour (const QColor colour)
 void QEGraphic::setGridPen (const QPen& pen)
 {
    this->plotGrid->setPen (pen);
+}
+
+//------------------------------------------------------------------------------
+//
+void QEGraphic::setGridPens (const QPen& majorPen, const QPen& minorPen,
+                             const bool enableMajorX, const bool enableMajorY,
+                             const bool enableMinorX, const bool enableMinorY)
+{
+   this->plotGrid->setMajorPen (majorPen);
+   this->plotGrid->setMinorPen (minorPen);
+   this->plotGrid->enableX (enableMajorX);
+   this->plotGrid->enableY (enableMajorY);
+   this->plotGrid->enableXMin (enableMinorX);
+   this->plotGrid->enableYMin (enableMinorY);
+   // If all distabled - detach grid??
 }
 
 //------------------------------------------------------------------------------
@@ -1479,6 +1507,34 @@ void QEGraphic::setYRange (const double min, const double max,
 void QEGraphic::getYRange (double& min, double& max, const QwtPlot::Axis selectedYAxis) const
 {
    this->axisFromPosition(selectedYAxis)->getRange (min, max);
+}
+
+//------------------------------------------------------------------------------
+//
+void QEGraphic::setAxisTitle (const QwtPlot::Axis selectedAxis, const QString& title)
+{
+   this->plot->setAxisTitle (selectedAxis, title);
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEGraphic::getAxisTitle (const QwtPlot::Axis selectedAxis) const
+{
+   return this->plot->axisTitle (selectedAxis).text();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEGraphic::setAxisAutoScale (const QwtPlot::Axis selectedAxis, const bool enabled)
+{
+   this->plot->setAxisAutoScale (selectedAxis, enabled);
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEGraphic::getAxisAutoScale (const QwtPlot::Axis selectedAxis) const
+{
+   return this->plot->axisAutoScale (selectedAxis);
 }
 
 //------------------------------------------------------------------------------

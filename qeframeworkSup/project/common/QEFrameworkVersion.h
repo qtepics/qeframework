@@ -60,10 +60,12 @@
 #define QE_VERSION QE_INT_VERSION (QE_VERSION_MAJOR, QE_VERSION_MINOR, QE_VERSION_RELEASE)
 
 // During tagging the version stage should be set to production
+// Note, development versions retain the version release of the last production release.
+// E.g  3.7.2 (Development) is development of 3.7.2 leading eventually to 3.7.3 or 3.8.1
 //
 #define QE_VERSION_STAGE_DEVELOPMENT "Development"
 #define QE_VERSION_STAGE_PRODUCTION  "Production"
-#define QE_VERSION_STAGE             QE_VERSION_STAGE_PRODUCTION
+#define QE_VERSION_STAGE             QE_VERSION_STAGE_DEVELOPMENT
 
 #define QE_VERSION_STRING     STRINGIFY(QE_VERSION_MAJOR) "." \
                               STRINGIFY(QE_VERSION_MINOR) "." \

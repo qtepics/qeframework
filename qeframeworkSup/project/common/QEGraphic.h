@@ -84,6 +84,9 @@ public:
    explicit QEGraphic (const QString &title, QWidget* parent = 0);
    ~QEGraphic ();
 
+   void setTitle (const QString& title);
+   QString getTitle () const;
+
    // Call before any replotting, releases all curves from previous plot.
    //
    void releaseCurves ();
@@ -95,7 +98,12 @@ public:
 
    void setBackgroundColour (const QColor colour);
 
+   // Set grid pen - corse and fine control.
+   //
    void setGridPen (const QPen& pen);
+   void setGridPens (const QPen& majorPen, const QPen& minorPen,
+                     const bool enableMajorX, const bool enableMajorY,
+                     const bool enableMinorX, const bool enableMinorY);
 
    // Set/Get the set of in use, i.e. permitted, markups.
    //
@@ -200,6 +208,16 @@ public:
     *                         axis is used by default
     */
    void getYRange (double& min, double& max, const QwtPlot::Axis selectedYAxis = QwtPlot::yLeft) const;
+
+   // Set/Get the axis title.
+   //
+   void setAxisTitle (const QwtPlot::Axis selectedAxis, const QString& title);
+   QString getAxisTitle (const QwtPlot::Axis selectedAxis) const;
+
+   // Set/Get the axis auto scaling.
+   //
+   void setAxisAutoScale (const QwtPlot::Axis selectedAxis, const bool enabled);
+   bool getAxisAutoScale (const QwtPlot::Axis selectedAxis) const;
 
    // Last call - renders all curves defined since call to releaseCurves.
    // Calls inner QwtPlot replot.
