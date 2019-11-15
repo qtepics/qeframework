@@ -85,7 +85,7 @@ public:
    double getModulo () const;
 
    // Set axis values display precision (linear).
-   // Default is 1.  Allowed range is 0 to 6.
+   // Default is 1.  Allowed range is 0 to 9.
    //
    void setPrecision (const int precision);
    int getPrecision () const;

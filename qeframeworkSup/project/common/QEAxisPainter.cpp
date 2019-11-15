@@ -181,7 +181,7 @@ double QEAxisPainter::getModulo () const
 //
 void QEAxisPainter::setPrecision (const int precision)
 {
-   this->mPrecision = LIMIT (precision, 0, 6);
+   this->mPrecision = LIMIT (precision, 0, 9);
 }
 
 //------------------------------------------------------------------------------
