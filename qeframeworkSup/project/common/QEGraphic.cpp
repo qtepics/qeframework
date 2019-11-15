@@ -636,8 +636,13 @@ void QEGraphic::setGridPens (const QPen& majorPen, const QPen& minorPen,
                              const bool enableMajorX, const bool enableMajorY,
                              const bool enableMinorX, const bool enableMinorY)
 {
+#if QWT_VERSION >= 0x060100
    this->plotGrid->setMajorPen (majorPen);
    this->plotGrid->setMinorPen (minorPen);
+#else
+   this->plotGrid->setMajPen (majorPen);
+   this->plotGrid->setMinPen (minorPen);
+#endif
    this->plotGrid->enableX (enableMajorX);
    this->plotGrid->enableY (enableMajorY);
    this->plotGrid->enableXMin (enableMinorX);
@@ -1527,7 +1532,12 @@ QString QEGraphic::getAxisTitle (const QwtPlot::Axis selectedAxis) const
 //
 void QEGraphic::setAxisAutoScale (const QwtPlot::Axis selectedAxis, const bool enabled)
 {
+#if QWT_VERSION >= 0x060100
    this->plot->setAxisAutoScale (selectedAxis, enabled);
+#else
+   if (enabled)
+      this->plot->setAxisAutoScale (selectedAxis);
+#endif
 }
 
 //------------------------------------------------------------------------------
