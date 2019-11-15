@@ -198,8 +198,9 @@ void QEDistribution::resizeDistribution ()
    const int xh = this->xAxis->height();
 
    // The -2 is a tweak factor, a.k.a. QEAxisPainter "feature"
+   // The distribution sizing takes account of the indents.
    //
-   this->xAxis->setIndent (yw - 2, 20);   // left, right
+   this->xAxis->setIndent (yw - 2, 48);   // left, right
    this->yAxis->setIndent (20, xh - 2);   // top, bottom
 
    QRect geo;
@@ -425,6 +426,12 @@ bool QEDistribution::updatePlotLimits ()
       this->xAxis->setMinimum (plotMin);
       this->xAxis->setMaximum (plotMax);
       this->xAxis->setMinorInterval (plotMinor);
+
+      // Choose precision based of value of major interval.
+      // The smaller plotMajor, the larger -log (plotMajor).
+      //
+      const int xp = int (1.0 - LOG10 (plotMajor));
+      this->xAxis->setPrecision (xp);
 
       // Now redistribute historical data over the new plot range/resolution
       //

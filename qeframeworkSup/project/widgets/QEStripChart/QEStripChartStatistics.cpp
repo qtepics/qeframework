@@ -179,7 +179,7 @@ void QEStripChartStatistics::processDataList (const QCaDataPointList& dataList)
 
          } else {
             // There is no next point - use an arbitary weight.
-            //
+            // TODO: Use time to end of chart
             weight = 1.0;
          }
 
@@ -327,6 +327,12 @@ void QEStripChartStatistics::processDataList (const QCaDataPointList& dataList)
    this->xAxis->setMinimum (plotMin);
    this->xAxis->setMaximum (plotMax);
    this->xAxis->setMinorInterval (plotMinor);
+
+   // Choose precision based of value of major interval.
+   // The smaller plotMajor, the larger -log (plotMajor).
+   //
+   const int xp = int (1.0 - LOG10 (plotMajor));
+   this->xAxis->setPrecision (xp);
 
    // Ditto y
    //
