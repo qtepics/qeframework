@@ -177,8 +177,11 @@ namespace ArchapplData {
             case ArchapplPB::SCALAR_DOUBLE:
                processValue<ArchapplPB::ScalarDouble>(line, lineLength, onePointData);
                break;
+            case ArchapplPB::SCALAR_INT:
+               processValue<ArchapplPB::ScalarInt>(line, lineLength, onePointData);
+               break;
             default:
-               printf("Unsupported data format\n");
+               printf("archapplData.cpp:%d:%s Unsupported data format: %d\n", __LINE__, __FUNCTION__, int(type));
                return;
             }
 
