@@ -51,12 +51,12 @@
 // Constructor
 
 QEWidget::QEWidget( QWidget *ownerIn ) :
-   QEToolTip( ownerIn ),
-   QEDragDrop( this, ownerIn ),
-   styleManager( ownerIn ),
-   contextMenu( this, ownerIn ),
-   standardProperties( ownerIn ),
-   QEEmitter( this, ownerIn )
+    QEToolTip( ownerIn ),
+    QEDragDrop( this, ownerIn ),
+    styleManager( ownerIn ),
+    contextMenu( this, ownerIn ),
+    standardProperties( ownerIn ),
+    QEEmitter( this, ownerIn )
 {
     // Check for and apply any global style settings.
     //
@@ -277,7 +277,7 @@ void QEWidget::reestablishConnection (unsigned int variableIndex)
 // Returns the default location to create files.
 // Use this to create files in a consistant location
 //
-QString QEWidget::defaultFileLocation()
+QString QEWidget::defaultFileLocation() const
 {
     // First choice - the path the parent object is using
     QString path = getParentPath();
@@ -339,73 +339,76 @@ QFile* QEWidget::findQEFile( QString name )
 
 QFile* QEWidget::findQEFile( QString name, ContainerProfile* profile )
 {
-        // Build a list of all the places we expect to find the file
-        // Use a single location if an absolute path was specified.
-        // Use the following list of locations if a relative path was specified:
-        //  - The directory where the parent object (form) was read from (set up in the application profile)
-        //  - The application's path list (set up in the application profile) (the -p switch for QEGui)
-        //  - The current directory
-        //  - The environment variable QE_UI_PATH
-        QStringList searchList;
-        if(  QDir::isAbsolutePath( name ) )
+    // Build a list of all the places we expect to find the file
+    // Use a single location if an absolute path was specified.
+    // Use the following list of locations if a relative path was specified:
+    //  - The directory where the parent object (form) was read from (set up in the application profile)
+    //  - The application's path list (set up in the application profile) (the -p switch for QEGui)
+    //  - The current directory
+    //  - The environment variable QE_UI_PATH
+    QStringList searchList;
+    if(  QDir::isAbsolutePath( name ) )
+    {
+        searchList.append( name );
+    }
+    else
+    {
+        QFileInfo fileInfo;
+
+        // Add the parent path from any parent QEForm
+        QString parentPath =  profile->getParentPath();
+        if( !parentPath.isEmpty() )
         {
-            searchList.append( name );
-        }
-        else
-        {
-            QFileInfo fileInfo;
-
-            // Add the parent path from any parent QEForm
-            QString parentPath =  profile->getParentPath();
-            if( !parentPath.isEmpty() )
-            {
-                fileInfo.setFile( parentPath, name );
-                searchList.append( fileInfo.filePath() );
-            }
-
-            // Add the paths from the path list in the container profile
-            QStringList pathList = profile->getPathList();
-            for( int i = 0; i < pathList.count(); i++ )
-            {
-                QString path = pathList[i];
-                addPathToSearchList( path, name, searchList );
-            }
-
-            // Add paths from environment variable
-            QStringList envPathList = profile->getEnvPathList();
-            for( int i = 0; i < envPathList.count(); i++ )
-            {
-                addPathToSearchList( envPathList[i], name, searchList );
-            }
-
-            // Add the current directory
-            fileInfo.setFile( QDir::currentPath(), name );
-            searchList.append(  fileInfo.filePath() );
+            fileInfo.setFile( parentPath, name );
+            searchList.append( fileInfo.filePath() );
         }
 
-        // Attempt to open the file
-        QFile* file = NULL;
-        for( int i = 0; i < searchList.count(); i++ )
+        // Add the paths from the path list in the container profile
+        QStringList pathList = profile->getPathList();
+        for( int i = 0; i < pathList.count(); i++ )
         {
-            file = new QFile( searchList[i] );
-            if( file->exists() )
-                break;
-            delete file;
-            file = NULL;
+            QString path = pathList[i];
+            addPathToSearchList( path, name, searchList );
         }
-        return file;
+
+        // Add paths from environment variable
+        QStringList envPathList = profile->getEnvPathList();
+        for( int i = 0; i < envPathList.count(); i++ )
+        {
+            addPathToSearchList( envPathList[i], name, searchList );
+        }
+
+        // Add the current directory
+        fileInfo.setFile( QDir::currentPath(), name );
+        searchList.append(  fileInfo.filePath() );
+    }
+
+    // Attempt to open the file
+    QFile* file = NULL;
+    for( int i = 0; i < searchList.count(); i++ )
+    {
+        file = new QFile( searchList[i] );
+        if( file->exists() )
+            break;
+        delete file;
+        file = NULL;
+    }
+    return file;
 }
 
 // Add a path and filename to a search list.
 // If the path ends in '...' then add all the path's sub directories
 // else, use the path as is.
 // For example, assume /home/rhydera/adir and /home/rhydera/bdir are the only sub directories of /home/rhydera:
-//    addPathToSearchList( "/home/rhydera/...", myFile.ui, searchList )
-//       will add /home/rhydera/adir/myFile.ui and /home/rhydera/bdir/myFile.ui to the search list
+//    addPathToSearchList( "/home/rhydera/...", myFile.ui, searchList )  or
+//    addPathToSearchList( "/home/rhydera...",  myFile.ui, searchList )
+//       will add /home/rhydera/myFile.ui, 
+//                /home/rhydera/adir/myFile.ui and
+//                /home/rhydera/bdir/myFile.ui to the search list
 //
 //    addPathToSearchList( "/home/rhydera", myFile.ui, searchList )
 //       will add /home/rhydera/myFile.ui to the search list
-
+//
 void QEWidget::addPathToSearchList( QString path, QString name, QStringList& searchList )
 {
     QFileInfo fileInfo;
@@ -415,6 +418,18 @@ void QEWidget::addPathToSearchList( QString path, QString name, QStringList& sea
     {
         QString pathTop = path;
         pathTop.chop( 3 );
+
+        // Remove any trailing '/' or '\'
+        //
+        while( pathTop.endsWith( QDir::separator() ) ){
+            pathTop.chop( 1 );
+        }
+
+        // First add the top directory itself to the search list.
+        //
+        fileInfo.setFile( pathTop, name );
+        searchList.append( fileInfo.filePath() );
+
         QDir dir( pathTop );
         QFileInfoList contents = dir.entryInfoList ( QDir::AllDirs );
         for( int i = 0; i < contents.count(); i++ )
@@ -425,7 +440,7 @@ void QEWidget::addPathToSearchList( QString path, QString name, QStringList& sea
             if( !dirInfo.baseName().isEmpty() )
             {
                 fileInfo.setFile( dirInfo.absoluteFilePath(), name );
-                searchList.append(  fileInfo.filePath() );
+                searchList.append( fileInfo.filePath() );
             }
         }
     }
@@ -439,7 +454,7 @@ void QEWidget::addPathToSearchList( QString path, QString name, QStringList& sea
 }
 
 // Returns the QE framework that built this instance of the widget.
-QString QEWidget::getFrameworkVersion()
+QString QEWidget::getFrameworkVersion() const
 {
     return QE_VERSION_STRING " " QE_VERSION_DATE_TIME;
 }
@@ -529,10 +544,10 @@ void signalSlotHandler::saveRestore( SaveRestoreSignal::saveRestoreOptions optio
     // Get the QE widget to perform the appropriate action
     switch( option )
     {
-        // Save the persistant widget data
-        case SaveRestoreSignal::SAVE:
-            owner->saveConfiguration( pm );
-            break;
+    // Save the persistant widget data
+    case SaveRestoreSignal::SAVE:
+        owner->saveConfiguration( pm );
+        break;
 
         // Restore the widget persistant data (application phase)
         // If the restore is being performed from QEGui there probably
@@ -541,22 +556,22 @@ void signalSlotHandler::saveRestore( SaveRestoreSignal::saveRestoreOptions optio
         // This phase is still delivered to QEWidgets as they can be
         // used directly within an application, or unlike QEGui an
         // application may have already created QEWidgets.
-        case SaveRestoreSignal::RESTORE_APPLICATION:
-            owner->restoreConfiguration( pm, QEWidget::APPLICATION );
-            break;
+    case SaveRestoreSignal::RESTORE_APPLICATION:
+        owner->restoreConfiguration( pm, QEWidget::APPLICATION );
+        break;
 
         // Restore the widget persistant data (framework phase)
         // If the restore is being performed from QEGui all the widgets
         // required will be created by now and be ready to collect and use their own persistant datra
-        case SaveRestoreSignal::RESTORE_QEFRAMEWORK:
-            owner->restoreConfiguration( pm, QEWidget::FRAMEWORK );
-            break;
+    case SaveRestoreSignal::RESTORE_QEFRAMEWORK:
+        owner->restoreConfiguration( pm, QEWidget::FRAMEWORK );
+        break;
     }
 }
 
 // Get the QWidget that the parent of this QEWidget instance is based on.
 // For example, the parent of a QEWidget might be a QELabel, which is based on QLabel which is based on QWidget.
-QWidget* QEWidget::getQWidget()
+QWidget* QEWidget::getQWidget() const
 {
     return owner;
 }
@@ -634,26 +649,26 @@ const QList<QCaInfo> QEWidget::getQCaInfo()
         if( qca ) // If variable exists...
         {
             QCaInfo info(
-                            qca->getRecordName(),               // variable
-                            qca->getFieldType(),                // type
-                            copyData().toString(),              // value
-                            qca->getAlarmInfo().severityName(), // severity
-                            qca->getAlarmInfo().statusName(),   // status
-                            qca->getHostName(),                 // host
-                            qca->getPrecision(),                // precision
-                            getUserPrecision(),                 // user precision
-                            getUserAlarmMin(),                  // user alarm minimum
-                            getUserAlarmMax(),                  // user alarm maximum
-                            qca->getControlLimitLower(),        // lower control limit
-                            qca->getControlLimitUpper(),        // upper conmtrol limit
-                            qca->getAlarmLimitLower(),          // lower alarm limit
-                            qca->getAlarmLimitUpper(),          // upper alarm limit
-                            qca->getWarningLimitLower(),        // lower warning limit
-                            qca->getWarningLimitUpper(),        // upper warning limit
-                            qca->getControlLimitLower(),        // lower control limit
-                            qca->getControlLimitUpper(),        // upper control limit
-                            getAlarmSensitive(),                // alarm sensitivity
-                            QCaInfo::UNKNOWN );                 // Access mode
+                        qca->getRecordName(),               // variable
+                        qca->getFieldType(),                // type
+                        copyData().toString(),              // value
+                        qca->getAlarmInfo().severityName(), // severity
+                        qca->getAlarmInfo().statusName(),   // status
+                        qca->getHostName(),                 // host
+                        qca->getPrecision(),                // precision
+                        getUserPrecision(),                 // user precision
+                        getUserAlarmMin(),                  // user alarm minimum
+                        getUserAlarmMax(),                  // user alarm maximum
+                        qca->getControlLimitLower(),        // lower control limit
+                        qca->getControlLimitUpper(),        // upper conmtrol limit
+                        qca->getAlarmLimitLower(),          // lower alarm limit
+                        qca->getAlarmLimitUpper(),          // upper alarm limit
+                        qca->getWarningLimitLower(),        // lower warning limit
+                        qca->getWarningLimitUpper(),        // upper warning limit
+                        qca->getControlLimitLower(),        // lower control limit
+                        qca->getControlLimitUpper(),        // upper control limit
+                        getAlarmSensitive(),                // alarm sensitivity
+                        QCaInfo::UNKNOWN );                 // Access mode
 
             list.append( info );
         }

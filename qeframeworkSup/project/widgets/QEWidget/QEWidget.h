@@ -1,6 +1,9 @@
 /*  QEWidget.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009,2010,2016,2017,2018 Australian Synchrotron
  *
  *  Author:
  *    Anthony Owen
@@ -204,7 +205,7 @@ private:
 
  */
 
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT  QEWidget :
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEWidget :
                  public VariableManager,
                  public QEToolTip,
                  public ContainerProfile,
@@ -236,7 +237,7 @@ public:
     /// The message source ID is used as part of the system where QE widgets can emit
     /// a message and have the right QE widget in the right form catch the message.
     /// Refer to the UserMessage class for further details.
-    unsigned int getMessageSourceId(){ return getSourceId(); }
+    unsigned int getMessageSourceId() const { return getSourceId(); }
 
     /// Set the message source ID.
     /// The message source ID is used as part of the system where QE widgets can emit
@@ -284,11 +285,11 @@ public:
 
     /// Returns the default location to create files.
     /// Use this to create files in a consistant location
-    QString defaultFileLocation();
+    QString defaultFileLocation() const;
 
     /// Returns the QE framework that built this instance of the widget.
     /// On windows, the QEFramework DLL may be loaded twice with potentially different versions of it.
-    QString getFrameworkVersion();
+    QString getFrameworkVersion() const;
 
     /// Service a request to save the QE widget's current configuration.
     /// A widget may save any configuration details through the PersistanceManager.
@@ -315,7 +316,7 @@ public:
 
     /// Get the QWidget that the parent of this QEWidget instance is based on.
     /// For example, the parent of a QEWidget might be a QELabel, which is based on QLabel which is based on QWidget.
-    QWidget* getQWidget();
+    QWidget* getQWidget() const;
 
     /// Find a QE widget and request an action.
     /// The widget hierarchy under a supplied widget is searched for a QE widget with a given name.
