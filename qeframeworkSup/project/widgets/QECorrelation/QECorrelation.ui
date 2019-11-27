@@ -84,7 +84,7 @@
           <rect>
            <x>4</x>
            <y>43</y>
-           <width>132</width>
+           <width>124</width>
            <height>16</height>
           </rect>
          </property>
@@ -493,9 +493,9 @@
         <widget class="QNumericEdit" name="Sample_Interval_Edit">
          <property name="geometry">
           <rect>
-           <x>136</x>
+           <x>132</x>
            <y>41</y>
-           <width>68</width>
+           <width>72</width>
            <height>23</height>
           </rect>
          </property>
@@ -514,10 +514,10 @@
           <number>4</number>
          </property>
          <property name="precision">
-          <number>1</number>
+          <number>2</number>
          </property>
          <property name="minimum">
-          <double>0.200000000000000</double>
+          <double>0.050000000000000</double>
          </property>
          <property name="maximum">
           <double>3600.000000000000000</double>
