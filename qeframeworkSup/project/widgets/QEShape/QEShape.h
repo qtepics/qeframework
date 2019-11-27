@@ -1,6 +1,9 @@
 /*  QEShape.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -44,17 +45,21 @@
   For example to represent beam positino and size, an elipse can be drawn with four variables animating its vertcal and horizontal size and position.
   It is tighly integrated with the base class QEWidget which provides generic support such as macro substitutions, drag/drop, and standard properties.
  */
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEShape : public QWidget, public QEWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEShape : public QWidget, public QEWidget
+{
     Q_OBJECT
 
-  public:
+public:
     /// Create without a variable.
     /// Use setVariableNameProperty() and setSubstitutionsProperty() to define a variable and, optionally, macro substitutions later.
-    QEShape( QWidget *parent = 0 );
+    explicit QEShape( QWidget *parent = 0 );
+
     /// Create with a single variable. (Note, the QEShape widget can use up to 6 variables)
     /// A connection is automatically established.
     /// If macro substitutions are required, create without a variable and set the variable and macro substitutions after creation.
-    QEShape( const QString& variableName, QWidget *parent = 0 );
+    explicit QEShape( const QString& variableName, QWidget *parent = 0 );
+
+    QSize sizeHint () const;
 
     /// Options for the type of shape.
     ///
@@ -158,7 +163,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEShape : public QWidget, public QEWidg
     /// Access function for #arc length' properties - refer to arc length' properties for details
     double getArcLength();
 
-  private:
+private:
 
     double lastValue[QESHAPE_NUM_VARIABLES];
 
@@ -193,7 +198,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEShape : public QWidget, public QEWidg
 
     void establishConnection( unsigned int variableIndex );     // Create a CA connection and initiates updates if required
 
-  private slots:
+private slots:
     void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex );
     void setValue( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex );
     // !! move this functionality into QEWidget???
@@ -203,7 +208,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEShape : public QWidget, public QEWidg
         setVariableNameAndSubstitutions(variableNameIn, variableNameSubstitutionsIn, variableIndex);
     }
 
-  signals:
+signals:
     // Note, the following signals are common to many QE widgets,
     // if changing the doxygen comments, ensure relevent changes are migrated to all instances
     /// Sent when the widget is updated following a data change for the first variable
@@ -231,7 +236,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEShape : public QWidget, public QEWidg
     /// For example a QList widget could log updates from this widget.
     void dbValueChanged6( const qlonglong& out );
 
-  private:
+private:
     void setup();                                               // Initialisation common to all constructors
     qcaobject::QCaObject* createQcaItem( unsigned int variableIndex );
     void refreshData( const int index );

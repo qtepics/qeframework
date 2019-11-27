@@ -1,6 +1,9 @@
 /*  QEShape.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -28,23 +29,25 @@
   It is tighly integrated with the base class QEWidget. Refer to QEWidget.cpp for details
  */
 
+#include "QEShape.h"
 #include <QPainter>
-
 #include <QEScaling.h>
-#include <QEShape.h>
 #include <QCaDateTime.h>
 
 /*
     Create without a known variable. Just manage parental hirarchy.
 */
-QEShape::QEShape( QWidget *parent ) : QWidget( parent ), QEWidget( this ) {
+QEShape::QEShape( QWidget *parent ) : QWidget( parent ), QEWidget( this )
+{
     setup();
 }
 
 /*
     Create with a known variable. Subscription occurs immedietly.
 */
-QEShape::QEShape( const QString &variableNameIn, QWidget *parent ) : QWidget( parent ), QEWidget( this ) {
+QEShape::QEShape( const QString &variableNameIn, QWidget *parent ) :
+   QWidget( parent ), QEWidget( this )
+{
     // Call common setup code.
     setup();
 
@@ -58,6 +61,8 @@ QEShape::QEShape( const QString &variableNameIn, QWidget *parent ) : QWidget( pa
 */
 void QEShape::setup() {
     // Set up data
+    setMinimumSize( 16,16 );
+
     // Set the number of variables equal to the base VariableNameManager is to manage
     setNumVariables( QESHAPE_NUM_VARIABLES );
 
@@ -141,6 +146,15 @@ void QEShape::setup() {
         variableNamePropertyManagers[i].setVariableIndex( i );
         QObject::connect( &variableNamePropertyManagers[i], SIGNAL( newVariableNameProperty( QString, QString, unsigned int ) ), this, SLOT( useNewVariableNameProperty( QString, QString, unsigned int ) ) );
     }
+}
+
+
+/*
+    Set up size hint
+ */
+QSize QEShape::sizeHint () const
+{
+    return QSize( 16, 16 );
 }
 
 /*
