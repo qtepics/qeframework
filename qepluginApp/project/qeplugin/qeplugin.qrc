@@ -60,5 +60,6 @@
         <file>QELog.png</file>
         <file>QELogin.png</file>
         <file>QELink.png</file>
+        <file>QEDateTime.png</file>
     </qresource>
 </RCC>

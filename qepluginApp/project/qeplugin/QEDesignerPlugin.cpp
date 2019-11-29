@@ -96,6 +96,7 @@ QEWidgets::QEWidgets(QObject *parent) : QObject(parent) {
     widgets.append(new QEArchiveNameSearchManager(this));
     widgets.append(new QEArchiveStatusManager(this));
     widgets.append(new QBitStatusManager(this));
+    widgets.append(new QEDateTimeManager(this));
     widgets.append(new QEFrameManager(this));
     widgets.append(new QEGroupBoxManager(this));
     widgets.append(new QEHistogramManager(this));

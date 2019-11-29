@@ -57,6 +57,7 @@
 #include <QEWaveformHistogram.h>
 #include <QEImage.h>
 #include <QELabel.h>
+#include <QEDateTime.h>
 #include <QELCDNumber.h>
 #include <QELineEdit.h>
 #include <QELink.h>
@@ -120,6 +121,7 @@ QE_IMPLEMENT_PLUGIN_MANAGER (QEScalarHistogram,   QEGRAPHIC,  ":/qe/plugin/QESca
 QE_IMPLEMENT_PLUGIN_MANAGER (QEWaveformHistogram, QEGRAPHIC,  ":/qe/plugin/QEWaveformHistogram.png", false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEImage,             QEGRAPHIC,  ":/qe/plugin/QEImage.png",             false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QELabel,             QEMONITOR,  ":/qe/plugin/QELabel.png",             false)
+QE_IMPLEMENT_PLUGIN_MANAGER (QEDateTime,          QESUPPORT,  ":/qe/plugin/QEDateTime.png",          false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEDescriptionLabel,  QEMONITOR,  ":/qe/plugin/QEDescriptionLabel.png",  false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QELCDNumber,         QEMONITOR,  ":/qe/plugin/QELCDNumber.png",         false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QELineEdit,          QECONTROL,  ":/qe/plugin/QELineEdit.png",          false)

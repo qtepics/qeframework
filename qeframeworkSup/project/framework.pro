@@ -1,7 +1,7 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #19 $
-# $DateTime: 2019/04/11 18:17:06 $
-# Last checked in by: $Author: starritt $
+# $Revision: #20 $
+# $DateTime: 2019/11/27 17:07:01 $
+# Last checked in by: $Author: wangz $
 #
 # Copyright (c) 2009-2018 Australian Synchrotron
 #
@@ -210,6 +210,7 @@ include (widgets/QESpinBox/QESpinBox.pri)
 include (widgets/QEStripChart/QEStripChart.pri)
 include (widgets/QESubstitutedLabel/QESubstitutedLabel.pri)
 include (widgets/QETable/QETable.pri)
+include (widgets/QEDateTime/QEDateTime.pri)
 
 #===========================================================
 # Install include files

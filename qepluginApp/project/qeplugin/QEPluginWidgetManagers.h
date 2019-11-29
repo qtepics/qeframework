@@ -332,6 +332,16 @@ class QEPLUGINLIBRARYSHARED_EXPORT QELabelManager :
 
 //------------------------------------------------------------------------------
 //
+class QEPLUGINLIBRARYSHARED_EXPORT QEDateTimeManager :
+      public QObject, public QDesignerCustomWidgetInterface
+{
+   Q_OBJECT
+   Q_INTERFACES (QDesignerCustomWidgetInterface)
+   QE_DECLARE_PLUGIN_MANAGER (QEDateTime)
+};
+
+//------------------------------------------------------------------------------
+//
 class QEPLUGINLIBRARYSHARED_EXPORT QEDescriptionLabelManager :
       public QObject, public QDesignerCustomWidgetInterface
 {

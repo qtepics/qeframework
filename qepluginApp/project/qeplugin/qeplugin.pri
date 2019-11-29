@@ -94,6 +94,7 @@ OTHER_FILES += qeplugin/QNumericEdit.png
 OTHER_FILES += qeplugin/QRadioGroup.png
 OTHER_FILES += qeplugin/QSimpleShape.png
 OTHER_FILES += qeplugin/QELabel.png
+OTHER_FILES += qeplugin/QEDateTime.png
 OTHER_FILES += qeplugin/QELineEdit.png
 OTHER_FILES += qeplugin/QELog.png
 OTHER_FILES += qeplugin/QELogin.png
