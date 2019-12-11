@@ -29,3 +29,13 @@ CHECK_RELEASE = YES
 #   to the install location. This may be needed to boot from
 #   a Microsoft FTP server say, or on some NFS configurations.
 #IOCS_APPL_TOP = </IOC's/absolute/path/to/install/top>
+
+# Protocol Buffers libraries version 3.6.0 or higher require C++ 11.
+# archapplDataSup therefore has to be built with the --std=c++11 
+# flag if newer versions of Protocol Buffers are used.
+# Use this configuration variable to control if archapplDataSup is
+# built with C++ 11 or not. If you don't wish the archapplDataSup 
+# to be built with C++ 11 flag, that means you have to use Protocol Buffers
+# versions older than 3.6.0.
+#
+ARCHAPPL_USE_CPP11 = YES

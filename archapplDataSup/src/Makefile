@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/archapplDataSup/src/Makefile $
-# $Revision: #2 $
-# $DateTime: 2018/07/24 10:38:38 $
+# $Revision: #3 $
+# $DateTime: 2019/12/10 15:40:45 $
 # Last checked in by: $Author: pozara $
 #
 # Makefile to build a library that parses Google Protocol Buffers data recieved from Archiver Appliance
@@ -42,6 +42,14 @@ ifdef PROTOBUF_LIB_DIR
 else
    $(warning PROTOBUF_LIB_DIR is undefined which could result in protobuf library not being found)
 endif
+
+# This control variable can be modified in $(TOP)/configuration/CONFIG_SITE
+# If set to YES, we're building with C++ 11 support
+#
+ifeq ($(ARCHAPPL_USE_CPP11), YES)
+   CXXFLAGS += -std=c++11
+endif
+
 
 # Link protobuf library and object files into libraries
 #
