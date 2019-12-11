@@ -26,6 +26,7 @@
 
 #include "QEDistribution.h"
 #include <math.h>
+#include <alarm.h>
 
 #include <QApplication>
 #include <QClipboard>
@@ -44,8 +45,12 @@
 // Much of this code is effectively the same as in the QEStripChartStatistics widget.
 // Do keep these two items aligned as far as reasonably possible.
 //
-#define PV_VARIABLE_INDEX     0
-#define MAJOR_MINOR_RATIO     5
+enum Constants {
+   PV_VARIABLE_INDEX   = 0,
+   MAJOR_MINOR_RATIO   = 5,
+   MAXIMUM_DATA_POINTS = 10000
+};
+
 
 // We use a shared timer for all QEDistribution instances.
 // static
@@ -106,6 +111,13 @@ void QEDistribution::setup()
    this->setFillColour (QColor ("#80c0ff"));        // light blue
 
    this->tickTimerCount = 0;
+   this->recalcIsRequired = true;
+   this->replotIsRequired = true;
+
+   // Ensure other values are at least valid/semi-sensible.
+   //
+   this->distributionCount = 0;
+   this->distributionIncrement = 1.0;
 
    // Initate gathering of archive data - specifically the PV name list.
    //
@@ -116,8 +128,6 @@ void QEDistribution::setup()
    this->pvNameSelectDialog = new QEPVNameSelectDialog (this);
 
    this->isFirstUpdate = false;
-   this->xChangePending = 0;
-   this->yChangePending = 0;
 
    // Reset all the distribution related data
    //
@@ -230,10 +240,14 @@ void QEDistribution::paintDistribution ()
    const int ymin = this->yAxis->getTopLeftIndent ();                    // screen min
    const int ymax = size.height() - this->yAxis->getRightBottomIndent(); // screen max
 
+   // Now draw distribution
+   //
+   if (this->valueTotal <= 0.0) return;  // sanity check
+
    QPainter painter (this->plotArea);
    QPen pen;
    QBrush brush;
-   QPointF polygon [2 * ARRAY_LENGTH (this->distributionData) + 6];  // 128 points + loop back
+   QPointF polygon [2 * ARRAY_LENGTH (this->distributionData) + 6];  // num points + loop back
 
    int ew = this->getEdgeWidth ();
    if (ew == 0) {
@@ -268,10 +282,9 @@ void QEDistribution::paintDistribution ()
 
    // The real world range of plotted values
    //
-   const double x_plot_min = this->valueMean - this->mNumberStdDevs * this->valueStdDev;
-   const double x_plot_max = this->valueMean + this->mNumberStdDevs * this->valueStdDev;
-
-   const double ds = (x_plot_max - x_plot_min) / double (this->distributionCount);
+   const double x_plot_min = this->currentXPlotMin;
+   const double x_plot_max = this->currentXPlotMax;
+   const double ds = this->distributionIncrement;
 
    int number;
    if (this->mIsRectangular) {
@@ -279,7 +292,7 @@ void QEDistribution::paintDistribution ()
          double u = ds * j + x_plot_min;
          double x = mx * u + cx;
 
-         double p = double (this->distributionData [j]) / double (this->valueCount); // proportion
+         double p = double (this->distributionData [j]) / this->valueTotal; // proportion
          double y = my * p + cy;
          polygon [2*j + 0] = QPointF (x, y);
 
@@ -292,7 +305,7 @@ void QEDistribution::paintDistribution ()
       for (int j = 0; j < this->distributionCount; j++) {
          double u = ds * (j + 0.5) + x_plot_min;
          double x = mx * u + cx;
-         double p = double (this->distributionData [j]) / double (this->valueCount); // proportion
+         double p = double (this->distributionData [j]) / this->valueTotal; // proportion
          double y = my * p + cy;
          polygon [j] = QPointF (x, y);
       }
@@ -310,14 +323,16 @@ void QEDistribution::paintDistribution ()
    // Now draw draw the gaussian curve
    // Need at least point to even think about trying to do this.
    //
-   if (this->getShowGaussian() && (this->valueCount > 0)) {
+   if (this->getShowGaussian() && (this->valueTotal > 0.0)) {
 
       QPointF gaussian [81];    // 81 a bit arbitary
 
       // width of each histogram bar - input units, not screen units.
-      const double plotDelta = this->calcPlotDelta ();
+      //
+      const double plotDelta = this->distributionIncrement;
 
-      // height of mormal disribution density function
+      // height of normal disribution density function.
+      //
       const double peakDensity = 1.0 / (this->valueStdDev * sqrt (TAU));
 
       const double peak = peakDensity * plotDelta;
@@ -362,8 +377,8 @@ void QEDistribution::mouseMoveDistribution (const QPoint& mousePosition)
    QString message;
 
    if (this->distributionCount > 0) {
-      const double x_plot_min = this->valueMean - this->mNumberStdDevs * this->valueStdDev;
-      const double plotDelta = this->calcPlotDelta();  // size of bar
+      const double x_plot_min = this->currentXPlotMin;
+      const double plotDelta = this->distributionIncrement;  // size of bar
 
       const double slot = (x - x_plot_min) / plotDelta;
       if (slot >= 0.0 && slot < this->distributionCount) {
@@ -371,7 +386,7 @@ void QEDistribution::mouseMoveDistribution (const QPoint& mousePosition)
          double x1 = x_plot_min + (j + 0.0)*plotDelta;
          double x2 = x_plot_min + (j + 1.0)*plotDelta;
 
-         double f = 100.0 * double (this->distributionData [j]) / double (this->valueCount);
+         double f = 100.0 * double (this->distributionData [j]) / this->valueTotal;
 
          message = QString ("x: %1 .. %2  %3%").
                    arg (x1, 0, 'g', 5).
@@ -385,12 +400,10 @@ void QEDistribution::mouseMoveDistribution (const QPoint& mousePosition)
 
 //------------------------------------------------------------------------------
 //
-bool QEDistribution::updatePlotLimits ()
+void QEDistribution::updatePlotLimits ()
 {
-   bool result = false;
-
    // Calculate plotted sample range - n standard deviations each side.
-   // But ensure range is non-zero
+   // But ensure range is non-zero.
    //
    const double tstd = MAX (1.0e-9, this->valueStdDev);
    const double x_plot_min = this->valueMean - this->mNumberStdDevs * tstd;
@@ -408,112 +421,67 @@ bool QEDistribution::updatePlotLimits ()
    displayRange.adjustMinMax (5, true, plotMin, plotMax, plotMajor);
    plotMinor = plotMajor / MAJOR_MINOR_RATIO;
 
-   // Have any of these changed ?
-   // The changed function adds some hysteresis.
-   // But also factor in number of outstanding change requests.
+   // Do an update
    //
-   const double e = (this->xChangePending <= 20) ? 0.1 : 1.0 / double (-10.0 + this->xChangePending);
-   if (QEDistribution::changed (this->currentXPlotMin, plotMin, e) ||
-       QEDistribution::changed (this->currentXPlotMax, plotMax, e) ||
-       QEDistribution::changed (this->currentXPlotMinor, plotMinor, e))
-   {
-      // Yes - do an update
-      //
-      this->currentXPlotMin = plotMin;
-      this->currentXPlotMax = plotMax;
-      this->currentXPlotMinor = plotMinor;
+   this->currentXPlotMin = plotMin;
+   this->currentXPlotMax = plotMax;
+   this->currentXPlotMinor = plotMinor;
 
-      this->xAxis->setMinimum (plotMin);
-      this->xAxis->setMaximum (plotMax);
-      this->xAxis->setMinorInterval (plotMinor);
+   this->xAxis->setMinimum (plotMin);
+   this->xAxis->setMaximum (plotMax);
+   this->xAxis->setMinorInterval (plotMinor);
 
-      // Choose precision based of value of major interval.
-      // The smaller plotMajor, the larger -log (plotMajor).
-      //
-      const int xp = int (1.0 - LOG10 (plotMajor));
-      this->xAxis->setPrecision (xp);
+   // Choose precision based of value of major interval.
+   // The smaller plotMajor, the larger -log (plotMajor).
+   //
+   const int xp = int (1.0 - LOG10 (plotMajor));
+   this->xAxis->setPrecision (xp);
 
-      // Now redistribute historical data over the new plot range/resolution
-      //
-      this->updateDistribution ();
-
-      this->replotIsRequired = true;
-      result = true;
-
-      this->xChangePending = 0;
-
-   } else if ((this->currentXPlotMin != plotMin) ||
-              (this->currentXPlotMax != plotMax) ||
-              (this->currentXPlotMinor != plotMinor)) {
-
-      this->xChangePending++;
-
-   } else {
-      this->xChangePending = 0;  // equal
-   }
-
-   return result;
+   this->replotIsRequired = true;
 }
 
 //------------------------------------------------------------------------------
 //
 void QEDistribution::updateDistribution ()
 {
-   // As we get more points, increase the distribtion count to get a better resolution
+   const double span = this->currentXPlotMax - this->currentXPlotMin;
+   double realNumberOfBin = span / MAX (1.0e-12, this->currentXPlotMinor);
+   int numberOfBin = qRound (realNumberOfBin);
+   numberOfBin = MAX (1, numberOfBin);
+
+   // As we get more points, increase the number of bins to get a better
+   // resolution.
    //
-   this->distributionCount = ARRAY_LENGTH (this->distributionData);
-   if (this->valueCount < 800) this->distributionCount = ARRAY_LENGTH (this->distributionData) / 2;
-   if (this->valueCount < 400) this->distributionCount = ARRAY_LENGTH (this->distributionData) / 4;
-   if (this->valueCount < 200) this->distributionCount = ARRAY_LENGTH (this->distributionData) / 8;
-   if (this->valueCount < 100) this->distributionCount = ARRAY_LENGTH (this->distributionData) / 16;
+   const int count = this->pvData.count();
+   if (count >= 400) numberOfBin *= 2;
+   if (count >= 800) numberOfBin *= 2;
 
    // However ensure within range
    //
-   this->distributionCount = LIMIT (this->distributionCount, 1, ARRAY_LENGTH (this->distributionData));
+   this->distributionCount = LIMIT (numberOfBin, 1, ARRAY_LENGTH (this->distributionData));
+   this->distributionIncrement = span / double (this->distributionCount);
+   this->distributionIncrement = MAX (1.0e-9,  this->distributionIncrement);  // avoid divide by 0
 
-   // Initialise the distribution data array.
+   // Distribute values over the distribution data array.
    //
-   for (int j = 0; j < this->distributionCount; j++) {
-      this->distributionData [j] = 0;
-   }
+   this->pvData.distribute (this->distributionData, this->distributionCount,
+                            true, this->currentXPlotMin, this->distributionIncrement);
 
-   const double x_plot_min = this->valueMean - this->mNumberStdDevs * this->valueStdDev;
-   const double plotDelta = this->calcPlotDelta();
-   const int n = this->historicalData.count();
-   for (int i = 0; i < n; i++) {
-      const double value = this->historicalData.value (i);
-
-      // Avoid divide by zero, and the hence the creation of a NaN slot value
-      //
-      const double slot = (value - x_plot_min) / MAX (plotDelta, 1.0e-20);
-
-      // Check for out of range values.
-      //
-      if (slot < 0.0 || slot >= this->distributionCount) continue;
-
-      const int s = int (slot);
-
-      // Belts 'n' braces
-      //
-      if (s < 0 || s >= this->distributionCount) continue;
-
-      this->distributionData [s] += 1;
-   }
-
-   // Find the max value so that we can calculate a sensible y scale.
+   // Find the total and also find the max value so that we can calculate
+   // a sensible y scale.
    //
-   int distributionMax = 1;
+   double distributionMax = 1.0;
+   this->valueTotal = 0.0;
    for (int j = 0; j < this->distributionCount; j++) {
       distributionMax = MAX (distributionMax, this->distributionData [j]);
+      this->valueTotal += this->distributionData [j];
    }
 
    // Now calclate the fractional max - this is in range  >0.0 to 1.0
    // We plot fractional values.
    //
    const double fractionalMax =
-         n > 0 ?
-            double (distributionMax) / double (n) :
-            1.0;
+         this->valueTotal > 0.0 ? (distributionMax / this->valueTotal) :  1.0;
 
    // Form "nice" rounded plot scale values.
    //
@@ -527,37 +495,15 @@ void QEDistribution::updateDistribution ()
    displayRange.adjustMinMax (5, true, plotMin, plotMax, plotMajor);
    plotMinor = plotMajor / MAJOR_MINOR_RATIO;
 
-   // Have any of these changed?
-   // The changed function adds some hysteresis.
-   // But also factor in number of outstanding change requests.
+   // Do an update
    //
-   const double e = (this->yChangePending <= 20) ? 0.2 : 2.0 / double (-10.0 + this->yChangePending);
-   if (QEDistribution::changed (this->currentYPlotMin, plotMin, e) ||
-       QEDistribution::changed (this->currentYPlotMax, plotMax, e) ||
-       QEDistribution::changed (this->currentYPlotMinor, plotMinor, e))
-   {
-      // Yes - do an update
-      //
-      this->currentYPlotMin = plotMin;
-      this->currentYPlotMax = plotMax;
-      this->currentYPlotMinor = plotMinor;
+   this->currentYPlotMin = plotMin;
+   this->currentYPlotMax = plotMax;
+   this->currentYPlotMinor = plotMinor;
 
-      this->yAxis->setMinimum (plotMin);
-      this->yAxis->setMaximum (plotMax);
-      this->yAxis->setMinorInterval (plotMinor);
-
-      this->yChangePending = 0;
-
-   } else if ((this->currentYPlotMin != plotMin) ||
-              (this->currentYPlotMax != plotMax) ||
-              (this->currentYPlotMinor != plotMinor)) {
-
-      this->yChangePending++;
-
-   } else {
-      this->yChangePending = 0;  // equal
-   }
-   this->replotIsRequired = true;
+   this->yAxis->setMinimum (plotMin);
+   this->yAxis->setMaximum (plotMax);
+   this->yAxis->setMinorInterval (plotMinor);
 }
 
 //------------------------------------------------------------------------------
@@ -617,7 +563,42 @@ void QEDistribution::tickTimeout ()
    this->tickTimerCount = (this->tickTimerCount + 1) % 20;
 
    if (this->tickTimerCount == 0) {
-      this->replotIsRequired = true;
+      recalcIsRequired = true;
+   }
+
+   if (this->recalcIsRequired) {
+      // Each second re-do the calculations
+      // NOTE: Irrespective of PV update rate and/or other replot
+      //       request, the stats are only calculated once per second.
+      //
+      // Recalc the stats, and check is calc okay.
+      //
+      QCaDataPointList::Statistics stats;
+      if (this->pvData.calculateStatistics (stats, true)) {
+         // Yes - the calc is okay.
+         //
+         this->countValueLabel->setNum (this->pvData.count ());
+         this->meanValueLabel->setNum (stats.mean);
+         this->minValueLabel->setNum (stats.minimum);
+         this->maxValueLabel->setNum (stats.maximum);
+         this->stdDevLabel->setNum (stats.stdDeviation);
+
+         // Save the mean and standard devistion.
+         //
+         this->valueMean = stats.mean;
+         this->valueStdDev = stats.stdDeviation;
+
+         // This may update currentPlotMax, currentPlotMax etc.
+         //
+         this->updatePlotLimits ();
+
+         // Update the distribution
+         //
+         this->updateDistribution ();
+
+         this->replotIsRequired = true;
+         this->recalcIsRequired = false;
+      }
    }
 
    // Check for replot required.
@@ -632,7 +613,7 @@ void QEDistribution::tickTimeout ()
 void QEDistribution::setNumberStdDevs (const double numberStdDevsIn)
 {
    this->mNumberStdDevs = LIMIT (numberStdDevsIn, 0.1, 9.0);
-   this->updatePlotLimits ();
+   this->recalcIsRequired = true;
 }
 
 //------------------------------------------------------------------------------
@@ -857,6 +838,21 @@ void QEDistribution::connectionChanged (QCaConnectionInfo& connectionInfo,
    //
    const bool isConnected = connectionInfo.isChannelConnected ();
 
+   if (!isConnected && (this->pvData.count() >= 1)) {
+      // We have a channel disconnect.
+      //
+      // create a dummy point with last value and time now.
+      //
+      QCaDataPoint point = this->pvData.last ();
+      point.datetime = QDateTime::currentDateTime ().toUTC ();
+      this->pvData.append (point);
+
+      // create a dummy point with same time but marked invalid to indicate a break.
+      //
+      point.alarm = QCaAlarmInfo (NO_ALARM, INVALID_ALARM);
+      this->pvData.append (point);
+   }
+
    // Display the connected state
    //
    this->updateToolTipConnection (isConnected, pvi);
@@ -878,7 +874,7 @@ void QEDistribution::connectionChanged (QCaConnectionInfo& connectionInfo,
 //------------------------------------------------------------------------------
 //
 void QEDistribution::setPvValue (const double& value, QCaAlarmInfo& alarmInfo,
-                                 QCaDateTime&, const unsigned int& pvi)
+                                 QCaDateTime& timestamp, const unsigned int& pvi)
 {
    if (pvi != PV_VARIABLE_INDEX) return;  // sanity check
 
@@ -896,56 +892,19 @@ void QEDistribution::setPvValue (const double& value, QCaAlarmInfo& alarmInfo,
    this->valueLabel->setText (text);
    this->valueLabel->setStyleSheet (alarmInfo.style ());
 
-   // Do stats, provided the value is not invalid
+   // Save the point - add to the PV data set.
    //
-   if (!alarmInfo.isInvalid()) {
+   QCaDataPoint point;
 
-      // Do the PV statistics
-      //
-      this->valueCount += 1.0;
+   point.value = value;
+   point.datetime = timestamp;
+   point.alarm = alarmInfo;
+   this->pvData.append (point);
 
-      if (this->valueCount <= 1.0) {
-         this->valueMin = value;
-         this->valueMax = value;
-      } else {
-         this->valueMin = MIN (this->valueMin, value);
-         this->valueMax = MAX (this->valueMax, value);
-      }
-
-      this->valueSum += value;
-      this->valueSquaredSum += value*value;
-
-      this->valueMean = this->valueSum / this->valueCount;
-
-      // Variance:  mean (x^2) - mean (x)^2
-      //
-      double variance = (this->valueSquaredSum / this->valueCount) -
-                        (this->valueMean*this->valueMean);
-
-      // Rounding errors can lead to very small negative variance values (of the
-      // order of -8.8e-16) which leads to NaN standard deviation values which then
-      // causes a whole heap of issues: ensure the variance is non-negative.
-      //
-      variance = MAX (variance, 0.0);
-      this->valueStdDev = sqrt (variance);
-
-      this->countValueLabel->setNum (int (this->valueCount));
-      this->meanValueLabel->setNum (this->valueMean);
-      this->minValueLabel->setNum (this->valueMin);
-      this->maxValueLabel->setNum (this->valueMax);
-      this->stdDevLabel->setNum (this->valueStdDev);
-
-      this->historicalData.append (value);
-
-      // This may update currentPlotMax, currentPlotMax etc.
-      //
-      bool updated = this->updatePlotLimits ();
-
-      // Update if needs be
-      //
-      if (!updated) this->updateDistribution ();
-
-      this->replotIsRequired = true;
+   // Don't let this data set tooo big.
+   //
+   if (this->pvData.count () >= MAXIMUM_DATA_POINTS) {
+      this->pvData.removeFirst();
    }
 
    // Invoke common alarm handling processing.
@@ -1048,13 +1007,21 @@ QString QEDistribution::copyVariable ()
 }
 
 //------------------------------------------------------------------------------
-// What do we copy? Last value? The distribition?
 //
 QVariant QEDistribution::copyData ()
 {
-   QVariant result;
-   /// return this->getQcaItem (PV_VARIABLE_INDEX)->getLastData();
-   return result;
+   const double x_plot_min = this->currentXPlotMin;
+   const double plotDelta = this->distributionIncrement;
+
+   QString result;
+
+   for (int j = 0; j < this->distributionCount; j++) {
+      double x = x_plot_min + j*plotDelta;
+      double y = this->distributionData [j];
+      result.append (QString ("%1 %2\n").arg (x, -15).arg (y));
+   }
+
+   return QVariant (result);
 }
 
 //------------------------------------------------------------------------------
@@ -1285,6 +1252,8 @@ void QEDistribution::createWidgets()
 
    this->plotArea = new QWidget (this);
 
+   // Ensure initial values are valid/semi-sensible.
+   //
    this->currentXPlotMin = -3.0;
    this->currentXPlotMax = +3.0;
    this->currentXPlotMinor = 0.2;
@@ -1299,6 +1268,8 @@ void QEDistribution::createWidgets()
    this->xAxis->setMajorMinorRatio (MAJOR_MINOR_RATIO);
    this->xAxis->setPrecision (2);
 
+   // Ensure initial values are valid/semi-sensible.
+   //
    this->currentYPlotMin = 0.0;
    this->currentYPlotMax = 1.0;
    this->currentYPlotMinor = 0.1;
@@ -1344,19 +1315,23 @@ void QEDistribution::connectSignalsToSlots ()
 //
 void QEDistribution::resetDistibution ()
 {
-   this->historicalData.clear ();
-   this->valueCount = 0.0;
-   this->valueSum = 0.0;
-   this->valueSquaredSum = 0.0;
+   const QString nil ("n/a");
+
+   this->pvData.clear ();
+   this->valueTotal = 0.0;
    this->valueMean = 0.0;
    this->valueStdDev = 0.0;
-   this->valueMin = 0.0;
-   this->valueMax = 0.0;
 
    this->distributionCount = 0;
    for (int j = 0; j < ARRAY_LENGTH (this->distributionData); j++) {
-      this->distributionData [j] = 0;
+      this->distributionData [j] = 0.0;
    }
+
+   this->countValueLabel->setText (nil);
+   this->meanValueLabel->setText (nil);
+   this->minValueLabel->setText (nil);
+   this->maxValueLabel->setText (nil);
+   this->stdDevLabel->setText (nil);
 }
 
 //------------------------------------------------------------------------------
@@ -1365,31 +1340,6 @@ void QEDistribution::setReadOut (const QString& text)
 {
    message_types mt (MESSAGE_TYPE_INFO, MESSAGE_KIND_STATUS);
    this->sendMessage (text, mt);
-}
-
-//------------------------------------------------------------------------------
-//
-double QEDistribution::calcPlotDelta () const
-{
-   const double spread = 2.0 * this->mNumberStdDevs * this->valueStdDev;
-
-   // Calc plot delta - belts 'n' braces re divide by 0
-   //
-   double result = spread / double (this->distributionCount);
-   if (result <= 1.0e-9) {
-      result = 1.0e-9;
-   }
-   return result;
-}
-
-//------------------------------------------------------------------------------
-// static
-bool QEDistribution::changed (const double a, const double b, const double e)
-{
-    if (a == b) return false;
-    double d = ABS (a-b);
-    double s = 0.5*(ABS (a) + ABS (b));
-    return d >= e*s;
 }
 
 // end

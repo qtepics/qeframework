@@ -24,9 +24,10 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QCaDataPoint.h"
+#include <math.h>
 #include <QDebug>
 #include <QEArchiveInterface.h>
-#include <QCaDataPoint.h>
 #include <QECommon.h>
 
 #define DEBUG  qDebug () << "QCaDataPoint" << __LINE__ <<  __FUNCTION__  << "  "
@@ -410,6 +411,182 @@ void QCaDataPointList::toStream (QTextStream& target,
    }
    else {
       target << "(QCaDataPointList empty)" << "\n";
+   }
+}
+
+//------------------------------------------------------------------------------
+// Essentially relocated for QEStripChart statistics.
+//
+bool QCaDataPointList::calculateStatistics (Statistics& statistics,
+                                            const bool extendToTimeNow) const
+{
+   // Ensure not erroneous.
+   //
+   statistics.isDefined = false;
+   statistics.mean = 0.0;
+   statistics.stdDeviation = 0.0;
+   statistics.slope = 0.0;
+   statistics.integral = 0.0;
+   statistics.minimum = 0.0;
+   statistics.maximum = 0.0;
+   statistics.initialValue = 0.0;
+   statistics.finalValue = 0.0;
+
+   const int n = this->data.count ();
+   if (n < 1) return false;
+
+   double sumWeight = 0.0;          // i.e. time between points.
+   double sumValue = 0.0;           // weighted sum
+   double sumValueSquared = 0.0;    // weighted sum**2
+
+   // Least squares calc. variables.
+   // X here is time - relative to first time.
+   // It's kind of arbitary - the slope works out the same.
+   //
+   QCaDateTime startTime = this->data.value (0).datetime;
+   double sumX = 0.0;
+   double sumY = 0.0;
+   double sumXX = 0.0;
+   double sumXY = 0.0;
+   int count = 0;
+
+   bool isFirst = true;
+   for (int j = 0; j < n; j++) {
+      const QCaDataPoint thisPoint = this->data.value (j+0);
+
+      // Skip undisplayable points, e.g.alarm invalid or disconnected.
+      //
+      if (!thisPoint.isDisplayable()) continue;
+      const double value = thisPoint.value;
+
+      // Is there a following point?
+      //
+      if ((j + 1 < n) || extendToTimeNow) {
+         // Yes - we can calculate the weight.
+         //
+         double weight;
+         if (j + 1 < n) {
+            const QCaDataPoint nextPoint = this->data.value (j+1);
+            weight = thisPoint.datetime.secondsTo (nextPoint.datetime);
+         } else {
+            // Must be extendToTimeNow set true.
+            //
+            weight = thisPoint.datetime.secondsTo (QDateTime::currentDateTime().toUTC());
+         }
+
+         sumWeight += weight;
+         sumValue += weight * value;
+         sumValueSquared += weight * value * value;
+      }
+
+      if (isFirst) {
+         isFirst = false;
+         statistics.minimum = value;
+         statistics.maximum = value;
+         statistics.initialValue = value;
+      } else {
+         statistics.minimum = MIN (statistics.minimum, value);
+         statistics.maximum = MAX (statistics.maximum, value);
+      }
+
+      statistics.finalValue = value;
+
+      // Least squares.
+      // For x, use time from first point.
+      //
+      const double x = startTime.secondsTo (thisPoint.datetime);
+
+      sumX += x;
+      sumY += value;
+      sumXX += x * x;
+      sumXY += x * value;
+
+      count ++;
+   }
+
+   if (sumWeight <= 0.0) return false;
+
+   statistics.mean = sumValue / sumWeight;
+
+   // Variance:  mean (x^2) - mean (x)^2
+   //
+   double variance = (sumValueSquared / sumWeight) - (statistics.mean * statistics.mean);
+
+   // Rounding errors can lead to very small negative variance values (of the
+   // order of -8.8e-16) which leads to NaN standard deviation values which then
+   // causes a whole heap of issues: ensure the variance is non-negative.
+   //
+   variance = MAX (variance, 0.0);
+   statistics.stdDeviation = sqrt (variance);
+
+   // Least Squares
+   //
+   if (count >= 2) {
+      double delta = (count * sumXX) - (sumX * sumX);
+      delta = MAX (delta, 1.0e-9);   // avoid the divide by zero
+      statistics.slope = ((count * sumXY) - (sumX * sumY)) / delta;
+   }
+
+   // Recall sumValue += (value * weight), and weight in seconds.
+   //
+   statistics.integral = sumValue;
+
+   statistics.isDefined = true;
+   return true;
+}
+
+//------------------------------------------------------------------------------
+//
+void QCaDataPointList::distribute (double distribution [], const int size,
+                                   const bool extendToTimeNow,
+                                   const double first, const double increment) const
+{
+   // Initialise the distribution.
+   //
+   for (int j = 0; j < size; j++) {
+      distribution [j] = 0.0;
+   }
+
+   const int n = this->data.count ();
+   for (int j = 0; j < n; j++) {
+      const QCaDataPoint thisPoint = this->data.value (j+0);
+
+      // Skip undisplayable points, e.g.alarm invalid or disconnected.
+      //
+      if (!thisPoint.isDisplayable()) continue;
+      const double value = thisPoint.value;
+
+      // Is there a following point?
+      //
+      if ((j + 1 < n) || extendToTimeNow) {
+         // Yes - we can calculate the weight.
+         //
+         double weight;
+         if (j + 1 < n) {
+            const QCaDataPoint nextPoint = this->data.value (j+1);
+            weight = thisPoint.datetime.secondsTo (nextPoint.datetime);
+         } else {
+            // Must be extendToTimeNow set true.
+            //
+            weight = thisPoint.datetime.secondsTo (QDateTime::currentDateTime().toUTC());
+         }
+
+         // Avoid divide by zero, and the hence the creation of a NaN slot value
+         //
+         const double realSlot = (value - first) / MAX (increment, 1.0e-20);
+
+         // Check for out of range values.
+         //
+         if (realSlot < 0.0 || realSlot >= size) continue;
+
+         const int slot = int (realSlot);
+
+         // Belts 'n' braces
+         //
+         if (slot < 0 || slot >= size) continue;
+
+         distribution [slot] += weight;
+      }
    }
 }
 

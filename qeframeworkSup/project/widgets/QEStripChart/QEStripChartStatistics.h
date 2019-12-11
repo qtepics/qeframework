@@ -68,11 +68,13 @@ private:
    QEAxisPainter* xAxis;
    QEAxisPainter* yAxis;
 
-   int distributionData [128];
-   int distributionCount;
-   int valueCount;        // number of valid values.
    double valueMean;
    double valueStdDev;
+   double valueTotal;
+
+   double distributionData [200];
+   int distributionCount;
+   double distributionIncrement;
 
 private slots:
    void updateClicked (bool);

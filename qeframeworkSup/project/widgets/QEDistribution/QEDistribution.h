@@ -36,10 +36,10 @@
 #include <QWidget>
 #include <QPushButton>
 #include <QVBoxLayout>
-#include <QList>
 
 #include <QEArchiveAccess.h>
 #include <QECommon.h>
+#include <QCaDataPoint.h>
 #include <QEAbstractDynamicWidget.h>
 #include <QEFloatingFormatting.h>
 #include <QEStringFormatting.h>
@@ -52,7 +52,7 @@
 /// \brief The QEDistribution class provides a histogram of the distribution of
 /// the values of a scaler PV.
 ///
-/// To a certain extent, this widget mimics the hehaviour of the histogram record
+/// To a certain extent, this widget mimics the behaviour of the histogram record
 /// in that it bins values.
 ///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEDistribution :
@@ -105,7 +105,8 @@ public:
    ///
    Q_PROPERTY (bool   isRectangular    READ getIsRectangular    WRITE setIsRectangular)
 
-   /// histogram edge width : range 0 to 20, default 2
+   /// Histogram edge width : range 0 to 20, default 2.
+   ///
    Q_PROPERTY (int    edgeWidth        READ getEdgeWidth        WRITE setEdgeWidth)
 
    /// Selects display of gaussian curve - default yes.
@@ -113,18 +114,23 @@ public:
    Q_PROPERTY (bool   showGaussian     READ getShowGaussian     WRITE setShowGaussian)
 
    /// gaussian plot width : range 1 to 20, default 2
+   ///
    Q_PROPERTY (int    gaussianWidth    READ getGaussianWidth    WRITE setGaussianWidth)
 
    /// default: light blue
+   ///
    Q_PROPERTY (QColor fillColour       READ getFillColour       WRITE setFillColour)
 
    /// default: dark blue
+   ///
    Q_PROPERTY (QColor edgeColour       READ getEdgeColour       WRITE setEdgeColour)
 
    /// default: red
+   ///
    Q_PROPERTY (QColor gaussianColour   READ getGaussianColour   WRITE setGaussianColour)
 
    /// default : light grey
+   ///
    Q_PROPERTY (QColor backgroundColour READ getBackgroundColour WRITE setBackgroundColour)
 
 public:
@@ -230,31 +236,31 @@ private:
    void setPvName (const QString& pvName);   // for paste, drag/drop
    void connectSignalsToSlots ();
    void resetDistibution ();
-   bool updatePlotLimits ();
+   void updatePlotLimits ();
    void updateDistribution ();
 
-   // utility functions
-   double calcPlotDelta () const;
-   static bool changed (const double a, const double b, const double e);
-
    static QTimer* tickTimer;
-   QList<double> historicalData;
-   int distributionData [128];
+   QCaDataPointList pvData;
+
+   double valueMean;
+   double valueStdDev;
+   double valueTotal;
+
+   double distributionData [200];
    int distributionCount;
+   double distributionIncrement;
 
    // X axis plot values
    //
    double currentXPlotMin;
    double currentXPlotMax;
    double currentXPlotMinor;
-   int xChangePending;
 
    // Y axis plot values
    //
    double currentYPlotMin;   // always 0
    double currentYPlotMax;
    double currentYPlotMinor;
-   int yChangePending;
 
    // property members
    //
@@ -271,15 +277,8 @@ private:
    QEFloatingFormatting floatingFormatting;
    QEStringFormatting stringFormatting;
    int tickTimerCount;
+   bool recalcIsRequired;
    bool replotIsRequired;
-
-   double valueCount;
-   double valueSum;
-   double valueMean;
-   double valueMin;
-   double valueMax;
-   double valueSquaredSum;
-   double valueStdDev;
    bool isFirstUpdate;
 
    QEArchiveAccess* archiveAccess;

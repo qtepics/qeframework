@@ -129,188 +129,37 @@ void QEStripChartStatistics::processDataList (const QCaDataPointList& dataList)
    double duration = startTime.secondsTo (endTime);
 
    this->ui->durationLabel->setText (QEUtilities::intervalToString (duration, 0, true));
+   this->ui->validPointsLabel->setText (QString ("%1").arg (n));
 
-   this->valueCount = 0;
-   this->valueMean = 0.0;
-   this->valueStdDev = 0.0;
-
-   double minimum = +9.99E+99;
-   double maximum = -9.99E+99;
-   double initialValue = 0.0;
-   double finalValue = 0.0;
-
-   double sumWeight = 0.0;
-   double sumValue = 0.0;
-   double sumValueSquared = 0.0;
-
-   double sumX = 0.0;     // X here is time - relative to first time.
-   double sumY = 0.0;
-   double sumXX = 0.0;
-   double sumXY = 0.0;
-
-   for (int j = 0; j < n; j++) {
-      const QCaDataPoint point = dataList.value (j);
-
-      if (point.isDisplayable()) {
-         this->valueCount++;
-
-         minimum = MIN (minimum, point.value);
-         maximum = MAX (maximum, point.value);
-
-         if (this->valueCount == 1) {
-            // Save first point value.
-            //
-            initialValue = point.value;
-         }
-
-         // This may be the last valid point - keep it.
-         //
-         finalValue = point.value;
-
-         // Values are time weighed - determine weight.
-         //
-         double weight;
-         if (j < (n - 1)) {
-            // This is not the last point - use the duration from this
-            // point to the next point as the weight.
-            //
-            QCaDateTime nextTime = dataList.value (j + 1).datetime;
-            weight = point.datetime.secondsTo (nextTime);
-
-         } else {
-            // There is no next point - use an arbitary weight.
-            // TODO: Use time to end of chart
-            weight = 1.0;
-         }
-
-         sumWeight += weight;
-         sumValue += point.value * weight;
-         sumValueSquared += point.value * point.value * weight;
-
-         // Least squares.
-         // For x, use time from first point.
-         //
-         double x = startTime.secondsTo (point.datetime);
-
-         sumX += x;
-         sumY += point.value;
-         sumXX += x * x;
-         sumXY += x * point.value;
-      }
-   }
-
-   this->ui->validPointsLabel->setText (QString ("%1").arg (this->valueCount));
-
+   QCaDataPointList::Statistics stats;
    // Can we do any sensible stats?
    //
-   if (this->valueCount <= 0) return;
-
-   // Yes - let's do some sums.
-   //
-   // Avoid the divide by zero.
-   //
-   sumWeight = MAX (1.0E-8, sumWeight);
-
-   this->valueMean = sumValue / sumWeight;
-
-   // Variance:  mean (x^2) - mean (x)^2
-   //
-   double variance = (sumValueSquared / sumWeight) -
-                     (this->valueMean * this->valueMean);
-
-   // Rounding errors can lead to very small negative variance values (of the
-   // order of -8.8e-16) which leads to NaN standard deviation values which then
-   // causes a whole heap of issues: ensure the variance is non-negative.
-   //
-   variance = MAX (variance, 0.0);
-   this->valueStdDev = sqrt (variance);
-
-   // Least Squares
-   //
-   double slope = 0.0;
-   if (this->valueCount >= 2) {
-      double delta = (this->valueCount * sumXX) - (sumX * sumX);
-      slope = ((this->valueCount * sumXY) - (sumX * sumY)) / delta;
+   if (!dataList.calculateStatistics (stats, false)) {
+      return;
    }
 
-   // Recall sumValue += (value * weight);, and weight in seconds.
-   //
-   double integral = sumValue;
+   this->valueMean = stats.mean;
+   this->valueStdDev = stats.stdDeviation;
 
    // Populate form fields.
    //
    const QString units = egu.isEmpty() ? "" : " " + egu;
 
-   this->ui->meanLabel->setText (QString ("%1%2").arg (this->valueMean).arg (units));
-   this->ui->minimumLabel->setText (QString ("%1%2").arg (minimum).arg (units));
-   this->ui->maximumLabel->setText (QString ("%1%2").arg (maximum).arg (units));
-   this->ui->minMaxDiffLabel->setText (QString ("%1%2").arg (maximum - minimum).arg (units));
+   this->ui->meanLabel->setText (QString ("%1%2").arg (stats.mean).arg (units));
+   this->ui->minimumLabel->setText (QString ("%1%2").arg (stats.minimum).arg (units));
+   this->ui->maximumLabel->setText (QString ("%1%2").arg (stats.maximum).arg (units));
+   this->ui->minMaxDiffLabel->setText (QString ("%1%2").arg (stats.maximum - stats.minimum).arg (units));
 
-   this->ui->firstLastDiffLabel->setText (QString ("%1%2").arg (finalValue - initialValue).arg (units));
-   this->ui->standardDeviationLabel->setText (QString ("%1%2").arg (this->valueStdDev).arg (units));
-   this->ui->meanRateOfChangeLabel->setText (QString ("%1%2/sec").arg (slope).arg (units));
-   this->ui->areaUnderCurveLabel->setText (QString ("%1%2-sec").arg (integral).arg (units));
+   this->ui->firstLastDiffLabel->setText (QString ("%1%2").arg (stats.finalValue - stats.initialValue).arg (units));
+   this->ui->standardDeviationLabel->setText (QString ("%1%2").arg (stats.stdDeviation).arg (units));
+   this->ui->meanRateOfChangeLabel->setText (QString ("%1%2/sec").arg (stats.slope).arg (units));
+   this->ui->areaUnderCurveLabel->setText (QString ("%1%2-sec").arg (stats.integral).arg (units));
 
-   // Cribbed from QEDsitribution.
-   // Can we refactor code??
-   // For a distribution over +/-3 standard deviations.
+
+   // Data min/max
    //
-   // As we get more points, increase the distribtion count to get a better resolution
-   //
-   this->distributionCount = ARRAY_LENGTH (this->distributionData);
-   if (this->valueCount < 800) this->distributionCount = ARRAY_LENGTH (this->distributionData) / 2;
-   if (this->valueCount < 400) this->distributionCount = ARRAY_LENGTH (this->distributionData) / 4;
-   if (this->valueCount < 200) this->distributionCount = ARRAY_LENGTH (this->distributionData) / 8;
-   if (this->valueCount < 100) this->distributionCount = ARRAY_LENGTH (this->distributionData) / 16;
-
-   // However ensure within range
-   //
-   this->distributionCount = LIMIT (this->distributionCount, 1, ARRAY_LENGTH (this->distributionData));
-
-   // Initialise the distribution data array.
-   //
-   for (int j = 0; j < this->distributionCount; j++) {
-      this->distributionData [j] = 0;
-   }
-
    const double x_plot_min = this->valueMean - 3.0 * this->valueStdDev;
    const double x_plot_max = this->valueMean + 3.0 * this->valueStdDev;
-   const double plotDelta = 6.0 * this->valueStdDev / this->distributionCount;
-   for (int j = 0; j < n; j++) {
-      const QCaDataPoint point = dataList.value (j);
-      if (point.isDisplayable()) {
-         // Avoid divide by zero, and the hence the creation of a NaN slot value
-         //
-         const double slot = (point.value - x_plot_min) / MAX (plotDelta, 1.0e-20);
-
-         // Check for out of range values.
-         //
-         if (slot < 0.0 || slot >= this->distributionCount) continue;
-
-         const int s = int (slot);
-
-         // Belts 'n' braces
-         //
-         if (s < 0 || s >= this->distributionCount) continue;
-
-         this->distributionData [s] += 1;
-      }
-   }
-
-   // Find the max value so that we can calculate a sensible y scale.
-   //
-   int distributionMax = 1;
-   for (int j = 0; j < this->distributionCount; j++) {
-      distributionMax = MAX (distributionMax, this->distributionData [j]);
-   }
-
-   // Now calclate the fractional max - this is in range  >0.0 to 1.0
-   // We plot fractional values.
-   //
-   const double fractionalMax =
-         this->valueCount > 0 ?
-            double (distributionMax) / double (this->valueCount) :
-            1.0;
 
    // Form "nice" rounded plot scale values.
    //
@@ -334,6 +183,49 @@ void QEStripChartStatistics::processDataList (const QCaDataPointList& dataList)
    const int xp = int (1.0 - LOG10 (plotMajor));
    this->xAxis->setPrecision (xp);
 
+   // Cribbed from QEDistribution.
+   // Can we refactor code?
+   // For a distribution over +/-3 standard deviations.
+   //
+   const double span = plotMax - plotMin;
+   double realNumberOfBin = span / MAX (1.0e-12, plotMinor);
+   int numberOfBin = qRound (realNumberOfBin);
+   numberOfBin = MAX (1, numberOfBin);
+
+   // As we get more points, increase the number of bins to get a better
+   // resolution.
+   //
+   const int count = dataList.count();
+   if (count >= 400) numberOfBin *= 2;
+   if (count >= 800) numberOfBin *= 2;
+
+   // However ensure within range
+   //
+   this->distributionCount = LIMIT (numberOfBin, 1, ARRAY_LENGTH (this->distributionData));
+   this->distributionIncrement = span / double (this->distributionCount);
+   this->distributionIncrement = MAX (1.0e-9,  this->distributionIncrement);  // avoid divide by 0
+
+   // Distribute weighted values over the distribution data array.
+   //
+   dataList.distribute (this->distributionData, this->distributionCount,
+                        false, plotMin, this->distributionIncrement);
+
+   // Find the total and also find the max value so that we can calculate
+   // a sensible y scale.
+   //
+   double distributionMax = 1.0;
+   this->valueTotal = 0.0;
+   for (int j = 0; j < this->distributionCount; j++) {
+      distributionMax = MAX (distributionMax, this->distributionData [j]);
+      this->valueTotal += this->distributionData [j];
+   }
+
+   // Now calclate the fractional max - this is in range  >0.0 to 1.0
+   // We plot fractional values.
+   //
+   const double fractionalMax =
+         this->valueTotal > 0 ? (distributionMax / this->valueTotal) :  1.0;
+
    // Ditto y
    //
    displayRange.setRange (0.0, fractionalMax);
@@ -352,6 +244,15 @@ void QEStripChartStatistics::processDataList (const QCaDataPointList& dataList)
 void QEStripChartStatistics::clearLabels ()
 {
    const QString nil ("");
+
+   this->valueTotal = 0.0;
+   this->valueMean = 0.0;
+   this->valueStdDev = 0.0;
+
+   this->distributionCount = 0;
+   for (int j = 0; j < ARRAY_LENGTH (this->distributionData); j++) {
+      this->distributionData [j] = 0.0;
+   }
 
    this->ui->pvNameLabel->setText (nil);
    this->ui->numberOfPointsLabel->setText (nil);
@@ -425,13 +326,13 @@ void QEStripChartStatistics::paintDistribution ()
 
    // Now draw distribution
    //
-   if (this->valueCount < 1) return;  // sanity check
+   if (this->valueTotal <= 0.0) return;  // sanity check
 
    QPainter painter (this->ui->plotFrame);
    QPen pen;
    QBrush brush;
 
-   QPointF polygon [2 * ARRAY_LENGTH (this->distributionData) + 6];  // 128 points + loop back
+   QPointF polygon [2 * ARRAY_LENGTH (this->distributionData) + 6];  // num points + loop back
 
    pen.setWidth (2);
    pen.setColor (QColor("#2060a0"));   // edge colour - dark blue
@@ -456,17 +357,16 @@ void QEStripChartStatistics::paintDistribution ()
 
    // The real world range of plotted values
    //
-   const double x_plot_min = this->valueMean - 3.0 * this->valueStdDev;
-   const double x_plot_max = this->valueMean + 3.0 * this->valueStdDev;
-
-   const double ds = (x_plot_max - x_plot_min) / double (this->distributionCount);
+   const double x_plot_min = this->xAxis->getMinimum();
+   const double x_plot_max = this->xAxis->getMaximum();
+   const double ds = this->distributionIncrement;
 
    int number = 0;
    for (int j = 0; j < this->distributionCount; j++) {
       double u = ds * j + x_plot_min;
       double x = mx * u + cx;
 
-      double p = double (this->distributionData [j]) / double (this->valueCount); // proportion
+      double p = double (this->distributionData [j]) / this->valueTotal; // proportion
       double y = my * p + cy;
       polygon [2*j + 0] = QPointF (x, y);
 
@@ -489,9 +389,11 @@ void QEStripChartStatistics::paintDistribution ()
    QPointF gaussian [81];    // 81 a bit arbitary
 
    // width of each histogram bar - input units, not screen units.
-   const double plotDelta = 6.0 * this->valueStdDev / this->distributionCount;
+   //
+   const double plotDelta = this->distributionIncrement;
 
-   // height of mormal disribution density function
+   // height of normal disribution density function.
+   //
    const double peakDensity = 1.0 / (this->valueStdDev * sqrt (TAU));
 
    const double peak = peakDensity * plotDelta;
