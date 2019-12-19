@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -26,7 +26,7 @@
 
 // Provides textual formatting for QEInteger data.
 
-#include <QEIntegerFormatting.h>
+#include "QEIntegerFormatting.h"
 #include <QDebug>
 #include <QEVectorVariants.h>
 
@@ -62,7 +62,7 @@ QVariant QEIntegerFormatting::formatValue( const long &integerValue,
         case generic::GENERIC_SHORT :
         case generic::GENERIC_LONG :
         {
-            QVariant lValue( (qlonglong)integerValue );
+            QVariant lValue( (qlonglong) integerValue );
             return lValue;
         }
         case generic::GENERIC_UNSIGNED_SHORT :
@@ -116,25 +116,40 @@ QVariant QEIntegerFormatting::formatValue( const QVector<long> &integerValue,
     Generate an integer given a value, using formatting defined within this class.
     The value may be an array of variants or a single variant
 */
+long QEIntegerFormatting::formatInteger( const QVariant &value ) const
+{
+   return  formatInteger( value, 0 );
+}
+
 long QEIntegerFormatting::formatInteger( const QVariant &value, const int arrayIndex ) const
 {
+    long result;
 
     // If the value is a list, get the specified item from the list.
     // Otherwise, just use the value as is
     if( value.type() == QVariant::List )
     {
-        QVariant defValue( (qlonglong) 0 );
-        return formatIntegerNonArray( value.toList().value( arrayIndex, defValue ) );
+        const QVariantList list = value.toList();
 
-    } else if( QEVectorVariants::isVectorVariant( value ) ){
-        // This is one of our vectors.
+        if (arrayIndex >= 0 && arrayIndex < list.count()) {
+           const QVariant element = list.value (arrayIndex);
+           result = varToLong ( element );
+        } else {
+           result = formatFailure ("array index out of range" );
+        }
+    }
+
+    else if( QEVectorVariants::isVectorVariant( value ) ){
+        // This is one of our vector variants.
         //
-        return QEVectorVariants::getIntegerValue ( value, arrayIndex, 0.0 );
+        result = QEVectorVariants::getIntegerValue ( value, arrayIndex, 0 );
+
+    } else {
+        // Otherwise is a scaler or non convertable type.
+        result = varToLong ( value );
     }
-    else
-    {
-        return formatIntegerNonArray( value );
-    }
+
+    return result;
 }
 
 /*
@@ -142,170 +157,56 @@ long QEIntegerFormatting::formatInteger( const QVariant &value, const int arrayI
 */
 QVector<long> QEIntegerFormatting::formatIntegerArray( const QVariant &value ) const
 {
-
-    QVector<long> returnValue;
+    QVector<long> result;
 
     // If the value is a list, populate a list, converting each of the items to a long
     if( value.type() == QVariant::List )
     {
-        QVariantList list = value.toList();
-        for( long i=0; i < list.count(); i++ )
+        const QVariantList list = value.toList();
+        for( int i=0; i < list.count(); i++ )
         {
-            returnValue.append( formatIntegerNonArray( list[i] ));
+            const QVariant element = list.value (i);
+            result.append( varToLong ( element ) );
         }
     }
 
-    else
-    {
-        // Is it a vector variant, can we convert to a QVector<long> ?
+    else if( QEVectorVariants::isVectorVariant( value ) ){
+
+        // This is one of our vectors variant.
+        // We can convert to a QVector<long>
         //
         bool okay;
-        returnValue = QEVectorVariants::convertToIntegerVector (value, okay);
+        result = QEVectorVariants::convertToIntegerVector ( value, okay );
 
-        if( !okay ){
-            // The value is not a list/vector so build a list with a single double
-            returnValue.append( formatIntegerNonArray( value ));
-        }
+    } else  {
+        // The value is not a list/vector so build a list with a single long.
+        //
+        result.append( varToLong ( value ) );
     }
 
-    return returnValue;
+    return result;
 }
 
 /*
-    Generate an integer given a value, using formatting defined within this class.
-*/
-long QEIntegerFormatting::formatIntegerNonArray( const QVariant &value ) const
+    QVariant provides a toLongLong function, but not a toLong function with
+    valiation, i.e. out of range.
+ */
+long QEIntegerFormatting::varToLong (const QVariant& item ) const
 {
-    // Determine the format from the variant type.
-    // Only the types used to store ca data are used. any other type is considered a failure.
-    switch( value.type() ) {
-        case QVariant::Double :
-        {
-            return formatFromFloating( value );
-        }
-        case QVariant::Int :
-        case QVariant::LongLong :
-        {
-            return value.toLongLong(); // No conversion requried. Stored in variant as required type
-        }        
-        case QVariant::Bool :
-        case QVariant::Char :
-        case QVariant::UInt :
-        case QVariant::ULongLong :
-        {
-            return formatFromUnsignedInteger( value );
-        }
-        case QVariant::String :
-        {
-            return formatFromString( value );
-        }
-        default :
-        {
-            return formatFailure( QString( "QEIntegerFormatting::formatFloating - unexpected QVariant type %1." ).arg( value.typeName() ) );
-        }
-    }
-}
+   const QString name = item.typeName();
 
-/*
-    Format a variant value as an integer representation of a floating point number.
-    Convert the variant value to a long. It may or may not be a longlong type variant. If it is - good,
-    there will be no conversion problems.
-*/
-long QEIntegerFormatting::formatFromFloating( const QVariant &value ) const
-{
-    // Extract the value as an integer using whatever conversion the QVariant uses.
-    //
-    // Note, this will not pick up if the QVariant type is not one of the types used to represent CA data.
-    // This is OK as it is not absolutely nessesary to do this sort of check at this point. Also the code is more robust as it will
-    // work if the range of QVariant types used expands.
-    // Note, this does not give us the freedom to specify what conversions should fail or succeed. For example, does QVariant::toLongLong()
-    // work if the value it holds is the string 1.234a, and should it?
-    // If QVariant::toLongLong() does not do exactly what is required, a switch statement for each of the types used to hold CA data
-    // will need to be added and the conversions done  manually or using QVariant::toLongLong() as required.
-    bool convertOk;
-    long iValue = value.toLongLong( &convertOk );
+   bool okay;
+   qlonglong temp;
+   temp = item.toLongLong ( &okay );
+   if ( !okay ) {
+      return formatFailure (name + " to long conversion failure" );
+   }
 
-    if( !convertOk )
-        return formatFailure( QString( "Warning from QEIntegerFormatting::formatFromFloating(). A variant could not be converted to a long." ) );
+   if (temp < LONG_MIN || temp > LONG_MAX) {
+      return formatFailure (name + " out of range" );
+   }
 
-    return iValue;
-}
-
-/*
-    Format a variant value as a (signed) integer representation of an unsigned integer.
-    This method was written to convert a QVariant of type ULongLong, but should cope with a variant of any type.
-    Convert the variant value to a long. It may or may not be a longlong type variant. If it is - good,
-    there will be no conversion problems.
-*/
-long QEIntegerFormatting::formatFromUnsignedInteger( const QVariant &value ) const
-{
-    // Extract the value as a long using whatever conversion the QVariant uses.
-    //
-    // Note, this will not pick up if the QVariant type is not one of the types used to represent CA data.
-    // This is OK as it is not absolutely nessesary to do this sort of check at this point. Also the code is more robust as it will
-    // work if the range of QVariant types used expands.
-    // Note, this does not give us the freedom to specify what conversions should fail or succeed. For example, does QVariant::toLongLong()
-    // work if the value it holds is the string 1.0001 and should it?
-    // If QVariant::toLongLong() does not do exactly what is required, a switch statement for each of the types used to hold CA data
-    // will need to be added and the conversions done  manually or using QVariant::toLongLong() as required.
-    bool convertOk;
-    long lValue = value.toLongLong( &convertOk );
-
-    if( !convertOk )
-        return formatFailure( QString( "Warning from QEIntegerFormatting::formatFromUnsignedInteger(). A variant could not be converted to an unsigned long." ) );
-
-    return lValue;
-}
-
-/*
-    Format a variant value as an integer representation of a string.
-    This method was written to convert a QVariant of type String, but should cope with a variant of any type.
-    Convert the variant value to an unsigned long. It may or may not be a ulonglong type variant. If it is - good,
-    there will be no conversion problems.
-*/
-long QEIntegerFormatting::formatFromString( const QVariant &value ) const
-{
-    // Extract the value as a long using whatever conversion the QVariant uses.
-    // If that fails, try extracting the value as a double using whatever conversion the QVariant uses, then cast it as a long.
-    //
-    // Note, this will not pick up if the QVariant type is not one of the types used to represent CA data.
-    // This is OK as it is not absolutely nessesary to do this sort of check at this point. Also the code is more robust as it will
-    // work if the range of QVariant types used expands.
-    // Note, this does not give us the freedom to specify what conversions should fail or succeed. For example, does QVariant::toLongLong()
-    // work if the value it holds is the string 1.0001 and should it?
-    // If QVariant::toLongLong() does not do exactly what is required, a switch statement for each of the types used to hold CA data
-    // will need to be added and the conversions done  manually or using QVariant::toLongLong() as required.
-    bool convertOk;
-    long lValue = value.toLongLong( &convertOk );
-
-    if( convertOk )
-        return lValue;
-
-    double dValue = value.toDouble( &convertOk );
-    if( convertOk )
-    {
-        lValue = (long)dValue;
-        return lValue;
-    }
-
-    return formatFailure( QString( "Warning from QEIntegerFormatting::formatFromString(). "
-                                   "A variant ('%1') could not be converted to an integer." ).
-                          arg( value.toString().trimmed() ) );
-
-}
-
-/*
-    Format a variant value as an integer representation of time.
-    This method was written to convert a QVariant of type ??? (the type used to represent times in CA),
-    but should cope with a variant of any type.
-    Convert the variant value to a long. It may or may not be a longlong type variant. If it is - good,
-    there will be no conversion problems.
-*/
-long QEIntegerFormatting::formatFromTime( const QVariant &value ) const
-{
-    //??? what is the ca time format and how do you convert it to an integer?
-    // Should there be conversion properties such as 'convert to minutes', 'convert to hours'.
-    return value.toLongLong();
+   return long (temp);
 }
 
 /*
@@ -314,7 +215,7 @@ long QEIntegerFormatting::formatFromTime( const QVariant &value ) const
 long QEIntegerFormatting::formatFailure( QString message ) const
 {
     // Log the format failure if required.
-    qDebug() << message;
+    qDebug() << "QEIntegerFormatting" << message;
 
     // Return whatever is required for a formatting falure.
     return 0;
@@ -331,7 +232,7 @@ long QEIntegerFormatting::formatFailure( QString message ) const
 void QEIntegerFormatting::setRadix( unsigned int radixIn )
 {
     if( radixIn >= 2 )
-        radix = radixIn;
+        radix = int( radixIn );
 }
 
 /*

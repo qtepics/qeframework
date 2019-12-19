@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -57,7 +57,8 @@ public:
     //===============================================
     /// Given a data value of any type, format it as an double according to the formatting instructions held by the class.
     /// This is used to convert the QVariant value received from a QCaObject, which is still based on the data variable type, to a double.
-    double formatFloating( const QVariant &value, int arrayIndex = 0 ) const;
+    double formatFloating( const QVariant &value ) const;
+    double formatFloating( const QVariant &value, int arrayIndex ) const;
 
     /// Given a data value of any type, format it as an array of doubles according to the formatting instructions held by the class.
     /// This is used to convert the QVariant value received from a QCaObject, which is still based on the data variable type, to a double array.
@@ -79,15 +80,8 @@ private:
     // Private functions to read the formatting configuration
     char getFormatChar() const;
 
-    // Type specific conversion functions
-    double formatFromFloating( const QVariant &value ) const;
-    double formatFromInteger( const QVariant &value ) const;
-    double formatFromUnsignedInteger( const QVariant &value ) const;
-    double formatFromString( const QVariant &value ) const;
-    double formatFromTime( const QVariant &value ) const;
-
-    // Common functions
-    double formatFloatingNonArray( const QVariant &value ) const;
+    // Utility function to convert variant to double.
+    double varToDouble( const QVariant& item ) const;
 
     // Error reporting
     double formatFailure( QString message ) const;

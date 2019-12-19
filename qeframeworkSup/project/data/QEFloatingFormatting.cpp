@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -26,7 +26,7 @@
 
 // Provides textual formatting for QEFloating data.
 
-#include <QEFloatingFormatting.h>
+#include "QEFloatingFormatting.h"
 #include <QDebug>
 #include <QEVectorVariants.h>
 
@@ -34,10 +34,11 @@
 
 //------------------------------------------------------------------------------
 //
-QEFloatingFormatting::QEFloatingFormatting() {
+QEFloatingFormatting::QEFloatingFormatting()
+{
     // Default formatting properties.
     format = FORMAT_g;
-    precision = 6;
+    precision = 15;
 }
 
 //------------------------------------------------------------------------------
@@ -64,9 +65,9 @@ QVariant QEFloatingFormatting::formatValue( const double &floatingValue,
         case generic::GENERIC_LONG :
         {
             qlonglong integerValue;
-            if( floatingValue < (double)LONG_MIN )
+            if( floatingValue < double( LONG_MIN ) )
                 integerValue = LONG_MIN;
-            else if( floatingValue > (double)LONG_MAX )
+            else if( floatingValue > double( LONG_MAX ) )
                 integerValue = LONG_MAX;
             else
                 integerValue = (qlonglong)floatingValue;
@@ -77,9 +78,9 @@ QVariant QEFloatingFormatting::formatValue( const double &floatingValue,
         case generic::GENERIC_SHORT :
         {
             qlonglong integerValue;
-            if( floatingValue < (double)SHRT_MIN )
+            if( floatingValue < double( SHRT_MIN ) )
                 integerValue = SHRT_MIN;
-            else if( floatingValue > (double)SHRT_MAX )
+            else if( floatingValue > double( SHRT_MAX ) )
                 integerValue = SHRT_MAX;
             else
                 integerValue = (qlonglong)floatingValue;
@@ -92,10 +93,10 @@ QVariant QEFloatingFormatting::formatValue( const double &floatingValue,
             qulonglong unsignedIntegerValue;
             if( floatingValue < 0 )
                 unsignedIntegerValue = 0;
-            else if( floatingValue > (double)ULONG_MAX )
+            else if( floatingValue > double( ULONG_MAX ) )
                 unsignedIntegerValue = ULONG_MAX;
             else
-                unsignedIntegerValue = (qulonglong)floatingValue;
+                unsignedIntegerValue = qulonglong( floatingValue );
 
             QVariant ulValue( unsignedIntegerValue );
             return ulValue;
@@ -105,10 +106,10 @@ QVariant QEFloatingFormatting::formatValue( const double &floatingValue,
             qulonglong unsignedIntegerValue;
             if( floatingValue < 0 )
                 unsignedIntegerValue = 0;
-            else if( floatingValue > (double)USHRT_MAX )
+            else if( floatingValue > double( USHRT_MAX ) )
                 unsignedIntegerValue = USHRT_MAX;
             else
-                unsignedIntegerValue = (qulonglong)floatingValue;
+                unsignedIntegerValue = qulonglong( floatingValue );
 
             QVariant ulValue( unsignedIntegerValue );
             return ulValue;
@@ -118,10 +119,10 @@ QVariant QEFloatingFormatting::formatValue( const double &floatingValue,
             qulonglong unsignedIntegerValue;
             if( floatingValue < 0 )
                 unsignedIntegerValue = 0;
-            else if( floatingValue > (double)UCHAR_MAX )
+            else if( floatingValue > double( UCHAR_MAX ) )
                 unsignedIntegerValue = UCHAR_MAX;
             else
-                unsignedIntegerValue = (qulonglong)floatingValue;
+                unsignedIntegerValue = qulonglong( floatingValue );
 
             QVariant ulValue( unsignedIntegerValue );
             return ulValue;
@@ -135,13 +136,14 @@ QVariant QEFloatingFormatting::formatValue( const double &floatingValue,
         case generic::GENERIC_UNKNOWN :
         {
         }
-        default :
+        default:
         {
             //qDebug() << "QEFloatingFormatting::formatValue() Unknown value 'Generic' type: " << valueType;
             QVariant unknown;
             return unknown;
         }
     }
+
     //qDebug() << "QEFloatingFormatting::formatValue() Unknown value 'Generic' type: " << valueType;
     QVariant unknown;
     return unknown;
@@ -170,25 +172,39 @@ QVariant QEFloatingFormatting::formatValue( const QVector<double> &floatingValue
 // Generate an floating point number given a value, using formatting defined within this class.
 // The value may be an array of variants or a single variant
 //
-double QEFloatingFormatting::formatFloating( const QVariant &value, const int arrayIndex  ) const
+double QEFloatingFormatting::formatFloating( const QVariant &value ) const
 {
+    return formatFloating( value, 0 );
+}
+
+double QEFloatingFormatting::formatFloating( const QVariant &value, const int arrayIndex ) const
+{
+    double result;
 
     // If the value is a list, get the specified item from the list.
     // Otherwise, just use the value as is
     if( value.type() == QVariant::List )
     {
-        QVariant defValue( (double) 0.0 );
-        return formatFloatingNonArray( value.toList().value( arrayIndex, defValue ) );
+        const QVariantList list = value.toList();
+
+        if (arrayIndex >= 0 && arrayIndex < list.count()) {
+            const QVariant element = list.value (arrayIndex);
+            result = varToDouble ( element );
+        } else {
+           result = formatFailure ("array index out of range" );
+        }
 
     } else if( QEVectorVariants::isVectorVariant( value ) ){
-        // This is one of our vectors.
+        // This is one of our vector variants.
         //
-        return QEVectorVariants::getDoubleValue ( value, arrayIndex, 0.0 );
+        result = QEVectorVariants::getDoubleValue ( value, arrayIndex, 0.0 );
     }
     else
     {
-        return formatFloatingNonArray( value );
+        result = varToDouble ( value );
     }
+
+    return result;
 }
 
 //------------------------------------------------------------------------------
@@ -196,171 +212,61 @@ double QEFloatingFormatting::formatFloating( const QVariant &value, const int ar
 //
 QVector<double> QEFloatingFormatting::formatFloatingArray( const QVariant &value )  const
 {
-    QVector<double> returnValue;
+    bool okay = true;
+    QVector<double> result;
 
     // If the value is a list, populate a list, converting each of the items to a double
     if( value.type() == QVariant::List )
     {
-        QVariantList list = value.toList();
-        for( long i=0; i < list.count(); i++ )
+        const QVariantList list = value.toList();
+        for( int i=0; i < list.count(); i++ )
         {
-            returnValue.append( formatFloatingNonArray( list[i] ));
+            const QVariant element = list.value (i);
+            bool elementOkay;
+            result.append( element.toDouble( &elementOkay ) );
+            okay &= elementOkay;
         }
     }
-    else
-    {
-        // Is it a vector variant, can we convert to a QVector<double> ?
+    else if( QEVectorVariants::isVectorVariant( value ) ){
+
+       // This is one of our vectors variant.
+       // We can convert to a QVector<double>
+       //
+       result = QEVectorVariants::convertToFloatingVector (value, okay);
+
+    } else {
+        // The value is not a list/vector so build a list with a single double.
         //
-        bool okay;
-        returnValue = QEVectorVariants::convertToFloatingVector (value, okay);
-
-        if( !okay ){
-            // The value is not a list/vector so build a list with a single double
-            returnValue.append( formatFloatingNonArray( value ));
-        }
+        result.append( value.toDouble( &okay ) );
     }
 
-    return returnValue;
+    return result;
 }
 
 /*
-    Generate an floating point number given a value, using formatting defined within this class.
-    The value must be a single variant.
-    This is used when formatting a single value, or for each value in an array of values.
-*/
-double QEFloatingFormatting::formatFloatingNonArray( const QVariant &value ) const
+    Wrapper to toDouble with reeor report.
+ */
+double QEFloatingFormatting::varToDouble( const QVariant& item ) const
 {
-    // Determine the format from the variant type.
-    // Only the types used to store ca data are used. any other type is considered a failure.
-    switch( value.type() ) {
-        case QVariant::Double :
-        {
-            return value.toDouble(); // No conversion requried. Stored in variant as required type
-        }
-        case QVariant::Int :
-        case QVariant::LongLong :
-        {
-            return formatFromInteger( value );
-        }
-        case QVariant::Bool :
-        case QVariant::Char :
-        case QVariant::UInt :
-        case QVariant::ULongLong :
-        {
-            return formatFromUnsignedInteger( value );
-        }
-        case QVariant::String :
-        {
-            return formatFromString( value );
-        }
-        default :
-        {
-            return formatFailure( QString( "QEFloatingFormatting::formatFloating - unexpected QVariant type %1." ).arg( value.typeName() ) );
-        }
-    }
-}
+   const QString name = item.typeName();
 
-/*
-    Format a variant value as a floating point representation of a signed integer.
-    This method was written to convert a QVariant of type LongLong, but should cope with a variant of any type.
-    Convert the variant value to a double. It may or may not be a double type variant. If it is - good,
-    there will be no conversion problems.
-*/
-double QEFloatingFormatting::formatFromInteger( const QVariant &value ) const
-{
-    // Extract the value as a double using whatever conversion the QVariant uses.
-    //
-    // Note, this will not pick up if the QVariant type is not one of the types used to represent CA data.
-    // This is OK as it is not absolutely nessesary to do this sort of check at this point. Also the code is more robust as it will
-    // work if the range of QVariant types used expands.
-    // Note, this does not give us the freedom to specify what conversions should fail or succeed. For example, does QVariant::toDouble()
-    // work if the value it holds is the string 1.234a, and should it?
-    // If QVariant::toDouble() does not do exactly what is required, a switch statement for each of the types used to hold CA data
-    // will need to be added and the conversions done  manually or using QVariant::toDouble() as required.
-    bool convertOk;
-    double dValue = value.toDouble( &convertOk );
+   bool okay;
+   double temp;
+   temp = item.toDouble ( &okay );
+   if ( !okay ) {
+      return formatFailure (name + " to double conversion failure" );
+   }
 
-    if( !convertOk )
-        return formatFailure( QString( "Warning from QEFloatingFormatting::formatFromFloating(). A variant could not be converted to a double." ) );
-
-    return dValue;
-}
-
-/*
-    Format a variant value as a floating point representation of an unsigned integer.
-    This method was written to convert a QVariant of type ULongLong, but should cope with a variant of any type.
-    Convert the variant value to a double. It may or may not be a double type variant. If it is - good,
-    there will be no conversion problems.
-*/
-double QEFloatingFormatting::formatFromUnsignedInteger( const QVariant &value ) const
-{
-    // Extract the value as a double using whatever conversion the QVariant uses.
-    //
-    // Note, this will not pick up if the QVariant type is not one of the types used to represent CA data.
-    // This is OK as it is not absolutely nessesary to do this sort of check at this point. Also the code is more robust as it will
-    // work if the range of QVariant types used expands.
-    // Note, this does not give us the freedom to specify what conversions should fail or succeed. For example, does QVariant::toDouble()
-    // work if the value it holds is the string 'twenty two' and should it?
-    // If QVariant::toDouble() does not do exactly what is required, a switch statement for each of the types used to hold CA data
-    // will need to be added and the conversions done  manually or using QVariant::toDouble() as required.
-    bool convertOk;
-    double dValue = value.toDouble( &convertOk );
-
-    if( !convertOk )
-        return formatFailure( QString( "Warning from QEFloatingFormatting::formatFromUnsignedInteger(). A variant could not be converted to a double." ) );
-
-    return dValue;
-}
-
-/*
-    Format a variant value as a floating point representation of a string.
-    This method was written to convert a QVariant of type String, but should cope with a variant of any type.
-    Convert the variant value to a double. It may or may not be a double type variant. If it is - good,
-    there will be no conversion problems.
-*/
-double QEFloatingFormatting::formatFromString( const QVariant &value ) const
-{
-    // Extract the value as a long using whatever conversion the QVariant uses.
-    //
-    // Note, this will not pick up if the QVariant type is not one of the types used to represent CA data.
-    // This is OK as it is not absolutely nessesary to do this sort of check at this point. Also the code is more robust as it will
-    // work if the range of QVariant types used expands.
-    // Note, this does not give us the freedom to specify what conversions should fail or succeed. For example, does QVariant::toLongLong()
-    // work if the value it holds is the string 1.0001 and should it?
-    // If QVariant::toLongLong() does not do exactly what is required, a switch statement for each of the types used to hold CA data
-    // will need to be added and the conversions done  manually or using QVariant::toLongLong() as required.
-    bool convertOk;
-    double dValue = value.toDouble( &convertOk );
-
-    if( !convertOk )
-        return formatFailure( QString( "Warning from QEFloatingFormatting::formatFromString(). "
-                                       "A variant ('%1') could not be converted to a double." ).
-                              arg( value.toString().trimmed() ) );
-
-    return dValue;
-}
-
-/*
-    Format a variant value as a floating point representation of time.
-    This method was written to convert a QVariant of type ??? (the type used to represent times in CA),
-    but should cope with a variant of any type.
-    Convert the variant value to a double. It may or may not be a double type variant. If it is - good,
-    there will be no conversion problems.
-*/
-double QEFloatingFormatting::formatFromTime( const QVariant &value ) const
-{
-    //??? what is the ca time format and how do you convert it to an double?
-    // Should there be conversion properties such as 'convert to minutes', 'convert to hours'.
-    return value.toDouble();
+   return double (temp);
 }
 
 /*
     Do something with the fact that the value could not be formatted as requested.
 */
-double QEFloatingFormatting::formatFailure( QString message ) const
+double QEFloatingFormatting::formatFailure( QString message  ) const
 {
     // Log the format failure if required.
-    qDebug() << message;
+    qDebug() << "QEFloatingFormatting" << message;
 
     // Return whatever is required for a formatting falure.
     return 0.0;
@@ -370,8 +276,9 @@ double QEFloatingFormatting::formatFailure( QString message ) const
     Set the precision.
     Relevent when formatting the floating point number as a string.
 */
-void QEFloatingFormatting::setPrecision( unsigned int precisionIn ) {
-        precision = precisionIn;
+void QEFloatingFormatting::setPrecision( unsigned int precisionIn )
+{
+    precision = precisionIn;
 }
 
 /*

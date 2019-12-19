@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2019 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -56,7 +56,8 @@ public:
     //===============================================
     /// Given a data value of any type, format it as an integer according to the formatting instructions held by the class.
     /// This is used to convert the QVariant value received from a QCaObject, which is still based on the data variable type, to an integer.
-    long formatInteger( const QVariant &value, int arrayIndex = 0 ) const;
+   long formatInteger( const QVariant &value ) const;
+   long formatInteger( const QVariant &value, int arrayIndex ) const;
 
     /// Given a data value of any type, format it as an array of integers according to the formatting instructions held by the class.
     /// This is used to convert the QVariant value received from a QCaObject, which is still based on the data variable type, to an integer array.
@@ -75,16 +76,9 @@ public:
     /// Get the radix used for all conversions.
     unsigned int getRadix() const;
 
-  private:
-    // Type specific conversion functions
-    long formatFromFloating( const QVariant &value ) const;
-    long formatFromInteger( const QVariant &value ) const;
-    long formatFromUnsignedInteger( const QVariant &value ) const;
-    long formatFromString( const QVariant &value ) const;
-    long formatFromTime( const QVariant &value ) const;
-
-    // Common functions
-    long formatIntegerNonArray( const QVariant &value ) const;
+private:
+    // Utility function to convert variant to long.
+    long varToLong( const QVariant& item ) const;
 
     // Error reporting
     long formatFailure( QString message ) const;
