@@ -24,10 +24,6 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
-/* The QEPvProperties class allows user to view all the displayable fields
-   of the associated IOC record.
-*/
-
 #ifndef QE_PV_PROPERTIES_H
 #define QE_PV_PROPERTIES_H
 
@@ -61,6 +57,9 @@
 #include <QEQuickSort.h>
 #include <QEOneToOne.h>
 
+/// The QEPvProperties class allows user to view all the displayable fields
+/// of the associated IOC record.
+///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvProperties :
       public QEAbstractDynamicWidget,
       public QESingleVariableMethods,
@@ -104,11 +103,13 @@ public:
    // END-SINGLE-VARIABLE-V2-PROPERTIES =================================================
 
 public:
-    enum OwnContextMenuOptions { PVPROP_NONE = QEAbstractDynamicWidget::ADWCM_SUB_CLASS_WIDGETS_START_HERE,
-                                 PVPROP_SORT_FIELD_NAMES,
-                                 PVPROP_RESET_FIELD_NAMES,
-                                 PVPROP_PROCESS_RECORD,
-                                 PVPROP_SUB_CLASS_WIDGETS_START_HERE };
+   enum OwnContextMenuOptions {
+      PVPROP_NONE = QEAbstractDynamicWidget::ADWCM_SUB_CLASS_WIDGETS_START_HERE,
+      PVPROP_SORT_FIELD_NAMES,
+      PVPROP_RESET_FIELD_NAMES,
+      PVPROP_PROCESS_RECORD,
+      PVPROP_SUB_CLASS_WIDGETS_START_HERE
+   };
 
    // Constructors
    //
@@ -123,7 +124,8 @@ public:
    void clearAllPvNames ();
 
 protected:
-   void resizeEvent (QResizeEvent*  event);
+   void resizeEvent (QResizeEvent* event);
+   void showEvent (QShowEvent* event);
 
    QMenu* buildContextMenu ();                        // Extend the QE generic context menu
    void contextMenuTriggered (int selectedItemNum);   // An action was selected from the context menu
@@ -243,6 +245,7 @@ private:
    void setPvName (const QString& pvName);
 
 private slots:
+   void postCreationSetup ();
    void useNewVariableNameProperty (QString variableNameIn,
                                     QString variableNameSubstitutionsIn,
                                     unsigned int variableIndex);

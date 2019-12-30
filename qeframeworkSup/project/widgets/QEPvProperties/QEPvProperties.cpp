@@ -32,6 +32,7 @@
 #include <QComboBox>
 #include <QFrame>
 #include <QHeaderView>
+#include <QTimer>
 
 #include <ContainerProfile.h>
 #include <QEScaling.h>
@@ -57,7 +58,7 @@
 static const QString lightGreyStyle = QEUtilities::colourToStyle ("#e8e8e8");
 
 static bool recordSpecsAreInitialised = false;       // setup housekeeping
-static QERecordSpec *pDefaultRecordSpec = NULL;      // default for unknown record types
+static QERecordSpec* pDefaultRecordSpec = NULL;      // default for unknown record types
 static QERecordSpecList recordSpecList;              // list of record type specs
 
 
@@ -80,15 +81,42 @@ static void initialiseRecordSpecs ()
    recordSpecList.clear ();
 
    // Create a record spec to be used as default if we given an unknown record type.
-   // All the common fields plus meta field RTYP plus VAL.
+   // All the common fields plus RTYP meta field plus VAL field.
    //
    pDefaultRecordSpec = new QERecordSpec ("_default_");
-   (*pDefaultRecordSpec)
-         << "RTYP" << "NAME$" << "DESC$" << "ASG"   << "SCAN" << "PINI" << "PHAS"
-         << "EVNT" << "TSE"   << "TSEL"  << "DTYP"  << "DISV" << "DISA" << "SDIS$"
-         << "DISP" << "PROC"  << "STAT"  << "SEVR"  << "NSTA" << "NSEV" << "ACKS"
-         << "ACKT" << "DISS"  << "LCNT"  << "PACT"  << "PUTF" << "RPRO" << "PRIO"
-         << "TPRO" << "UDF"   << "FLNK$" << "VAL";
+   pDefaultRecordSpec->append ("RTYP,  \"Record Type\"");
+   pDefaultRecordSpec->append ("NAME$, \"Record Name\"");
+   pDefaultRecordSpec->append ("DESC$, \"Descriptor\"");
+   pDefaultRecordSpec->append ("ASG,   \"Access Security Group\"");
+   pDefaultRecordSpec->append ("SCAN,  \"Scan Mechanism\"");
+   pDefaultRecordSpec->append ("PINI,  \"Process at iocInit\"");
+   pDefaultRecordSpec->append ("PHAS,  \"Scan Phase\"");
+   pDefaultRecordSpec->append ("EVNT,  \"Event Name\"");
+   pDefaultRecordSpec->append ("TSE,   \"Time Stamp Event\"");
+   pDefaultRecordSpec->append ("TSEL,  \"Time Stamp Link\"");
+   pDefaultRecordSpec->append ("DTYP,  \"Device Type\"");
+   pDefaultRecordSpec->append ("DISV,  \"Disable Value\"");
+   pDefaultRecordSpec->append ("DISA,  \"Disable\"");
+   pDefaultRecordSpec->append ("SDIS$, \"Scanning Disable\"");
+   pDefaultRecordSpec->append ("DISP,  \"Disable putField\"");
+   pDefaultRecordSpec->append ("PROC,  \"Force Processing\"");
+   pDefaultRecordSpec->append ("STAT,  \"Alarm Status\"");
+   pDefaultRecordSpec->append ("SEVR,  \"Alarm Severity\"");
+   pDefaultRecordSpec->append ("NSTA,  \"New Alarm Status\"");
+   pDefaultRecordSpec->append ("NSEV,  \"New Alarm Severity\"");
+   pDefaultRecordSpec->append ("ACKS,  \"Alarm Ack Severity\"");
+   pDefaultRecordSpec->append ("ACKT,  \"Alarm Ack Transient\"");
+   pDefaultRecordSpec->append ("DISS,  \"Disable Alarm Sevrty\"");
+   pDefaultRecordSpec->append ("LCNT,  \"Lock Count\"");
+   pDefaultRecordSpec->append ("PACT,  \"Record active\"");
+   pDefaultRecordSpec->append ("PUTF,  \"dbPutField process\"");
+   pDefaultRecordSpec->append ("RPRO,  \"Reprocess\"");
+   pDefaultRecordSpec->append ("PRIO,  \"Scheduling Priority\"");
+   pDefaultRecordSpec->append ("TPRO,  \"Trace Processing\"");
+   pDefaultRecordSpec->append ("UDF,   \"Undefined\"");
+   pDefaultRecordSpec->append ("UDFS,  \"Undefined Alarm Sevrty\"");
+   pDefaultRecordSpec->append ("FLNK$, \"Forward Process Link\"");
+   pDefaultRecordSpec->append ("VAL,   \"Current Value\"");
 
    okay = false;
 
@@ -110,11 +138,16 @@ static void initialiseRecordSpecs ()
 // Tables columns
 //
 #define FIELD_COL                 0
-#define VALUE_COL                 1
-#define NUNBER_COLS               2
+#define DESC_COL                  1
+#define VALUE_COL                 2
+#define NUMBER_COLS               3
+
+#define DEFAULT_FIELD_WIDTH       60
+#define DEFAULT_DESC_WIDTH        180
+
 #define DEFAULT_SECTION_SIZE      22
 
-#define WIDGET_MIN_WIDTH          340
+#define WIDGET_MIN_WIDTH          480
 #define WIDGET_MIN_HEIGHT         400
 
 #define WIDGET_DEFAULT_WIDTH      448
@@ -228,7 +261,7 @@ void QEPvProperties::createInternalWidgets ()
    // We create this with 40 rows initially - this will get expanded if/when necessary.
    // Mainly want enough to make it look sensible in designer.
    //
-   this->table = new QTableWidget (40, NUNBER_COLS, this);
+   this->table = new QTableWidget (40, NUMBER_COLS, this);
 
    this->vlayout = new QVBoxLayout (this);
    this->vlayout->setMargin (4);
@@ -311,7 +344,7 @@ void QEPvProperties::common_setup ()
    this->alternateRecordType = NULL;
    this->recordProcField = NULL;
 
-   // This function only perform required actions on first call.
+   // This function only performs required actions on first call.
    //
    initialiseRecordSpecs ();
 
@@ -398,6 +431,9 @@ void QEPvProperties::common_setup ()
    item = new QTableWidgetItem (" Field ");
    this->table->setHorizontalHeaderItem (FIELD_COL, item);
 
+   item = new QTableWidgetItem (" Description ");
+   this->table->setHorizontalHeaderItem (DESC_COL, item);
+
    item = new QTableWidgetItem (" Value ");
    this->table->setHorizontalHeaderItem (VALUE_COL, item);
 
@@ -450,13 +486,33 @@ void QEPvProperties::common_setup ()
    QObject::connect (header, SIGNAL (sectionClicked     (int)),
                      this,   SLOT   (tableHeaderClicked (int)));
 
-
    // Set up a connection to recieve variable name property changes
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
    this->connectNewVariableNameProperty
          (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+
+   // Initiate post creation setup.
+   //
+   QTimer::singleShot (1, this, SLOT (postCreationSetup ()));
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPvProperties::showEvent (QShowEvent*)
+{
+   QTimer::singleShot (1, this, SLOT (postCreationSetup ()));
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPvProperties::postCreationSetup ()
+{
+   // These setting are not honored if performed during object creation.
+   //
+   this->table->setColumnWidth (FIELD_COL, DEFAULT_FIELD_WIDTH);
+   this->table->setColumnWidth (DESC_COL,  DEFAULT_DESC_WIDTH);
 }
 
 //------------------------------------------------------------------------------
@@ -553,18 +609,12 @@ bool QEPvProperties::itemLessThan (const int a, const int b, QObject* context) c
 //
 void QEPvProperties::swapItems (const int a, const int b, QObject*)
 {
-   QTableWidgetItem* ai;
-   QTableWidgetItem* bi;
-
-   ai = this->table->takeItem (a, FIELD_COL);
-   bi = this->table->takeItem (b, FIELD_COL);
-   this->table->setItem       (a, FIELD_COL, bi);
-   this->table->setItem       (b, FIELD_COL, ai);
-
-   ai = this->table->takeItem (a, VALUE_COL);
-   bi = this->table->takeItem (b, VALUE_COL);
-   this->table->setItem       (a, VALUE_COL, bi);
-   this->table->setItem       (b, VALUE_COL, ai);
+   for (int col = 0; col < NUMBER_COLS; col++) {
+      QTableWidgetItem* ai = this->table->takeItem (a, col);
+      QTableWidgetItem* bi = this->table->takeItem (b, col);
+      this->table->setItem (a, col, bi);
+      this->table->setItem (b, col, ai);
+   }
 
    // Now update the variableIndex to table row mapping.
    //
@@ -580,11 +630,11 @@ void QEPvProperties::swapItems (const int a, const int b, QObject*)
 
 //------------------------------------------------------------------------------
 //
-void QEPvProperties::useNewVariableNameProperty (QString variableNameIn,
-                                                 QString variableNameSubstitutionsIn,
-                                                 unsigned int variableIndex)
+void QEPvProperties::useNewVariableNameProperty (QString pvName,
+                                                 QString substitutions,
+                                                 unsigned int vi)
 {
-   this->setVariableNameAndSubstitutions (variableNameIn, variableNameSubstitutionsIn, variableIndex);
+   this->setVariableNameAndSubstitutions (pvName, substitutions, vi);
 }
 
 //------------------------------------------------------------------------------
@@ -855,6 +905,16 @@ void QEPvProperties::setRecordTypeValue (const QString& rtypeValue,
          this->table->setItem (j, FIELD_COL, item);
       }
       item->setText  (" " + displayField + " ");
+
+      // Ensure table entry item exists.
+      //
+      item = this->table->item (j, DESC_COL);
+      if (!item) {
+         // We need to allocate item and insert into the table.
+         item = new QTableWidgetItem ();
+         this->table->setItem (j, DESC_COL, item);
+      }
+      item->setText (" " + pRecordSpec->getDescription (j));
 
       // Ensure table entry item exists.
       //

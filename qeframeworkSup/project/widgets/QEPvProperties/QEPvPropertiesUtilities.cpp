@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2012-2019 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -16,31 +18,49 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2016 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEPvPropertiesUtilities.h"
 #include <stdlib.h>
-
 #include <QDebug>
 #include <QFile>
 #include <QTextStream>
 
-#include "QEPvPropertiesUtilities.h"
 
-#define DEBUG qDebug() << "QEPvPropertiesUtilities::" << __FUNCTION__ << ":" << __LINE__
+#define DEBUG qDebug() << "QEPvPropertiesUtilities" << __LINE__ << __FUNCTION__ << "  "
 
 
 //==============================================================================
 //
-QERecordSpec::QERecordSpec (const QString recordTypeIn)
+QERecordSpec::QERecordSpec (const QString& recordTypeIn)
 {
    this->recordType = recordTypeIn;
-   this->clear ();
+   this->list.clear ();
+}
+
+//------------------------------------------------------------------------------
+//
+QERecordSpec::~QERecordSpec ()
+{
+   this->list.clear ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QERecordSpec::append (const QString item)
+{
+    this->list.append (item);
+}
+
+//------------------------------------------------------------------------------
+//
+int QERecordSpec::size () const
+{
+   return this->list.size();
 }
 
 //------------------------------------------------------------------------------
@@ -54,13 +74,47 @@ QString QERecordSpec::getRecordType () const
 //
 QString QERecordSpec::getFieldName (const int index) const
 {
-   if ((0 <= index) && (index < size ())) {
-      return this->at (index);
-   } else {
-      return "";
+   QString result = "";
+   if ((0 <= index) && (index < this->list.size ())) {
+      result = this->list.at (index);
+      int n = result.indexOf (',');
+      if (n >= 0) {
+         result = result.mid (0, n);
+         result = result.trimmed();
+      }
    }
+   return result;
 }
 
+//------------------------------------------------------------------------------
+//
+QString QERecordSpec::getDescription (const int index) const
+{
+   QString result = "";
+   int len;
+
+   if ((0 <= index) && (index < this->list.size ())) {
+      result = this->list.at (index);
+      int n = result.indexOf (',');
+      if (n >= 0) {
+         result = result.mid (n + 1);
+         result = result.trimmed();
+
+         // Loose quotes if they exists
+         len = result.length();
+         if (len >= 1 && result [0] == '"')
+            result = result.mid (1);
+
+         len = result.length();
+         if (len >= 1 && result [len - 1] == '"')
+            result.chop (1);
+      } else {
+         result = "-";
+      }
+   }
+
+   return result;
+}
 
 //==============================================================================
 //
@@ -72,7 +126,7 @@ QERecordSpecList::QERecordSpecList ()
 
 //------------------------------------------------------------------------------
 //
-int QERecordSpecList::findSlot (const QString recordType) const
+int QERecordSpecList::findSlot (const QString& recordType) const
 {
    int result = -1;
    QERecordSpec * checkSpec;
@@ -91,7 +145,7 @@ int QERecordSpecList::findSlot (const QString recordType) const
 
 //------------------------------------------------------------------------------
 //
-QERecordSpec * QERecordSpecList::find (const QString recordType) const
+QERecordSpec * QERecordSpecList::find (const QString& recordType) const
 {
    QERecordSpec *result = NULL;
    int slot;
@@ -105,7 +159,7 @@ QERecordSpec * QERecordSpecList::find (const QString recordType) const
 
 //------------------------------------------------------------------------------
 //
-void QERecordSpecList::appendOrReplace (QERecordSpec *newRecordSpec)
+void QERecordSpecList::appendOrReplace (QERecordSpec* newRecordSpec)
 {
    int slot;
 
