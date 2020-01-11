@@ -137,10 +137,12 @@ static void initialiseRecordSpecs ()
 //==============================================================================
 // Tables columns
 //
-#define FIELD_COL                 0
-#define DESC_COL                  1
-#define VALUE_COL                 2
-#define NUMBER_COLS               3
+enum ColumnIndices {
+   FIELD_COL = 0,
+   DESC_COL,
+   VALUE_COL,
+   NUMBER_COLS   // Must be last
+};
 
 #define DEFAULT_FIELD_WIDTH       60
 #define DEFAULT_DESC_WIDTH        180
@@ -440,6 +442,10 @@ void QEPvProperties::common_setup ()
    this->table->horizontalHeader()->setDefaultSectionSize (60);
    this->table->horizontalHeader()->setStretchLastSection (true);
 
+   // Set the default colums widths.
+   //
+   this->setColumnWidths (DEFAULT_FIELD_WIDTH, DEFAULT_DESC_WIDTH);
+
    this->table->verticalHeader()->hide ();
    this->table->verticalHeader()->setDefaultSectionSize (DEFAULT_SECTION_SIZE);
 
@@ -492,27 +498,37 @@ void QEPvProperties::common_setup ()
    //
    this->connectNewVariableNameProperty
          (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+}
 
-   // Initiate post creation setup.
-   //
-   QTimer::singleShot (1, this, SLOT (postCreationSetup ()));
+//------------------------------------------------------------------------------
+// Called by QEScaling to allow widget specific scaling actions.
+//
+void QEPvProperties::scaleBy (const int m, const int d)
+{
+   this->setColumnWidths (DEFAULT_FIELD_WIDTH * m / d, DEFAULT_DESC_WIDTH * m / d);
 }
 
 //------------------------------------------------------------------------------
 //
-void QEPvProperties::showEvent (QShowEvent*)
+void QEPvProperties::setColumnWidths (const int fcw, const int dcw)
 {
-   QTimer::singleShot (1, this, SLOT (postCreationSetup ()));
+   // The weirdness of Qt - after reseting the default col width
+   // either during creation or recaling, the actual col widths must be
+   // reset. However these settings are not honored if performed as part of
+   // the same event (object creation or rescaling). Therefore save the
+   // required values and trigger a delayed callback.
+   //
+   this->tableFieldColWidth = fcw;
+   this->tableDescColWidth = dcw;
+   QTimer::singleShot (1, this, SLOT (delayedSetColumnWidths ()));
 }
 
 //------------------------------------------------------------------------------
-//
-void QEPvProperties::postCreationSetup ()
+// slot
+void QEPvProperties::delayedSetColumnWidths ()
 {
-   // These setting are not honored if performed during object creation.
-   //
-   this->table->setColumnWidth (FIELD_COL, DEFAULT_FIELD_WIDTH);
-   this->table->setColumnWidth (DESC_COL,  DEFAULT_DESC_WIDTH);
+   this->table->setColumnWidth (FIELD_COL, this->tableFieldColWidth);
+   this->table->setColumnWidth (DESC_COL, this->tableDescColWidth );
 }
 
 //------------------------------------------------------------------------------
@@ -548,30 +564,24 @@ void QEPvProperties::resizeEvent (QResizeEvent *)
 //------------------------------------------------------------------------------
 // NB. Need to do a deep clear to avoid memory loss.
 // qcaobject::QCaObjects aren't owned by parent widget
+// Also clears description and value table items.
 //
 void QEPvProperties::clearFieldChannels ()
 {
-   QEString* qca;
-   QTableWidgetItem *item;
-   QString gap ("           ");  // empirically found to be quivilent width of " DESC "
-   int j;
-
    while (!this->fieldChannels.isEmpty ()) {
-      qca = this->fieldChannels.takeFirst ();
+      QEString* qca = this->fieldChannels.takeFirst ();
       delete qca;
    }
+
    this->fieldsAreSorted = false;
    this->variableIndexTableRowMap.clear ();
 
-   for (j = 0; j < this->table->rowCount (); j++) {
-      item = table->verticalHeaderItem (j);
-      if (item) {
-         item->setText (gap);
-      }
-
-      item = this->table->item (j, 0);
-      if (item) {
-         item->setText ("");
+   for (int r = 0; r < this->table->rowCount (); r++) {
+      for (int c = 0; c < NUMBER_COLS; c++) {
+         QTableWidgetItem* item = this->table->item (r, c);
+         if (item) {
+            item->setText ("");
+         }
       }
    }
 }
@@ -1251,7 +1261,7 @@ void QEPvProperties::contextMenuTriggered (int selectedItemNum)
          break;
 
       default:
-         // process parent context menu
+         // Process parent context menu
          //
          ParentWidgetClass::contextMenuTriggered (selectedItemNum);
          break;

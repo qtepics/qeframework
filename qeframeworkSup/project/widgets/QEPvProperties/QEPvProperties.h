@@ -125,7 +125,6 @@ public:
 
 protected:
    void resizeEvent (QResizeEvent* event);
-   void showEvent (QShowEvent* event);
 
    QMenu* buildContextMenu ();                        // Extend the QE generic context menu
    void contextMenuTriggered (int selectedItemNum);   // An action was selected from the context menu
@@ -155,6 +154,10 @@ protected:
    //
    QString copyVariable ();
    QVariant copyData ();
+
+   // Scale the widget, specifically the colums widths, by m/d.
+   //
+   void scaleBy (const int m, const int d);
 
    // Override QEAbstractDynamicWidget functions
    //
@@ -211,6 +214,12 @@ private:
    QList<QEString *> fieldChannels;
    bool fieldsAreSorted;
 
+   // Holds the required scaled widths for the field name and description columns.
+   // These are transient variables used by setColumnWidths() and delayedSetColumnWidths().
+   //
+   int tableFieldColWidth;
+   int tableDescColWidth;
+
    // Not used other than as quick sort contexts
    //
    QObject sortContext;
@@ -229,7 +238,7 @@ private:
    void common_setup ();
    void createInternalWidgets ();
    void clearFieldChannels ();
-
+   
    void setUpRecordProcChannel (QEInteger* &qca);
    void setUpRecordTypeChannels (QEString* &qca, const PVReadModes readMode);
 
@@ -244,8 +253,13 @@ private:
    //
    void setPvName (const QString& pvName);
 
+   // Requests new columns widths.
+   void setColumnWidths (const int fcw, const int dcw);
+
 private slots:
-   void postCreationSetup ();
+   // Actually sets the required columns widths.
+   void delayedSetColumnWidths ();
+
    void useNewVariableNameProperty (QString variableNameIn,
                                     QString variableNameSubstitutionsIn,
                                     unsigned int variableIndex);
