@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2019 Australian Synchrotron
+ *  Copyright (c) 2009-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -47,7 +47,7 @@
 #include <QEScaling.h>
 #include <QEGraphicNames.h>
 #include <QEGraphic.h>
-#include <QCaDataPoint.h>
+#include <QEArchiveAccess.h>
 #include <QEDisplayRanges.h>
 
 #define DEBUG qDebug () << "QEPlot" <<  __LINE__ << __FUNCTION__  << "  "
@@ -119,40 +119,20 @@ static QwtPlotCurve::CurveStyle convertTrace2Curve (const QEPlot::TraceStyles st
 //==============================================================================
 // Trace related data and properties
 //
-class QEPlot::Trace {
+class QEPlot::Trace : public QObject {
 public:
-   explicit Trace (const int instanceIn) : instance (instanceIn)
-   {
-      static const QColor defaultColors [] = {
-         Qt::black, Qt::red, Qt::green, Qt::blue,
-         Qt::cyan, Qt::magenta, Qt::yellow, Qt::gray
-      };
+   explicit Trace (const int instanceIn, QEPlot* parent);
+   ~Trace ();
 
-      this->reset ();   // resets dynamic infomation
+   void reset ();
+   void requestArchiveData ();
+   void setArchiveData (const QCaDataPointList& archiveData);
 
-      if (this->instance >= 0 && this->instance < ARRAY_LENGTH (defaultColors)) {
-         this->color = defaultColors [this->instance];
-      } else {
-         this->color = Qt::black;
-      }
-      this->style = QwtPlotCurve::Lines;
-      this->width = 1;
-   }
-
-   ~Trace () {
-      this->scalarData.clear();
-   }
-
-   void reset () {
-      this->isInUse = false;
-      this->isConnected = false;
-      this->isWaveform = false;
-      this->scalarData.clear();
-      this->ydata.clear();
-   }
-
+   const QEPlot* owner;
    const int instance;
    int width;
+
+   QEArchiveAccess archiveAccess;  // Allow access to archivers
 
    // Holds plot data
    //
@@ -165,17 +145,118 @@ public:
    QwtPlotCurve::CurveStyle style;
    QString legend;
 
+   bool isInUse;                // Essential indicates if PV name is set or not.
+   bool isConnected;
+   bool isFirstUpdate;
+
    // True if displaying a waveform (an array of values arriving in one update),
    // false if displaying a strip chart (individual values arriving over time).
    // Used to ensure only one plot mechanism is used.
    //
-   bool isWaveform;
-   bool isConnected;
-   bool isInUse;                // Essential indicates if PV name is set or not.
+   bool isWaveform;             // otherwise is scalar
 
    QCaVariableNamePropertyManager vnpm;
 };
 
+
+//------------------------------------------------------------------------------
+//
+QEPlot::Trace::Trace (const int instanceIn, QEPlot* parent) :
+   QObject (parent),
+   owner (parent),
+   instance (instanceIn)
+{
+   static const QColor defaultColors [] = {
+      Qt::black, Qt::red, Qt::green, Qt::blue,
+      Qt::cyan, Qt::magenta, Qt::yellow, Qt::gray
+   };
+
+   this->reset ();   // resets dynamic infomation
+
+   if (this->instance >= 0 && this->instance < ARRAY_LENGTH (defaultColors)) {
+      this->color = defaultColors [this->instance];
+   } else {
+      this->color = Qt::black;
+   }
+   this->style = QwtPlotCurve::Lines;
+   this->width = 1;
+
+   // Set up connection to archive access.
+   // Note: we go via the owner which has class defined in the header file,
+   // and therefore is processed by moc allowing slot setup.
+   //
+   QObject::connect
+         (&this->archiveAccess,
+          SIGNAL (setArchiveData (const QObject*, const bool, const QCaDataPointList&, const QString&, const QString&)),
+          this->owner,
+          SLOT   (setArchiveData (const QObject*, const bool, const QCaDataPointList&, const QString&, const QString&)));
+}
+
+//------------------------------------------------------------------------------
+//
+QEPlot::Trace::~Trace ()
+{
+   this->scalarData.clear();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlot::Trace::reset ()
+{
+   this->isInUse = false;
+   this->isConnected = false;
+   this->isFirstUpdate = false;
+   this->isWaveform = false;
+   this->scalarData.clear();
+   this->ydata.clear();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlot::Trace::requestArchiveData ()
+{
+   if (!this->isInUse || this->isWaveform) return;  // sanity check
+
+   static const qint64 rawLimit = 600;  // seconds
+
+   // Calculate the time span - add 10% wiggle room.
+   //
+   const qint64 span = (this->owner->timeSpan * 11) / 10;
+   const QDateTime archiveEndDateTime = QDateTime::currentDateTime().toUTC();
+   const QDateTime archiveStartDateTime = archiveEndDateTime.addSecs (-span);
+   const QEArchiveInterface::How how =
+         (span >= rawLimit) ? QEArchiveInterface::Linear : QEArchiveInterface::Raw;
+
+   QString pvName = this->owner->getSubstitutedVariableName (this->instance);
+   this->archiveAccess.readArchive
+         (this, pvName, archiveStartDateTime, archiveEndDateTime, 1000, how, 0);
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlot::Trace::setArchiveData (const QCaDataPointList& archiveData)
+{
+   if (!this->isInUse || this->isWaveform) return;  // sanity check
+
+   // Merge archiveData and (current) scalarData into new scalarData
+   //
+   QCaDataPointList mergedData = archiveData;
+
+   if (this->scalarData.count() >= 1) {
+      // We have at least one one of live/real time data.
+      // There may be overlap between live/real time data and histrotical
+      // archive data, so purge duplicate arhioive data
+      //
+      const QCaDateTime firstLiveTime = this->scalarData.value(0).datetime;
+      const int posn = mergedData.indexBeforeTime (firstLiveTime, mergedData.count());
+      mergedData.truncate (posn);
+   }
+
+   // Do actual merge and re-assign.
+   //
+   mergedData.append (this->scalarData);
+   this->scalarData = mergedData;
+}
 
 //==============================================================================
 // Constructor with no initialisation
@@ -217,7 +298,7 @@ void QEPlot::setup ()
    // Allocate Trace objects
    //
    for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
-      this->traces[i] = new Trace (i);
+      this->traces[i] = new Trace (i, this);
    }
 
    // Set default inherited property values.
@@ -235,6 +316,7 @@ void QEPlot::setup ()
    this->yMin = 0.0;
    this->yMax = 1.0;
    this->yAxisAutoScale = true;
+   this->archiveBackfill = false;
    this->axisEnableX = true;
    this->axisEnableY = true;
 
@@ -308,12 +390,7 @@ QEPlot::~QEPlot ()
       this->tickTimer->stop ();
    }
 
-   // Dellocate Trace objects
-   for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
-      if (this->traces[i]) {
-         delete this->traces[i];
-      }
-   }
+   // Trace objects are QObjects and auto deleted.
 }
 
 //------------------------------------------------------------------------------
@@ -367,6 +444,47 @@ bool QEPlot::eventFilter (QObject *watched, QEvent *event)
 
    return result;
 }
+
+//------------------------------------------------------------------------------
+//
+QMenu* QEPlot::buildContextMenu ()
+{
+   QMenu* menu = ParentWidgetClass::buildContextMenu ();
+   QAction* action;
+
+   menu->addSeparator ();
+
+   action = new QAction ("Archive backfill", menu);
+   action->setCheckable (false);
+   action->setData (PLOTCM_ARCHIVE_BACKFILL);
+   menu->addAction (action);
+
+   return menu;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlot::contextMenuTriggered (int selectedItemNum)
+{
+   switch (selectedItemNum) {
+
+      case PLOTCM_ARCHIVE_BACKFILL:
+         for (int j = 0; j < ARRAY_LENGTH(this->traces); j++) {
+            Trace* tr = this->traces[j];
+            if (tr && tr->isInUse) {
+               tr->requestArchiveData();
+            }
+         }
+         break;
+
+      default:
+         // Call parent class function.
+         //
+         ParentWidgetClass::contextMenuTriggered (selectedItemNum);
+         break;
+   }
+}
+
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of
@@ -432,6 +550,7 @@ void QEPlot::connectionChanged (QCaConnectionInfo& connectionInfo,
    // Note the connected state
    bool isConnected = connectionInfo.isChannelConnected ();
    tr->isConnected = isConnected;
+   tr->isFirstUpdate = true; // no need to check if connect/disconnect
 
    if (!tr->isWaveform && !tr->isConnected && (tr->scalarData.count () >= 1)) {
       // We have a channel disconnect.
@@ -492,6 +611,18 @@ void QEPlot::setPlotData (const double value, QCaAlarmInfo& alarmInfo,
    //
    if (tr->isWaveform) {
       return;
+   }
+
+   // Do any specials for first update
+   //
+   if (tr->isFirstUpdate) {
+      tr->isFirstUpdate = false;   // clear
+      // Is auto-backfill enabled?
+      if (this->archiveBackfill) {
+         // Yes - issue archive data request.
+         //
+         tr->requestArchiveData();
+      }
    }
 
    // Just save the point - add to the current data set.
@@ -561,6 +692,13 @@ void QEPlot::setPlotData (const QVector <double>&values,
    tr->isWaveform = (values.count () > 1);
    if (!tr->isWaveform) {
       return;
+   }
+
+   // Do any specials for first update
+   //
+   if (tr->isFirstUpdate) {
+      // No special action required.
+      tr->isFirstUpdate = false;
    }
 
    // Clear any previous data
@@ -942,6 +1080,38 @@ QString QEPlot::getVariableNameSubstitutionsProperty () const
    return this->traces[0]->vnpm.getSubstitutionsProperty ();
 }
 
+//------------------------------------------------------------------------------
+// slot
+void QEPlot::setArchiveData (const QObject* userData, const bool okay,
+                             const QCaDataPointList& archiveData,
+                             const QString& pvName,
+                             const QString& supplementary)
+{
+   bool foundSlot = false;
+   int trace = -1;
+
+   for (int j = 0; j < ARRAY_LENGTH(this->traces); j++) {
+      Trace* tr = this->traces[j];
+      if (tr && (userData == tr)) {
+         foundSlot = true;
+         trace = j;
+         break;
+      }
+   }
+
+   if (foundSlot && okay) {
+      Trace* tr = this->traces[trace];
+      tr->setArchiveData (archiveData);
+   } else {
+      QString message = QString ("trace: %1, pv: %3, status: %2, info: %4")
+            .arg (trace)
+            .arg (pvName)
+            .arg (okay ? "okay" : "fail")
+            .arg (supplementary);
+      this->setReadOut (message);
+   }
+}
+
 //==============================================================================
 // Copy / Paste
 QString QEPlot::copyVariable ()
@@ -1054,7 +1224,7 @@ void QEPlot::setAutoScale (const bool autoScaleIn)
       this->plotArea->setAxisAutoScale (QwtPlot::yLeft, true);
    } else {
       // Just re-applying the range does not cut-the-mustard, even if we turn auto scale off.
-      // We need to set a different range, and then the original.
+      // We need to set a different range, and then reset to the original.
       //
       this->plotArea->setYRange (this->yMin, this->yMax + 1.0, QEGraphicNames::SelectByValue, 5, false);
       this->plotArea->setYRange (this->yMin, this->yMax, QEGraphicNames::SelectByValue, 5, false);
@@ -1068,6 +1238,20 @@ void QEPlot::setAutoScale (const bool autoScaleIn)
 bool QEPlot::getAutoScale () const
 {
    return this->yAxisAutoScale;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlot::setArchiveBackfill (const bool archiveBackfillIn)
+{
+   this->archiveBackfill = archiveBackfillIn;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEPlot::getArchiveBackfill () const
+{
+   return this->archiveBackfill;
 }
 
 //------------------------------------------------------------------------------
@@ -1123,6 +1307,14 @@ void QEPlot::updateGridSettings ()
                                 this->gridEnableMinorX, this->gridEnableMinorY);
 
    this->replotIsRequired = true;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlot::setReadOut (const QString& text)
+{
+   message_types mt (MESSAGE_TYPE_INFO, MESSAGE_KIND_STATUS);
+   this->sendMessage (text, mt);
 }
 
 //------------------------------------------------------------------------------

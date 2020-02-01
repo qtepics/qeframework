@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2019 Australian Synchrotron
+ *  Copyright (c) 2009-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,6 +31,7 @@
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QCaVariableNamePropertyManager.h>
+#include <QCaDataPoint.h>
 #include <QEvent>
 #include <QPoint>
 #include <QVector>
@@ -128,6 +129,7 @@ public:
    Q_PROPERTY (double yMax READ getYMax WRITE setYMax)
 
    Q_PROPERTY (bool autoScale READ getAutoScale WRITE setAutoScale)
+   Q_PROPERTY (bool archiveBackfill READ getArchiveBackfill WRITE setArchiveBackfill)
 
    Q_PROPERTY (bool axisEnableX READ getAxisEnableX WRITE setAxisEnableX)
    Q_PROPERTY (bool axisEnableY READ getAxisEnableY WRITE setAxisEnableY)
@@ -162,6 +164,16 @@ public:
    Q_PROPERTY (int margin READ getMargin WRITE setMargin)
 
 public:
+   typedef QEFrame ParentWidgetClass;
+
+   // Abstract Dynamic Widget Context Menu values
+   //
+   enum OwnContextMenuOptions {
+      PLOTCM_NONE = CM_SPECIFIC_WIDGETS_START_HERE,
+      PLOTCM_ARCHIVE_BACKFILL,
+      PLOTCM_SUB_CLASS_WIDGETS_START_HERE
+   };
+
    explicit QEPlot (QWidget* parent = 0);
    explicit QEPlot (const QString& variable1Name, QWidget* parent = 0);
 
@@ -180,6 +192,9 @@ public:
 
    void setAutoScale (const bool yAxisAutoScale);
    bool getAutoScale () const;
+
+   void setArchiveBackfill (const bool archiveBackfill);
+   bool getArchiveBackfill () const;
 
    void setAxisEnableX (const bool axisEnableXIn);
    bool getAxisEnableX () const;
@@ -311,9 +326,12 @@ signals:
 protected:
    bool eventFilter (QObject* watched, QEvent* event);
 
+   QMenu* buildContextMenu ();                        // Build the specific context menu
+   void contextMenuTriggered (int selectedItemNum);   // An action was selected from the context menu
+
    // Functions common to most QE widgets
    //
-   qcaobject::QCaObject*  createQcaItem (unsigned int variableIndex);
+   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
    void establishConnection (unsigned int variableIndex);
 
    // Drag and Drop
@@ -337,6 +355,7 @@ private:
    void drawLegend ();
    void purgeOldData ();
    void updateGridSettings ();
+   void setReadOut (const QString& text);
 
    QHBoxLayout* layout;
    int layoutMargin;
@@ -351,6 +370,7 @@ private:
    double yMin;
    double yMax;
    bool yAxisAutoScale;
+   bool archiveBackfill;
    bool axisEnableX;
    bool axisEnableY;
    QColor backgroundColor;
@@ -386,6 +406,10 @@ private slots:
    void useNewVariableNameProperty (QString variableName,
                                     QString variableNameSubstitutions,
                                     unsigned int variableIndex);
+
+   void setArchiveData (const QObject* userData, const bool okay,
+                        const QCaDataPointList& archiveData,
+                        const QString& pvName, const QString& supplementary);
 
    // From the QEGraphic plot object.
    //
