@@ -1,6 +1,9 @@
 /*  QEArchiveStatus.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,115 +18,131 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEArchiveStatus.h"
 #include <QDebug>
 #include <QLabel>
 #include <QFrame>
-
 #include <QECommon.h>
-#include "QEArchiveStatus.h"
 
 #define DEBUG  qDebug () << "QEArchiveStatus" << __LINE__ << __FUNCTION__ << "  "
 
 
 //==============================================================================
 //
-void QEArchiveStatus::createInternalWidgets ()
+void QEArchiveStatus::setStatusRowVisible (const int j, const bool visible)
 {
+   if (j < 0 || j >= ARRAY_LENGTH (this->rowList)) return;   // sanity check
 
-#define CREATE_LABEL(member, width, align, text)  {              \
-   this->rowList [j].member = new QLabel (text, frame);          \
-   this->rowList [j].member->setIndent (6);                      \
-   this->rowList [j].member->setMinimumWidth (width);            \
-   this->rowList [j].member->setAlignment (align);               \
-   this->rowList [j].member->setStyleSheet (sheet);              \
-   hLayout->addWidget (this->rowList [j].member);                \
+   QEArchiveStatus::Rows* row = &this->rowList [j];
+   row->hostNamePort->setVisible (visible);
+   row->endPoint->setVisible (visible);
+   row->state->setVisible (visible);
+   row->numberPVs->setVisible (visible);
+   if (archiveAccess->getArchiverType() == QEArchiveAccess::CA) {
+      row->available->setVisible (visible);
+      row->read->setVisible (visible);
+      row->pending->setVisible (visible);
+   }
 }
 
-   const int frameHeight = 19;
-   const int horMargin = 2;    // 19 - 2 - 2 => widget height is 15
-   const int horSpacing = 4;
+//------------------------------------------------------------------------------
+//
+void QEArchiveStatus::createInternalWidgets ()
+{
+   static const int frameHeight = 15;
+   static const int horMargin = 4;    // 19 - 2 - 2 => widget height is 15
+   static const int horSpacing = 4;
 
-   int j;
-   QColor background;
-   QString sheet;
-   QFrame* frame;
-   QHBoxLayout *hLayout;
+   // j, col, row and sheet are CREATE_LABEL globals
+   //
+   int j;           // rowList row
+   int row;         // grid layout row
+   int col;         // grid layout column
+   QString sheet;   // style sheet
+
+#define CREATE_LABEL(member, align, text)  {                             \
+   this->rowList [j].member = new QLabel (text, NULL);                   \
+   this->rowList [j].member->setIndent (6);                              \
+   this->rowList [j].member->setMinimumWidth (68);                       \
+   this->rowList [j].member->setFixedHeight (frameHeight);               \
+   this->rowList [j].member->setAlignment (align);                       \
+   this->rowList [j].member->setStyleSheet (sheet);                      \
+   this->gridLayout->addWidget (this->rowList [j].member, row, col++);   \
+}
+
 
    this->archiveAccess = new QEArchiveAccess (this);
-   this->archiveAccess->setMessageSourceId(9001);
+   this->archiveAccess->setMessageSourceId (9001);
 
    const QEArchiveAccess::ArchiverTypes archType = QEArchiveAccess::getArchiverType();
 
-   this->vLayout = new QVBoxLayout (this);
-   this->vLayout->setContentsMargins (2, 6, 2, 2);  // left, top, right, bottom
-   this->vLayout->setSpacing (1);
+   this->gridLayout = new QGridLayout (this);
+   this->gridLayout->setContentsMargins (horMargin, 6, horMargin, 2);  // left, top, right, bottom
+   this->gridLayout->setVerticalSpacing (1);
+   this->gridLayout->setHorizontalSpacing (horSpacing);
 
    // Use use the last row as a header row.
-   //
+   // We don't need to keep a reference to header labels, but
+   // this does allow us to use CREATE_LABEL.
    j = NumberRows;
    sheet = "";
-   this->rowList [j].frame = frame = new QFrame (this);
-   frame->setFixedHeight (frameHeight);
-   this->rowList [j].hLayout = hLayout = new QHBoxLayout (frame);
-   hLayout->setMargin (horMargin);
-   hLayout->setSpacing (horSpacing);
 
-   CREATE_LABEL (hostNamePort, 160, Qt::AlignLeft,    "Host:Port");
-   CREATE_LABEL (endPoint,     220, Qt::AlignLeft,    "End Point");
-   CREATE_LABEL (state,         88, Qt::AlignHCenter, "Status");
+   row = 0;
+   col = 0;
+   CREATE_LABEL (hostNamePort,  Qt::AlignLeft,    "Host:Port");
+   CREATE_LABEL (endPoint,      Qt::AlignLeft,    "End Point");
+   CREATE_LABEL (state,         Qt::AlignHCenter, "Status");
    if (archType == QEArchiveAccess::CA) {
-      CREATE_LABEL (available,     68, Qt::AlignRight,   "Available");
-      CREATE_LABEL (read,          68, Qt::AlignRight,   "Read");
+      CREATE_LABEL (available,     Qt::AlignRight,   "Available");
+      CREATE_LABEL (read,          Qt::AlignRight,   "Read");
+   } else {
+      this->rowList [j].available = NULL;
+      this->rowList [j].read = NULL;
    }
-   CREATE_LABEL (numberPVs,     68, Qt::AlignRight,   "Num PVs");
+   CREATE_LABEL (numberPVs,     Qt::AlignRight,   "Num PVs");
    if (archType == QEArchiveAccess::CA) {
-      CREATE_LABEL (pending,       68, Qt::AlignRight,   "Pending");
+      CREATE_LABEL (pending,       Qt::AlignRight,   "Pending");
+   } else {
+      this->rowList [j].pending = NULL;
    }
-   this->vLayout->addWidget (frame);
 
-
-   background = QColor (240, 240, 240, 255);
+   QColor background = QColor (240, 240, 240, 255);
    sheet = QEUtilities::colourToStyle (background);
 
    for (j = 0; j < NumberRows; j++ ) {
-      QEArchiveStatus::Rows* row = &this->rowList [j];
-
-      row->frame = frame = new QFrame (this);
-      frame->setFixedHeight (frameHeight);
-
-      this->rowList [j].hLayout = hLayout = new QHBoxLayout (row->frame);
-      hLayout->setMargin (horMargin);
-      hLayout->setSpacing (horSpacing);
-
-      CREATE_LABEL (hostNamePort, 160, Qt::AlignLeft,     " - ");
-      CREATE_LABEL (endPoint,     220, Qt::AlignLeft,     " - ");
-      CREATE_LABEL (state,         88, Qt::AlignHCenter,  " - ");
+      row = j+1;
+      col = 0;
+      CREATE_LABEL (hostNamePort, Qt::AlignLeft,     " - ");
+      CREATE_LABEL (endPoint,     Qt::AlignLeft,     " - ");
+      CREATE_LABEL (state,        Qt::AlignHCenter,  " - ");
       if (archType == QEArchiveAccess::CA) {
-         CREATE_LABEL (available,     68, Qt::AlignRight,    " - ");
-         CREATE_LABEL (read,          68, Qt::AlignRight,    " - ");
+         CREATE_LABEL (available,    Qt::AlignRight,    " - ");
+         CREATE_LABEL (read,         Qt::AlignRight,    " - ");
+      } else {
+         this->rowList [j].available = NULL;
+         this->rowList [j].read = NULL;
       }
-      CREATE_LABEL (numberPVs,     68, Qt::AlignRight,    " - ");
+      CREATE_LABEL (numberPVs,    Qt::AlignRight,    " - ");
       if (archType == QEArchiveAccess::CA) {
-         CREATE_LABEL (pending,       68, Qt::AlignRight,    " - ");
+         CREATE_LABEL (pending,      Qt::AlignRight,    " - ");
+      } else {
+         this->rowList [j].pending = NULL;
       }
 
-      this->vLayout->addWidget (row->frame);
-
-      row->frame->setVisible (false);
+      // Set only two rows visible until we know better.
+      //
+      this->setStatusRowVisible (j, j < 2);
    }
 
-   this->vLayout->addStretch ();
+   // this->gridLayout->addStretch ();
 
 #undef CREATE_LABEL
-
 }
 
 //---------------------------------------------------------------------------------
@@ -160,14 +179,18 @@ QEArchiveStatus::QEArchiveStatus (QWidget* parent) : QEGroupBox (parent)
          break;
    }
 
+
+   this->inUseCount = 2;
+   this->calcMinimumHeight ();
    this->inUseCount = 0;
 
+   this->setMinimumWidth (776);
+
+   // Connect archiveStatus signal to this object slot.
+   //
    QObject::connect (this->archiveAccess,
                      SIGNAL     (archiveStatus (const QEArchiveAccess::StatusList&)),
                      this, SLOT (archiveStatus (const QEArchiveAccess::StatusList&)));
-
-   this->calcMinimumHeight ();
-   this->setMinimumWidth (776);
 
    // This info re-emitted on change, but we need to stimulate an initial update.
    //
@@ -176,15 +199,13 @@ QEArchiveStatus::QEArchiveStatus (QWidget* parent) : QEGroupBox (parent)
 
 //------------------------------------------------------------------------------
 //
-QEArchiveStatus::~QEArchiveStatus ()
-{
-}
+QEArchiveStatus::~QEArchiveStatus () { }
 
 //------------------------------------------------------------------------------
 //
 QSize QEArchiveStatus::sizeHint () const
 {
-   return QSize (776, 64);   // two rows
+   return QSize (776, 84);   // two rows
 }
 
 //------------------------------------------------------------------------------
@@ -207,8 +228,9 @@ void QEArchiveStatus::archiveStatus (const QEArchiveAccess::StatusList& statusLi
       if (j <  statusList.count ()) {
          QEArchiveAccess::Status state = statusList.value (j);
 
-         row->hostNamePort->setText (QString ("%1:%2").arg (state.hostName).arg (state.portNumber));
-         row->endPoint->setText (state.endPoint);
+         // Note the extra space at end - indent only applies as per alignment
+         row->hostNamePort->setText (QString ("%1:%2 ").arg (state.hostName).arg (state.portNumber));
+         row->endPoint->setText (QString("%1 ").arg (state.endPoint));
          row->state->setText (QEUtilities::enumToString(QEArchapplInterface::staticMetaObject, QString("States"), state.state));
          row->numberPVs->setText (QString ("%1").arg (state.numberPVs));
 
@@ -217,12 +239,9 @@ void QEArchiveStatus::archiveStatus (const QEArchiveAccess::StatusList& statusLi
             row->read->setText (QString ("%1").arg (state.read));
             row->pending->setText (QString ("%1").arg (state.pending));
          }
-
-
-
-         row->frame->setVisible (true);
+         this->setStatusRowVisible (j, true);
       } else {
-         row->frame->setVisible (false);
+         this->setStatusRowVisible (j, false);
       }
    }
 }

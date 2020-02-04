@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2017-2018 Australian Synchrotron
+ *  Copyright (c) 2017-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -29,6 +29,7 @@
 
 #include <QList>
 #include <QMetaType>
+#include <QMutex>
 #include <QObject>
 #include <QString>
 #include <QStringList>
@@ -208,11 +209,20 @@ private slots:
 
    void sendMessagePostConstruction ();
 
+   void retryTimeout ();
+
 private:
    // Used to convey a message during the creation of the object.
+   //
    QString constructorMessage;
    message_types constructorMessageType;
 
+   // Hold a list (queue) of requesyt awaiting completion of intial
+   // data retrieval from the archivers.
+   //
+   typedef QList<PVDataRequests> PVDataRequestLists;
+   PVDataRequestLists pendingRequests;
+   QMutex pendingRequestMutex;
 };
 
 // These type are distributed via the signal/slot mechanism. Must

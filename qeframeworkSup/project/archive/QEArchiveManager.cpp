@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron
+ *  Copyright (c) 2012-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -146,9 +146,9 @@ QEArchiveManager::QEArchiveManager() {
 //
 void QEArchiveManager::clear ()
 {
-   allArchivesRead = false;
-   numberArchivesRead = 0;
-   pvNameToSourceLookUp.clear ();
+   this->allArchivesRead = false;
+   this->numberArchivesRead = 0;
+   this->pvNameToSourceLookUp.clear ();
 }
 
 //------------------------------------------------------------------------------
@@ -219,7 +219,7 @@ void QEArchiveManager::started ()
             return;
       }
 
-      archiveInterfaceList.append (interface);
+      this->archiveInterfaceList.append (interface);
 
       connect (interface, SIGNAL (archivesResponse (const QObject*, const bool, const QEArchiveInterface::ArchiveList &)),
                this,      SLOT   (archivesResponse (const QObject*, const bool, const QEArchiveInterface::ArchiveList &)));
@@ -296,6 +296,26 @@ void QEArchiveManager::nextRequest (const int requestIndex)
 
 //------------------------------------------------------------------------------
 //
+void QEArchiveManager::updateNumberArchivesRead ()
+{
+   this->numberArchivesRead++;
+
+   // Have all arives been read - technically includes not read due to failure.
+   //
+   this->allArchivesRead = (this->numberArchivesRead == this->archiveInterfaceList.count ());
+
+// DEBUG << "arch:" << this->numberArchivesRead
+//       << "of" << this->archiveInterfaceList.count ()
+//       << " ; ready " << this->allArchivesRead;
+
+   if (this->allArchivesRead) {
+      // All archives have now been read.
+      this->lastReadTime = QDateTime::currentDateTime().toUTC ();
+   }
+}
+
+//------------------------------------------------------------------------------
+//
 void QEArchiveManager::resendStatus ()
 {
    QEArchiveAccess::StatusList statusList;
@@ -305,8 +325,8 @@ void QEArchiveManager::resendStatus ()
    QEArchiveAccess::Status status;
 
    statusList.clear ();
-   for (j = 0; j < archiveInterfaceList.count(); j++) {
-      QEArchiveInterface* archiveInterface = archiveInterfaceList.value (j);
+   for (j = 0; j < this->archiveInterfaceList.count(); j++) {
+      QEArchiveInterface* archiveInterface = this->archiveInterfaceList.value (j);
 
       url = archiveInterface->getUrl ();
       status.hostName = url.host ();
@@ -337,11 +357,11 @@ void QEArchiveManager::reInterogateArchives ()
       // More than 5 minutes - re-start interogating the archiver.
       //
       this->clear ();
-      for (int j = 0; j < archiveInterfaceList.count (); j++) {
+      for (int j = 0; j < this->archiveInterfaceList.count (); j++) {
 
          // Extract reference to each interface.
          //
-         QEArchiveInterface* interface = archiveInterfaceList.value (j);
+         QEArchiveInterface* interface = this->archiveInterfaceList.value (j);
 
          interface->state = QEArchiveInterface::Updating;
          interface->available = 0;
@@ -386,6 +406,9 @@ void QEArchiveManager::archivesResponse (const QObject * userData,
 
       interface->state = QEArchiveInterface::Error;
 
+      // must account for failures as well.
+      //
+      this->updateNumberArchivesRead();
    }
 
    this->resendStatus ();
@@ -597,16 +620,10 @@ void QEChannelArchiverManager::pvNamesResponse (const QObject * userData,
 
       }
 
-      numberArchivesRead++;
-      allArchivesRead = (numberArchivesRead = archiveInterfaceList.count ());
-
-      if (allArchivesRead) {
-      // All archives have now been read
-         this->lastReadTime = QDateTime::currentDateTime().toUTC ();
-      }
+      this->updateNumberArchivesRead();
    }
 
-   delete context;
+   if (context) delete context;
    this->resendStatus ();
 }
 
@@ -895,15 +912,10 @@ void QEArchapplManager::pvNamesResponse  (const QObject* userData, const bool is
 
       }
 
-      numberArchivesRead = 1;
-      allArchivesRead = true;
-
-      // All archives have now been read
-      this->lastReadTime = QDateTime::currentDateTime().toUTC ();
-
+      this->updateNumberArchivesRead();
    }
 
-   delete context;
+   if (context) delete context;
    this->resendStatus ();
 }
 

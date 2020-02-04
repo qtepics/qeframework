@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron
+ *  Copyright (c) 2012-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -121,6 +121,7 @@ protected:
    void operator= (QEArchiveManager const&);
 
    void clear ();
+   void updateNumberArchivesRead ();  // technically includes not read due to failure
    void resendStatus ();
 
    // Checks if the specified PV is archived. This is a smart check:

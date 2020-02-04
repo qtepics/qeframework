@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2017-2020 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -16,15 +18,13 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2017 Australian Synchrotron
- *
  *  Author:
  *    Andraz Pozar
  *  Contact details:
  *    andraz.pozar@synchrotron.org.au
  */
 
-#include <QEArchiveAccess.h>
+#include "QEArchiveAccess.h"
 #include <QEArchiveManager.h>
 #include <QECommon.h>
 
@@ -36,6 +36,7 @@ static QEArchiveManager* instance = NULL;
 static QMutex *archiveDataMutex = new QMutex ();
 static bool archiveTypeErrorReported = false;
 
+
 //==============================================================================
 //
 QEArchiveAccess::QEArchiveAccess (QObject * parent) : QObject (parent)
@@ -44,6 +45,8 @@ QEArchiveAccess::QEArchiveAccess (QObject * parent) : QObject (parent)
    //
    QEAdaptationParameters ap ("QE_");
    const QString archiveString = ap.getString ("archive_type", "CA").toUpper();
+
+   this->pendingRequests.clear ();
 
    bool conversionStatus = false;
    int archiverIntVal = QEUtilities::stringToEnum(*this, QString("ArchiverTypes"), archiveString, &conversionStatus);
@@ -197,9 +200,53 @@ void QEArchiveAccess::readArchive (QObject* userData,
    request.how = how;
    request.element = element;
 
-   // and hand-ball off to archiver manager thread.
+   // What if the initial archive interrogation is incomplete, this request will
+   // immediately fail because PV name is unknown. Therefore, if not ready,
+   // then set up timer to call self in 1 second and re-issue reuqest.
+   // Ready?
    //
-   emit this->readArchiveRequest (this, request);
+   if (this->isReady()) {
+      // Yes - hand-ball off to archiver manager thread.
+      //
+      emit this->readArchiveRequest (this, request);
+   } else {
+      // Not ready - save request and setup retry.
+      //
+      QMutexLocker locker (&this->pendingRequestMutex);
+
+      this->pendingRequests.append (request);
+
+      // Is this the first entry on the list?
+      //
+      if (this->pendingRequests.count() == 1) {
+         // Yes - set up timer to try again in 1 second.
+         //
+         QTimer::singleShot (1000, this, SLOT (retryTimeout ()));
+      }
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+void QEArchiveAccess::retryTimeout ()
+{
+   // Now ready ?
+   //
+   if (this->isReady()) {
+      // Yes.
+      //
+      QMutexLocker locker (&this->pendingRequestMutex);
+      while (this->pendingRequests.count() > 0) {
+         // Extract and pass on to the archiver manager thread.
+         //
+         PVDataRequests request = this->pendingRequests.takeFirst();
+         emit this->readArchiveRequest (this, request);
+      }
+   } else {
+      // Still not ready - set up another retry.
+      //
+      QTimer::singleShot (1000, this, SLOT (retryTimeout ()));
+   }
 }
 
 //------------------------------------------------------------------------------
