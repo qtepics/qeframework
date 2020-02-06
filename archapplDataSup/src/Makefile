@@ -1,7 +1,7 @@
 # $File: //ASP/tec/gui/qeframework/trunk/archapplDataSup/src/Makefile $
-# $Revision: #3 $
-# $DateTime: 2019/12/10 15:40:45 $
-# Last checked in by: $Author: pozara $
+# $Revision: #4 $
+# $DateTime: 2020/02/05 18:13:24 $
+# Last checked in by: $Author: starritt $
 #
 # Makefile to build a library that parses Google Protocol Buffers data recieved from Archiver Appliance
 #
@@ -9,80 +9,69 @@
 TOP=../..
 
 include $(TOP)/configure/CONFIG
+#----------------------------------------
+#  ADD MACRO DEFINITIONS AFTER THIS LINE
+#========================================
 
-CXX = g++
-CXXFLAGS = -Wall -g -fPIC -I$(EPICS_BASE)/include
+#========================================
+# build a support library.
 
-LD = g++
-LDFLAGS = -shared
-
-OBJS = archapplProto.pb.o archapplData.o
-STATIC_LIB = libarchapplData.a
-
-ifeq ($(OS),Windows_NT)
-   SHARED_LIB = archapplData.dll
-   CXXFLAGS += -DEPICS_BUILD_DLL
-   LINKER_OPTIONS = -Wl,--out-implib,$(STATIC_LIB)
-else
-   SHARED_LIB = libarchapplData.so
-   LINKER_OPTIONS =
-endif
-
-LIBS = $(SHARED_LIB) $(STATIC_LIB)
-
-
-install: check-env $(LIBS) archapplData.h
-	$(INSTALL_LIBRARY) -d -m 555 $(SHARED_LIB) $(INSTALL_HOST_LIB)
-	$(INSTALL_LIBRARY) -d -m 444 $(STATIC_LIB) $(INSTALL_HOST_LIB)
-	$(INSTALL) -d -m 444 archapplData.h $(INSTALL_INCLUDE)
-
-check-env:
-ifdef PROTOBUF_LIB_DIR
-   LDFLAGS += -L$(PROTOBUF_LIB_DIR)
-else
-   $(warning PROTOBUF_LIB_DIR is undefined which could result in protobuf library not being found)
-endif
+LIBRARY_IOC += archapplData
 
 # This control variable can be modified in $(TOP)/configuration/CONFIG_SITE
 # If set to YES, we're building with C++ 11 support
 #
 ifeq ($(ARCHAPPL_USE_CPP11), YES)
-   CXXFLAGS += -std=c++11
+   USR_CPPFLAGS += -std=c++11
 endif
 
+# This control variable can be modified in $(TOP)/configuration/CONFIG_SITE
+# or defined as an environment variable.
+# If the protocol buf header files are not in the standard system
+# location, then this can be specified using PROTOBUF_INCLUDE_PATH
+#
+ifdef PROTOBUF_INCLUDE_PATH
+   USR_CPPFLAGS += -I$(PROTOBUF_INCLUDE_PATH)
+else
+   $(warning PROTOBUF_INCLUDE_PATH is undefined which could result in protobuf headers not being found)
+endif
 
-# Link protobuf library and object files into libraries
+# This control variable can be modified in $(TOP)/configuration/CONFIG_SITE
+# or defined as an environment variable.
+# Required libraries location
 #
-$(SHARED_LIB): $(OBJS)
-	$(LD) $(LDFLAGS) -o $(SHARED_LIB) $(OBJS) -lprotobuf $(LINKER_OPTIONS)
+ifdef PROTOBUF_LIB_DIR
+   SHRLIB_SEARCH_DIRS += $(PROTOBUF_LIB_DIR)
+else
+   $(warning PROTOBUF_LIB_DIR is undefined which could result in protobuf library not being found)
+endif
 
-# Archive protobuf library and object files to static library
+# specify header files to be visible to library users.
 #
-# NOTE: If we're building this on Windows this doesn't get executed as
-#       the library has already been created in the previous target
-#
-$(STATIC_LIB): $(OBJS)
-	ar rv $(STATIC_LIB) $(OBJS)
+INC += archapplData.h
 
-	
-# Compile protobuf object file
+# specify all source files to be compiled and added to the library.
 #
-archapplProto.pb.o: archapplProto.pb.h
-	$(CXX) $(CXXFLAGS) -c archapplProto.pb.cc
+archapplData_SRCS += archapplProto.pb.cc
+archapplData_SRCS += archapplData.cpp
 
-# Compile archiver data object file
-#
-archapplData.o: archapplData.h archapplProto.pb.h
+archapplData_LIBS += protobuf
 
-# In order to get protobuf source and header file we have
-# to run protoc command with .proto file as an input
+#========================================
+
+include $(TOP)/configure/RULES
+#----------------------------------------
+#  ADD RULES AFTER THIS LINE
+
+# Set dependency. Part of generating archapplProto.pb.cc is generating
+# archapplProto.pb.h which is used by archapplData.cpp
 #
-archapplProto.pb.h: archapplProto.proto
-	protoc --cpp_out=. archapplProto.proto
-	
-# Clean up
+archapplData.cpp : archapplProto.pb.cc
+
+# Recall this runs in the O.<epics host arch> sub-directory/
 #
-clean:
-	$(RM) $(OBJS) *.pb.* $(LIBS) O.*
+archapplProto.pb.cc : ../archapplProto.proto
+	protoc --proto_path=.. --cpp_out=.  ../archapplProto.proto && \
+	$(CP) archapplProto.pb.h ../
 
 # end

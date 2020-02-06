@@ -39,3 +39,10 @@ CHECK_RELEASE = YES
 # versions older than 3.6.0.
 #
 ARCHAPPL_USE_CPP11 = YES
+
+# Define as environment variables or define here
+#
+# PROTOBUF_INCLUDE_PATH=...
+# PROTOBUF_LIB_DIR=/usr/lib64
+
+# end
