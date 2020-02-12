@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2019 Australian Synchrotron
+ *  Copyright (c) 2009-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -66,8 +66,6 @@ private slots:
     void userPressed() { QEGenericButton::userPressed(); }
     void userReleased() { QEGenericButton::userReleased(); }
     void userClicked( bool checked ) { QEGenericButton::userClicked( checked ); }
-    void setDISAvalue( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime& timestamp, const unsigned int& variableIndex ) { setGenericDISAvalue( value, alarmInfo, timestamp, variableIndex); }
-    void setDISVvalue( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime& timestamp, const unsigned int& variableIndex ) { setGenericDISVvalue( value, alarmInfo, timestamp, variableIndex); }
 
 public slots:
     // Note, keep in sync. The text below is repeated in QEPushButton.h, QERadioButton.h and QECheckBox.h
@@ -492,9 +490,10 @@ public:
 public:
 
     /// Set the widget's disabled record policy, i.e. the action to be taken when the under lying record is disabled,
-    /// i.e. when the assiociated record's DISA and DISV field values are equal. Note: this is only applicable IOC process variables.
+    /// i.e. when the assiociated record's STAT field value is Disabled.
     /// When the policy is ignore, then no special action is taken. This is the default policy.
     /// When the policy is grayout, the widget is style is set as if disconnected when the record is disabled.
+    /// When the policy is disable, the widget is disabled when the record is disabled.
     ///
     Q_PROPERTY(QEWidgetProperties::DisabledRecordPolicy disabledRecordPolicy READ getDisabledRecordPolicy WRITE setDisabledRecordPolicy)
 

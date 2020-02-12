@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -54,8 +54,6 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGenericButton :
 
     enum VariableAllocation { VAR_PRIMARY = 0, // Primary Contyrol PV
                               VAR_READBACK,    // Alternative readback PV - QEPushButton only
-                              VAR_DISA,        // DISA field of primary - set iff disableWhenRecordDisabled true
-                              VAR_DISV,        // DISV field of primary - set iff disableWhenRecordDisabled true
                               NUMBER_OF_VARIABLES };  // Maximum number of variables.
 
     // Applicable when subscribe is set true.
@@ -175,8 +173,6 @@ protected:
     void useGenericNewVariableName( const QString& variableName, const QString& variableNameSubstitutions, const unsigned int variableIndex );
     void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex );
     void setGenericButtonText( const QString& text, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex );
-    void setGenericDISAvalue( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex );
-    void setGenericDISVvalue( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex );
     void userPressed();
     void userReleased();
     void userClicked( bool checked );
@@ -216,7 +212,6 @@ private:
 
     bool localEnabled;
 
-
     updateOptions updateOption;
 
     QString labelText;                                                 // Fixed label text to which substitutions will be applied
@@ -224,8 +219,7 @@ private:
     bool getIsConnected(){ return isConnected; }
     bool confirmAction();
 
-    void processConnectedDisableStates();
-    void setDisabledVariableNames ();
+    void processRecordDisableState();
 
 private:
     // Drag and Drop (See specific QE button widgets for button type specific drag and drop)
@@ -251,8 +245,6 @@ private:
 
     bool isConnected;
     QEIntegerFormatting integerFormatting;
-    long disv;    // 1
-    long disa;    // 0
 
     // !! Any of these that are accessing the QWidget don't have to call back up to the specific push button
     virtual void setButtonState( bool checked ) = 0;

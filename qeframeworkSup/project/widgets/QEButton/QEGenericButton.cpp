@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2009-2020 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -16,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -29,6 +29,7 @@
   It is tighly integrated with the base class QEWidget. Refer to QEWidget.cpp for details
  */
 
+#include <alarm.h>
 #include <QEGenericButton.h>
 #include <QDebug>
 #include <QMessageBox>
@@ -71,13 +72,11 @@ void QEGenericButton::dataSetup()
     // Set up data
     // This control uses two data sources, the first is written to and (by default) read from.
     // The second is the alternative read back
-    // The third and forth are the records DISA and DISV fields respectively.
+    //
     setNumVariables( NUMBER_OF_VARIABLES );
 
     // Set up default properties
     disabledRecordPolicy = QEWidgetProperties::ignore;
-    disa = 0;
-    disv = 1;
     writeOnPress = false;
     writeOnRelease = false;
     writeOnClick = true;
@@ -176,12 +175,6 @@ qcaobject::QCaObject* QEGenericButton::createQcaItem( unsigned int variableIndex
         if( altReadback ) altReadback->setSingleVariableQCaProperties( result );
         break;
 
-    case VAR_DISA:
-    case VAR_DISV:
-        if( disabledRecordPolicy == QEWidgetProperties::grayout ) {
-           return new QEInteger( pvName, target, &integerFormatting, variableIndex );
-        }
-        break;
     }
     return result;
 }
@@ -199,14 +192,13 @@ void QEGenericButton::establishConnection( unsigned int variableIndex ) {
     switch (variableIndex) {
 
     case VAR_PRIMARY:
-    case VAR_READBACK:
-        qca = createConnection( variableIndex );
+        // We always subscribe for primary irrsepective of the subscribe property
+        // so that we get status. If subscribe false, we ignore the value update.
+        qca = createConnection( variableIndex, true );
         break;
 
-    case VAR_DISA:
-    case VAR_DISV:
-        // We always subscribe for DISA/DISV irrsepective of the subscribe property
-        qca = createConnection( variableIndex, true );
+    case VAR_READBACK:
+        qca = createConnection( variableIndex );
         break;
 
     default:
@@ -216,9 +208,6 @@ void QEGenericButton::establishConnection( unsigned int variableIndex ) {
 
     if( !qca )return;
 
-    // Limit tool tip to excdude DISA/DISV variables.
-    setNumberToolTipVariables( 2 );
-
     // Fetch reference to the target button widget.
     QAbstractButton* target = getButtonQObject();
 
@@ -227,13 +216,17 @@ void QEGenericButton::establishConnection( unsigned int variableIndex ) {
 
     case VAR_PRIMARY:     // Primary readback variable
         // Get updates if subscribing and  there is no alternate read back.
-        if( subscribe && getSubstitutedVariableName( 1/*1=Alternate readback variable*/ ).isEmpty() ){
+        if( subscribe && getSubstitutedVariableName( VAR_READBACK ).isEmpty() ){
             if( (updateOption & UPDATE_TEXT) == UPDATE_TEXT )
             {
                 setButtonText( "" );
             }
-            connectButtonDataChange( qca );
         }
+
+        // We always subscribe for and handle primary data changes, because we
+        // want the STATus to check againtts the disabled record policy.
+        //
+        connectButtonDataChange( qca );
 
         // Get conection status changes always (subscribing or not)
         QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
@@ -255,45 +248,7 @@ void QEGenericButton::establishConnection( unsigned int variableIndex ) {
                           target, SLOT( connectionChanged( QCaConnectionInfo&, const unsigned int&) ) );
         break;
 
-    case VAR_DISA:     // DISA
-        QObject::connect (qca, SIGNAL( integerChanged( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& )),
-                          target,  SLOT( setDISAvalue( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& )));
-        QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
-                          target, SLOT( connectionChanged( QCaConnectionInfo&, const unsigned int&) ) );
-        break;
-
-    case VAR_DISV:     // DISV
-        QObject::connect (qca, SIGNAL( integerChanged( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& )),
-                          target,  SLOT( setDISVvalue( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& )));
-        QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
-                          target, SLOT( connectionChanged( QCaConnectionInfo&, const unsigned int&) ) );
-        break;
-
     default:
-        break;
-    }
-}
-
-/*
- Manages setting u variable names for slots 2 and 3. These names are based upon
- the primary variable name.
- Note: the assumption here is that the PV is hosted on an IOC and has an underlying record.
- */
-void QEGenericButton::setDisabledVariableNames ()
-{
-    QString pvName;
-    switch (disabledRecordPolicy) {
-
-    case QEWidgetProperties::ignore:
-        // Not being used - clear the name
-        setVariableNameAndSubstitutions( "", "", 2 );
-        setVariableNameAndSubstitutions( "", "", 3 );
-        break;
-
-    case QEWidgetProperties::grayout:
-        pvName = getSubstitutedVariableName (0);
-        setVariableNameAndSubstitutions( QERecordFieldName::fieldPvName (pvName, "DISA"), "", 2 );
-        setVariableNameAndSubstitutions( QERecordFieldName::fieldPvName (pvName, "DISV"), "", 3 );
         break;
     }
 }
@@ -304,7 +259,6 @@ void QEGenericButton::setDisabledVariableNames ()
 void QEGenericButton::setDisabledRecordPolicy( const QEWidgetProperties::DisabledRecordPolicy policyIn )
 {
    disabledRecordPolicy = policyIn;
-   setDisabledVariableNames ();
 }
 
 QEWidgetProperties::DisabledRecordPolicy QEGenericButton::getDisabledRecordPolicy() const
@@ -325,49 +279,37 @@ void QEGenericButton::useGenericNewVariableName( const QString& variableNameIn,
     // This will apply any macro substitutions changes since the labelText property was last changed
     setLabelTextProperty( getLabelTextProperty() );
     calcStyleOption();
-
-    // If variable 0, the main variable, has changed then set up the DISA/DISV variables if needs be.
-    if( variableIndex == VAR_PRIMARY )
-        setDisabledVariableNames();
 }
 
 /*
- * Update the "connection" style baed on connection state and the record disable policy.
+ * Handle changes to primary record disable state based on the current disabled record policy.
  */
-void QEGenericButton::processConnectedDisableStates()
+void QEGenericButton::processRecordDisableState()
 {
-    bool active = true;
+    QAbstractButton* button = getButtonQObject();
+    if( !button ) return;                       // sanity check
+
+    qcaobject::QCaObject* qca = this->getQcaItem (VAR_PRIMARY);
+    if( !qca ) return;                         // sanity check
+    if( !qca->getDataIsAvailable() ) return;  // sanity check
+
+    QCaAlarmInfo alarmInfo = qca->getAlarmInfo();
+    const bool isDisabled = alarmInfo.getStatus() == epicsAlarmDisable;
 
     switch( disabledRecordPolicy ) {
     case QEWidgetProperties::ignore:
-        // based on pv connection only.
-        active = isConnected;
+        // Do nothing
         break;
 
     case QEWidgetProperties::grayout:
-        // based on pv connection stats and disabled state
-        active = isConnected && ( disa != disv );
+        // Treat disabled like not connected wrt style.
+        updateConnectionStyle( !isDisabled );
+        break;
+
+    case QEWidgetProperties::disable:
+        button->setEnabled ( !isDisabled );
         break;
     }
-    processConnectionInfo( active );
-}
-
-/*
- Record's DISA field has changed.
- */
-void QEGenericButton::setGenericDISAvalue( const long& value, QCaAlarmInfo&, QCaDateTime&, const unsigned int& )
-{
-    disa = value;
-    processConnectedDisableStates();
-}
-
-/*
- Record's DISV field has changed.
- */
-void QEGenericButton::setGenericDISVvalue( const long& value, QCaAlarmInfo&, QCaDateTime&, const unsigned int& )
-{
-    disv = value;
-    processConnectedDisableStates();
 }
 
 /*
@@ -375,7 +317,8 @@ void QEGenericButton::setGenericDISVvalue( const long& value, QCaAlarmInfo&, QCa
     Change how the label looks and change the tool tip
     This is the slot used to recieve connection updates from a QCaObject based class.
  */
-void QEGenericButton::connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex )
+void QEGenericButton::connectionChanged( QCaConnectionInfo& connectionInfo,
+                                         const unsigned int& variableIndex )
 {
     // Do nothing if no variable name, but there is a program to run or a new gui to open.
     // Most widgets will be dissabled at this point if there is no good connection to a PV,
@@ -391,9 +334,7 @@ void QEGenericButton::connectionChanged( QCaConnectionInfo& connectionInfo, cons
 
     // Display the connected state
     updateToolTipConnection( isConnected, variableIndex );
-
-    // connection style update also factors in the disabled record policy.
-    processConnectedDisableStates();
+    updateConnectionStyle( isConnected );
 
     // set cursor to indicate access mode
     setAccessCursorStyle();
@@ -409,8 +350,14 @@ void QEGenericButton::connectionChanged( QCaConnectionInfo& connectionInfo, cons
   Implement a slot to set the current text of the push button
   This is the slot used to recieve data updates from a QCaObject based class.
 */
-void QEGenericButton::setGenericButtonText( const QString& text, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex )
+void QEGenericButton::setGenericButtonText( const QString& text, QCaAlarmInfo& alarmInfo,
+                                            QCaDateTime&, const unsigned int& variableIndex )
 {
+    if( variableIndex == VAR_PRIMARY ) {
+       // Modify style/enable state basesd on disabledRecordPolicy and record state.
+       processRecordDisableState();
+    }
+
     // If not subscribing, or subscribing but update is not for the readback variable, then do nothing.
     //
     // Note, This will still be called even if not subscribing as there may be an initial single shot read
@@ -418,7 +365,8 @@ void QEGenericButton::setGenericButtonText( const QString& text, QCaAlarmInfo& a
     //
     // Note, variableIndex = 0 = Primary readback variable, variableIndex = 1 = Alternate readback variable,
     // so an update for variable 1 is always OK, an update from variable 0 is OK as long as there is no variable 1
-    if( !subscribe || ( variableIndex == 0 && !getSubstitutedVariableName( 1 ).isEmpty() ))
+    //
+    if( !subscribe || ( variableIndex == VAR_PRIMARY && !getSubstitutedVariableName( VAR_READBACK ).isEmpty() ))
     {
         return;
     }
@@ -448,7 +396,8 @@ void QEGenericButton::setGenericButtonText( const QString& text, QCaAlarmInfo& a
     processAlarmInfo( alarmInfo, variableIndex );
 
     // Signal a database value change to any Link (or other) widgets using one
-    // of the dbValueChanged.
+    // of the dbValueChanged. Must be subscribed.
+    //
     if( variableIndex == VAR_PRIMARY ) {
         emitDbValueChanged( text, variableIndex );
     }
@@ -686,7 +635,7 @@ void QEGenericButton::connectButtonDataChange( qcaobject::QCaObject* qca )
     QObject::connect( qca,  SIGNAL( stringChanged( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                       target, SLOT( setButtonText( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
     QObject::connect( target, SIGNAL( requestResend() ),
-                      qca, SLOT( resendLastData() ) );
+                      qca,      SLOT( resendLastData() ) );
 }
 
 /*
