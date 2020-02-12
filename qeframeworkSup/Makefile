@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/Makefile $
-# $Revision: #11 $
-# $DateTime: 2019/02/20 17:50:07 $
+# $Revision: #12 $
+# $DateTime: 2020/02/12 17:45:00 $
 # Last checked in by: $Author: starritt $
 #
 # This make file is the bridge beween the EPICS build system and the Qt project qmake/make paradigm.
@@ -35,6 +35,12 @@ ifdef BASE_7_0
 export QE_PVACCESS_SUPPORT := YES
 else
 export QE_PVACCESS_SUPPORT := NO
+endif
+
+# If ADSUPPORT is defined, then re-export for qmake processing of project file.
+#
+ifdef ADSUPPORT
+export ADSUPPORT := $(ADSUPPORT)
 endif
 
 # Commands

@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #21 $
-# $DateTime: 2020/02/11 17:55:15 $
+# $Revision: #22 $
+# $DateTime: 2020/02/12 17:45:00 $
 # Last checked in by: $Author: starritt $
 #
 # Copyright (c) 2009-2020 Australian Synchrotron
@@ -281,7 +281,7 @@ equals(_PVACCESS_SUPPORT, "YES") {
 # This is only expected if QE_PVACCESS_SUPPORT defined, but not enforced
 #
 _ADSUPPORT = $$(ADSUPPORT)
-isEmpty( _QE_FFMPEG ) {
+isEmpty( _ADSUPPORT ) {
     message( "ADSUPPORT is not defined. The QE framework library will not support image decompression.")
 } else {
     # This currently assumes EPICS 7. Maybe we could allow EPICS 4 builds as well.
