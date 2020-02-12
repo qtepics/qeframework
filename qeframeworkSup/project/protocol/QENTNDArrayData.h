@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018 Australian Synchrotron
+ *  Copyright (C) 2018-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -76,7 +76,18 @@ public:
    //
    void clear ();
 
+   // Will decompress the image data if needs be.
+   // This is an itempotent function.
+   // Returns true if decompression is (or has been) successfull.
+   //
+   bool decompressData ();
+
    QByteArray getData () const;
+
+   // Returns the name of the codec used to compress image.
+   // If image was not compressed, this function returns an empty string.
+   //
+   QString getCodecName () const;
 
    int getNumberDimensions () const;
    int getDimensionSize (const int dimension) const;  // returns 0 if dimension is out of range
@@ -134,6 +145,11 @@ private:
 
 #endif
 
+   bool decompressJpeg ();
+   bool decompressBlosc ();
+   bool decompressLz4 ();
+   bool decompressBslz4 ();
+
    int numberDimensions;
    int dimensionSizes [10];   // we expect only 2 or 3. area detector NDArray allows upto 10
    int bytesPerPixel;
@@ -154,8 +170,10 @@ private:
    AttributeMaps attributeMap;
 
    QByteArray data;                         // basic image data
+   QString codecName;                       // the codec nam
    imageDataFormats::formatOptions format;  // derived from the ColorMode attribute
    int bitDepth;
+   bool isDecompressed;
 };
 
 // allows qDebug() << QENTNDArrayData object.

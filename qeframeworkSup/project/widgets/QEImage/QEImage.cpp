@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron
+ *  Copyright (c) 2012-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -1690,7 +1690,7 @@ void QEImage::setDataImage( const QByteArray& imageIn,
     setImage( imageIn, dataSize, alarmInfo, dateTime, IMAGE_VARIABLE );
 }
 
-/*
+/* -----------------------------------------------------------------------------
     Update the image
     This is the slot used to recieve data updates via PV Access.
  */
@@ -1715,6 +1715,10 @@ void QEImage::setPvaImage( const QVariant& value,
        return;
     }
 
+    // Decompress if needs be.
+    //
+    bool status = imageData.decompressData ();
+
     // set the format
     setFormatOption( imageData.getFormat() );
 
@@ -1736,7 +1740,7 @@ void QEImage::setPvaImage( const QVariant& value,
 }
 
 
-/*
+/* -----------------------------------------------------------------------------
     Update the image
     This is the slot used to recieve data updates from a QCaObject based class,
     or from a non CA based data source including an MPG decoder and an image file source.

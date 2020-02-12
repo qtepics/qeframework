@@ -1,9 +1,9 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #20 $
-# $DateTime: 2019/11/27 17:07:01 $
-# Last checked in by: $Author: wangz $
+# $Revision: #21 $
+# $DateTime: 2020/02/11 17:55:15 $
+# Last checked in by: $Author: starritt $
 #
-# Copyright (c) 2009-2018 Australian Synchrotron
+# Copyright (c) 2009-2020 Australian Synchrotron
 #
 # This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
@@ -174,6 +174,7 @@ include (widgets/QECalcout/QECalcout.pri)
 include (widgets/QEComboBox/QEComboBox.pri)
 include (widgets/QEConfiguredLayout/QEConfiguredLayout.pri)
 include (widgets/QECorrelation/QECorrelation.pri)
+include (widgets/QEDateTime/QEDateTime.pri)
 include (widgets/QEDistribution/QEDistribution.pri)
 include (widgets/QEFileBrowser/QEFileBrowser.pri)
 include (widgets/QEFileImage/QEFileImage.pri)
@@ -210,7 +211,6 @@ include (widgets/QESpinBox/QESpinBox.pri)
 include (widgets/QEStripChart/QEStripChart.pri)
 include (widgets/QESubstitutedLabel/QESubstitutedLabel.pri)
 include (widgets/QETable/QETable.pri)
-include (widgets/QEDateTime/QEDateTime.pri)
 
 #===========================================================
 # Install include files
@@ -242,6 +242,18 @@ LIBS += -L$$(EPICS_BASE)/lib/$$(EPICS_HOST_ARCH) -lca -lCom
 #
 unix: QMAKE_LFLAGS += -Wl,-rpath,$$(EPICS_BASE)/lib/$$(EPICS_HOST_ARCH)
 
+#===========================================================
+# Set up ACAI
+#
+INCLUDEPATH += $$(ACAI)/include
+LIBS += -L$$(ACAI)/lib/$$(EPICS_HOST_ARCH) -lacai
+
+# Set runtime path for shared libraries
+#
+unix: QMAKE_LFLAGS += -Wl,-rpath,$$(ACAI)/lib/$$(EPICS_HOST_ARCH)
+
+#===========================================================
+# Set up PV Access
 # For headless build QE_PVACCESS_SUPPORT is set in qeframeworkSup Makefile if using EPICS 7 or later.
 #
 _PVACCESS_SUPPORT = $$(QE_PVACCESS_SUPPORT)
@@ -264,17 +276,28 @@ equals(_PVACCESS_SUPPORT, "YES") {
     message( "If you want to build with PV Access support, set environment variable QE_PVACCESS_SUPPORT=YES" )
 }
 
-
 #===========================================================
-# Set up ACAI
+# Set upfor jpeg, lz4, blosc and bslz4 decompression
+# This is only expected if QE_PVACCESS_SUPPORT defined, but not enforced
 #
-INCLUDEPATH += $$(ACAI)/include
-LIBS += -L$$(ACAI)/lib/$$(EPICS_HOST_ARCH) -lacai
+_ADSUPPORT = $$(ADSUPPORT)
+isEmpty( _QE_FFMPEG ) {
+    message( "ADSUPPORT is not defined. The QE framework library will not support image decompression.")
+} else {
+    # This currently assumes EPICS 7. Maybe we could allow EPICS 4 builds as well.
+    #
+    message( "ADSUPPORT is defined. The QE framework library will be built to support image decompression.")
 
-# Set runtime path for shared libraries
-#
-unix: QMAKE_LFLAGS += -Wl,-rpath,$$(ACAI)/lib/$$(EPICS_HOST_ARCH)
+    INCLUDEPATH += $$(ADSUPPORT)/include
 
+    DEFINES += QE_AD_SUPPORT
+
+    LIBS += -L$$(ADSUPPORT)/lib/$$(EPICS_HOST_ARCH) -ljpeg -lHDF5_lz4_plugin -lblosc -lHDF5_bshuf_plugin
+
+    # Set runtime path for shared libraries
+    #
+    unix: QMAKE_LFLAGS += -Wl,-rpath,$$(ADSUPPORT)/lib/$$(EPICS_HOST_ARCH)
+}
 
 #===========================================================
 # QWT
@@ -335,7 +358,8 @@ unix {
     }
 }
 
-# ffmpeg stuff
+#===========================================================
+# ffmpeg support
 #
 isEmpty( _QE_FFMPEG ) {
 } else {
@@ -349,6 +373,7 @@ isEmpty( _QE_FFMPEG ) {
     DEFINES += __STDC_CONSTANT_MACROS
 }
 
+#===========================================================
 # Archiver Appliance support
 #
 _ARCHAPPL_SUPPORT = $$(QE_ARCHAPPL_SUPPORT)

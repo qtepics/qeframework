@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2018 Australian Synchrotron
+ *  Copyright (c) 2018-2018 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -26,6 +26,30 @@
 
 #include "QENTNDArrayData.h"
 #include <QEPvaData.h>
+#include <QString>
+
+// Do we need support for decpmpression?
+//
+#ifdef QE_AD_SUPPORT
+
+#if defined (Q_OS_LINUX)
+#include <os/Linux/jpeglib.h>
+
+#elif defined (Q_OS_WIN)
+#include <os/WIN32/jpeglib.h>
+
+#elif defined (Q_OS_DARWIN)
+#include <os/Darwin/jpeglib.h>
+
+#else
+#error Unexpected OS - not Q_OS_LINUX, Q_OS_WIN nor Q_OS_DARWIN
+#endif
+
+#include <blosc.h>
+#include <lz4.h>
+#include <bitshuffle.h>
+
+#endif
 
 // Move to QECommon
 #ifdef MIN
@@ -155,6 +179,12 @@ bool QENTNDArrayData::assignFrom (epics::nt::NTNDArray::const_shared_pointer ite
    const pvd::PVUnionPtr value = item->getValue();
    ASSERT (value.get(), "Null value");
 
+   const pvd::PVStructurePtr codecPtr = item->getCodec();
+   ASSERT (codecPtr.get(), "Null codec");
+
+   const pvd::PVStringPtr codecNamePtr = codecPtr->getSubField <pvd::PVString> ("name");
+   ASSERT (codecNamePtr.get(), "Null codec name");
+
    this->clear();
 
    // process dimensions - based on ntndArrayConverter out of areaDetector.
@@ -217,7 +247,7 @@ bool QENTNDArrayData::assignFrom (epics::nt::NTNDArray::const_shared_pointer ite
 
    // Extract the meta data.
    //
-   pvd::PVStructurePtr codec = item->getCodec();
+   this->codecName = QString::fromStdString (codecNamePtr->getAs <std::string>());
 
    pvd::PVLongPtr cds = item->getCompressedDataSize();
    this->compressedDataSize = cds->getAs<pvd::int64>();
@@ -229,7 +259,7 @@ bool QENTNDArrayData::assignFrom (epics::nt::NTNDArray::const_shared_pointer ite
    this->uniqueId = id->getAs<pvd::int32>();
 
    QEPvaData::TimeStamp dts;
-   dts.extract(item->getDataTimeStamp());
+   dts.extract (item->getDataTimeStamp());
    this->dtsSecondsPastEpoch = dts.secondsPastEpoch;
    this->dtsNanoseconds = dts.nanoseconds;
    this->dtsUserTag = dts.userTag;
@@ -337,8 +367,10 @@ imageDataFormats::formatOptions QENTNDArrayData::getImageFormat
 //
 void QENTNDArrayData::clear ()
 {
+   this->isDecompressed = false;
    this->data.clear();
    this->attributeMap.clear();
+   this->codecName = "";
    this->format = imageDataFormats::MONO;
    this->bitDepth = 8;
 
@@ -364,6 +396,13 @@ void QENTNDArrayData::clear ()
 QByteArray QENTNDArrayData::getData () const
 {
    return this->data;
+}
+
+//------------------------------------------------------------------------------
+//
+QString QENTNDArrayData::getCodecName () const
+{
+   return this->codecName;
 }
 
 //------------------------------------------------------------------------------
@@ -455,6 +494,223 @@ bool QENTNDArrayData::assignFromVariant (const QVariant & item)
       *this = item.value < QENTNDArrayData > ();
    }
    return result;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QENTNDArrayData::decompressData ()
+{
+   if (this->isDecompressed) {
+      return true;   // Already decompressed - do nothing
+   }
+
+   // Not decompressed yet.
+   //
+   if (this->codecName == "" || this->codecName == "none") {
+      // Do nothing - already decompressed.
+      //
+      this->isDecompressed = true;
+      return true;
+   }
+
+#ifdef QE_AD_SUPPORT
+
+   bool result;
+
+   if (this->codecName == "jpeg") {
+      result = this->isDecompressed = this->decompressJpeg();
+
+   } else if (this->codecName == "blosc") {
+      result = this->isDecompressed = this->decompressBlosc ();
+
+   } else if (this->codecName == "lz4") {
+      result = this->isDecompressed = this->decompressLz4 ();
+
+   } else if (this->codecName == "bslz4") {
+      result = this->isDecompressed = this->decompressBslz4 ();
+
+   } else {
+      DEBUG << "Codec " + this->codecName + " not handled/unexpected";
+      result = false;                                                           \
+   }
+
+   return result;
+
+#else
+   DEBUG << "NTNDArray decompression not supported";
+   return false;
+#endif
+}
+
+//------------------------------------------------------------------------------
+// Cribbed from the various decompress functions out of NDPluginCodec.cpp (R3-8)
+//
+bool QENTNDArrayData::decompressJpeg ()
+{
+#ifdef QE_AD_SUPPORT
+
+   if (this->codecName != "jpeg") {
+      DEBUG << "Unexpected codec:" << this->codecName;
+      return false;
+   }
+
+   bool result = true;    // hypothesize successful.
+   jpeg_decompress_struct jpegInfo;
+   jpeg_error_mgr jpegErr;
+
+   jpeg_create_decompress (&jpegInfo);
+   jpegInfo.err = jpeg_std_error (&jpegErr);
+
+   // Copy source (by referance).
+   //
+   QByteArray input = this->data;
+   unsigned char* inbuffer = (unsigned char*) (input.data());
+
+   QByteArray output = QByteArray (int (this->uncompressedDataSize), 0);
+
+   jpeg_mem_src (&jpegInfo, inbuffer, this->compressedDataSize);
+
+   jpeg_read_header (&jpegInfo, TRUE);
+   jpeg_start_decompress (&jpegInfo);
+
+   unsigned char* dest = (unsigned char*)(output.data());
+
+   while (jpegInfo.output_scanline < jpegInfo.output_height) {
+      unsigned char* row_pointer[1] = { dest };
+
+      if (jpeg_read_scanlines (&jpegInfo, row_pointer, 1) != 1) {
+         DEBUG << "Error decoding JPEG";
+         result = false;
+         break;
+      }
+
+      dest += jpegInfo.output_width*jpegInfo.output_components;
+   }
+
+   jpeg_finish_decompress (&jpegInfo);
+
+   // Copy output back to data (by referance).
+   //
+   this->data = output;
+
+   return result;
+
+#else
+   DEBUG << "Jpeg decompression not supported";
+   return false;
+#endif
+}
+
+//------------------------------------------------------------------------------
+//
+bool QENTNDArrayData::decompressBlosc ()
+{
+#ifdef QE_AD_SUPPORT
+
+   if (this->codecName != "blosc") {
+      DEBUG << "Unexpected codec:" << this->codecName;
+      return false;
+   }
+
+   bool result = true;    // hypothesize successful.
+   int status;
+
+   // Copy source (by referance).
+   //
+   QByteArray input = this->data;
+   QByteArray output = QByteArray (int (this->uncompressedDataSize), 0);
+
+   const size_t destSize = this->uncompressedDataSize;
+
+   status = blosc_decompress_ctx (input.data(), output.data(), destSize, 1);
+   result = (status >= 0);
+
+   // Copy output back to data (by ref with copy-on-write).
+   //
+   this->data = output;
+
+   return result;
+
+#else
+   DEBUG << "Blosc decompression not supported";
+   return false;
+#endif
+}
+
+//------------------------------------------------------------------------------
+//
+bool QENTNDArrayData::decompressLz4 ()
+{
+#ifdef QE_AD_SUPPORT
+
+   if (this->codecName != "lz4") {
+      DEBUG << "Unexpected codec:" << this->codecName;
+      return false;
+   }
+
+   bool result = true;    // hypothesize successful.
+   int status;
+
+   // Copy source (by referance).
+   //
+   QByteArray input = this->data;
+   QByteArray output = QByteArray (int (this->uncompressedDataSize), 0);
+
+   int originalSize = this->uncompressedDataSize;
+
+   status = LZ4_decompress_fast (input.data (), output.data (), originalSize);
+   result = (status >= 0);
+
+   // Copy output back to data (by ref with copy-on-write).
+   //
+   this->data = output;
+
+   return result;
+
+#else
+   DEBUG << "Bsloc decompression not supported";
+   return false;
+#endif
+}
+
+//------------------------------------------------------------------------------
+//
+bool QENTNDArrayData::decompressBslz4 ()
+{
+#ifdef QE_AD_SUPPORT
+
+   if (this->codecName != "bslz4") {
+      DEBUG << "Unexpected codec:" << this->codecName;
+      return false;
+   }
+
+   bool result = true;    // hypothesize successful.
+   int status;
+
+   // Copy source (by referance).
+   //
+   QByteArray input = this->data;
+   QByteArray output = QByteArray (int (this->uncompressedDataSize), 0);
+
+   const size_t numberOfElements = this->uncompressedDataSize;
+   const size_t elementSize = 1;  /// ONLY works for mono 8 bit
+
+   size_t blockSize = 0;
+   status = bshuf_decompress_lz4 (input.data(), output.data(),
+                                  numberOfElements, elementSize,
+                                  blockSize);
+   result = (status >= 0);
+
+   // Copy output back to data (by ref with copy-on-write).
+   //
+   this->data = output;
+
+   return result;
+
+#else
+   DEBUG << "Bslz4 decompression not supported";
+   return false;
+#endif
 }
 
 //------------------------------------------------------------------------------

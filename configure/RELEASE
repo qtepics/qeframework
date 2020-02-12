@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/configure/RELEASE $
-# $Revision: #3 $
-# $DateTime: 2018/12/22 18:21:54 $
+# $Revision: #6 $
+# $DateTime: 2020/02/12 17:08:06 $
 # Last checked in by: $Author: starritt $
 #
 # RELEASE - Location of external support modules
@@ -26,20 +26,25 @@
 
 TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
 
-# Defines the pre-built bundle location or left blank for formal build.
+# Defines the pre-built bundle location or left blank for easy build.
 #
 BUNDLE=
 
 # This allows the plugin library to be build against the framework library.
 # This must be defind as an absolute path - you cannot use $(TOP) here.
 # This is because QE_FRAMEWORK variable called up by the plugin project file.
-# On Linux the following works: QE_FRAMEWORK=$(shell readlink -f $(TOP) )
+# However, on Linux the following works: QE_FRAMEWORK=$(shell readlink -f $(TOP) )
 #
 QE_FRAMEWORK=$(BUNDLE)/gui/qeframework
 
 # Modify this to reference to __your__ local ACAI installation.
 # 
 ACAI=$(BUNDLE)/epics/acai
+
+# Modify this to reference to __your__ local AD Support installation.
+# Uncomment if needed; not required if PVAccess is not support defined.
+#
+# ADSUPPORT=$(BUNDLE)/det/ADSupport
 
 # EPICS_BASE usually appears last so other apps can override stuff:
 # Modify this to reference to __your__ local EPICS base installation.
