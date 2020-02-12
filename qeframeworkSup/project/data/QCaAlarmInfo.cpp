@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2019 Australian Synchrotron
+ *  Copyright (c) 2009-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,20 +31,21 @@
 #include <acai_client_types.h>
 #include <QEArchiveInterface.h>
 
+//------------------------------------------------------------------------------
 // Default standard colors.
 // These string lists are index by alarm severity
 //
 const QStringList QCaAlarmInfo::defaultStyleColorNames = QStringList ()
-        << "#e0eee0"    // pale green
-        << "#ffff00"    // yellow
-        << "#ff8080"    // pale red
-        << "#ffffff";   // white
+    << "#e0eee0"                // pale green
+    << "#ffff00"                // yellow
+    << "#ff8080"                // pale red
+    << "#ffffff";               // white
 
 const QStringList QCaAlarmInfo::defaultColorNames = QStringList ()
-        << "#00ff00"    // green
-        << "#ffff00"    // yellow
-        << "#ff0000"    // red
-        << "#ffffff";   // white
+    << "#00ff00"                // green
+    << "#ffff00"                // yellow
+    << "#ff0000"                // red
+    << "#ffffff";               // white
 
 
 // Current standard colors.
@@ -53,216 +54,225 @@ const QStringList QCaAlarmInfo::defaultColorNames = QStringList ()
 QStringList QCaAlarmInfo::styleColorNames = QCaAlarmInfo::defaultStyleColorNames;
 QStringList QCaAlarmInfo::colorNames = QCaAlarmInfo::defaultColorNames;
 
-/*
-   Update/extract current style names.
- */
-void QCaAlarmInfo::setStyleColorNames( const QStringList& styleColorNamesIn )
+//------------------------------------------------------------------------------
+// Update/extract current style names.
+//
+void QCaAlarmInfo::setStyleColorNames (const QStringList & styleColorNamesIn)
 {
-    styleColorNames = styleColorNamesIn;
+   styleColorNames = styleColorNamesIn;
 }
 
-QStringList QCaAlarmInfo::getStyleColorNames()
+QStringList QCaAlarmInfo::getStyleColorNames ()
 {
    return styleColorNames;
 }
 
-/*
-   Update/extract current color names.
- */
-void QCaAlarmInfo::setColorNames( const QStringList& colorNamesIn )
+//------------------------------------------------------------------------------
+// Update/extract current color names.
+//
+void QCaAlarmInfo::setColorNames (const QStringList & colorNamesIn)
 {
-    colorNames = colorNamesIn;
+   colorNames = colorNamesIn;
 }
 
-QStringList QCaAlarmInfo::getColorNames()
+QStringList QCaAlarmInfo::getColorNames ()
 {
    return colorNames;
 }
 
-/*
-   Extract constant default color style names.
- */
-QStringList QCaAlarmInfo::getDefaultStyleColorNames()
+//------------------------------------------------------------------------------
+// Extract constant default color style names.
+//
+QStringList QCaAlarmInfo::getDefaultStyleColorNames ()
 {
    return defaultStyleColorNames;
 }
 
-/*
-   Extract constant default color names.
- */
-QStringList QCaAlarmInfo::getDefaultColorNames()
+//------------------------------------------------------------------------------
+// Extract constant default color names.
+//
+QStringList QCaAlarmInfo::getDefaultColorNames ()
 {
    return defaultColorNames;
 }
 
-/*
-  Construct an empty instance.
-  By default there is no alarm present.
- */
-QCaAlarmInfo::QCaAlarmInfo()
+//------------------------------------------------------------------------------
+// Construct an empty instance.
+// By default there is no alarm present.
+//
+QCaAlarmInfo::QCaAlarmInfo ()
 {
-    status = NO_ALARM;
-    severity = NO_ALARM;
-    message = "";
+   this->status = NO_ALARM;
+   this->severity = NO_ALARM;
+   this->message = "";
 }
 
-/*
-  Construct an instance given an alarm state and severity
- */
-QCaAlarmInfo::QCaAlarmInfo( const Status statusIn,
-                            const Severity severityIn,
-                            const QString& messageIn )
+//------------------------------------------------------------------------------
+// Construct an instance given an alarm state and severity
+//
+QCaAlarmInfo::QCaAlarmInfo (const Status statusIn,
+                            const Severity severityIn, const QString & messageIn)
 {
-    status = statusIn;
-    severity = severityIn;
-    message = messageIn;
+   this->status = statusIn;
+   this->severity = severityIn;
+   this->message = messageIn;
 }
 
-/*
-  Deconstruct - place holder
- */
-QCaAlarmInfo::~QCaAlarmInfo() { }
+//------------------------------------------------------------------------------
+// Deconstruct - place holder
+//
+QCaAlarmInfo::~QCaAlarmInfo () { }
 
-/*
-  Equality function.
- */
-bool QCaAlarmInfo::operator==(const QCaAlarmInfo& other) const
+//------------------------------------------------------------------------------
+// Equality function.
+//
+bool QCaAlarmInfo::operator== (const QCaAlarmInfo& other) const
 {
-    return( ( this->status == other.status ) && ( this->severity == other.severity ) );
+   return ((this->status == other.status) && (this->severity == other.severity));
 }
 
-/*
-  InEquality function - defined in terms of == to ensure consistancy.
- */
-bool QCaAlarmInfo::operator!=(const QCaAlarmInfo& other) const
+//------------------------------------------------------------------------------
+// InEquality function - defined in terms of == to ensure consistancy.
+//
+bool QCaAlarmInfo::operator!= (const QCaAlarmInfo& other) const
 {
-    return !(*this == other);
+   return !(*this == other);
 }
 
 
-/*
-  Return a string identifying the alarm state
- */
-QString QCaAlarmInfo::statusName() const
+//------------------------------------------------------------------------------
+// Return a string identifying the alarm state
+//
+QString QCaAlarmInfo::statusName () const
 {
-    // TODO - PVA status strings are differnt.
-    ACAI::ClientAlarmCondition condition = ACAI::ClientAlarmCondition( status );
-    return QString::fromStdString( ACAI::alarmStatusImage( condition ) );
+   // TODO - PVA status strings are differnt.
+   ACAI::ClientAlarmCondition condition = ACAI::ClientAlarmCondition (this->status);
+   return QString::fromStdString (ACAI::alarmStatusImage (condition));
 }
 
-/*
-  Return a string identifying the alarm severity
- */
-QString QCaAlarmInfo::severityName() const
+//------------------------------------------------------------------------------
+// Return a string identifying the alarm severity
+//
+QString QCaAlarmInfo::severityName () const
 {
-    QString result;
+   QString result;
 
-    if ((severity & 0x0f00) == 0x0f00) {
-        // Do CA archiver severity specials.
-        //
-        QEArchiveInterface::archiveAlarmSeverity sevr = QEArchiveInterface::archiveAlarmSeverity (severity);
-        result = QEArchiveInterface::alarmSeverityName (sevr);
-    } else {
-        ACAI::ClientAlarmSeverity sevr = ACAI::ClientAlarmSeverity( severity );
-        result = QString::fromStdString( ACAI::alarmSeverityImage( sevr ) );
-    }
-    return result;
+   if ((this->severity & 0x0f00) == 0x0f00) {
+      // Do CA archiver severity specials.
+      //
+      QEArchiveInterface::archiveAlarmSeverity sevr =
+          QEArchiveInterface::archiveAlarmSeverity (this->severity);
+      result = QEArchiveInterface::alarmSeverityName (sevr);
+   } else {
+      ACAI::ClientAlarmSeverity sevr = ACAI::ClientAlarmSeverity (this->severity);
+      result = QString::fromStdString (ACAI::alarmSeverityImage (sevr));
+   }
+   return result;
 }
 
-/*
-  Return alarm message - empty string for CA
- */
-QString QCaAlarmInfo::messageText() const
+//------------------------------------------------------------------------------
+// Return alarm message - empty string for CA
+//
+QString QCaAlarmInfo::messageText () const
 {
-    return message;
+   return this->message;
 }
 
-/*
-  Return true if there is an alarm
- */
-bool QCaAlarmInfo::isInAlarm() const {
-    return( severity != NO_ALARM );
-}
-
-/*
-  Return true if there is a minor alarm
- */
-bool QCaAlarmInfo::isMinor() const {
-    return( severity == MINOR_ALARM );
-}
-
-/*
-  Return true if there is a major alarm
- */
-bool QCaAlarmInfo::isMajor() const {
-    return( severity == MAJOR_ALARM );
-}
-
-/*
-  Return true if there is an invalid alarm
- */
-bool QCaAlarmInfo::isInvalid() const {
-    return !ACAI::alarmSeverityIsValid( ACAI::ClientAlarmSeverity( severity ) );
-    return( severity == INVALID_ALARM );
-}
-
-/*
-  Return a style string to update the widget's look to reflect the current alarm state
- */
-QString QCaAlarmInfo::style() const
+//------------------------------------------------------------------------------
+// Return true if there is an alarm
+//
+bool QCaAlarmInfo::isInAlarm () const
 {
-    QString styleColor = getStyleColorName();
-    QString result;
-
-    switch( severity )
-    {
-        case NO_ALARM:
-        case MINOR_ALARM:
-        case MAJOR_ALARM:
-        case INVALID_ALARM:
-            result = QString( "QWidget { background-color: %1; }" ).arg( styleColor );
-            break;
-
-        default:
-            result = "";
-    }
-
-    return result;
+   return (this->severity != NO_ALARM);
 }
 
-/*
-  Return the style color name for the alarm state
- */
-QString QCaAlarmInfo::getStyleColorName() const
+//------------------------------------------------------------------------------
+// Return true if there is a minor alarm
+//
+bool QCaAlarmInfo::isMinor () const
 {
-    return styleColorNames.value( int(severity), "#ffffff" );
+   return (this->severity == MINOR_ALARM);
+}
+
+//------------------------------------------------------------------------------
+// Return true if there is a major alarm
+//
+bool QCaAlarmInfo::isMajor () const
+{
+   return (this->severity == MAJOR_ALARM);
+}
+
+//------------------------------------------------------------------------------
+// Return true if there is an invalid alarm
+//
+bool QCaAlarmInfo::isInvalid () const
+{
+   return !ACAI::alarmSeverityIsValid (ACAI::ClientAlarmSeverity (this->severity));
+}
+
+//------------------------------------------------------------------------------
+// Return a style string to update the widget's look to reflect the current alarm state
+//
+QString QCaAlarmInfo::style () const
+{
+   QString styleColor = this->getStyleColorName ();
+   QString result;
+
+   switch (this->severity) {
+      case NO_ALARM:
+      case MINOR_ALARM:
+      case MAJOR_ALARM:
+      case INVALID_ALARM:
+         result = QString ("QWidget { background-color: %1; }").arg (styleColor);
+         break;
+
+      default:
+         result = "";
+   }
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the style color name for the alarm state
+//
+QString QCaAlarmInfo::getStyleColorName () const
+{
+   return styleColorNames.value (int (this->severity), "#ffffff");
 }
 
 
-/*
-  Return the color name for the alarm state
- */
-QString QCaAlarmInfo::getColorName() const
+//------------------------------------------------------------------------------
+// Return the color name for the alarm state
+//
+QString QCaAlarmInfo::getColorName () const
 {
-    return colorNames.value( int(severity), "#ffffff" );
+   return colorNames.value (int (this->severity), "#ffffff");
 }
 
-/*
-  Return a severity that will not match any valid severity (static)
-  Not to be confused with the invalid state.
- */
-QCaAlarmInfo::Severity QCaAlarmInfo::getInvalidSeverity()
+//------------------------------------------------------------------------------
+// Return a severity that will not match any valid severity (static)
+// Not to be confused with the invalid state.
+//
+QCaAlarmInfo::Severity QCaAlarmInfo::getInvalidSeverity ()
 {
-    return ACAI::CLIENT_ALARM_NSEV;
+   return Severity (ACAI::CLIENT_ALARM_NSEV);
 }
 
-/*
-  Return the severity
-  The caller is only expected to compare this to
- */
-QCaAlarmInfo::Severity QCaAlarmInfo::getSeverity() const
+//------------------------------------------------------------------------------
+// Return the severity
+//
+QCaAlarmInfo::Severity QCaAlarmInfo::getSeverity () const
 {
-    return severity;
+   return this->severity;
+}
+
+//------------------------------------------------------------------------------
+// Return the status
+//
+QCaAlarmInfo::Status QCaAlarmInfo::getStatus () const
+{
+   return this->status;
 }
 
 // end
