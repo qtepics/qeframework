@@ -1,8 +1,9 @@
 /*  QEStringFormatting.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2019 Australian Synchrotron
+ *  Copyright (c) 2009-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -109,7 +110,9 @@ QVariant QEStringFormatting::formatValue( const QString& text, bool& ok ) const
          unitlessText.chop( dbEgu.length() );
    }
 
-   // Use the requested format, unless the requested format is 'default' in which case use the format determined from any value read.
+   // Use the requested format, unless the requested format is 'default' in
+   // which case use the format determined from any value read.
+   //
    formats f = format;
    if( f == FORMAT_DEFAULT )
    {
@@ -117,7 +120,9 @@ QVariant QEStringFormatting::formatValue( const QString& text, bool& ok ) const
    }
 
    // Format the value if an enumerated list
-   if( format == FORMAT_DEFAULT && dbEnumerations.size() )
+   //
+   const int enumCount = dbEnumerations.size();
+   if( format == FORMAT_DEFAULT && (enumCount > 0) )
    {
       // If value matched an enumeration, use it
       for( int i = 0; i < dbEnumerations.size(); i++ )
@@ -130,12 +135,31 @@ QVariant QEStringFormatting::formatValue( const QString& text, bool& ok ) const
             return value;
          }
       }
-      // Value does not match an enumeration
+
+      // Value does not match an enumeration string.
+      // If value is an integer and in range >= 0 and < enumCount then
+      // treats as if format is integer. This mimics the behaviour of caput.
+      //
+      bool intValueOk;
+      const int intValue = unitlessText.toInt( &intValueOk );
+      if( intValueOk && (intValue >= 0) && (intValue < enumCount) )
+      {
+         // Value is integer and in range - use it.
+         //
+         value = QVariant( intValue );
+         ok = true;
+         return value;
+      }
+
+      // Value does not match an enumeration string, nor is an integer value
+      // in the range 0 to enumCount - 1.
+      //
       ok = false;
-      return QVariant( QString("Value does not match an enumeration value from the database.") );
+      return QVariant();   // invalid
    }
 
    // Format the value if a local enumerated list
+   //
    if( format == FORMAT_LOCAL_ENUMERATE && localEnumerations.isDefined() )
    {
       return localEnumerations.textToValue( text, ok );
