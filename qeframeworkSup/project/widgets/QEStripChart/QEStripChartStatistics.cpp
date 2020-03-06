@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron.
+ *  Copyright (c) 2013-2020 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -141,10 +141,51 @@ void QEStripChartStatistics::processDataList (const QCaDataPointList& dataList)
    this->valueMean = stats.mean;
    this->valueStdDev = stats.stdDeviation;
 
+   // Set up the unit strings qualifier.
+   // Cribbed directly from the Delphi strip_chart_pv_stats.pas unit.
+   //
+   QString units;
+   QString slopeUnits;
+   QString integralUnits;
+
+   if (!this->egu.isEmpty ()) {
+      // The PV has explicity units.
+      //
+      units = " " + this->egu;
+      slopeUnits = " " + this->egu + "/sec";
+
+      // Do specials for when the base units are xxx/s, xxx/sec, xxx/min or xxx/Hr.
+      //
+      const int eguLen = this->egu.length();
+      if (this->egu.endsWith ("/sec")) {
+         // xxx/sec-secs is just xxx
+         integralUnits = " " + this->egu.mid (0, eguLen - 4);
+      } else if (this->egu.endsWith ("/s")) {
+         //  /sec and /s  both used
+         integralUnits = " " + this->egu.mid (0, eguLen - 2);
+      } else if (this->egu.endsWith ("/min")) {
+         // Need to convert from xxx/min-secs to xxx/min-mins, i.e. xxx.
+         //
+         stats.integral /= 60.0;
+         integralUnits = " " + this->egu.mid (0, eguLen - 4);
+      } else if (this->egu.endsWith ("/Hr")) {
+         // Need to convert from xxx/Hr-secs to xxx/Hr-Hrs, i.e. xxx.
+         //
+         stats.integral /= 3600.0;
+         integralUnits = " " + this->egu.mid (0, eguLen - 3);
+      } else {
+         integralUnits = " " + this->egu + "-secs";
+      }
+   } else {
+      // No units per se - easy.
+      //
+      units = "";
+      slopeUnits = " /sec";
+      integralUnits = " secs";
+   }
+
    // Populate form fields.
    //
-   const QString units = egu.isEmpty() ? "" : " " + egu;
-
    this->ui->meanLabel->setText (QString ("%1%2").arg (stats.mean).arg (units));
    this->ui->minimumLabel->setText (QString ("%1%2").arg (stats.minimum).arg (units));
    this->ui->maximumLabel->setText (QString ("%1%2").arg (stats.maximum).arg (units));
@@ -152,9 +193,8 @@ void QEStripChartStatistics::processDataList (const QCaDataPointList& dataList)
 
    this->ui->firstLastDiffLabel->setText (QString ("%1%2").arg (stats.finalValue - stats.initialValue).arg (units));
    this->ui->standardDeviationLabel->setText (QString ("%1%2").arg (stats.stdDeviation).arg (units));
-   this->ui->meanRateOfChangeLabel->setText (QString ("%1%2/sec").arg (stats.slope).arg (units));
-   this->ui->areaUnderCurveLabel->setText (QString ("%1%2-sec").arg (stats.integral).arg (units));
-
+   this->ui->meanRateOfChangeLabel->setText (QString ("%1%2").arg (stats.slope).arg (slopeUnits));
+   this->ui->areaUnderCurveLabel->setText (QString ("%1%2").arg (stats.integral).arg (integralUnits));
 
    // Data min/max
    //
