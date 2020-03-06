@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron.
+ *  Copyright (c) 2013-2020 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -24,6 +24,8 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEGraphic.h"
+
 #include <math.h>
 
 #include <QDebug>
@@ -38,7 +40,6 @@
 #include <QEScaling.h>
 #include <QEPlatform.h>
 #include <QEGraphicMarkup.h>
-#include <QEGraphic.h>
 
 #define DEBUG qDebug () << "QEGraphic" <<  __LINE__ << __FUNCTION__  << "  "
 
@@ -609,7 +610,10 @@ bool QEGraphic::doDynamicRescaling (const QwtPlot::Axis selectedYAxis)
 //
 void  QEGraphic::tickTimeout ()
 {
-   this->doDynamicRescaling ();
+   // Perfrom dynamic scaling to both left and right axis.
+   //
+   this->doDynamicRescaling (QwtPlot::yLeft);
+   this->doDynamicRescaling (QwtPlot::yRight);
 }
 
 //------------------------------------------------------------------------------
@@ -966,7 +970,7 @@ void QEGraphic::plotMarkupCurveData (const QEGraphicNames::DoubleVector& xData,
                                      const QEGraphicNames::DoubleVector& yData)
 {
    QwtPlotCurve* curve;
-   curve = this->createCurveData (xData, yData);
+   curve = this->createCurveData (xData, yData, QwtPlot::yLeft);
    if (curve) this->markupCurveList.append (curve);
 }
 
@@ -1006,7 +1010,7 @@ void QEGraphic::drawText (const QPointF& posn,
    if (option == QEGraphicNames::RealWorldPosition) {
       item.position = posn;
    } else {
-      item.position = this->pointToReal (posn);
+      item.position = this->pointToReal (posn, QwtPlot::yLeft);
    }
    item.text = text;
    item.isCentred = isCentred;
@@ -1043,7 +1047,7 @@ void QEGraphic::drawTexts (QPainter* painter)
 
       // Do last minute conversion.
       //
-      const QPoint pixelPos = this->realToPoint (item.position);
+      const QPoint pixelPos = this->realToPoint (item.position, QwtPlot::yLeft);
 
       int x = pixelPos.x ();
       int y = pixelPos.y ();
@@ -1120,8 +1124,8 @@ bool QEGraphic::globalPosIsOverCanvas (const QPoint& golbalPos) const
 //
 QPoint QEGraphic::pixelDistance (const QPointF& from, const QPointF& to) const
 {
-   QPoint pointFrom = this->realToPoint (from);
-   QPoint pointTo = this->realToPoint (to);
+   QPoint pointFrom = this->realToPoint (from, QwtPlot::yLeft);
+   QPoint pointTo = this->realToPoint (to, QwtPlot::yLeft);
    return pointTo - pointFrom;
 }
 
@@ -1303,7 +1307,7 @@ void QEGraphic::canvasMousePress (QMouseEvent* mouseEvent)
    QEGraphicMarkup* search;
 
    button = mouseEvent->button ();
-   this->realMousePosition = this->pointToReal (mouseEvent->pos ());
+   this->realMousePosition = this->pointToReal (mouseEvent->pos (), QwtPlot::yLeft);
 
    search = NULL;
 
@@ -1360,7 +1364,7 @@ void QEGraphic::canvasMouseRelease (QMouseEvent* mouseEvent)
    Qt::MouseButton button;
 
    button = mouseEvent->button ();
-   this->realMousePosition = this->pointToReal (mouseEvent->pos ());
+   this->realMousePosition = this->pointToReal (mouseEvent->pos (), QwtPlot::yLeft);
 
    const QEGraphicNames::MarkupLists keys = this->graphicMarkupsSet->keys ();
    for (int j = 0; j < keys.count (); j++) {
@@ -1385,7 +1389,7 @@ void QEGraphic::canvasMouseMove (QMouseEvent* mouseEvent, const bool isButtonAct
 {
    bool replotIsRequired;
 
-   this->realMousePosition = this->pointToReal (mouseEvent->pos ());
+   this->realMousePosition = this->pointToReal (mouseEvent->pos (), QwtPlot::yLeft);
 
    replotIsRequired = false;
    QEGraphicNames::MarkupLists keys = this->graphicMarkupsSet->keys ();
