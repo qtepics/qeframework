@@ -319,13 +319,14 @@ void QEPlot::setup ()
    this->archiveBackfill = false;
    this->axisEnableX = true;
    this->axisEnableY = true;
+   this->selectedYAxis = Left;
 
    // Default to one minute span
    //
    this->tickRate = 50;   // millSec
    this->timeSpan = 60;   // seconds
 
-   this->plotArea->setYRange (0.0, 1000.0, QEGraphicNames::SelectByValue, 5, false);
+   this->setPlotAreaYRange (0.0, 1000.0, true);
    this->plotArea->setXRange (0.0, 1000.0, QEGraphicNames::SelectByValue, 5, false);
 
    // Tracking on by default - connect mouse move signal.
@@ -818,7 +819,7 @@ void QEPlot::plotData ()
                ydata.append (y);
             }
          }
-         this->plotArea->plotCurveData (xdata, ydata);
+         this->plotArea->plotCurveData (xdata, ydata, QwtPlot::yLeft);
 
       } else {
          // It is a scalar.
@@ -857,7 +858,7 @@ void QEPlot::plotData ()
 
                   // Plot it, and clear the data in order to start again.
                   //
-                  this->plotArea->plotCurveData (xdata, ydata);
+                  this->plotArea->plotCurveData (xdata, ydata, QwtPlot::yLeft);
                   xdata.clear ();
                   ydata.clear ();
                }
@@ -873,7 +874,7 @@ void QEPlot::plotData ()
             xdata.append (0.0);        // relative time now.
             ydata.append (point.value);
 
-            this->plotArea->plotCurveData (xdata, ydata);
+            this->plotArea->plotCurveData (xdata, ydata, QwtPlot::yLeft);
          }
       }
    }
@@ -881,7 +882,7 @@ void QEPlot::plotData ()
    if (this->yAxisAutoScale && yRange.getIsDefined()) {
       double min, max;
       yRange.getMinMax (min, max);
-      this->plotArea->setYRange (min, max, QEGraphicNames::SelectByValue, 5, false);
+      this->setPlotAreaYRange (min, max, false);
    }
 
    if (xRange.getIsDefined()) {
@@ -1174,6 +1175,15 @@ void QEPlot::paste (QVariant v)
    }
 }
 
+//------------------------------------------------------------------------------
+// Whatever Y range is selected - apply to both left and right y axis.
+//
+void QEPlot::setPlotAreaYRange (const double min, const double max, const bool immediate)
+{
+   this->plotArea->setYRange (min, max, QEGraphicNames::SelectByValue, 5, immediate, QwtPlot::yRight);
+   this->plotArea->setYRange (min, max, QEGraphicNames::SelectByValue, 5, immediate, QwtPlot::yLeft);
+}
+
 //==============================================================================
 // Property functions
 //
@@ -1182,7 +1192,7 @@ void QEPlot::setYMin (const double yMinIn)
 {
    this->yMin = yMinIn;
    if (!this->yAxisAutoScale) {
-      this->plotArea->setYRange (this->yMin, this->yMax, QEGraphicNames::SelectByValue, 5, false);
+      this->setPlotAreaYRange (this->yMin, this->yMax, false);
       this->replotIsRequired = true;
    }
 }
@@ -1200,7 +1210,7 @@ void QEPlot::setYMax (const double yMaxIn)
 {
    this->yMax = yMaxIn;
    if (!this->yAxisAutoScale) {
-      this->plotArea->setYRange (this->yMin, this->yMax, QEGraphicNames::SelectByValue, 5, false);
+      this->setPlotAreaYRange (this->yMin, this->yMax, false);
       this->replotIsRequired = true;
    }
 }
@@ -1226,8 +1236,8 @@ void QEPlot::setAutoScale (const bool autoScaleIn)
       // Just re-applying the range does not cut-the-mustard, even if we turn auto scale off.
       // We need to set a different range, and then reset to the original.
       //
-      this->plotArea->setYRange (this->yMin, this->yMax + 1.0, QEGraphicNames::SelectByValue, 5, false);
-      this->plotArea->setYRange (this->yMin, this->yMax, QEGraphicNames::SelectByValue, 5, false);
+      this->setPlotAreaYRange (this->yMin, this->yMax + 1.0, false);
+      this->setPlotAreaYRange (this->yMin, this->yMax, false);
    }
 
    this->replotIsRequired = true;
@@ -1275,7 +1285,8 @@ bool QEPlot::getAxisEnableX () const
 void QEPlot::setAxisEnableY (const bool axisEnableYIn)
 {
    this->axisEnableY = axisEnableYIn;
-   this->plotArea->enableAxis (QwtPlot::yLeft, this->axisEnableY);
+   this->plotArea->enableAxis (QwtPlot::yLeft,  this->axisEnableY && (this->selectedYAxis == Left));
+   this->plotArea->enableAxis (QwtPlot::yRight, this->axisEnableY && (this->selectedYAxis == Right));
    this->replotIsRequired = true;
 }
 
@@ -1284,6 +1295,23 @@ void QEPlot::setAxisEnableY (const bool axisEnableYIn)
 bool QEPlot::getAxisEnableY () const
 {
    return this->axisEnableY;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlot::setSelectedYAxis (const SelectedYAxis selectedYAxisIn)
+{
+   this->selectedYAxis = selectedYAxisIn;
+   this->plotArea->enableAxis (QwtPlot::yLeft,  this->axisEnableY && (this->selectedYAxis == Left));
+   this->plotArea->enableAxis (QwtPlot::yRight, this->axisEnableY && (this->selectedYAxis == Right));
+   this->replotIsRequired = true;
+}
+
+//------------------------------------------------------------------------------
+//
+QEPlot::SelectedYAxis QEPlot::getSelectedYAxis () const
+{
+   return this->selectedYAxis;
 }
 
 //------------------------------------------------------------------------------

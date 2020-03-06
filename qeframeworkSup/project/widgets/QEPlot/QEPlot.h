@@ -67,6 +67,14 @@ public:
       Dots
    };
 
+   // Consider adding a None value and removing the axisEnableY bool property.
+   //
+   Q_ENUMS (SelectedYAxis)
+   enum SelectedYAxis {
+      Left = 1,
+      Right
+   };
+
    /// EPICS variable name (CA PV).
    /// These variables is used to read updating values or waveforms for plotting in the first trace.
    ///
@@ -133,6 +141,7 @@ public:
 
    Q_PROPERTY (bool axisEnableX READ getAxisEnableX WRITE setAxisEnableX)
    Q_PROPERTY (bool axisEnableY READ getAxisEnableY WRITE setAxisEnableY)
+   Q_PROPERTY (SelectedYAxis selectedYAxis READ getSelectedYAxis WRITE setSelectedYAxis)
 
    Q_PROPERTY (bool gridEnableMajorX READ getGridEnableMajorX WRITE setGridEnableMajorX)
    Q_PROPERTY (bool gridEnableMajorY READ getGridEnableMajorY WRITE setGridEnableMajorY)
@@ -196,11 +205,14 @@ public:
    void setArchiveBackfill (const bool archiveBackfill);
    bool getArchiveBackfill () const;
 
-   void setAxisEnableX (const bool axisEnableXIn);
+   void setAxisEnableX (const bool axisEnableX);
    bool getAxisEnableX () const;
 
-   void setAxisEnableY (const bool axisEnableYIn);
+   void setAxisEnableY (const bool axisEnableY);
    bool getAxisEnableY () const;
+
+   void setSelectedYAxis (const SelectedYAxis selectedYAxis);
+   SelectedYAxis getSelectedYAxis () const;
 
    void setTitle (const QString& title);
    QString getTitle () const;
@@ -265,22 +277,22 @@ public:
    void setYUnit (const QString& yUnit);
    QString getYUnit () const;
 
-   void setGridEnableMajorX (const bool gridEnableMajorXIn);
+   void setGridEnableMajorX (const bool gridEnableMajorX);
    bool getGridEnableMajorX () const;
 
-   void setGridEnableMajorY (const bool gridEnableMajorYIn);
+   void setGridEnableMajorY (const bool gridEnableMajorY);
    bool getGridEnableMajorY () const;
 
-   void setGridEnableMinorX (const bool gridEnableMinorXIn);
+   void setGridEnableMinorX (const bool gridEnableMinorX);
    bool getGridEnableMinorX () const;
 
-   void setGridEnableMinorY (const bool gridEnableMinorYIn);
+   void setGridEnableMinorY (const bool gridEnableMinorY);
    bool getGridEnableMinorY () const;
 
-   void setGridMajorColor (const QColor gridMajorColorIn);
+   void setGridMajorColor (const QColor gridMajorColor);
    QColor getGridMajorColor () const;
 
-   void setGridMinorColor (const QColor gridMinorColorIn);
+   void setGridMinorColor (const QColor gridMinorColor);
    QColor getGridMinorColor () const;
 
    void setXStart (const double xStart);
@@ -356,6 +368,7 @@ private:
    void purgeOldData ();
    void updateGridSettings ();
    void setReadOut (const QString& text);
+   void setPlotAreaYRange (const double min, const double max, const bool immediate);
 
    QHBoxLayout* layout;
    int layoutMargin;
@@ -373,6 +386,7 @@ private:
    bool archiveBackfill;
    bool axisEnableX;
    bool axisEnableY;
+   SelectedYAxis selectedYAxis;
    QColor backgroundColor;
    bool gridEnableMajorX;
    bool gridEnableMajorY;
@@ -418,6 +432,7 @@ private slots:
 
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
 Q_DECLARE_METATYPE (QEPlot::TraceStyles)
+Q_DECLARE_METATYPE (QEPlot::SelectedYAxis)
 #endif
 
 #endif                          // QE_PLOT_H
