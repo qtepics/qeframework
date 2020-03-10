@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2019 Australian Synchrotron.
+ *  Copyright (c) 2014-2020 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -27,13 +27,12 @@
 #ifndef QE_SCALAR_HISTOGRAM_H
 #define QE_SCALAR_HISTOGRAM_H
 
-#include <QLayout>
 #include <QString>
 #include <QVector>
 
 #include <QECommon.h>
 #include <QEHistogram.h>
-#include <QEFrame.h>
+#include <QEWidget.h>
 #include <QEWidget.h>
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
@@ -58,19 +57,11 @@
 #define QE_HISTOGRAM_NUMBER_VARIABLES 120
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEScalarHistogram:
-      public QEFrame,
+      public QEHistogram,
+      public QEWidget,
       public QEStringFormattingMethods
 {
    Q_OBJECT
-
-   // All standard properties are inherited from QEFrame.
-   //
-   /// Macro substitutions. The default is no substitutions.
-   /// The format is NAME1=VALUE1[,] NAME2=VALUE2... Values may be quoted strings.
-   /// For example, 'SAMPLE=SAM1, NAME = "Ref foil"'
-   /// These substitutions are applied to all the variable names.
-   Q_PROPERTY (QString variableSubstitutions READ getPvNameSubstitutions WRITE
-               setPvNameSubstitutions)
 
 public:
    /// \enum ScaleModes
@@ -104,28 +95,17 @@ public:
    };
    Q_ENUMS (Notations)
 
-   // Histogram properties
+   // QEScalarHistogram specific properties ==========================================
    //
-   Q_PROPERTY (bool   autoBarGapWidths READ getAutoBarGapWidths WRITE setAutoBarGapWidths)
-   Q_PROPERTY (int    barWidth         READ getBarWidth         WRITE setBarWidth)
-   Q_PROPERTY (int    gap              READ getGap              WRITE setGap)
-   Q_PROPERTY (int    margin           READ getMargin           WRITE setMargin)
-   Q_PROPERTY (ScaleModes scaleMode    READ getScaleMode        WRITE setScaleMode)
-   Q_PROPERTY (double minimum          READ getMinimum          WRITE setMinimum)
-   Q_PROPERTY (double maximum          READ getMaximum          WRITE setMaximum)
-   Q_PROPERTY (double baseLine         READ getBaseLine         WRITE setBaseLine)
-   Q_PROPERTY (bool   drawAxies        READ getDrawAxies        WRITE setDrawAxies)
-   Q_PROPERTY (bool   showScale        READ getShowScale        WRITE setShowScale)
-   Q_PROPERTY (bool   showGrid         READ getShowGrid         WRITE setShowGrid)
-   Q_PROPERTY (bool   logScale         READ getLogScale         WRITE setLogScale  )
-   // When dislayAlarmState set ture, this property value effectively ignored.
-   Q_PROPERTY (QColor backgroundColour READ getBackgroundColour WRITE setBackgroundColour)
-   Q_PROPERTY (QColor secondBgColour   READ getSecondBgColour   WRITE setSecondBgColour)
-   Q_PROPERTY (int    secondBgSize     READ getSecondBgSize     WRITE setSecondBgSize)
-   Q_PROPERTY (bool   showSecondBg     READ getShowSecondBg     WRITE setShowSecondBg)
-   Q_PROPERTY (QColor barColour        READ getBarColour        WRITE setBarColour)
-   Q_PROPERTY (bool   drawBorder       READ getDrawBorder       WRITE setDrawBorder)
-   Q_PROPERTY (Qt::Orientation orientation READ getOrientation  WRITE setOrientation)
+   /// Macro substitutions. The default is no substitutions.
+   /// The format is NAME1=VALUE1[,] NAME2=VALUE2... Values may be quoted strings.
+   /// For example, 'SAMPLE=SAM1, NAME = "Ref foil"'
+   /// These substitutions are applied to all the variable names.
+   /// //
+   Q_PROPERTY (QString variableSubstitutions READ getPvNameSubstitutions WRITE
+               setPvNameSubstitutions)
+
+   Q_PROPERTY (ScaleModes scaleMode        READ getScaleMode        WRITE setScaleMode)
 
    // Readout formatting
    Q_PROPERTY (int       readoutPrecision  READ getReadoutPrecision WRITE setReadoutPrecision)
@@ -135,16 +115,16 @@ public:
    /// EPICS variable names (CA PV).
    // Note variableN uses variable index N-1.
    //
-   Q_PROPERTY (QString variable1  READ getPvName0   WRITE setPvName0)
-   Q_PROPERTY (QString variable2  READ getPvName1   WRITE setPvName1)
-   Q_PROPERTY (QString variable3  READ getPvName2   WRITE setPvName2)
-   Q_PROPERTY (QString variable4  READ getPvName3   WRITE setPvName3)
-   Q_PROPERTY (QString variable5  READ getPvName4   WRITE setPvName4)
-   Q_PROPERTY (QString variable6  READ getPvName5   WRITE setPvName5)
-   Q_PROPERTY (QString variable7  READ getPvName6   WRITE setPvName6)
-   Q_PROPERTY (QString variable8  READ getPvName7   WRITE setPvName7)
-   Q_PROPERTY (QString variable9  READ getPvName8   WRITE setPvName8)
-   Q_PROPERTY (QString variable10 READ getPvName9   WRITE setPvName9)
+   Q_PROPERTY (QString variable1  READ getPvName0  WRITE setPvName0)
+   Q_PROPERTY (QString variable2  READ getPvName1  WRITE setPvName1)
+   Q_PROPERTY (QString variable3  READ getPvName2  WRITE setPvName2)
+   Q_PROPERTY (QString variable4  READ getPvName3  WRITE setPvName3)
+   Q_PROPERTY (QString variable5  READ getPvName4  WRITE setPvName4)
+   Q_PROPERTY (QString variable6  READ getPvName5  WRITE setPvName5)
+   Q_PROPERTY (QString variable7  READ getPvName6  WRITE setPvName6)
+   Q_PROPERTY (QString variable8  READ getPvName7  WRITE setPvName7)
+   Q_PROPERTY (QString variable9  READ getPvName8  WRITE setPvName8)
+   Q_PROPERTY (QString variable10 READ getPvName9  WRITE setPvName9)
    Q_PROPERTY (QString variable11 READ getPvName10 WRITE setPvName10)
    Q_PROPERTY (QString variable12 READ getPvName11 WRITE setPvName11)
    Q_PROPERTY (QString variable13 READ getPvName12 WRITE setPvName12)
@@ -255,6 +235,125 @@ public:
    Q_PROPERTY (QString variable118 READ getPvName117 WRITE setPvName117)
    Q_PROPERTY (QString variable119 READ getPvName118 WRITE setPvName118)
    Q_PROPERTY (QString variable120 READ getPvName119 WRITE setPvName119)
+   //
+   // End QEScalarHistogram specific properties ======================================
+
+
+   // BEGIN-STANDARD-PROPERTIES ======================================================
+   // Standard properties
+   // These properties should be identical for every widget using them.
+   // WHEN MAKING CHANGES: Use the update_widget_properties script in the
+   // resources directory.
+public slots:
+   /// Slot to set the visibility of a QE widget, taking into account the user level.
+   /// Widget will be hidden if hidden by a call this slot, by will only be made visible by a calll to this slot if the user level allows.
+   void setManagedVisible( bool v ){ setRunVisible( v ); }
+public:
+   /// Use the variable as the tool tip. Default is true. Tool tip property will be overwritten by the variable name.
+   ///
+   Q_PROPERTY(bool variableAsToolTip READ getVariableAsToolTip WRITE setVariableAsToolTip)
+
+   /// Allow drag/drops operations to this widget. Default is false. Any dropped text will be used as a new variable name.
+   ///
+   Q_PROPERTY(bool allowDrop READ getAllowDrop WRITE setAllowDrop)
+
+   /// Display the widget. Default is true.
+   /// Setting this property false is usefull if widget is only used to provide a signal - for example, when supplying data to a QELink widget.
+   /// Note, when false the widget will still be visible in Qt Designer.
+   Q_PROPERTY(bool visible READ getRunVisible WRITE setRunVisible)
+
+   /// Set the ID used by the message filtering system. Default is zero.
+   /// Widgets or applications that use messages from the framework have the option of filtering on this ID.
+   /// For example, by using a unique message source ID a QELog widget may be set up to only log messages from a select set of widgets.
+   Q_PROPERTY(unsigned int messageSourceId READ getMessageSourceId WRITE setMessageSourceId )
+
+   /// Hide style sheet from designer as style calculation by the styleManager and not directly setable per se.
+   /// This also stops transient styles being saved to the ui file.
+   Q_PROPERTY(QString styleSheet   READ styleSheet       WRITE setStyleSheet  DESIGNABLE false)
+
+   /// Style Sheet string to be applied before, i.e. lower priority than, any other style, e.g. alarm style and/or user level style.
+   /// Default is an empty string.
+   Q_PROPERTY(QString defaultStyle READ getStyleDefault  WRITE setStyleDefault)
+
+   /// Style Sheet string to be applied when the widget is displayed in 'User' mode. Default is an empty string.
+   /// The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
+   /// This Style Sheet string will be applied by the styleManager class.
+   /// Refer to the styleManager class for details about how this Style Sheet string will be merged with any pre-existing Style Sheet string
+   /// and any Style Sheet strings generated during the display of data.
+   Q_PROPERTY(QString userLevelUserStyle READ getStyleUser WRITE setStyleUser)
+
+   /// Style Sheet string to be applied when the widget is displayed in 'Scientist' mode. Default is an empty string.
+   /// The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
+   /// This Style Sheet string will be applied by the styleManager class.
+   /// Refer to the styleManager class for details about how this Style Sheet string will be merged with any pre-existing Style Sheet string
+   /// and any Style Sheet strings generated during the display of data.
+   Q_PROPERTY(QString userLevelScientistStyle READ getStyleScientist WRITE setStyleScientist)
+
+   /// Style Sheet string to be applied when the widget is displayed in 'Engineer' mode. Default is an empty string.
+   /// The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
+   /// This Style Sheet string will be applied by the styleManager class.
+   /// Refer to the styleManager class for details about how this Style Sheet string will be merged with any pre-existing Style Sheet string
+   /// and any Style Sheet strings generated during the display of data.
+   Q_PROPERTY(QString userLevelEngineerStyle READ getStyleEngineer WRITE setStyleEngineer)
+
+   /// \enum UserLevels
+   /// User friendly enumerations for #userLevelVisibility and #userLevelEnabled properties - refer to #userLevelVisibility and #userLevelEnabled properties and userLevel enumeration for details.
+   enum UserLevels { User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
+                     Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
+                     Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
+                   };
+   Q_ENUMS(UserLevels)
+
+   /// Lowest user level at which the widget is visible. Default is 'User'.
+   /// Used when designing GUIs that display more and more detail according to the user mode.
+   /// The user mode is set application wide through the QELogin widget, or programatically through setUserLevel()
+   /// Widgets that are always visible should be visible at 'User'.
+   /// Widgets that are only used by scientists managing the facility should be visible at 'Scientist'.
+   /// Widgets that are only used by engineers maintaining the facility should be visible at 'Engineer'.
+   Q_PROPERTY(UserLevels userLevelVisibility READ getUserLevelVisibilityProperty WRITE setUserLevelVisibilityProperty)
+
+   /// Lowest user level at which the widget is enabled. Default is 'User'.
+   /// Used when designing GUIs that allow access to more and more detail according to the user mode.
+   /// The user mode is set application wide through the QELogin widget, or programatically through setUserLevel()
+   /// Widgets that are always accessable should be visible at 'User'.
+   /// Widgets that are only accessable to scientists managing the facility should be visible at 'Scientist'.
+   /// Widgets that are only accessable to engineers maintaining the facility should be visible at 'Engineer'.
+   Q_PROPERTY(UserLevels userLevelEnabled READ getUserLevelEnabledProperty WRITE setUserLevelEnabledProperty)
+
+   UserLevels getUserLevelVisibilityProperty() { return (UserLevels)getUserLevelVisibility(); }            ///< Access function for #userLevelVisibility property - refer to #userLevelVisibility property for details
+   void setUserLevelVisibilityProperty( UserLevels level ) { setUserLevelVisibility( (userLevelTypes::userLevels)level ); }///< Access function for #userLevelVisibility property - refer to #userLevelVisibility property for details
+   UserLevels getUserLevelEnabledProperty() { return (UserLevels)getUserLevelEnabled(); }                  ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
+   void setUserLevelEnabledProperty( UserLevels level ) { setUserLevelEnabled( (userLevelTypes::userLevels)level ); }      ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
+
+   /// DEPRECATED. USE displayAlarmStateOption INSTEAD.
+   /// If set (default) widget will indicate the alarm state of any variable data it is displaying.
+   /// If clear widget will never indicate the alarm state of any variable data it is displaying.
+   /// Typically the background colour is set to indicate the alarm state.
+   /// Note, this property is included in the set of standard properties as it applies to most widgets. It
+   /// will do nothing for widgets that don't display data.
+   Q_PROPERTY(bool displayAlarmState READ getDisplayAlarmState WRITE setDisplayAlarmState DESIGNABLE false)
+
+   /// \enum DisplayAlarmStateOptions
+   /// User friendly enumerations for #displayAlarmStateOption property - refer to #displayAlarmStateOption property and displayAlarmStateOptions enumeration for details.
+   enum DisplayAlarmStateOptions { Never       = standardProperties::DISPLAY_ALARM_STATE_NEVER,          ///< Refer to DISPLAY_ALARM_STATE_NEVER for details
+                                   Always      = standardProperties::DISPLAY_ALARM_STATE_ALWAYS,         ///< Refer to DISPLAY_ALARM_STATE_ALWAYS for details
+                                   WhenInAlarm = standardProperties::DISPLAY_ALARM_STATE_WHEN_IN_ALARM   ///< Refer to DISPLAY_ALARM_STATE_WHEN_IN_ALARM for details
+                                 };
+   Q_ENUMS(DisplayAlarmStateOptions)
+   /// If 'Always' (default) widget will indicate the alarm state of any variable data it is displaying, including 'No Alarm'
+   /// If 'Never' widget will never indicate the alarm state of any variable data it is displaying.
+   /// If 'WhenInAlarm' widget only indicate the alarm state of any variable data it is displaying if it is 'in alarm'.
+   /// Typically the background colour is set to indicate the alarm state.
+   /// Note, this property is included in the set of standard properties as it applies to most widgets. It
+   /// will do nothing for widgets that don't display data.
+   Q_PROPERTY(DisplayAlarmStateOptions displayAlarmStateOption READ getDisplayAlarmStateOptionProperty WRITE setDisplayAlarmStateOptionProperty)
+
+   DisplayAlarmStateOptions getDisplayAlarmStateOptionProperty() { return (DisplayAlarmStateOptions)getDisplayAlarmStateOption(); }            ///< Access function for #displayAlarmStateOption property - refer to #displayAlarmStateOption property for details
+   void setDisplayAlarmStateOptionProperty( DisplayAlarmStateOptions option ) { setDisplayAlarmStateOption( (displayAlarmStateOptions)option ); }///< Access function for #displayAlarmStateOption property - refer to #displayAlarmStateOption property for details
+
+public:
+   // END-STANDARD-PROPERTIES ========================================================
+
 
 public:
    explicit QEScalarHistogram (QWidget* parent = 0);
@@ -271,34 +370,6 @@ public:
 
    void setReadoutNotation (const Notations notation);
    Notations getReadoutNotation () const;
-
-   // Expose access to the internal widget's set/get functions.
-   //
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, double, getMinimum,     setMinimum)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, double, getMaximum,     setMaximum)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, double, getBaseLine,    setBaseLine)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, int,    getGap,         setGap)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, int,    getBarWidth,    setBarWidth)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, int,    getMargin,      setMargin)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, bool,   getAutoBarGapWidths, setAutoBarGapWidths)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, bool,   getShowScale,   setShowScale)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, bool,   getShowGrid,    setShowGrid)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, bool,   getLogScale,    setLogScale)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, bool,   getDrawAxies,   setDrawAxies)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, bool,   getDrawBorder,  setDrawBorder)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, QColor, getBackgroundColour, setBackgroundColour)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, QColor, getSecondBgColour, setSecondBgColour)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, int,    getSecondBgSize, setSecondBgSize)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, bool,   getShowSecondBg, setShowSecondBg)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, QColor, getBarColour,   setBarColour)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (histogram, Qt::Orientation, getOrientation, setOrientation)
-
-signals:
-   // signals element index (0 .. N-1) of histogram which mouse has entered
-   // or -1 if/when no longer over the element's bar.
-   //
-   void mouseIndexChanged (const int index);
-   void mouseIndexPressed (const int index, const Qt::MouseButton button);
 
 protected:
    qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
@@ -317,6 +388,9 @@ protected:
    QVariant copyData ();
    void paste (QVariant v);
 
+   void onMouseIndexChanged (const int index);
+   void onMouseIndexPressed (const int index, const Qt::MouseButton button);
+
    // Adds the specified pvName to the first unused slot (if room) and
    // establish the connection.
    //
@@ -329,8 +403,7 @@ private:
    void setReadOut (const QString& text);
    void genReadOut (const int index);
 
-   QEHistogram* histogram;
-   QHBoxLayout* layout;         // holds the histogram - any layout type will do
+   QEHistogram* histogram;   // self ref alias
    QCaVariableNamePropertyManager vnpm [QE_HISTOGRAM_NUMBER_VARIABLES];
    QEFloatingFormatting floatingFormatting;
    int selectedChannel;         //
@@ -344,9 +417,6 @@ private slots:
 
    void setChannelValue (const double&value, QCaAlarmInfo&,
                          QCaDateTime&, const unsigned int&);
-
-   void mouseIndexChangedSlot (const int index);
-   void mouseIndexPressedSlot (const int index, const Qt::MouseButton button);
 
 private:
    // Define a variable access

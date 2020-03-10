@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2019 Australian Synchrotron.
+ *  Copyright (c) 2014-2020 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -35,36 +35,18 @@
 // Constructor with no initialisation
 //
 QEScalarHistogram::QEScalarHistogram (QWidget * parent) :
-   QEFrame (parent),
+   QEHistogram (parent),
+   QEWidget (this),
    QEStringFormattingMethods ()
 {
-   // Set default property values
-   // Super class....
-   //
-   this->setFrameShape (QFrame::Panel);
-   this->setFrameShadow (QFrame::Plain);
-   this->setVariableAsToolTip (true);
+   this->histogram = this;  // alias
 
-   // Create internal widget.
-   //
-   this->layout = new QHBoxLayout (this);
-   this->layout->setMargin (0);    // extact fit.
-   this->histogram = new QEHistogram (this);
-   this->layout->addWidget (this->histogram);
+   this->setVariableAsToolTip (true);
 
    // Set histogram properties.
    //
-   this->histogram->setFrameShape (QFrame::NoFrame);
-   this->histogram->setFrameShadow (QFrame::Plain);
    this->histogram->setAutoScale (true);
-
-   QObject::connect (this->histogram, SIGNAL (mouseIndexChanged    (const int)),
-                     this,            SLOT   (mouseIndexChangedSlot (const int)));
-
-   QObject::connect (this->histogram, SIGNAL (mouseIndexPressed    (const int, const Qt::MouseButton)),
-                     this,            SLOT   (mouseIndexPressedSlot (const int, const Qt::MouseButton)));
-
-   this->setPrecision (6);
+   this->setReadoutPrecision (6);
    this->setFormat (QEStringFormatting::FORMAT_DEFAULT);
    this->setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
    this->setUseDbPrecision (false);
@@ -288,21 +270,19 @@ void QEScalarHistogram::setChannelValue (const double& value,
 
 //------------------------------------------------------------------------------
 //
-void QEScalarHistogram::mouseIndexChangedSlot (const int index)
+void QEScalarHistogram::onMouseIndexChanged (const int index)
 {
    this->genReadOut (index);
-   emit this->mouseIndexChanged (index);
 }
 
 //------------------------------------------------------------------------------
 //
-void QEScalarHistogram::mouseIndexPressedSlot (const int index,
-                                              const Qt::MouseButton button)
+void QEScalarHistogram::onMouseIndexPressed (const int index,
+                                             const Qt::MouseButton)
 {
    // Used by context menu as well as drag-and-drop processing.
    //
    this->selectedChannel = index;
-   emit this->mouseIndexPressed (index, button);
 }
 
 //------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2018 Australian Synchrotron
+ *  Copyright (c) 2014-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -57,7 +57,7 @@ public:
    Q_PROPERTY (double baseLine         READ getBaseLine         WRITE setBaseLine)
    Q_PROPERTY (bool   drawAxies        READ getDrawAxies        WRITE setDrawAxies)
    Q_PROPERTY (bool   showScale        READ getShowScale        WRITE setShowScale)
-   Q_PROPERTY (int    precision        READ getPrecision        WRITE setPrecision)
+   Q_PROPERTY (int    precision        READ getAxisPrecision    WRITE setAxisPrecision)
    /// This is the value grid selection
    Q_PROPERTY (bool   showGrid         READ getShowGrid         WRITE setShowGrid)
    Q_PROPERTY (bool   logScale         READ getLogScale         WRITE setLogScale)
@@ -105,7 +105,7 @@ public:
    PROPERTY_ACCESS (bool,   AutoScale)
    PROPERTY_ACCESS (bool,   AutoBarGapWidths)
    PROPERTY_ACCESS (bool,   ShowScale)
-   PROPERTY_ACCESS (int,    Precision)
+   PROPERTY_ACCESS (int,    AxisPrecision)
    PROPERTY_ACCESS (bool,   ShowGrid)
    PROPERTY_ACCESS (bool,   LogScale)
    PROPERTY_ACCESS (bool,   DrawAxies)
@@ -155,6 +155,11 @@ public slots:
    void setValues (const DataArray& values);
 
 protected:
+   // These maybe overridden by sub-classess.
+   //
+   virtual void onMouseIndexChanged (const int index);
+   virtual void onMouseIndexPressed (const int index, const Qt::MouseButton button);
+
    bool eventFilter (QObject* obj, QEvent* event);
 
 private:

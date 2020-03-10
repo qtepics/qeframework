@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (c) 2014-2018  Australian Synchrotron.
+ *  Copyright (c) 2014-2020  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -841,6 +841,15 @@ void QEHistogram::paintAllItems ()
 
 //------------------------------------------------------------------------------
 //
+void QEHistogram::onMouseIndexChanged (const int) { }
+
+//------------------------------------------------------------------------------
+//
+void QEHistogram::onMouseIndexPressed (const int, const Qt::MouseButton) { }
+
+
+//------------------------------------------------------------------------------
+//
 bool QEHistogram::eventFilter (QObject *obj, QEvent* event)
 {
    const QEvent::Type type = event->type ();
@@ -854,6 +863,7 @@ bool QEHistogram::eventFilter (QObject *obj, QEvent* event)
             const QPoint pos = mouseEvent->pos ();
             const int index = this->indexOfHistogramAreaPosition (pos);
             if (this->lastEmittedIndex != index) {
+               this->onMouseIndexChanged (index);
                emit this->mouseIndexChanged (index);
                this->lastEmittedIndex = index;
             }
@@ -868,6 +878,7 @@ bool QEHistogram::eventFilter (QObject *obj, QEvent* event)
             const int index = this->indexOfHistogramAreaPosition (pos);
             if (index >= 0) {
                Qt::MouseButton button = mouseEvent->button();
+               this->onMouseIndexPressed (index, button);
                emit this->mouseIndexPressed (index, button);
             }
             result = true; // event has been handled.
@@ -1061,7 +1072,7 @@ Qt::Orientation QEHistogram::getOrientation () const
 
 //------------------------------------------------------------------------------
 //
-void QEHistogram::setPrecision (const int precision)
+void QEHistogram::setAxisPrecision (const int precision)
 {
    this->axisPainter->setPrecision (precision);
    this->update ();
@@ -1069,7 +1080,7 @@ void QEHistogram::setPrecision (const int precision)
 
 //------------------------------------------------------------------------------
 //
-int QEHistogram::getPrecision () const
+int QEHistogram::getAxisPrecision () const
 {
    return this->axisPainter->getPrecision ();
 }
