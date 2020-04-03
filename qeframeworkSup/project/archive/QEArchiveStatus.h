@@ -31,7 +31,9 @@
 #include <QWidget>
 #include <QEGroupBox.h>
 #include <QGridLayout>
+#include <QVBoxLayout>
 #include <QLabel>
+#include <QPushButton>
 #include <QEFrameworkLibraryGlobal.h>
 #include <QEArchiveManager.h>
 
@@ -49,11 +51,6 @@ public slots:
    void reReadAvailablePVs ();     // requests re-read of availble PVs from the CA Archives
 
 private:
-   // Internal widgets.
-   //
-   QEArchiveAccess* archiveAccess;
-   QGridLayout* gridLayout;
-
    enum Constants {
       NumberRows = 40   // maximum.
    };
@@ -70,8 +67,21 @@ private:
       QLabel* pending;     // CA only
    };
 
-   Rows rowList [NumberRows + 1];
    int inUseCount;
+
+   // Internal widgets.
+   //
+   QEArchiveAccess* archiveAccess;
+   QVBoxLayout* verticalLayout;
+   QWidget* updateFrame;
+   QWidget* gridFrame;
+   QGridLayout* gridLayout;
+
+   Rows rowList [NumberRows + 1];  // +1 for title row
+
+   QPushButton* archiveUpdatePvNamesButton;
+   QLabel* label6;
+   QLabel* numberOfJobs;
 
    void setStatusRowVisible (const int j, const bool visible);
    void createInternalWidgets ();
@@ -79,7 +89,7 @@ private:
 
 private slots:
    void archiveStatus (const QEArchiveAccess::StatusList& statusList);
-
+   void onArchiveUpdatePvNamesClick (bool);
 };
 
 #endif  // QE_ARCHIVE_STATUS_H

@@ -33,6 +33,8 @@
 #define DEBUG  qDebug () << "QEArchiveStatus" << __LINE__ << __FUNCTION__ << "  "
 
 
+static const int updateFrameHeight = 36;
+
 //==============================================================================
 //
 void QEArchiveStatus::setStatusRowVisible (const int j, const bool visible)
@@ -55,8 +57,8 @@ void QEArchiveStatus::setStatusRowVisible (const int j, const bool visible)
 //
 void QEArchiveStatus::createInternalWidgets ()
 {
-   static const int frameHeight = 15;
-   static const int horMargin = 4;    // 19 - 2 - 2 => widget height is 15
+   static const int frameHeight = 15;   // used in macro
+   static const int horMargin = 4;      // 19 - 2 - 2 => widget height is 15
    static const int horSpacing = 4;
 
    // j, col, row and sheet are CREATE_LABEL globals
@@ -76,14 +78,59 @@ void QEArchiveStatus::createInternalWidgets ()
    this->gridLayout->addWidget (this->rowList [j].member, row, col++);   \
 }
 
+   const QEArchiveAccess::ArchiverTypes archType = QEArchiveAccess::getArchiverType();
 
    this->archiveAccess = new QEArchiveAccess (this);
    this->archiveAccess->setMessageSourceId (9001);
 
-   const QEArchiveAccess::ArchiverTypes archType = QEArchiveAccess::getArchiverType();
+   this->verticalLayout = new QVBoxLayout (this);
+   this->verticalLayout->setContentsMargins (0, 8, 0, 2);  // left, top, right, bottom
+   this->verticalLayout->setSpacing (0);
 
-   this->gridLayout = new QGridLayout (this);
-   this->gridLayout->setContentsMargins (horMargin, 6, horMargin, 2);  // left, top, right, bottom
+   this->updateFrame = new QWidget (NULL);
+   this->updateFrame->setFixedHeight (updateFrameHeight);
+   this->verticalLayout->addWidget (this->updateFrame);
+
+   this->gridFrame = new QWidget (NULL);
+   this->verticalLayout->addWidget (this->gridFrame);
+
+   // Set up the update frame
+   // Cribbed from KDM ui_archiver_summary.h
+   //
+   QFont font1;
+   font1.setFamily (QLatin1String ("Sans Serif"));
+   font1.setPointSize (8);
+
+   QFont font2;
+   font2.setFamily(QLatin1String("Sans Serif"));
+   font2.setPointSize(10);
+
+   this->archiveUpdatePvNamesButton = new QPushButton (this->updateFrame);
+   this->archiveUpdatePvNamesButton->setGeometry (QRect (10, 6, 100, 25));  // xywh
+   this->archiveUpdatePvNamesButton->setFont (font1);
+   this->archiveUpdatePvNamesButton->setFocusPolicy (Qt::NoFocus);
+   this->archiveUpdatePvNamesButton->setStyleSheet (QEUtilities::colourToStyle (QColor("#ece9d8")));
+   this->archiveUpdatePvNamesButton->setText ("Update");
+   this->archiveUpdatePvNamesButton->setToolTip (" Request archive info/available PV update ");
+
+   this->label6 = new QLabel (this->updateFrame);
+   this->label6->setGeometry (QRect (368, 9, 240, 13));
+   this->label6->setFont(font1);
+   this->label6->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter);
+   this->label6->setText ("Number of outstanding archiver requests");
+
+   this->numberOfJobs = new QLabel(this->updateFrame);
+   this->numberOfJobs->setGeometry (QRect (612, 8, 84, 16));
+   this->numberOfJobs->setFont (font2);
+   this->numberOfJobs->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+   this->numberOfJobs->setIndent (6);
+   this->numberOfJobs->setStyleSheet (QEUtilities::colourToStyle (QColor("#e0e0e0")));
+   this->numberOfJobs->setText ("-");
+
+   // Set up the grid frame.
+   //
+   this->gridLayout = new QGridLayout (this->gridFrame);
+   this->gridLayout->setContentsMargins (horMargin, 2, horMargin, 2);  // left, top, right, bottom
    this->gridLayout->setVerticalSpacing (1);
    this->gridLayout->setHorizontalSpacing (horSpacing);
 
@@ -157,7 +204,7 @@ void QEArchiveStatus::calcMinimumHeight ()
    count = this->inUseCount + 1;
 
    delta_top = 20;
-   this->setMinimumHeight ((delta_top * count) + 24);
+   this->setMinimumHeight (updateFrameHeight + (delta_top * count) + 24);
 }
 
 //------------------------------------------------------------------------------
@@ -179,12 +226,16 @@ QEArchiveStatus::QEArchiveStatus (QWidget* parent) : QEGroupBox (parent)
          break;
    }
 
-
    this->inUseCount = 2;
    this->calcMinimumHeight ();
    this->inUseCount = 0;
 
    this->setMinimumWidth (776);
+
+   // Connect to onArchiveUpdatePvNamesClick
+   //
+   QObject::connect (this->archiveUpdatePvNamesButton, SIGNAL (clicked (bool)),
+                     this, SLOT (onArchiveUpdatePvNamesClick (bool)));
 
    // Connect archiveStatus signal to this object slot.
    //
@@ -205,7 +256,7 @@ QEArchiveStatus::~QEArchiveStatus () { }
 //
 QSize QEArchiveStatus::sizeHint () const
 {
-   return QSize (776, 84);   // two rows
+   return QSize (776, updateFrameHeight + 84);   // two rows
 }
 
 //------------------------------------------------------------------------------
@@ -222,11 +273,13 @@ void QEArchiveStatus::archiveStatus (const QEArchiveAccess::StatusList& statusLi
    this->inUseCount = statusList.count ();
    this->calcMinimumHeight ();
 
+   int outstanding = 0;
    for (int j = 0; j < QEArchiveStatus::NumberRows; j++ ) {
       QEArchiveStatus::Rows* row = &this->rowList [j];
 
       if (j <  statusList.count ()) {
          QEArchiveAccess::Status state = statusList.value (j);
+         outstanding += state.pending;
 
          // Note the extra space at end - indent only applies as per alignment
          row->hostNamePort->setText (QString ("%1:%2 ").arg (state.hostName).arg (state.portNumber));
@@ -244,6 +297,25 @@ void QEArchiveStatus::archiveStatus (const QEArchiveAccess::StatusList& statusLi
          this->setStatusRowVisible (j, false);
       }
    }
+
+   QString styleString = "";
+   if (outstanding > 60) {
+      styleString = QEUtilities::colourToStyle (QColor ("red"));
+   } else if (outstanding > 40) {
+      styleString = QEUtilities::colourToStyle (QColor ("yellow"));
+   } else {
+      styleString = QEUtilities::colourToStyle (QColor ("#d0e0d0"));
+   }
+
+   this->numberOfJobs->setText (QString::number (outstanding));
+   this->numberOfJobs->setStyleSheet (styleString);
+}
+
+//------------------------------------------------------------------------------
+//
+void QEArchiveStatus::onArchiveUpdatePvNamesClick (bool)
+{
+   this->reReadAvailablePVs ();
 }
 
 // end
