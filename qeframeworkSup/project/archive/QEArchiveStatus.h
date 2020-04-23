@@ -31,9 +31,11 @@
 #include <QWidget>
 #include <QEGroupBox.h>
 #include <QGridLayout>
+#include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QSpacerItem>
 #include <QEFrameworkLibraryGlobal.h>
 #include <QEArchiveManager.h>
 
@@ -74,12 +76,14 @@ private:
    QEArchiveAccess* archiveAccess;
    QVBoxLayout* verticalLayout;
    QWidget* updateFrame;
+   QHBoxLayout* horizontalLayout;
    QWidget* gridFrame;
    QGridLayout* gridLayout;
 
    Rows rowList [NumberRows + 1];  // +1 for title row
 
    QPushButton* archiveUpdatePvNamesButton;
+   QSpacerItem* horizontalSpacer;
    QLabel* label6;
    QLabel* numberOfJobs;
 

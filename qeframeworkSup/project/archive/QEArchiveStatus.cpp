@@ -102,30 +102,41 @@ void QEArchiveStatus::createInternalWidgets ()
    font1.setPointSize (8);
 
    QFont font2;
-   font2.setFamily(QLatin1String("Sans Serif"));
+   font2.setFamily (QLatin1String ("Sans Serif"));
    font2.setPointSize(10);
 
+   this->horizontalLayout = new QHBoxLayout (this->updateFrame);
+   this->horizontalLayout->setSpacing (6);
+   this->horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
+   this->horizontalLayout->setContentsMargins (8, 6, 8, 4);   // ltrb
+
    this->archiveUpdatePvNamesButton = new QPushButton (this->updateFrame);
-   this->archiveUpdatePvNamesButton->setGeometry (QRect (10, 6, 100, 25));  // xywh
+   this->archiveUpdatePvNamesButton->setFixedSize (100, 25);
    this->archiveUpdatePvNamesButton->setFont (font1);
    this->archiveUpdatePvNamesButton->setFocusPolicy (Qt::NoFocus);
    this->archiveUpdatePvNamesButton->setStyleSheet (QEUtilities::colourToStyle (QColor("#ece9d8")));
    this->archiveUpdatePvNamesButton->setText ("Update");
    this->archiveUpdatePvNamesButton->setToolTip (" Request archive info/available PV update ");
+   this->horizontalLayout->addWidget (this->archiveUpdatePvNamesButton);
+
+   this->horizontalSpacer = new QSpacerItem (200, 16, QSizePolicy::Expanding, QSizePolicy::Minimum);
+   this->horizontalLayout->addItem (this->horizontalSpacer);
 
    this->label6 = new QLabel (this->updateFrame);
-   this->label6->setGeometry (QRect (368, 9, 240, 13));
+   this->label6->setFixedSize (236, 13);
    this->label6->setFont(font1);
    this->label6->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter);
    this->label6->setText ("Number of outstanding archiver requests");
+   this->horizontalLayout->addWidget (this->label6);
 
    this->numberOfJobs = new QLabel(this->updateFrame);
-   this->numberOfJobs->setGeometry (QRect (612, 8, 84, 16));
+   this->numberOfJobs->setFixedSize (84, 16);
    this->numberOfJobs->setFont (font2);
    this->numberOfJobs->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
    this->numberOfJobs->setIndent (6);
    this->numberOfJobs->setStyleSheet (QEUtilities::colourToStyle (QColor("#e0e0e0")));
    this->numberOfJobs->setText ("-");
+   this->horizontalLayout->addWidget (this->numberOfJobs);
 
    // Set up the grid frame.
    //
