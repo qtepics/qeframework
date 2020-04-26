@@ -107,7 +107,6 @@ void QEArchiveStatus::createInternalWidgets ()
 
    this->horizontalLayout = new QHBoxLayout (this->updateFrame);
    this->horizontalLayout->setSpacing (6);
-   this->horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
    this->horizontalLayout->setContentsMargins (8, 6, 8, 4);   // ltrb
 
    this->archiveUpdatePvNamesButton = new QPushButton (this->updateFrame);
