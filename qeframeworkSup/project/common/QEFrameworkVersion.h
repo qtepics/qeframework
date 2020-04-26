@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron
+ *  Copyright (c) 2012-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -46,7 +46,7 @@
 //
 #define QE_VERSION_MAJOR      3     // Public releases that include interface or paradigm changes that may require changes to the way the framework is used.
 #define QE_VERSION_MINOR      7     // Public releases containing new functionality (may include fixes as well)
-#define QE_VERSION_RELEASE    2     // Public releases containing fixes only.
+#define QE_VERSION_RELEASE    3     // Public releases containing fixes only.
 
 // The integer version is (major << 16) + (minor << 8) + release, and this macro
 // is used to constuct an integer version number.
@@ -65,7 +65,7 @@
 //
 #define QE_VERSION_STAGE_DEVELOPMENT "Development"
 #define QE_VERSION_STAGE_PRODUCTION  "Production"
-#define QE_VERSION_STAGE             QE_VERSION_STAGE_DEVELOPMENT
+#define QE_VERSION_STAGE             QE_VERSION_STAGE_PRODUCTION
 
 #define QE_VERSION_STRING     STRINGIFY(QE_VERSION_MAJOR) "." \
                               STRINGIFY(QE_VERSION_MINOR) "." \
@@ -83,10 +83,10 @@ public:
 
    static unsigned int getMajor ();         // e.g. 3
    static unsigned int getMinor ();         // e.g. 7
-   static unsigned int getRelease ();       // e.g. 2
+   static unsigned int getRelease ();       // e.g. 3
    static const QString getStage ();        // e.g. "Production"
-   static const QString getString ();       // e.g. "3.7.2 (Production)"
-   static const QString getDateTime ();     // e.g. "Nov 7 2019 16:12:08"
+   static const QString getString ();       // e.g. "3.7.3 (Production)"
+   static const QString getDateTime ();     // e.g. "Thu 23 2020 09:03:14"
 
    // Conditional compile attributes.
    //
@@ -96,8 +96,8 @@ public:
    //
    static const QString getQtVersionStr ();     // e.g. "QT 5.10.0"
    static const QString getQwtVersionStr ();    // e.g. "QWT 6.1.3"
-   static const QString getEpicsVersionStr ();  // e.g. "EPICS 7.0.1.1"
-   static const QString getAcaiVersionStr ();   // e.g. "ACAI 1.5.4"
+   static const QString getEpicsVersionStr ();  // e.g. "EPICS 7.0.3"
+   static const QString getAcaiVersionStr ();   // e.g. "ACAI 1.5.6"
 };
 
 #endif // QE_FRAMEWORK_VERSION_H
