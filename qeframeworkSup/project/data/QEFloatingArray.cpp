@@ -1,6 +1,9 @@
 /*  QEFloatingArray.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,19 +18,17 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2018 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEFloatingArray.h"
 #include <QDebug>
 #include <QtAlgorithms>
-
 #include <QECommon.h>
-#include <QEFloatingArray.h>
+#include <QEPlatform.h>
 
 //=================================================================================
 // QEFloatingArray
@@ -55,32 +56,54 @@ QEFloatingArray& QEFloatingArray::operator=( const  QVector<double>& other )
 
 //---------------------------------------------------------------------------------
 //
-double QEFloatingArray::minimumValue (const double& defaultValue)
+double QEFloatingArray::minimumValue (const double& defaultValue, const bool includeInf)
 {
-   int n = this->count ();
-   double r;
+   const int n = this->count ();
 
-   if (n == 0) return defaultValue;
-   r = this->value (0);
-   for (int j = 1; j < n; j++) {
-      r = MIN (r, this->value (j));
+   double result = defaultValue;
+   bool isFirst = true;
+   for (int j = 0; j < n; j++) {
+      const double v = this->value (j);
+
+      // Ignore nan values, and only include inf if requested
+      //
+      if (QEPlatform::isNaN (v)) continue;
+      if (!includeInf && QEPlatform::isInf (v)) continue;
+
+      if (isFirst) {
+         result = v;
+         isFirst = false;
+      } else {
+         result = MIN (result, v);   // not first, so must merge
+      }
    }
-   return r;
+   return result;
 }
 
 //---------------------------------------------------------------------------------
 //
-double QEFloatingArray::maximumValue (const double& defaultValue)
+double QEFloatingArray::maximumValue (const double& defaultValue, const bool includeInf)
 {
-   int n = this->count ();
-   double r;
+   const int n = this->count ();
 
-   if (n == 0) return defaultValue;
-   r = this->value (0);
-   for (int j = 1; j < n; j++) {
-      r = MAX (r, this->value (j));
+   double result = defaultValue;
+   bool isFirst = true;
+   for (int j = 0; j < n; j++) {
+      const double v = this->value (j);
+
+      // Ignore nan values, and only include inf if requested
+      //
+      if (QEPlatform::isNaN (v)) continue;
+      if (!includeInf && QEPlatform::isInf (v)) continue;
+
+      if (isFirst) {
+         result = v;
+         isFirst = false;
+      } else {
+         result = MAX (result, v);   // not first, so must merge
+      }
    }
-   return r;
+   return result;
 }
 
 //---------------------------------------------------------------------------------

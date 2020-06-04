@@ -2393,12 +2393,13 @@ void QEPlotter::plot ()
       xdata = QEFloatingArray (xs->data.mid (0, number));
       ydata = QEFloatingArray (ys->data.mid (0, number));
 
-      // Gather, save  and aggregate minima and maxima
+      // Gather, save and aggregate minimun and maximum values.
+      // We ignore +/- inf values.
       //
       if (xMinMaxDefined) {
          // merge
-         xMin = MIN (xMin, xdata.minimumValue ());
-         xMax = MAX (xMax, xdata.maximumValue ());
+         xMin = MIN (xMin, xdata.minimumValue (0.0, false));
+         xMax = MAX (xMax, xdata.maximumValue (0.0, false));
       } else {
          xMin = xdata.minimumValue ();
          xMax = xdata.maximumValue ();
@@ -2422,6 +2423,17 @@ void QEPlotter::plot ()
       //
       if (slot == this->selectedDataSet) {
          processSelectedItem (xdata, ydata, ys->plottedMin, ys->plottedMax);
+      }
+
+      // Check for NaN and +/-infinites.
+      // NOTE: It would probably best not to plot NaN/Inf values at all,
+      //       but for now set unplotable values to 0.0
+      //
+      for (int j = 0; j < number; j++) {
+         double y = ydata [j];
+         if (QEPlatform::isNaN(y) || QEPlatform::isInf(y)) {
+            ydata [j] = 0.0;
+         }
       }
 
       // Scale the y data as required.
