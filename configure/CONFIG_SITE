@@ -40,9 +40,11 @@ CHECK_RELEASE = YES
 #
 ARCHAPPL_USE_CPP11 = YES
 
-# Define as environment variables or define here
+# Define as environment variables or define here if needed.
 #
 # PROTOBUF_INCLUDE_PATH=...
 # PROTOBUF_LIB_DIR=/usr/lib64
+
+-include $(TOP)/configure/CONFIG_SITE.local
 
 # end

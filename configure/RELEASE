@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/configure/RELEASE $
-# $Revision: #6 $
-# $DateTime: 2020/02/12 17:08:06 $
+# $Revision: #7 $
+# $DateTime: 2020/05/03 12:18:46 $
 # Last checked in by: $Author: starritt $
 #
 # RELEASE - Location of external support modules
@@ -50,5 +50,12 @@ ACAI=$(BUNDLE)/epics/acai
 # Modify this to reference to __your__ local EPICS base installation.
 #
 EPICS_BASE=$(BUNDLE)/epics/base
+
+# These lines allow developers to override these RELEASE settings
+# without having to modify this file directly.
+#
+-include $(TOP)/../RELEASE.local
+-include $(TOP)/../RELEASE.$(EPICS_HOST_ARCH).local
+-include $(TOP)/configure/RELEASE.local
 
 # end
