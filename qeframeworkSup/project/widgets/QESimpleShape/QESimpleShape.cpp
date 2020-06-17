@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron
+ *  Copyright (c) 2013-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -98,7 +98,6 @@ void QESimpleShape::setup ()
    // Set the initial state
    // Widget is inactive until connected.
    //
-   this->channelValue = 0;
    this->fillColour = this->getColor (invalid, 255);
    this->edgeAlarmState = DISPLAY_ALARM_STATE_ALWAYS;
 
@@ -123,7 +122,6 @@ void QESimpleShape::activated ()
    // Ensure widget returns to default state when (re-)activated.
    //
    this->setIsActive (false);
-   this->channelValue = 0;
    this->fillColour = QColor ("#ffffff");   // white
    this->setValue (0);
 }
@@ -309,6 +307,7 @@ void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo& 
 
    qcaobject::QCaObject* qca;
    QColor selectedEdgeColour;
+   int channelValue;
 
    // Associated qca object - avoid the segmentation fault.
    //
@@ -335,36 +334,33 @@ void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo& 
             this->stringFormatting.setFormat (QEStringFormatting::FORMAT_DEFAULT);
          }
 
-         // Save value and update the shape value.
-         // This essentially stores data twice, but the QSimpleShape stores the
-         // modulo value, but we want to keep actual value (for getItemText).
+         // Update the shape value.
+         // The value is independent of useAlarmColours.
          //
-         if (this->useAlarmColours (this->getDisplayAlarmStateOption(), alarmInfo)) {
-            // We are displaying the alarm state.
-            //
-            this->channelValue = alarmInfo.getSeverity();
+         // NOTE: If variant can't be converted to a number, this returns 0.
+         //
+         channelValue = int (qca->getIntegerValue ());
 
+         if (this->useAlarmColours (this->getDisplayAlarmStateOption(), alarmInfo)) {
             // Save alarm colour.
             // Must do before we set value as getItemColour will get called.
             //
             this->fillColour = this->getColor (alarmInfo, 255);
 
          } else {
-            // NOTE: If variant can't be converted to a number, this returns 0.
-            //
-            this->channelValue = int (qca->getIntegerValue ());
-
-            // Save regular colour. This is essentall the same logic as in QSimpleShape
+            // Save regular colour. This is essentally the same logic as in QSimpleShape
             // We want the modulo value to get the colour.
             // Note: % operator is remainder not modulo, so need to be smarter.
             //
-            int mod = this->getModulus();
-            int val = this->channelValue % mod;
+            const int mod = this->getModulus();
+            int val = channelValue % mod;
             if (val < 0) val += mod;
             this->fillColour = this->getColourProperty (val);
          }
 
-         this->setValue (this->channelValue);
+         // Update the value in parent class.
+         //
+         this->setValue (channelValue);
 
          // This update is over, clear first update flag.
          //
