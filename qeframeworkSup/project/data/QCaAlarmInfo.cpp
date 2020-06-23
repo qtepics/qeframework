@@ -24,12 +24,18 @@
  *    andrew.rhyder@synchrotron.org.au
  */
 
-// CA alarm info manager
+// Alarm info manager
 
-#include <QCaAlarmInfo.h>
+#include "QCaAlarmInfo.h"
+#include <QColor>
+#include <QDebug>
 #include <alarm.h>
 #include <acai_client_types.h>
+#include <QECommon.h>
+#include <QEAdaptationParameters.h>
 #include <QEArchiveInterface.h>
+
+#define DEBUG  qDebug () << "QCaAlarmInfo" << __LINE__ << __FUNCTION__ << "  "
 
 //------------------------------------------------------------------------------
 // Default standard colors.
@@ -57,13 +63,15 @@ QStringList QCaAlarmInfo::colorNames = QCaAlarmInfo::defaultColorNames;
 //------------------------------------------------------------------------------
 // Update/extract current style names.
 //
-void QCaAlarmInfo::setStyleColorNames (const QStringList & styleColorNamesIn)
+void QCaAlarmInfo::setStyleColorNames (const QStringList& styleColorNamesIn)
 {
+   QCaAlarmInfo::extractAdaptationColors ();
    styleColorNames = styleColorNamesIn;
 }
 
 QStringList QCaAlarmInfo::getStyleColorNames ()
 {
+   QCaAlarmInfo::extractAdaptationColors ();
    return styleColorNames;
 }
 
@@ -72,11 +80,13 @@ QStringList QCaAlarmInfo::getStyleColorNames ()
 //
 void QCaAlarmInfo::setColorNames (const QStringList & colorNamesIn)
 {
+   QCaAlarmInfo::extractAdaptationColors ();
    colorNames = colorNamesIn;
 }
 
 QStringList QCaAlarmInfo::getColorNames ()
 {
+   QCaAlarmInfo::extractAdaptationColors ();
    return colorNames;
 }
 
@@ -102,6 +112,8 @@ QStringList QCaAlarmInfo::getDefaultColorNames ()
 //
 QCaAlarmInfo::QCaAlarmInfo ()
 {
+   QCaAlarmInfo::extractAdaptationColors ();
+
    this->status = NO_ALARM;
    this->severity = NO_ALARM;
    this->message = "";
@@ -113,6 +125,8 @@ QCaAlarmInfo::QCaAlarmInfo ()
 QCaAlarmInfo::QCaAlarmInfo (const Status statusIn,
                             const Severity severityIn, const QString & messageIn)
 {
+   QCaAlarmInfo::extractAdaptationColors ();
+
    this->status = statusIn;
    this->severity = severityIn;
    this->message = messageIn;
@@ -216,6 +230,8 @@ bool QCaAlarmInfo::isInvalid () const
 QString QCaAlarmInfo::style () const
 {
    QString styleColor = this->getStyleColorName ();
+   QColor bgColor (styleColor);
+
    QString result;
 
    switch (this->severity) {
@@ -223,7 +239,9 @@ QString QCaAlarmInfo::style () const
       case MINOR_ALARM:
       case MAJOR_ALARM:
       case INVALID_ALARM:
-         result = QString ("QWidget { background-color: %1; }").arg (styleColor);
+         // colourToStyle set font colour to white or black as appropriate.
+         //
+         result = QEUtilities::colourToStyle (bgColor);
          break;
 
       default:
@@ -273,6 +291,54 @@ QCaAlarmInfo::Severity QCaAlarmInfo::getSeverity () const
 QCaAlarmInfo::Status QCaAlarmInfo::getStatus () const
 {
    return this->status;
+}
+
+//------------------------------------------------------------------------------
+// Uses the environment variables QE_STYLE_COLOR_NAMES and QE_COLOR_NAMES
+// to overdie the style colors.
+// static
+void QCaAlarmInfo::extractAdaptationColors ()
+{
+   // Guard to stop being run twice or more
+   //
+   static bool runGuard = false;
+   if (runGuard) return;
+   runGuard = true;
+
+   QEAdaptationParameters* ap = new QEAdaptationParameters("QE_");
+   QString namesSet;
+   QStringList nameList;
+   int number;
+
+   // Do styleColorNames
+   namesSet = ap->getString ("style_color_names", "");
+   if (!namesSet.isEmpty ()) {
+      nameList = namesSet.split (":", QString::KeepEmptyParts);
+      number = MIN (nameList.count(), QCaAlarmInfo::styleColorNames.count());
+      for (int j = 0; j < number; j++) {
+         const QString v = nameList.value (j, "");
+         // If defined then replace with new color name/value.
+         //
+         if (!v.isEmpty ()) {
+            QCaAlarmInfo::styleColorNames.replace (j, v);
+         }
+      }
+   }
+
+   // Ditto colorNames
+   namesSet = ap->getString ("color_names", "");
+   if (!namesSet.isEmpty ()) {
+      nameList = namesSet.split(":", QString::KeepEmptyParts);
+      number = MIN (nameList.count(), QCaAlarmInfo::colorNames.count());
+      for (int j = 0; j < number; j++) {
+         const QString v = nameList.value (j, "");
+         // If defined then replace with new color name/value.
+         //
+         if (!v.isEmpty ()) {
+            QCaAlarmInfo::colorNames.replace (j, v);
+         }
+      }
+   }
 }
 
 // end

@@ -96,6 +96,9 @@ private:
     // current dynamic colour names
     static QStringList styleColorNames;
     static QStringList colorNames;
+
+    // used to extract adaptation parameters - idempotent
+    static void extractAdaptationColors ();
 };
 
 #endif // QCA_ALARM_INFO_H
