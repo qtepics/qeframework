@@ -1,6 +1,9 @@
 /*  QESettings.h $
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -31,7 +32,6 @@
 #include <QSettings>
 #include <QVariant>
 #include <QEFrameworkLibraryGlobal.h>
-#include <UserMessage.h>
 
 /// This class provides access to user defined settings. The setting file
 /// is expected to conform to the QSettings::IniFormat, i.e. like a windows
@@ -58,7 +58,7 @@
 ///
 // This class contains a QSettings objects (as opposed to extending it).
 //
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESettings : private UserMessage {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESettings {
 public:
    // Contructor that locates and uses the applicatuion's adaptation_parmeters.ini
    // This should be located in the application's current directory at start up.

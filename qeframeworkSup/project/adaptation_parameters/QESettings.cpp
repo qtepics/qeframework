@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2018 Australian Synchrotron.
+ *  Copyright (c) 2013-2020 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -86,10 +86,6 @@ void QESettings::commonSetup (const QString &fileNameIn)
    QString cleanName = QDir::cleanPath (fileNameIn);
    QFileInfo fileInfo (cleanName);
    QString fileName;
-
-   // Hard-coded message Id.
-   //
-   this->setSourceId (9002);
 
    // Is the given file name an absolute path name?
    //
@@ -257,8 +253,7 @@ QESettings* QESettings::getSettings (const QString &key)
    QString fileName = this->getFilename (key, "");
 
    if (fileName.isEmpty()) {
-      this->sendMessage (QString ("QESettings: no file name found for key: ").append (key),
-                         message_types (MESSAGE_TYPE_INFO));
+      DEBUG << "No file name found for key:" << key;
       return NULL;
    }
 
@@ -269,8 +264,7 @@ QESettings* QESettings::getSettings (const QString &key)
    // Do we have read access (implies that file exists if true).
    //
    if (!(fileNameInfo.isFile () && fileNameInfo.isReadable ())) {
-      this->sendMessage (QString ("QESettings: %1 does not exist or no read access").append (fileName),
-                         message_types (MESSAGE_TYPE_INFO));
+      DEBUG << "File" << fileName << "does not exist or no read access";
       return NULL;
    }
 
