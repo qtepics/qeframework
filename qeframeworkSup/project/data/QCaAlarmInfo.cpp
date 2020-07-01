@@ -29,6 +29,7 @@
 #include "QCaAlarmInfo.h"
 #include <QColor>
 #include <QDebug>
+#include <QTimer>
 #include <alarm.h>
 #include <acai_client_types.h>
 #include <QECommon.h>
@@ -37,57 +38,82 @@
 
 #define DEBUG  qDebug () << "QCaAlarmInfo" << __LINE__ << __FUNCTION__ << "  "
 
+#define NUMBER_SEVERITIES  4
+
 //------------------------------------------------------------------------------
-// Default standard colors.
+// Default standard color names.
 // These string lists are index by alarm severity
 //
-const QStringList QCaAlarmInfo::defaultStyleColorNames = QStringList ()
-    << "#e0eee0"                // pale green
-    << "#ffff00"                // yellow
-    << "#ff8080"                // pale red
-    << "#ffffff";               // white
+const QStringList defaultStyleColorNames = QStringList ()
+      << "#e0eee0"                // pale green
+      << "#ffff00"                // yellow
+      << "#ff8080"                // pale red
+      << "#ffffff";               // white
 
-const QStringList QCaAlarmInfo::defaultColorNames = QStringList ()
-    << "#00ff00"                // green
-    << "#ffff00"                // yellow
-    << "#ff0000"                // red
-    << "#ffffff";               // white
+const QStringList defaultColorNames = QStringList ()
+      << "#00ff00"                // green
+      << "#ffff00"                // yellow
+      << "#ff0000"                // red
+      << "#ffffff";               // white
 
 
-// Current standard colors.
-// These string lists are index by alarm severity
+// Adaptation (environment variable) defined color names.
 //
-QStringList QCaAlarmInfo::styleColorNames = QCaAlarmInfo::defaultStyleColorNames;
-QStringList QCaAlarmInfo::colorNames = QCaAlarmInfo::defaultColorNames;
+QStringList adaptationStyleColorNames = QStringList () << "" << "" << "" << "";
+QStringList adaptationColorNames      = QStringList () << "" << "" << "" << "";
+
+// Programatically defined color names.
+// Over-rideable [0] and Regular [1]
+//
+QStringList programStyleColorNames [2] = {
+   QStringList () << "" << "" << "" << "",
+   QStringList () << "" << "" << "" << ""
+};
+
+QStringList programColorNames [2] = {
+   QStringList () << "" << "" << "" << "",
+   QStringList () << "" << "" << "" << ""
+};
+
+// Priority (low to high):
+// Default, program-cnkPrimary, adaptation, program-cnkOverride.
+// Only non empty color names can override a lower priority name.
+
+// The standard color names currently in use - by default the default color names.
+// These string lists are indexed by alarm severity
+//
+QStringList styleColorNames = defaultStyleColorNames;
+QStringList colorNames = defaultColorNames;
+
 
 //------------------------------------------------------------------------------
 // Update/extract current style names.
 //
 void QCaAlarmInfo::setStyleColorNames (const QStringList& styleColorNamesIn)
 {
-   QCaAlarmInfo::extractAdaptationColors ();
-   styleColorNames = styleColorNamesIn;
+   QCaAlarmInfoColorNamesManager::setStyleColorNames (QCaAlarmInfoColorNamesManager::cnkOverride, styleColorNamesIn);
 }
 
+//------------------------------------------------------------------------------
+//
 QStringList QCaAlarmInfo::getStyleColorNames ()
 {
-   QCaAlarmInfo::extractAdaptationColors ();
-   return styleColorNames;
+   return QCaAlarmInfoColorNamesManager::getStyleColorNames (QCaAlarmInfoColorNamesManager::cnkOverride);
 }
 
 //------------------------------------------------------------------------------
 // Update/extract current color names.
 //
-void QCaAlarmInfo::setColorNames (const QStringList & colorNamesIn)
+void QCaAlarmInfo::setColorNames (const QStringList& colorNamesIn)
 {
-   QCaAlarmInfo::extractAdaptationColors ();
-   colorNames = colorNamesIn;
+   QCaAlarmInfoColorNamesManager::setColorNames (QCaAlarmInfoColorNamesManager::cnkOverride, colorNamesIn);
 }
 
+//------------------------------------------------------------------------------
+//
 QStringList QCaAlarmInfo::getColorNames ()
 {
-   QCaAlarmInfo::extractAdaptationColors ();
-   return colorNames;
+   return QCaAlarmInfoColorNamesManager::getColorNames (QCaAlarmInfoColorNamesManager::cnkOverride);
 }
 
 //------------------------------------------------------------------------------
@@ -95,7 +121,7 @@ QStringList QCaAlarmInfo::getColorNames ()
 //
 QStringList QCaAlarmInfo::getDefaultStyleColorNames ()
 {
-   return defaultStyleColorNames;
+   return QCaAlarmInfoColorNamesManager::getDefaultStyleColorNames ();
 }
 
 //------------------------------------------------------------------------------
@@ -103,7 +129,7 @@ QStringList QCaAlarmInfo::getDefaultStyleColorNames ()
 //
 QStringList QCaAlarmInfo::getDefaultColorNames ()
 {
-   return defaultColorNames;
+   return QCaAlarmInfoColorNamesManager::getDefaultColorNames ();
 }
 
 //------------------------------------------------------------------------------
@@ -112,8 +138,6 @@ QStringList QCaAlarmInfo::getDefaultColorNames ()
 //
 QCaAlarmInfo::QCaAlarmInfo ()
 {
-   QCaAlarmInfo::extractAdaptationColors ();
-
    this->status = NO_ALARM;
    this->severity = NO_ALARM;
    this->message = "";
@@ -123,10 +147,9 @@ QCaAlarmInfo::QCaAlarmInfo ()
 // Construct an instance given an alarm state and severity
 //
 QCaAlarmInfo::QCaAlarmInfo (const Status statusIn,
-                            const Severity severityIn, const QString & messageIn)
+                            const Severity severityIn,
+                            const QString & messageIn)
 {
-   QCaAlarmInfo::extractAdaptationColors ();
-
    this->status = statusIn;
    this->severity = severityIn;
    this->message = messageIn;
@@ -153,7 +176,6 @@ bool QCaAlarmInfo::operator!= (const QCaAlarmInfo& other) const
    return !(*this == other);
 }
 
-
 //------------------------------------------------------------------------------
 // Return a string identifying the alarm state
 //
@@ -175,7 +197,7 @@ QString QCaAlarmInfo::severityName () const
       // Do CA archiver severity specials.
       //
       QEArchiveInterface::archiveAlarmSeverity sevr =
-          QEArchiveInterface::archiveAlarmSeverity (this->severity);
+            QEArchiveInterface::archiveAlarmSeverity (this->severity);
       result = QEArchiveInterface::alarmSeverityName (sevr);
    } else {
       ACAI::ClientAlarmSeverity sevr = ACAI::ClientAlarmSeverity (this->severity);
@@ -239,7 +261,7 @@ QString QCaAlarmInfo::style () const
       case MINOR_ALARM:
       case MAJOR_ALARM:
       case INVALID_ALARM:
-         // colourToStyle set font colour to white or black as appropriate.
+         // colourToStyle sets the font color to white or black as appropriate.
          //
          result = QEUtilities::colourToStyle (bgColor);
          break;
@@ -258,7 +280,6 @@ QString QCaAlarmInfo::getStyleColorName () const
 {
    return styleColorNames.value (int (this->severity), "#ffffff");
 }
-
 
 //------------------------------------------------------------------------------
 // Return the color name for the alarm state
@@ -293,52 +314,173 @@ QCaAlarmInfo::Status QCaAlarmInfo::getStatus () const
    return this->status;
 }
 
+
+//==============================================================================
+// QCaAlarmInfoColorNamesManager
+//==============================================================================
+//
+QCaAlarmInfoColorNamesManager::QCaAlarmInfoColorNamesManager () : QObject (NULL)
+{
+   // Request call back after 0 ms after the main event loop has started, and
+   // hence after the QApplication has started.
+   // We need to do this because QEAdaptationParameters relies on the application
+   // already running.
+   //
+   QTimer::singleShot (0, this, SLOT (applicationStartedHandler ()));
+}
+
+//------------------------------------------------------------------------------
+//
+QCaAlarmInfoColorNamesManager::~QCaAlarmInfoColorNamesManager () { }
+
+//------------------------------------------------------------------------------
+// Updates the currently in use color name lists: styleColorNames and colorNames
+// static
+void QCaAlarmInfoColorNamesManager::determineColorNames ()
+{
+   QStringList workList;
+
+   // Merge alternatives into the as used style color names.
+   //
+   workList = defaultStyleColorNames;
+   for (int j = 0; j < NUMBER_SEVERITIES; j++) {
+      QString v1 = programStyleColorNames[cnkPrimary].value (j, "");
+      QString v2 = adaptationStyleColorNames.value (j, "");
+      QString v3 = programStyleColorNames[cnkOverride].value (j, "");
+
+      QString cn = "";
+      if (!v1.isEmpty()) cn = v1;
+      if (!v2.isEmpty()) cn = v2;
+      if (!v3.isEmpty()) cn = v3;
+      if (!cn.isEmpty()) workList.replace (j, cn);
+   }
+   styleColorNames = workList;
+
+   // Ditto the color names
+   //
+   workList = defaultColorNames;
+   for (int j = 0; j < NUMBER_SEVERITIES; j++) {
+      QString v1 = programColorNames[cnkPrimary].value (j, "");
+      QString v2 = adaptationColorNames.value (j, "");
+      QString v3 = programColorNames[cnkOverride].value (j, "");
+
+      QString cn = "";
+      if (!v1.isEmpty()) cn = v1;
+      if (!v2.isEmpty()) cn = v2;
+      if (!v3.isEmpty()) cn = v3;
+      if (!cn.isEmpty()) workList.replace (j, cn);
+   }
+   colorNames = workList;
+}
+
+
+//------------------------------------------------------------------------------
+// static
+void QCaAlarmInfoColorNamesManager::setStyleColorNames (const ColorNameKinds kind,
+                                                        const QStringList& styleColorNames)
+{
+   programStyleColorNames [kind] = styleColorNames;
+   QCaAlarmInfoColorNamesManager::determineColorNames ();
+}
+
+//------------------------------------------------------------------------------
+// static
+QStringList QCaAlarmInfoColorNamesManager::getStyleColorNames (const ColorNameKinds kind)
+{
+   return programStyleColorNames [kind];
+}
+
+//------------------------------------------------------------------------------
+// static
+void QCaAlarmInfoColorNamesManager::setColorNames (const ColorNameKinds kind,
+                                                   const QStringList& colorNames)
+{
+   programColorNames [kind] = colorNames;
+   QCaAlarmInfoColorNamesManager::determineColorNames ();
+}
+
+//------------------------------------------------------------------------------
+// static
+QStringList QCaAlarmInfoColorNamesManager::getColorNames (const ColorNameKinds kind)
+{
+   return programColorNames [kind];
+}
+
+//------------------------------------------------------------------------------
+// static
+//
+QStringList QCaAlarmInfoColorNamesManager::getDefaultStyleColorNames()
+{
+   return defaultStyleColorNames;
+}
+
+//------------------------------------------------------------------------------
+// static
+QStringList QCaAlarmInfoColorNamesManager::getDefaultColorNames()
+{
+   return defaultColorNames;
+}
+
 //------------------------------------------------------------------------------
 // Uses the environment variables QE_STYLE_COLOR_NAMES and QE_COLOR_NAMES
 // to overdie the style colors.
 // static
-void QCaAlarmInfo::extractAdaptationColors ()
+void QCaAlarmInfoColorNamesManager::extractAdaptationColors ()
 {
-   // Guard to stop being run twice or more
-   //
-   static bool runGuard = false;
-   if (runGuard) return;
-   runGuard = true;
-
-   QEAdaptationParameters* ap = new QEAdaptationParameters("QE_");
+   QEAdaptationParameters ap ("QE_");
    QString namesSet;
    QStringList nameList;
    int number;
 
    // Do styleColorNames
-   namesSet = ap->getString ("style_color_names", "");
+   namesSet = ap.getString ("style_color_names", "");
    if (!namesSet.isEmpty ()) {
       nameList = namesSet.split (":", QString::KeepEmptyParts);
-      number = MIN (nameList.count(), QCaAlarmInfo::styleColorNames.count());
+
+      // We can't do a simple assign - user may have specified less or more than
+      // the expected number of severity colour names.
+      //
+      number = MIN (nameList.count(), NUMBER_SEVERITIES);
       for (int j = 0; j < number; j++) {
          const QString v = nameList.value (j, "");
-         // If defined then replace with new color name/value.
-         //
-         if (!v.isEmpty ()) {
-            QCaAlarmInfo::styleColorNames.replace (j, v);
-         }
+         adaptationStyleColorNames.replace (j, v);
       }
    }
 
    // Ditto colorNames
-   namesSet = ap->getString ("color_names", "");
+   namesSet = ap.getString ("color_names", "");
    if (!namesSet.isEmpty ()) {
       nameList = namesSet.split(":", QString::KeepEmptyParts);
-      number = MIN (nameList.count(), QCaAlarmInfo::colorNames.count());
+      number = MIN (nameList.count(), NUMBER_SEVERITIES);
       for (int j = 0; j < number; j++) {
          const QString v = nameList.value (j, "");
-         // If defined then replace with new color name/value.
-         //
-         if (!v.isEmpty ()) {
-            QCaAlarmInfo::colorNames.replace (j, v);
-         }
+         adaptationColorNames.replace (j, v);
       }
    }
+
+   QCaAlarmInfoColorNamesManager::determineColorNames ();
 }
+
+//------------------------------------------------------------------------------
+// slot
+void QCaAlarmInfoColorNamesManager::applicationStartedHandler ()
+{
+   QCaAlarmInfoColorNamesManager::extractAdaptationColors ();
+}
+
+//------------------------------------------------------------------------------
+// Create an instance of QCaAlarmInfoExtra - static
+//
+bool QCaAlarmInfoColorNamesManager::create ()
+{
+   new QCaAlarmInfoColorNamesManager ();  // we don'y worry about deleting this object.
+   return true;
+}
+
+//------------------------------------------------------------------------------
+// static - just used as a means to call create ()
+//
+const bool QCaAlarmInfoColorNamesManager::elaborateCreate =
+           QCaAlarmInfoColorNamesManager::create ();
 
 // end
