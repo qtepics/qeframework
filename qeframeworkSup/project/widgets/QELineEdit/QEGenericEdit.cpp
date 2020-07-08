@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009,2010,2012,2016 Australian Synchrotron
+ *  Copyright (c) 2009-2020 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -77,6 +77,7 @@ void QEGenericEdit::setup()
     isFirstUpdate = false;
 
     setAllowDrop( false );
+    setDropOption(DropToVariable);
 
     // Set the initial state
     isConnected = false;
@@ -407,8 +408,17 @@ bool QEGenericEdit::getIsFirstUpdate () const
 //
 void QEGenericEdit::setDrop( QVariant drop )
 {
-    setVariableName( drop.toString(), 0 );
-    establishConnection( 0 );
+    if (getDropOption() == DropToVariable){
+        setVariableName( drop.toString(), 0 );
+        establishConnection( 0 );
+    }
+    else if (getDropOption() == DropToText){
+        setText(drop.toString());
+    }
+    else{
+        setText(drop.toString());
+        writeNow();
+    }
 }
 
 //------------------------------------------------------------------------------

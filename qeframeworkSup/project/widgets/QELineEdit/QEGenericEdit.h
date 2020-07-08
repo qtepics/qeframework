@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2019 Australian Synchrotron
+ *  Copyright (c) 2009-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -97,7 +97,20 @@ public:
     /// Allow updated while widget has focus - defaults to false
     Q_PROPERTY(bool allowFocusUpdate READ getAllowFocusUpdate WRITE setAllowFocusUpdate)
 public:
+    // End control widget properties
     //=================================================================================
+
+    /// Allow drag/drops mode to this widget. 
+    //  Option: DropToVariable [default] - the dropped text will be used as a new variable name.
+    /// Option: DropToText - just set text on the widget
+    /// Option: DropToTextAndWrite - write the text to the PV if the PV has been connected otherwise equivalent to DropToText
+    ///
+    enum DropOption { DropToVariable, DropToText, DropToTextAndWrite };
+    Q_ENUMS(DropOption)
+    Q_PROPERTY(DropOption dropOption READ getDropOption WRITE setDropOption)
+
+    void setDropOption(DropOption option){ dropOption = option; }
+    DropOption getDropOption(){ return dropOption; }
 
 
     // BEGIN-STANDARD-PROPERTIES ======================================================
@@ -297,6 +310,7 @@ private:
     bool isAllowFocusUpdate;      // Controls whether updated while widger has focus allowed.
     bool allowDrop;
     bool isFirstUpdate;
+    DropOption dropOption;
 
     void setup();
 
