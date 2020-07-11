@@ -57,9 +57,29 @@
 // Macro fuction to ensure varable index is in the expected range.
 // Set defval to nil for void functions.
 //
+// General variable index  0 .. 15
+// Data variable index     0 .. 7
+// Size variable index     8 .. 15
+//
 #define PV_INDEX_CHECK(vi, defval)   {                                 \
    if ((vi) >= QEPLOT_NUM_VARIABLES) {                                 \
       DEBUG << "unexpected variableIndex" << (vi);                     \
+      return defval;                                                   \
+   }                                                                   \
+}
+
+
+#define DATA_INDEX_CHECK(vi, defval)   {                               \
+   if ((vi) >= QEPLOT_NUM_PLOTS) {                                     \
+      DEBUG << "unexpected data variableIndex" << (vi);                \
+      return defval;                                                   \
+   }                                                                   \
+}
+
+
+#define SIZE_INDEX_CHECK(vi, defval)   {                               \
+   if (((vi) < QEPLOT_NUM_PLOTS) || ((vi) >= QEPLOT_NUM_VARIABLES)) {  \
+      DEBUG << "unexpected size variableIndex" << (vi);                \
       return defval;                                                   \
    }                                                                   \
 }
@@ -154,8 +174,11 @@ public:
    // Used to ensure only one plot mechanism is used.
    //
    bool isWaveform;             // otherwise is scalar
+   bool dataSizeDefined;
+   int  dataSize;
 
-   QCaVariableNamePropertyManager vnpm;
+   QCaVariableNamePropertyManager dnpm;   // data name
+   QCaVariableNamePropertyManager snpm;   // size name
 };
 
 
@@ -172,6 +195,8 @@ QEPlot::Trace::Trace (const int instanceIn, QEPlot* parent) :
    };
 
    this->reset ();   // resets dynamic infomation
+   this->dataSizeDefined = false;
+   this->dataSize = 0;
 
    if (this->instance >= 0 && this->instance < ARRAY_LENGTH (defaultColors)) {
       this->color = defaultColors [this->instance];
@@ -297,7 +322,7 @@ void QEPlot::setup ()
 
    // Allocate Trace objects
    //
-   for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
+   for (int i = 0; i < QEPLOT_NUM_PLOTS; i++) {
       this->traces[i] = new Trace (i, this);
    }
 
@@ -346,6 +371,9 @@ void QEPlot::setup ()
    //
    this->xStart = 0.0;
    this->xIncrement = 1.0;
+
+   // Nominal window size should encompass most sensible PVs
+   //
    this->xFirst = -1000000.0;
    this->xLast  = +1000000.0;
 
@@ -375,9 +403,16 @@ void QEPlot::setup ()
    // The variable name property manager class only delivers an updated variable
    // name after the user has stopped typing.
    //
-   for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
-      QCaVariableNamePropertyManager* vnpm = &this->traces[i]->vnpm;
+   for (int i = 0; i < QEPLOT_NUM_PLOTS; i++) {
+      QCaVariableNamePropertyManager* vnpm;
+
+      vnpm = &this->traces[i]->dnpm;
       vnpm->setVariableIndex (i);
+      QObject::connect (vnpm, SIGNAL (newVariableNameProperty    (QString, QString, unsigned int)),
+                        this, SLOT   (useNewVariableNameProperty (QString, QString, unsigned int)));
+
+      vnpm = &this->traces[i]->snpm;
+      vnpm->setVariableIndex (i + QEPLOT_NUM_PLOTS);
       QObject::connect (vnpm, SIGNAL (newVariableNameProperty    (QString, QString, unsigned int)),
                         this, SLOT   (useNewVariableNameProperty (QString, QString, unsigned int)));
    }
@@ -411,7 +446,7 @@ void QEPlot::plotMouseMove (const QPointF& posn)
 
 //------------------------------------------------------------------------------
 //
-bool QEPlot::eventFilter (QObject *watched, QEvent *event)
+bool QEPlot::eventFilter (QObject* watched, QEvent* event)
 {
    const QEvent::Type type = event->type ();
    QMouseEvent* mouseEvent = NULL;
@@ -492,14 +527,24 @@ void QEPlot::contextMenuTriggered (int selectedItemNum)
 // QCaObject required. For a strip chart a QCaObject that streams floating point
 // data is required.
 //
-qcaobject::QCaObject* QEPlot::createQcaItem (unsigned int variableIndex)
+qcaobject::QCaObject* QEPlot::createQcaItem (unsigned int vi)
 {
-   PV_INDEX_CHECK (variableIndex, NULL);
+   PV_INDEX_CHECK (vi, NULL);
 
-   // Create the item as a QEFloating
-   QString pvName = this->getSubstitutedVariableName (variableIndex);
-   return new QEFloating (this->getSubstitutedVariableName (variableIndex), this,
-                          &this->floatingFormatting, variableIndex);
+   const QString pvName = this->getSubstitutedVariableName (vi);
+
+   qcaobject::QCaObject* result;
+
+   if (vi < QEPLOT_NUM_PLOTS) {
+      // Create the item as a QEFloating
+      //
+      result = new QEFloating (pvName, this, &this->floatingFormatting, vi);
+   } else {
+      // Must be the size variable
+      //
+      result = new QEInteger (pvName, this, &this->integerFormatting, vi);
+   }
+   return result;
 }
 
 //------------------------------------------------------------------------------
@@ -507,29 +552,41 @@ qcaobject::QCaObject* QEPlot::createQcaItem (unsigned int variableIndex)
 // establish a connection to a PV as the variable name has changed.
 // This function may also be used to initiate updates when loaded as a plugin.
 //
-void QEPlot::establishConnection (unsigned int variableIndex)
+void QEPlot::establishConnection (unsigned int vi)
 {
-   PV_INDEX_CHECK (variableIndex,);
-
-   // Select the curve information for this variable
-   Trace* tr = this->traces[variableIndex];
-   if (!tr) return;           // sainity check.
+   PV_INDEX_CHECK (vi,);
 
    // Create a connection. If successfull, the QCaObject object that will
    // supply data update signals will be returned.
    //
-   qcaobject::QCaObject* qca = this->createConnection (variableIndex);
-   if (!qca) return;         // sainity check.
+   qcaobject::QCaObject* qca = this->createConnection (vi);
+   if (!qca) return;         // sanity check.
 
-   tr->isInUse = true;
+   if (vi < QEPLOT_NUM_PLOTS) {
+      // Find the curve/trace information for this variable.
+      //
+      Trace* tr = this->traces[vi];
+      if (!tr) return;           // sanity check.
+      tr->isInUse = true;        // Controlled soley by the data variable.
+   }
 
    // If a QCaObject object is now available to supply data update signals,
    // connect it to the appropriate slots
    //
-   QObject::connect (qca, SIGNAL (floatingArrayChanged (const QVector <double>&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                     this,  SLOT (setPlotData          (const QVector <double>&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
-   QObject::connect (qca, SIGNAL (floatingChanged      (const double, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                     this,  SLOT (setPlotData          (const double, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+   if (vi < QEPLOT_NUM_PLOTS) {
+      // Must be the data variable - capture both scalars and arrays
+      //
+      QObject::connect (qca, SIGNAL (floatingArrayChanged (const QVector <double>&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
+                        this,  SLOT (setPlotData          (const QVector <double>&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+      QObject::connect (qca, SIGNAL (floatingChanged      (const double, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
+                        this,  SLOT (setPlotData          (const double, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+   } else {
+      // Must be the size variable.
+      //
+      QObject::connect (qca, SIGNAL (integerChanged       (const long, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
+                        this,  SLOT (setSizeData          (const long, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+   }
+
    QObject::connect (qca, SIGNAL (connectionChanged    (QCaConnectionInfo&, const unsigned int&)),
                      this,  SLOT (connectionChanged    (QCaConnectionInfo&, const unsigned int&)));
 }
@@ -540,16 +597,32 @@ void QEPlot::establishConnection (unsigned int variableIndex)
 // This is the slot used to recieve connection updates from a QCaObject based class.
 //
 void QEPlot::connectionChanged (QCaConnectionInfo& connectionInfo,
-                                const unsigned int&variableIndex)
+                                const unsigned int& variableIndex)
 {
    PV_INDEX_CHECK (variableIndex,);
 
-   // Select the curve information for this variable
-   Trace* tr = this->traces[variableIndex];
-   if (!tr) return;             // sainity check.
+   // Select the curve/trace information for this variable
+   //
+   Trace* tr = this->traces[variableIndex % QEPLOT_NUM_PLOTS];
+   if (!tr) return;             // sanity check.
 
    // Note the connected state
+   //
    bool isConnected = connectionInfo.isChannelConnected ();
+
+   // Display the connected state.
+   //
+   this->updateToolTipConnection (isConnected, variableIndex);
+
+   if (variableIndex >= QEPLOT_NUM_PLOTS) {
+      // Must be the size PV
+      // Either way (a connect or a disconnet), reset the data size
+      //
+      tr->dataSizeDefined = false;
+      this->replotIsRequired = true;
+      return;
+   }
+
    tr->isConnected = isConnected;
    tr->isFirstUpdate = true; // no need to check if connect/disconnect
 
@@ -568,16 +641,12 @@ void QEPlot::connectionChanged (QCaConnectionInfo& connectionInfo,
       tr->scalarData.append (point);
    }
 
-   // Display the connected state.
-   //
-   this->updateToolTipConnection (isConnected, variableIndex);
-
    // This updates the style.  We want to be disabled/greyed-out only
    // if all in use varaibles are not conncted.
    //
    isConnected = false;
    bool isNone = true;
-   for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
+   for (int i = 0; i < QEPLOT_NUM_PLOTS; i++) {
       Trace* tr = this->traces[i];
       if (tr && tr->isInUse) {
          isNone = false;
@@ -599,11 +668,12 @@ void QEPlot::connectionChanged (QCaConnectionInfo& connectionInfo,
 void QEPlot::setPlotData (const double value, QCaAlarmInfo& alarmInfo,
                           QCaDateTime& timestamp, const unsigned int& variableIndex)
 {
-   PV_INDEX_CHECK (variableIndex,);
+   DATA_INDEX_CHECK (variableIndex,);
 
-   // Select the curve information for this variable
+   // Select the curve/trace information for this variable
+   //
    Trace* tr = this->traces[variableIndex];
-   if (!tr) return;      // sainity check.
+   if (!tr) return;      // sanity check.
 
 
    // A seperate data connection (QEPlot::setPlotData( const QVector<double>& values, ... )
@@ -679,12 +749,13 @@ void QEPlot::setPlotData (const QVector <double>&values,
                           QCaAlarmInfo& alarmInfo, QCaDateTime&,
                           const unsigned int& variableIndex)
 {
-   PV_INDEX_CHECK (variableIndex,);
+   DATA_INDEX_CHECK (variableIndex,);
 
-   // Select the curve information for this variable
+   // Select the curve/trace information for this variable
+   //
    Trace* tr = this->traces[variableIndex];
 
-   if (!tr) return;     // sainity check.
+   if (!tr) return;     // sanity check.
 
    // A separate data connection (QEPlot::setPlotData (const double value, ...)
    // manages scalar data, so decide if we are plotting scalar or array data and
@@ -724,6 +795,34 @@ void QEPlot::setPlotData (const QVector <double>&values,
 
 //------------------------------------------------------------------------------
 //
+void QEPlot::setSizeData (const long value, QCaAlarmInfo& alarmInfo,
+                          QCaDateTime&, const unsigned int& vi)
+{
+   SIZE_INDEX_CHECK (vi,);
+
+   // Select the curve/trace information for this variable
+   //
+   Trace* tr = this->traces[vi % QEPLOT_NUM_PLOTS];
+   if (!tr) return;     // sanity check.
+
+   bool valueDefined = !alarmInfo.isInvalid();
+
+   // Has it effectively changed state?
+   //
+   if ((tr->dataSizeDefined != valueDefined) ||
+       (valueDefined && (tr->dataSize != value))) {
+      tr->dataSize = value;
+      tr->dataSizeDefined = valueDefined;
+      this->replotIsRequired = true;
+   }
+
+   // Update the tool tip for this PV, but not general widget alarm state.
+   //
+   this->updateToolTipAlarm (alarmInfo.severityName(), vi);
+}
+
+//------------------------------------------------------------------------------
+//
 void QEPlot::setAlarmInfoCommon (QCaAlarmInfo& alarmInfo,
                                  const unsigned int variableIndex)
 {
@@ -731,6 +830,7 @@ void QEPlot::setAlarmInfoCommon (QCaAlarmInfo& alarmInfo,
 
    // Invoke common alarm handling processing.
    // TODO: Aggregate all channel severities into a single alarm state.
+   //
    this->processAlarmInfo (alarmInfo, variableIndex);
 }
 
@@ -743,7 +843,7 @@ void QEPlot::purgeOldData () {
    QDateTime startTime = QDateTime::currentDateTime ().toUTC();
    startTime = startTime.addSecs (-this->timeSpan);
 
-   for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
+   for (int i = 0; i < QEPLOT_NUM_PLOTS; i++) {
       Trace* tr = this->traces[i];
       while (tr->scalarData.count () >= 2) {
          // Check the time of the oldest but one.
@@ -778,7 +878,7 @@ void QEPlot::plotData ()
 
    // Now plot each curve.
    //
-   for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
+   for (int i = 0; i < QEPLOT_NUM_PLOTS; i++) {
       Trace* tr = this->traces[i];
       if (!tr) continue;
       if (!tr->isInUse) continue;
@@ -800,7 +900,16 @@ void QEPlot::plotData ()
       if (tr->isWaveform) {
          // It is a wavform.
          //
-         const int n = tr->ydata.count();
+         int n = tr->ydata.count();
+
+         if (tr->dataSizeDefined) {
+            // A data size has been set - truncate plotting accordingly.
+            //
+            n = MIN (n, tr->dataSize);
+         }
+
+         // We cannot plot less than one point.
+         //
          if (n < 1) continue;
 
          xdata.reserve (n);
@@ -921,7 +1030,7 @@ void QEPlot::drawLegend ()
 
 #define SCALE(x) (int(m*x)/d)
 
-   for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
+   for (int i = 0; i < QEPLOT_NUM_PLOTS; i++) {
       Trace* tr = this->traces[i];
       if (tr && tr->legend.length() > 0) {
          // We have atleast one legend.
@@ -952,7 +1061,7 @@ void QEPlot::drawLegend ()
    QFontMetrics fm = painter.fontMetrics ();
    int maxTextWidth = 0;
 
-   for (int i = 0, row = 0; i < QEPLOT_NUM_VARIABLES; i++) {
+   for (int i = 0, row = 0; i < QEPLOT_NUM_PLOTS; i++) {
       const Trace* tr = this->traces[i];
 
       if (tr->legend.isEmpty()) continue;   // skip this one.
@@ -1012,7 +1121,7 @@ void QEPlot::tickTimeout ()
    // Shuffle up date for non-waveforms.
    //
    if (tickIsRequired) {
-      for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
+      for (int i = 0; i < QEPLOT_NUM_PLOTS; i++) {
          Trace* tr = this->traces[i];
 
          if (tr->isInUse && !tr->isWaveform) {
@@ -1030,26 +1139,28 @@ void QEPlot::tickTimeout ()
 //------------------------------------------------------------------------------
 // Set variable name
 //
-void QEPlot::useNewVariableNameProperty (QString variableName, QString substitutions, unsigned int variableIndex)
+void QEPlot::useNewVariableNameProperty (QString pvName, QString subs, unsigned int vi)
 {
-   PV_INDEX_CHECK (variableIndex,);
+   PV_INDEX_CHECK (vi,);
 
-   // The name pv name has been changed or cleared.
-   //
-   Trace* tr = this->traces[variableIndex];
-   tr->reset();
+   if (vi < QEPLOT_NUM_PLOTS) {
+      // The non-size name pv name has been changed or cleared.
+      //
+      Trace* tr = this->traces[vi];
+      tr->reset();
+   }
 
-   this->setVariableNameAndSubstitutions (variableName, substitutions, variableIndex);
+   this->setVariableNameAndSubstitutions (pvName, subs, vi);
 }
 
 //------------------------------------------------------------------------------
-// Variable name proprty access access
+// Variable name property access access
 //
 void QEPlot::setVariableNameIndexProperty (const QString& variableName,
                                            const unsigned int variableIndex)
 {
    PV_INDEX_CHECK (variableIndex,);
-   this->traces[variableIndex]->vnpm.setVariableNameProperty (variableName);
+   this->traces[variableIndex]->dnpm.setVariableNameProperty (variableName);
 }
 
 //------------------------------------------------------------------------------
@@ -1057,8 +1168,29 @@ void QEPlot::setVariableNameIndexProperty (const QString& variableName,
 QString QEPlot::getVariableNameIndexProperty (const unsigned int variableIndex) const
 {
    PV_INDEX_CHECK (variableIndex, "");
-   return this->traces[variableIndex]->vnpm.getVariableNameProperty ();
+   return this->traces[variableIndex]->dnpm.getVariableNameProperty ();
 }
+
+//------------------------------------------------------------------------------
+// Size variable name property access access
+//
+void QEPlot::setSizeVariableNameIndexProperty (const QString& variableName,
+                                               const unsigned int variableIndex)
+{
+   PV_INDEX_CHECK (variableIndex,);
+   const int index = variableIndex % QEPLOT_NUM_PLOTS;
+   this->traces[index]->snpm.setVariableNameProperty (variableName);
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEPlot::getSizeVariableNameIndexProperty (const unsigned int variableIndex) const
+{
+   PV_INDEX_CHECK (variableIndex, "");
+   const int index = variableIndex % QEPLOT_NUM_PLOTS;
+   return this->traces[index]->snpm.getVariableNameProperty ();
+}
+
 
 //------------------------------------------------------------------------------
 // Variable substitutions access
@@ -1067,8 +1199,9 @@ void QEPlot::setVariableNameSubstitutionsProperty (const QString& variableNameSu
 {
    // Same substitutions apply to all variables.
    //
-   for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
-      this->traces[i]->vnpm.setSubstitutionsProperty (variableNameSubstitutions);
+   for (int i = 0; i < QEPLOT_NUM_PLOTS; i++) {
+      this->traces[i]->dnpm.setSubstitutionsProperty (variableNameSubstitutions);
+      this->traces[i]->snpm.setSubstitutionsProperty (variableNameSubstitutions);
    }
 }
 
@@ -1078,7 +1211,7 @@ QString QEPlot::getVariableNameSubstitutionsProperty () const
 {
    // All the same - any variable's substitutions will do.
    //
-   return this->traces[0]->vnpm.getSubstitutionsProperty ();
+   return this->traces[0]->dnpm.getSubstitutionsProperty ();
 }
 
 //------------------------------------------------------------------------------
@@ -1120,7 +1253,7 @@ QString QEPlot::copyVariable ()
    // Form space separates list of PV names.
    //
    QString text;
-   for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
+   for (int i = 0; i < QEPLOT_NUM_PLOTS; i++) {
       QString pv = this->getSubstitutedVariableName (i);
       if (!pv.isEmpty ()) {
          if (!text.isEmpty ()) text.append (" ");
@@ -1137,7 +1270,7 @@ QVariant QEPlot::copyData ()
 {
    QString text;
 
-   for (int i = 0; i < QEPLOT_NUM_VARIABLES; i++) {
+   for (int i = 0; i < QEPLOT_NUM_PLOTS; i++) {
       Trace* tr = this->traces[i];
       if (!tr || !tr->isInUse) continue;
 
@@ -1165,7 +1298,7 @@ void QEPlot::paste (QVariant v)
    //
    const QStringList pvNames = QEUtilities::variantToStringList (v);
    const int numPVs = pvNames.size ();
-   for (int i = 0, p = 0; (i < QEPLOT_NUM_VARIABLES) && (p < numPVs); i++) {
+   for (int i = 0, p = 0; (i < QEPLOT_NUM_PLOTS) && (p < numPVs); i++) {
       Trace* tr = this->traces[i];
       if (tr && !tr->isInUse) {
          this->setVariableName (pvNames[p], i);
@@ -1696,6 +1829,16 @@ QString QEPlot::getVariableName##name##Property () const                    \
    return this->getVariableNameIndexProperty (index);                       \
 }                                                                           \
 /*  */                                                                      \
+void QEPlot::setSizeVariableName##name##Property (const QString& pvName)    \
+{                                                                           \
+   this->setSizeVariableNameIndexProperty (pvName, index);                  \
+}                                                                           \
+/*  */                                                                      \
+QString QEPlot::getSizeVariableName##name##Property () const                \
+{                                                                           \
+   return this->getSizeVariableNameIndexProperty (index);                   \
+}                                                                           \
+   /*  */                                                                   \
 void QEPlot::setTraceStyle##name (const TraceStyles traceStyle)             \
 {                                                                           \
    this->setTraceStyle (traceStyle, index);                                 \

@@ -30,6 +30,8 @@
 #include <QEFrame.h>
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
+#include <QEInteger.h>
+#include <QEIntegerFormatting.h>
 #include <QCaVariableNamePropertyManager.h>
 #include <QCaDataPoint.h>
 #include <QEvent>
@@ -52,7 +54,8 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlot : public QEFrame {
    Q_OBJECT
 public:
    enum Constants {
-      QEPLOT_NUM_VARIABLES = 8  // Maximum number of variables.
+      QEPLOT_NUM_PLOTS = 8,      // Maximum number of data/size variables.
+      QEPLOT_NUM_VARIABLES = 16  // Maximum number of variables.
    };
 
    // Synonyms for QwtPlotCurve::CurveStyle
@@ -76,7 +79,7 @@ public:
    };
 
    /// EPICS variable name (CA PV).
-   /// These variables is used to read updating values or waveforms for plotting in the first trace.
+   /// These variables is used to read updating values or waveforms.
    ///
    Q_PROPERTY (QString variable1 READ getVariableName1Property WRITE setVariableName1Property)
    Q_PROPERTY (QString variable2 READ getVariableName2Property WRITE setVariableName2Property)
@@ -86,6 +89,19 @@ public:
    Q_PROPERTY (QString variable6 READ getVariableName6Property WRITE setVariableName6Property)
    Q_PROPERTY (QString variable7 READ getVariableName7Property WRITE setVariableName7Property)
    Q_PROPERTY (QString variable8 READ getVariableName8Property WRITE setVariableName8Property)
+
+   /// These variables is used to read effective waveforms sizes, e.g. wavefom.NORD
+   /// If not specified/connected then the whole array is used for display purposes.
+   /// Note: Only applicable to waveforms, still connects but otherwsie ignored for scalars.
+   ///
+   Q_PROPERTY (QString sizeVariable1 READ getSizeVariableName1Property WRITE setSizeVariableName1Property)
+   Q_PROPERTY (QString sizeVariable2 READ getSizeVariableName2Property WRITE setSizeVariableName2Property)
+   Q_PROPERTY (QString sizeVariable3 READ getSizeVariableName3Property WRITE setSizeVariableName3Property)
+   Q_PROPERTY (QString sizeVariable4 READ getSizeVariableName4Property WRITE setSizeVariableName4Property)
+   Q_PROPERTY (QString sizeVariable5 READ getSizeVariableName5Property WRITE setSizeVariableName5Property)
+   Q_PROPERTY (QString sizeVariable6 READ getSizeVariableName6Property WRITE setSizeVariableName6Property)
+   Q_PROPERTY (QString sizeVariable7 READ getSizeVariableName7Property WRITE setSizeVariableName7Property)
+   Q_PROPERTY (QString sizeVariable8 READ getSizeVariableName8Property WRITE setSizeVariableName8Property)
 
    /// Macro substitutions. The default is no substitutions. The format is NAME1=VALUE1[,] NAME2=VALUE2...
    /// Values may be quoted strings. For example, 'SAMPLE=SAM1, NAME = "Ref foil"'
@@ -175,7 +191,7 @@ public:
 public:
    typedef QEFrame ParentWidgetClass;
 
-   // Abstract Dynamic Widget Context Menu values
+   // QEPlot Widget Context Menu values
    //
    enum OwnContextMenuOptions {
       PLOTCM_NONE = CM_SPECIFIC_WIDGETS_START_HERE,
@@ -185,7 +201,6 @@ public:
 
    explicit QEPlot (QWidget* parent = 0);
    explicit QEPlot (const QString& variable1Name, QWidget* parent = 0);
-
    ~QEPlot ();
 
    QSize sizeHint () const;
@@ -228,6 +243,10 @@ public:
                                       const unsigned int variableIndex);
    QString getVariableNameIndexProperty (const unsigned int variableIndex) const;
 
+   void setSizeVariableNameIndexProperty (const QString& variableName,
+                                          const unsigned int variableIndex);
+   QString getSizeVariableNameIndexProperty (const unsigned int variableIndex) const;
+
    void setTraceStyle (const TraceStyles traceStyle, const unsigned int variableIndex);
    TraceStyles getTraceStyle (const unsigned int variableIndex) const;
 
@@ -240,12 +259,15 @@ public:
    void setTraceLegend (const QString& traceLegend, const unsigned int variableIndex);
    QString getTraceLegend (const unsigned int variableIndex) const;
 
-   // moc do not allow us to use macros to define Q_PROPERTIES, but we can use
-   // as macro do define the associated read/write functions.
+   // moc does not allow us to use macros to define Q_PROPERTIES, but we can
+   // use a macro do define the associated get/set functions.
    //
 #define PROPERTY_ACCESS_FUNCTIONS(name)                                        \
    void setVariableName##name##Property (const QString& pvName);               \
    QString getVariableName##name##Property () const;                           \
+                                                                               \
+   void setSizeVariableName##name##Property (const QString& pvName);           \
+   QString getSizeVariableName##name##Property () const;                       \
                                                                                \
    void setTraceStyle##name (const TraceStyles traceStyle);                    \
    TraceStyles getTraceStyle##name () const;                                   \
@@ -359,6 +381,7 @@ protected:
    void paste (QVariant s);
 
    QEFloatingFormatting floatingFormatting;
+   QEIntegerFormatting integerFormatting;
 
 private:
    void setup ();
@@ -407,13 +430,15 @@ private:
 
    // Variables and functions to manage plot data
    class Trace;
-   Trace* traces[QEPLOT_NUM_VARIABLES];
+   Trace* traces[QEPLOT_NUM_PLOTS];
 
 private slots:
    void connectionChanged (QCaConnectionInfo& connectionInfo, const unsigned int&);
    void setPlotData (const QVector<double>& values, QCaAlarmInfo&,
                      QCaDateTime&, const unsigned int&);
    void setPlotData (const double value, QCaAlarmInfo&,
+                     QCaDateTime&, const unsigned int&);
+   void setSizeData (const long value, QCaAlarmInfo&,
                      QCaDateTime&, const unsigned int&);
    void tickTimeout ();
 
