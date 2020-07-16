@@ -400,8 +400,9 @@ void QEPvLoadSaveModel::selectionChanged (const QItemSelection& selected, const 
             text.append (QString ("%1").arg (count).append (" item"));
             if (count != 1) text.append ("s");
          }
-         this->owner->setReadOut (text);
-
+         if (this->owner != NULL) {
+            this->owner->setReadOut (text);
+         }
       }
    } else {
       // Don't allow multiple selections (yet)
@@ -488,7 +489,9 @@ bool QEPvLoadSaveModel::eventFilter (QObject *obj, QEvent* event)
             nodeName = item ? item->getNodeName () : "nil";
             dragEnterEvent->setDropAction (Qt::CopyAction);
             dragEnterEvent->accept ();
-            this->owner->setReadOut (nodeName);
+            if (this->owner != NULL) {
+               this->owner->setReadOut (nodeName);
+            }
             return true;
          }
          break;
@@ -519,7 +522,9 @@ bool QEPvLoadSaveModel::eventFilter (QObject *obj, QEvent* event)
       case QEvent::DragLeave:
          if (obj == this->treeView) {
             // QDragLeaveEvent* dragLeaveEvent = static_cast<QDragLeaveEvent*> (event);
-            this->owner->setReadOut ("");
+            if (this->owner != NULL) {
+               this->owner->setReadOut ("");
+            }
             return true;
          }
          break;

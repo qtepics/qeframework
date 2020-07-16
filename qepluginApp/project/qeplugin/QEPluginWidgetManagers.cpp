@@ -70,6 +70,7 @@
 #include <QEPlot.h>
 #include <QEPlotter.h>
 #include <QEPvLoadSave.h>
+#include <QEPvLoadSaveButton.h>
 #include <QEPvProperties.h>
 #include <QRadioGroup.h>
 #include <QERadioGroup.h>
@@ -134,6 +135,7 @@ QE_IMPLEMENT_PLUGIN_MANAGER (QENumericEdit,       QECONTROL,  ":/qe/plugin/QENum
 QE_IMPLEMENT_PLUGIN_MANAGER (QEPlot,              QEGRAPHIC,  ":/qe/plugin/QEPlot.png",              false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEPlotter,           QEGRAPHIC,  ":/qe/plugin/QEPlotter.png",           false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEPvLoadSave,        QESUPPORT,  ":/qe/plugin/QEPvLoadSave.png",        false)
+QE_IMPLEMENT_PLUGIN_MANAGER (QEPvLoadSaveButton,  QESUPPORT,  ":/qe/plugin/QEPvLoadSaveButton.png",  false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEPvProperties,      QETOOL,     ":/qe/plugin/QEPvProperties.png",      false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QRadioGroup,         QETOOL,     ":/qe/plugin/QRadioGroup.png",         false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QERadioGroup,        QECONTROL,  ":/qe/plugin/QERadioGroup.png",        false)

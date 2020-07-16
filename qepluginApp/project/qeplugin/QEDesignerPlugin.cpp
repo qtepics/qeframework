@@ -66,6 +66,7 @@ QEWidgets::QEWidgets(QObject *parent) : QObject(parent) {
     widgets.append(new QEPlotterManager(this));
     widgets.append(new QEPushButtonManager(this));
     widgets.append(new QEPvLoadSaveManager(this));
+    widgets.append(new QEPvLoadSaveButtonManager(this));
     widgets.append(new QEPvFrameManager(this));
     widgets.append(new QEPvPropertiesManager(this));
     widgets.append(new QERadioButtonManager(this));

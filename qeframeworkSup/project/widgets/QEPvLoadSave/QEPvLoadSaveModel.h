@@ -57,7 +57,7 @@ class QEPvLoadSaveItem;
 class QEPvLoadSaveModel : public QAbstractItemModel {
 Q_OBJECT
 public:
-   explicit QEPvLoadSaveModel (QTreeView* treeView, QEPvLoadSave* parent);
+   explicit QEPvLoadSaveModel (QTreeView* treeView, QEPvLoadSave* parent = NULL);
    virtual ~QEPvLoadSaveModel ();
 
    // Override (pure abstract) virtual functions.

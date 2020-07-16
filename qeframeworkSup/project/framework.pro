@@ -1,7 +1,7 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #22 $
-# $DateTime: 2020/02/12 17:45:00 $
-# Last checked in by: $Author: starritt $
+# $Revision: #23 $
+# $DateTime: 2020/07/15 14:52:37 $
+# Last checked in by: $Author: pozara $
 #
 # Copyright (c) 2009-2020 Australian Synchrotron
 #
@@ -198,6 +198,7 @@ include (widgets/QEPeriodic/QEPeriodic.pri)
 include (widgets/QEPlot/QEPlot.pri)
 include (widgets/QEPlotter/QEPlotter.pri)
 include (widgets/QEPvLoadSave/QEPvLoadSave.pri)
+include (widgets/QEPvLoadSaveButton/QEPvLoadSaveButton.pri)
 include (widgets/QEPvProperties/QEPvProperties.pri)
 include (widgets/QERadioGroup/QERadioGroup.pri)
 include (widgets/QERecipe/QERecipe.pri)

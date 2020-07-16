@@ -469,6 +469,17 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEPvLoadSaveManager :
 
 //------------------------------------------------------------------------------
 //
+class QEPLUGINLIBRARYSHARED_EXPORT QEPvLoadSaveButtonManager :
+      public QObject, public QDesignerCustomWidgetInterface
+{
+   Q_OBJECT
+   Q_INTERFACES (QDesignerCustomWidgetInterface)
+   QE_DECLARE_PLUGIN_MANAGER (QEPvLoadSaveButton)
+};
+
+
+//------------------------------------------------------------------------------
+//
 class QEPLUGINLIBRARYSHARED_EXPORT QEPvPropertiesManager :
       public QObject, public QDesignerCustomWidgetInterface
 {
