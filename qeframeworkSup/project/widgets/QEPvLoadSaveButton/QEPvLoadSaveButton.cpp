@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron
+ *  Copyright (c) 2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -43,6 +43,7 @@
 QEPvLoadSaveButton::QEPvLoadSaveButton (QWidget* parent) : QPushButton (parent), QEWidget (this) {
 
    // Set up data
+   this->progressDialog = NULL;
    this->confirmRequired = false;
    this->loadSaveAction = LoadToPVs;
    this->showProgressDialog = true;
@@ -70,7 +71,7 @@ QEPvLoadSaveButton::QEPvLoadSaveButton (QWidget* parent) : QPushButton (parent),
 
 QEPvLoadSaveButton::~QEPvLoadSaveButton() {
    delete(this->model);
-   if (this->progressDialog != nullptr) {
+   if (this->progressDialog != NULL) {
       delete(this->progressDialog);
    }
 }
@@ -113,7 +114,7 @@ void QEPvLoadSaveButton::userClicked(bool) {
       //
       if (this->showProgressDialog) {
          QString labelText = getAction() == SaveToFile ? "Saving PV values to file ..." : "Applying PV values to the system...";
-         if (this->progressDialog == nullptr) {
+         if (this->progressDialog == NULL) {
             this->progressDialog = new QProgressDialog(labelText, "Abort", 0, MAX (1, model->leafCount ()), this);
             this->progressDialog->setWindowTitle("Load/Save Progress");
             this->progressDialog->setWindowModality(Qt::WindowModal);
