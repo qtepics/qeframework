@@ -189,6 +189,9 @@ public:
    void setDisplayAlarmStateOptionProperty( DisplayAlarmStateOptions option ) { setDisplayAlarmStateOption( (displayAlarmStateOptions)option ); }///< Access function for #displayAlarmStateOption property - refer to #displayAlarmStateOption property for details
 
 public:
+    // END-STANDARD-PROPERTIES ========================================================
+
+public:
    /// Create without a nominated config file.
    ///
    QEPvLoadSaveButton (QWidget *parent = NULL);
@@ -247,5 +250,11 @@ private slots:
    void delayedLoadToPVs ();
    void userClicked(bool);
 };
+
+#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
+Q_DECLARE_METATYPE (QEPvLoadSaveButton::Actions)
+Q_DECLARE_METATYPE (QEPvLoadSaveButton::UserLevels)
+Q_DECLARE_METATYPE (QEPvLoadSaveButton::DisplayAlarmStateOptions)
+#endif
 
 #endif // QE_PV_LOAD_SAVE_BUTTON_H
