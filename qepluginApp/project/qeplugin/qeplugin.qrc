@@ -13,21 +13,28 @@
         <file>QEComboBox.png</file>
         <file>QEConfiguredLayout.png</file>
         <file>QECorrelation.png</file>
-        <file>QEDistribution.png</file>
+        <file>QEDateTime.png</file>
         <file>QEDescriptionLabel.png</file>
+        <file>QEDistribution.png</file>
+        <file>QEDynamicFormGrid.png</file>
         <file>QEFileBrowser.png</file>
         <file>QEFileImage.png</file>
         <file>QEForm.png</file>
-        <file>QEFormStateChange.png</file>
-        <file>QEDynamicFormGrid.png</file>
         <file>QEFormGrid.png</file>
+        <file>QEFormStateChange.png</file>
         <file>QEFrame.png</file>
         <file>QEGeneralEdit.png</file>
         <file>QEGroupBox.png</file>
         <file>QEHistogram.png</file>
         <file>QEImage.png</file>
         <file>QELCDNumber.png</file>
+        <file>QELabel.png</file>
+        <file>QELineEdit.png</file>
+        <file>QELink.png</file>
+        <file>QELog.png</file>
+        <file>QELogin.png</file>
         <file>QEMenuButton.png</file>
+        <file>QENTTable.png</file>
         <file>QENumericEdit.png</file>
         <file>QEPeriodic.png</file>
         <file>QEPlot.png</file>
@@ -51,16 +58,9 @@
         <file>QEStripChart.png</file>
         <file>QESubstitutedLabel.png</file>
         <file>QETable.png</file>
-        <file>QENTTable.png</file>
         <file>QEWaveformHistogram.png</file>
         <file>QNumericEdit.png</file>
         <file>QRadioGroup.png</file>
         <file>QSimpleShape.png</file>
-        <file>QELabel.png</file>
-        <file>QELineEdit.png</file>
-        <file>QELog.png</file>
-        <file>QELogin.png</file>
-        <file>QELink.png</file>
-        <file>QEDateTime.png</file>
     </qresource>
 </RCC>
