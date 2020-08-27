@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>461</width>
-    <height>428</height>
+    <width>464</width>
+    <height>422</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>444</width>
+    <width>448</width>
     <height>110</height>
    </size>
   </property>
@@ -218,18 +218,18 @@
        <widget class="QLabel" name="label_4">
         <property name="minimumSize">
          <size>
-          <width>56</width>
-          <height>0</height>
+          <width>48</width>
+          <height>16</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>56</width>
-          <height>16777215</height>
+          <width>48</width>
+          <height>16</height>
          </size>
         </property>
         <property name="text">
-         <string>Number: </string>
+         <string>Match:</string>
         </property>
        </widget>
       </item>
@@ -237,24 +237,30 @@
        <widget class="QLabel" name="matchCountLabel">
         <property name="minimumSize">
          <size>
-          <width>48</width>
-          <height>0</height>
+          <width>116</width>
+          <height>16</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>48</width>
-          <height>16777215</height>
+          <width>116</width>
+          <height>16</height>
          </size>
         </property>
         <property name="toolTip">
          <string>Number of PVs that match given filter.</string>
         </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(224, 220, 218);</string>
+        </property>
         <property name="text">
-         <string>0</string>
+         <string>0 / 0</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="indent">
+         <number>6</number>
         </property>
        </widget>
       </item>

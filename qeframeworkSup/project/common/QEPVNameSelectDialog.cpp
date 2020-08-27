@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2013-2020 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012,2016 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -84,6 +84,7 @@ QEPVNameSelectDialog::QEPVNameSelectDialog (QWidget *parent) :
 //
 QEPVNameSelectDialog::~QEPVNameSelectDialog ()
 {
+   this->filteredNames.clear ();
    delete ui;
 }
 
@@ -92,8 +93,15 @@ QEPVNameSelectDialog::~QEPVNameSelectDialog ()
 void QEPVNameSelectDialog::setPvName (QString pvNameIn)
 {
    this->originalPvName = pvNameIn.trimmed ();
+
    this->ui->pvNameEdit->clear ();
-   this->ui->pvNameEdit->insertItem (0, this->originalPvName, QVariant ());
+
+   // Number may be zero - no special check required - just do it.
+   //
+   this->ui->pvNameEdit->insertItems (0, this->filteredNames);
+   if (!this->originalPvName.isEmpty ()) {
+      this->ui->pvNameEdit->insertItem (0, this->originalPvName, QVariant ());
+   }
    this->ui->pvNameEdit->setCurrentIndex (0);
 
    // setPvName typically invoked just before exec () call.
@@ -111,26 +119,32 @@ QString QEPVNameSelectDialog::getPvName ()
 }
 
 //------------------------------------------------------------------------------
+// Use has moved away form the filterEdit widget.
+// Re-evaluate the set of filtered PVs names that match the filter.
 //
 void QEPVNameSelectDialog::applyFilter ()
 {
    QString pattern = this->ui->filterEdit->text ().trimmed ();
    QRegExp regExp (pattern, Qt::CaseSensitive, QRegExp::RegExp);
-   QEPvNameSearch findNames (QEArchiveAccess::getAllPvNames ());
-
-   this->ui->pvNameEdit->clear ();
 
    // QEArchiveAccess ensures the list is sorted.
    //
-   this->ui->pvNameEdit->insertItems (0, findNames.getMatchingPvNames (regExp, true));
+   QEPvNameSearch findNames (QEArchiveAccess::getAllPvNames ());
+   const int m = QEArchiveAccess::getNumberPVs ();
 
-   int n = this->ui->pvNameEdit->count ();
+   this->filteredNames.clear ();
+   this->filteredNames = findNames.getMatchingPvNames (regExp, true);
+   const int n = this->filteredNames.count ();
+
+   this->ui->pvNameEdit->clear ();
+   this->ui->pvNameEdit->insertItems (0, this->filteredNames);
+
    if ((n == 0) && (!this->originalPvName.isEmpty ())) {
       this->ui->pvNameEdit->insertItem (0, this->originalPvName, QVariant ());
       this->ui->pvNameEdit->setCurrentIndex (0);
    }
 
-   this->ui->matchCountLabel->setText (QString ("%1").arg (n));
+   this->ui->matchCountLabel->setText (QString ("%1 / %2").arg (n).arg (m));
 }
 
 //------------------------------------------------------------------------------
