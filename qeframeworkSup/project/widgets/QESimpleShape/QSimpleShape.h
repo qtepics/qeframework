@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2019 Australian Synchrotron.
+ *  Copyright (c) 2014-2020 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -100,26 +100,32 @@ public:
 
    /// Nominated text format
    ///
-   Q_PROPERTY (TextFormats format    READ getTextFormat WRITE setTextFormat)
+   Q_PROPERTY (TextFormats format    READ getTextFormat  WRITE setTextFormat)
 
    /// User specified text - defaults to null string.
-   Q_PROPERTY (QString     fixedText READ getFixedText  WRITE setFixedText)
+   Q_PROPERTY (QString fixedText     READ getFixedText   WRITE setFixedText)
 
    /// Text values used when format is LocalEnumeration.
    Q_PROPERTY (QStringList stateSet  READ getStateSet    WRITE setStateSet)
+
+   /// Text alignment
+   Q_PROPERTY (Qt::Alignment alignment READ getAlignment WRITE setAlignment)
+
+   /// Text indent - the default is 6. Constrained to be >= -1
+   Q_PROPERTY (int indent            READ getIndent      WRITE setIndent)
 
    /// Flash rate.
    /// The default value is Medium, i.e. 1Hz flash rate.
    Q_PROPERTY (QEScanTimers::ScanRates flashRate READ getFlashRate WRITE setFlashRate)
 
    /// When inActive, the widgers is grayed-out, as if disabled. The default is true.
-   Q_PROPERTY (bool    isActive         READ getIsActive         WRITE setIsActive)
+   Q_PROPERTY (bool isActive         READ getIsActive    WRITE setIsActive)
 
    // Group various colours together.
    // There order here is the order shown in designer.
    //
    /// Edge colour - default is black
-   Q_PROPERTY (QColor edgeColour     READ getEdgeColour      WRITE setEdgeColour)
+   Q_PROPERTY (QColor edgeColour     READ getEdgeColour  WRITE setEdgeColour)
 
    /// Flash offColour - default is clear.
    Q_PROPERTY (QColor flashOffColour READ getFlashOffColour  WRITE setFlashOffColour)
@@ -223,6 +229,12 @@ public:
    void setFixedText (const QString& value);
    QString getFixedText () const;
 
+   void setAlignment (const Qt::Alignment alignment);
+   Qt::Alignment getAlignment () const;
+
+   void setIndent (const int indent);
+   int getIndent () const;
+
    void setFlashRate (const QEScanTimers::ScanRates);
    QEScanTimers::ScanRates getFlashRate () const;
 
@@ -278,18 +290,19 @@ protected:
    virtual QColor getItemColour ();
 
 private:
+   enum Constants {
+      NUMBER_OF_STATES = 16
+   };
+
    void equaliseRect (QRect& rect);
    QString calcTextImage ();    // text image to be used.
-
-   // Like painter.drawText, but centred on textCentre.
-   // (painter.drawText aligns bottom left corner on given point).
-   //
-   void drawText (QPainter& painter, const QPoint& textCentre, const QString& text);
 
    Shapes shape;
    QStringList stateSet;
    TextFormats textFormat;
    QString fixedText;
+   Qt::Alignment alignment;
+   int indent;
    QEScanTimers::ScanRates flashRate;
    bool flashStateIsOn;
    int edgeWidth;
@@ -300,8 +313,8 @@ private:
    Qt::PenStyle edgeStyle;
    QColor flashOffColour;
    QColor edgeColour;
-   QColor colourList [16];
-   bool   flashList [16];
+   QColor colourList [NUMBER_OF_STATES];
+   bool   flashList  [NUMBER_OF_STATES];
    bool isActive;
    int value;
    int modulus;

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2019 Australian Synchrotron.
+ *  Copyright (c) 2014-2020 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,8 +31,6 @@
 
 #define DEBUG qDebug () << "QSimpleShape" << __LINE__ << __FUNCTION__ << "  "
 
-#define NUMBER_OF_STATES   16
-
 //-----------------------------------------------------------------------------
 //
 QSimpleShape::QSimpleShape (QWidget* parent) : QWidget (parent)
@@ -44,6 +42,8 @@ QSimpleShape::QSimpleShape (QWidget* parent) : QWidget (parent)
    this->shape = rectangle;
    this->textFormat = FixedText;
    this->fixedText = "";
+   this->alignment = Qt::AlignHCenter | Qt::AlignVCenter;
+   this->indent = 6;
    this->isActive = true;
    this->edgeWidth = 1;
    this->edgeStyle = Qt::SolidLine;
@@ -84,28 +84,6 @@ void QSimpleShape::equaliseRect (QRect& rect)
       rect.setHeight (rect.width ());
       rect.moveTop  ((-diff) / 2 + ew / 2);
    }
-}
-
-//------------------------------------------------------------------------------
-//
-void QSimpleShape::drawText (QPainter& painter, const QPoint& textCentre, const QString& text)
-{
-   QFont pf (this->font ());
-   painter.setFont (pf);
-
-   QFontMetrics fm = painter.fontMetrics ();
-   int x;
-   int y;
-
-   // Centre text. For height, pointSize seems better than fm.height ()
-   // painter.drawText takes bottom left coordinates.
-   //
-   x = textCentre.x () - fm.width (text) / 2;
-   y = textCentre.y () + (pf.pointSize () + 1) / 2;
-
-   // If text too wide, then ensure we show most significant part.
-   //
-   painter.drawText (MAX (1, x), y, text);
 }
 
 //-----------------------------------------------------------------------------
@@ -687,30 +665,97 @@ void QSimpleShape::paintEvent (QPaintEvent*)
          break;
    }
 
-   // Get the rquired text (if any).
+   // Get the required text (if any).
    //
    text = this->calcTextImage ();
    if (!text.isEmpty ()) {
-      // Set default centre text positions.
+
+      QFont pf (this->font ());
+      painter.setFont (pf);
+      QFontMetrics fm = painter.fontMetrics ();
+
+      const int textWidth  = fm.width (text);
+      const int textHeight = fm.height ();
+
+      // baseLineOffset is the difference between the bottom of an 'normal' char
+      // and the bottom of a "g", "j", "p", "q" and/or "y" char.
       //
-      QPoint textCentre (this->width () / 2, this->height () / 2);
+      const int baseLineOffset = ((textHeight * 6) + 19) / 38;  /// TODO: fine tune this ratio.
+
+      int xpos;      // holds the text bottom-left x position.
+      int ypos;      // holds the text bottom-left y position.
+
+      // Set the default position to the centre of the widget.
+      //
+      xpos = (this->width () - textWidth) / 2;
+      ypos = (this->height() + textHeight) / 2 - baseLineOffset;
+
+      // Calculate the indents - we do this whether required or not.
+      //
+      int xIndent = this->indent;  // pixel indent.
+      int yIndent = this->indent;
+
+      if (this->indent < 0) {
+         // Indent -ve, use the x standard (as per QLabel).
+         //
+         xIndent = fm.width ("x") / 2;
+         yIndent = baseLineOffset;
+      }
+
+      // Take acount of the edgeWidth - usually black and will obsure text.
+      // But this also makes QShape behave like QLabel where edgeWidth is
+      // equivilent to QFrame lineWidth.
+      //
+      xIndent += this->edgeWidth;
+      yIndent += this->edgeWidth;
+
+      // Modify the postion to reflected alignment and indent.
+      //
+      if (this->alignment & Qt::AlignTop) {
+         ypos = yIndent + textHeight - baseLineOffset;
+      } else if (this->alignment & Qt::AlignBottom) {
+         ypos = this->height () - yIndent - baseLineOffset;
+      }
+
+      if (this->alignment & Qt::AlignLeft) {
+         xpos = xIndent;
+      } else if (this->alignment & Qt::AlignRight) {
+         xpos = (this->width () - (xIndent + textWidth));
+      }
 
       if (!washedOut) {
          pen.setColor (QEUtilities::fontColour (colour));
       } else {
          pen.setColor (QColor (140, 140, 140, 255));   // gray
       }
+
       painter.setPen (pen);
-      this->drawText (painter, textCentre, text);
+
+      // If text too wide, then ensure we show most significant part.
+      //
+      painter.drawText (MAX (this->edgeWidth, xpos), ypos, text);
    }
 }
 
 //------------------------------------------------------------------------------
 //
 void QSimpleShape::flashTimeout (const bool isOn)
-{
-   this->flashStateIsOn = isOn;
-   this->update ();   // only call is current state marked as flashing???
+{   
+   this->flashStateIsOn = isOn;  // as opposed to off.
+
+   bool anyFlash = false;
+   for (int j = 0; j < ARRAY_LENGTH (this->flashList); j++) {
+      if (this->flashList [j]) {
+         anyFlash = true;
+         break;
+      }
+   }
+
+   // Only call if at least one state is marked as flashing.
+   //
+   if (anyFlash) {
+      this->update ();
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -1012,6 +1057,41 @@ QString QSimpleShape::getFixedText () const
 
 //------------------------------------------------------------------------------
 //
+void QSimpleShape::setAlignment (const Qt::Alignment alignmentIn)
+{
+   if (this->alignment != alignmentIn) {
+      this->alignment = alignmentIn;
+      this->update ();
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+Qt::Alignment QSimpleShape::getAlignment () const
+{
+   return this->alignment;
+}
+
+//------------------------------------------------------------------------------
+//
+void QSimpleShape::setIndent (const int indentIn)
+{
+   const int tmp = MAX (-1, indentIn);
+   if (this->indent != tmp) {
+      this->indent = tmp;
+      this->update ();
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+int QSimpleShape::getIndent () const
+{
+   return this->indent;
+}
+
+//------------------------------------------------------------------------------
+//
 void QSimpleShape::setFlashRate (const QEScanTimers::ScanRates flashRateIn)
 {
    const char* member = SLOT (flashTimeout (const bool));
@@ -1096,7 +1176,10 @@ QColor QSimpleShape::getColourProperty (const int slot) const
 void QSimpleShape::setFlashProperty (const int slot, const bool isFlashing)
 {
    if ((slot >= 0) && (slot < NUMBER_OF_STATES)) {
-      this->flashList [slot] = isFlashing;
+      if (this->flashList [slot] != isFlashing) {
+         this->flashList [slot] = isFlashing;
+         this->update ();
+      }
    }
 }
 

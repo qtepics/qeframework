@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron
+ *  Copyright (c) 2013-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -40,6 +40,7 @@
 #include <QVariantList>
 
 #include <QEResizeableFrame.h>
+#include <QSimpleShape.h>
 #include <QEWidget.h>
 #include <QECommon.h>
 
@@ -90,12 +91,11 @@ QEScaling::QEScaling ()
    this->firstMember = MAGIC_NUMBER;
    this->isDefined = false;
    this->layoutIsDefined = false;
-   this->labelIndent = -1;
+   this->indent = -1;
    this->resizeFrameAllowedMin = -1;
    this->resizeFrameAllowedMax = -1;
    this->tableDefaultHorizontalSectionSize  = -1;
    this->tableDefaultVerticalSectionSize  = -1;
-   this->treeViewIndentation  = -1;
 }
 
 //------------------------------------------------------------------------------
@@ -185,6 +185,7 @@ bool QEScaling::decodeProperty (const QVariant& property)
 
       memcpy (&magic, byteArray.data (), sizeof (int));
 
+      // Sanity check
       if (magic == MAGIC_NUMBER) {
 
          // Look good copy the lot.
@@ -254,7 +255,12 @@ void QEScaling::extractFromWidget (const QWidget* widget)
    //
    const QLabel* label = dynamic_cast <const QLabel*>(widget);
    if (label) {
-      this->labelIndent = label->indent ();
+      this->indent = label->indent ();
+   }
+
+   const QSimpleShape* shape = dynamic_cast <const QSimpleShape*>(widget);
+   if (shape) {
+      this->indent = shape->getIndent ();
    }
 
    const QEResizeableFrame* resizeableFrame = dynamic_cast <const QEResizeableFrame*>(widget);
@@ -271,7 +277,7 @@ void QEScaling::extractFromWidget (const QWidget* widget)
 
    const QTreeView* treeView = dynamic_cast <const QTreeView *>(widget);
    if (treeView) {
-      this->treeViewIndentation = treeView->indentation ();
+      this->indent = treeView->indentation ();
    }
 
    this->isDefined = true;
@@ -473,10 +479,19 @@ void QEScaling::applyScalingToWidget (QWidget* widget)
    //
    QLabel* label = dynamic_cast <QLabel*>(widget);
    if (label) {
-      int indent = baseline.labelIndent;
+      int indent = baseline.indent;
       if (indent > 0) {
          indent = QEScaling::scale (indent);
          label->setIndent (indent);
+      }
+   }
+
+   QSimpleShape* shape = dynamic_cast <QSimpleShape*>(widget);
+   if (shape) {
+      int indent = baseline.indent;
+      if (indent > 0) {
+         indent = QEScaling::scale (indent);
+         shape->setIndent (indent);
       }
    }
 
@@ -517,7 +532,7 @@ void QEScaling::applyScalingToWidget (QWidget* widget)
 
    QTreeView* treeView = dynamic_cast <QTreeView *>(widget);
    if (treeView) {
-      int indentation = baseline.treeViewIndentation;
+      int indentation = baseline.indent;
       if (indentation > 0) {
          indentation = QEScaling::scale (indentation);
          treeView->setIndentation (indentation);
