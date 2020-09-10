@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2019 Australian Synchrotron
+ *  Copyright (C) 2018-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -167,17 +167,21 @@ QVariant QECaClient::getPvData () const
 //
 bool QECaClient::putPvData (const QVariant& value)
 {
+   const QVariant::Type vtype = value.type ();
+
    bool result = false;
+   bool knownType = true;  // hypothesize we can handle the variant type.
    bool okay;
    QString extra = "";
 
-   if (value.type () != QVariant::List) {
+   if (vtype != QVariant::List) {
       // Process as scaler
-      //
+      //      
       ACAI::ClientInteger i;
       ACAI::ClientFloating f;
+      QByteArray bytes;
 
-      switch (value.type ()) {
+      switch (vtype) {
          case QVariant::Char:
          case QVariant::Bool:
          case QVariant::Int:
@@ -215,11 +219,19 @@ bool QECaClient::putPvData (const QVariant& value)
             result = this->putString (value.toString ().toStdString ());
             break;
 
+         case QVariant::ByteArray:
+            bytes = value.toByteArray ();
+            // NOTE: requires acai 1-5-8 orlater.
+            result = this->putByteArray ((void*) bytes.constData (), bytes.size());
+            break;
+
          default:
             result = false;
+            knownType = false;
             break;
       }
       extra = QString(", type %1.").arg (value.typeName ());
+
    } else {
       // Process as array.
       //
@@ -231,6 +243,7 @@ bool QECaClient::putPvData (const QVariant& value)
       ACAI::ClientStringArray   strArray;
 
       // Use type of first element to determine type.
+      // We only cater of lists of basic types.
       //
       QVariant firstValue = valueArray.value (0);
       switch (firstValue.type ()) {
@@ -262,6 +275,7 @@ bool QECaClient::putPvData (const QVariant& value)
 
          default:
             result = false;
+            knownType = false;
             break;
       }
       extra = QString(" list of %1.").arg (firstValue.typeName ());
@@ -269,30 +283,37 @@ bool QECaClient::putPvData (const QVariant& value)
 
    // Report error - if we can.
    //
-   UserMessage* user_msg = this->getUserMessage();
-   if( !result && user_msg ){
+   if (!result) {
       QString msg( this->cPvName() );
       msg.append( " Put channel failed: " );
 
       QString data = value.toString();
       if( data.length() > 40 ){
-         data = data.left( 18 ) + "..." + data.right( 18 );
+         data = data.left (18) + "..." + data.right( 18 );
       }
-      msg.append( data );
-      msg.append( extra );
+      msg.append (data);
+      msg.append (extra);
 
-      if( !this->isConnected() ){
-         msg.append( " Channel disconnected." );
+      if( !knownType ){
+         msg.append (" Unhandled varient type.");
+      }
+      else if (!this->isConnected()) {
+         msg.append (" Channel disconnected.");
 
-      } else if( !this->writeAccess() ){
-         msg.append( " Channel has no write access." );
+      } else if (!this->writeAccess()) {
+         msg.append (" Channel has no write access.");
 
       } else {
-         msg.append( " Unknown error" );
+         msg.append (" Unknown error");
       }
 
-      user_msg->sendMessage( msg, "QCaObject::writeData()",
-                             message_types ( MESSAGE_TYPE_ERROR ) );
+      UserMessage* user_msg = this->getUserMessage();
+      if (user_msg) {
+         user_msg->sendMessage (msg, "QCaObject::writeData()",
+                                message_types ( MESSAGE_TYPE_ERROR ));
+      } else {
+         DEBUG << msg;
+      }
    }
 
    return result;
