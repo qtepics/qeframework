@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2018 Australian Synchrotron.
+ *  Copyright (c) 2014-2020 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +27,7 @@
 #include "QNumericEdit.h"
 #include <math.h>
 #include <QDebug>
+#include <QEPlatform.h>
 
 #define DEBUG  qDebug () << "QNumericEdit" << __LINE__ << __FUNCTION__ << "  "
 
@@ -518,10 +519,9 @@ QString QNumericEdit::getFormattedText (const double value) const
 //
 QString QNumericEdit::imageOfValue () const
 {
-   QString image;
-
-   image = this->getFormattedText (this->mValue);
-   return this->mPrefix + image + this->mSuffix;
+   QString image = this->getFormattedText (this->mValue);
+   QString result = this->mPrefix + image + this->mSuffix;
+   return result;
 }
 
 //------------------------------------------------------------------------------
@@ -710,7 +710,8 @@ QString  QNumericEdit::getSuffix () const
 //
 QString QNumericEdit::getCleanText () const
 {
-   return this->getFormattedText (this->mValue);
+   QString result = this->getFormattedText (this->mValue);
+   return result;
 }
 
 //------------------------------------------------------------------------------
@@ -871,21 +872,27 @@ void QNumericEdit::internalSetValue (const double value)
 
    double constrainedValue = value;
 
-   if (this->mNotation == Fixed) {
-      // When fixed, ensure widget is WYSIWYG
-      // int caste truncates towards zero - select signed half.
-      //
-      const double round = value >= 0.0 ? + 0.5 : -0.5;
-      const qint64 n = (value + modelSmall * round) / modelSmall;
-      constrainedValue = n * modelSmall;
-   }
-
-   constrainedValue = LIMIT (constrainedValue, this->mMinimum, this->mMaximum);
-
-   // Exponent limited to two digits.
+   // This check avoids a whole lot of unpleasantness.
    //
-   if ((constrainedValue > -1.0e-99) && (constrainedValue < +1.0e-99)) {
-      constrainedValue = 0.0;
+   if (!(QEPlatform::isNaN (value) || QEPlatform::isInf (value))) {
+
+      if (this->mNotation == Fixed) {
+         // When fixed notation, ensure widget is WYSIWYG
+         // int caste truncates towards zero - select signed half.
+         //
+         const double round = value >= 0.0 ? + 0.5 : -0.5;
+         const qint64 n = (value + (modelSmall * round)) / modelSmall;
+         constrainedValue = n * modelSmall;
+      }
+
+      constrainedValue = LIMIT (constrainedValue, this->mMinimum, this->mMaximum);
+
+      // Exponent limited to two digits.
+      // If really really near to zero, then set to zero.
+      //
+      if ((constrainedValue > -1.0e-99) && (constrainedValue < +1.0e-99)) {
+         constrainedValue = 0.0;
+      }
    }
 
    // If value the same then nothing to do, no signal to emit. This is the

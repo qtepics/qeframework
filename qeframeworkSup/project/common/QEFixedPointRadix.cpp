@@ -1,7 +1,9 @@
 /*  QEFixedPointRadix.cpp
  *
  *  This file is part of the EPICS QT Framework, initially developed at the
- *   Australian Synchrotron.
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2014-2020 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -16,18 +18,19 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2014 Australian Synchrotron.
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
 
-#include <math.h>
-#include <QECommon.h>
-
 #include "QEFixedPointRadix.h"
+#include <math.h>
+#include <QDebug>
+#include <QECommon.h>
+#include <QEPlatform.h>
+
+#define DEBUG qDebug () << "QEFixedPointRadix" << __LINE__ << __FUNCTION__ << "  "
 
 #define NUMBER_OF_RADICES  4
 
@@ -78,7 +81,7 @@ void QEFixedPointRadix::setRadix (const Radicies radixIn)
 //
 QEFixedPointRadix::Radicies QEFixedPointRadix::getRadix () const
 {
-   return  this->radix;
+   return this->radix;
 }
 
 //-----------------------------------------------------------------------------
@@ -143,9 +146,28 @@ QString QEFixedPointRadix::toString (const double value,
                                      const int zeros,
                                      const int precision) const
 {
-   const char radixChars [] = "0123456789ABCDEF";
-   const int  separatorSizes [NUMBER_OF_RADICES] = { 3, 4, 3, 4 };
+   static const char radixChars [] = "0123456789ABCDEF";
+   static const int  separatorSizes [NUMBER_OF_RADICES] = { 3, 4, 3, 4 };
+
    const double dblRadix = double (radix_value_list [this->radix]);
+
+   // Sanity checks/specials.
+   //
+   if (QEPlatform::isNaN (value)) {
+      return "nan";
+   }
+
+   if (QEPlatform::isInf (value)) {
+      if (value >= 0.0) {
+         if (sign) {
+            return "+inf";
+         } else {
+            return "inf";
+         }
+      } else {
+         return "-inf";
+      }
+   }
 
    QString result;
    double work;
