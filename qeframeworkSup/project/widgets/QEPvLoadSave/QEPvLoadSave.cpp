@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2018 Australian Synchrotron
+ *  Copyright (c) 2013-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -344,6 +344,12 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    this->setFrameShape (QFrame::Panel);
    this->setFrameShadow (QFrame::Plain);
    this->setMinimumSize (932, 400);
+
+   // Set default QEFrame properties.
+   //
+   this->setAllowDrop (false); // applies to widget as a whole, not the tree view.
+   this->setVariableAsToolTip (false);
+   this->setDisplayAlarmStateOption (standardProperties::DISPLAY_ALARM_STATE_NEVER);
 
    this->defaultDir = "";
    this->confirmRequired = true;
