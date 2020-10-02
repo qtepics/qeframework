@@ -47,6 +47,10 @@ QEPvLoadSaveButton::QEPvLoadSaveButton (QWidget* parent) : QPushButton (parent),
    this->confirmRequired = false;
    this->loadSaveAction = LoadToPVs;
    this->showProgressDialog = true;
+   this->setVariableAsToolTip(false);
+   this->setAllowDrop(false);
+   this->setDisplayAlarmStateOption(standardProperties::DISPLAY_ALARM_STATE_NEVER);
+
 
    // Identify the type of button
    setText( "QEPvLoadSaveButton" );
@@ -79,8 +83,8 @@ QEPvLoadSaveButton::~QEPvLoadSaveButton() {
 //------------------------------------------------------------------------------
 //
 void QEPvLoadSaveButton::useNewConfigurationFileProperty (QString configurationFileIn,
-                                                    QString configurationFileSubstitutionsIn,
-                                                    unsigned int variableIndex)
+                                                          QString configurationFileSubstitutionsIn,
+                                                          unsigned int variableIndex)
 {
    this->setVariableNameAndSubstitutions (configurationFileIn, configurationFileSubstitutionsIn, variableIndex);
 }
@@ -199,8 +203,8 @@ bool QEPvLoadSaveButton::actionIsPermitted (Actions action)
 //------------------------------------------------------------------------------
 //
 void QEPvLoadSaveButton::acceptActionComplete (const QEPvLoadSaveItem*,
-                                         const QEPvLoadSaveCommon::ActionKinds,
-                                         const bool okay)
+                                               const QEPvLoadSaveCommon::ActionKinds,
+                                               const bool okay)
 {
    if (okay && this->showProgressDialog) {
       int v = this->progressDialog->value () + 1;
@@ -216,4 +220,4 @@ void QEPvLoadSaveButton::acceptActionComplete (const QEPvLoadSaveItem*,
    }
 }
 
-
+// end

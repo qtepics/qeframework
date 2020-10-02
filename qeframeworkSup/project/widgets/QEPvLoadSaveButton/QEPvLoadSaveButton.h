@@ -76,7 +76,7 @@ public:
    ///
    Q_PROPERTY (bool showProgressDialog READ getShowProgressDialog WRITE setShowProgressDialog)
 
-   // BEGIN-STANDARD-PROPERTIES ======================================================
+   // BEGIN-STANDARD-V2-PROPERTIES ===================================================
    // Standard properties
    // These properties should be identical for every widget using them.
    // WHEN MAKING CHANGES: Use the update_widget_properties script in the
@@ -86,13 +86,11 @@ public slots:
    /// Widget will be hidden if hidden by a call this slot, by will only be made visible by a calll to this slot if the user level allows.
    void setManagedVisible( bool v ){ setRunVisible( v ); }
 public:
-   /// Use the variable as the tool tip. Default is true. Tool tip property will be overwritten by the variable name.
-   ///
-   Q_PROPERTY(bool variableAsToolTip READ getVariableAsToolTip WRITE setVariableAsToolTip)
+   /// variableAsToolTip not applicale to V2 options. 
+   /// Class should ensure this option is initialised to false.
 
-   /// Allow drag/drops operations to this widget. Default is false. Any dropped text will be used as a new variable name.
-   ///
-   Q_PROPERTY(bool allowDrop READ getAllowDrop WRITE setAllowDrop)
+   /// allowDrop not applicale to V2 options. 
+   /// Class should ensure this option is initialised to false.
 
    /// Display the widget. Default is true.
    /// Setting this property false is usefull if widget is only used to provide a signal - for example, when supplying data to a QELink widget.
@@ -162,34 +160,11 @@ public:
    UserLevels getUserLevelEnabledProperty() { return (UserLevels)getUserLevelEnabled(); }                  ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
    void setUserLevelEnabledProperty( UserLevels level ) { setUserLevelEnabled( (userLevelTypes::userLevels)level ); }      ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
 
-   /// DEPRECATED. USE displayAlarmStateOption INSTEAD.
-   /// If set (default) widget will indicate the alarm state of any variable data it is displaying.
-   /// If clear widget will never indicate the alarm state of any variable data it is displaying.
-   /// Typically the background colour is set to indicate the alarm state.
-   /// Note, this property is included in the set of standard properties as it applies to most widgets. It
-   /// will do nothing for widgets that don't display data.
-   Q_PROPERTY(bool displayAlarmState READ getDisplayAlarmState WRITE setDisplayAlarmState DESIGNABLE false)
-
-   /// \enum DisplayAlarmStateOptions
-   /// User friendly enumerations for #displayAlarmStateOption property - refer to #displayAlarmStateOption property and displayAlarmStateOptions enumeration for details.
-   enum DisplayAlarmStateOptions { Never       = standardProperties::DISPLAY_ALARM_STATE_NEVER,          ///< Refer to DISPLAY_ALARM_STATE_NEVER for details
-                                   Always      = standardProperties::DISPLAY_ALARM_STATE_ALWAYS,         ///< Refer to DISPLAY_ALARM_STATE_ALWAYS for details
-                                   WhenInAlarm = standardProperties::DISPLAY_ALARM_STATE_WHEN_IN_ALARM   ///< Refer to DISPLAY_ALARM_STATE_WHEN_IN_ALARM for details
-                             };
-   Q_ENUMS(DisplayAlarmStateOptions)
-   /// If 'Always' (default) widget will indicate the alarm state of any variable data it is displaying, including 'No Alarm'
-   /// If 'Never' widget will never indicate the alarm state of any variable data it is displaying.
-   /// If 'WhenInAlarm' widget only indicate the alarm state of any variable data it is displaying if it is 'in alarm'.
-   /// Typically the background colour is set to indicate the alarm state.
-   /// Note, this property is included in the set of standard properties as it applies to most widgets. It
-   /// will do nothing for widgets that don't display data.
-   Q_PROPERTY(DisplayAlarmStateOptions displayAlarmStateOption READ getDisplayAlarmStateOptionProperty WRITE setDisplayAlarmStateOptionProperty)
-
-   DisplayAlarmStateOptions getDisplayAlarmStateOptionProperty() { return (DisplayAlarmStateOptions)getDisplayAlarmStateOption(); }            ///< Access function for #displayAlarmStateOption property - refer to #displayAlarmStateOption property for details
-   void setDisplayAlarmStateOptionProperty( DisplayAlarmStateOptions option ) { setDisplayAlarmStateOption( (displayAlarmStateOptions)option ); }///< Access function for #displayAlarmStateOption property - refer to #displayAlarmStateOption property for details
+   /// displayAlarmStateOption not applicale to V2 options. 
+   /// Class should ensure this option is initialised to DISPLAY_ALARM_STATE_NEVER.
 
 public:
-    // END-STANDARD-PROPERTIES ========================================================
+    // END-STANDARD-V2-PROPERTIES =====================================================
 
 public:
    /// Create without a nominated config file.
@@ -254,7 +229,6 @@ private slots:
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
 Q_DECLARE_METATYPE (QEPvLoadSaveButton::Actions)
 Q_DECLARE_METATYPE (QEPvLoadSaveButton::UserLevels)
-Q_DECLARE_METATYPE (QEPvLoadSaveButton::DisplayAlarmStateOptions)
 #endif
 
 #endif // QE_PV_LOAD_SAVE_BUTTON_H
