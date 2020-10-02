@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron
+ *  Copyright (c) 2013-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -104,7 +104,7 @@ public:
    //
    const QCaDataPoint* findNearestPoint (const QCaDateTime& searchTime) const;
 
-   // Resamples the source list of points into current list.
+   // Resamples the source list of points into the current list.
    // Items are resampled into data points at fixed time intervals.
    // No interpolation - the "current" value is carried forward to the next sample point(s).
    // Note: any previous data is lost.

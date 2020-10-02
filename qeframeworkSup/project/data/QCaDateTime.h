@@ -1,8 +1,9 @@
 /*  QCaDateTime.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -25,8 +26,8 @@
 
 // CA Date Time manager
 
-#ifndef QCADATETIME_H
-#define QCADATETIME_H
+#ifndef QE_DATE_TIME_H
+#define QE_DATE_TIME_H
 
 #include <QDateTime>
 #include <QEFrameworkLibraryGlobal.h>
@@ -47,15 +48,15 @@ public:
     QString ISOText() const;
 
     /// Equivilent of addSecs and secsTo in base class, save that we specify the
-    /// seconds as a floating point number, i,e take into account fractions of a
+    /// seconds as a floating point number, i.e. take into account fractions of a
     /// second (i.e. mSec but not nano sec).
     ///
     QCaDateTime addSeconds( const double seconds ) const;
     double secondsTo( const QDateTime & target ) const;
 
     /// Duration in seconds from base time to this time.
-    /// Note: this is the opposite sense to the parent QDateTime daysTo, secsTo and msecsTo functions.
-    /// Phase out
+    /// Note: this is the opposite sense to the parent QDateTime daysTo, secsTo
+    /// and msecsTo functions. Phase out
     ///
     Q_DECL_DEPRECATED
     double floating( const QDateTime & base ) const;
@@ -71,4 +72,4 @@ private:
     int userTag;
 };
 
-#endif // QCADATETIME_H
+#endif // QE_DATE_TIME_H
