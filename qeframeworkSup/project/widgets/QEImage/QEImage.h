@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron
+ *  Copyright (c) 2012-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -155,9 +155,11 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT pointInfo
   Many PVs may be defined to allow user interaction, such as selecting regions of interest.
   It is tighly integrated with the base class QEWidget which provides generic support such as macro substitutions, drag/drop, and standard properties.
  */
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEImage : public QFrame, public QEWidget, public imageInfo {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEImage :
+      public QFrame, public QEWidget, public imageInfo
+{
     Q_OBJECT
-  public:
+public:
     /// Create without a variable.
     /// Use setVariableName'n'Property() - where 'n' is a number from 0 to 40 - and setSubstitutionsProperty() to define variables and, optionally, macro substitutions later.
     /// Note, each variable property is named by function (such as imageVariable and widthVariable) but given
@@ -514,7 +516,7 @@ public:
     void setSubstitutedUrl( QString urlIn );            ///< Access function for #URL property - refer to #URL property for deta
     QString getSubstitutedUrl();                        ///< Access function for #URL property - refer to #URL property for deta
 
-  protected:
+protected:
     QEStringFormatting stringFormatting;     // String formatting options.
     QEIntegerFormatting integerFormatting;   // Integer formatting options.
     QEFloatingFormatting floatingFormatting; // Floating formatting options.
@@ -564,7 +566,7 @@ public:
 
     void redisplayAllMarkups();
 
-private slots:
+public slots:
     // MPEG data update slots (and maybe other non CA sources)
     void setDataImage( const QByteArray& imageIn,
                        unsigned long dataSize, unsigned long elements,
@@ -577,12 +579,16 @@ private slots:
                       QCaDateTime& timeStamp,
                       const unsigned int& variableIndex );
 
-    // QCa data update slots
+    // Channel Access Image/NDArray data update slot
+    void setImage( const QByteArray& image, unsigned long dataSize,
+                   QCaAlarmInfo&, QCaDateTime&, const unsigned int& );
+
     void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex);
-    void setImage( const QByteArray& image, unsigned long dataSize, QCaAlarmInfo&, QCaDateTime&, const unsigned int& );
+
+private slots:
     void setFormat( const QString& text, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
     void setBitDepth( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
-    void setDataType( const QString& text, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex );
+    void setDataType( const QString& text, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
     void setDimension( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
     void setClipping( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
     void setROI( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
@@ -721,10 +727,10 @@ signals:
 
     void componentHostRequest( const QEActionRequests& request );
 
-  private:
+private:
     imageUses imageUse;
     void useTargetingData();
-//    void useAllMarkupData();
+//  void useAllMarkupData();
     void useROIData( const unsigned int& variableIndex );
     void useProfileData( const unsigned int& variableIndex );
     void useEllipseData();
@@ -975,9 +981,11 @@ protected:
 
     // Define a variable
     // Note, the QPROPERTY declaration itself can't be in this macro
+    //
 #define VARIABLE_PROPERTY_ACCESS(VAR_INDEX) \
     void    setVariableName##VAR_INDEX##Property( QString variableName ){ variableNamePropertyManagers[VAR_INDEX].setVariableNameProperty( variableName ); } \
     QString getVariableName##VAR_INDEX##Property(){ return variableNamePropertyManagers[VAR_INDEX].getVariableNameProperty(); }
+
 
     VARIABLE_PROPERTY_ACCESS(0)
     /// EPICS variable name (CA PV).
