@@ -818,7 +818,7 @@ void QEPlot::setSizeData (const long value, QCaAlarmInfo& alarmInfo,
 
    // Update the tool tip for this PV, but not general widget alarm state.
    //
-   this->updateToolTipAlarm (alarmInfo.severityName(), vi);
+   this->updateToolTipAlarm (alarmInfo, vi);
 }
 
 //------------------------------------------------------------------------------

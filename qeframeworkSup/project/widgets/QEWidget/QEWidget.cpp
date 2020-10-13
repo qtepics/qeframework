@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2019 Australian Synchrotron
+ *  Copyright (c) 2009-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -35,7 +35,7 @@
   Refer to the class description in QEWidget.h for further details
  */
 
-#include <QEWidget.h>
+#include "QEWidget.h"
 
 #include <QDebug>
 #include <QCoreApplication>
@@ -202,7 +202,7 @@ void QEWidget::processAlarmInfo( QCaAlarmInfo& alarmInfo, const unsigned int var
 
     // Regardless of whether we are displaying the alarm state in the widget, update the
     // tool tip to reflect current alarm state.
-    updateToolTipAlarm( alarmInfo.severityName(), variableIndex );
+    updateToolTipAlarm( alarmInfo, variableIndex );
 
     // Save state for processing next update.
     lastSeverity = severity;

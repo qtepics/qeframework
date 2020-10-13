@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2018 Australian Synchrotron.
+ *  Copyright (c) 2013-2020 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEAnalogSlider.h"
 #include <alarm.h>
 #include <QDebug>
 #include <QRadioButton>
@@ -31,9 +32,7 @@
 #include <QECommon.h>
 #include <QEPvPropertiesUtilities.h>
 
-#include "QEAnalogSlider.h"
-
-#define DEBUG qDebug () << "QEAnalogSlider" << __FUNCTION__ << __LINE__
+#define DEBUG qDebug () << "QEAnalogSlider" << __LINE__ << __FUNCTION__ << "  "
 
 #define SET_POINT_VARIABLE_INDEX      0
 #define READ_BACK_VARIABLE_INDEX      1
@@ -427,7 +426,7 @@ void QEAnalogSlider::stringChanged (const QString& value,
 
       case READ_BACK_VARIABLE_INDEX:
          this->setCentreText (value);
-         this->updateToolTipAlarm (alarmInfo.severityName(), variableIndex);
+         this->updateToolTipAlarm (alarmInfo, variableIndex);
 
          qca = this->getQcaItem (variableIndex);
          if (qca) {

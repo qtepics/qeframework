@@ -252,7 +252,7 @@ void QEWaveformHistogram::setChannelArrayValue (const QVector<double>& value,
    // Don't invoke common alarm handling processing.
    // Invoke for tool tip processing directly.
    //
-   this->updateToolTipAlarm (alarmInfo.severityName (), variableIndex);
+   this->updateToolTipAlarm (alarmInfo, variableIndex);
 
    // Signal a database value change to any widgets using dbValueChanged.
    //

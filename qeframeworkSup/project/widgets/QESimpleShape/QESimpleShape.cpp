@@ -383,7 +383,7 @@ void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo& 
    // Invoke tool tip handling directly. We don't want to interfere with the style
    // as widget draws it's own stuff with own, possibly clear, colours.
    //
-   this->updateToolTipAlarm (alarmInfo.severityName (), variableIndex);
+   this->updateToolTipAlarm (alarmInfo, variableIndex);
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged (for main variable only).

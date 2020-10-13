@@ -265,7 +265,7 @@ void QEScalarHistogram::setChannelValue (const double& value,
    // Don't invoke common alarm handling processing.
    // Invoke for tool tip processing directly.
    //
-   this->updateToolTipAlarm (alarmInfo.severityName (), variableIndex);
+   this->updateToolTipAlarm (alarmInfo, variableIndex);
 }
 
 //------------------------------------------------------------------------------
