@@ -200,22 +200,11 @@ void QETable::DataSets::rePopulateData ()
    if (this->isConnected) {
       backgroundColour = QColor ("#e0e0e0");   // hypothrsize no alram colour.
 
-      displayAlarmStateOptions daso = this->owner->getDisplayAlarmStateOption ();
-      switch (daso) {
-         case DISPLAY_ALARM_STATE_NEVER:
-            backgroundColour = QColor ("#e0e0e0");
-            break;
-
-         case DISPLAY_ALARM_STATE_ALWAYS:
-            backgroundColour = QColor (alarmInfo.getStyleColorName ());
-            break;
-
-         case DISPLAY_ALARM_STATE_WHEN_IN_ALARM :
-            if (alarmInfo.isInAlarm ()) {
-               backgroundColour = QColor (alarmInfo.getStyleColorName ());
-            }
-            break;
+      bool useAlarmState = this->owner->getUseAlarmState (alarmInfo);
+      if (useAlarmState) {
+         backgroundColour = QColor (alarmInfo.getStyleColorName ());
       }
+
       textColour = QColor ("black");
 
    } else {

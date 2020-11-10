@@ -399,20 +399,12 @@ void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo& 
 bool QESimpleShape::useAlarmColours (const standardProperties::displayAlarmStateOptions option,
                                      const QCaAlarmInfo& alarmInfo) const
 {
-   bool result = true;
-   switch (option) {
-     case standardProperties::DISPLAY_ALARM_STATE_NEVER:
-         result = false;
-         break;
+   bool result;
 
-     case standardProperties::DISPLAY_ALARM_STATE_ALWAYS:
-         result = true;
-         break;
-
-     case standardProperties::DISPLAY_ALARM_STATE_WHEN_IN_ALARM:
-         result = alarmInfo.isInAlarm();
-         break;
-   }
+   standardProperties temp = standardProperties (NULL);
+   temp.setDisplayAlarmStateOption (option);
+   temp.setOosAware (this->getOosAware ());    // this applies to the widget, not each PV.
+   result = temp.getUseAlarmState (alarmInfo);
 
    return result;
 }

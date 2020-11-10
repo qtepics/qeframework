@@ -315,6 +315,10 @@ void QEToolTip::updateToolTipAlarm (const QCaAlarmInfo& alarmInfo,
 
       alarmText = alarmInfo.severityName ();
 
+      if (alarmInfo.isOutOfService()) {
+         alarmText.append (", OOS");
+      }
+
       static Variable emptyVariable;
       Variable var = this->variableList.value (variableIndex, emptyVariable);
       var.alarm = alarmText;

@@ -26,8 +26,8 @@
 
 // Manage CA alarm and severity information
 
-#ifndef QCA_ALARM_INFO_H
-#define QCA_ALARM_INFO_H
+#ifndef QE_ALARM_INFO_H
+#define QE_ALARM_INFO_H
 
 #include <QObject>
 #include <QString>
@@ -44,9 +44,17 @@ public:
 #   define QCAALARMINFO_SEVERITY  QCaAlarmInfo::Severity
 
    explicit QCaAlarmInfo();
-   explicit QCaAlarmInfo( const Status statusIn,
-                          const Severity severityIn,
-                          const QString& message = "" );
+
+   // General status and severity
+   explicit QCaAlarmInfo( const Status status,
+                          const Severity severity );
+
+   // PV update status and severity
+   explicit QCaAlarmInfo( const QString& pvName,
+                          const Status status,
+                          const Severity severity,
+                          const QString& message );
+
    virtual ~QCaAlarmInfo();
 
    bool operator==(const QCaAlarmInfo& other) const;   // Return true if equal
@@ -59,6 +67,7 @@ public:
    bool isMinor() const;             // Return true if there is a minor alarm
    bool isMajor() const;             // Return true if there is a major alarm
    bool isInvalid() const;           // Return true if there is an invalid alarm
+   bool isOutOfService() const;      // Return true if the associated PV declared OOS.
    QString style() const;            // Return a style string to update the widget's look to reflect the current alarm state
 
    // getStyleColorName/getColorName return standard color for the alarm state.
@@ -75,8 +84,9 @@ public:
 
    // The following fuunctions take or return a QStringList with four elements indexed
    // by alarm severity, i.e. no alarm, minor, major and invalid.
-   // The following functions are all deprecated, and have been replaced by functions
-   // out of QCaAlarmInfoColorNamesManager.
+   //
+   // NOTE: The following functions are all deprecated, and have been replaced
+   //       by functions out of QCaAlarmInfoColorNamesManager.
    //
    Q_DECL_DEPRECATED
    static void setStyleColorNames( const QStringList& styleColorNames ); // Set prefered style colour names
@@ -97,6 +107,7 @@ public:
    static QStringList getDefaultColorNames();                            // Return default/standard colour names
 
 private:
+   QString  pvName;      // pv/record name
    Status   status;      // Alarm state
    Severity severity;    // Alarm severity
    QString  message;     // Alarm message (PV Access only - otherwise empty string)
@@ -132,6 +143,16 @@ public:
    static QStringList getDefaultStyleColorNames();
    static QStringList getDefaultColorNames();
 
+   // Set and get the out of service PV name list.
+   //
+   static void setOosPvNameList (const QStringList& pvNameList);
+   static QStringList getOosPvNameList ();
+
+   // clearOosPvNameList is a conveniance function functionally identical
+   // to supplying an empty name list to setOosPvNameList.
+   //
+   static void clearOosPvNameList ();
+
 private:
    explicit QCaAlarmInfoColorNamesManager ();
    ~QCaAlarmInfoColorNamesManager ();
@@ -145,8 +166,14 @@ private:
    //
    static void extractAdaptationColors ();
 
-   static bool create ();
-   static const bool elaborateCreate;
+   // Checks if the given name is flagged as out of service.
+   //
+   static bool isPvNameDeclaredOos (const QString& pvName);
+
+   static QStringList OosPvNameList;
+
+   static bool elaborate ();
+   static const bool callElaborate;
 
 private slots:
    void applicationStartedHandler ();
@@ -154,4 +181,4 @@ private slots:
    friend class QCaAlarmInfo;
 };
 
-#endif // QCA_ALARM_INFO_H
+#endif // QE_ALARM_INFO_H

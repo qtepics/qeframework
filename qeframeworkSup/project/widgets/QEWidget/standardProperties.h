@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron
+ *  Copyright (c) 2012-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,66 +31,74 @@
 #include <QCaAlarmInfo.h>
 #include <ContainerProfile.h>
 
-class  QE_FRAMEWORK_LIBRARY_SHARED_EXPORT standardProperties
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT standardProperties
 {
+public:
+   explicit standardProperties (QWidget* ownerIn);
+   virtual ~standardProperties ();
 
 public:
-    explicit standardProperties( QWidget* ownerIn );
-    virtual ~standardProperties(){}
+   // Options regarding when the widget should display alarm state.
+   //
+   enum displayAlarmStateOptions {
+      DISPLAY_ALARM_STATE_ALWAYS,
+      DISPLAY_ALARM_STATE_WHEN_IN_ALARM,
+      DISPLAY_ALARM_STATE_WHEN_INVALID,
+      DISPLAY_ALARM_STATE_NEVER
+   };
 
-public:
-    // Options regarding when the widget should display alarm state
-    enum displayAlarmStateOptions {
-       DISPLAY_ALARM_STATE_NEVER,
-       DISPLAY_ALARM_STATE_ALWAYS,
-       DISPLAY_ALARM_STATE_WHEN_IN_ALARM
-    };
+   userLevelTypes::userLevels getUserLevelVisibility () const;
+   void setUserLevelVisibility (userLevelTypes::userLevels level);
 
-    userLevelTypes::userLevels getUserLevelVisibility() const;
-    void setUserLevelVisibility( userLevelTypes::userLevels level );
+   userLevelTypes::userLevels getUserLevelEnabled () const;
+   void setUserLevelEnabled (userLevelTypes::userLevels level);
 
-    userLevelTypes::userLevels getUserLevelEnabled() const;
-    void setUserLevelEnabled( userLevelTypes::userLevels level );
+   bool getApplicationEnabled () const;
+   void setApplicationEnabled (bool state);
 
-    bool getApplicationEnabled() const;
-    void setApplicationEnabled( bool state );
+   // visible (widget is visible outside 'Designer')
+   void setRunVisible (bool visibleIn);
+   bool getRunVisible () const;
 
-    // visible (widget is visible outside 'Designer')
-    void setRunVisible( bool visibleIn );
-    bool getRunVisible() const;
+   // USE setDisplayAlarmStateOption(displayAlarmStateOptions) INSTEAD
+   Q_DECL_DEPRECATED
+   void setDisplayAlarmState (bool displayAlarmStateIn);
 
-    // DEPRECATED. USE setDisplayAlarmStateOption(displayAlarmStateOptions) INSTEAD
-    Q_DECL_DEPRECATED
-    void setDisplayAlarmState( bool displayAlarmStateIn );
+   // USE displayAlarmStateOptions getDisplayAlarmStateOption() INSTEAD
+   Q_DECL_DEPRECATED
+   bool getDisplayAlarmState () const;
 
-    // DEPRECATED. USE displayAlarmStateOptions getDisplayAlarmStateOption() INSTEAD
-    Q_DECL_DEPRECATED
-    bool getDisplayAlarmState() const;
+   void setDisplayAlarmStateOption (displayAlarmStateOptions displayAlarmStateIn);
+   displayAlarmStateOptions getDisplayAlarmStateOption () const;
 
-    void setDisplayAlarmStateOption( displayAlarmStateOptions displayAlarmStateIn );
-    displayAlarmStateOptions getDisplayAlarmStateOption() const;
+   // Controls if widget is OOS aware, i.e. responds to being declared out of service.
+   //
+   void setOosAware (const bool oosAware);
+   bool getOosAware () const;
 
-    // Utility function to determine if the alarm state colour is to be used.
-    //
-    bool getUseAlarmState( const QCaAlarmInfo& alarmInfo ) const;
+   // Utility function to determine if the alarm state colour is to be used.
+   // This include the OOS pseudo-alarm colour.
+   //
+   bool getUseAlarmState (const QCaAlarmInfo& alarmInfo) const;
 
 protected:
-    void checkVisibilityEnabledLevel( userLevelTypes::userLevels level );
+   void checkVisibilityEnabledLevel (userLevelTypes::userLevels level);
 
 private:
-    QWidget* owner;
+   QWidget* owner;
 
-    userLevelTypes::userLevels currentLevel;
+   userLevelTypes::userLevels currentLevel;
 
-    void setSuperEnabled();
-    void setSuperVisibility();
+   void setSuperEnabled ();
+   void setSuperVisibility ();
 
-    userLevelTypes::userLevels visibilityLevel;  // User level below which the widget will be made invisible
-    userLevelTypes::userLevels enabledLevel;     // User level below which the widget will be made disabled
+   userLevelTypes::userLevels visibilityLevel;  // User level below which the widget will be made invisible
+   userLevelTypes::userLevels enabledLevel;     // User level below which the widget will be made disabled
 
-    bool userLevelDisabled;         // Flag indicating the widget has been disabled due to inapropriate user level
-    bool applicationVisibility;     // The 'visibility' state of the widget unless held invisible due to inapropriate user level
-    displayAlarmStateOptions displayAlarmState;  // Flag when the widget should display alarm state
+   bool userLevelDisabled;      // Flag indicating the widget has been disabled due to inapropriate user level
+   bool applicationVisibility;  // The 'visibility' state of the widget unless held invisible due to inapropriate user level
+   displayAlarmStateOptions displayAlarmState;  // Flag when the widget should display alarm state
+   bool isOosAware;             // Flag is widget should display OOS status.
 };
 
-#endif // QE_STANDARD_PROPERTIES_H
+#endif   // QE_STANDARD_PROPERTIES_H

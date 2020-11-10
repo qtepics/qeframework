@@ -340,7 +340,9 @@ QCaAlarmInfo QECaClient::getAlarmInfo () const
    const QCaAlarmInfo::Status   status   = (QCaAlarmInfo::Status) this->alarmStatus ();
    const QCaAlarmInfo::Severity severity = (QCaAlarmInfo::Severity) this->alarmSeverity ();
 
-   return QCaAlarmInfo (status, severity, "");
+   // TODO: Prefix with "ca://" ??
+   //
+   return QCaAlarmInfo (this->getPvName(), status, severity, "");
 }
 
 //------------------------------------------------------------------------------

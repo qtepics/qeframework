@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron
+ *  Copyright (c) 2012-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,193 +31,238 @@
 */
 
 #include "standardProperties.h"
+#include <QDebug>
 #include <QEWidget.h>
+
+#define DEBUG  qDebug () << "standardProperties" << __LINE__ << __FUNCTION__ << "  "
 
 //------------------------------------------------------------------------------
 // Construction.
-standardProperties::standardProperties( QWidget* ownerIn )
+standardProperties::standardProperties (QWidget* ownerIn)
 {
-    // Sanity check.
-    if( ownerIn == NULL )
-    {
-        qWarning( "standardProperties constructor called with a null 'owner'" );
-        exit( EXIT_FAILURE );
-    }
+   // Keep a handle on the underlying QWidget of the QE widgets.
+    //
+   this->owner = ownerIn;
 
-    // Keep a handle on the underlying QWidget of the QE widgets
-    owner = ownerIn;
+   ContainerProfile profile;
 
-    ContainerProfile profile;
+   this->visibilityLevel = userLevelTypes::USERLEVEL_USER;
+   this->enabledLevel = userLevelTypes::USERLEVEL_USER;
+   this->currentLevel = profile.getUserLevel ();
 
-    visibilityLevel = userLevelTypes::USERLEVEL_USER;
-    enabledLevel = userLevelTypes::USERLEVEL_USER;
-    currentLevel = profile.getUserLevel();
+   this->userLevelDisabled = false;
+   this->applicationVisibility = true;
 
-    userLevelDisabled = false;
-    applicationVisibility = true;
-
-    displayAlarmState = DISPLAY_ALARM_STATE_ALWAYS;
+   // This is the default-default state.
+   // Some widgets, esp QEAbstractDynamicWidgets can/di overide this default.
+   //
+   this->displayAlarmState = DISPLAY_ALARM_STATE_ALWAYS;
+   this->isOosAware = true;
 }
 
+standardProperties::~standardProperties () {}
+
 //------------------------------------------------------------------------------
-// !!
-userLevelTypes::userLevels standardProperties::getUserLevelVisibility() const
+//
+userLevelTypes::userLevels standardProperties::getUserLevelVisibility () const
 {
-    return visibilityLevel;
+   return this->visibilityLevel;
 }
 
 //------------------------------------------------------------------------------
 //
-void standardProperties::setUserLevelVisibility( userLevelTypes::userLevels levelIn )
+void standardProperties::setUserLevelVisibility (userLevelTypes::userLevels levelIn)
 {
-    visibilityLevel = levelIn;
-    setSuperVisibility();
+   this->visibilityLevel = levelIn;
+   this->setSuperVisibility ();
 }
 
 //------------------------------------------------------------------------------
 //
-userLevelTypes::userLevels standardProperties::getUserLevelEnabled() const
+userLevelTypes::userLevels standardProperties::getUserLevelEnabled () const
 {
-    return enabledLevel;
+   return this->enabledLevel;
 }
 
 //------------------------------------------------------------------------------
 //
-void standardProperties::setUserLevelEnabled( userLevelTypes::userLevels levelIn )
+void standardProperties::setUserLevelEnabled (userLevelTypes::userLevels levelIn)
 {
-    enabledLevel = levelIn;
-    setSuperEnabled();
+   this->enabledLevel = levelIn;
+   this->setSuperEnabled ();
 }
 
 //------------------------------------------------------------------------------
-// Set the enabled/disabled state of the widget according to user level
-void standardProperties::setSuperEnabled()
+// Set the enabled/disabled state of the widget according to user level.
+//
+void standardProperties::setSuperEnabled ()
 {
-    // Do nothing in designer
-    if( QEWidget::inDesigner() )
-    {
-        return;
-    }
+   // sanity check
+   if (!this->owner) return;
 
-    // If the current user level allows the widget to be enabled
-    // and it was disabled due to an inapropriate user level, enable it.
-    if( currentLevel >= enabledLevel && userLevelDisabled )
-    {
-        owner->setEnabled( true );
-        userLevelDisabled = false;
-    }
+   // Do nothing in designer
+   //
+   if (QEWidget::inDesigner ()) {
+      return;
+   }
 
-    // If the current user level prevents the widget from being enabled,
-    // and it is enabled, disable it.
-    if( currentLevel < enabledLevel && owner->isEnabled() )
-    {
-        owner->setEnabled( false );
-        userLevelDisabled = true;
-    }
+   // If the current user level allows the widget to be enabled
+   // and it was disabled due to an inapropriate user level, enable it.
+   //
+   if ((currentLevel >= enabledLevel) && userLevelDisabled) {
+      this->owner->setEnabled (true);
+      this->userLevelDisabled = false;
+   }
+
+   // If the current user level prevents the widget from being enabled,
+   // and it is enabled, disable it.
+   //
+   if ((currentLevel < enabledLevel) && owner->isEnabled ()) {
+      this->owner->setEnabled (false);
+      this->userLevelDisabled = true;
+   }
 }
 
 //------------------------------------------------------------------------------
 // Set the visibility of the widget.
 // Generally it is visible or not according to 'applicationVisibility', however this can be overridden
-// if it is not the appropriate user level, or running within designer
-void standardProperties::setSuperVisibility()
+// if it is not the appropriate user level, or running within designer.
+//
+void standardProperties::setSuperVisibility ()
 {
-    // Do nothing in designer
-    if( QEWidget::inDesigner() )
-    {
-        return;
-    }
+   if (!this->owner) return;   // sanity check
 
-    // Hide the widget if the user level is not adequate, or if the desired visibility is 'hide'
-    // (It is only visible if both the user level is adequate, and the desired visibility is 'show'
-    bool vis = applicationVisibility;
-    if( vis )
-    {
-        ContainerProfile profile;   // Note, scoped so it is only created if we need to check user level
-        vis = ( profile.getUserLevel() >= visibilityLevel );
-    }
+   // Do nothing in designer
+   if (QEWidget::inDesigner ()) {
+      return;
+   }
 
-    // Apply the result
-    owner->setVisible( vis );
+   // Hide the widget if the user level is not adequate, or if the desired visibility is 'hide'
+   // (It is only visible if both the user level is adequate, and the desired visibility is 'show'.
+   //
+   bool vis = this->applicationVisibility;
+   if (vis) {
+      ContainerProfile profile; // Note, scoped so it is only created if we need to check user level
+      vis = (profile.getUserLevel () >= this->visibilityLevel);
+   }
+
+   // Apply the result
+   this->owner->setVisible (vis);
 }
 
 //------------------------------------------------------------------------------
-// Given a user level, note the new level and determine if the widget should be visible or enabled
-void standardProperties::checkVisibilityEnabledLevel( userLevelTypes::userLevels level )
+// Given a user level, note the new level and determine if the widget should be visible or enabled.
+//
+void standardProperties::checkVisibilityEnabledLevel (userLevelTypes::userLevels level)
 {
-    // Note the new user level
-    currentLevel = level;
+   // Note the new user level
+   this->currentLevel = level;
 
-    // Set the 'enabled' state according to the new level
-    setSuperEnabled();
+   // Set the 'enabled' state according to the new level
+   this->setSuperEnabled ();
 
-    // Set the visibility according to the new level
-    setSuperVisibility();
+   // Set the visibility according to the new level
+   this->setSuperVisibility ();
 }
 
 //------------------------------------------------------------------------------
-// visible (widget is visible outside 'Designer')
-void standardProperties::setRunVisible( bool visibleIn )
+// visible (widget is visible outside 'Designer').
+//
+void standardProperties::setRunVisible (bool visibleIn)
 {
-    applicationVisibility = visibleIn;
-    setSuperVisibility();
+   this->applicationVisibility = visibleIn;
+   this->setSuperVisibility ();
 }
 
 //------------------------------------------------------------------------------
 //
-bool standardProperties::getRunVisible() const
+bool standardProperties::getRunVisible () const
 {
-    return applicationVisibility;
+   return this->applicationVisibility;
 }
 
 //------------------------------------------------------------------------------
 // DEPRECATED. USE setDisplayAlarmStateOption(displayAlarmStateOptions) INSTEAD
-// displayAlarmState. If set (default) widget will indicate the alarm state of any variable data is displaying.
-void standardProperties::setDisplayAlarmState( bool displayAlarmStateIn )
+// displayAlarmState. If set (default) widget will indicate the alarm state
+// of any variable data is displaying.
+//
+void standardProperties::setDisplayAlarmState (bool displayAlarmStateIn)
 {
-    displayAlarmState = displayAlarmStateIn?DISPLAY_ALARM_STATE_ALWAYS:DISPLAY_ALARM_STATE_NEVER;
+   this->displayAlarmState =
+       displayAlarmStateIn ? DISPLAY_ALARM_STATE_ALWAYS : DISPLAY_ALARM_STATE_NEVER;
 }
 
 //------------------------------------------------------------------------------
 // DEPRECATED. USE displayAlarmStateOptions getDisplayAlarmStateOption() INSTEAD
-bool standardProperties::getDisplayAlarmState() const
+//
+bool standardProperties::getDisplayAlarmState () const
 {
-    return displayAlarmState != DISPLAY_ALARM_STATE_NEVER;
+   return this->displayAlarmState != DISPLAY_ALARM_STATE_NEVER;
 }
 
 //------------------------------------------------------------------------------
-// displayAlarmState. If set (default) widget will indicate the alarm state of any variable data is displaying.
-void standardProperties::setDisplayAlarmStateOption( displayAlarmStateOptions displayAlarmStateIn )
+// displayAlarmState. If set (default) widget will indicate the alarm state of
+// any variable data is displaying.
+//
+void standardProperties::
+setDisplayAlarmStateOption (displayAlarmStateOptions displayAlarmStateIn)
 {
-    displayAlarmState = displayAlarmStateIn;
+   this->displayAlarmState = displayAlarmStateIn;
 }
 
 //------------------------------------------------------------------------------
 //
 standardProperties::displayAlarmStateOptions
-standardProperties::getDisplayAlarmStateOption() const
+standardProperties::getDisplayAlarmStateOption () const
 {
-    return displayAlarmState;
+   return this->displayAlarmState;
+}
+
+
+//------------------------------------------------------------------------------
+//
+void standardProperties::setOosAware (const bool oosAwareIn)
+{
+   this->isOosAware = oosAwareIn;
 }
 
 //------------------------------------------------------------------------------
 //
-bool standardProperties::getUseAlarmState( const QCaAlarmInfo& alarmInfo ) const
+bool standardProperties::getOosAware () const
+{
+   return this->isOosAware;
+}
+
+//------------------------------------------------------------------------------
+//
+bool standardProperties::getUseAlarmState (const QCaAlarmInfo & alarmInfo) const
 {
    bool result = true;
-   switch( getDisplayAlarmStateOption() ){
 
-     case DISPLAY_ALARM_STATE_NEVER:
-         result = false;
-         break;
+   if (this->getOosAware () && alarmInfo.isOutOfService ()) {
+      // Use the pseudo OOS alarm colour.
+      //
+      result = true;
 
-     case DISPLAY_ALARM_STATE_ALWAYS:
-         result = true;
-         break;
+   } else {
+      switch (this->getDisplayAlarmStateOption ()) {
 
-     case DISPLAY_ALARM_STATE_WHEN_IN_ALARM:
-         result = alarmInfo.isInAlarm();
-         break;
+         case DISPLAY_ALARM_STATE_ALWAYS:
+            result = true;
+            break;
+
+         case DISPLAY_ALARM_STATE_WHEN_IN_ALARM:
+            result = alarmInfo.isInAlarm ();
+            break;
+
+         case DISPLAY_ALARM_STATE_WHEN_INVALID:
+            result = alarmInfo.isInvalid ();
+            break;
+
+         case DISPLAY_ALARM_STATE_NEVER:
+            result = false;
+            break;
+      }
    }
 
    return result;

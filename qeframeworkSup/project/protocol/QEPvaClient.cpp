@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (C) 2018 Australian Synchrotron
+ *  Copyright (C) 2018-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -1028,7 +1028,9 @@ QCaAlarmInfo QEPvaClient::getAlarmInfo () const
    const QCaAlarmInfo::Status   status   = (QCaAlarmInfo::Status) this->alarm.status;
    const QCaAlarmInfo::Severity severity = (QCaAlarmInfo::Severity) this->alarm.severity;
 
-   return QCaAlarmInfo (status, severity, this->alarm.message);
+   // TODO: Prefix with "pva://" ??
+   //
+   return QCaAlarmInfo (this->getPvName(), status, severity, this->alarm.message);
 }
 
 //------------------------------------------------------------------------------
