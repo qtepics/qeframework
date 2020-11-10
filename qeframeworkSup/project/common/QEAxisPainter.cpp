@@ -1,6 +1,9 @@
 /*  QEAxisPainter.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2015-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,13 +18,13 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015,2016 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
+
+#include "QEAxisPainter.h"
 
 #include <math.h>
 
@@ -38,9 +41,8 @@
 #include <QECommon.h>
 #include <QCaAlarmInfo.h>
 #include <QEWidget.h>
-#include <QEAxisPainter.h>
 
-#define DEBUG qDebug () << "QEAxisPainter" << __LINE__ << __FUNCTION__
+#define DEBUG qDebug () << "QEAxisPainter" << __LINE__ << __FUNCTION__ << "  "
 
 #define MIN_VALUE         (-1.0E+24)
 #define MAX_VALUE         (+1.0E+24)
@@ -69,6 +71,11 @@ QEAxisPainter::QEAxisPainter (QWidget* parent) : QWidget (parent)
    this->mAutoFixedSize = false;
    this->mOrientation = Left_To_Right;
    this->mTextPosition = BelowLeft;
+
+   // Ensure at least semi-sensible values.
+   //
+   this->maxTextWidth = 10;
+   this->maxTextHeight = 10;
 
    for (int j = 0; j < NUMBER_OF_MARKERS; j++) {
       this->markerColour [j] =  QColor (0, 0, 0, 255);  // black
@@ -465,25 +472,22 @@ bool QEAxisPainter::isLeftRight () const
           (this->mOrientation == QEAxisPainter::Right_To_Left);
 }
 
+static const int markerTick = 14;
+
 //------------------------------------------------------------------------------
 //
-void QEAxisPainter::draw (QWidget* widget)
+void QEAxisPainter::paint (QPainter& painter,
+                           const int pointSize,
+                           const QRect &targetRect)
 {
-   if (!widget) return;  // sanity check
-
    // Tick sizes on axis
    //
-   const int markerTick = 14;
    const int minorTick = 5;
    const int majorTick = 10;
-   const int pointSize = widget->font ().pointSize();
 
-   QPainter painter (widget);
    QPen pen;
    QBrush brush;
    QColor penColour;
-   int width;
-   int height;
 
    int sign;
    int x_first, x_last;
@@ -498,41 +502,49 @@ void QEAxisPainter::draw (QWidget* widget)
    // Alias/edge adjustment.
    // Note: Actual size appears to be 1 less than widget width/height.
    //
-   width  = widget->geometry ().width () - 1;
-   height = widget->geometry ().height () - 1;
+   const int x0 = targetRect.x();
+   const int y0 = targetRect.y();
+   const int width  = targetRect.width () - 1;
+   const int height = targetRect.height () - 1;
+
+   int temp;
 
    switch (this->mOrientation) {
 
       case Left_To_Right:
          sign = (this->mTextPosition == BelowLeft) ? +1 : -1;
-         x_first = this->mTopLeftIndent;
-         x_last  = width - this->mRightBottomIndent;
-         y_first = (this->mTextPosition == BelowLeft) ? this->mGap : height - this->mGap;
+         x_first = x0 + this->mTopLeftIndent;
+         x_last  = x0 + width - this->mRightBottomIndent;
+         temp = (this->mTextPosition == BelowLeft) ? this->mGap : height - this->mGap;
+         y_first = y0 + temp;
          y_last  = y_first;
          break;
 
       case Right_To_Left:
          sign = (this->mTextPosition == BelowLeft) ? +1 : -1;
-         x_first = width - this->mRightBottomIndent;
-         x_last  = this->mTopLeftIndent;
-         y_first = (this->mTextPosition == BelowLeft) ? this->mGap : height - this->mGap;
+         x_first = x0 + width - this->mRightBottomIndent;
+         x_last  = x0 + this->mTopLeftIndent;
+         temp = (this->mTextPosition == BelowLeft) ? this->mGap : height - this->mGap;
+         y_first = y0 + temp;
          y_last  = y_first;
          break;
 
       case Top_To_Bottom:
          sign = (this->mTextPosition == BelowLeft) ? -1 : +1;
-         x_first = (this->mTextPosition == BelowLeft) ? width - this->mGap : this->mGap;
+         temp = (this->mTextPosition == BelowLeft) ? width - this->mGap : this->mGap;
+         x_first = x0 + temp;
          x_last  = x_first;
-         y_first = this->mTopLeftIndent;
-         y_last  = height - this->mRightBottomIndent;
+         y_first = y0 + this->mTopLeftIndent;
+         y_last  = y0 + height - this->mRightBottomIndent;
          break;
 
       case Bottom_To_Top:
          sign = (this->mTextPosition == BelowLeft) ? -1 : +1;
-         x_first = (this->mTextPosition == BelowLeft) ? width - this->mGap : this->mGap;
+         temp = (this->mTextPosition == BelowLeft) ? width - this->mGap : this->mGap;
+         x_first = x0 + temp;
          x_last  = x_first;
-         y_first = height - this->mRightBottomIndent;
-         y_last  = this->mTopLeftIndent;
+         y_first = y0 + height - this->mRightBottomIndent;
+         y_last  = y0 + this->mTopLeftIndent;
          break;
 
       default:
@@ -627,8 +639,6 @@ void QEAxisPainter::draw (QWidget* widget)
    }
 
    QFontMetrics fm = painter.fontMetrics ();
-   int maxTextWidth = 0;
-   int maxTextHeight = 0;
 
    for (bool ok = this->iterator->firstValue (value, isMajor, MAX_MINOR_TICKS);
         ok;  ok = this->iterator->nextValue  (value, isMajor)) {
@@ -674,8 +684,8 @@ void QEAxisPainter::draw (QWidget* widget)
             // if (!vt.contains(".")) vt.append(".0");
          }
 
-         maxTextWidth = MAX (maxTextWidth, fm.width (vt));
-         maxTextHeight = 10;
+         this->maxTextWidth = MAX (this->maxTextWidth, fm.width (vt));
+         this->maxTextHeight = 10;
 
          p2 = this->isLeftRight () ? QPoint (x, y + sign*(majorTick + 1)) :
                                      QPoint (x + sign*(majorTick + 1), y);
@@ -683,16 +693,35 @@ void QEAxisPainter::draw (QWidget* widget)
          this->drawAxisText (painter, p2, vt);
       }
    }
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAxisPainter::draw (QWidget* widget)
+{
+   if (!widget) return;  // sanity check
+
+   QPainter painter (widget);
+   const int pointSize = widget->font ().pointSize();
+
+   // The target is relative to the widget.
+   //
+   QRect targetRect = QRect (0, 0, widget->width(), widget->height());
+
+   this->paint (painter, pointSize, targetRect);
 
    if (this->mAutoFixedSize) {
-      if(this->isLeftRight ()) {
-         int requiredHeight = maxTextHeight + markerTick + this->mGap;
+      if (this->isLeftRight ()) {
+         int requiredHeight = this->maxTextHeight + markerTick + this->mGap;
+         requiredHeight = MIN (requiredHeight, 10000);   // sanity check
          if ((widget->minimumHeight () != requiredHeight) &&
              (widget->maximumHeight () != requiredHeight)) {
             widget->setFixedHeight (requiredHeight);
          }
       } else {
-         int requiredWidth = maxTextWidth + markerTick + this->mGap;
+         int requiredWidth = this->maxTextWidth + markerTick + this->mGap;
+         requiredWidth = MIN (requiredWidth, 10000);   // sanity check
+
          if ((widget->minimumWidth () != requiredWidth) &&
              (widget->maximumWidth () != requiredWidth)) {
             widget->setFixedWidth (requiredWidth);
@@ -706,7 +735,7 @@ void QEAxisPainter::draw (QWidget* widget)
 void QEAxisPainter::paintEvent (QPaintEvent *)
 {
    // Do we have a parent?
-   // Would we even get a paint event if we didn't?
+   // Would we even get a paint event if the parent didn't exist?
    //
    QWidget* p = qobject_cast <QWidget*>(this->parent());
    if (p) {

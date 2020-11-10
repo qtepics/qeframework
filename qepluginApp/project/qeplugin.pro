@@ -1,9 +1,9 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qepluginApp/project/qeplugin.pro $
-# $Revision: #3 $
-# $DateTime: 2018/12/22 17:36:51 $
+# $Revision: #5 $
+# $DateTime: 2020/11/04 21:58:32 $
 # Last checked in by: $Author: starritt $
 #
-# Copyright (c) 2017-2018 Australian Synchrotron
+# Copyright (c) 2017-2020 Australian Synchrotron
 #
 # This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
@@ -56,17 +56,21 @@ win32QMAKE_LFLAGS += -Wl,-enable-auto-import
 # will be created. This follows the regular EPICS Makefile paradigm.
 #
 TOP=../..
-message ("QT_MAJOR_VERSION = " $$QT_MAJOR_VERSION )
+
+message ("QT_VERSION = "$$QT_MAJOR_VERSION"."$$QT_MINOR_VERSION"."$$QT_PATCH_VERSION )
 
 # How much of this do we need ?
 #
 # Qt 4 configuration
+#
 equals( QT_MAJOR_VERSION, 4 ) {
     CONFIG += plugin uitools designer qwt
     QT += core gui xml network
+    warning( "**** QT4 is getting old. Active QT4 support will cease June 2021. ****" )
 }
 
 # Qt 5 configuration
+#
 equals( QT_MAJOR_VERSION, 5 ) {
     CONFIG += plugin qwt
     QT += core gui xml network uitools designer

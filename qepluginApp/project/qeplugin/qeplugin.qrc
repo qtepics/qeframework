@@ -54,10 +54,13 @@
         <file>QEShape.png</file>
         <file>QESimpleShape.png</file>
         <file>QESlider.png</file>
+        <file>QESpectrogram.png</file>
         <file>QESpinBox.png</file>
         <file>QEStripChart.png</file>
         <file>QESubstitutedLabel.png</file>
+        <file>QESurface.png</file>
         <file>QETable.png</file>
+        <file>QEWaterfall.png</file>
         <file>QEWaveformHistogram.png</file>
         <file>QNumericEdit.png</file>
         <file>QRadioGroup.png</file>

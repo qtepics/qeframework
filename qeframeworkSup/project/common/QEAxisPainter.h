@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2019 Australian Synchrotron
+ *  Copyright (c) 2015-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -30,6 +30,8 @@
 #include <QColor>
 #include <QList>
 #include <QObject>
+#include <QPainter>
+#include <QRect>
 #include <QWidget>
 #include <QEAxisIterator.h>
 #include <QEColourBandList.h>
@@ -38,11 +40,12 @@
 
 /// This class provides a support widget for QAnalogSlider, QEDistribution,
 /// QEHistogram, and maybe in  the future for QAnalogIndicator.
-/// This class can also be used as a non widget object by constructing it without
-/// a parent and calling the draw function with the target widget as parameter.
-///
 /// It could be promoted to a plugin widget in its own right if ever necessary
 /// by adding properties and calling it up in the plugin library.
+///
+/// This class can also be used as a non widget object by constructing it without
+/// a parent and calling the paint function with nominated QPainter as parameter
+/// or the draw function with the target widget as parameter.
 ///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAxisPainter : public QWidget {
    Q_OBJECT
@@ -63,7 +66,9 @@ public:
    };
    Q_ENUMS (TextPositions)
 
-#define NUMBER_OF_MARKERS   4
+   enum Constants {
+      NUMBER_OF_MARKERS = 4
+   };
 
    explicit QEAxisPainter (QWidget* parent = 0);
    ~QEAxisPainter ();
@@ -118,7 +123,7 @@ public:
    void setOrientation (const Orientations orientation);
    Orientations getOrientation () const;
 
-   // Set/get test position with respect to the axis. Default is BelowLeft.
+   // Set/get text position with respect to the axis. Default is BelowLeft.
    //
    void setTextPosition (const TextPositions textPositions);
    TextPositions getTextPosition () const;
@@ -148,9 +153,11 @@ public:
    int getGap  () const;
 
    // Set/get auto fixed set. When true the fallowing applies: when the orientation
-   // is horizontal/vertical the widgets height/widthis fixed, just large enough to
+   // is horizontal/vertical the widgets height/width is fixed, just large enough to
    // accomodate the 'gap', axis and the axis annotation.
    // Default is false.
+   //
+   // Does not apply when painting to Painter.
    //
    void setAutoFixedSize (const bool enabled);
    bool getAutoFixedSize () const;
@@ -173,7 +180,13 @@ public:
    void setColourBandList (const QEColourBandList& bandList);
    QEColourBandList getColourBandList () const;
 
+   // Draw the axis on the nominated painter in the targetRect(angle).
+   // Gaps and indents apply.
+   //
+   void paint (QPainter& painter, const int pointSize, const QRect &targetRect);
+
    // Draw the axis on the nominated widget.
+   // Gaps and indents apply.
    //
    void draw (QWidget* widget);
 
@@ -186,6 +199,9 @@ private:
 
    void drawAxisText (QPainter& painter, const QPoint& position,
                       const QString& text);
+
+   int maxTextWidth;
+   int maxTextHeight;
 
    QColor markerColour [NUMBER_OF_MARKERS];
    bool   markerVisible [NUMBER_OF_MARKERS];

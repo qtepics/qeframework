@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2019 Australian Synchrotron
+ *  Copyright (c) 2009-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -78,10 +78,13 @@ QEWidgets::QEWidgets(QObject *parent) : QObject(parent) {
     widgets.append(new QEShapeManager(this));
     widgets.append(new QESimpleShapeManager(this));
     widgets.append(new QESliderManager(this));
+    widgets.append(new QESpectrogramManager(this));
     widgets.append(new QESpinBoxManager(this));
     widgets.append(new QEStripChartManager(this));
     widgets.append(new QESubstitutedLabelManager(this));
+    widgets.append(new QESurfaceManager(this));
     widgets.append(new QETableManager(this));
+    widgets.append(new QEWaterfallManager(this));
     widgets.append(new QEWaveformHistogramManager(this));
 
     // PVA Access only widgets

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2017-2019 Australian Synchrotron
+ *  Copyright (c) 2017-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -87,6 +87,9 @@
 #include <QESubstitutedLabel.h>
 #include <QETable.h>
 #include <QENTTable.h>
+#include <QESpectrogram.h>
+#include <QESurface.h>
+#include <QEWaterfall.h>
 #include <QEArchiveNameSearch.h>
 #include <QEArchiveStatus.h>
 
@@ -152,6 +155,9 @@ QE_IMPLEMENT_PLUGIN_MANAGER (QEStripChart,        QEGRAPHIC,  ":/qe/plugin/QEStr
 QE_IMPLEMENT_PLUGIN_MANAGER (QESubstitutedLabel,  QESUPPORT,  ":/qe/plugin/QESubstitutedLabel.png",  false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QETable,             QEMONITOR,  ":/qe/plugin/QETable.png",             false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QENTTable,           QEMONITOR,  ":/qe/plugin/QENTTable.png",           false)
+QE_IMPLEMENT_PLUGIN_MANAGER (QESpectrogram,       QEMONITOR,  ":/qe/plugin/QESpectrogram.png",       false)
+QE_IMPLEMENT_PLUGIN_MANAGER (QESurface,           QEMONITOR,  ":/qe/plugin/QESurface.png",           false)
+QE_IMPLEMENT_PLUGIN_MANAGER (QEWaterfall,         QEMONITOR,  ":/qe/plugin/QEWaterfall.png",         false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEArchiveNameSearch, QEARCHIVE,  ":/qe/plugin/QEArchiveNameSearch.png", false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEArchiveStatus,     QEARCHIVE,  ":/qe/plugin/QEArchiveStatus.png",     false)
 

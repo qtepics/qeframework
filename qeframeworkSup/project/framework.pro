@@ -1,7 +1,7 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #23 $
-# $DateTime: 2020/07/15 14:52:37 $
-# Last checked in by: $Author: pozara $
+# $Revision: #26 $
+# $DateTime: 2020/11/04 22:27:55 $
+# Last checked in by: $Author: starritt $
 #
 # Copyright (c) 2009-2020 Australian Synchrotron
 #
@@ -57,18 +57,27 @@ win32QMAKE_LFLAGS += -Wl,-enable-auto-import
 #
 TOP=../..
 
-message ("QT_MAJOR_VERSION = " $$QT_MAJOR_VERSION )
+message ("QT_VERSION = "$$QT_MAJOR_VERSION"."$$QT_MINOR_VERSION"."$$QT_PATCH_VERSION )
 
 # Qt 4 configuration
+#
 equals( QT_MAJOR_VERSION, 4 ) {
     CONFIG += plugin uitools designer qwt
     QT += core gui xml network
+    warning( "**** QT4 is getting old. Active QT4 support will cease June 2021. ****" )
 }
 
 # Qt 5 configuration
+#
 equals( QT_MAJOR_VERSION, 5 ) {
     CONFIG += plugin qwt
     QT += core gui xml network uitools designer
+
+    # We need 5.7 or later for data vizualisation
+    #
+    greaterThan ( QT_MINOR_VERSION, 6 ) {
+        QT += datavisualization
+    }
 }
 
 # Check EPICS dependancies
@@ -164,6 +173,7 @@ include (protocol/protocol.pri)
 include (data/data.pri)
 include (archive/archive.pri)
 include (widgets/QEWidget/QEWidget.pri)
+include (widgets/QE2DDataVisualisation/QE2DDataVisualisation.pri)
 include (widgets/QEAbstractWidget/QEAbstractWidget.pri)
 include (widgets/QEAnalogIndicator/QEAnalogIndicator.pri)
 include (widgets/QEAnalogProgressBar/QEAnalogProgressBar.pri)

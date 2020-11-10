@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2017-2019 Australian Synchrotron
+ *  Copyright (c) 2017-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -360,7 +360,6 @@ class QEPLUGINLIBRARYSHARED_EXPORT QELCDNumberManager :
    QE_DECLARE_PLUGIN_MANAGER (QELCDNumber)
 };
 
-
 //------------------------------------------------------------------------------
 //
 class QEPLUGINLIBRARYSHARED_EXPORT QELineEditManager :
@@ -412,9 +411,6 @@ class QEPLUGINLIBRARYSHARED_EXPORT QELoginManager :
 };
 
 //------------------------------------------------------------------------------
-// QEMenuButton - place holder
-
-//------------------------------------------------------------------------------
 //
 class QEPLUGINLIBRARYSHARED_EXPORT QNumericEditManager :
       public QObject, public QDesignerCustomWidgetInterface
@@ -433,9 +429,6 @@ class QEPLUGINLIBRARYSHARED_EXPORT QENumericEditManager
    Q_INTERFACES (QDesignerCustomWidgetInterface)
    QE_DECLARE_PLUGIN_MANAGER (QENumericEdit)
 };
-
-//------------------------------------------------------------------------------
-// QEPeriodic - place holder
 
 //------------------------------------------------------------------------------
 //
@@ -476,7 +469,6 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEPvLoadSaveButtonManager :
    Q_INTERFACES (QDesignerCustomWidgetInterface)
    QE_DECLARE_PLUGIN_MANAGER (QEPvLoadSaveButton)
 };
-
 
 //------------------------------------------------------------------------------
 //
@@ -637,6 +629,37 @@ class QEPLUGINLIBRARYSHARED_EXPORT QENTTableManager :
    Q_INTERFACES (QDesignerCustomWidgetInterface)
    QE_DECLARE_PLUGIN_MANAGER (QENTTable)
 };
+
+//------------------------------------------------------------------------------
+//
+class QEPLUGINLIBRARYSHARED_EXPORT QESpectrogramManager :
+      public QObject, public QDesignerCustomWidgetInterface
+{
+   Q_OBJECT
+   Q_INTERFACES (QDesignerCustomWidgetInterface)
+   QE_DECLARE_PLUGIN_MANAGER (QESpectrogram)
+};
+
+//------------------------------------------------------------------------------
+//
+class QEPLUGINLIBRARYSHARED_EXPORT QESurfaceManager :
+      public QObject, public QDesignerCustomWidgetInterface
+{
+   Q_OBJECT
+   Q_INTERFACES (QDesignerCustomWidgetInterface)
+   QE_DECLARE_PLUGIN_MANAGER (QESurface)
+};
+
+//------------------------------------------------------------------------------
+//
+class QEPLUGINLIBRARYSHARED_EXPORT QEWaterfallManager :
+      public QObject, public QDesignerCustomWidgetInterface
+{
+   Q_OBJECT
+   Q_INTERFACES (QDesignerCustomWidgetInterface)
+   QE_DECLARE_PLUGIN_MANAGER (QEWaterfall)
+};
+
 //------------------------------------------------------------------------------
 //
 class QEPLUGINLIBRARYSHARED_EXPORT QEArchiveNameSearchManager :
@@ -656,6 +679,5 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEArchiveStatusManager :
    Q_INTERFACES (QDesignerCustomWidgetInterface)
    QE_DECLARE_PLUGIN_MANAGER (QEArchiveStatus)
 };
-
 
 #endif // QE_PLUGIN_WIDGET_MANAGERS_H
