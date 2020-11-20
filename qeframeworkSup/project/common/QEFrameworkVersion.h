@@ -45,8 +45,8 @@
 // (Also, after tagging QE_VERSION_STAGE should be set to QE_VERSION_STAGE_DEVELOPMENT)
 //
 #define QE_VERSION_MAJOR      3     // Public releases that include interface or paradigm changes that may require changes to the way the framework is used.
-#define QE_VERSION_MINOR      7     // Public releases containing new functionality (may include fixes as well)
-#define QE_VERSION_RELEASE    4     // Public releases containing fixes only.
+#define QE_VERSION_MINOR      7     // Public releases containing significant new functionality (may include fixes as well)
+#define QE_VERSION_RELEASE    5     // Public releases containing backward compatible new functionality and/or fixes.
 
 // The integer version is (major << 16) + (minor << 8) + release, and this macro
 // is used to constuct an integer version number.
@@ -65,7 +65,7 @@
 //
 #define QE_VERSION_STAGE_DEVELOPMENT "Development"
 #define QE_VERSION_STAGE_PRODUCTION  "Production"
-#define QE_VERSION_STAGE             QE_VERSION_STAGE_DEVELOPMENT
+#define QE_VERSION_STAGE             QE_VERSION_STAGE_PRODUCTION
 
 #define QE_VERSION_STRING     STRINGIFY(QE_VERSION_MAJOR) "." \
                               STRINGIFY(QE_VERSION_MINOR) "." \
@@ -83,10 +83,10 @@ public:
 
    static unsigned int getMajor ();         // e.g. 3
    static unsigned int getMinor ();         // e.g. 7
-   static unsigned int getRelease ();       // e.g. 3
+   static unsigned int getRelease ();       // e.g. 5
    static const QString getStage ();        // e.g. "Production"
-   static const QString getString ();       // e.g. "3.7.3 (Production)"
-   static const QString getDateTime ();     // e.g. "Thu 23 2020 09:03:14"
+   static const QString getString ();       // e.g. "3.7.5 (Production)"
+   static const QString getDateTime ();     // e.g. "Nov 19 2020 21:23:02"
 
    // Conditional compile attributes.
    //
@@ -94,10 +94,10 @@ public:
 
    // Other version info
    //
-   static const QString getQtVersionStr ();     // e.g. "QT 5.10.0"
+   static const QString getQtVersionStr ();     // e.g. "QT 5.12.8"
    static const QString getQwtVersionStr ();    // e.g. "QWT 6.1.3"
-   static const QString getEpicsVersionStr ();  // e.g. "EPICS 7.0.3"
-   static const QString getAcaiVersionStr ();   // e.g. "ACAI 1.5.6"
+   static const QString getEpicsVersionStr ();  // e.g. "EPICS 7.0.4.1"
+   static const QString getAcaiVersionStr ();   // e.g. "ACAI 1.5.8"
 };
 
 #endif // QE_FRAMEWORK_VERSION_H
