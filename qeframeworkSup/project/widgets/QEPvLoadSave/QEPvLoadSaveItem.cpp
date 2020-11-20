@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron
+ *  Copyright (c) 2013-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -26,6 +26,7 @@
 
 #include "QEPvLoadSaveItem.h"
 #include "QEPvLoadSave.h"
+#include <QEPvLoadSaveUtilities.h>
 
 #include <QDebug>
 #include <QFrame>
@@ -266,7 +267,7 @@ int QEPvLoadSaveItem::getElementCount () const
 
 //-----------------------------------------------------------------------------
 //
-void QEPvLoadSaveItem::actionConnect (QObject*, const char*, const char*)
+void QEPvLoadSaveItem::actionConnect (QObject*, const char*, const char*, const char*)
 {
    NOT_OVERRIDDEN;
 }
@@ -410,12 +411,14 @@ QVariant QEPvLoadSaveGroup::getData (int column) const
 //-----------------------------------------------------------------------------
 //
 void QEPvLoadSaveGroup::actionConnect (QObject* actionCompleteObject,
+                                       const char* actionSetReadOutSlot,
                                        const char* actionCompleteSlot,
                                        const char* actionInCompleteSlot)
 {
    for (int j = 0; j < this->childItems.count(); j++) {
       QEPvLoadSaveItem* item = this->getChild (j);
-      if (item) item->actionConnect (actionCompleteObject, actionCompleteSlot, actionInCompleteSlot);
+      if (item) item->actionConnect (actionCompleteObject, actionSetReadOutSlot,
+                                     actionCompleteSlot, actionInCompleteSlot);
    }
 }
 
@@ -644,12 +647,21 @@ QVariant QEPvLoadSaveLeaf::getData (int column) const
 //
 void QEPvLoadSaveLeaf::setNodeName (const QString& nodeName)
 {
-   // Set all PV names the same
-   this->setPointPvName = nodeName;
-   this->readBackPvName = nodeName;
-   this->archiverPvName = nodeName;
-   this->action = QEPvLoadSaveCommon::NullAction;
-   this->setupQCaObjects ();
+   QString setPoint;
+   QString readBack;
+   QString archiver;
+   bool okay;
+   
+   okay = QEPvLoadSaveUtilities::splitPvNames (nodeName, setPoint, readBack, archiver);
+   if (okay) {
+      this->setPointPvName = setPoint;
+      this->readBackPvName = readBack;
+      this->archiverPvName = archiver;
+      this->action = QEPvLoadSaveCommon::NullAction;
+      this->setupQCaObjects ();
+   } else {
+      emit this->setReadOut ("failed to parse: " + nodeName);
+   }
 }
 
 //-----------------------------------------------------------------------------
@@ -697,9 +709,13 @@ void QEPvLoadSaveLeaf::setupQCaObjects ()
 //-----------------------------------------------------------------------------
 //
 void QEPvLoadSaveLeaf::actionConnect (QObject* actionCompleteObject,
+                                      const char* actionSetReadOutSlot,
                                       const char* actionCompleteSlot,
                                       const char* actionInCompleteSlot)
 {
+   QObject::connect (this, SIGNAL (setReadOut (const QString&)),
+                     actionCompleteObject, actionSetReadOutSlot);
+
    QObject::connect (this, SIGNAL (reportActionComplete (const QEPvLoadSaveItem*, QEPvLoadSaveCommon::ActionKinds, bool)),
                      actionCompleteObject, actionCompleteSlot);
 
@@ -955,66 +971,16 @@ QString QEPvLoadSaveLeaf::getArchiverPvName () const
 }
 
 //-----------------------------------------------------------------------------
-// Calcultes a displayable node name.
+// Calculates a displayable node name.  Note: the content of this function has
+// been relocated to QEPvLoadSaveUtilities::mergePvNames.
 //
 QString QEPvLoadSaveLeaf::calcNodeName () const
 {
    QString result;
 
-   if ((this->setPointPvName == this->readBackPvName) &&
-       (this->readBackPvName == this->archiverPvName)) {
-      // All three names are the same - just use as is.
-      //
-      result = setPointPvName;
-
-   } else {
-      int n =  MIN (MIN (this->setPointPvName.length (),
-                         this->readBackPvName.length ()),
-                    this->archiverPvName.length ());
-
-      // Find the common, i.e. shared, prefix part of the three PV names.
-      //
-      int common = 0;
-      for (int j = 1; j <= n; j++) {
-         if (this->setPointPvName.left (j) != this->readBackPvName.left (j) ||
-             this->setPointPvName.left (j) != this->archiverPvName.left (j)) break;
-         common = j;
-      }
-
-      result = this->setPointPvName.left (common);
-
-      // Extract w, r and a, the PV name specific suffixes.
-      // Note: setPointPvName == result + w etc.
-      //
-      QString label  [3] = { "w", "r", "a" };
-      QString suffix [3];
-
-      suffix [0] = this->setPointPvName.right (this->setPointPvName.length() - common);
-      suffix [1] = this->readBackPvName.right (this->readBackPvName.length() - common);
-      suffix [2] = this->archiverPvName.right (this->archiverPvName.length() - common);
-
-      // Check for two suffix being equal.
-      //
-      for (int i = 0; i < 2; i++) {
-         for (int j = i + 1; j < 3; j++) {
-            if (suffix [i] == suffix [j]) {
-               // merge
-               //
-               label [i].append (label [j]);
-               label [j] = "";
-               suffix [j] = "";
-            }
-         }
-      }
-
-      result.append ("{");
-      for (int i = 0; i < 2; i++) {
-         if (!suffix [i].isEmpty ()) {
-            result.append (label [i]).append(":").append (suffix [i]).append(";");
-         }
-      }
-      result.append ("}");
-   }
+   result = QEPvLoadSaveUtilities::mergePvNames (this->setPointPvName,
+                                                 this->readBackPvName,
+                                                 this->archiverPvName);
 
    return result;
 }

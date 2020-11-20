@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2013-2019 Australian Synchrotron
+ *  Copyright (C) 2013-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -110,6 +110,7 @@ public:
    // QModelIndex getModelIndex ();
    //
    virtual void actionConnect (QObject* actionCompleteObject,
+                               const char* actionSetReadOutSlot,
                                const char* actionCompleteSlot,
                                const char* actionInCompleteSlot);
 
@@ -190,6 +191,7 @@ public:
    bool getIsGroup () const { return true; }
    QEPvLoadSaveItem* clone (QEPvLoadSaveItem* parent);
    void actionConnect (QObject* actionCompleteObject,
+                       const char* actionSetReadOutSlot,
                        const char* actionCompleteSlot,
                        const char* actionInCompleteSlot);
    void extractPVData ();
@@ -237,6 +239,7 @@ public:
    QEPvLoadSaveItem* clone (QEPvLoadSaveItem* parent);
    QEPvLoadSaveCommon::PvNameValueMaps getPvNameValueMap () const;
    void actionConnect (QObject* actionCompleteObject,
+                       const char* actionSetReadOutSlot,
                        const char* actionCompleteSlot,
                        const char* actionInCompleteSlot);
    void extractPVData ();
@@ -247,6 +250,10 @@ public:
    QEPvLoadSaveCommon::StatusSummary getStatusSummary () const;
 
 signals:
+   // Used for status messages on main form.
+   //
+   void setReadOut (const QString& text);
+
    // Used for progress bar on main form.
    //
    void reportActionComplete (const QEPvLoadSaveItem* item,

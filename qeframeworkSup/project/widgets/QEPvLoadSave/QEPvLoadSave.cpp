@@ -632,10 +632,32 @@ void QEPvLoadSave::acceptActionComplete (const QEPvLoadSaveItem*,
 void QEPvLoadSave::acceptActionInComplete (const QEPvLoadSaveItem* item,
                                            const QEPvLoadSaveCommon::ActionKinds action)
 {
-   if (item) {
-      this->accessFail->addPVName (item->getNodeName());
+   const QEPvLoadSaveLeaf* leaf = dynamic_cast<const QEPvLoadSaveLeaf*> (item);
+   if (leaf) {
+      QString pvName;
+      switch (action) {
+         case QEPvLoadSaveCommon::Apply:
+            pvName = leaf->getSetPointPvName();
+            this->accessFail->addPVName (pvName);
+            break;
+
+         case QEPvLoadSaveCommon::Extract:
+            pvName = leaf->getReadBackPvName();
+            this->accessFail->addPVName (pvName);
+            break;
+
+         case QEPvLoadSaveCommon::ReadArchive:
+            pvName = leaf->getArchiverPvName();
+            this->accessFail->addPVName (pvName);
+            break;
+
+         default:
+            DEBUG << "unexpected action" << action
+                  << " current action" << this->loadSaveAction;
+            break;
+      }
    } else {
-      DEBUG << "item" << item
+      DEBUG << "null leaf, item" << item
             << " reported action" << action
             << " current action" << this->loadSaveAction;
    }
@@ -784,8 +806,21 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          this->pvNameSelectDialog->setPvName ("");
          n = this->pvNameSelectDialog->exec (tree);
          if (n == 1) {
-            item = new QEPvLoadSaveLeaf (this->pvNameSelectDialog->getPvName (), "", "", nilValue, NULL);
-            model->addItemToModel (item, this->contextMenuItem);
+            // Parse dialog text e.g. of the form "ID3:MOTOR01{w:.VAL;ra:.RBV;}"
+            // and split into three separate names.
+            //
+            QString mergedName = this->pvNameSelectDialog->getPvName ();
+            QString setPoint;
+            QString readBack;
+            QString archiver;
+            bool okay;
+            okay = QEPvLoadSaveUtilities::splitPvNames (mergedName, setPoint, readBack, archiver);
+            if (okay) {
+               item = new QEPvLoadSaveLeaf (setPoint, readBack, archiver, nilValue, NULL);
+               model->addItemToModel (item, this->contextMenuItem);
+            } else {
+               this->setReadOut ("failed to parse: " + mergedName);
+            }
          }
          break;
 

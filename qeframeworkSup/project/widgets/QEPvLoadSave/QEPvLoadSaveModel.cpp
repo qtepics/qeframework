@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron
+ *  Copyright (c) 2013-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,6 +31,7 @@
 #include <QEScaling.h>
 #include "QEPvLoadSave.h"
 #include "QEPvLoadSaveItem.h"
+#include "QEPvLoadSaveUtilities.h"
 
 #define DEBUG  qDebug () << "QEPvLoadSaveModel" << __LINE__ << __FUNCTION__ << "  "
 
@@ -154,6 +155,7 @@ bool QEPvLoadSaveModel::addItemToModel (QEPvLoadSaveItem* item, QEPvLoadSaveItem
       // item calls this resursively down the QEPvLoadSaveItem tree.
       //
       item->actionConnect (this,
+                           SLOT (acceptSetReadOut (const QString&)),
                            SLOT (acceptActionComplete (const QEPvLoadSaveItem*, QEPvLoadSaveCommon::ActionKinds, bool)),
                            SLOT (acceptActionInComplete (const QEPvLoadSaveItem*, QEPvLoadSaveCommon::ActionKinds)));
    }
@@ -282,6 +284,17 @@ bool QEPvLoadSaveModel::mergeItemInToModel (QEPvLoadSaveItem* item)
 
 //-----------------------------------------------------------------------------
 //
+void QEPvLoadSaveModel::setReadOut (const QString& text)
+{
+   if (this->owner != NULL) {
+      this->owner->setReadOut (text);
+   } else {
+      DEBUG << text;
+   }
+}
+
+//-----------------------------------------------------------------------------
+//
 void QEPvLoadSaveModel::extractPVData ()
 {
    // core always exists, and it will find root if it exists.
@@ -330,6 +343,13 @@ QEPvLoadSaveCommon::PvNameValueMaps QEPvLoadSaveModel::getPvNameValueMap () cons
 QEPvLoadSaveItem* QEPvLoadSaveModel::getRootItem ()
 {
    return this->coreItem->getChild (0);
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSaveModel::acceptSetReadOut (const QString& text)
+{
+   this->setReadOut (text);
 }
 
 //-----------------------------------------------------------------------------
@@ -400,9 +420,7 @@ void QEPvLoadSaveModel::selectionChanged (const QItemSelection& selected, const 
             text.append (QString ("%1").arg (count).append (" item"));
             if (count != 1) text.append ("s");
          }
-         if (this->owner != NULL) {
-            this->owner->setReadOut (text);
-         }
+         this->setReadOut (text);
       }
    } else {
       // Don't allow multiple selections (yet)
@@ -447,9 +465,20 @@ bool  QEPvLoadSaveModel::processDropEvent (QEPvLoadSaveItem* parentItem, QDropEv
       QVariant nilValue (QVariant::Invalid);
 
       // Carry out the drop action
+      // Parse dialog text e.g. of the form "ID3:MOTOR01{w:.VAL;ra:.RBV;}"
+      // and split into three separate names.
       //
-      item = new QEPvLoadSaveLeaf (dropText, "", "", nilValue, NULL);
-      this->addItemToModel (item, parentItem);
+      QString setPoint;
+      QString readBack;
+      QString archiver;
+      bool okay;
+      okay = QEPvLoadSaveUtilities::splitPvNames (dropText, setPoint, readBack, archiver);
+      if (okay) {
+         item = new QEPvLoadSaveLeaf (setPoint, readBack, archiver, nilValue, NULL);
+         this->addItemToModel (item, parentItem);
+      } else {
+         this->setReadOut ("failed to parse: " + dropText);
+      }
    }
 
    // Tell the dropee that the drop has been acted on
@@ -489,9 +518,7 @@ bool QEPvLoadSaveModel::eventFilter (QObject *obj, QEvent* event)
             nodeName = item ? item->getNodeName () : "nil";
             dragEnterEvent->setDropAction (Qt::CopyAction);
             dragEnterEvent->accept ();
-            if (this->owner != NULL) {
-               this->owner->setReadOut (nodeName);
-            }
+            this->setReadOut (nodeName);
             return true;
          }
          break;
@@ -513,7 +540,7 @@ bool QEPvLoadSaveModel::eventFilter (QObject *obj, QEvent* event)
             // Is there a better way to high-light?
             //
             this->treeSelectionModel->setCurrentIndex (index, QItemSelectionModel::SelectCurrent);
-            //this->owner->setReadOut (nodeName);
+            //this->setReadOut (nodeName);
             return true;
          }
          break;
@@ -522,9 +549,7 @@ bool QEPvLoadSaveModel::eventFilter (QObject *obj, QEvent* event)
       case QEvent::DragLeave:
          if (obj == this->treeView) {
             // QDragLeaveEvent* dragLeaveEvent = static_cast<QDragLeaveEvent*> (event);
-            if (this->owner != NULL) {
-               this->owner->setReadOut ("");
-            }
+            this->setReadOut ("");
             return true;
          }
          break;

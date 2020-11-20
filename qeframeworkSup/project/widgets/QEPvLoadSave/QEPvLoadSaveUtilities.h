@@ -26,6 +26,8 @@
 #ifndef QE_LOAD_SAVE_PV_UTILITIES_H
 #define QE_LOAD_SAVE_PV_UTILITIES_H
 
+#include <qdom.h>
+#include <QString>
 #include <QVariant>
 #include <macroSubstitution.h>
 
@@ -34,6 +36,7 @@
 class QEPvLoadSave;
 class QEPvLoadSaveItem;
 class QEPvLoadSaveModel;
+class QEPvLoadSaveGroup;
 
 //------------------------------------------------------------------------------
 // All functions are static.
@@ -85,6 +88,20 @@ public:
    // This function creates xml file.
    //
    static bool writeTree (const QString& filename, const QEPvLoadSaveItem* root);
+
+   // Merges three PV names into a single node name.
+   // E.g  "FRED.VAL", "FRED.RBV", "FRED.RBV" => "FRED.{w:VAL;ra:RBV;}"
+   //
+   static QString mergePvNames (const QString& setPoint,
+                                const QString& readBack,
+                                const QString& archiver);
+
+   // Splits a merged name into three separate names.
+   //
+  static bool splitPvNames (const QString& mergedName,
+                            QString& setPoint,
+                            QString& readBack,
+                            QString& archiver);
 
 private:
    // XML read write local utilitiy functions.

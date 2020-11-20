@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2013-2020 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -16,31 +18,31 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEPvLoadSaveUtilities.h"
+
 #include <stdlib.h>
 
 #include <QDebug>
-#include <qdom.h>
 #include <QFile>
-#include <QESettings.h>
 #include <QStringList>
 #include <QVariant>
 #include <QVariantList>
+
+#include <QECommon.h>
+#include <QESettings.h>
 
 #include "QEPvLoadSave.h"
 #include "QEPvLoadSaveItem.h"
 #include "QEPvLoadSaveModel.h"
 
-#include "QEPvLoadSaveUtilities.h"
 
-#define DEBUG qDebug() << "QEPvLoadSaveUtilities::" << __FUNCTION__ << ":" << __LINE__
+#define DEBUG qDebug() << "QEPvLoadSaveUtilities" << __LINE__ << __FUNCTION__ << "  "
 
 // Special none values.
 //
@@ -132,10 +134,12 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readXmlArrayPv (const QDomElement pvEle
    QEPvLoadSaveItem* result = NULL;
    QVariantList arrayValue;
 
-   QString pvName = macroList.substitute (pvElement.attribute (nameAttribute));
+   QString setPointPvName = macroList.substitute (pvElement.attribute (nameAttribute, ""));
+   QString readBackPvName = macroList.substitute (pvElement.attribute (readBackNameAttribute, ""));
+   QString archiverPvName = macroList.substitute (pvElement.attribute (archiverNameAttribute, ""));
    QString elementCountImage = pvElement.attribute (numberAttribute, "1");
 
-   if (pvName.isEmpty() ) {
+   if (setPointPvName.isEmpty() ) {
       qWarning () << __FUNCTION__ << " ignoring null PV name";
       return result;
    }
@@ -166,7 +170,8 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readXmlArrayPv (const QDomElement pvEle
       itemElement = itemElement.nextSiblingElement (elementTagName);
    }
 
-   result = new QEPvLoadSaveLeaf (pvName, "", "", arrayValue, parent);
+   result = new QEPvLoadSaveLeaf (setPointPvName, readBackPvName, archiverPvName,
+                                  arrayValue, parent);
    return result;
 }
 
@@ -334,7 +339,22 @@ void QEPvLoadSaveUtilities::writeXmlArrayPv (const QEPvLoadSaveItem* itemIn,
    QVariant value = valueList.value (0);
    int n = valueList.size ();
 
-   arrayElement.setAttribute (nameAttribute, item->getNodeName ());
+   QString basePvName;
+   QString otherPvName;
+
+   basePvName = item->getSetPointPvName ();
+   arrayElement.setAttribute (nameAttribute, basePvName);
+
+   otherPvName = item->getReadBackPvName ();
+   if (!otherPvName.isEmpty() && (otherPvName != basePvName)) {
+      arrayElement.setAttribute (readBackNameAttribute, otherPvName);
+   }
+
+   otherPvName = item->getArchiverPvName ();
+   if (!otherPvName.isEmpty() && (otherPvName != basePvName)) {
+      arrayElement.setAttribute (archiverNameAttribute, otherPvName);
+   }
+
    arrayElement.setAttribute (numberAttribute, QString ("%1").arg (n));
 
    for (int j = 0; j < n; j++) {
@@ -423,6 +443,222 @@ bool QEPvLoadSaveUtilities::writeTree (const QString& filename, const QEPvLoadSa
    file.close ();
 
    return true;
+}
+
+//------------------------------------------------------------------------------
+// The format of a merged name, as displayed to the user is:
+//
+// common_prefix{r:read;w:write;a:arch}common_suffix
+//
+// Example:  SR15SLT02:UPPER_BLADE.{wa:VAL;r:RBV}
+//
+// NOTE: Change these, if needs be, to suit your PV name environment.
+// We could make these adaptation parameters.
+//
+static const char startOptions    = '{';
+static const char optionStart     = ':';
+static const char optionSeparator = ';';
+static const char endOptions      = '}';
+
+
+//------------------------------------------------------------------------------
+//
+QString QEPvLoadSaveUtilities::mergePvNames (const QString& setPoint,
+                                             const QString& readBackIn,
+                                             const QString& archiverIn)
+{
+   // If readback or archiver name undefined then use set point PV name.
+   //
+   const QString readBack = readBackIn.isEmpty () ? setPoint : readBackIn;
+   const QString archiver = archiverIn.isEmpty () ? setPoint : archiverIn;
+
+   QString result = "";
+
+   if ((setPoint == readBack) && (readBack == archiver)) {
+      // All three names are the same - just use as is.
+      //
+      result = setPoint;
+
+   } else {
+      int n = MIN (MIN (setPoint.length (), readBack.length ()), 
+                   archiver.length ());
+
+      // Find the common, i.e. shared, prefix part of the three PV names.
+      //
+      int common = 0;
+      for (int j = 1; j <= n; j++) {
+         if (setPoint.left (j) != readBack.left (j) ||
+             setPoint.left (j) != archiver.left (j)) break;
+         common = j;
+      }
+
+      result = setPoint.left (common);
+
+      // Extract w, r and a, the PV name specific suffixes.
+      // Note: setPointPvName == result + w etc.
+      //
+      QString label  [3] = { "w", "r", "a" };
+      QString suffix [3];
+
+      suffix [0] = setPoint.right (setPoint.length() - common);
+      suffix [1] = readBack.right (readBack.length() - common);
+      suffix [2] = archiver.right (archiver.length() - common);
+
+      // Check for two suffix being equal.
+      //
+      for (int i = 0; i < 2; i++) {
+         for (int j = i + 1; j < 3; j++) {
+            if (suffix [i] == suffix [j]) {
+               // merge
+               //
+               label [i].append (label [j]);
+               label [j] = "";
+               suffix [j] = "";
+            }
+         }
+      }
+
+      result.append (startOptions);
+      for (int i = 0; i < 3; i++) {
+         if (!suffix [i].isEmpty ()) {
+            result.append (label [i])
+                  .append (optionStart)
+                  .append (suffix [i])
+                  .append (optionSeparator);
+         }
+      }
+
+      result.append (endOptions);
+   }
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEPvLoadSaveUtilities::splitPvNames (const QString& mergedName,
+                                          QString& setPoint,
+                                          QString& readBack,
+                                          QString& archiver)
+{
+    bool result = false;
+
+    // common_prefix{r:read;w:write;a:arch}common_suffix
+
+    const int startOptionsPosn = mergedName.indexOf (startOptions);
+    const int endOptionsPosn = mergedName.indexOf (endOptions);
+
+    if ((startOptionsPosn == -1) && (endOptionsPosn == -1)) {
+       // No options at all - easy.
+       //
+       setPoint = mergedName;
+       readBack = mergedName;
+       archiver= mergedName;
+       result = true;
+
+    } else if (((startOptionsPosn >= 0)  && (endOptionsPosn < startOptionsPosn)) ||
+               ((startOptionsPosn == -1) && (endOptionsPosn >= 0))) {
+       // Miss matched start brace and end braces.
+       //
+       result = false;
+
+    } else {
+       // We use a state machine to analyse the mergedName string.
+       //
+       enum States {
+          sPrefix,
+          sModes,
+          sOption,
+          sSuffix,
+          sError
+       };
+
+       States state;
+       bool w, r, a;   // defines which modes apply
+
+       result = true;  // hypothesize all okay.
+       setPoint = "";
+       readBack = "";
+       archiver = "";
+       state = sPrefix;
+       w = r = a = false;
+       for (int j = 0 ; j < mergedName.size(); j++) {
+          const QChar c = mergedName.at (j);
+
+          switch (state) {
+             case sPrefix:
+                if (c == startOptions) {
+                   w = r = a = false;
+                   state = sModes;
+                } else {
+                   setPoint.append (c);
+                   readBack.append (c);
+                   archiver.append (c);
+                }
+                break;
+
+             case sModes:
+                if (c == ' ') {
+                   // pass - allow and skip spaces
+                } else if (c == 'w') {
+                   w = true;
+                } else if (c == 'r') {
+                   r = true;
+                } else if (c == 'a') {
+                   a = true;
+                } else if (c == optionStart) {
+                   state = sOption;
+                } else if (c == endOptions) {
+                   if (w || r || a) {
+                      // We have ...{ ...; x }   -- x = r,w or a
+                      result = false;
+                      state = sError;
+                   }
+                   state = sSuffix;
+                } else {
+                   // Unexpected char
+                   result = false;
+                   state = sError;
+                }
+                break;
+
+             case sOption:
+                if (c == ' ') {
+                   // pass - skip spaces
+                } else if (c == optionSeparator) {
+                   w = r = a = false;
+                   state = sModes;
+                } else if (c == startOptions) {
+                   result = false;
+                   state = sError;
+                } else if (c == endOptions) {
+                   state = sSuffix;
+                } else {
+                   if (w) setPoint.append (c);
+                   if (r) readBack.append (c);
+                   if (a) archiver.append (c);
+                }
+                break;
+
+             case sSuffix:
+                if ((c == startOptions) || (c == endOptions)) {
+                   result = false;
+                   state = sError;
+                } else {
+                   setPoint.append (c);
+                   readBack.append (c);
+                   archiver.append (c);
+                }
+                break;
+
+             case sError:
+                result = false;
+                break;
+          }
+       }
+    }
+
+    return result;
 }
 
 // end

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron
+ *  Copyright (c) 2013-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -151,6 +151,10 @@ private:
    bool processDropEvent (QEPvLoadSaveItem* item, QDropEvent *event);
    bool mergeItemInToItem (QEPvLoadSaveItem* item, QEPvLoadSaveItem* targetItem);
 
+   // Write to owner status bar - if there is one.
+   //
+   void setReadOut (const QString& text);
+
    QEPvLoadSave* owner;                  // the associated form - duplicates parent () but avoids casting
    QTreeView* treeView;                       // the associated tree view widget
    QItemSelectionModel* treeSelectionModel;   // manages tree selections
@@ -162,6 +166,7 @@ private:
    QEPvLoadSaveItem* requestedInsertItem;     //
 
 private slots:
+   void acceptSetReadOut (const QString& text);
    void acceptActionComplete   (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ActionKinds, const bool);
    void acceptActionInComplete (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ActionKinds);
 
