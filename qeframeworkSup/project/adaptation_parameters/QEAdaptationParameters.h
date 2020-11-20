@@ -1,6 +1,9 @@
 /*  QEAdaptationParameters.h $
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -63,9 +64,16 @@ public:
    ~QEAdaptationParameters ();
 
    bool    getBool   (const QString& name); // the default is implicitly false
+   bool    getBool   (const QString& name, const QChar letter);
+
    QString getString (const QString& name, const QString& defaultValue);
+   QString getString (const QString& name, const QChar letter, const QString& defaultValue);
+
    int     getInt    (const QString& name, const int      defaultValue);
+   int     getInt    (const QString& name, const QChar letter, const int      defaultValue);
+
    double  getFloat  (const QString& name, const double   defaultValue);
+   double  getFloat  (const QString& name, const QChar letter, const double   defaultValue);
 
    // TODO - add get file name
 

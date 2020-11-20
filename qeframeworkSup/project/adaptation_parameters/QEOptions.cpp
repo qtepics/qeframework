@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2018 Australian Synchrotron.
+ *  Copyright (c) 2013-2020 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -28,9 +28,10 @@
 #include <QCoreApplication>
 #include <QDebug>
 
-const QChar NullLetter = QChar ((ushort) 0xDEAD);    // A bit arbitary
-const QString NullString =                           // Also a bit arbitary
-      QString (NullLetter).append (NullLetter).append (NullLetter).append (NullLetter);
+static const QChar nullLetter = QChar ((ushort) 0xDEAD);    // A bit arbitary
+
+static const QString nullString =                           // Also a bit arbitary
+      QString (nullLetter).append (nullLetter).append (nullLetter).append (nullLetter);
 
 #define NOT_A_NUMBER  "__not_a_number__"
 
@@ -42,14 +43,22 @@ QEOptions::QEOptions ()
    this->args = QCoreApplication::arguments ();
 
    // Remove the program name from the set of arguments.
-   this->args.removeFirst ();
+   //
+   if (this->args.count() > 0) {
+      // Only remove program name if there is one - this voids the segment fault.
+      // Note: if core application not started then this will be the case and no
+      // options will be available; also QCoreApplication::arguments generate an
+      // error message for this, so we don't..
+      //
+      this->args.removeFirst ();
+   }
 
    this->setUpCommon ();
 }
 
 //--------------------------------------------------------------------------------------
 //
-QEOptions::QEOptions (const QStringList & argsIn)
+QEOptions::QEOptions (const QStringList& argsIn)
 {
    this->args = argsIn;
    this->setUpCommon ();
@@ -59,8 +68,6 @@ QEOptions::QEOptions (const QStringList & argsIn)
 //
 void QEOptions::setUpCommon ()
 {
-   int j;
-
    // Find first parameter, i.e. non option argument.
    //
    // Example: Condider options  "--tom"  "dick"  "harry"
@@ -73,7 +80,7 @@ void QEOptions::setUpCommon ()
    // first parameter.
    //
    this->parameterOffset = 0;
-   for (j = this->args.count() - 1; j >= 0; j--) {
+   for (int j = this->args.count() - 1; j >= 0; j--) {
       QString arg = this->args.value (j);
       if (arg.startsWith("-")) {
          // We have found the last option.
@@ -123,22 +130,22 @@ QString QEOptions::getParameter (const int i)
 bool QEOptions::isSpecified (const QString& option, const QChar letter)
 {
    QString stringVal;
-   stringVal = this->getString (option, letter, NullString);
-   return (stringVal != NullString);
+   stringVal = this->getString (option, letter, nullString);
+   return (stringVal != nullString);
 }
 
 //--------------------------------------------------------------------------------------
 //
 bool QEOptions::isSpecified (const QString& option)
 {
-   return this->isSpecified (option, NullLetter);
+   return this->isSpecified (option, nullLetter);
 }
 
 //--------------------------------------------------------------------------------------
 //
 bool QEOptions::isSpecified (const QChar letter)
 {
-   return this->isSpecified (NullString, letter);
+   return this->isSpecified (nullString, letter);
 }
 
 
@@ -169,14 +176,14 @@ bool QEOptions::getBool (const QString& option, const QChar letter)
 //
 bool QEOptions::getBool (const QString& option)
 {
-   return this->getBool (option, NullLetter);
+   return this->getBool (option, nullLetter);
 }
 
 //--------------------------------------------------------------------------------------
 //
 bool QEOptions::getBool  (const QChar letter)
 {
-   return this->getBool (NullString, letter);
+   return this->getBool (nullString, letter);
 }
 
 
@@ -229,14 +236,14 @@ QString QEOptions::getString (const QString& option, const QChar letter, const Q
 //
 QString QEOptions::getString (const QString& option, const QString& defaultValue)
 {
-   return this->getString (option, NullLetter, defaultValue);
+   return this->getString (option, nullLetter, defaultValue);
 }
 
 //--------------------------------------------------------------------------------------
 //
 QString QEOptions::getString (const QChar letter, const QString& defaultValue)
 {
-   return this->getString (NullString, letter, defaultValue);
+   return this->getString (nullString, letter, defaultValue);
 }
 
 
@@ -260,14 +267,14 @@ int QEOptions::getInt (const QString& option, const QChar letter, const int defa
 //
 int QEOptions::getInt (const QString& option, const int defaultValue)
 {
-   return this->getInt (option, NullLetter, defaultValue);
+   return this->getInt (option, nullLetter, defaultValue);
 }
 
 //--------------------------------------------------------------------------------------
 //
 int QEOptions::getInt (const QChar letter, const int defaultValue)
 {
-   return this->getInt (NullString, letter, defaultValue);
+   return this->getInt (nullString, letter, defaultValue);
 }
 
 
@@ -292,14 +299,14 @@ double QEOptions::getFloat  (const QString& option, const QChar letter, const do
 //
 double QEOptions::getFloat (const QString& option, const double defaultValue)
 {
-   return this->getFloat (option, NullLetter, defaultValue);
+   return this->getFloat (option, nullLetter, defaultValue);
 }
 
 //--------------------------------------------------------------------------------------
 //
 double QEOptions::getFloat (const QChar letter, const double defaultValue)
 {
-   return this->getFloat (NullString, letter, defaultValue);
+   return this->getFloat (nullString, letter, defaultValue);
 }
 
 // end

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2018 Australian Synchrotron.
+ *  Copyright (c) 2013-2020 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -30,9 +30,11 @@
 #define DEBUG qDebug () << "QEAdaptationParameters" << __LINE__ << __FUNCTION__ << "  "
 
 // Note: in the original AS Delphi framework, we used the [General] section, but
-// in the Qt world this has special meaning.
+// in the Qt world this has special meaning, so now use [Adaptation]
 //
 static const QString prefix = "Adaptation/";
+
+static const QChar nullLetter = QChar ((ushort) 0xDEAD);    // A bit arbitary
 
 
 //------------------------------------------------------------------------------
@@ -66,12 +68,19 @@ QEAdaptationParameters::~QEAdaptationParameters ()
 //
 bool QEAdaptationParameters::getBool (const QString &name)
 {
+   return QEAdaptationParameters::getBool (name, nullLetter);
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEAdaptationParameters::getBool (const QString &name, const QChar letter)
+{
    bool result = false;
 
    result = this->environment->getBool (name, result);
    result = this->settings->getBool (prefix + name, result);
    if (!result) {
-      result = this->options->getBool (name);
+      result = this->options->getBool (name, letter);
    }
 
    return result;
@@ -79,37 +88,68 @@ bool QEAdaptationParameters::getBool (const QString &name)
 
 //------------------------------------------------------------------------------
 //
-QString QEAdaptationParameters::getString (const QString &name, const QString &defaultValue)
+QString QEAdaptationParameters::getString (const QString &name,
+                                           const QString &defaultValue)
+{
+   return QEAdaptationParameters::getString (name, nullLetter, defaultValue);
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEAdaptationParameters::getString (const QString &name,
+                                           const QChar letter,
+                                           const QString &defaultValue)
 {
    QString result = defaultValue;
 
    result = this->environment->getString (name, result);
    result = this->settings->getString (prefix + name, result);
-   result = this->options->getString (name, result);
+   result = this->options->getString (name, letter, result);
    return result;
 }
 
 //------------------------------------------------------------------------------
 //
-int QEAdaptationParameters::getInt (const QString &name, const int defaultValue)
+int QEAdaptationParameters::getInt (const QString &name,
+                                    const int defaultValue)
+{
+   return QEAdaptationParameters::getInt (name, nullLetter, defaultValue);
+}
+
+//------------------------------------------------------------------------------
+//
+int QEAdaptationParameters::getInt (const QString &name,
+                                    const QChar letter,
+                                    const int defaultValue)
 {
    int result = defaultValue;
 
    result = this->environment->getInt (name, result);
    result = this->settings->getInt (prefix + name, result);
-   result = this->options->getInt (name, result);
+   result = this->options->getInt (name, letter, result);
    return result;
+}
+
+
+//------------------------------------------------------------------------------
+//
+double QEAdaptationParameters::getFloat (const QString &name,
+                                         const double defaultValue)
+{
+   return QEAdaptationParameters::getFloat (name, nullLetter, defaultValue);
 }
 
 //------------------------------------------------------------------------------
 //
-double QEAdaptationParameters::getFloat (const QString &name, const double defaultValue)
+double QEAdaptationParameters::getFloat (const QString &name,
+                                         const QChar letter,
+                                         const double defaultValue)
 {
    double result = defaultValue;
 
    result = this->environment->getFloat (name, result);
    result = this->settings->getFloat (prefix + name, result);
-   result = this->options->getFloat (name, result);
+   result = this->options->getFloat (name, letter, result);
    return result;
 }
 
