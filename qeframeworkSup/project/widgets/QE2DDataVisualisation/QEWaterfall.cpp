@@ -398,29 +398,18 @@ void QEWaterfall::paintWaterfall ()
 //
 void QEWaterfall::waterfallMouseMove (const QPoint& pos)
 {
-   // Special value used to indicate a no value.
-   // This number is chosen as -(2.0 ** 48) because it:
-   // a) can be exactly represented as a double, and
-   // b) is a value that is not ever expected to 'turn up' as an actual value.
-   //
-   static const double noValue = -281474976710656.0;
-
-   QString message = "";
    int row;
    int col;
    bool found;
 
+   // Convert the mosue postion into a data element index - if we can.
+   //
    found = QEWaterfall::PosToSrcMap::findNearest (this, pos.x(), pos.y(), row, col);
    if (found) {
-      const double value = this->getValue (row, col, noValue);
-      if (value != noValue) {
-         message = QString ("row:%1  col:%2  value: %3")
-               .arg (row, 3)
-               .arg (col, 3)
-               .arg (value);
-      }
+      this->setElementReadout (row, col);
+   } else {
+      this->setReadOut ("");
    }
-   this->setReadOut (message);
 }
 
 //==============================================================================

@@ -244,6 +244,7 @@ protected:
    int getPrecision() const;
 
    void setReadOut (const QString& text);
+   void setElementReadout (const int row, const int col);
 
    virtual void updateDataVisulation ();   // hook function
 

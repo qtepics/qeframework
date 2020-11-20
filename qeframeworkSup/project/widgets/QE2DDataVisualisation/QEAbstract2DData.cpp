@@ -324,9 +324,44 @@ void QEAbstract2DData::setReadOut (const QString& text)
 
 //------------------------------------------------------------------------------
 //
+void QEAbstract2DData::setElementReadout (const int row, const int col)
+{
+   // Special value used to indicate a no value.
+   // This number is chosen as -(2.0 ** 48) because it:
+   // a) can be exactly represented as a double, and
+   // b) is a value that is not ever expected to 'turn up' as an actual value.
+   //
+   static const double noValue = -281474976710656.0;
+   const double value = this->getValue (row, col, noValue);
+
+   QString message;
+   if (value != noValue) {
+      qcaobject::QCaObject* qca;
+      QString egu = "";
+
+      qca = this->getQcaItem (DATA_PV_INDEX);
+      if (qca) {
+         egu = qca->getEgu();
+      }
+
+      message = QString ("row:%1  col:%2  value: %3 %4")
+            .arg (row, 3)
+            .arg (col, 3)
+            .arg (value)
+            .arg (egu);
+
+   } else {
+      message = "";
+   }
+
+   this->setReadOut (message);
+}
+
+//------------------------------------------------------------------------------
+//
 void QEAbstract2DData::updateDataVisulation ()
 {
-   DEBUG << "function not implemented error";
+   DEBUG << "abstract function not implemented error";
 }
 
 //==============================================================================

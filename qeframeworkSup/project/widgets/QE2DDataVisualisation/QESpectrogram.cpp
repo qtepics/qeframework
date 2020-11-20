@@ -302,25 +302,7 @@ void QESpectrogram::spectrogramMouseMove (const QPoint& pos)
       col = int (fracY * numDataCols);
    }
 
-   // Special value used to indicate a no value.
-   // This number is chosen as -(2.0 ** 48) because it:
-   // a) can be exactly represented as a double, and
-   // b) is a value that is not ever expected to 'turn up' as an actual value.
-   //
-   static const double noValue = -281474976710656.0;
-   const double value = this->getValue (row, col, noValue);
-
-   QString message;
-   if (value != noValue) {
-      message = QString ("row:%1  col:%2  value: %3")
-            .arg (row, 3)
-            .arg (col, 3)
-            .arg (value);
-   } else {
-      message = "";
-   }
-
-   this->setReadOut (message);
+   this->setElementReadout (row, col);
 }
 
 //------------------------------------------------------------------------------
