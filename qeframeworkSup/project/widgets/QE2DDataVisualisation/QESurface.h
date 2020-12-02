@@ -46,6 +46,9 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESurface :
 {
    Q_OBJECT
 
+   typedef QEAbstract2DData ParentWidgetClass;
+
+public:
    Q_PROPERTY (QString text READ getText WRITE setText)
 
 public:

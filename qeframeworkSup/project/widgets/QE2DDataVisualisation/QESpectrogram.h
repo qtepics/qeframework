@@ -42,6 +42,9 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESpectrogram :
    public QEAbstract2DData
 {
    Q_OBJECT
+
+   typedef QEAbstract2DData ParentWidgetClass;
+
 public:
 
    /// If true, the apply false colour to the data, othewrwise gray scale
@@ -50,19 +53,10 @@ public:
 
    /// Specifies the number of times around the gray/colour scale we map values
    /// in the range minimum to maximum.
-   /// Allowed range: 1 .. 10
+   /// Allowed range: 1 .. 10  - note 10 is more than enough.
    /// Default: 1
    ///
    Q_PROPERTY (int scaleWrap               READ getScaleWrap      WRITE setScaleWrap)
-
-   /// orientation horizontal (default) or vertical.
-   /// Horizontal: data presented in rows.
-   /// Vertical: data presented in columns .
-   ///
-   /// When accumulate property set true, new data added to botton/right, and
-   /// zuffled up/left as needed.
-   ///
-   Q_PROPERTY (Qt::Orientation orientation READ getOrientation WRITE setOrientation)
 
 public:
    /// Create without a variable.
@@ -86,14 +80,13 @@ public:
    /// Destruction
    virtual ~QESpectrogram ();
 
+public slots:
    void setUseFalseColour (const bool useFalseColour);
-   bool getUseFalseColour () const;
-
    void setScaleWrap (const int scaleWrap);
-   int getScaleWrap () const;
 
-   void setOrientation (const Qt::Orientation orientation);
-   Qt::Orientation getOrientation () const;
+public:
+   bool getUseFalseColour () const;
+   int getScaleWrap () const;
 
 protected:
    // Override parent virtual functions.
@@ -103,7 +96,7 @@ protected:
    void updateDataVisulation ();   // hook function
 
 private:
-   // Structure used when setting current image. Cribbed from QImage.
+   // Structure used when setting current image. Cribbed from QEImage.
    //
    struct rgbPixel {
       unsigned char p[4]; // R/G/B/Alpha
@@ -131,7 +124,6 @@ private:
    //
    bool mUseFalseColour;
    int mScaleWrap;
-   Qt::Orientation mOrientation;
 };
 
 #endif  // QE_SPECTROGRAM_H

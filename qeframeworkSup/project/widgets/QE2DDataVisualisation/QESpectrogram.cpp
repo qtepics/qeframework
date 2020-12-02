@@ -88,7 +88,6 @@ void QESpectrogram::commonSetup ()
 
    this->mUseFalseColour = true;
    this->mScaleWrap = 1;
-   this->mOrientation = Qt::Horizontal;
 
    // Set up the pixel maps
    //
@@ -205,17 +204,12 @@ void QESpectrogram::updateDataVisulation ()
             &this->falseColourPixelMap :
             &this->grayScalePixelMap;
 
+   // Base class worries about image rotation and flipping.
+   // Get displayed number of row and cols.
+   //
    int imageWidth;
    int imageHeight;
-   this->getNumberRowsAndCols (true, imageHeight, imageWidth);
-
-   // Swap width/height when not horizontal
-   //
-   if (this->getOrientation() != Qt::Horizontal) {
-      int temp = imageWidth;
-      imageWidth = imageHeight;
-      imageHeight = temp;
-   }
+   this->getNumberRowsAndCols (imageHeight, imageWidth);
 
    // Create the new image
    //
@@ -226,12 +220,7 @@ void QESpectrogram::updateDataVisulation ()
 
       for (int col = 0; col < imageWidth; col++) {
 
-         // Find source data row and col.
-         //
-         const int srcRow = this->getOrientation() == Qt::Horizontal ? row : col;
-         const int srcCol = this->getOrientation() == Qt::Horizontal ? col : row;
-
-         double value = this->getValue (srcRow, srcCol, min);
+         double value = this->getValue (row, col, min);
 
          // scale (y = m.x + c), wrap and limit.
          //
@@ -281,26 +270,17 @@ void QESpectrogram::paintSpectrogram ()
 //
 void QESpectrogram::spectrogramMouseMove (const QPoint& pos)
 {
-   int numDataRows;
-   int numDataCols;
-   this->getNumberRowsAndCols (true, numDataRows, numDataCols);
+   int numDisplayRows;
+   int numDisplayCols;
+   this->getNumberRowsAndCols (numDisplayRows, numDisplayCols);
 
    // Fractional position 0.0 .. 0.99999
    //
    const double fracX = double (pos.x ()) / double (this->plotArea->width());
    const double fracY = double (pos.y ()) / double (this->plotArea->height());
 
-   // Swap width/height when not horizontal
-   //
-   int row;
-   int col;
-   if (this->getOrientation() == Qt::Horizontal) {
-      row = int (fracY * numDataRows);
-      col = int (fracX * numDataCols);
-   } else {
-      row = int (fracX * numDataRows);
-      col = int (fracY * numDataCols);
-   }
+   const int row = int (fracY * numDisplayRows);
+   const int col = int (fracX * numDisplayCols);
 
    this->setElementReadout (row, col);
 }
@@ -389,21 +369,6 @@ void QESpectrogram::setScaleWrap (const int scaleWrap)
 int QESpectrogram::getScaleWrap () const
 {
    return this->mScaleWrap;
-}
-
-//------------------------------------------------------------------------------
-//
-void QESpectrogram::setOrientation (const Qt::Orientation orientation)
-{
-   this->mOrientation = orientation;
-   this->updateDataVisulation();
-}
-
-//------------------------------------------------------------------------------
-//
-Qt::Orientation QESpectrogram::getOrientation () const
-{
-   return this->mOrientation;
 }
 
 // end

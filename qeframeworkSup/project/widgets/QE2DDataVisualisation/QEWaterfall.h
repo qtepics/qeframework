@@ -41,6 +41,9 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEWaterfall :
 {
    Q_OBJECT
 
+   typedef QEAbstract2DData ParentWidgetClass;
+
+public:
    /// Offset display angle from vertical in degrees.
    /// Allowed: 0 .. 90
    /// Default: 30
@@ -59,9 +62,13 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEWaterfall :
    ///
    Q_PROPERTY (int traceWidth     READ getTraceWidth   WRITE setTraceWidth)
 
+   /// Default: white
+   ///
+   Q_PROPERTY (QColor backgroundColour READ getBackgroundColour  WRITE setBackgroundColour)
+
    /// Default: dark blue
    ///
-   Q_PROPERTY (QColor traceColour READ getTraceColor   WRITE setTraceColor)
+   Q_PROPERTY (QColor traceColour READ getTraceColour   WRITE setTraceColour)
 
    /// When true, the hue of each trace is increased by 12 modulo 360.
    /// Default: false
@@ -92,20 +99,21 @@ public:
 
    // Property functions
    //
+public slots:
    void setAngle (const int angle);
-   int getAngle () const;
-
    void setTraceGap (const int traceGap);
-   int getTraceGap () const;
-
    void setTraceWidth (const int traceWidth);
-   int getTraceWidth () const;
-
-   void setTraceColor (const QColor& traceColour);
-   QColor getTraceColor () const;
-
+   void setTraceColour (const QColor& traceColour);
    void setMutableHue (const bool mutableHue);
+   void setBackgroundColour (const QColor& traceColour);
+
+public:
+   int getAngle () const;
+   int getTraceGap () const;
+   int getTraceWidth () const;
+   QColor getTraceColour () const;
    bool getMutableHue () const;
+   QColor getBackgroundColour () const;
 
 protected:
    // Override parent virtual functions.
@@ -119,6 +127,9 @@ private:
    void waterfallMouseMove (const QPoint& pos);
    void paintWaterfall ();
 
+   // The display area is split into 20 x 40 grid into which each display point
+   // is allocated. See PosToSrcMap for more detail.
+   //
    enum Constants {
       NumberListRows = 20,
       NumberListCols = 40
@@ -144,7 +155,7 @@ private:
       //
       void insert (QEWaterfall* owner) const;
 
-      // search the mapArrays for nearest point - if any.
+      // Search the mapArrays for nearest point - if any.
       //
       static bool findNearest (QEWaterfall* owner,
                                const int px, const int py,
@@ -171,6 +182,7 @@ private:
    int mAngle;
    int mTraceGap;
    QColor mTraceColour;
+   QColor mBackgroundColour;
    bool mMutableHue;
    int mTraceWidth;
 };

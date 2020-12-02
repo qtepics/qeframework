@@ -28,9 +28,10 @@
 #include <QDebug>
 #include <QTimer>
 
-// Check that Qt version supports Q3DSurface.
+// Check that support for Q3DSurface included
+// Please see the framework.pro file, approx line 80.
 //
-#if QT_VERSION >= 0x050700
+#if QE_USE_DATA_VISUALIZATION
 
 #include <QtDataVisualization/QValue3DAxis>
 #include <QtDataVisualization/Q3DSurface>
@@ -147,9 +148,22 @@ void QESurface::initialise ()
    flags.setFlag (Qt::WindowCloseButtonHint, true);
    surface->setFlags (flags);
 
-   this->surface->setAxisX (new QValue3DAxis (this));
-   this->surface->setAxisY (new QValue3DAxis (this));
-   this->surface->setAxisZ (new QValue3DAxis (this));
+   QValue3DAxis* axis;
+
+   axis = new QValue3DAxis (this);
+   axis->setSubSegmentCount(5);
+   axis->setLabelFormat("%.0f");
+   this->surface->setAxisX (axis);
+
+   axis = new QValue3DAxis (this);
+   axis->setSubSegmentCount(5);
+   axis->setLabelFormat("%.1f");
+   this->surface->setAxisY (axis);
+
+   axis = new QValue3DAxis (this);
+   axis->setSubSegmentCount(5);
+   axis->setLabelFormat("%.0f");
+   this->surface->setAxisZ (axis);
 
    // https://code.qt.io/cgit/qt/qtdatavis3d.git/tree/examples/
    //   datavisualization/surface/surfacegraph.cpp?h=5.15
@@ -185,9 +199,13 @@ void QESurface::updateDataVisulation ()
    double min = this->getMinimum();
 // double max = this->getMaximum();
 
+
+   // Base class worries about image rotation and flipping.
+   // Get displayed number of row and cols.
+   //
    int numberCols;
    int numberRows;
-   this->getNumberRowsAndCols (true, numberRows, numberCols);
+   this->getNumberRowsAndCols (numberRows, numberCols);
 
    QSurface3DSeries* series = new QSurface3DSeries ();
 
@@ -199,21 +217,19 @@ void QESurface::updateDataVisulation ()
 
       QSurfaceDataRow* dataRow = new QSurfaceDataRow ();
       for (int col = 0; col < numberCols; col++) {
-         if (col % 10 != 0) continue; // bin
-
          // Define source data row and col.
          //
-         const int srcRow = numberRows - row - 1;
-         const int srcCol = col;
+//         const int srcRow = numberRows - row - 1;
+//         const int srcCol = col;
 
-         double value = this->getValue (srcRow, srcCol, min);
+         double value = this->getValue (row, col, min);
 
-         // NOTE: Mitigate the exact rectangular grid "feature" by skewing x and z.
+         // NOTE: Mitigate the exact rectangular grid "feature" by slightly skewing x and z.
          //       We plot y = f(x, z)
          //
          float skew = 1.0e-6;
-         float x = float (col + skew*row);
-         float z = float (row + skew*col);
+         float x = float (row + skew*col);
+         float z = float (col + skew*row);
          float y = float (value);
 
          QSurfaceDataItem dataItem = QSurfaceDataItem (QVector3D (x, y, z));

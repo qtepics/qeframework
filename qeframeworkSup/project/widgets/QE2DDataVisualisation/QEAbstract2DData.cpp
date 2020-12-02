@@ -25,6 +25,7 @@
  */
 
 #include "QEAbstract2DData.h"
+#include <QAction>
 #include <QDebug>
 #include <QECommon.h>
 #include <UserMessage.h>
@@ -90,7 +91,26 @@ void QEAbstract2DData::commonSetup ()
    this->setAllowDrop (true);
    this->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_ALWAYS);
 
+   this->rawNumberOfRows = 0;
+   this->rawNumberOfCols = 0;
+   this->sliceRowOffset = 0;
+   this->sliceColOffset = 0;
+   this->slicedNumberOfRows = 0;
+   this->slicedNumberOfCols = 0;
+   this->displayedNumberOfRows = 0;
+   this->displayedNumberOfCols = 0;
+
+   // Set default porpety values.
+   //
    this->mDataWidth = 100;
+   this->mRotation = NoRotation;
+   this->mVerticalFlip = false;
+   this->mHorizontalFlip = false;
+   this->mVerticalSliceFirst = 0;
+   this->mVerticalSliceLast = -1;
+   this->mHorizontalSliceFirst = 0;
+   this->mHorizontalSliceLast = -1;
+
    this->mAutoScale = false;
    this->mMinimum = 0.0;
    this->mMaximum = 255.0;
@@ -102,7 +122,7 @@ void QEAbstract2DData::commonSetup ()
    this->updateCount = 0;
 
    // QEFrame sets this to false (as it's not an EPICS aware widget).
-   // But the QEAbstract2DData is EPICS aware, so set default to true.
+   // But the QEAbstract2DData is EPICS aware, so set default back to true.
    //
    this->setVariableAsToolTip (true);
 
@@ -212,12 +232,59 @@ QEAbstract2DData::getData () const
 
 //------------------------------------------------------------------------------
 //
-double QEAbstract2DData::getValue (const int srcRow, const int srcCol,
+double QEAbstract2DData::getValue (const int displayRow, const int displayCol,
                                    const double defaultValue) const
 {
-   const QEFloatingArray emptyArray;
-   const int effectiveDataWidth = this->getEffectiveDataWidth();
+   // Start with no rotation and no flipping.
+   //
+   int srcRow = displayRow;
+   int srcCol = displayCol;
+   int temp;
 
+   // Processes slicing, rotation and flips.
+   // As we apply slice, rotate, then flip, we must first un-flip, un-rotate
+   // and then un-slice.
+   //
+   if (this->mVerticalFlip)   srcRow = this->displayedNumberOfRows - 1 - srcRow;
+   if (this->mHorizontalFlip) srcCol = this->displayedNumberOfCols - 1 - srcCol;
+
+   switch (this->mRotation) {
+      case NoRotation:
+         // pass
+         break;
+
+      case Rotate90Right:
+         // Do the rotation
+         //
+         temp = srcCol;
+         srcCol = srcRow;
+         srcRow = this->slicedNumberOfRows - 1 - temp;
+         break;
+
+      case Rotate90Left:
+         // Do the rotation
+         //
+         temp = srcRow;
+         srcRow = srcCol;
+         srcCol = this->slicedNumberOfCols - 1 - temp;
+         break;
+
+      case Rotate180:
+         // Do the rotation
+         //
+         srcRow = this->slicedNumberOfRows - 1 - srcRow;
+         srcCol = this->slicedNumberOfCols - 1 - srcCol;
+         break;
+   }
+
+   // Lastly, de-slice the data, but first check out of range indices.
+   //
+   srcRow += this->sliceRowOffset;
+   srcCol += this->sliceColOffset;
+
+   // Now that we have the source row and sorce col, extract the data value.
+   //
+   const QEFloatingArray emptyArray;
    double result = defaultValue;
 
    if (this->getDataFormat() == array1D) {
@@ -226,6 +293,7 @@ double QEAbstract2DData::getValue (const int srcRow, const int srcCol,
    } else {
       // array2D
       const QEFloatingArray dataSet = data.value (0, emptyArray);
+      const int effectiveDataWidth = this->getEffectiveDataWidth();
       const int index = effectiveDataWidth * srcRow + srcCol;
       result = dataSet.value (index, defaultValue);
    }
@@ -242,7 +310,7 @@ int QEAbstract2DData::getUpdateCount () const
 
 //------------------------------------------------------------------------------
 //
-void QEAbstract2DData::getDataMinMaxValues (double& min, double& max)
+void QEAbstract2DData::getDataMinMaxValues (double& min, double& max) const
 {
    const int number = this->data.count();
 
@@ -271,23 +339,10 @@ void QEAbstract2DData::getDataMinMaxValues (double& min, double& max)
 
 //------------------------------------------------------------------------------
 //
-void QEAbstract2DData::getNumberRowsAndCols (const bool potential,
-                                             int& numberRows, int& numberCols)
+void QEAbstract2DData::getNumberRowsAndCols (int& numberRows, int& numberCols) const
 {
-   const int number = this->data.count();
-
-   if (this->getDataFormat() == array1D) {
-      numberCols = this->data.value (0).count();   // assume all the same size.
-
-      // Some rows may be blank/missing when number < mNumberOfSets.
-      //
-      numberRows = potential ? this->mNumberOfSets : number;
-   } else {
-      // array2D
-      const int total = data.value (0).count();   // there is only one.
-      numberCols = this->getEffectiveDataWidth ();
-      numberRows = (total + numberCols - 1) / numberCols;
-   }
+   numberRows = this->displayedNumberOfRows;
+   numberCols = this->displayedNumberOfCols;
 }
 
 //------------------------------------------------------------------------------
@@ -364,11 +419,75 @@ void QEAbstract2DData::updateDataVisulation ()
    DEBUG << "abstract function not implemented error";
 }
 
+//------------------------------------------------------------------------------
+//
+void QEAbstract2DData::calculateDataVisulationValues()
+{
+   if (this->getDataFormat() == array1D) {
+      this->rawNumberOfRows = this->mNumberOfSets;
+      this->rawNumberOfCols = this->data.value (0).count();   // assume all rows the same size.
+   } else {
+      // array2D
+      const int total = this->data.value (0).count();
+      this->rawNumberOfCols = this->getEffectiveDataWidth ();
+      this->rawNumberOfRows =  // avoid the divide by zero
+            (total + this->rawNumberOfCols - 1) /
+            MAX (this->rawNumberOfCols, 1);
+   }
+
+   int first;
+   int last;
+
+   // Calc first and last.
+   // If specified first and/or end are negative, when we count from end,
+   // i.e. an index of -1 meand last index, i.e. number - 1
+   //
+   // Do the rows and vertical slices.
+   //
+   #define UNSIGN_INDEX(index, number) LIMIT((index >= 0 ? index : number + index), 0, number)
+
+   first = UNSIGN_INDEX (this->mVerticalSliceFirst, this->rawNumberOfRows);
+   last  = UNSIGN_INDEX (this->mVerticalSliceLast,  this->rawNumberOfRows);
+
+   this->sliceRowOffset = first;
+   this->slicedNumberOfRows = MAX (last - first + 1, 0);   // allow zero, but not negative
+
+   // Ditto the columns and horizontal slices
+   //
+   first = UNSIGN_INDEX (this->mHorizontalSliceFirst, this->rawNumberOfCols);
+   last  = UNSIGN_INDEX (this->mHorizontalSliceLast,  this->rawNumberOfCols);
+
+   this->sliceColOffset = first;
+   this->slicedNumberOfCols = MAX (last - first + 1, 0);
+
+   #undef UNSIGN_INDEX
+
+   // Now calc rotation info
+   //
+   switch (this->mRotation) {
+      case NoRotation:
+      case Rotate180:
+         this->displayedNumberOfRows = this->slicedNumberOfRows;
+         this->displayedNumberOfCols = this->slicedNumberOfCols;
+         break;
+
+      case Rotate90Left:
+      case Rotate90Right:
+         this->displayedNumberOfRows = this->slicedNumberOfCols;
+         this->displayedNumberOfCols = this->slicedNumberOfRows;
+         break;
+   }
+
+   // Lastly call hook function.
+   //
+   this->updateDataVisulation ();
+}
+
 //==============================================================================
 // Slots
 void QEAbstract2DData::setVariableNameProperty (QString pvName,
-                                             QString subs,
-                                             unsigned int vi)
+                                                QString subs,
+                                                unsigned int vi)
 {
    if ((vi != DATA_PV_INDEX) && (vi != WIDTH_PV_INDEX)) {
       DEBUG << "unexpected variableIndex" << vi;
@@ -408,7 +527,7 @@ void QEAbstract2DData::connectionChanged (QCaConnectionInfo& connectionInfo,
             // Reset on connect, on disconnect leave last image in place.
             //
             this->data.clear ();
-            this->updateDataVisulation ();
+            this->calculateDataVisulationValues ();
          }
          break;
 
@@ -442,7 +561,7 @@ void QEAbstract2DData::onDataArrayUpdate (const QVector<double>& values,
 
    this->updateCount++;
 
-   this->updateDataVisulation ();
+   this->calculateDataVisulationValues ();
 
    // Invoke common alarm handling processing.
    //
@@ -471,7 +590,7 @@ void QEAbstract2DData::onWidthUpdate (const long value, QCaAlarmInfo& alarmInfo,
    this->pvDataWidthAvailable = true;
    if (this->pvDataWidth != temp) {
       this->pvDataWidth = temp;
-      this->updateDataVisulation ();
+      this->calculateDataVisulationValues ();
    }
 
    // Update the tool tip for this PV, but not general widget alarm state.
@@ -538,7 +657,7 @@ QString QEAbstract2DData::getVariableNameSubstitutions () const
 void QEAbstract2DData::setDataWidth (const int dataWidth)
 {
    this->mDataWidth = MAX (1, dataWidth);
-   this->updateDataVisulation();
+   this->calculateDataVisulationValues();
 }
 
 //------------------------------------------------------------------------------
@@ -553,7 +672,7 @@ int QEAbstract2DData::getDataWidth () const
 void QEAbstract2DData::setDataFormat (const DataFormats dataFormat)
 {
    this->mDataFormat = dataFormat;
-   this->updateDataVisulation();
+   this->calculateDataVisulationValues();
 }
 
 //------------------------------------------------------------------------------
@@ -569,7 +688,7 @@ QEAbstract2DData::getDataFormat () const
 void QEAbstract2DData::setNumberOfSets (const int numberOfSets)
 {
    this->mNumberOfSets = LIMIT (numberOfSets, 1, 1024);
-   this->updateDataVisulation();
+   this->calculateDataVisulationValues();
 }
 
 //------------------------------------------------------------------------------
@@ -579,12 +698,119 @@ int QEAbstract2DData::getNumberOfSets () const
    return this->mNumberOfSets;
 }
 
+
+//------------------------------------------------------------------------------
+//
+void QEAbstract2DData::setRotation (const RotationOptions rotation)
+{
+   this->mRotation = rotation;
+   this->calculateDataVisulationValues();
+}
+
+//------------------------------------------------------------------------------
+//
+QEAbstract2DData::RotationOptions
+QEAbstract2DData::getRotation() const
+{
+   return this->mRotation;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAbstract2DData::setVerticalFlip (const bool verticalFlip)
+{
+   this->mVerticalFlip = verticalFlip;
+   this->calculateDataVisulationValues();
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEAbstract2DData::getVerticalFlip () const
+{
+   return this->mVerticalFlip;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAbstract2DData::setHorizontalFlip (const bool horizontalFlip)
+{
+   this->mHorizontalFlip = horizontalFlip;
+   this->calculateDataVisulationValues();
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEAbstract2DData::getHorizontalFlip () const
+{
+   return this->mHorizontalFlip;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAbstract2DData::setVerticalSliceFirst (const int first)
+{
+   this->mVerticalSliceFirst = first;
+   this->calculateDataVisulationValues();
+}
+
+//------------------------------------------------------------------------------
+//
+int QEAbstract2DData::getVerticalSliceFirst () const
+{
+   return this->mVerticalSliceFirst;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAbstract2DData::setVerticalSliceLast (const int last)
+{
+   this->mVerticalSliceLast = last;
+   this->calculateDataVisulationValues();
+}
+
+//------------------------------------------------------------------------------
+//
+int QEAbstract2DData::getVerticalSliceLast () const
+{
+   return this->mVerticalSliceLast;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAbstract2DData::setHorizontalSliceFirst (const int first)
+{
+   this->mHorizontalSliceFirst = first;
+   this->calculateDataVisulationValues();
+}
+
+//------------------------------------------------------------------------------
+//
+int QEAbstract2DData::getHorizontalSliceFirst () const
+{
+   return this->mHorizontalSliceFirst;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAbstract2DData::setHorizontalSliceLast (const int last)
+{
+   this->mHorizontalSliceLast = last;
+   this->calculateDataVisulationValues();
+}
+
+//------------------------------------------------------------------------------
+//
+int QEAbstract2DData::getHorizontalSliceLast () const
+{
+   return this->mHorizontalSliceLast;
+}
+
 //------------------------------------------------------------------------------
 //
 void QEAbstract2DData::setAutoScale (const bool autoScale)
 {
    this->mAutoScale = autoScale;
-   this->updateDataVisulation();
+   this->calculateDataVisulationValues();
 }
 
 //------------------------------------------------------------------------------
@@ -600,7 +826,7 @@ void QEAbstract2DData::setMinimum (const double minimum)
 {
    this->mMinimum = minimum;
    this->mMaximum = MAX (this->mMaximum, this->mMinimum + minSpan);
-   this->updateDataVisulation();
+   this->calculateDataVisulationValues();
 }
 
 //------------------------------------------------------------------------------
@@ -616,7 +842,7 @@ void QEAbstract2DData::setMaximum (const double maximum)
 {
    this->mMaximum = maximum;
    this->mMinimum = MIN (this->mMinimum, this->mMaximum - minSpan);
-   this->updateDataVisulation();
+   this->calculateDataVisulationValues();
 }
 
 //------------------------------------------------------------------------------
@@ -624,6 +850,95 @@ void QEAbstract2DData::setMaximum (const double maximum)
 double QEAbstract2DData::getMaximum () const
 {
    return this->mMaximum;
+}
+
+//==============================================================================
+// Context menu - place holder.
+//
+QMenu* QEAbstract2DData::buildContextMenu ()
+{
+   QMenu* menu = ParentWidgetClass::buildContextMenu ();
+   QAction* action;
+
+   menu->addSeparator ();
+
+   action = new QAction ("No Rotation", menu);
+   action->setCheckable (true);
+   action->setChecked (this->getRotation() == NoRotation);
+   action->setData (A2DDCM_NO_ROTATION);
+   menu->addAction (action);
+
+   action = new QAction ("Rotate 90 Right", menu);
+   action->setCheckable (true);
+   action->setChecked (this->getRotation() == Rotate90Right);
+   action->setData (A2DDCM_ROTATE_90_RIGHT);
+   menu->addAction (action);
+
+   action = new QAction ("Rotate 180", menu);
+   action->setCheckable (true);
+   action->setChecked (this->getRotation() == Rotate180);
+   action->setData (A2DDCM_ROTATE_180);
+   menu->addAction (action);
+
+   action = new QAction ("Rotate 90 Left", menu);
+   action->setCheckable (true);
+   action->setChecked (this->getRotation() == Rotate90Left);
+   action->setData (A2DDCM_ROTATE_90_LEFT);
+   menu->addAction (action);
+
+   menu->addSeparator ();
+
+   action = new QAction ("Vertical Flip", menu);
+   action->setCheckable (true);
+   action->setChecked (this->getVerticalFlip());
+   action->setData (A2DDCM_VERTICAL_FLIP);
+   menu->addAction (action);
+
+   action = new QAction ("Horizontal Flip", menu);
+   action->setCheckable (true);
+   action->setChecked (this->getHorizontalFlip());
+   action->setData (A2DDCM_HORIZONTAL_FLIP);
+   menu->addAction (action);
+
+   return  menu;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAbstract2DData::contextMenuTriggered (int selectedItemNum)
+{
+   switch (selectedItemNum) {
+
+      case A2DDCM_NO_ROTATION:
+         this->setRotation (NoRotation);
+         break;
+
+      case A2DDCM_ROTATE_90_RIGHT:
+         this->setRotation (Rotate90Right);
+         break;
+
+      case A2DDCM_ROTATE_180:
+         this->setRotation (Rotate180);
+         break;
+
+      case A2DDCM_ROTATE_90_LEFT:
+         this->setRotation (Rotate90Left);
+         break;
+
+      case A2DDCM_VERTICAL_FLIP:
+         this->setVerticalFlip (!this->getVerticalFlip());      // flip the flip state
+         break;
+
+      case A2DDCM_HORIZONTAL_FLIP:
+         this->setHorizontalFlip (!this->getHorizontalFlip());  // flip the flip state
+         break;
+
+      default:
+         // Call parent class function.
+         //
+         ParentWidgetClass::contextMenuTriggered (selectedItemNum);
+         break;
+   }
 }
 
 //==============================================================================

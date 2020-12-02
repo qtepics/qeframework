@@ -28,6 +28,7 @@
 #define QE_ABSTRACT_2D_DATA_H
 
 #include <QList>
+#include <QMenu>
 #include <QString>
 #include <QSize>
 #include <QRect>
@@ -49,6 +50,9 @@
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAbstract2DData : public QEFrame
 {
    Q_OBJECT
+
+   typedef QEFrame ParentWidgetClass;
+
 public:
    // Some QEFrame properties are really not applicable to this widget hierarchy.
    // These are re-declared as DESIGNABLE false.
@@ -88,6 +92,7 @@ public:
    ///
    Q_PROPERTY (int dataWidth         READ getDataWidth      WRITE setDataWidth)
 
+   /// \enum DataFormats
    /// Defines whether the source data is treated as a 1D array oe a 2D array.
    /// When source data is defined as 1D, the widget accumulates data on a FIFO
    /// basis, similar to the compress record, upto a maximum of numberOfSets
@@ -95,8 +100,8 @@ public:
    /// Default: array2D
    ///
    enum DataFormats {
-      array1D,
-      array2D
+      array1D,    ///<
+      array2D     ///<
    };
    Q_ENUMS(DataFormats)
 
@@ -109,14 +114,64 @@ public:
    ///
    Q_PROPERTY (int numberOfSets      READ getNumberOfSets   WRITE setNumberOfSets)
 
-   Q_PROPERTY (bool autoScale        READ getAutoScale      WRITE setAutoScale)
-   Q_PROPERTY (double minimum        READ getMinimum        WRITE setMinimum)
-   Q_PROPERTY (double maximum        READ getMaximum        WRITE setMaximum)
+   /// Data display options - order is slice, rotate then flip.
+   ///
+   /// Slice properties
+   /// These properties can be negative, which interpreted as dimension number - abs(value)
+   ///
+   Q_PROPERTY (int verticalSliceFirst    READ getVerticalSliceFirst    WRITE setVerticalSliceFirst)
+   Q_PROPERTY (int verticalSliceLast     READ getVerticalSliceLast     WRITE setVerticalSliceLast)
+   Q_PROPERTY (int horizontalSliceFirst  READ getHorizontalSliceFirst  WRITE setHorizontalSliceFirst)
+   Q_PROPERTY (int horizontalSliceLast   READ getHorizontalSliceLast   WRITE setHorizontalSliceLast)
+
+   // The rptation and flip properties/meanings cribbed from QEImage.
+   // Note: One 4-way rotation and two 2-way flips is apparently 4x2x2 = 16 options.
+   // However in reality, there is redundancy here - there are only 8 distinct
+   // rotate/flip options. We follow the QEImage paradigm for both consistancy
+   // and probably less mental gymnastics for the user.
+   //
+   /// \enum RotationOptions
+   enum RotationOptions {
+      NoRotation,              ///< No data rotation
+      Rotate90Right,           ///< Rotate data 90 degrees clockwise
+      Rotate180,               ///< Rotate data 180 degrees
+      Rotate90Left             ///< Rotate data 90 degrees anti-clockwise
+   };
+   Q_ENUMS(RotationOptions)
+
+   /// Data rotation option.
+   ///
+   Q_PROPERTY (RotationOptions rotation  READ getRotation              WRITE setRotation)
+
+   /// If true, flip image vertically.
+   ///
+   Q_PROPERTY (bool verticalFlip         READ getVerticalFlip          WRITE setVerticalFlip)
+
+   /// If true, flip image horizontally.
+   ///
+   Q_PROPERTY (bool horizontalFlip       READ getHorizontalFlip        WRITE setHorizontalFlip)
+
+   Q_PROPERTY (bool autoScale            READ getAutoScale             WRITE setAutoScale)
+   Q_PROPERTY (double minimum            READ getMinimum               WRITE setMinimum)
+   Q_PROPERTY (double maximum            READ getMaximum               WRITE setMaximum)
 
 public:
    enum Constants {
       DATA_PV_INDEX = 0,
       WIDTH_PV_INDEX = 1
+   };
+
+   // QEAbstract2DData context menu values
+   //
+   enum OwnContextMenuOptions {
+      A2DDCM_NONE = CM_SPECIFIC_WIDGETS_START_HERE,
+      A2DDCM_NO_ROTATION,
+      A2DDCM_ROTATE_90_RIGHT,
+      A2DDCM_ROTATE_180,
+      A2DDCM_ROTATE_90_LEFT,
+      A2DDCM_VERTICAL_FLIP,
+      A2DDCM_HORIZONTAL_FLIP,
+      A2DDCM_SUB_CLASS_WIDGETS_START_HERE
    };
 
    /// Create without a variable.
@@ -153,22 +208,36 @@ public:
    void setVariableNameSubstitutions (const QString variableSubstitutions);
    QString getVariableNameSubstitutions () const;
 
+public slots:
+   // All non-PV name related property setters are also slots.
+   //
    void setDataWidth (const int dataWidth);
-   int getDataWidth () const;
-
    void setDataFormat (const DataFormats dataFormat);
-   DataFormats getDataFormat () const;
-
    void setNumberOfSets (const int numberOfSets);
-   int getNumberOfSets () const;
-
+   void setVerticalSliceFirst (const int first);
+   void setVerticalSliceLast (const int last);
+   void setHorizontalSliceFirst (const int first);
+   void setHorizontalSliceLast (const int last);
+   void setRotation (const RotationOptions rotation);
+   void setVerticalFlip (const bool verticalFlip);
+   void setHorizontalFlip (const bool horizontalFlip);
    void setAutoScale (const bool autoScale);
-   bool getAutoScale () const;
-
    void setMinimum (const double minimum);
-   double getMinimum () const;
-
    void setMaximum (const double maximum);
+
+public:
+   int getDataWidth () const;
+   DataFormats getDataFormat () const;
+   int getNumberOfSets () const;
+   int getVerticalSliceFirst () const;
+   int getVerticalSliceLast () const;
+   int getHorizontalSliceFirst () const;
+   int getHorizontalSliceLast () const;
+   RotationOptions getRotation() const;
+   bool getVerticalFlip () const;
+   bool getHorizontalFlip () const;
+   bool getAutoScale () const;
+   double getMinimum () const;
    double getMaximum () const;
 
 signals:
@@ -205,6 +274,9 @@ protected:
    qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
    void establishConnection (unsigned int variableIndex);
 
+   QMenu* buildContextMenu ();                        // Build the specific context menu
+   void contextMenuTriggered (int selectedItemNum);   // An action was selected from the context menu
+
    // Data is held as a list of vectors.
    // For 2D data, there is only one vector in the list.
    //
@@ -212,10 +284,13 @@ protected:
 
    TwoDimensionalData getData () const;
 
-   // If srcRow or srcCol out of range of the available data, this function
+   // This function returns value at the displayed row and col position.
+   // It use the slicing, rotation, and flip states to extract the underlying
+   // data value.
+   // If row or col out of range of the available data, this function
    // returns the specified defaultValue.
    //
-   double getValue (const int srcRow, const int srcCol,
+   double getValue (const int displayRow, const int displayCol,
                     const double defaultValue) const;
 
    int getUpdateCount () const;
@@ -224,19 +299,15 @@ protected:
    // min and max left "as is", i.e. unchanged. Therefore caller should supply
    // sensible default.
    //
-   void getDataMinMaxValues (double& min, double& max);
+   void getDataMinMaxValues (double& min, double& max) const;
 
-   // When accumulate is false, numberRows is just the number of rows and the
-   // potential parameter is essentially ignored.
+   // This function returns the number of displayed rows and cols.
+   // When 1D data is being accumulated, the number of rows (or cols) is the
+   // potential number, not the number so far accumumated.
+   // Takes into account slicing and if/when a 90 degree rotation selected,
+   // switched the number of rows and cols.
    //
-   // When accumulate is true, the potential parameter controls whether the
-   // returned numberRows is the actual number of rows/data sets accumulated
-   // so far (potential = false) or the maximum number that can be accumulated
-   // (potential = true). Of course once the widget has been running for a
-   // while these number will be the same.
-   //
-   void getNumberRowsAndCols (const bool potential,
-                              int& numberRows, int& numberCols);
+   void getNumberRowsAndCols (int& numberRows, int& numberCols) const;
 
    // Get the data engineering units and precision.
    //
@@ -250,6 +321,7 @@ protected:
 
 private:
    void commonSetup ();
+   void calculateDataVisulationValues ();
 
    QCaVariableNamePropertyManager dnpm;   // data name
    QCaVariableNamePropertyManager wnpm;   // width name
@@ -260,6 +332,18 @@ private:
    // Property members
    //
    int mDataWidth;
+
+   // Slice parameters.
+   //
+   int mVerticalSliceFirst;    // row first
+   int mVerticalSliceLast;     // row last
+
+   int mHorizontalSliceFirst;  // col first
+   int mHorizontalSliceLast;   // col last
+
+   RotationOptions mRotation;
+   bool mVerticalFlip;
+   bool mHorizontalFlip;
    bool mAutoScale;
    double mMinimum;
    double mMaximum;
@@ -274,6 +358,20 @@ private:
 
    bool pvDataWidthAvailable;
    int  pvDataWidth;
+
+   // data values
+   //
+   int rawNumberOfRows;         // number of available/potential rows of data
+   int rawNumberOfCols;         // number of columns of data
+
+   int sliceRowOffset;          // slice offset
+   int sliceColOffset;          // slice offset
+
+   int slicedNumberOfRows;      // number rows of data after sliceing
+   int slicedNumberOfCols;      // number cols of data after sliceing
+
+   int displayedNumberOfRows;   // number rows of data after any rotation
+   int displayedNumberOfCols;   // number cols of data after any rotation
 
 private slots:
    void setVariableNameProperty (QString variableName,
@@ -292,6 +390,7 @@ private slots:
 
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
 Q_DECLARE_METATYPE (QEAbstract2DData::DataFormats)
+Q_DECLARE_METATYPE (QEAbstract2DData::RotationOptions)
 #endif
 
 #endif // QE_ABSTRACT_2D_DATA_H

@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #26 $
-# $DateTime: 2020/11/04 22:27:55 $
+# $Revision: #27 $
+# $DateTime: 2020/12/01 13:58:23 $
 # Last checked in by: $Author: starritt $
 #
 # Copyright (c) 2009-2020 Australian Synchrotron
@@ -74,9 +74,12 @@ equals( QT_MAJOR_VERSION, 5 ) {
     QT += core gui xml network uitools designer
 
     # We need 5.7 or later for data vizualisation
+    # If not needed/not available then comment out the next
+    # 5 lines of the project file.
     #
     greaterThan ( QT_MINOR_VERSION, 6 ) {
         QT += datavisualization
+        DEFINES += QE_USE_DATA_VISUALIZATION
     }
 }
 

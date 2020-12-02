@@ -94,6 +94,8 @@ void QEWaterfall::commonSetup ()
    this->mTraceColour = QColor ("#0000c0");
    this->mMutableHue = false;
    this->mTraceWidth = 1;
+   this->mBackgroundColour = QColor ("#ffffff");
+
 
    // NOTE: The axis objects are used as painters, not as widgets.
    //
@@ -107,7 +109,6 @@ void QEWaterfall::commonSetup ()
    this->xAxis->setIndent (axisIndents, axisIndents);
    this->xAxis->setGap (0);
 
-   // TODO : Auto axis
    this->yAxis->setPrecision (1);
    this->yAxis->setMinorInterval (1.0);
    this->yAxis->setHasAxisLine (true);
@@ -175,8 +176,12 @@ bool QEWaterfall::eventFilter (QObject* watched, QEvent* event)
 //
 void QEWaterfall::paintWaterfall ()
 {
-   const TwoDimensionalData data = this->getData();
-// const int number = data.count();
+   // If background is dark, choose white as oen colour.
+   //
+   const QColor penColour = QEUtilities::fontColour (this->mBackgroundColour);
+
+   this->xAxis->setPenColour (penColour);
+   this->yAxis->setPenColour (penColour);
 
    double min = this->getMinimum();
    double max = this->getMaximum();
@@ -190,9 +195,7 @@ void QEWaterfall::paintWaterfall ()
 
    int numberCols;
    int numberRows;
-   int maximumRows;
-   this->getNumberRowsAndCols (false, numberRows, numberCols);
-   this->getNumberRowsAndCols (true, maximumRows, numberCols);
+   this->getNumberRowsAndCols (numberRows, numberCols);
 
    // Set up painter.
    //
@@ -219,14 +222,14 @@ void QEWaterfall::paintWaterfall ()
    // Vertical split into four regions sized ay, by, cy and dy (top to bottom)
    //
    const double ay = 20.0;                // gap at top
-   const double by = maximumRows * dsy;   // slope bit
+   const double by = numberRows * dsy;    // slope bit
    const double dy = 36.0;                // room for axis
    const double cy = rect.height() - (ay + by + dy);
 
    // Horizontal split into four regions sized ax, bx, cx and dx (right to left)
    //
    const double ax = 20.0;                // gap at left
-   const double bx = maximumRows * dsx;   // slope bit
+   const double bx = numberRows * dsx;    // slope bit
    const double dx = 52.0;                // room for axis
    const double cx = rect.width() - (ax + bx + dx);
 
@@ -238,9 +241,20 @@ void QEWaterfall::paintWaterfall ()
    const double xScale = +cx / (numberCols - 1.0);
    const double xOffset = dx - xScale * 0;
 
-   QPointF rowDelta = QPointF (+dsx, -dsy);      // y -ve becase +y is downwards.
+   QPointF rowDelta = QPointF (+dsx, -dsy);      // y -ve because +y is downwards.
 
    // Rear points on the bounding cuboid.
+   //
+   //        3----------------------------------5
+   //       /|                                  |
+   //      / |                                  |
+   //     /  |                                  |
+   //    2   |                                  |
+   //    |   4----------------------------------6
+   //    |  /                                  /
+   //    | /                                  /
+   //    |/                                  /
+   //    1----------------------------------7
    //
    const QPointF k1 = QPointF (dx, ay + by + cy);
    const QPointF k2 = QPointF (dx, ay + by);
@@ -252,24 +266,25 @@ void QEWaterfall::paintWaterfall ()
 
    // Start painting and drawing.
    //
-   // Fill background white.
+   // Fill background.
    //
-   QColor background ("#ffffff");
-   painter.fillRect (rect, background);
+   painter.fillRect (rect, this->mBackgroundColour);
 
    QPen pen;
    pen.setStyle (Qt::SolidLine);
    pen.setWidth (1);
-   pen.setColor ("black");
+   pen.setColor (penColour);
+   painter.setPen (pen);
 
    // Draw rear edges of bounding cuboid.
+   //
    // painter.drawLine (k1, k2);  /// axis
    painter.drawLine (k2, k3);
    painter.drawLine (k1, k4);
    painter.drawLine (k3, k4);
    painter.drawLine (k3, k5);
    painter.drawLine (k4, k6);
-   // painter.drawLine (k1, k6);  /// axis
+   // painter.drawLine (k1, k7);  /// axis
    painter.drawLine (k5, k6);
    painter.drawLine (k6, k7);
 
@@ -283,7 +298,7 @@ void QEWaterfall::paintWaterfall ()
 
    QBrush brush;
    brush.setStyle (Qt::SolidPattern);
-   brush.setColor (QColor ("white"));
+   brush.setColor (this->mBackgroundColour);
 
    QEWaterfall::PosToSrcMap::clear (this);
 
@@ -356,15 +371,15 @@ void QEWaterfall::paintWaterfall ()
       points [2] = line.value (numberCols + 1);
       points [3] = line.value (0);
 
-      pen.setColor (QColor ("#ffffff"));
+      pen.setColor (this->mBackgroundColour);
       painter.setPen (pen);
       painter.drawPolyline (points, 4);
    }
 
-   // Re-draw the bounding edges taht get "zapped".
+   // Re-draw the bounding edges that can get "zapped".
    //
    pen.setWidth (1);
-   pen.setColor ("black");
+   pen.setColor (penColour);
    painter.setPen (pen);
    painter.drawLine (k5, k6);
    painter.drawLine (k6, k7);
@@ -461,7 +476,7 @@ int QEWaterfall::getTraceWidth () const
 
 //------------------------------------------------------------------------------
 //
-void QEWaterfall::setTraceColor (const QColor& traceColourIn)
+void QEWaterfall::setTraceColour (const QColor& traceColourIn)
 {
    this->mTraceColour = traceColourIn;
    this->plotArea->update ();
@@ -469,9 +484,24 @@ void QEWaterfall::setTraceColor (const QColor& traceColourIn)
 
 //------------------------------------------------------------------------------
 //
-QColor QEWaterfall::getTraceColor () const
+QColor QEWaterfall::getTraceColour () const
 {
    return this->mTraceColour;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEWaterfall::setBackgroundColour (const QColor& traceBackgroundIn)
+{
+   this->mBackgroundColour = traceBackgroundIn;
+   this->plotArea->update ();
+}
+
+//------------------------------------------------------------------------------
+//
+QColor QEWaterfall::getBackgroundColour () const
+{
+   return this->mBackgroundColour;
 }
 
 //------------------------------------------------------------------------------
