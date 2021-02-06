@@ -547,7 +547,7 @@ QString QCaObject::getFieldType() const
 unsigned long QCaObject::getElementCount() const
 {
    unsigned long result = 0;
-   RESULT_SELECT (dataElementCount, dataElementCount);
+   RESULT_SELECT (hostElementCount, dataElementCount);
    return result;
 }
 
