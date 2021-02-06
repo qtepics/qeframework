@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron
+ *  Copyright (c) 2012-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -32,6 +32,7 @@
 #include <QList>
 #include <QMenu>
 #include <QPoint>
+#include <QPushButton>
 #include <QScrollArea>
 #include <QString>
 #include <QTableWidget>
@@ -56,6 +57,8 @@
 #include <QEWidget.h>
 #include <QEQuickSort.h>
 #include <QEOneToOne.h>
+
+class QEPVNameSelectDialog;  // differed
 
 /// The QEPvProperties class allows user to view all the displayable fields
 /// of the associated IOC record.
@@ -179,7 +182,7 @@ private:
    typedef QList<QLabel*> QLabelList;
 
    QFrame* topFrame;
-   QLabel* label1;
+   QPushButton* pvNameButton;
    QLabel* label2;
    QLabel* label3;
    QLabel* label4;
@@ -190,7 +193,7 @@ private:
    QLabel* hostName;
    QLabel* fieldType;
    QLabel* timeStamp;
-   QLabel* indexInfo;
+   QLabel* elementCount;
    QVBoxLayout* topFrameVlayout;
    QHBoxLayout* hlayouts [6];
 
@@ -213,6 +216,8 @@ private:
 
    QList<QEString *> fieldChannels;
    bool fieldsAreSorted;
+
+   QEPVNameSelectDialog* pvNameSelectDialog;
 
    // Holds the required scaled widths for the field name and description columns.
    // These are transient variables used by setColumnWidths() and delayedSetColumnWidths().
@@ -256,6 +261,8 @@ private:
    // Requests new columns widths.
    void setColumnWidths (const int fcw, const int dcw);
 
+   void runSelectNameDialog (QWidget* control);
+
 private slots:
    // Actually sets the required columns widths.
    void delayedSetColumnWidths ();
@@ -284,6 +291,7 @@ private slots:
                        QCaDateTime & dateTime,
                        const unsigned int & variableIndex);
 
+   void pvNameSelect (bool);
    void boxCurrentIndexChanged (int index);                    // From own combo box.
    void customTableContextMenuRequested (const QPoint & pos);  // Form the table.
    void tableHeaderClicked (int index);

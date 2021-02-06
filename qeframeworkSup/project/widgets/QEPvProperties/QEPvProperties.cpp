@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron.
+ *  Copyright (c) 2012-2021 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -42,6 +42,8 @@
 #include <QELabel.h>
 #include <QEStringFormatting.h>
 #include <QERecordFieldName.h>
+#include <QEPVNameSelectDialog.h>
+
 
 #define DEBUG qDebug() << "QEPvProperties" << __LINE__ << __FUNCTION__ << "  "
 
@@ -169,7 +171,9 @@ void QEPvProperties::createInternalWidgets ()
    const int label_height = 18;
    const int label_width = 48;
 
-   int j;
+   // Create dialog.
+   //
+   this->pvNameSelectDialog = new QEPVNameSelectDialog (this);
 
    // Creates all the internal widgets including setting basic geometry.
    //
@@ -182,7 +186,7 @@ void QEPvProperties::createInternalWidgets ()
    this->topFrameVlayout->setSpacing (6);
    this->topFrameVlayout->setObjectName ("topFrameVlayout");
 
-   for (j = 1; j <= 5; j++) {
+   for (int j = 1; j <= 5; j++) {
       this->hlayouts [j] = new QHBoxLayout ();
       this->hlayouts [j]->setContentsMargins (2, 0, 2, 0);  // l, t, r, b
       this->hlayouts [j]->setSpacing (6);
@@ -190,12 +194,12 @@ void QEPvProperties::createInternalWidgets ()
       this->topFrameVlayout->addLayout (this->hlayouts [j], 1);
    }
 
-   this->label1 = new QLabel ("NAME", this->topFrame);
-   this->label1->setFixedSize (QSize (label_width, label_height));
+   this->pvNameButton = new QPushButton ("Name", this->topFrame);
+   this->pvNameButton->setFixedSize (QSize (label_width, label_height));
 
    this->box = new QComboBox (this->topFrame);
    this->box->setFixedHeight (label_height + 9);
-   this->hlayouts [1]->addWidget (this->label1, 0, Qt::AlignVCenter);
+   this->hlayouts [1]->addWidget (this->pvNameButton, 0, Qt::AlignVCenter);
    this->hlayouts [1]->addWidget (this->box, 0, Qt::AlignVCenter);
 
    this->label2 = new QLabel ("VAL", this->topFrame);
@@ -208,14 +212,14 @@ void QEPvProperties::createInternalWidgets ()
    this->hlayouts [2]->addWidget (this->label2);
    this->hlayouts [2]->addWidget (this->valueLabel);
 
-   this->label3 = new QLabel ("HOST", this->topFrame);
+   this->label3 = new QLabel ("Host", this->topFrame);
    this->label3->setFixedSize (QSize (label_width, label_height));
    this->hostName = new QLabel (this->topFrame);
    this->hostName->setFixedHeight (label_height);
    this->hlayouts [3]->addWidget (this->label3);
    this->hlayouts [3]->addWidget (this->hostName);
 
-   this->label4 = new QLabel ("TIME", this->topFrame);
+   this->label4 = new QLabel ("Time", this->topFrame);
    this->label4->setFixedSize (QSize (label_width, label_height));
    this->timeStamp = new QLabel (this->topFrame);
    this->timeStamp->setFixedHeight (label_height);
@@ -226,17 +230,19 @@ void QEPvProperties::createInternalWidgets ()
    this->label5->setFixedSize (QSize (label_width, label_height));
    this->fieldType = new QLabel (this->topFrame);
    this->fieldType->setFixedHeight (label_height);
-   this->label6 = new QLabel ("INDEX", this->topFrame);
-   this->label6->setFixedSize (QSize (label_width, label_height));
-   this->indexInfo = new QLabel (this->topFrame);
-   this->indexInfo->setFixedHeight (label_height);
+
+   this->label6 = new QLabel ("  Element Count", this->topFrame);
+   this->label6->setFixedSize (QSize (112, label_height));
+   this->elementCount = new QLabel (this->topFrame);
+   this->elementCount->setFixedHeight (label_height);
+
    this->hlayouts [5]->addWidget (this->label5);
    this->hlayouts [5]->addWidget (this->fieldType);
    this->hlayouts [5]->addWidget (this->label6);
-   this->hlayouts [5]->addWidget (this->indexInfo);
+   this->hlayouts [5]->addWidget (this->elementCount);
 
    this->enumerationFrame = new QFrame (NULL); // is re-parented by enumerationScroll
-   for (j = 0; j < NUMBER_OF_ENUMERATIONS; j++) {
+   for (int j = 0; j < NUMBER_OF_ENUMERATIONS; j++) {
       QLabel * item;
       item = new QLabel (this->enumerationFrame);
       item->setGeometry (0, 0, 128, label_height);
@@ -388,6 +394,9 @@ void QEPvProperties::common_setup ()
    this->box->setInsertPolicy (QComboBox::InsertAtTop);
    this->box->setDuplicatesEnabled (false);
 
+   QObject::connect (this->pvNameButton, SIGNAL (clicked      (bool)),
+                     this,               SLOT   (pvNameSelect (bool)));
+
    // We use the activated signal (as opposed to currentIndexChanged) as it
    // is only emmited on User change.
    //
@@ -420,9 +429,9 @@ void QEPvProperties::common_setup ()
    this->fieldType->setAlignment(Qt::AlignHCenter);
    this->fieldType->setStyleSheet (lightGreyStyle);
 
-   this->indexInfo->setAlignment(Qt::AlignRight);
-   this->indexInfo->setIndent (4);
-   this->indexInfo->setStyleSheet (lightGreyStyle);
+   this->elementCount->setAlignment(Qt::AlignRight);
+   this->elementCount->setIndent (4);
+   this->elementCount->setStyleSheet (lightGreyStyle);
 
    for (j = 0; j < this->enumerationLabelList.count (); j++) {
       enumLabel = this->enumerationLabelList.value (j);
@@ -697,7 +706,7 @@ void QEPvProperties::establishConnection (unsigned int variableIndex)
    this->hostName->setText ("");
    this->timeStamp->setText ("");
    this->fieldType->setText ("");
-   this->indexInfo->setText ("");
+   this->elementCount->setText ("");
    this->valueLabel->setText ("");
 
    // Clear any previous cached info.
@@ -746,6 +755,7 @@ void QEPvProperties::establishConnection (unsigned int variableIndex)
       QObject::connect (qca,  SIGNAL (connectionChanged  (QCaConnectionInfo&, const unsigned int&)),
                         this, SLOT   (setValueConnection (QCaConnectionInfo&, const unsigned int&)));
 
+      qca->setRequestedElementCount (1);  // we only need the first eleent.
       QObject::connect (qca,  SIGNAL (dataChanged   (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
                         this, SLOT   (setValueValue (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
    }
@@ -978,7 +988,7 @@ void QEPvProperties::setValueConnection (QCaConnectionInfo& connectionInfo, cons
    this->hostName->setEnabled  (isConnected);
    this->timeStamp->setEnabled (isConnected);
    this->fieldType->setEnabled (isConnected);
-   this->indexInfo->setEnabled (isConnected);
+   this->elementCount->setEnabled (isConnected);
 
    if (connectionInfo.isChannelConnected ()) {
       // We "know" that the only/main channel is the 1st (slot 0) channel.
@@ -1017,11 +1027,11 @@ void QEPvProperties::setValueValue (const QVariant& value,
       //
       this->fieldType->setText (qca->getFieldType ());
 
-      // Assume we are looking at 1st/only element for now.
+      // Set up element count.
       //
       QString s;
-      s.sprintf ("%d / %ld", 1,  qca->getElementCount ());
-      this->indexInfo->setText (s);
+      s.setNum (qca->getElementCount ());
+      this->elementCount->setText (s);
 
       // Whilst the value QELabel basically looks after itself, it benefits from
       // a helping hand. If the PV is of type DBF_CHAR and the field name
@@ -1158,17 +1168,46 @@ void QEPvProperties::setApplicationEnabled (const bool& state)
     QWidget::setEnabled (state);
 }
 
+//------------------------------------------------------------------------------
+//
+void QEPvProperties::pvNameSelect (bool)
+{
+   QWidget* from = dynamic_cast <QWidget*> (sender ());
+   this->runSelectNameDialog (from);
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPvProperties::runSelectNameDialog (QWidget* control)
+{
+   const QString oldPvName = this->getSubstitutedVariableName (0);
+
+   this->pvNameSelectDialog->setPvName (oldPvName);
+
+   const int n = this->pvNameSelectDialog->exec (control ? control : this);
+   if (n == 1) {
+      // User has selected okay.
+      //
+      const QString newPvName = this->pvNameSelectDialog->getPvName ();
+
+      if (newPvName != oldPvName) {
+         // Clear style.
+         //
+         this->valueLabel->setStyleSheet (lightGreyStyle);
+         this->setVariableName (newPvName, 0);
+         this->establishConnection (0);
+      }
+   }
+}
+
 //==============================================================================
 // ComboBox
 //
 void QEPvProperties::boxCurrentIndexChanged (int index)
 {
-   QString newPvName;
-   QString oldPvName;
-
    if (index >= 0) {
-      newPvName = this->box->itemText (index);
-      oldPvName = getSubstitutedVariableName (0);
+      const QString newPvName = this->box->itemText (index);
+      const QString oldPvName = this->getSubstitutedVariableName (0);
 
       // belts 'n' braces.
       //
