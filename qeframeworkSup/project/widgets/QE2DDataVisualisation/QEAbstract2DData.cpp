@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020 Australian Synchrotron.
+ *  Copyright (c) 2020-2021 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -29,6 +29,8 @@
 #include <QDebug>
 #include <QECommon.h>
 #include <UserMessage.h>
+#include <QCaObject.h>
+#include <QEStripChartRangeDialog.h>
 
 #define DEBUG qDebug () << "QEAbstract2DData" << __LINE__ << __FUNCTION__ << "  "
 
@@ -77,6 +79,9 @@ QEAbstract2DData::~QEAbstract2DData () { }
 //
 void QEAbstract2DData::commonSetup ()
 {
+   this->rangeDialog = new QEStripChartRangeDialog (this);
+   this->rangeDialog->setWindowTitle ("Data Minimum/Maximum");
+
    // Configure the panel.
    //
    this->setFrameShape (QFrame::NoFrame);
@@ -111,11 +116,12 @@ void QEAbstract2DData::commonSetup ()
    this->mHorizontalSliceFirst = 0;
    this->mHorizontalSliceLast = -1;
 
-   this->mAutoScale = false;
+   this->mScaleMode = manual;
    this->mMinimum = 0.0;
    this->mMaximum = 255.0;
    this->mDataFormat = array2D;
    this->mNumberOfSets = 40;
+   this->mMouseSignals = signalStatus;
 
    this->pvDataWidthAvailable = false;
    this->pvDataWidth = 100;
@@ -232,21 +238,25 @@ QEAbstract2DData::getData () const
 
 //------------------------------------------------------------------------------
 //
-double QEAbstract2DData::getValue (const int displayRow, const int displayCol,
-                                   const double defaultValue) const
+void QEAbstract2DData::findDataRowCol (const int displayRow, const int displayCol,
+                                       int& sourceRow, int& sourceCol) const
 {
+   int temp;
+
    // Start with no rotation and no flipping.
    //
-   int srcRow = displayRow;
-   int srcCol = displayCol;
-   int temp;
+   sourceRow = displayRow;
+   sourceCol = displayCol;
 
    // Processes slicing, rotation and flips.
    // As we apply slice, rotate, then flip, we must first un-flip, un-rotate
    // and then un-slice.
    //
-   if (this->mVerticalFlip)   srcRow = this->displayedNumberOfRows - 1 - srcRow;
-   if (this->mHorizontalFlip) srcCol = this->displayedNumberOfCols - 1 - srcCol;
+   if (this->mVerticalFlip)
+      sourceRow = this->displayedNumberOfRows - 1 - sourceRow;
+
+   if (this->mHorizontalFlip)
+      sourceCol = this->displayedNumberOfCols - 1 - sourceCol;
 
    switch (this->mRotation) {
       case NoRotation:
@@ -256,48 +266,71 @@ double QEAbstract2DData::getValue (const int displayRow, const int displayCol,
       case Rotate90Right:
          // Do the rotation
          //
-         temp = srcCol;
-         srcCol = srcRow;
-         srcRow = this->slicedNumberOfRows - 1 - temp;
+         temp = sourceCol;
+         sourceCol = sourceRow;
+         sourceRow = this->slicedNumberOfRows - 1 - temp;
          break;
 
       case Rotate90Left:
          // Do the rotation
          //
-         temp = srcRow;
-         srcRow = srcCol;
-         srcCol = this->slicedNumberOfCols - 1 - temp;
+         temp = sourceRow;
+         sourceRow = sourceCol;
+         sourceCol = this->slicedNumberOfCols - 1 - temp;
          break;
 
       case Rotate180:
          // Do the rotation
          //
-         srcRow = this->slicedNumberOfRows - 1 - srcRow;
-         srcCol = this->slicedNumberOfCols - 1 - srcCol;
+         sourceRow = this->slicedNumberOfRows - 1 - sourceRow;
+         sourceCol = this->slicedNumberOfCols - 1 - sourceCol;
          break;
    }
 
    // Lastly, de-slice the data, but first check out of range indices.
    //
-   srcRow += this->sliceRowOffset;
-   srcCol += this->sliceColOffset;
+   sourceRow += this->sliceRowOffset;
+   sourceCol += this->sliceColOffset;
+}
 
-   // Now that we have the source row and sorce col, extract the data value.
-   //
+//------------------------------------------------------------------------------
+//
+double QEAbstract2DData::getDataValue (const int sourceRow, const int sourceCol,
+                                       const double defaultValue) const
+{
    const QEFloatingArray emptyArray;
    double result = defaultValue;
 
    if (this->getDataFormat() == array1D) {
-      QEFloatingArray dataSet = data.value (srcRow, emptyArray);
-      result = dataSet.value (srcCol, defaultValue);
+      QEFloatingArray dataSet = data.value (sourceRow, emptyArray);
+      result = dataSet.value (sourceCol, defaultValue);
    } else {
       // array2D
       const QEFloatingArray dataSet = data.value (0, emptyArray);
       const int effectiveDataWidth = this->getEffectiveDataWidth();
-      const int index = effectiveDataWidth * srcRow + srcCol;
+      const int index = effectiveDataWidth * sourceRow + sourceCol;
       result = dataSet.value (index, defaultValue);
    }
 
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+double QEAbstract2DData::getValue (const int displayRow, const int displayCol,
+                                   const double defaultValue) const
+{
+   int sourceRow;
+   int sourceCol;
+
+   // Map/traslate the displayed row and column into the data/source row and column.
+   //
+   this->findDataRowCol (displayRow, displayCol, sourceRow, sourceCol);
+
+   // Now that we have the source row and sorce col, extract the data value.
+   //
+   double result;
+   result = getDataValue (sourceRow, sourceCol, defaultValue);
    return result;
 }
 
@@ -335,6 +368,58 @@ void QEAbstract2DData::getDataMinMaxValues (double& min, double& max) const
       min = tempMin;
       max = tempMax;
    }
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAbstract2DData::getScaleModeMinMaxValues (double& min, double& max) const
+{
+   qcaobject::QCaObject* qca = NULL;
+   double lopr;
+   double hopr;
+
+   // Ensure not erroneous - and use manual scaling as the defaults.
+   //
+   min = this->getMinimum();
+   max = this->getMaximum();
+
+   switch (this->getScaleMode()) {
+      case manual:
+         min = this->getMinimum();
+         max = this->getMaximum();
+         break;
+
+      case operatingRange:
+         qca = this->getQcaItem (DATA_PV_INDEX);
+         if (qca) {  // sanity check
+            // Get the defined operating range values.
+            lopr = qca->getDisplayLimitLower();
+            hopr = qca->getDisplayLimitUpper();
+         } else {
+            lopr = hopr = 0.0;
+         }
+
+         // Check that sensible limits have been defined and not just left
+         // at the default (i.e. zero) values by a lazy database creator.
+         //
+         if ((lopr != 0.0) || (hopr != 0.0)) {
+            min = lopr;
+            max = hopr;
+         }
+         break;
+
+      case dynamic:
+         // Use the current values for the scaling.
+         //
+         this->getDataMinMaxValues (min, max);
+         break;
+
+      case displayed:
+         // Transient state - go with default
+      default:
+         break;
+   }
+
 }
 
 //------------------------------------------------------------------------------
@@ -379,7 +464,7 @@ void QEAbstract2DData::setReadOut (const QString& text)
 
 //------------------------------------------------------------------------------
 //
-void QEAbstract2DData::setElementReadout (const int row, const int col)
+void QEAbstract2DData::setMouseOverElement (const int displayRow, const int displayCol)
 {
    // Special value used to indicate a no value.
    // This number is chosen as -(2.0 ** 48) because it:
@@ -387,29 +472,48 @@ void QEAbstract2DData::setElementReadout (const int row, const int col)
    // b) is a value that is not ever expected to 'turn up' as an actual value.
    //
    static const double noValue = -281474976710656.0;
-   const double value = this->getValue (row, col, noValue);
 
-   QString message;
-   if (value != noValue) {
-      qcaobject::QCaObject* qca;
-      QString egu = "";
+   int sourceRow;
+   int sourceCol;
 
-      qca = this->getQcaItem (DATA_PV_INDEX);
-      if (qca) {
-         egu = qca->getEgu();
+   this->findDataRowCol (displayRow, displayCol, sourceRow, sourceCol);
+   const double value = this->getDataValue (sourceRow, sourceCol, noValue);
+
+   // Do we send a status message ?
+   //
+   if (this->mMouseSignals & signalStatus) {
+      QString message;
+      if (value != noValue) {
+         qcaobject::QCaObject* qca;
+         QString egu = "";
+
+         qca = this->getQcaItem (DATA_PV_INDEX);
+         if (qca) {
+            egu = qca->getEgu();
+         }
+
+         message = QString ("row:%1  col:%2  value: %3 %4")
+               .arg (sourceRow + 1, 3)   // This message is for a real person,  ...
+               .arg (sourceCol + 1, 3)   // not a C/C++ compiler, hence +1.
+               .arg (value)
+               .arg (egu);
+
+      } else {
+         message = "";
       }
 
-      message = QString ("row:%1  col:%2  value: %3 %4")
-            .arg (row, 3)
-            .arg (col, 3)
-            .arg (value)
-            .arg (egu);
-
-   } else {
-      message = "";
+      this->setReadOut (message);
    }
 
-   this->setReadOut (message);
+   // Do we send a data signal message ?
+   //
+   if (this->mMouseSignals & signalData) {
+      if (value != noValue) {
+         emit this->mouseElementChanged (sourceRow, sourceCol, value);
+      } else {
+         emit this->mouseElementChanged (-1, -1, 0.0);
+      }
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -654,6 +758,20 @@ QString QEAbstract2DData::getVariableNameSubstitutions () const
 
 //------------------------------------------------------------------------------
 //
+void QEAbstract2DData::setMouseSignals (const MouseSignalFlags flags)
+{
+   this->mMouseSignals = flags;
+}
+
+//------------------------------------------------------------------------------
+//
+QEAbstract2DData::MouseSignalFlags QEAbstract2DData::getMouseSignals () const
+{
+   return this->mMouseSignals;
+}
+
+//------------------------------------------------------------------------------
+//
 void QEAbstract2DData::setDataWidth (const int dataWidth)
 {
    this->mDataWidth = MAX (1, dataWidth);
@@ -807,17 +925,28 @@ int QEAbstract2DData::getHorizontalSliceLast () const
 
 //------------------------------------------------------------------------------
 //
-void QEAbstract2DData::setAutoScale (const bool autoScale)
+void QEAbstract2DData::setScaleMode (const ScaleModes scaleMode)
 {
-   this->mAutoScale = autoScale;
+   this->mScaleMode = scaleMode;
+   if (this->mScaleMode == displayed) {
+      // The displayed scale mode is transient.
+      // It provides a snap-shot the current dynamic scale.
+      //
+      double min = this->getMinimum();
+      double max = this->getMaximum();
+      this->getDataMinMaxValues (min, max);
+      this->setMinimum (min);
+      this->setMaximum (max);
+      this->mScaleMode = manual;
+   }
    this->calculateDataVisulationValues();
 }
 
 //------------------------------------------------------------------------------
 //
-bool QEAbstract2DData::getAutoScale () const
+QEAbstract2DData::ScaleModes QEAbstract2DData::getScaleMode () const
 {
-   return this->mAutoScale;
+   return this->mScaleMode;
 }
 
 //------------------------------------------------------------------------------
@@ -827,6 +956,13 @@ void QEAbstract2DData::setMinimum (const double minimum)
    this->mMinimum = minimum;
    this->mMaximum = MAX (this->mMaximum, this->mMinimum + minSpan);
    this->calculateDataVisulationValues();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAbstract2DData::setMinimum (const int minimum)
+{
+   this->setMinimum (double (minimum));
 }
 
 //------------------------------------------------------------------------------
@@ -843,6 +979,13 @@ void QEAbstract2DData::setMaximum (const double maximum)
    this->mMaximum = maximum;
    this->mMinimum = MIN (this->mMinimum, this->mMaximum - minSpan);
    this->calculateDataVisulationValues();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAbstract2DData::setMaximum (const int maximum)
+{
+   this->setMaximum (double (maximum));
 }
 
 //------------------------------------------------------------------------------
@@ -900,6 +1043,36 @@ QMenu* QEAbstract2DData::buildContextMenu ()
    action->setData (A2DDCM_HORIZONTAL_FLIP);
    menu->addAction (action);
 
+   // Not applicable to QESurface ... TODO check for this.
+   //
+   menu->addSeparator ();
+
+   action = new QAction ("Manual Scale", menu);
+   action->setCheckable (true);
+   action->setChecked (this->getScaleMode() == manual);
+   action->setData (A2DDCM_MANUAL_SCALE);
+   menu->addAction (action);
+
+   action = new QAction ("Operating Range Scale", menu);
+   action->setCheckable (true);
+   action->setChecked (this->getScaleMode() == operatingRange);
+   action->setData (A2DDCM_OPERATING_RANGE_SCALE);
+   menu->addAction (action);
+
+   action = new QAction ("Dynamic Range Scale", menu);
+   action->setCheckable (true);
+   action->setChecked (this->getScaleMode() == dynamic);
+   action->setData (A2DDCM_DYNAMIC_SCALE);
+   menu->addAction (action);
+
+   action = new QAction ("Use Displayed Range", menu);
+   action->setData (A2DDCM_DISPLAYED_SCALE);
+   menu->addAction (action);
+
+   action = new QAction ("Min/Max Selection", menu);
+   action->setData (A2DDCM_MIN_MAX_DIALOG);
+   menu->addAction (action);
+
    return  menu;
 }
 
@@ -907,6 +1080,8 @@ QMenu* QEAbstract2DData::buildContextMenu ()
 //
 void QEAbstract2DData::contextMenuTriggered (int selectedItemNum)
 {
+   int n;
+
    switch (selectedItemNum) {
 
       case A2DDCM_NO_ROTATION:
@@ -926,11 +1101,38 @@ void QEAbstract2DData::contextMenuTriggered (int selectedItemNum)
          break;
 
       case A2DDCM_VERTICAL_FLIP:
-         this->setVerticalFlip (!this->getVerticalFlip());      // flip the flip state
+         this->setVerticalFlip (!this->getVerticalFlip());      // flip the vert. flip state
          break;
 
       case A2DDCM_HORIZONTAL_FLIP:
-         this->setHorizontalFlip (!this->getHorizontalFlip());  // flip the flip state
+         this->setHorizontalFlip (!this->getHorizontalFlip());  // flip the hor. flip state
+         break;
+
+      case A2DDCM_MANUAL_SCALE:
+         this->setScaleMode (manual);
+         break;
+
+      case A2DDCM_OPERATING_RANGE_SCALE:
+         this->setScaleMode (operatingRange);
+         break;
+
+      case A2DDCM_DYNAMIC_SCALE:
+         this->setScaleMode (dynamic);
+         break;
+
+      case A2DDCM_DISPLAYED_SCALE:
+         this->setScaleMode (displayed);
+         break;
+
+      case A2DDCM_MIN_MAX_DIALOG:
+         this->rangeDialog->setRange (this->mMinimum, this->mMaximum);
+         n = this->rangeDialog->exec (this);
+         if (n == 1) {
+            // User has selected okay.
+            //
+            this->setMinimum (this->rangeDialog->getMinimum ());
+            this->setMaximum (this->rangeDialog->getMaximum ());
+         }
          break;
 
       default:

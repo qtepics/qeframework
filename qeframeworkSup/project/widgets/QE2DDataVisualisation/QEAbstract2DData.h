@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020 Australian Synchrotron
+ *  Copyright (c) 2020-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -42,6 +42,8 @@
 #include <QEFrameworkLibraryGlobal.h>
 #include <QEFrame.h>
 
+class QEStripChartRangeDialog;   // differed
+
 /// \brief The QEAbstract2DData class.
 /// This is the base class for the QESpectogram, QEWaterfall and QESurface
 /// widgets. It provides data management functionaly for each sub class, and
@@ -76,16 +78,6 @@ public:
    ///
    Q_PROPERTY (QString widthVariable READ getWidthPvName    WRITE setWidthPvName)
 
-   /// Default macro substitutions. The default is no substitutions.
-   /// The format is NAME1=VALUE1[,] NAME2=VALUE2...
-   /// Values may be quoted strings. For example, 'PUMP=PMP3, NAME = "My Pump"'
-   /// These substitutions are applied to variable names for all QE widgets.
-   /// In some widgets are are also used for other purposes.
-   ///
-   Q_PROPERTY (QString variableSubstitutions
-               READ getVariableNameSubstitutions
-               WRITE setVariableNameSubstitutions)
-
    /// If a width variable is NOT specified, the data width may be set as a property.
    /// If defined, the widthVariable always overrides this value.
    /// Constrained to be >= 1. Default 100
@@ -93,7 +85,7 @@ public:
    Q_PROPERTY (int dataWidth         READ getDataWidth      WRITE setDataWidth)
 
    /// \enum DataFormats
-   /// Defines whether the source data is treated as a 1D array oe a 2D array.
+   /// Defines whether the source data is treated as a 1D array or a 2D array.
    /// When source data is defined as 1D, the widget accumulates data on a FIFO
    /// basis, similar to the compress record, upto a maximum of numberOfSets
    /// "rows" of data. The accumulated data is then treated as a 2D array.
@@ -101,7 +93,7 @@ public:
    ///
    enum DataFormats {
       array1D,    ///<
-      array2D     ///<
+      array2D     ///< default
    };
    Q_ENUMS(DataFormats)
 
@@ -117,14 +109,14 @@ public:
    /// Data display options - order is slice, rotate then flip.
    ///
    /// Slice properties
-   /// These properties can be negative, which interpreted as dimension number - abs(value)
+   /// These properties can be negative, which interpreted as dimension size/number - abs(value)
    ///
    Q_PROPERTY (int verticalSliceFirst    READ getVerticalSliceFirst    WRITE setVerticalSliceFirst)
    Q_PROPERTY (int verticalSliceLast     READ getVerticalSliceLast     WRITE setVerticalSliceLast)
    Q_PROPERTY (int horizontalSliceFirst  READ getHorizontalSliceFirst  WRITE setHorizontalSliceFirst)
    Q_PROPERTY (int horizontalSliceLast   READ getHorizontalSliceLast   WRITE setHorizontalSliceLast)
 
-   // The rptation and flip properties/meanings cribbed from QEImage.
+   // The rotation and flip properties/meanings cribbed from QEImage.
    // Note: One 4-way rotation and two 2-way flips is apparently 4x2x2 = 16 options.
    // However in reality, there is redundancy here - there are only 8 distinct
    // rotate/flip options. We follow the QEImage paradigm for both consistancy
@@ -132,12 +124,12 @@ public:
    //
    /// \enum RotationOptions
    enum RotationOptions {
-      NoRotation,              ///< No data rotation
+      NoRotation,              ///< No data rotation - default
       Rotate90Right,           ///< Rotate data 90 degrees clockwise
       Rotate180,               ///< Rotate data 180 degrees
       Rotate90Left             ///< Rotate data 90 degrees anti-clockwise
    };
-   Q_ENUMS(RotationOptions)
+   Q_ENUMS (RotationOptions)
 
    /// Data rotation option.
    ///
@@ -151,9 +143,40 @@ public:
    ///
    Q_PROPERTY (bool horizontalFlip       READ getHorizontalFlip        WRITE setHorizontalFlip)
 
-   Q_PROPERTY (bool autoScale            READ getAutoScale             WRITE setAutoScale)
+   enum ScaleModes {
+      manual,          ///< manually range via min/max properties or dialog - default
+      operatingRange,  ///< range based on HOPR/LOPR values (if available)
+      dynamic,         ///< range adhjuested dynamically (based on current values)
+      displayed        ///< what is currently displayed - becomes current manual settings and scale mode becomes manual
+   };
+   Q_ENUMS (ScaleModes)
+
+   Q_PROPERTY (ScaleModes scaleMode      READ getScaleMode             WRITE setScaleMode)
    Q_PROPERTY (double minimum            READ getMinimum               WRITE setMinimum)
    Q_PROPERTY (double maximum            READ getMaximum               WRITE setMaximum)
+
+   /// Mouse move signal selection options.
+   ///
+   enum MouseSignals {
+      signalStatus         = 0x0001,  ///< signals row, col and value as status text via sendMessage
+      signalData           = 0x0002,  ///< signals row, col and value as binary data
+   };
+   Q_ENUMS (MouseSignals)
+
+   Q_DECLARE_FLAGS (MouseSignalFlags, MouseSignals)
+   Q_FLAG (MouseSignalFlags)
+
+   Q_PROPERTY (MouseSignalFlags  mouseSignals  READ getMouseSignals WRITE setMouseSignals)
+
+   /// Default macro substitutions. The default is no substitutions.
+   /// The format is NAME1=VALUE1[,] NAME2=VALUE2...
+   /// Values may be quoted strings. For example, 'PUMP=PMP3, NAME = "My Pump"'
+   /// These substitutions are applied to variable names for all QE widgets.
+   /// In some widgets are are also used for other purposes.
+   ///
+   Q_PROPERTY (QString variableSubstitutions
+               READ getVariableNameSubstitutions
+               WRITE setVariableNameSubstitutions)
 
 public:
    enum Constants {
@@ -171,6 +194,11 @@ public:
       A2DDCM_ROTATE_90_LEFT,
       A2DDCM_VERTICAL_FLIP,
       A2DDCM_HORIZONTAL_FLIP,
+      A2DDCM_MANUAL_SCALE,
+      A2DDCM_OPERATING_RANGE_SCALE,
+      A2DDCM_DYNAMIC_SCALE,
+      A2DDCM_DISPLAYED_SCALE,
+      A2DDCM_MIN_MAX_DIALOG,
       A2DDCM_SUB_CLASS_WIDGETS_START_HERE
    };
 
@@ -208,6 +236,9 @@ public:
    void setVariableNameSubstitutions (const QString variableSubstitutions);
    QString getVariableNameSubstitutions () const;
 
+   void setMouseSignals (const MouseSignalFlags flags);
+   MouseSignalFlags getMouseSignals () const;
+
 public slots:
    // All non-PV name related property setters are also slots.
    //
@@ -221,9 +252,11 @@ public slots:
    void setRotation (const RotationOptions rotation);
    void setVerticalFlip (const bool verticalFlip);
    void setHorizontalFlip (const bool horizontalFlip);
-   void setAutoScale (const bool autoScale);
+   void setScaleMode (const ScaleModes);
    void setMinimum (const double minimum);
+   void setMinimum (const int minimum);    // overloaded form
    void setMaximum (const double maximum);
+   void setMaximum (const int maximum);    // overloaded form
 
 public:
    int getDataWidth () const;
@@ -236,7 +269,7 @@ public:
    RotationOptions getRotation() const;
    bool getVerticalFlip () const;
    bool getHorizontalFlip () const;
-   bool getAutoScale () const;
+   ScaleModes getScaleMode () const;
    double getMinimum () const;
    double getMaximum () const;
 
@@ -251,6 +284,10 @@ signals:
    /// Can be used to pass on data update 'event' to other widgets.
    ///
    void dbValueChanged ();
+
+   // Signal emitted as mouse moved over 2D data widget.
+   //
+   void mouseElementChanged (const int row, const int col, const double value);
 
 protected:
    // Override parent virtual functions.
@@ -285,21 +322,22 @@ protected:
    TwoDimensionalData getData () const;
 
    // This function returns value at the displayed row and col position.
-   // It use the slicing, rotation, and flip states to extract the underlying
-   // data value.
+   // It uses the slicing, rotation, and horizontal/vertical flip states to
+   // extract the underlying data value.
    // If row or col out of range of the available data, this function
    // returns the specified defaultValue.
+   //
+   // Essentially combines findDataRowCol and getDataValue.
    //
    double getValue (const int displayRow, const int displayCol,
                     const double defaultValue) const;
 
    int getUpdateCount () const;
 
-   // Determines and updates min and max values if data available, otherwise
-   // min and max left "as is", i.e. unchanged. Therefore caller should supply
-   // sensible default.
+   // Determines the min and max values to be used based on the scale mode and
+   // if applicable, the actual data range.
    //
-   void getDataMinMaxValues (double& min, double& max) const;
+   void getScaleModeMinMaxValues (double& min, double& max) const;
 
    // This function returns the number of displayed rows and cols.
    // When 1D data is being accumulated, the number of rows (or cols) is the
@@ -314,14 +352,28 @@ protected:
    QString getUnits() const;
    int getPrecision() const;
 
-   void setReadOut (const QString& text);
-   void setElementReadout (const int row, const int col);
+   void setMouseOverElement (const int displayRow, const int displayCol);
 
    virtual void updateDataVisulation ();   // hook function
 
 private:
    void commonSetup ();
+   void setReadOut (const QString& text);
    void calculateDataVisulationValues ();
+
+   // Gets the actual minimum and maximum data values otherwise min and max left
+   // "as is", i.e. unchanged. Therefore caller should supply sensible default.
+   //
+   void getDataMinMaxValues (double& min, double& max) const;
+
+   // Converts the displayed row and col to source/data row and col.
+   // This accounts for flips, orientation and slices.
+   //
+   void findDataRowCol (const int displayRow, const int displayCol,
+                        int& sourceRow, int& sourceCol) const;
+
+   double getDataValue (const int sourceRow, const int sourceCol,
+                        const double defaultValue) const;
 
    QCaVariableNamePropertyManager dnpm;   // data name
    QCaVariableNamePropertyManager wnpm;   // width name
@@ -344,11 +396,12 @@ private:
    RotationOptions mRotation;
    bool mVerticalFlip;
    bool mHorizontalFlip;
-   bool mAutoScale;
+   ScaleModes mScaleMode;
    double mMinimum;
    double mMaximum;
    DataFormats mDataFormat;
    int mNumberOfSets;
+   MouseSignalFlags mMouseSignals;
 
    // When mDataFormat is array2D, this is limited to one QEFloatingArray
    // When mDataFormat is array1D, is limited to mNumberOfSets QEFloatingArrays.
@@ -358,6 +411,8 @@ private:
 
    bool pvDataWidthAvailable;
    int  pvDataWidth;
+
+   QEStripChartRangeDialog* rangeDialog;
 
    // data values
    //
@@ -388,9 +443,14 @@ private slots:
                        QCaDateTime&, const unsigned int&);
 };
 
+Q_DECLARE_OPERATORS_FOR_FLAGS (QEAbstract2DData::MouseSignalFlags)
+
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
 Q_DECLARE_METATYPE (QEAbstract2DData::DataFormats)
 Q_DECLARE_METATYPE (QEAbstract2DData::RotationOptions)
+Q_DECLARE_METATYPE (QEAbstract2DData::ScaleModes)
+Q_DECLARE_METATYPE (QEAbstract2DData::QEAbstract2DData::MouseSignals)
+Q_DECLARE_METATYPE (QEAbstract2DData::QEAbstract2DData::MouseSignalFlags)
 #endif
 
 #endif // QE_ABSTRACT_2D_DATA_H

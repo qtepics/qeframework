@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020 Australian Synchrotron
+ *  Copyright (c) 2020-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -183,15 +183,9 @@ void QEWaterfall::paintWaterfall ()
    this->xAxis->setPenColour (penColour);
    this->yAxis->setPenColour (penColour);
 
-   double min = this->getMinimum();
-   double max = this->getMaximum();
-
-   // If auto scaleing set true, then fins the actual min and max
-   // values of the current data set.
-   //
-   if (this->getAutoScale()) {
-      this->getDataMinMaxValues (min, max);
-   }
+   double min;
+   double max;
+   this->getScaleModeMinMaxValues (min, max);
 
    int numberCols;
    int numberRows;
@@ -311,10 +305,13 @@ void QEWaterfall::paintWaterfall ()
          int h, s, l;
          this->mTraceColour.getHsl (&h, &s, &l);
 
-         // Modify hue - we add a constant 3600 (a somewhat arbitary offset),
-         // becaue % is a remaineder operator, not a modulo operator.
+         // Modify hue - we add a constant 36000 (a somewhat arbitary offset),
+         // becaue % is a remainder operator, not a modulo operator.
+         // For 2D data use a fixed count, for 1D use update cout so that
+         // same hue assoicated with the same data set.
          //
-         h += (12 * (3600 + this->getUpdateCount() - coRow)) % 360;
+         int hueOffset = (this->getDataFormat () == array1D) ? this->getUpdateCount() : 0;
+         h += (12 * (36000 + hueOffset - coRow)) % 360;
 
          QColor c;
          c.setHsl (h, s, l);
@@ -324,7 +321,7 @@ void QEWaterfall::paintWaterfall ()
       }
 
       QPolygonF line;
-      line.reserve (numberCols + 2);
+      line.reserve (numberCols);
 
       // Calc the offset applies to each row.
       //
@@ -347,33 +344,9 @@ void QEWaterfall::paintWaterfall ()
          lookUp.insert (this);
       }
 
-      // Now add two "fake" points to complete the area.
-      //
-      const double x0 = 0;
-      const double x1 = numberCols - 1;
-      const double y0 = this->height() - dy;
-
-      QPointF item1 = QPointF (x1 * xScale + xOffset, y0); //  * yScale + yOffset);
-      line.append (item1 + offset);
-
-      QPointF item0 = QPointF (x0 * xScale + xOffset, y0); // * yScale + yOffset);
-      line.append (item0 + offset);
-
       painter.setPen (pen);
       painter.setBrush (brush);
-      painter.drawPolygon (line);
-
-      // Draw line to clear unwanted parts of the in fill polygon.
-      //
-      QPointF points [4];
-      points [0] = line.value (numberCols - 1);
-      points [1] = line.value (numberCols + 0);
-      points [2] = line.value (numberCols + 1);
-      points [3] = line.value (0);
-
-      pen.setColor (this->mBackgroundColour);
-      painter.setPen (pen);
-      painter.drawPolyline (points, 4);
+      painter.drawPolyline (line);
    }
 
    // Re-draw the bounding edges that can get "zapped".
@@ -415,15 +388,14 @@ void QEWaterfall::waterfallMouseMove (const QPoint& pos)
 {
    int row;
    int col;
-   bool found;
 
    // Convert the mosue postion into a data element index - if we can.
    //
-   found = QEWaterfall::PosToSrcMap::findNearest (this, pos.x(), pos.y(), row, col);
+   bool found = QEWaterfall::PosToSrcMap::findNearest (this, pos.x(), pos.y(), row, col);
    if (found) {
-      this->setElementReadout (row, col);
+      this->setMouseOverElement (row, col);
    } else {
-      this->setReadOut ("");
+      this->setMouseOverElement (-1, -1);
    }
 }
 

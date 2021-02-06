@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020 Australian Synchrotron
+ *  Copyright (c) 2020-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -160,12 +160,9 @@ void QESpectrogram::updateDataVisulation ()
       return;
    }
 
-   double min = this->getMinimum();
-   double max = this->getMaximum();
-
-   if (this->getAutoScale()) {
-      this->getDataMinMaxValues (min, max);
-   }
+   double min;
+   double max;
+   this->getScaleModeMinMaxValues (min, max);
 
    // Sanity check.
    //
@@ -282,7 +279,7 @@ void QESpectrogram::spectrogramMouseMove (const QPoint& pos)
    const int row = int (fracY * numDisplayRows);
    const int col = int (fracX * numDisplayCols);
 
-   this->setElementReadout (row, col);
+   this->setMouseOverElement (row, col);
 }
 
 //------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020 Australian Synchrotron
+ *  Copyright (c) 2020-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -207,6 +207,23 @@ void QESurface::updateDataVisulation ()
    int numberRows;
    this->getNumberRowsAndCols (numberRows, numberCols);
 
+   // We want the data to approx square, so we adjust the rol or col coordinates
+   // accordingly to nearest factor of ten. TODO: figure out how to do properly.
+   // Note: 3.162 is approx sqrt (10)
+   //
+   double rowStretch = 1.0;
+   double colStretch = 1.0;
+
+   if (numberCols < numberRows) {
+      while (numberCols*colStretch*3.162  <numberRows) {
+         colStretch *= 10.0;
+      }
+   } else {
+      while (numberRows*rowStretch*3.162  < numberCols) {
+         rowStretch *= 10.0;
+      }
+   }
+
    QSurface3DSeries* series = new QSurface3DSeries ();
 
    // Create the new surface data array.
@@ -232,7 +249,7 @@ void QESurface::updateDataVisulation ()
          float z = float (col + skew*row);
          float y = float (value);
 
-         QSurfaceDataItem dataItem = QSurfaceDataItem (QVector3D (x, y, z));
+         QSurfaceDataItem dataItem = QSurfaceDataItem (QVector3D (x*rowStretch, y, z*colStretch));
          *dataRow << dataItem;
       }
       *dataArray << dataRow;
