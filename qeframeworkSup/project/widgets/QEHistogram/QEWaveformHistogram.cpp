@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2020 Australian Synchrotron.
+ *  Copyright (c) 2014-2021 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -27,6 +27,7 @@
 #include "QEWaveformHistogram.h"
 #include <QDebug>
 #include <QCaObject.h>
+#include <QEPVNameSelectDialog.h>
 
 #define DEBUG  qDebug () << "QEWaveformHistogram"  << __LINE__ << __FUNCTION__ << "  "
 
@@ -39,6 +40,10 @@ QEWaveformHistogram::QEWaveformHistogram (QWidget * parent) :
    QEStringFormattingMethods ()
 {
    this->histogram = this;
+
+   // Create dialog.
+   //
+   this->pvNameSelectDialog = new QEPVNameSelectDialog (this);
 
    this->setVariableAsToolTip (true);
 
@@ -274,6 +279,54 @@ void QEWaveformHistogram::onMouseIndexPressed (const int index,
    // Used by context menu as well as drag-and-drop processing.
    //
    this->selectedChannel = index;
+}
+
+//------------------------------------------------------------------------------
+//
+QMenu* QEWaveformHistogram::buildContextMenu ()
+{
+   QMenu* menu = QEWidget::buildContextMenu ();
+   QAction* action;
+
+   menu->addSeparator ();
+
+   action = new QAction ("Add/Edit PV Name...", menu);
+   action->setCheckable (false);
+   action->setData (QEWH_PV_NAME_SELECT_DIALOG);
+   menu->addAction (action);
+
+   return  menu;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEWaveformHistogram::contextMenuTriggered (int selectedItemNum)
+{
+   QString oldPvName;
+   int n;
+
+   switch (selectedItemNum) {
+
+      case QEWH_PV_NAME_SELECT_DIALOG:
+         oldPvName = this->copyVariable ();
+         this->pvNameSelectDialog->setPvName (oldPvName);
+         n = this->pvNameSelectDialog->exec (this);
+         if (n == 1) {
+            // User has selected okay.
+            //
+            const QString newPvName = this->pvNameSelectDialog->getPvName ();
+            if (newPvName != oldPvName) {
+               this->setPvName (newPvName);
+            }
+         }
+         break;
+
+      default:
+         // Call parent class function.
+         //
+         QEWidget::contextMenuTriggered (selectedItemNum);
+         break;
+   }
 }
 
 //------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2020  Australian Synchrotron.
+ *  Copyright (c) 2014-2021  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -39,6 +39,8 @@
 #include <QEStringFormattingMethods.h>
 #include <QCaVariableNamePropertyManager.h>
 #include <QEFrameworkLibraryGlobal.h>
+
+class QEPVNameSelectDialog;  // differed
 
 /// The QEWaveformHistogram class is a EPICS aware histogram widget.
 /// The value of, i.e. the length of each bar of the histogram is controlled by
@@ -232,6 +234,14 @@ public:
    // END-STANDARD-PROPERTIES ========================================================
 
 
+   // QEWaveformHistogram context menu values
+   //
+   enum OwnContextMenuOptions {
+      QEWH_NONE = CM_SPECIFIC_WIDGETS_START_HERE,
+      QEWH_PV_NAME_SELECT_DIALOG,
+      QEWH_SUB_CLASS_WIDGETS_START_HERE
+   };
+
 public:
    explicit QEWaveformHistogram (QWidget* parent = 0);
    ~QEWaveformHistogram () { }
@@ -274,6 +284,9 @@ protected:
    QVariant copyData ();
    void paste (QVariant v);
 
+   QMenu* buildContextMenu ();                        // Build the specific context menu
+   void contextMenuTriggered (int selectedItemNum);   // An action was selected from the context menu
+
    void onMouseIndexChanged (const int index);
    void onMouseIndexPressed (const int index, const Qt::MouseButton button);
 
@@ -290,6 +303,7 @@ private:
    void setReadOut (const QString& text);
    void genReadOut (const int index);
 
+   QEPVNameSelectDialog* pvNameSelectDialog;
    QEHistogram* histogram;   // sef ref alias
    QCaVariableNamePropertyManager vnpm;
    QEFloatingFormatting floatingFormatting;
