@@ -46,7 +46,6 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESpectrogram :
    typedef QEAbstract2DData ParentWidgetClass;
 
 public:
-
    /// If true, the apply false colour to the data, othewrwise gray scale
    ///
    Q_PROPERTY (bool useFalseColour         READ getUseFalseColour WRITE setUseFalseColour)
@@ -59,6 +58,15 @@ public:
    Q_PROPERTY (int scaleWrap               READ getScaleWrap      WRITE setScaleWrap)
 
 public:
+   // QESpectrogram context menu values
+   //
+   enum OwnContextMenuOptions {
+      QESPEC_NONE = A2DDCM_SUB_CLASS_WIDGETS_START_HERE,
+      QESPEC_USE_FALSE_COLOUR_FLIP,
+      QESPEC_SUB_CLASS_WIDGETS_START_HERE
+   };
+
+
    /// Create without a variable.
    /// Use setDataPvName () and setVariableNameSubstitutions() to define a
    /// variable and, optionally, macro substitutions later.
@@ -94,6 +102,9 @@ protected:
    QSize sizeHint () const;
    bool eventFilter (QObject* watched, QEvent* event);
    void updateDataVisulation ();   // hook function
+
+   QMenu* buildContextMenu ();                        // Build the specific context menu
+   void contextMenuTriggered (int selectedItemNum);   // An action was selected from the context menu
 
 private:
    // Structure used when setting current image. Cribbed from QEImage.

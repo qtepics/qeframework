@@ -108,6 +108,10 @@ void QESurface::commonSetup ()
    this->layout->setMargin (0);    // extact fit.
    this->layout->addWidget (this->button);
 
+   // Inhibit the context menu scaling.
+   //
+   this->addContextMenuScaling = false;
+
    // Set default property values.
    //
    this->setMinimumWidth  (25);

@@ -240,6 +240,47 @@ void QESpectrogram::updateDataVisulation ()
    this->plotArea->update ();
 }
 
+
+//------------------------------------------------------------------------------
+// Build the specific context menu
+//
+QMenu* QESpectrogram::buildContextMenu ()
+{
+   QMenu* menu = ParentWidgetClass::buildContextMenu ();
+   QAction* action;
+
+   menu->addSeparator ();
+
+   action = new QAction ("Use false colour", menu);
+   action->setCheckable (true);
+   action->setChecked (this->getUseFalseColour ());
+   action->setData (QESPEC_USE_FALSE_COLOUR_FLIP);
+   menu->addAction (action);
+
+   return menu;
+}
+
+//------------------------------------------------------------------------------
+// An action was selected from the context menu
+//
+void QESpectrogram::contextMenuTriggered (int selectedItemNum)
+{
+   switch (selectedItemNum) {
+
+      case QESPEC_USE_FALSE_COLOUR_FLIP:
+         // flip the use false colour state.
+         //
+         this->setUseFalseColour (!this->getUseFalseColour ());
+         break;
+
+      default:
+         // Call parent class function.
+         //
+         ParentWidgetClass::contextMenuTriggered (selectedItemNum);
+         break;
+   }
+}
+
 //------------------------------------------------------------------------------
 // Essentially just paints the image - does no processing per se.
 //

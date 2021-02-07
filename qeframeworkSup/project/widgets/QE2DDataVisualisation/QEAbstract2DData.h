@@ -356,6 +356,11 @@ protected:
 
    virtual void updateDataVisulation ();   // hook function
 
+   // Set true by default. Not every 2D widget needs the scaling options
+   // added to the context menu (e.g.QESurface).
+   //
+   bool addContextMenuScaling;
+
 private:
    void commonSetup ();
    void setReadOut (const QString& text);

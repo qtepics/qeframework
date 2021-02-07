@@ -96,6 +96,7 @@ void QEAbstract2DData::commonSetup ()
    this->setAllowDrop (true);
    this->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_ALWAYS);
 
+   this->addContextMenuScaling = true;
    this->rawNumberOfRows = 0;
    this->rawNumberOfCols = 0;
    this->sliceRowOffset = 0;
@@ -1003,6 +1004,8 @@ QMenu* QEAbstract2DData::buildContextMenu ()
    QMenu* menu = ParentWidgetClass::buildContextMenu ();
    QAction* action;
 
+   // TODO: Consider rotation/flipping and scaling sub-menus
+
    menu->addSeparator ();
 
    action = new QAction ("No Rotation", menu);
@@ -1031,47 +1034,49 @@ QMenu* QEAbstract2DData::buildContextMenu ()
 
    menu->addSeparator ();
 
-   action = new QAction ("Vertical Flip", menu);
+   action = new QAction ("Vertical Flip (about horizontal axis)", menu);
    action->setCheckable (true);
    action->setChecked (this->getVerticalFlip());
    action->setData (A2DDCM_VERTICAL_FLIP);
    menu->addAction (action);
 
-   action = new QAction ("Horizontal Flip", menu);
+   action = new QAction ("Horizontal Flip (about vertical axis)", menu);
    action->setCheckable (true);
    action->setChecked (this->getHorizontalFlip());
    action->setData (A2DDCM_HORIZONTAL_FLIP);
    menu->addAction (action);
 
-   // Not applicable to QESurface ... TODO check for this.
+   // Not applicable to QESurface.
    //
-   menu->addSeparator ();
+   if (this->addContextMenuScaling) {
+      menu->addSeparator ();
 
-   action = new QAction ("Manual Scale", menu);
-   action->setCheckable (true);
-   action->setChecked (this->getScaleMode() == manual);
-   action->setData (A2DDCM_MANUAL_SCALE);
-   menu->addAction (action);
+      action = new QAction ("Manual Scale", menu);
+      action->setCheckable (true);
+      action->setChecked (this->getScaleMode() == manual);
+      action->setData (A2DDCM_MANUAL_SCALE);
+      menu->addAction (action);
 
-   action = new QAction ("Operating Range Scale", menu);
-   action->setCheckable (true);
-   action->setChecked (this->getScaleMode() == operatingRange);
-   action->setData (A2DDCM_OPERATING_RANGE_SCALE);
-   menu->addAction (action);
+      action = new QAction ("Operating Range Scale", menu);
+      action->setCheckable (true);
+      action->setChecked (this->getScaleMode() == operatingRange);
+      action->setData (A2DDCM_OPERATING_RANGE_SCALE);
+      menu->addAction (action);
 
-   action = new QAction ("Dynamic Range Scale", menu);
-   action->setCheckable (true);
-   action->setChecked (this->getScaleMode() == dynamic);
-   action->setData (A2DDCM_DYNAMIC_SCALE);
-   menu->addAction (action);
+      action = new QAction ("Dynamic Range Scale", menu);
+      action->setCheckable (true);
+      action->setChecked (this->getScaleMode() == dynamic);
+      action->setData (A2DDCM_DYNAMIC_SCALE);
+      menu->addAction (action);
 
-   action = new QAction ("Use Displayed Range", menu);
-   action->setData (A2DDCM_DISPLAYED_SCALE);
-   menu->addAction (action);
+      action = new QAction ("Use Displayed Range", menu);
+      action->setData (A2DDCM_DISPLAYED_SCALE);
+      menu->addAction (action);
 
-   action = new QAction ("Min/Max Selection", menu);
-   action->setData (A2DDCM_MIN_MAX_DIALOG);
-   menu->addAction (action);
+      action = new QAction ("Min/Max Selection...", menu);
+      action->setData (A2DDCM_MIN_MAX_DIALOG);
+      menu->addAction (action);
+   }
 
    return  menu;
 }
