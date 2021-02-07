@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2018-2021 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -16,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2018 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
@@ -27,14 +27,15 @@
 #include <QECorrelation.h>
 
 // In this context, we are a user of the QEFramework library as we are using
-// the moc generated ui_QEGeneralEdit.h file that needs access the meta
-// types to be declared.
+// the moc generated ui_QECorrelation.h file that needs access the meta
+// types to be declared for the QE widgets called up by ui_QECorrelation.ui
 //
 #define QE_DECLARE_METATYPE_IS_REQUIRED
 
 #include <math.h>
 #include <QClipboard>
 #include <QDebug>
+#include <QMimeData>
 #include <QVariant>
 #include <QEGraphicNames.h>
 #include <QEGraphic.h>
