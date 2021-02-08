@@ -1,0 +1,2 @@
+The documentation has been reloacted to the qtepics.github.io repo,
+and in perforce to: //ASP/tec/gui/qtepics.github.io/trunk/documentation
