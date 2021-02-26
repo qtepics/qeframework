@@ -122,7 +122,7 @@ void QEAbstract2DData::commonSetup ()
    this->mMaximum = 255.0;
    this->mDataFormat = array2D;
    this->mNumberOfSets = 40;
-   this->mMouseSignals = signalStatus;
+   this->mMouseMoveSignals = signalStatus;
 
    this->pvDataWidthAvailable = false;
    this->pvDataWidth = 100;
@@ -482,7 +482,9 @@ void QEAbstract2DData::setMouseOverElement (const int displayRow, const int disp
 
    // Do we send a status message ?
    //
-   if (this->mMouseSignals & signalStatus) {
+   if (this->mMouseMoveSignals & (signalStatus|signalText)) {
+      // Prepare the text
+      //
       QString message;
       if (value != noValue) {
          qcaobject::QCaObject* qca;
@@ -503,12 +505,24 @@ void QEAbstract2DData::setMouseOverElement (const int displayRow, const int disp
          message = "";
       }
 
-      this->setReadOut (message);
+      // Do we send a status message?
+      // Appears on the status bar of containing form.
+      //
+      if (this->mMouseMoveSignals & signalStatus) {
+         this->setReadOut (message);
+      }
+
+      // Do we emit time/value as string signal ?
+      // Can go to QLabel or any other widget that accepts a string.
+      //
+      if (this->mMouseMoveSignals & signalText) {
+         emit mouseElementChanged (message);
+      }
    }
 
    // Do we send a data signal message ?
    //
-   if (this->mMouseSignals & signalData) {
+   if (this->mMouseMoveSignals & signalData) {
       if (value != noValue) {
          emit this->mouseElementChanged (sourceRow, sourceCol, value);
       } else {
@@ -759,16 +773,16 @@ QString QEAbstract2DData::getVariableNameSubstitutions () const
 
 //------------------------------------------------------------------------------
 //
-void QEAbstract2DData::setMouseSignals (const MouseSignalFlags flags)
+void QEAbstract2DData::setMouseMoveSignals (const MouseMoveSignalFlags flags)
 {
-   this->mMouseSignals = flags;
+   this->mMouseMoveSignals = flags;
 }
 
 //------------------------------------------------------------------------------
 //
-QEAbstract2DData::MouseSignalFlags QEAbstract2DData::getMouseSignals () const
+QEAbstract2DData::MouseMoveSignalFlags QEAbstract2DData::getMouseMoveSignals () const
 {
-   return this->mMouseSignals;
+   return this->mMouseMoveSignals;
 }
 
 //------------------------------------------------------------------------------

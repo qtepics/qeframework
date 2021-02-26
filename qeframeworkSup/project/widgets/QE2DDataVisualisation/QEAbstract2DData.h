@@ -157,16 +157,18 @@ public:
 
    /// Mouse move signal selection options.
    ///
-   enum MouseSignals {
+   enum MouseMoveSignals {
       signalStatus         = 0x0001,  ///< signals row, col and value as status text via sendMessage
-      signalData           = 0x0002,  ///< signals row, col and value as binary data
+      signalData           = 0x0002,  ///< signals row, col and value emited as binary data
+      signalText           = 0x0004,  ///< signals row, col and value emited as as text
    };
-   Q_ENUMS (MouseSignals)
+   Q_ENUMS (MouseMoveSignals)
 
-   Q_DECLARE_FLAGS (MouseSignalFlags, MouseSignals)
-   Q_FLAG (MouseSignalFlags)
+   Q_DECLARE_FLAGS (MouseMoveSignalFlags, MouseMoveSignals)
+   Q_FLAG (MouseMoveSignalFlags)
 
-   Q_PROPERTY (MouseSignalFlags  mouseSignals  READ getMouseSignals WRITE setMouseSignals)
+   Q_PROPERTY (MouseMoveSignalFlags mouseMoveSignals READ getMouseMoveSignals
+                                                     WRITE setMouseMoveSignals)
 
    /// Default macro substitutions. The default is no substitutions.
    /// The format is NAME1=VALUE1[,] NAME2=VALUE2...
@@ -236,8 +238,8 @@ public:
    void setVariableNameSubstitutions (const QString variableSubstitutions);
    QString getVariableNameSubstitutions () const;
 
-   void setMouseSignals (const MouseSignalFlags flags);
-   MouseSignalFlags getMouseSignals () const;
+   void setMouseMoveSignals (const MouseMoveSignalFlags flags);
+   MouseMoveSignalFlags getMouseMoveSignals () const;
 
 public slots:
    // All non-PV name related property setters are also slots.
@@ -288,6 +290,10 @@ signals:
    // Signal emitted as mouse moved over 2D data widget.
    //
    void mouseElementChanged (const int row, const int col, const double value);
+
+   // Emit the mouse information as text
+   //
+   void mouseElementChanged (const QString& text);
 
 protected:
    // Override parent virtual functions.
@@ -406,7 +412,7 @@ private:
    double mMaximum;
    DataFormats mDataFormat;
    int mNumberOfSets;
-   MouseSignalFlags mMouseSignals;
+   MouseMoveSignalFlags mMouseMoveSignals;
 
    // When mDataFormat is array2D, this is limited to one QEFloatingArray
    // When mDataFormat is array1D, is limited to mNumberOfSets QEFloatingArrays.
@@ -448,14 +454,14 @@ private slots:
                        QCaDateTime&, const unsigned int&);
 };
 
-Q_DECLARE_OPERATORS_FOR_FLAGS (QEAbstract2DData::MouseSignalFlags)
+Q_DECLARE_OPERATORS_FOR_FLAGS (QEAbstract2DData::MouseMoveSignalFlags)
 
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
 Q_DECLARE_METATYPE (QEAbstract2DData::DataFormats)
 Q_DECLARE_METATYPE (QEAbstract2DData::RotationOptions)
 Q_DECLARE_METATYPE (QEAbstract2DData::ScaleModes)
-Q_DECLARE_METATYPE (QEAbstract2DData::QEAbstract2DData::MouseSignals)
-Q_DECLARE_METATYPE (QEAbstract2DData::QEAbstract2DData::MouseSignalFlags)
+Q_DECLARE_METATYPE (QEAbstract2DData::QEAbstract2DData::MouseMoveSignals)
+Q_DECLARE_METATYPE (QEAbstract2DData::QEAbstract2DData::MouseMoveSignalFlags)
 #endif
 
 #endif // QE_ABSTRACT_2D_DATA_H

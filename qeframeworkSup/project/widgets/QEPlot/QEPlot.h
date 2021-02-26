@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2020 Australian Synchrotron
+ *  Copyright (c) 2009-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -53,6 +53,20 @@ class QEGraphic;
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlot : public QEFrame {
    Q_OBJECT
 public:
+   // Some QEFrame properties are really not applicable to this widget hierarchy.
+   // These are re-declared as DESIGNABLE false.
+   // Consider spliting QEFrame into QEFrame (basic) and QEPixmapFrame - keep that for 3.8
+   //
+   Q_PROPERTY (bool scaledContents READ getScaledContents  WRITE setScaledContents  DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap0     READ getPixmap0Property WRITE setPixmap0Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap1     READ getPixmap1Property WRITE setPixmap1Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap2     READ getPixmap2Property WRITE setPixmap2Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap3     READ getPixmap3Property WRITE setPixmap3Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap4     READ getPixmap4Property WRITE setPixmap4Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap5     READ getPixmap5Property WRITE setPixmap5Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap6     READ getPixmap6Property WRITE setPixmap6Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap7     READ getPixmap7Property WRITE setPixmap7Property DESIGNABLE false)
+
    enum Constants {
       QEPLOT_NUM_PLOTS = 8,      // Maximum number of data/size variables.
       QEPLOT_NUM_VARIABLES = 16  // Maximum number of variables.
@@ -102,13 +116,6 @@ public:
    Q_PROPERTY (QString sizeVariable6 READ getSizeVariableName6Property WRITE setSizeVariableName6Property)
    Q_PROPERTY (QString sizeVariable7 READ getSizeVariableName7Property WRITE setSizeVariableName7Property)
    Q_PROPERTY (QString sizeVariable8 READ getSizeVariableName8Property WRITE setSizeVariableName8Property)
-
-   /// Macro substitutions. The default is no substitutions. The format is NAME1=VALUE1[,] NAME2=VALUE2...
-   /// Values may be quoted strings. For example, 'SAMPLE=SAM1, NAME = "Ref foil"'
-   /// These substitutions are applied to all the variable names.
-   ///
-   Q_PROPERTY (QString variableSubstitutions READ  getVariableNameSubstitutionsProperty
-                                             WRITE setVariableNameSubstitutionsProperty)
 
    /// Widget specific properties
    ///
@@ -187,6 +194,29 @@ public:
    Q_PROPERTY (int tickRate READ getTickRate WRITE setTickRate)
 
    Q_PROPERTY (int margin READ getMargin WRITE setMargin)
+
+   /// Mouse move signal selection options.
+   ///
+   enum MouseMoveSignals {
+      signalStatus         = 0x0001,  ///< signals row, col and value as status text via sendMessage
+      signalData           = 0x0002,  ///< signals row, col and value emited as binary data
+      signalText           = 0x0004,  ///< signals row, col and value emited as as text
+   };
+   Q_ENUMS (MouseMoveSignals)
+
+   Q_DECLARE_FLAGS (MouseMoveSignalFlags, MouseMoveSignals)
+   Q_FLAG (MouseMoveSignalFlags)
+
+   Q_PROPERTY (MouseMoveSignalFlags mouseMoveSignals READ getMouseMoveSignals
+                                                     WRITE setMouseMoveSignals)
+
+   /// Default macro substitutions. The default is no substitutions.
+   /// The format is NAME1=VALUE1[,] NAME2=VALUE2...
+   /// Values may be quoted strings. For example, 'SAMPLE=SAM1, NAME = "Ref foil"'
+   /// These substitutions are applied to all the variable names.
+   ///
+   Q_PROPERTY (QString variableSubstitutions READ  getVariableNameSubstitutionsProperty
+                                             WRITE setVariableNameSubstitutionsProperty)
 
 public:
    typedef QEFrame ParentWidgetClass;
@@ -338,6 +368,9 @@ public:
    void setMargin (const int margin);
    int getMargin () const;
 
+   void setMouseMoveSignals (const MouseMoveSignalFlags flags);
+   MouseMoveSignalFlags getMouseMoveSignals () const;
+
 signals:
    // Note, the following signals are common to many QE widgets,
    // if changing the doxygen comments, ensure relevent changes are migrated to all instances
@@ -356,6 +389,10 @@ signals:
    // Emit the mouse position - real world co-ordinatea
    //
    void mouseMove (const QPointF& posn);
+
+   // Emit the mouse position as text
+   //
+   void mouseMove (const QString& text);
 
 protected:
    bool eventFilter (QObject* watched, QEvent* event);
@@ -432,6 +469,10 @@ private:
    class Trace;
    Trace* traces[QEPLOT_NUM_PLOTS];
 
+   // Mouse move signal options
+   //
+   MouseMoveSignalFlags mMouseMoveSignals;
+
 private slots:
    void connectionChanged (QCaConnectionInfo& connectionInfo, const unsigned int&);
    void setPlotData (const QVector<double>& values, QCaAlarmInfo&,
@@ -455,9 +496,13 @@ private slots:
    void plotMouseMove (const QPointF& posn);
 };
 
+Q_DECLARE_OPERATORS_FOR_FLAGS (QEPlot::MouseMoveSignalFlags)
+
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
 Q_DECLARE_METATYPE (QEPlot::TraceStyles)
 Q_DECLARE_METATYPE (QEPlot::SelectedYAxis)
+Q_DECLARE_METATYPE (QEPlot::MouseMoveSignals)
+Q_DECLARE_METATYPE (QEPlot::MouseMoveSignalFlags)
 #endif
 
 #endif                          // QE_PLOT_H

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2020 Australian Synchrotron
+ *  Copyright (c) 2009-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -346,6 +346,8 @@ void QEPlot::setup ()
    this->axisEnableY = true;
    this->selectedYAxis = Left;
 
+   this->mMouseMoveSignals = signalData;
+
    // Default to one minute span
    //
    this->tickRate = 50;   // millSec
@@ -438,10 +440,85 @@ QSize QEPlot::sizeHint () const
 }
 
 //------------------------------------------------------------------------------
+// Note: posn is from QEGraphic and is the real world co-ordinates
+// as opposed to the pixel co-ordinates.
 //
 void QEPlot::plotMouseMove (const QPointF& posn)
 {
-   emit mouseMove (posn);
+   QString message;
+
+   if (this->mMouseMoveSignals & (signalStatus|signalText)) {
+      // Prepare the text
+      //
+      QString f;   // temp
+
+      // Do we use the x- co-ordonate of the time stamp.
+      // For mini strip chart, use time stamp.
+      // For waveforms, use x co-ordinate value.
+      // For mixed mode (unexpected), use the time stamp.
+      //
+      bool allDataIsWaveform = true;
+      for (int i = 0; i < QEPLOT_NUM_PLOTS; i++) {
+         Trace* tr = this->traces[i];
+         if (tr->isInUse && !tr->isWaveform) {
+             allDataIsWaveform  = false;
+             break;
+         }
+      }
+
+      if (allDataIsWaveform) {
+         f.sprintf ("X: %+.10g", posn.x ());
+         message.append (f);
+         f.sprintf ("    Y: %+.10g", posn.y ());
+         message.append (f);
+      } else {
+         // Note: Cribbed from the StripChart - keep alligned.
+         //
+         // Convert cursor x to absolute cursor time.
+         // x is the time (in seconds) relative to end of the plot.
+         //
+         static const QString format = "ddd yyyy-MM-dd hh:mm:ss.zzz";
+         const QCaDateTime now = QDateTime::currentDateTime ().toLocalTime();
+         const qint64 mSec = qint64 (1000.0 * posn.x ());  // convert to mSec
+         const QDateTime t = now.addMSecs (mSec);
+
+         message = "Time: ";
+
+         // Keep only most significant digit of the milli-seconds,
+         // i.e. tenths of a second.
+         //
+         f = t.toString (format).left (format.length() - 2);
+         message.append (f);
+
+         QString zoneTLA = QEUtilities::getTimeZoneTLA (Qt::LocalTime, t);
+         message.append (" ").append (zoneTLA);
+
+         // Show y value associated with current cursor position.
+         //
+         f.sprintf ("    Value: %+.10g", posn.y ());
+         message.append (f);
+      }
+
+      // Do we send a status message?
+      // Appears on the status bar of containing form.
+      //
+      if (this->mMouseMoveSignals & signalStatus) {
+         this->setReadOut (message);
+      }
+
+      // Do we emit time/value as string signal ?
+      // Can go to QLabel or any other widget that accepts a string.
+      //
+      if (this->mMouseMoveSignals & signalText) {
+         emit mouseMove (message);
+      }
+   }
+
+   // Do we send a data signal message ?
+   //
+   if (this->mMouseMoveSignals & signalData) {
+      emit mouseMove (posn);
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -1811,6 +1888,20 @@ void QEPlot::setMargin (const int marginIn)
 int QEPlot::getMargin () const
 {
    return this->layoutMargin;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlot::setMouseMoveSignals (const MouseMoveSignalFlags flags)
+{
+   this->mMouseMoveSignals = flags;
+}
+
+//------------------------------------------------------------------------------
+//
+QEPlot::MouseMoveSignalFlags QEPlot::getMouseMoveSignals () const
+{
+   return this->mMouseMoveSignals;
 }
 
 //------------------------------------------------------------------------------
