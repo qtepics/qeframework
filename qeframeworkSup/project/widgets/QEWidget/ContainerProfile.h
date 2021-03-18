@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2020 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -26,25 +26,29 @@
 
 /* Description:
  *
- * This class provides a communication mechanism from the code creating QE widgets to the QE widgets.
+ * This class provides a communication mechanism from the code creating QE widgets
+ * to the QE widgets.
  *
  * When QE widgets, such as QELabel, are created, they need to know environmental
- * information such as what macro substitutions to apply, or where to signal error messages.
- * Also, the code creating the QE widgets may require a reference to all the created QE widgets.
- * In some cases this information cannot be passed during construction or set up post construction
- * via a method. For example, when the object is being created from a UI file by Qt. In this case
- * the application code asks Qt to generate objects from a UI file and has no idea what
- * QE widgets if any have been created.
+ * information such as what macro substitutions to apply, or where to signal error
+ * messages. Also, the code creating the QE widgets may require a reference to all
+ * the created QE widgets. In some cases this information cannot be passed during 
+ * construction or set up post construction via a method. For example, when the 
+ * object is being created from a UI file by Qt. In this case the application code 
+ * asks Qt to generate objects from a UI file and has no idea what QE widgets if
+ * any have been created.
  *
- * To use this class, an instance of this class is instantiated prior to creating the QE widgets.
- * Information to be communicated such as message handlers and macro substitutions is set up within this class.
- * Then the QE widgets are created using a mechanism such as the QUiLoader class.
+ * To use this class, an instance of this class is instantiated prior to creating
+ * the QE widgets. Information to be communicated such as message handlers and 
+ * macro substitutions is set up within this class. Then the QE widgets are created
+ * using a mechanism such as the QUiLoader class.
  *
- * As each QE widgets is created it also instantiates an instance of the ContainerProfile class.
- * If any information has been provided, it can then be used.
+ * As each QE widgets is created it also instantiates an instance of the ContainerProfile
+ * class. If any information has been provided, it can then be used.
  *
- * Note, a local copy of the environment profile is saved per instance, so an application
- * creating QE widgets (the container) can define a profile, create QE widgets, then release the profile.
+ * Note, a local copy of the environment profile is saved per instance, so an
+ * application creating QE widgets (the container) can define a profile, create
+ * QE widgets, then release the profile.
  *
  * To use this class
  *         - Instantiate a ContainerProfile class
@@ -52,35 +56,39 @@
  *         - Create QE widgets
  *         - Call releaseProfile()
  *
- * This class also communicates the current user level between the application and contained widgets.
- * This differs from other environmental information described above in the following ways:
+ * This class also communicates the current user level between the application
+ * and contained widgets. This differs from other environmental information 
+ * described above in the following ways:
  *
- * - Widgets based on the QEWidget class (and therefore this ContainerProfile class) can be
- *   notified of user level changes by reimplementing QEWidget::userLevelChanged()
- *   Note, Widgets can also determine the current user level by calling ContainerProfile::getUserLevel()
+ * - Widgets based on the QEWidget class (and therefore this ContainerProfile 
+ *   class) can be notified of user level changes by reimplementing 
+ *   QEWidget::userLevelChanged()
+ *   Note, Widgets can also determine the current user level by calling
+ *   ContainerProfile::getUserLevel()
  *
- * - Both the application and any widgets based on the QEWidget class can set the user level by
- *   calling ContainerProfile::setUserLevel().
- *   For example, the QELogin widgt can alter the user level from within a GUI, alternatively
- *   the application can manage the user level.
+ * - Both the application and any widgets based on the QEWidget class can set
+ *   the user level by calling ContainerProfile::setUserLevel().
+ *   For example, the QELogin widgt can alter the user level from within a GUI,
+ *   alternatively the application can manage the user level.
  *
  * Notes:
- * - If an application creates the ContainerProfile class early, before the widgets that are published in the
- *   profile, or if the published widgets change the widgets in the profile can be updated by calling updateConsumers().
- *   Alternatively, just the widget that launches new GUIs can be updated with replaceGuiLaunchConsumer().
+ * - If an application creates the ContainerProfile class early, before the 
+ *   widgets that are published in the profile, or if the published widgets
+ *   change the widgets in the profile can be updated by calling updateConsumers().
+ *   Alternatively, just the widget that launches new GUIs can be updated
+ *   with replaceGuiLaunchConsumer().
  *
- * - An application may need to temprarily extend the the macro substitutions. For example, when creating an QEForm
- *   widget as a sub form within another QEForm widget. Macro substitutions can be extended by calling addMacroSubstitutions()
- *   then restored using removeMacroSubstitutions().
+ * - An application may need to temprarily extend the the macro substitutions.
+ *   For example, when creating an QEForm widget as a sub form within another 
+ *   QEForm widget. Macro substitutions can be extended by calling
+ *   addMacroSubstitutions() then restored using removeMacroSubstitutions().
  *
  */
 
 #ifndef QE_CONTAINER_PROFILE_H
 #define QE_CONTAINER_PROFILE_H
 
-#include <QSharedMemory>
 #include <QObject>
-#include <QMutex>
 #include <QList>
 #include <QStringList>
 #include <QDebug>
@@ -99,31 +107,13 @@ public:
     // NOTE: order must remain least privileged to most privileged
     /// \public
     /// \enum userLevels
-    /// User levels set by widgets such as QELogin and used by many widgets to determine visibility, enabled state, and style.
+    /// User levels set by widgets such as QELogin and used by many widgets
+    ///  to determine visibility, enabled state, and style.
     enum userLevels { USERLEVEL_USER,       ///< User level - least privilaged
                       USERLEVEL_SCIENTIST,  ///< User level - more privilaged than user, less than engineer
                       USERLEVEL_ENGINEER    ///< User level - most privilaged
                     };
     Q_ENUMS (userLevels)
-};
-
-
-// Published profile, and the shared memory to reference it,
-// These static variables are instantiated twice on windows - once when this code
-// is loaded by an application (QEGui); and once when the Qt .ui loaded loads
-// this code to support creation of QE widgets.
-//
-class QEPublishedProfile;
-
-class QEEnvironmentShare
-{
-public:
-    explicit QEEnvironmentShare();
-    ~QEEnvironmentShare();
-
-    QSharedMemory* sharedMemory;            // Memory to hold a reference to the application wide PublishedProfile
-    QEPublishedProfile* publishedProfile;   // Reference to the application wide PublishedProfile
-    bool publishedProfileCreatedByMe;       // True of this instance of the QEEnvironmentShare class allocated the memory for the publishedProfile
 };
 
 
@@ -174,7 +164,6 @@ private:
 class QEProfileUserLevelSlot : public QObject
 {
     Q_OBJECT
-
 public:
     // Constructor, destructor
     // Default to no owner
@@ -324,7 +313,7 @@ private:
 
     static QEPublishedProfile* getPublishedProfile();     // Get the single instance of the published profile (via share)
 
-    QEProfileUserLevelSlot userSlot;                             // Current user level slot object. An instance per ContainerProfile to recieve level changes
+    QEProfileUserLevelSlot userSlot;                      // Current user level slot object. An instance per ContainerProfile to recieve level changes
 
     QObject* guiLaunchConsumer;      // Local copy of GUI launch consumer. Still valid after the profile has been released by releaseProfile()
     QStringList pathList;            // Local copy of application path list used for file operations
@@ -333,7 +322,7 @@ private:
 
     unsigned int messageFormId;      // Local copy of current form ID. Used to group forms with their widgets for messaging
 
-    static QEEnvironmentShare share;
+    static QEPublishedProfile publishedProfile;
 
     friend class QEProfileUserLevelSlot;
 };

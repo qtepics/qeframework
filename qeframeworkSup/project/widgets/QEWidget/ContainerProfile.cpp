@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2019  Australian Synchrotron
+ *  Copyright (c) 2009-2020  Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -36,131 +36,9 @@
 #define DEBUG qDebug() << "ContainerProfile" << __LINE__ << __FUNCTION__ << "  "
 
 
-// Forward declaration
-QEEnvironmentShare ContainerProfile::share;
-
-// Single static instance of a QEEnvironmentShare class.
+// static singleton actual declaration
 //
-// The details contained in the PublishedProfile class need to be shared across
-// the application, but they can't be just static since QE framework library
-// QEPlugin may be loaded twice: Once as a run time loaded dll for an application
-// (example QEGui) and once when a QEForm is loaded by the Qt .ui loader. On Linux
-// this doesn't matter - the library is mapped once and the same mapping is
-// returned in both cases. So any static variables only exist once.
-//
-// In windows, however, the library (QEPlugin.dll) is mapped twice and static
-// variables are created twice. This can be observed by printing out the address
-// of a static variable. The 'same' static variable will have different addresses
-// depening on whether it is being referenced by the application or the Qt .ui
-// form loader.
-//
-// See header not re QEPlugin library / functional QEFramework library split.
-//
-// This static instance of the QEEnvironmentShare class will be mapped once for
-// each mapping of the library and will manage sharing the PublishedProfile across
-// all mappings through shared memory.
-//
-// The sharing is limited to the current process by including the process ID in
-// the shared memory key. Note, the Qt objects in the single published profile
-// class are all being access by the same thread, just through different mappings
-// of the same dll.
-//
-QEEnvironmentShare::QEEnvironmentShare()
-{
-    // Generate a shared memory key.
-    // Keep it unique to this process by including the pid
-    qint64 pid = QCoreApplication::applicationPid();
-    QString key = QString( "QEFramework:" ).append( QString("%1").arg( pid ) );
-
-    // Create the shared memory
-    this->sharedMemory = new QSharedMemory( key );
-
-    // Get the shared memory data
-    // If the shared memory data is there, it has also been set up to contain a
-    // reference to the unique published profile by another instance of this class.
-    void* sharedMemoryData = NULL;
-    if( this->sharedMemory->attach() )
-    {
-        sharedMemoryData = this->sharedMemory->data();
-        if( sharedMemoryData )
-        {
-            // Get the other's reference to it's Published Profile
-            this->sharedMemory->lock();
-            this->publishedProfile = *(QEPublishedProfile**)(sharedMemoryData);
-            this->sharedMemory->unlock();
-
-            // Note we don't own the PublishedProfile (we should never deleted it)
-            this->publishedProfileCreatedByMe = false;
-            return;
-        }
-    }
-
-    // There is no shared memory data. (or we couldn't attach)
-    // Create a unique published profile class, create the shared memory data (big enough to
-    // hold a reference to the published profile), and load the reference to the published profile
-    // into the shared memory data.
-    // (Note we own the PublishedProfile (we should deleted it on exit)
-    this->publishedProfile = new QEPublishedProfile;
-    this->publishedProfileCreatedByMe = true;
-
-    if( !this->sharedMemory->create( sizeof( QEPublishedProfile* ) ) )
-    {
-        qDebug() << "Error (1) setting up ContainerProfile in shared memory. "
-                    "(on Linux, check if there are old shared memory sections "
-                    "or semaphores using the ipcs command.)"
-                 << this->sharedMemory->error() << this->sharedMemory->errorString();
-    }
-    else
-    {
-        sharedMemoryData = this->sharedMemory->data();
-        if( sharedMemoryData == NULL )
-        {
-            qDebug() << "Error (2) setting up ContainerProfile in shared memory."
-                     << this->sharedMemory->error() << this->sharedMemory->errorString();
-        }
-        else
-        {
-            // Lock the shared memory
-            this->sharedMemory->lock();
-            *(QEPublishedProfile**)(sharedMemoryData) = this->publishedProfile;
-            this->sharedMemory->unlock();
-        }
-    }
-}
-
-// Release shared profile
-QEEnvironmentShare::~QEEnvironmentShare()
-{
-    // Free the profile if we created it.
-/* How about we dont. Other instances take a copy and although we may have created it
-   we may not be the last to reference it.
-   Instead, just leave it. We are talking about a few bytes that is meant to last for the
-   duration of the applcation anyway.
-   The best reason to do this better is so memory leak tools dont complain.
-   To do this properly, the QEEnvironmentShare class should get the published profile from
-   the (locked) shared memory each time it is required.
-
-    if( publishedProfileCreatedByMe )
-    {
-        void* sharedMemoryData = sharedMemory->data();
-        if( sharedMemoryData == NULL )
-        {
-            qDebug() << "Error (3) accessing ContainerProfile in shared memory." << sharedMemory->error() << sharedMemory->errorString();
-        }
-        else
-        {
-            sharedMemory->lock();
-            *sharedMemoryData = NULL;
-            delete publishedProfile;
-            sharedMemory->unlock();
-        }
-    }
-*/
-
-    // Ensure shared memory is released. Without this lock files may persist on Linux
-    delete this->sharedMemory;
-}
-
+QEPublishedProfile ContainerProfile::publishedProfile;
 
 //==============================================================================
 // Construction
@@ -200,27 +78,15 @@ ContainerProfile::ContainerProfile()
 // Note, if the profile has been defined (ContainerProfile::setupProfile() has been
 // called) this does not release the profile. A profile is released only when
 // ContainerProfile::releaseProfile() is called.
-ContainerProfile::~ContainerProfile()
-{
-}
-
-// Get a unique instance of the published profile.
-// The details contained in the PublishedProfile class need to be shared across the application, but they can't
-// be just static since QE framework library QEPlugin may be loaded twice: Once as a run time loaded dll
-// for an application (example QEGui) and once when a QEForm is loaded by the Qt .ui loader. On Linux this
-// doesn't matter - the library is mapped once and the same mapping is returned in both cases. So any static
-// variables only exist once.
-// In windows, however, the library (QEPlugin.dll) is mapped twice and static variables are created twice.
-// This can be observed by printing out the address of a static variable. The 'same' static variable will
-// have different addresses depening on whether it is being referenced by the application or the Qt .ui form loader.
 //
-// This function uses shared memory to hold a reference to a single published profile. It is limited to the
-// current process by including the process ID in the shared memory key.
-// Note, the Qt objects in the single published profile class are all being access by the same thread, just through
-// different mappings of the same dll.
+ContainerProfile::~ContainerProfile() { }
+
+//------------------------------------------------------------------------------
+// Get a pointer to the unique instance of the published profile.
+//
 QEPublishedProfile* ContainerProfile::getPublishedProfile()
 {
-    return ContainerProfile::share.publishedProfile;
+    return &ContainerProfile::publishedProfile;
 }
 
 /* -----------------------------------------------------------------------------
@@ -388,6 +254,7 @@ void ContainerProfile::setupLocalProfile( QObject* guiLaunchConsumerIn,
   Since it adds to the end of the existing macro substitutions, any substitutions already added by the originating
   container or higher forms take precedence.
   Use removeMacroSubstitutions() to remove macro substitutions added by this method.
+  static
   */
 void ContainerProfile::addMacroSubstitutions( QString macroSubstitutionsIn )
 {
@@ -809,6 +676,7 @@ userLevelTypes::userLevels QEProfileUserLevelSignal::getLevel() const
 {
     return this->level;
 }
+
 
 //==============================================================================
 // Published own profile if and only if required.
