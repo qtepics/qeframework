@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2014-2021 Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2014 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -37,6 +37,8 @@
 /// in ordger to provide a more flexibility, i.e. sets of PV names which can
 /// be source from any source.
 //
+// QEPvNameSearch is essentially just a contrainer/wrapper around a QStringList
+//
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvNameSearch {
 public:
    explicit QEPvNameSearch ();
@@ -44,7 +46,16 @@ public:
    explicit QEPvNameSearch (const QStringList& pvNameList);
    virtual ~QEPvNameSearch ();
 
-   // Note: the inputs is sorted and duplicates are removed.
+   // Clears/empties the QEPvNameSearch object.
+   //
+   void clear ();
+
+   // Number of PV names held in the QEPvNameSearch object.
+   //
+   int count () const;
+
+   // Note: for setPvNameList and addPvNameList the list is sorted
+   // and duplicates are removed.
    //
    void setPvNameList (const QStringList& pvNameList);
    void addPvNameList (const QStringList& pvNameList);

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron
+ *  Copyright (c) 2013-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -25,18 +25,35 @@
  *
  */
 
+#include "QEPVNameSelectDialog.h"
 #include <QDebug>
 #include <QRegExp>
 #include <QStringList>
 
-#include <QEPVNameSelectDialog.h>
 #include <ui_QEPVNameSelectDialog.h>
-
 #include <QEPvNameSearch.h>
 #include <QEArchiveManager.h>
 #include <QEScaling.h>
 
 #define DEBUG  qDebug () << "QEPVNameSelectDialog:" << __LINE__ << __FUNCTION__ << "  "
+
+//------------------------------------------------------------------------------
+// static
+QStringList QEPVNameSelectDialog::pvNameList;
+
+//------------------------------------------------------------------------------
+// static
+void QEPVNameSelectDialog::setPvNameList (const QStringList& pvNameListIn)
+{
+   QEPVNameSelectDialog::pvNameList = pvNameListIn;
+}
+
+//------------------------------------------------------------------------------
+// static
+QStringList QEPVNameSelectDialog::getPvNameList ()
+{
+   return QEPVNameSelectDialog::pvNameList;
+}
 
 //------------------------------------------------------------------------------
 //
@@ -127,10 +144,15 @@ void QEPVNameSelectDialog::applyFilter ()
    QString pattern = this->ui->filterEdit->text ().trimmed ();
    QRegExp regExp (pattern, Qt::CaseSensitive, QRegExp::RegExp);
 
-   // QEArchiveAccess ensures the list is sorted.
+   // Form list of PV names from both the user defined arbitary list
+   // and the list extarcted from the QEArchiveAccess.
    //
-   QEPvNameSearch findNames (QEArchiveAccess::getAllPvNames ());
-   const int m = QEArchiveAccess::getNumberPVs ();
+   QEPvNameSearch findNames (QEPVNameSelectDialog::pvNameList);
+
+   // addPvNameList ensures overall set of names is sorted and unique.
+   //
+   findNames.addPvNameList (QEArchiveAccess::getAllPvNames ());
+   const int m = findNames.count ();
 
    this->filteredNames.clear ();
    this->filteredNames = findNames.getMatchingPvNames (regExp, true);

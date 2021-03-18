@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron
+ *  Copyright (c) 2013-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -51,16 +51,23 @@ public:
    void setPvName (QString pvNameIn);
    QString getPvName ();
 
+   // Set and get a global arbitary PV names list to augment the PV names
+   // extracted from the archiver.
+   //
+   static void setPvNameList (const QStringList& pvNameList);
+   static QStringList getPvNameList ();
+
 protected:
    void closeEvent (QCloseEvent * e);
 
 private:
+   void applyFilter ();
+
    Ui::QEPVNameSelectDialog *ui;
    QString originalPvName;
    bool returnIsMasked;
    QStringList filteredNames;
-
-   void applyFilter ();
+   static QStringList pvNameList;
 
 private slots:
    void filterEditReturnPressed ();
