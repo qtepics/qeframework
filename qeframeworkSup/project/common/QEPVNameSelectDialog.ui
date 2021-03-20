@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>464</width>
+    <width>488</width>
     <height>422</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>448</width>
+    <width>488</width>
     <height>110</height>
    </size>
   </property>
@@ -237,13 +237,13 @@
        <widget class="QLabel" name="matchCountLabel">
         <property name="minimumSize">
          <size>
-          <width>116</width>
+          <width>144</width>
           <height>16</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>116</width>
+          <width>144</width>
           <height>16</height>
          </size>
         </property>
