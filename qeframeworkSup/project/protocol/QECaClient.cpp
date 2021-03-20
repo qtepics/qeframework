@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2020 Australian Synchrotron
+ *  Copyright (C) 2018-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -27,17 +27,19 @@
 #include "QECaClient.h"
 #include <QApplication>
 #include <QDebug>
-#include <QCaObject.h>
+#include <QTimer>
+#include <QERecordFieldName.h>
 
 #define DEBUG qDebug () << "QECaClient" << __LINE__ << __FUNCTION__ << "  "
 
 //------------------------------------------------------------------------------
 //
 QECaClient::QECaClient (const QString& pvNameIn,
-                        qcaobject::QCaObject* parent) :
+                        QObject* parent) :
    QEBaseClient (QEBaseClient::CAType, pvNameIn, parent),
    ACAI::Client (pvNameIn.toStdString())
 {
+   this->descriptionClient = NULL;
    QECaClientManager::initialise ();   // idempotent
 }
 
@@ -46,6 +48,30 @@ QECaClient::QECaClient (const QString& pvNameIn,
 QECaClient::~QECaClient ()
 {
    this->closeChannel ();
+}
+
+//------------------------------------------------------------------------------
+// Form DESCription PV name and request data.
+// Note: the assumption here is that the PV is a the name of a record or a
+// record field hosted on an IOC. However if this is a PV hosted on a Portable
+// Channel Access Server (PCAS) such as a gateway generated PV or a pycas PV,
+// the <name>.DESC PV may not exist.
+//
+void QECaClient::requestDescription ()
+{
+   if (!this->descriptionClient) {
+      QString pvName = this->getPvName();
+
+      if (pvName.endsWith (".DESC")) {
+         // This client is already looking at a description field.
+         //
+         this->descriptionClient = this;
+      } else {
+         QString descPvName = QERecordFieldName::fieldPvName (pvName, "DESC");
+         this->descriptionClient = new QECaClient (descPvName, this);
+         this->descriptionClient->openChannel();
+      }
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -355,6 +381,21 @@ QCaDateTime QECaClient::getTimeStamp () const
 
 //------------------------------------------------------------------------------
 //
+QString QECaClient::getDescription () const
+{
+   QString result;
+   if (this->descriptionClient) {
+      result = QString::fromStdString (this->descriptionClient->getString());
+   } else {
+      // We use a slot, mainly to overcome the const qualifier error.
+      //
+      QTimer::singleShot (0, this, SLOT (requestDescription ()));
+   }
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
 void QECaClient::connectionUpdate (const bool isConnected)
 {
    emit this->connectionUpdated (isConnected);
@@ -404,8 +445,9 @@ void QECaClientManager::notificationHandlers (const char* notification)
 //------------------------------------------------------------------------------
 // constructor
 //
-QECaClientManager::QECaClientManager () : QTimer (NULL)
+QECaClientManager::QECaClientManager () : QObject (NULL)
 {
+   this->stillRunning = true;
    ACAI::Client::initialise ();
    ACAI::Client::setNotificationHandler (QECaClientManager::notificationHandlers);
 
@@ -415,12 +457,9 @@ QECaClientManager::QECaClientManager () : QTimer (NULL)
    QObject::connect (qApp, SIGNAL (aboutToQuit ()),
                      this, SLOT   (aboutToQuitHandler ()));
 
-   // Connect and start regular timed event.
+   // Schedule first poll event.
    //
-   QObject::connect (this, SIGNAL (timeout ()),
-                     this, SLOT   (timeoutHandler ()));
-
-   this->start (16);   // 16 mSec ~ 60 Hz.
+   QTimer::singleShot (1, this, SLOT (timeoutHandler ()));
 }
 
 //------------------------------------------------------------------------------
@@ -432,16 +471,29 @@ QECaClientManager::~QECaClientManager () { }
 //
 void QECaClientManager::timeoutHandler ()
 {
+   if (!this->stillRunning) return;
+
    // The ACAI package requires a regular poll.
+   // Catch any exceptions here.
    //
-   ACAI::Client::poll ();
+   try {
+      ACAI::Client::poll ();
+   }
+   catch (...) {
+      DEBUG << ": poll exception.";
+   }
+
+   // Schedule another poll event - 16 mS approx 60Hz.
+   // Note: the delay is relative to the end of processing the poll function.
+   //
+   QTimer::singleShot (16, this, SLOT (timeoutHandler ()));
 }
 
 //------------------------------------------------------------------------------
 //
 void QECaClientManager::aboutToQuitHandler ()
 {
-   this->stop ();  // Stop the timer.
+   this->stillRunning = false;
    ACAI::Client::finalise ();
 }
 

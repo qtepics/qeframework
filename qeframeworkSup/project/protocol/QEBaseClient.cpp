@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018 Australian Synchrotron
+ *  Copyright (C) 2018-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +25,6 @@
  */
 
 #include "QEBaseClient.h"
-#include <QCaObject.h>
 #include <QDebug>
 
 #define DEBUG qDebug () << "QEBaseClient" << __LINE__ << __FUNCTION__ << "  "
@@ -33,10 +32,10 @@
 //------------------------------------------------------------------------------
 //
 QEBaseClient::QEBaseClient (const Type type, const QString& pvName,
-                            qcaobject::QCaObject* parent) :
+                            QObject* parent) :
    QObject(parent),
-   clientType (type),
-   clientPvName (pvName)
+   clientType(type),
+   clientPvName(pvName)
 {
    this->userMessage = NULL;
 }

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018 Australian Synchrotron
+ *  Copyright (C) 2018-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -30,7 +30,6 @@
 #include <acai_client_types.h>
 #include <acai_client.h>
 
-#include <QTimer>
 #include <QEBaseClient.h>
 #include <Generic.h>
 #include <QCaAlarmInfo.h>
@@ -43,9 +42,10 @@
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QECaClient :
       public QEBaseClient, public ACAI::Client
 {
+   Q_OBJECT
 public:
    explicit QECaClient (const QString& pvName,
-                        qcaobject::QCaObject* parent);
+                        QObject* parent);
    ~QECaClient ();
 
    // Override QEBaseClient parent functions.
@@ -57,6 +57,7 @@ public:
    QStringList getEnumerations() const;
    QCaAlarmInfo getAlarmInfo () const;
    QCaDateTime  getTimeStamp () const;
+   QString getDescription () const;
 
 protected:
    // Override ACAI::Client parent class functions.
@@ -64,6 +65,12 @@ protected:
    void connectionUpdate (const bool isConnected);
    void dataUpdate (const bool firstUpdate);
    void putCallbackNotifcation (const bool isSuccessful);
+
+private:
+   QECaClient* descriptionClient;  // connects to the .DESC field
+
+private slots:
+   void requestDescription ();
 };
 
 //------------------------------------------------------------------------------
@@ -74,7 +81,7 @@ protected:
 // regular basis in order to process CA callbacks. It also receives the
 // aboutToQuit signal in order to do a clean shutdown.
 //
-class QECaClientManager : private QTimer {
+class QECaClientManager : private QObject {
    Q_OBJECT
 private:
    explicit QECaClientManager ();
@@ -90,6 +97,7 @@ private:
    // Not used directly, set pass as a parameter.
    static void notificationHandlers (const char* notification);
 
+   bool stillRunning;
 private slots:
    void timeoutHandler ();
    void aboutToQuitHandler ();

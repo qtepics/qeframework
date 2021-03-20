@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (C) 2018-2020 Australian Synchrotron
+ *  Copyright (C) 2018-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -632,7 +632,7 @@ static pva::ChannelProvider::shared_pointer pvaProvider = NULL;
 //------------------------------------------------------------------------------
 //
 QEPvaClient::QEPvaClient (const QString& pvName,
-                          qcaobject::QCaObject* parent) :
+                          QObject* parent) :
    QEBaseClient (QEBaseClient::PVAType, pvName, parent)
 {
    QEPvaClientManager::initialise ();  // idempotent - do first.
@@ -1047,6 +1047,13 @@ QCaDateTime QEPvaClient::getTimeStamp () const
 
 //------------------------------------------------------------------------------
 //
+QString QEPvaClient::getDescription () const
+{
+   return this->display.description;
+}
+
+//------------------------------------------------------------------------------
+//
 void QEPvaClient::processUpdate (QEPvaClient::Update* update)
 {
    if (!update) return;  // sanity check
@@ -1171,7 +1178,7 @@ void QEPvaClientManager::aboutToQuitHandler ()
 // QE_INCLUDE_PV_ACCESS not defined - just provide stubb functions.
 
 QEPvaClient::QEPvaClient (const QString& pvName,
-                          qcaobject::QCaObject* parent) :
+                          QObject* parent) :
    QEBaseClient (QEBaseClient::PVAType, pvName, parent) { }
 QEPvaClient::~QEPvaClient () { }
 bool QEPvaClient::openChannel (const ChannelModesFlags) { return false; }
@@ -1198,6 +1205,7 @@ bool QEPvaClient::putPvData (const QVariant&) { return false; }
 QStringList QEPvaClient::getEnumerations () const { QStringList d; return d; }
 QCaAlarmInfo QEPvaClient::getAlarmInfo () const { QCaAlarmInfo d; return d; }
 QCaDateTime  QEPvaClient::getTimeStamp () const { QCaDateTime d; return d; }
+QString QEPvaClient::getDescription () const { return ""; }
 void QEPvaClient::processUpdate (QEPvaClient::Update*) { }
 
 QEPvaClientManager::QEPvaClientManager () { }

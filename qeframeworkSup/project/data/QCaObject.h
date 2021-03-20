@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2019 Australian Synchrotron
+ *  Copyright (c) 2009-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -43,6 +43,9 @@
 class QECaClient;
 class QEPvaClient;
 
+// TODO: Consider renameing QCaObject to something more vanilla (e.g. QEClient)
+// and dropping the name space and that not used anywhere else in the framework.
+//
 namespace qcaobject {
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QCaObject : public QObject {
@@ -119,6 +122,7 @@ public:
    unsigned int getPrecision() const;
    QCaAlarmInfo getAlarmInfo() const;
    QCaDateTime getDateTime () const;
+   QString getDescription () const;
    double getDisplayLimitUpper() const;
    double getDisplayLimitLower() const;
    double getAlarmLimitUpper() const;
@@ -201,6 +205,7 @@ private:
    int arrayIndex;
    bool firstUpdate;
 
+   // TODO: Consider using QEBaseClient* client;
    QECaClient* caClient;     // CA Interface class.
    QEPvaClient* pvaClient;   // PVA Interface class.
 

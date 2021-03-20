@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2019 Australian Synchrotron
+ *  Copyright (c) 2009-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -713,6 +713,16 @@ QCaDateTime  QCaObject::getDateTime () const
 {
    QCaDateTime result;
    RESULT_SELECT (getTimeStamp, getTimeStamp);
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the DESCription associated with this PV.
+//
+QString QCaObject::getDescription () const
+{
+   QString result;
+   RESULT_SELECT (getDescription, getDescription);
    return result;
 }
 
