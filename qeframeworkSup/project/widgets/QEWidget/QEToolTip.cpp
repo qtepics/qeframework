@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2020 Australian Synchrotron
+ *  Copyright (c) 2009-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -28,11 +28,8 @@
 #include <QApplication>
 #include <QDebug>
 #include <QEWidget.h>
-#include <QERecordFieldName.h>
 
 #define DEBUG qDebug () << "QEToolTip" << __LINE__ << __FUNCTION__ << "  "
-
-#define PROPERTY_NAME  "QE_TOOL_TIP_QEWIDGET_ADDRESS"
 
 
 //==============================================================================
@@ -57,8 +54,14 @@ void QEToolTipSingleton::constructSingleton ()
 //
 QEToolTipSingleton::QEToolTipSingleton (QObject* parent) : QObject (parent)
 {
-   this->currentQEWidget = NULL;
-   this->descriptionStringList.clear ();
+   this->currentWidget = NULL;
+   this->refreshTimer = new QTimer (this);
+
+   // Connect and start regular timed event.
+   //
+   QObject::connect (this->refreshTimer, SIGNAL (timeout()),
+                     this, SLOT (refreshTimerHandler ()));
+   this->refreshTimer->start (250);   // mSec - 4Hz
 }
 
 //------------------------------------------------------------------------------
@@ -66,23 +69,22 @@ QEToolTipSingleton::QEToolTipSingleton (QObject* parent) : QObject (parent)
 //
 QEToolTipSingleton::~QEToolTipSingleton ()
 {
-   this->clear ();
+   this->currentWidget = NULL;
    toolTipSingleton = NULL;
 }
 
 //------------------------------------------------------------------------------
-// Emtpy description list and delete associated qca objects.
 //
-void QEToolTipSingleton::clear ()
+void QEToolTipSingleton::refreshTimerHandler ()
 {
-   while (!this->descriptionStringList.isEmpty ()) {
-      QEString* qca = this->descriptionStringList.takeFirst ();
-      if (qca) delete qca;
-   }
+    if (this->currentWidget) {
+       // Update the current the widget
+       this->updateWidget ();
+    }
 }
 
 //------------------------------------------------------------------------------
-// Installs and event handler for the specified widget.
+// Installs and event handler for the specified owner widget.
 //
 void QEToolTipSingleton::registerWidget (QWidget* widget)
 {
@@ -92,104 +94,80 @@ void QEToolTipSingleton::registerWidget (QWidget* widget)
 }
 
 //------------------------------------------------------------------------------
-// Widget isbeing deleted: If it is the current qe widget, then tidy up.
+// Widget is being deleted: If it is the current qe widget, then tidy up.
 //
 void QEToolTipSingleton::deregisterWidget (QWidget* widget)
 {
-   QEWidget* qewidget = dynamic_cast < QEWidget* >(widget);
-   if (qewidget == this->currentQEWidget) {
-      this->currentQEWidget = NULL;
-      this->clear ();
+   QEWidget* qewidget = dynamic_cast <QEWidget*>(widget);
+   if (qewidget == this->currentWidget) {
+      this->currentWidget = NULL;
+   }
+
+   if (widget) {
+      widget->removeEventFilter (this);
    }
 }
 
 //------------------------------------------------------------------------------
-// Use the received value to update the current widget's tool tip.
 //
-void QEToolTipSingleton::descriptionUpdate (const QString& value, QCaAlarmInfo&,
-                                            QCaDateTime&, const unsigned int& variableIndex)
+void QEToolTipSingleton::updateWidget ()
 {
-   QObject* theSender = sender ();      // who sent this update ?
-   QVariant propValue = theSender->property (PROPERTY_NAME);
-   bool okay;
-   qlonglong sainityCheck = propValue.toLongLong (&okay);
+   if (!this->currentWidget) return;   // sanity check
 
-   if (this->currentQEWidget && okay && ((qlonglong) this->currentQEWidget == sainityCheck)) {
-      this->currentQEWidget->updateToolTipDescription (value, variableIndex);
+   const unsigned int number = (unsigned int) this->currentWidget->getNumberVariables ();
+   for (unsigned int j = 0; j < number; j++) {
+      QString desc = "";       // blank until we know better.
+      qcaobject::QCaObject* qca = this->currentWidget->getQcaItem (j);
+      if (qca) {  // sanity check
+         desc = qca->getDescription();
+      }
+      this->currentWidget->updateToolTipDescription (desc, j);
    }
 }
 
-
 //------------------------------------------------------------------------------
-// Form DESCription PV name and request data.
-// Note: the assumption here is that the PV is a the name of a record or a record field hosted
-// on an IOC. However if this is a PV hosted on a Portable Channel Access Server (PCAS) such as
-// a gateway generated PV or a pycas PV, the <name>.DESC PV won't exist.
+// On entry to the widget request the PV.
+// We also do this on a regular basis as getDescription initiates the connection
+// and most certainly will return a null string the first time it is called.
 //
-void QEToolTipSingleton::enterQEWidget (QEWidget* qewidget)
+void QEToolTipSingleton::enterWidget (QEWidget* qewidget)
 {
+   if (!qewidget) return;   // sanity check
+
    // Do nothing if not displaying Variable names in the tool tip
    if (!qewidget->variableAsToolTip) {
       return;
    }
 
-   this->currentQEWidget = qewidget;  // save a reference widget of interest.
-
-   // First delete any existing QEString objects. The API provides no means to
-   // reassign the PV name, so we can't reuse these objects.
-   this->clear ();
-
-   const unsigned int number = (unsigned int) qewidget->getNumberVariables ();
-   for (unsigned int j = 0; j < number; j++) {
-      qewidget->updateToolTipDescription ("", j);       // blank until we know better.
-      QString pvName = qewidget->getSubstitutedVariableName (j);
-      if (!pvName.isEmpty ()) {
-         QString descName = QERecordFieldName::fieldPvName (pvName, "DESC");
-         QEString* qca;
-
-         qca = new QEString (descName, this, &descriptionFormatting, j);
-         // Add a reference to the QEWidget into this QEString.
-         qca->setProperty (PROPERTY_NAME, QVariant ((qlonglong) currentQEWidget));
-
-         QObject::connect (qca, SIGNAL(stringChanged     (const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                           this, SLOT (descriptionUpdate (const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
-
-         // we don't really need to monitor DESC fields as these are basically static.
-         qca->singleShotRead ();
-         this->descriptionStringList.append (qca);
-      }
-   }
+   this->currentWidget = qewidget;  // save a reference widget of interest.
+   this->updateWidget ();
 }
 
 //------------------------------------------------------------------------------
 // Process leaving the widget.
 //
-void QEToolTipSingleton::leaveQEWidget (QEWidget* /* qewidget */ )
+void QEToolTipSingleton::leaveWidget (QEWidget* /* qewidget */ )
 {
-   this->currentQEWidget = NULL;
-   this->clear ();
+   this->currentWidget = NULL;
 }
 
 //------------------------------------------------------------------------------
 // Common event filter for all widgets that arer also QEWidgets.
 //
-bool QEToolTipSingleton::eventFilter (QObject* obj, QEvent* event)
+bool QEToolTipSingleton::eventFilter (QObject* watched, QEvent* event)
 {
    const QEvent::Type type = event->type ();
-   QWidget* widget;
    QEWidget* qewidget;
 
    switch (type) {
       case QEvent::Enter:
-         widget = static_cast <QWidget*>(obj);
-         qewidget = dynamic_cast <QEWidget*>(widget);
-         if (qewidget) enterQEWidget (qewidget);
+         qewidget = dynamic_cast <QEWidget*>(watched);
+         if (qewidget) this->enterWidget (qewidget);
          break;
 
       case QEvent::Leave:
-         widget = static_cast <QWidget*>(obj);
-         qewidget = dynamic_cast <QEWidget*>(widget);
-         if (qewidget) leaveQEWidget (qewidget);
+         qewidget = dynamic_cast <QEWidget*>(watched);
+         if (qewidget) this->leaveWidget (qewidget);
          break;
 
       default:
@@ -211,7 +189,7 @@ QEToolTip::QEToolTip (QWidget* ownerIn)
    // Sanity check.
    if (ownerIn == NULL) {
       qWarning ("QEToolTip constructor called with a null 'owner'");
-      exit (EXIT_FAILURE);
+      exit (EXIT_FAILURE);   /// *** Fix this
    }
 
    // Keep a handle on the underlying QWidget of the QE widgets

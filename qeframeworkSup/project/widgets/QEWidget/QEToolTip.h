@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2020 Australian Synchrotron
+ *  Copyright (c) 2009-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -37,11 +37,8 @@
 #include <QObject>
 #include <QWidget>
 #include <QString>
-#include <QStringList>
+#include <QTimer>
 #include <QEString.h>
-#include <QEStringFormatting.h>
-#include <QCaAlarmInfo.h>
-#include <QCaDateTime.h>
 #include <QEFrameworkLibraryGlobal.h>
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEToolTip
@@ -79,7 +76,8 @@ private:
 
    typedef QList<Variable> VariableLists;
 
-   void updateToolTipDescription (const QString & desc, const unsigned int variableIndex);   // Update description
+   void updateToolTipDescription (const QString & desc,
+                                  const unsigned int variableIndex);   // Update description
    bool variableAsToolTip;          // Flag the tool tip should be set to the variable name
    void displayToolTip ();          // Built a tool tip from all the required information and set it
    int number;                      // Count of variables that will be included in the tooltip
@@ -92,12 +90,11 @@ private:
 
 
 //------------------------------------------------------------------------------
-// This is a singleton class - the single instance is declared in the .cpp file.
-// It's only exposed in a header because the Qt SDK framework requires that signals
-// and slots are declared in header files. Clients should use the QEToolTip.
-// specified above.
+// This is essentially a private singleton class, but must be declared in the
+// header file in order to use the meta object compiler (moc) to allow setup of
+// the the QTime timeout slot.
 //
-class QEWidget;
+class QEWidget;  // differed
 
 class QEToolTipSingleton:public QObject
 {
@@ -108,24 +105,19 @@ private:
    explicit QEToolTipSingleton (QObject* parent = 0);
    ~QEToolTipSingleton ();
 
-   void clear ();
-
    void registerWidget (QWidget* widget);
    void deregisterWidget (QWidget* widget);
 
-   void enterQEWidget (QEWidget* qewidget);
-   void leaveQEWidget (QEWidget* qewidget);
-   bool eventFilter (QObject* obj, QEvent* event);
+   void updateWidget ();
+   void enterWidget (QEWidget* qewidget);
+   void leaveWidget (QEWidget* qewidget);
+   bool eventFilter (QObject* watched, QEvent* event);
 
-   typedef QList <QEString*> QEStringList;
-
-   QEStringFormatting descriptionFormatting;
-   QEStringList descriptionStringList;
-   QEWidget *currentQEWidget;
+   QTimer* refreshTimer;
+   QEWidget* currentWidget;
 
 private slots:
-   void descriptionUpdate (const QString& value, QCaAlarmInfo& alarmInfo,
-                           QCaDateTime& dateTime, const unsigned int& variableIndex);
+   void refreshTimerHandler ();
 
    friend class QEToolTip;
 };
