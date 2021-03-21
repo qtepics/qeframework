@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron
+ *  Copyright (c) 2013-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -552,6 +552,39 @@ QEPvLoadSaveLeaf::QEPvLoadSaveLeaf (const QString& setPointPvNameIn,
 QEPvLoadSaveLeaf::~QEPvLoadSaveLeaf ()
 {
    // place holder
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSaveLeaf::setPvNames (const QString& setPointPvNameIn,
+                                   const QString& readBackPvNameIn,
+                                   const QString& archiverPvNameIn)
+{
+   this->setPointPvName = setPointPvNameIn;
+   this->readBackPvName = readBackPvNameIn.isEmpty () ? this->setPointPvName  : readBackPvNameIn;
+   this->archiverPvName = archiverPvNameIn.isEmpty () ? this->setPointPvName  : archiverPvNameIn;
+   this->setupQCaObjects ();
+}
+
+//-----------------------------------------------------------------------------
+// Do not duplicate names.
+//
+QString QEPvLoadSaveLeaf::copyVariables () const
+{
+   QString result = this->setPointPvName;
+
+   if (!this->readBackPvName.isEmpty() &&
+       (this->readBackPvName != this->setPointPvName)) {
+       result.append (" ").append (this->readBackPvName);
+   }
+
+   if (!this->archiverPvName.isEmpty() &&
+       (this->archiverPvName != this->setPointPvName) &&
+       (this->archiverPvName != this->readBackPvName)) {
+       result.append (" ").append (this->archiverPvName);
+   }
+
+   return result;
 }
 
 //-----------------------------------------------------------------------------

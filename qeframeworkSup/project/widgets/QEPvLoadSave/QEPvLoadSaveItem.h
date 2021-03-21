@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2013-2020 Australian Synchrotron
+ *  Copyright (C) 2013-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -208,6 +208,9 @@ public:
 //------------------------------------------------------------------------------
 // Sub class for PV leaf
 //
+// The class can support multiple PVs used for writing, reading and archive access.
+// E.g.  MOTOR.VAL for set point PV name and MOTOR.RBV for read back PV name.
+//
 class QEPvLoadSaveLeaf : public QEPvLoadSaveItem
 {
    Q_OBJECT
@@ -219,9 +222,14 @@ public:
                               QEPvLoadSaveItem* parent = 0);
    ~QEPvLoadSaveLeaf ();
 
-   // The class can support multiple PVs used for writing, reading and archive access.
-   // E.g.  MOTOR.VAL for set point PV name and MOTOR.RBV for read back PV name.
+   // Update all three PV names in ome go.
    //
+   void setPvNames (const QString& setPointPvName,
+                    const QString& readBackPvName,    // "" implies setPointPvName
+                    const QString& archiverPvName);   // "" implies setPointPvName
+
+   QString copyVariables () const;
+
    void setSetPointPvName (const QString& pvName);
    QString getSetPointPvName () const;
 

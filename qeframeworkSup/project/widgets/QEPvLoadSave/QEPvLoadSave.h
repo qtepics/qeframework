@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2018 Australian Synchrotron
+ *  Copyright (c) 2013-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -47,7 +47,7 @@
 #include <QEWidget.h>
 #include <QEFrameworkLibraryGlobal.h>
 #include <QCaVariableNamePropertyManager.h>
-#include <QEPVNameSelectDialog.h>
+#include <QEPVLoadSaveNameSelectDialog.h>
 #include <QEPvLoadSaveGroupNameDialog.h>
 #include <QEPvLoadSaveValueEditDialog.h>
 #include <QEPvLoadSaveTimeDialog.h>
@@ -230,7 +230,7 @@ private:
    QEArchiveAccess* archiveAccess;
    QEPvLoadSaveGroupNameDialog* groupNameDialog;
    QEPvLoadSaveValueEditDialog* valueEditDialog;
-   QEPVNameSelectDialog* pvNameSelectDialog;
+   QEPVLoadSaveNameSelectDialog* pvNameSelectDialog;
    QEPvLoadSaveTimeDialog* archiveTimeDialog;
 
    QMenu* treeContextMenu;

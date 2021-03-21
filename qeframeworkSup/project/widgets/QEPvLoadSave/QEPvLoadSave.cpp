@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron
+ *  Copyright (c) 2013-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -408,7 +408,7 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    this->accessFail = new QEPvLoadSaveAccessFail (NULL);
    this->groupNameDialog = new QEPvLoadSaveGroupNameDialog (this);
    this->valueEditDialog = new QEPvLoadSaveValueEditDialog (this);
-   this->pvNameSelectDialog = new QEPVNameSelectDialog (this);
+   this->pvNameSelectDialog = new QEPVLoadSaveNameSelectDialog (this);
    this->archiveTimeDialog = new QEPvLoadSaveTimeDialog (this);
 
    this->setAllowDrop (false);
@@ -755,6 +755,7 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
    TreeContextMenuActions menuAction;
    QVariant nilValue (QVariant::Invalid);
    QEPvLoadSaveItem* item = NULL;
+   QEPvLoadSaveLeaf* leaf = NULL;
    QString nodeName = "";
    QVariant nodeValue;
    int n;
@@ -803,34 +804,34 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
 
       case TCM_ADD_PV:
          this->pvNameSelectDialog->setWindowTitle ("QEPvLoadSave - Add PV");
-         this->pvNameSelectDialog->setPvName ("");
+         this->pvNameSelectDialog->setPvNames ("", "", "");
          n = this->pvNameSelectDialog->exec (tree);
          if (n == 1) {
-            // Parse dialog text e.g. of the form "ID3:MOTOR01{w:.VAL;ra:.RBV;}"
-            // and split into three separate names.
-            //
-            QString mergedName = this->pvNameSelectDialog->getPvName ();
             QString setPoint;
             QString readBack;
             QString archiver;
-            bool okay;
-            okay = QEPvLoadSaveUtilities::splitPvNames (mergedName, setPoint, readBack, archiver);
-            if (okay) {
-               item = new QEPvLoadSaveLeaf (setPoint, readBack, archiver, nilValue, NULL);
-               model->addItemToModel (item, this->contextMenuItem);
-            } else {
-               this->setReadOut ("failed to parse: " + mergedName);
-            }
+            this->pvNameSelectDialog->getPvNames (setPoint, readBack, archiver);
+            leaf = new QEPvLoadSaveLeaf (setPoint, readBack, archiver, nilValue, NULL);
+            model->addItemToModel (leaf, this->contextMenuItem);
          }
          break;
 
       case TCM_EDIT_PV_NAME:
-         this->pvNameSelectDialog->setWindowTitle ("QEPvLoadSave - edit PV");
-         this->pvNameSelectDialog->setPvName (nodeName);
-         n = this->pvNameSelectDialog->exec (tree);
-         if (n == 1) {
-            this->contextMenuItem->setNodeName (this->pvNameSelectDialog->getPvName ());
-            model->modelUpdated ();
+         leaf = dynamic_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         if (leaf) {   // sanity check
+            this->pvNameSelectDialog->setWindowTitle ("QEPvLoadSave - edit PV");
+            this->pvNameSelectDialog->setPvNames (leaf->getSetPointPvName(),
+                                                  leaf->getReadBackPvName(),
+                                                  leaf->getArchiverPvName());
+            n = this->pvNameSelectDialog->exec (tree);
+            if (n == 1) {
+               QString setPoint;
+               QString readBack;
+               QString archiver;
+               this->pvNameSelectDialog->getPvNames (setPoint, readBack, archiver);
+               leaf->setPvNames (setPoint, readBack, archiver);
+               model->modelUpdated ();
+            }
          }
          break;
 
@@ -839,7 +840,10 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          break;
 
       case TCM_COPY_VARIABLE:
-         QApplication::clipboard ()->setText (nodeName);
+         leaf = dynamic_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         if (leaf) {   // sanity check
+            QApplication::clipboard ()->setText (leaf->copyVariables());
+         }
          break;
 
       case TCM_COPY_DATA:
@@ -863,15 +867,24 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          break;
 
       case TCM_SHOW_PV_PROPERTIES:
-         emit this->requestAction (QEActionRequests (QEActionRequests::actionPvProperties (), nodeName));
+         leaf = dynamic_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         if (leaf) {   // sanity check
+            emit this->requestAction (QEActionRequests (QEActionRequests::actionPvProperties (), leaf->copyVariables()));
+         }
          break;
 
       case TCM_ADD_TO_STRIPCHART:
-         emit this->requestAction (QEActionRequests (QEActionRequests::actionStripChart (), nodeName));
+         leaf = dynamic_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         if (leaf) {   // sanity check
+            emit this->requestAction (QEActionRequests (QEActionRequests::actionStripChart (), leaf->copyVariables()));
+         }
          break;
 
       case TCM_ADD_TO_SCRATCH_PAD:
-         emit this->requestAction (QEActionRequests (QEActionRequests::actionScratchPad (), nodeName));
+         leaf = dynamic_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         if (leaf) {   // sanity check
+            emit this->requestAction (QEActionRequests (QEActionRequests::actionScratchPad (), leaf->copyVariables()));
+         }
          break;
 
       default:
