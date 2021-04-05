@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron
+ *  Copyright (c) 2012-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -92,6 +92,9 @@ public:
    QEStripChartNames::LineDrawModes getLineDrawMode () const { return this->lineDrawMode; }
    QEStripChartNames::LinePlotModes getLinePlotMode () const { return this->linePlotMode; }
 
+   void setAliasName (const QString& aliasName);
+   QString getAliasName () const;
+
    // NOTE: Where ever possible I spell colour properly.
    //
 public slots:
@@ -115,7 +118,8 @@ public:
    void readArchive ();                                 // initiate archive read request
    void recalcualteBufferedValues ();                   // re-calculate values.
    void normalise ();                                   // scale LOPR/HOPR to 0 .. 100
-   void plotData ();
+   void plotData ();                                    //
+   void setCaption ();                                  // re-calc the caption
 
    // Extract the current value, raw PV or calculation, if it exists.
    //
@@ -152,8 +156,7 @@ protected:
 
 private:
    qcaobject::QCaObject* getQcaItem () const; // Return reference to QELabel used to stream CA updates
-   void connectQcaSignals ();                 // Performs qca connections if needs be.
-   void setCaption ();
+   void connectQcaSignals ();                 // Performs qca slignal/slot connections if needs be.
    void clear ();
    void highLight (bool isHigh);
    void addRealTimeDataPoint (const QCaDataPoint& point);
@@ -181,6 +184,8 @@ private:
    QEStripChartNames::LineDrawModes lineDrawMode;
    QEStripChartNames::LinePlotModes linePlotMode;
 
+   QString aliasName;
+   QString description;
    QColor colour;
    ValueScaling scaling;
 
@@ -225,10 +230,10 @@ private:
    QEStripChart *chart;
 
    QHBoxLayout* layout;
-   QPushButton *pvSlotLetter;
-   QLabel *pvName;
-   QELabel *caLabel;
-   QColorDialog *colourDialog;
+   QPushButton* pvSlotLetter;
+   QLabel* pvName;
+   QELabel* caLabel;
+   QColorDialog* colourDialog;
    QEStripChartContextMenu* inUseMenu;
    QEStripChartContextMenu* emptyMenu;
    qcaobject::QCaObject::ObjectIdentity previousIdentity;

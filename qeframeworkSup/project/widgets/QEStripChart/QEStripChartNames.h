@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron
+ *  Copyright (c) 2013-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -124,7 +124,12 @@ public:
    enum ContextMenuOptions {
       SCCM_NONE = QEAbstractDynamicWidget::ADWCM_SUB_CLASS_WIDGETS_START_HERE,
 
-      // Item specific menu options.
+      // General context menu items.
+      //
+      SCCM_SHOW_HIDE_TOOLBAR,     //
+      SCCM_SHOW_HIDE_PV_ITEMS,    //
+
+      // Item specific menu options - when item is defined
       //
       SCCM_READ_ARCHIVE,
       SCCM_RECALCULATE,
@@ -164,6 +169,8 @@ public:
       SCCM_PV_WRITE_TRACE,
       SCCM_PV_STATS,
       SCCM_PV_CLEAR,
+
+      // Item specific menu options - when item is not defined
       //
       SCCM_PV_ADD_NAME,
       SCCM_PV_PASTE_NAME,
@@ -182,7 +189,7 @@ public:
 
    // These MUST be consistant with above declaration.
    //
-   static const ContextMenuOptions ContextMenuItemFirst = SCCM_READ_ARCHIVE;
+   static const ContextMenuOptions ContextMenuItemFirst = SCCM_SHOW_HIDE_TOOLBAR;
    static const ContextMenuOptions ContextMenuItemLast  = SCCM_PREDEFINED_10;
 
    static const int NumberMenuItems = (ContextMenuItemLast - ContextMenuItemFirst + 1);

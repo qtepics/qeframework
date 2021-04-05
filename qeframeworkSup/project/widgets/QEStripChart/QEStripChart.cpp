@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron.
+ *  Copyright (c) 2012-2021 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -743,7 +743,7 @@ QDateTime QEStripChart::timeAt (const double x) const
 
 //----------------------------------------------------------------------------
 //
-bool QEStripChart::eventFilter (QObject* obj, QEvent* event)
+bool QEStripChart::eventFilter (QObject* watched, QEvent* event)
 {
    const QEvent::Type type = event->type ();
    QMouseEvent* mouseEvent = NULL;
@@ -752,7 +752,7 @@ bool QEStripChart::eventFilter (QObject* obj, QEvent* event)
 
    switch (type) {
       case QEvent::MouseButtonPress:
-         if (this->plotArea->isCanvasObject (obj)) {
+         if (this->plotArea->isCanvasObject (watched)) {
             mouseEvent = static_cast<QMouseEvent *> (event);
             if (mouseEvent->buttons() & Qt::RightButton) {
                // The right (alternate) button has been pressed - are we currently
@@ -768,7 +768,7 @@ bool QEStripChart::eventFilter (QObject* obj, QEvent* event)
          break;
 
       case QEvent::MouseButtonRelease:
-         if (this->plotArea->isCanvasObject (obj)) {
+         if (this->plotArea->isCanvasObject (watched)) {
             mouseEvent = static_cast<QMouseEvent *> (event);
             if (!(mouseEvent->buttons() & Qt::RightButton)) {
                // Button released, right no lonlger pressed.
@@ -1063,6 +1063,10 @@ QEStripChart::QEStripChart (QWidget * parent) : QEAbstractDynamicWidget (parent)
    this->timeScale = 60.0;   // minutes
    this->timeUnits = "mins";
 
+   this->enableConextMenu = true;
+   this->toolBarIsVisible = true;
+   this->pvItemsIsVisible = true;
+
    // We always use UTC (EPICS) time within the strip chart.
    // Set directly here as using setEndTime has side effects.
    //
@@ -1087,6 +1091,8 @@ QEStripChart::QEStripChart (QWidget * parent) : QEAbstractDynamicWidget (parent)
    //
    this->variableNameSubstitutions = "";
    this->setNumVariables (0);
+
+   this->setNumberOfContextMenuItems (ARRAY_LENGTH (this->items));
 
    // Construct dialogs.
    //
@@ -1149,6 +1155,50 @@ void QEStripChart::setVariableNameProperty (const int slot, const QString& pvNam
 
 //------------------------------------------------------------------------------
 //
+void QEStripChart::setEnableConextMenu (bool enableIn)
+{
+   this->enableConextMenu = enableIn;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEStripChart::getEnableConextMenu () const
+{
+    return this->enableConextMenu;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChart::setToolBarVisible (bool visibleIn)
+{
+   this->toolBarIsVisible = visibleIn;
+   this->toolBarResize->setVisible (visibleIn);
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEStripChart::getToolBarVisible () const
+{
+   return this->toolBarIsVisible;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChart::setPvItemsVisible (bool visibleIn)
+{
+   this->pvItemsIsVisible = visibleIn;
+   this->pvResizeFrame->setVisible (visibleIn);
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEStripChart::getPvItemsVisible () const
+{
+   return this->pvItemsIsVisible;
+}
+
+//------------------------------------------------------------------------------
+//
 QString QEStripChart::getVariableNameProperty (const int slot) const
 {
    QString result;
@@ -1183,6 +1233,31 @@ void QEStripChart::setVariableNameSubstitutionsProperty (const QString& variable
 QString QEStripChart::getVariableNameSubstitutionsProperty () const
 {
    return this->variableNameSubstitutions;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChart::setAliasName (const int slot, const QString& aliasName)
+{
+   QEStripChartItem* item = this->getItem (slot);
+   if (item) {
+      item->setAliasName (aliasName);
+   } else {
+      DEBUG << "slot out of range " << slot;
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEStripChart::getAliasName (const int slot) const
+{
+   QEStripChartItem* item = this->getItem (slot);
+   if (item) {
+      return item->getAliasName ();
+   } else {
+      DEBUG << "slot out of range " << slot;
+      return "";
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -1661,6 +1736,68 @@ void QEStripChart::setYRange (const double yMinimumIn, const double yMaximumIn)
 {
    this->setYMaximum (yMaximumIn);
    this->setYMinimum (yMinimumIn);
+}
+
+//----------------------------------------------------------------------------
+//
+QMenu* QEStripChart::buildContextMenu ()
+{
+   QMenu* menu = QEAbstractDynamicWidget::buildContextMenu ();  // build parent context menu
+   QAction* action;
+
+   menu->addSeparator ();
+
+   action = new QAction ("Show/Hide Tool Bar", menu);
+   action->setCheckable (true);
+   action->setChecked(this->toolBarIsVisible);
+   action->setEnabled (this->enableConextMenu);
+   action->setData (QEStripChartNames::SCCM_SHOW_HIDE_TOOLBAR);
+   menu->addAction (action);
+
+   action = new QAction ("Show/Hide PV Items", menu);
+   action->setCheckable (true);
+   action->setChecked(this->pvItemsIsVisible);
+   action->setEnabled (this->enableConextMenu);
+   action->setData (QEStripChartNames::SCCM_SHOW_HIDE_PV_ITEMS);
+   menu->addAction (action);
+
+   this->addPVLabelModeContextMenu (menu);
+
+   return menu;
+}
+
+//----------------------------------------------------------------------------
+//
+void QEStripChart::contextMenuTriggered (int selectedItemNum)
+{
+   switch (selectedItemNum) {
+      case QEStripChartNames::SCCM_SHOW_HIDE_TOOLBAR:
+         this->setToolBarVisible (!this->getToolBarVisible ());
+         break;
+
+      case QEStripChartNames::SCCM_SHOW_HIDE_PV_ITEMS:
+         this->setPvItemsVisible (!this->getPvItemsVisible ());
+         break;
+
+      default:
+         // process parent context menu
+         //
+         QEAbstractDynamicWidget::contextMenuTriggered (selectedItemNum);
+         break;
+   }
+}
+
+//----------------------------------------------------------------------------
+//
+void QEStripChart::pvLabelModeChanged ()
+{
+   for (int slot = 0; slot < NUMBER_OF_PVS; slot++) {
+      QEStripChartItem* item = this->getItem (slot);
+
+      if (item) {
+         item->setCaption ();
+      }
+   }
 }
 
 //----------------------------------------------------------------------------

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron
+ *  Copyright (c) 2012-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -24,14 +24,16 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEStripChartItem.h"
 #include <alarm.h>
 
 #include <QApplication>
+#include <QClipboard>
 #include <QColor>
 #include <QColorDialog>
 #include <QFileDialog>
+#include <QMimeData>
 #include <QVariantList>
-#include <QClipboard>
 
 #include <QEAdaptationParameters.h>
 #include <QCaObject.h>
@@ -40,7 +42,6 @@
 #include <QEPlatform.h>
 #include <QEGraphic.h>
 #include <QEScaling.h>
-#include "QEStripChartItem.h"
 #include "QEStripChartContextMenu.h"
 #include "QEStripChartStatistics.h"
 
@@ -289,6 +290,8 @@ void QEStripChartItem::clear ()
    this->realTimeDataPoints.clear ();
    this->maxRealTimePoints = getMaxRealTimePoints ();
 
+   this->aliasName = "";
+   this->description = "";
    this->useReceiveTime = false;
    this->archiveReadHow = QEArchiveInterface::PlotBinning;
    this->lineDrawMode = QEStripChartNames::ldmRegular;
@@ -305,7 +308,7 @@ void QEStripChartItem::clear ()
 //
 qcaobject::QCaObject* QEStripChartItem::getQcaItem () const
 {
-   // We "know" that a QELabel has only one PV.
+   // We "know" that a QELabel has only one PV, with variable index 0.
    //
    return this->caLabel->getQcaItem (0);
 }
@@ -314,12 +317,11 @@ qcaobject::QCaObject* QEStripChartItem::getQcaItem () const
 //
 void QEStripChartItem::connectQcaSignals ()
 {
-   qcaobject::QCaObject* qca;
+   qcaobject::QCaObject* qca = this->getQcaItem ();
 
    // Set up connections if we can/if we need to.
+   // Called regularly by plotData().
    //
-   qca = this->getQcaItem ();
-
    if (qca && (qca->getObjectIdentity() != this->previousIdentity)) {
       // Save the new identity and connect signals.
       //
@@ -331,6 +333,11 @@ void QEStripChartItem::connectQcaSignals ()
       QObject::connect (qca, SIGNAL (dataChanged  (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                         this,  SLOT (setDataValue (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
    }
+
+   // Get, or at least, initiate fatching the description.
+   //
+   this->description = qca->getDescription();
+   this->setCaption();
 }
 
 //------------------------------------------------------------------------------
@@ -411,6 +418,7 @@ QString QEStripChartItem::getEgu () const
 void QEStripChartItem::setCaption ()
 {
    QString caption;
+   QEAbstractDynamicWidget::PVLabelMode labelMode;
    QString substitutedPVName;
 
    caption.clear ();
@@ -426,8 +434,31 @@ void QEStripChartItem::setCaption ()
             caption.append (" ");
          }
 
+         labelMode = this->chart->getPVLabelMode ();
          substitutedPVName = this->caLabel->getSubstitutedVariableName (0);
-         caption.append (substitutedPVName);
+
+         switch (labelMode) {
+            case QEAbstractDynamicWidget::useAliasName:
+               if (!this->aliasName.isEmpty() && this->aliasName != "<>") {
+                  caption.append (this->aliasName);
+               } else {
+                  caption.append (substitutedPVName);
+               }
+               break;
+
+            case QEAbstractDynamicWidget::useDescription:
+               if (!this->description.isEmpty()) {
+                  caption.append (this->description);
+               } else {
+                  caption.append (substitutedPVName);
+               }
+               break;
+
+            case QEAbstractDynamicWidget::usePvName:
+            default:
+               caption.append (substitutedPVName);
+               break;
+         }
          break;
 
       case CalculationData:
@@ -444,6 +475,7 @@ void QEStripChartItem::setCaption ()
          }
          break;
    }
+
    this->pvName->setText (caption);
 }
 
@@ -947,15 +979,21 @@ void QEStripChartItem::addRealTimeDataPoint (const QCaDataPoint& point)
 //
 void QEStripChartItem::setDataConnection (QCaConnectionInfo& connectionInfo, const unsigned int&)
 {
-   QCaDataPoint point;
-
    this->isConnected = connectionInfo.isChannelConnected ();
+
+   if (this->isConnected) {
+      // We have a channel connect.
+      //
+      qcaobject::QCaObject* qca = this->getQcaItem ();
+      this->description = qca->getDescription();
+   }
+
    if ((this->isConnected == false) && (this->realTimeDataPoints.count () >= 1)) {
-      // We have a channel disconnect.
+      // We have a channel disconnect and some data.
       //
       // create a dummy point with last value and time now.
       //
-      point = this->realTimeDataPoints.last ();
+      QCaDataPoint point = this->realTimeDataPoints.last ();
       point.datetime = QDateTime::currentDateTime ().toUTC ();
       this->addRealTimeDataPoint (point);
 
@@ -1379,6 +1417,21 @@ void QEStripChartItem::normalise () {
 
 //------------------------------------------------------------------------------
 //
+void QEStripChartItem::setAliasName (const QString& aliasNameIn)
+{
+   this->aliasName = aliasNameIn;
+   this->setCaption ();
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEStripChartItem::getAliasName () const
+{
+   return this->aliasName;
+}
+
+//------------------------------------------------------------------------------
+//
 QColor QEStripChartItem::getColour () const
 {
    return this->colour;
@@ -1391,7 +1444,7 @@ void QEStripChartItem::setColour (const QColor & colourIn)
    QString styleSheet;
 
    this->colour = colourIn;
-   styleSheet =  QEUtilities::colourToStyle (this->colour);
+   styleSheet = QEUtilities::colourToStyle (this->colour);
    this->pvName->setStyleSheet (styleSheet);
 }
 
@@ -1402,9 +1455,9 @@ void QEStripChartItem::highLight (bool isHigh)
    QString styleSheet;
 
    if (isHigh) {
-      styleSheet =  QEUtilities::colourToStyle (clWhite);
+      styleSheet = QEUtilities::colourToStyle (clWhite);
    } else {
-      styleSheet =  QEUtilities::colourToStyle (this->colour);
+      styleSheet = QEUtilities::colourToStyle (this->colour);
    }
 
    this->pvName->setStyleSheet (styleSheet);
@@ -1919,7 +1972,7 @@ void QEStripChartItem::saveConfiguration (PMElement& parentElement)
    //
    if (this->isInUse ()) {
       QEStripChartNames meta1;
-      QEChannelArchiveInterface meta2 (QUrl (""));
+      QEChannelArchiveInterface meta2 (QUrl (""));  // we need a concrete instance
 
       PMElement pvElement = parentElement.addElement ("PV");
       pvElement.addAttribute ("slot", (int) this->slot);

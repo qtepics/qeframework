@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2016-2019 Australian Synchrotron
+ *  Copyright (c) 2016-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -24,8 +24,8 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
-#ifndef QE_ABSTRACT_COMPLEX_WIDGET_H
-#define QE_ABSTRACT_COMPLEX_WIDGET_H
+#ifndef QE_ABSTRACT_DYNAMIC_WIDGET_H
+#define QE_ABSTRACT_DYNAMIC_WIDGET_H
 
 #include <QWidget>
 #include <QString>
@@ -46,6 +46,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAbstractDynamicWidget : public QEFram
 
    typedef QEFrame ParentWidgetClass;
 
+public:
    /// Default directory used for loading/saving files. Default to null string
    /// which is interpreted as the current directory.
    ///
@@ -61,13 +62,30 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAbstractDynamicWidget : public QEFram
    ///
    Q_PROPERTY (bool    enableEditPv  READ getEnableEditPv  WRITE setEnableEditPv)
 
+   /// The default is useAliasName, however the default aliasName are undefined,
+   /// so the effective default is usePvName.
+   ///
+   enum PVLabelMode {
+      usePvName,         ///< display the PV name
+      useAliasName,      ///< display alias if defined otherwise display the PV name
+      useDescription     ///< display description if defined otherwise display the PV name
+   };
+   Q_ENUMS(PVLabelMode)
+
+   Q_PROPERTY (PVLabelMode pvLabelMode  READ getPVLabelMode  WRITE setPVLabelMode)
+
 public:
    // Abstract Dynamic Widget Context Menu values
    //
-   enum OwnContextMenuOptions { ADWCM_NONE = CM_SPECIFIC_WIDGETS_START_HERE,
-                                ADWCM_LOAD_WIDGET_CONFIG,
-                                ADWCM_SAVE_WIDGET_CONFIG,
-                                ADWCM_SUB_CLASS_WIDGETS_START_HERE };
+   enum OwnContextMenuOptions {
+      ADWCM_NONE = CM_SPECIFIC_WIDGETS_START_HERE,
+      ADWCM_LOAD_WIDGET_CONFIG,
+      ADWCM_SAVE_WIDGET_CONFIG,
+      ADWCM_SELECT_USE_PV_NAME,
+      ADWCM_SELECT_USE_ALIAS_NAME,
+      ADWCM_SELECT_USE_DESCRIPTION,
+      ADWCM_SUB_CLASS_WIDGETS_START_HERE
+   };
 
    explicit QEAbstractDynamicWidget (QWidget* parent = 0);
    ~QEAbstractDynamicWidget ();
@@ -81,6 +99,11 @@ public:
    //
    void setEnableEditPv (const bool isEnabled);
    bool getEnableEditPv () const;
+
+   // Set/Get pvLabelMode.
+   //
+   void setPVLabelMode (const PVLabelMode pvLabelMode);
+   PVLabelMode getPVLabelMode () const;
 
    // Override paste. This functions adds PVs names to the next
    // available slot(s) if any.
@@ -99,23 +122,25 @@ public:
    // Add PV to next available slot (if any).
    // returns slot number 0 .. Max - 1 iff successful otherwise -1.
    //
-   // Sub-class must provide an implementation for this function.
+   // Sub-class MUST provide an implementation for this function.
    //
    virtual int addPvName (const QString& pvName) = 0; // Add name to next available slot.
 
    // Remove and clear all PVs.
-   // Sub-class must provide an implementation for this function.
+   // Sub-class MUST provide an implementation for this function.
    //
    virtual void clearAllPvNames () = 0;
 
 protected:
    QMenu* buildContextMenu ();                        // Build the specific context menu
+   void addPVLabelModeContextMenu (QMenu* menu);      // Add in optional PV label mode selection
    void contextMenuTriggered (int selectedItemNum);   // An action was selected from the context menu
 
    QString getPersistantName () const;                // Sub classes use this in lieu of QEWidget::persistantName
 
-   // Sub-class may provide an implementation for this function.
+   // Sub-class may provide an implementation for these functions.
    //
+   virtual void pvLabelModeChanged ();                // Used for sub-class notification
    virtual void enableEditPvChanged ();               // Used for sub-class notification
 
    userLevelTypes::userLevels minimumEditPvUserLevel () const; // Sub-class convienence
@@ -138,6 +163,11 @@ private:
    bool useOwnPersistantName;
    QString defaultDir;
    bool enableEditPv;
+   PVLabelMode pvLabelMode;
 };
 
-#endif // QE_ABSTRACT_COMPLEX_WIDGET_H
+#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
+Q_DECLARE_METATYPE (QEAbstractDynamicWidget::PVLabelMode)
+#endif
+
+#endif // QE_ABSTRACT_DYNAMIC_WIDGET_H

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron
+ *  Copyright (c) 2012-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -101,6 +101,12 @@ public:
    Q_PROPERTY (QEStripChartNames::YScaleModes
                        scaleMode  READ getYScaleMode             WRITE yScaleModeSelected)
 
+   // Layout control
+   //
+   Q_PROPERTY (bool enableContextMenu  READ getEnableConextMenu  WRITE setEnableConextMenu)
+   Q_PROPERTY (bool toolBarIsVisible   READ getToolBarVisible    WRITE setToolBarVisible)
+   Q_PROPERTY (bool pvItemsIsVisible   READ getPvItemsVisible    WRITE setPvItemsVisible)
+
    // Note, a property macro in the form 'Q_PROPERTY(QString variableName READ ...' doesn't work.
    // A property name ending with 'Name' results in some sort of string a variable being displayed,
    // but will only accept alphanumeric and won't generate callbacks on change.
@@ -122,10 +128,22 @@ public:
    Q_PROPERTY (QString variable15 READ getPropertyVariableName15 WRITE setPropertyVariableName15)
    Q_PROPERTY (QString variable16 READ getPropertyVariableName16 WRITE setPropertyVariableName16)
 
-   /// Macro substitutions. The default is no substitutions. The format is NAME1=VALUE1[,] NAME2=VALUE2...
-   /// Values may be quoted strings. For example, 'SAMPLE=SAM1, NAME = "Ref foil"'
-   /// These substitutions are applied to all the variable names.
-   Q_PROPERTY (QString variableSubstitutions READ getVariableNameSubstitutionsProperty WRITE setVariableNameSubstitutionsProperty)
+   Q_PROPERTY (QString aliasName1       READ getAliasName1     WRITE setAliasName1)
+   Q_PROPERTY (QString aliasName2       READ getAliasName2     WRITE setAliasName2)
+   Q_PROPERTY (QString aliasName3       READ getAliasName3     WRITE setAliasName3)
+   Q_PROPERTY (QString aliasName4       READ getAliasName4     WRITE setAliasName4)
+   Q_PROPERTY (QString aliasName5       READ getAliasName5     WRITE setAliasName5)
+   Q_PROPERTY (QString aliasName6       READ getAliasName6     WRITE setAliasName6)
+   Q_PROPERTY (QString aliasName7       READ getAliasName7     WRITE setAliasName7)
+   Q_PROPERTY (QString aliasName8       READ getAliasName8     WRITE setAliasName8)
+   Q_PROPERTY (QString aliasName9       READ getAliasName9     WRITE setAliasName9)
+   Q_PROPERTY (QString aliasName10      READ getAliasName10    WRITE setAliasName10)
+   Q_PROPERTY (QString aliasName11      READ getAliasName11    WRITE setAliasName11)
+   Q_PROPERTY (QString aliasName12      READ getAliasName12    WRITE setAliasName12)
+   Q_PROPERTY (QString aliasName13      READ getAliasName13    WRITE setAliasName13)
+   Q_PROPERTY (QString aliasName14      READ getAliasName14    WRITE setAliasName14)
+   Q_PROPERTY (QString aliasName15      READ getAliasName15    WRITE setAliasName15)
+   Q_PROPERTY (QString aliasName16      READ getAliasName16    WRITE setAliasName16)
 
    // NOTE: Where ever possible I spell colour properly.
    //
@@ -144,6 +162,13 @@ public:
    Q_PROPERTY (QColor  colour13   READ getColour13Property       WRITE setColour13Property)
    Q_PROPERTY (QColor  colour14   READ getColour14Property       WRITE setColour14Property)
    Q_PROPERTY (QColor  colour15   READ getColour15Property       WRITE setColour15Property)
+   // Colour 16 is hard coded black/white
+
+   /// Macro substitutions. The default is no substitutions. The format is NAME1=VALUE1[,] NAME2=VALUE2...
+   /// Values may be quoted strings. For example, 'SAMPLE=SAM1, NAME = "Ref foil"'
+   /// These substitutions are applied to all the variable names.
+   Q_PROPERTY (QString variableSubstitutions READ  getVariableNameSubstitutionsProperty
+                                             WRITE setVariableNameSubstitutionsProperty)
 
 public:
    enum Constants {
@@ -213,7 +238,14 @@ public slots:
    void yScaleModeSelected (const QEStripChartNames::YScaleModes mode);
 
 protected:
-   bool eventFilter (QObject* obj, QEvent* event);
+   bool eventFilter (QObject* watched, QEvent* event);
+
+   QMenu* buildContextMenu ();                        // Build the Strip Chart specific context menu
+   void contextMenuTriggered (int selectedItemNum);   // An action was selected from the context menu
+
+   // Override QEAbstractDynamicWidget functions.
+   //
+   void pvLabelModeChanged ();
 
    // Override QWidget functions - call up standard handlers defined in QEDragDrop.
    // Drag and Drop
@@ -253,7 +285,7 @@ private:
 
    // Internal widgets and state data.
    //
-   QEPVNameSelectDialog *pvNameSelectDialog;
+   QEPVNameSelectDialog* pvNameSelectDialog;
 
    QEStripChartToolBar* toolBar;
    QEResizeableFrame* toolBarResize;
@@ -304,13 +336,17 @@ private:
    //
    double yMinimum;
    double yMaximum;
-   QEStripChartRangeDialog *yRangeDialog;
+   QEStripChartRangeDialog* yRangeDialog;
 
    // Items associated with selected point / box markup.
    //
    int selectedPointSlot;
    QCaDateTime selectedPointDateTime;
    double selectedPointValue;
+
+   bool enableConextMenu;
+   bool toolBarIsVisible;
+   bool pvItemsIsVisible;
 
    // Functions
    //
@@ -331,13 +367,26 @@ private:
    void captureState (QEStripChartState& chartState);
    void applyState (const QEStripChartState& chartState);
 
+public:
    // Property support functions.
    //
+   void setEnableConextMenu (bool enable);
+   bool getEnableConextMenu () const;
+
+   void setToolBarVisible (bool visible);
+   bool getToolBarVisible () const;
+
+   void setPvItemsVisible (bool visible);
+   bool getPvItemsVisible () const;
+
    void    setVariableNameProperty (const int slot, const QString& pvName);
    QString getVariableNameProperty (const int slot) const;
 
    void    setVariableNameSubstitutionsProperty (const QString& variableNameSubstitutions);
    QString getVariableNameSubstitutionsProperty() const;
+
+   void    setAliasName (const int slot, const QString& aliasName);
+   QString getAliasName (const int slot) const;
 
    void   setColourProperty (const int slot, const QColor& color);
    QColor getColourProperty (const int slot) const;
@@ -351,12 +400,16 @@ private:
    // We can define the access functions using a macro.
    // Alas, due to SDK limitation, we cannot embedded the property definition itself in a macro.
    //
-   #define PROPERTY_ACCESS(slot)                                                                                 \
-      void    setPropertyVariableName##slot (QString name) { this->setVariableNameProperty (slot - 1, name); }   \
-      QString getPropertyVariableName##slot ()      { return this->getVariableNameProperty (slot - 1); }         \
-                                                                                                                 \
-      void   setColour##slot##Property (QColor colour) { this->setColourProperty (slot - 1, colour); }           \
-      QColor getColour##slot##Property ()       { return this->getColourProperty (slot - 1); }
+   #define PROPERTY_ACCESS(slot)                                                                                  \
+      void    setPropertyVariableName##slot (QString& name) { this->setVariableNameProperty (slot - 1, name); }   \
+      QString getPropertyVariableName##slot () const { return this->getVariableNameProperty (slot - 1); }         \
+                                                                                                                  \
+      void    setAliasName##slot (QString& aliasName) { this->setAliasName (slot - 1, aliasName); }               \
+      QString getAliasName##slot () const      { return this->getAliasName (slot - 1); }                          \
+                                                                                                                  \
+      void   setColour##slot##Property (QColor& colour) { this->setColourProperty (slot - 1, colour); }           \
+      QColor getColour##slot##Property () const  { return this->getColourProperty (slot - 1); }
+
 
    PROPERTY_ACCESS  (1)
    PROPERTY_ACCESS  (2)

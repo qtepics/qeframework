@@ -48,6 +48,7 @@ QEAbstractDynamicWidget::QEAbstractDynamicWidget (QWidget* parent) :
    this->defaultDir = "";
    this->useOwnPersistantName = false;
    this->enableEditPv = false;
+   this->pvLabelMode = useAliasName;
 
    // Typically QEAbstractDynamicWidget widgets hold other QEWidgets, like 
    // QEDistrubtion, and theses widgets handle this internally.
@@ -91,6 +92,11 @@ userLevelTypes::userLevels QEAbstractDynamicWidget::minimumEditPvUserLevel () co
 //------------------------------------------------------------------------------
 // virtual - place holder
 //
+void QEAbstractDynamicWidget::pvLabelModeChanged () { }
+
+//------------------------------------------------------------------------------
+// virtual - place holder
+//
 void QEAbstractDynamicWidget::enableEditPvChanged () { }
 
 //------------------------------------------------------------------------------
@@ -108,6 +114,22 @@ void QEAbstractDynamicWidget::setEnableEditPv (const bool isEnabled)
 bool QEAbstractDynamicWidget::getEnableEditPv () const
 {
    return this->enableEditPv;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAbstractDynamicWidget::setPVLabelMode (const PVLabelMode pvLabelModeIn)
+{
+   this->pvLabelMode = pvLabelModeIn;
+   this->pvLabelModeChanged ();
+}
+
+//------------------------------------------------------------------------------
+//
+QEAbstractDynamicWidget::PVLabelMode
+QEAbstractDynamicWidget::getPVLabelMode () const
+{
+   return this->pvLabelMode;
 }
 
 //------------------------------------------------------------------------------
@@ -165,7 +187,37 @@ QMenu* QEAbstractDynamicWidget::buildContextMenu ()
    action->setData (ADWCM_SAVE_WIDGET_CONFIG);
    menu->addAction (action);
 
+   // We don't always build in PVLabelMode selection.
+   // Sub classes must call conveniance function below.
+
    return menu;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAbstractDynamicWidget::addPVLabelModeContextMenu (QMenu* menu)
+{
+   QAction* action;
+
+   menu->addSeparator ();
+
+   action = new QAction ("Use PV Names", menu);
+   action->setCheckable (true);
+   action->setChecked (this->pvLabelMode == usePvName);
+   action->setData (ADWCM_SELECT_USE_PV_NAME);
+   menu->addAction (action);
+
+   action = new QAction ("Use Alias Names (if available)", menu);
+   action->setCheckable (true);
+   action->setChecked (this->pvLabelMode == useAliasName);
+   action->setData (ADWCM_SELECT_USE_ALIAS_NAME);
+   menu->addAction (action);
+
+   action = new QAction ("Use Descriptions (if available)", menu);
+   action->setCheckable (true);
+   action->setChecked (this->pvLabelMode == useDescription);
+   action->setData (ADWCM_SELECT_USE_DESCRIPTION);
+   menu->addAction (action);
 }
 
 //------------------------------------------------------------------------------
@@ -180,6 +232,18 @@ void QEAbstractDynamicWidget::contextMenuTriggered (int selectedItemNum)
 
       case ADWCM_SAVE_WIDGET_CONFIG:
          this->saveWidgetConfiguration ();
+         break;
+
+      case ADWCM_SELECT_USE_PV_NAME:
+         this->setPVLabelMode (usePvName);
+         break;
+
+      case ADWCM_SELECT_USE_ALIAS_NAME:
+         this->setPVLabelMode (useAliasName);
+         break;
+
+      case ADWCM_SELECT_USE_DESCRIPTION:
+         this->setPVLabelMode (useDescription);
          break;
 
       default:
