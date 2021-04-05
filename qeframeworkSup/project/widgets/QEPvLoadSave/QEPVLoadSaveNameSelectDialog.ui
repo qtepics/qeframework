@@ -191,9 +191,6 @@
         <property name="maxVisibleItems">
          <number>40</number>
         </property>
-        <property name="maxCount">
-         <number>100000</number>
-        </property>
         <property name="insertPolicy">
          <enum>QComboBox::InsertAtTop</enum>
         </property>
@@ -262,9 +259,6 @@
         <property name="maxVisibleItems">
          <number>40</number>
         </property>
-        <property name="maxCount">
-         <number>100000</number>
-        </property>
         <property name="insertPolicy">
          <enum>QComboBox::InsertAtTop</enum>
         </property>
@@ -332,9 +326,6 @@
         </property>
         <property name="maxVisibleItems">
          <number>40</number>
-        </property>
-        <property name="maxCount">
-         <number>100000</number>
         </property>
         <property name="insertPolicy">
          <enum>QComboBox::InsertAtTop</enum>
