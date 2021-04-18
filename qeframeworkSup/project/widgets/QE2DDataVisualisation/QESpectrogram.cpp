@@ -147,8 +147,7 @@ bool QESpectrogram::eventFilter (QObject* watched, QEvent* event)
 //
 void QESpectrogram::updateDataVisulation ()
 {
-   const TwoDimensionalData data = this->getData();
-   const int number = data.count();
+   const int number = this->getData().count();
 
    // Any data?
    //

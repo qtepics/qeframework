@@ -109,12 +109,27 @@ public:
    /// Data display options - order is slice, rotate then flip.
    ///
    /// Slice properties
-   /// These properties can be negative, which interpreted as dimension size/number - abs(value)
+   /// These properties can be negative, which interpreted as:
+   ///     dimension size/number - abs(value)
    ///
    Q_PROPERTY (int verticalSliceFirst    READ getVerticalSliceFirst    WRITE setVerticalSliceFirst)
    Q_PROPERTY (int verticalSliceLast     READ getVerticalSliceLast     WRITE setVerticalSliceLast)
    Q_PROPERTY (int horizontalSliceFirst  READ getHorizontalSliceFirst  WRITE setHorizontalSliceFirst)
    Q_PROPERTY (int horizontalSliceLast   READ getHorizontalSliceLast   WRITE setHorizontalSliceLast)
+
+   /// Data bining sizes and binning options.
+   ///
+   Q_PROPERTY (int verticalBin           READ getVerticalBin           WRITE setVerticalBin)
+   Q_PROPERTY (int horizontalBin         READ getHorizontalBin         WRITE setHorizontalBin)
+
+   enum DataBinning {
+      decimate,    ///< default - simple decimation - pick 1 "cental" value
+      mean,        ///< take average of all values
+      median       ///< take median of all values
+   };
+   Q_ENUMS(DataBinning)
+
+   Q_PROPERTY (DataBinning dataBinning   READ getDataBinning           WRITE setDataBinning)
 
    // The rotation and flip properties/meanings cribbed from QEImage.
    // Note: One 4-way rotation and two 2-way flips is apparently 4x2x2 = 16 options.
@@ -251,6 +266,9 @@ public slots:
    void setVerticalSliceLast (const int last);
    void setHorizontalSliceFirst (const int first);
    void setHorizontalSliceLast (const int last);
+   void setVerticalBin  (const int bin);
+   void setHorizontalBin  (const int bin);
+   void setDataBinning  (const DataBinning option);
    void setRotation (const RotationOptions rotation);
    void setVerticalFlip (const bool verticalFlip);
    void setHorizontalFlip (const bool horizontalFlip);
@@ -268,6 +286,9 @@ public:
    int getVerticalSliceLast () const;
    int getHorizontalSliceFirst () const;
    int getHorizontalSliceLast () const;
+   int getVerticalBin () const;
+   int getHorizontalBin () const;
+   DataBinning getDataBinning () const;
    RotationOptions getRotation() const;
    bool getVerticalFlip () const;
    bool getHorizontalFlip () const;
@@ -404,6 +425,10 @@ private:
    int mHorizontalSliceFirst;  // col first
    int mHorizontalSliceLast;   // col last
 
+   int mVerticalBin;
+   int mHorizontalBin;
+   DataBinning mDataBinning;
+
    RotationOptions mRotation;
    bool mVerticalFlip;
    bool mHorizontalFlip;
@@ -458,6 +483,7 @@ Q_DECLARE_OPERATORS_FOR_FLAGS (QEAbstract2DData::MouseMoveSignalFlags)
 
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
 Q_DECLARE_METATYPE (QEAbstract2DData::DataFormats)
+Q_DECLARE_METATYPE (QEAbstract2DData::DataBinning)
 Q_DECLARE_METATYPE (QEAbstract2DData::RotationOptions)
 Q_DECLARE_METATYPE (QEAbstract2DData::ScaleModes)
 Q_DECLARE_METATYPE (QEAbstract2DData::QEAbstract2DData::MouseMoveSignals)

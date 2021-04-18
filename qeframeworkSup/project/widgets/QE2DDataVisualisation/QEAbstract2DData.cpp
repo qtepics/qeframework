@@ -117,6 +117,10 @@ void QEAbstract2DData::commonSetup ()
    this->mHorizontalSliceFirst = 0;
    this->mHorizontalSliceLast = -1;
 
+   this->mVerticalBin = 1;
+   this->mHorizontalBin = 1;
+   this->mDataBinning = decimate;
+
    this->mScaleMode = manual;
    this->mMinimum = 0.0;
    this->mMaximum = 255.0;
@@ -937,6 +941,49 @@ int QEAbstract2DData::getHorizontalSliceLast () const
 {
    return this->mHorizontalSliceLast;
 }
+
+//------------------------------------------------------------------------------
+//
+void  QEAbstract2DData::setVerticalBin  (const int bin)
+{
+    this->mVerticalBin = LIMIT(bin, 1, 100);
+}
+
+//------------------------------------------------------------------------------
+//
+int  QEAbstract2DData::getVerticalBin () const
+{
+   return this->mVerticalBin;
+}
+
+//------------------------------------------------------------------------------
+//
+void  QEAbstract2DData::setHorizontalBin  (const int bin)
+{
+   this->mHorizontalBin = LIMIT(bin, 1, 100);
+}
+
+//------------------------------------------------------------------------------
+//
+int  QEAbstract2DData::getHorizontalBin () const
+{
+   return this->mHorizontalBin;
+}
+
+//------------------------------------------------------------------------------
+//
+void  QEAbstract2DData::setDataBinning  (const DataBinning option)
+{
+    this->mDataBinning = option;
+}
+
+//------------------------------------------------------------------------------
+//
+QEAbstract2DData::DataBinning  QEAbstract2DData::getDataBinning () const
+{
+    return mDataBinning;
+}
+
 
 //------------------------------------------------------------------------------
 //
