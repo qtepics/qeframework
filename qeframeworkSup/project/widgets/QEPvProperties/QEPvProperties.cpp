@@ -47,9 +47,9 @@
 
 #define DEBUG qDebug() << "QEPvProperties" << __LINE__ << __FUNCTION__ << "  "
 
-// INP/OUT and CALC fields are 80, 120 should cover it.
+// CALC fields are now 80, nut INP/OUT links are now 1024.
 //
-#define MAX_FIELD_DATA_SIZE  120
+#define MAX_FIELD_DATA_SIZE    1024
 #define PV_VARIABLE_INDEX      0
 
 
@@ -87,7 +87,7 @@ static void initialiseRecordSpecs ()
    //
    pDefaultRecordSpec = new QERecordSpec ("_default_");
    pDefaultRecordSpec->append ("RTYP,  \"Record Type\"");
-   pDefaultRecordSpec->append ("NAME$, \"Record Name\"");
+   pDefaultRecordSpec->append ("NAME*, \"Record Name\"");
    pDefaultRecordSpec->append ("DESC$, \"Descriptor\"");
    pDefaultRecordSpec->append ("ASG,   \"Access Security Group\"");
    pDefaultRecordSpec->append ("SCAN,  \"Scan Mechanism\"");
@@ -95,11 +95,11 @@ static void initialiseRecordSpecs ()
    pDefaultRecordSpec->append ("PHAS,  \"Scan Phase\"");
    pDefaultRecordSpec->append ("EVNT,  \"Event Name\"");
    pDefaultRecordSpec->append ("TSE,   \"Time Stamp Event\"");
-   pDefaultRecordSpec->append ("TSEL,  \"Time Stamp Link\"");
+   pDefaultRecordSpec->append ("TSEL*, \"Time Stamp Link\"");
    pDefaultRecordSpec->append ("DTYP,  \"Device Type\"");
    pDefaultRecordSpec->append ("DISV,  \"Disable Value\"");
    pDefaultRecordSpec->append ("DISA,  \"Disable\"");
-   pDefaultRecordSpec->append ("SDIS$, \"Scanning Disable\"");
+   pDefaultRecordSpec->append ("SDIS*, \"Scanning Disable\"");
    pDefaultRecordSpec->append ("DISP,  \"Disable putField\"");
    pDefaultRecordSpec->append ("PROC,  \"Force Processing\"");
    pDefaultRecordSpec->append ("STAT,  \"Alarm Status\"");
@@ -117,7 +117,7 @@ static void initialiseRecordSpecs ()
    pDefaultRecordSpec->append ("TPRO,  \"Trace Processing\"");
    pDefaultRecordSpec->append ("UDF,   \"Undefined\"");
    pDefaultRecordSpec->append ("UDFS,  \"Undefined Alarm Sevrty\"");
-   pDefaultRecordSpec->append ("FLNK$, \"Forward Process Link\"");
+   pDefaultRecordSpec->append ("FLNK*, \"Forward Process Link\"");
    pDefaultRecordSpec->append ("VAL,   \"Current Value\"");
 
    okay = false;
@@ -361,6 +361,7 @@ void QEPvProperties::common_setup ()
 
    this->fieldsAreSorted = false;
    this->fieldChannels.clear ();
+   this->isLinkField.clear ();
    this->variableIndexTableRowMap.clear ();
 
    // configure the panel and create contents
@@ -581,6 +582,7 @@ void QEPvProperties::clearFieldChannels ()
       QEString* qca = this->fieldChannels.takeFirst ();
       delete qca;
    }
+   this->isLinkField.clear();
 
    this->fieldsAreSorted = false;
    this->variableIndexTableRowMap.clear ();
@@ -687,14 +689,12 @@ qcaobject::QCaObject* QEPvProperties::createQcaItem (unsigned int variableIndex)
 //
 void QEPvProperties::establishConnection (unsigned int variableIndex)
 {
-   QString substitutedPVName;
-
    if (variableIndex != PV_VARIABLE_INDEX) {
       DEBUG << "unexpected variableIndex" << variableIndex;
       return;
    }
 
-   substitutedPVName = this->getSubstitutedVariableName (0).trimmed ();
+   const QString substitutedPVName = this->getSubstitutedVariableName (variableIndex).trimmed ();
    this->recordBaseName = QERecordFieldName::recordName (substitutedPVName);
 
    // Set up field name label.
@@ -755,7 +755,14 @@ void QEPvProperties::establishConnection (unsigned int variableIndex)
       QObject::connect (qca,  SIGNAL (connectionChanged  (QCaConnectionInfo&, const unsigned int&)),
                         this, SLOT   (setValueConnection (QCaConnectionInfo&, const unsigned int&)));
 
-      qca->setRequestedElementCount (1);  // we only need the first eleent.
+      // We only need the first element, unless this is a long string.
+      //
+      if (substitutedPVName.endsWith ('$')) {
+         qca->setRequestedElementCount (MAX_FIELD_DATA_SIZE);
+      } else {
+         qca->setRequestedElementCount (1);
+      }
+
       QObject::connect (qca,  SIGNAL (dataChanged   (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
                         this, SLOT   (setValueValue (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
    }
@@ -891,29 +898,16 @@ void QEPvProperties::setRecordTypeValue (const QString& rtypeValue,
    this->table->setRowCount (numberOfFields);
    for (int j = 0; j < numberOfFields; j++) {
 
-      const QString readField = pRecordSpec->getFieldName (j);
+      const QString fieldName = pRecordSpec->getFieldName (j);
 
-      // Field names ending with $ inducate that the ling string mode is applicable.
+      // For some fields long string (char array) mode is applicable.
       //
-      const bool mayUseCharArray = readField.endsWith ('$');
-
-      QString displayField;
-      QString pvField;
-
-      if (mayUseCharArray) {
-         displayField = readField;
-         displayField.chop (1);       // remove last character
-      } else {
-         displayField = readField;    // use as is.
-      }
-
+      const bool mayUseCharArray = pRecordSpec->fieldMayUseCharArray (j);
       const bool fieldUsingCharArray = (readMode == ReadAsCharArray) && mayUseCharArray;
 
+      QString pvField = fieldName;
       if (fieldUsingCharArray) {
-         pvField = displayField;
          pvField.append ('$');        // append CA array mode qualifier.
-      } else {
-         pvField = displayField;
       }
 
       // Ensure vertical header exists and set it.
@@ -924,7 +918,7 @@ void QEPvProperties::setRecordTypeValue (const QString& rtypeValue,
          item = new QTableWidgetItem ();
          this->table->setItem (j, FIELD_COL, item);
       }
-      item->setText  (" " + displayField + " ");
+      item->setText  (" " + fieldName + " ");
 
       // Ensure table entry item exists.
       //
@@ -967,6 +961,7 @@ void QEPvProperties::setRecordTypeValue (const QString& rtypeValue,
       qca->subscribe ();
 
       this->fieldChannels.append (qca);
+      this->isLinkField.append (pRecordSpec->fieldIsLinkField (j));
       this->variableIndexTableRowMap.insertF (vi, j);
    }
 
@@ -1039,13 +1034,13 @@ void QEPvProperties::setValueValue (const QVariant& value,
       //
       // TODO - move this logic into QEStringFormatting.
       //
-      bool isDbfChar = (qca->getFieldType () == "DBF_CHAR");
+      const bool isDbfChar = (qca->getFieldType () == "CHAR");
 
-      QString pvName = qca->getRecordName ();
-      QString field = QERecordFieldName::fieldName (pvName);
-      bool requestedCharArray = field.endsWith ('$');
+      const QString pvName = qca->getRecordName ();
+      const QString field = QERecordFieldName::fieldName (pvName);
+      const bool requestedCharArray = field.endsWith ('$');
 
-      bool longString = isDbfChar && requestedCharArray;
+      const bool longString = isDbfChar && requestedCharArray;
       if (longString) {
          this->valueStringFormatting.setArrayAction (QEStringFormatting::ASCII);
       } else {
@@ -1327,42 +1322,44 @@ void QEPvProperties::tableHeaderClicked (int index)
 //
 void QEPvProperties::customTableContextMenuRequested (const QPoint& posIn)
 {
-   QTableWidgetItem* item = NULL;
-   QString trimmed;
-   int row;
-   int vi;
-   qcaobject::QCaObject* qca = NULL;
-   QString newPV = "";
-
    this->contextMenuPvName.clear ();
 
    // Find the associated item
    //
-   item = this->table->itemAt (posIn);
+   QTableWidgetItem* item = this->table->itemAt (posIn);
    if (!item) {
-      return;  // sainity check, just in case
+      return;  // sanity check, just in case
    }
+
+   // Find associated variable index and associated channel object.
+   //
+   const int row = item->row ();
+   const int vi = this->variableIndexTableRowMap.valueI (row, -1);
+   qcaobject::QCaObject* qca = this->fieldChannels.value (vi, NULL);
+
+   QString newPV = "";
 
    switch (item->column ()) {
       case FIELD_COL:
-         row = item->row ();
-         // Find associated variable index...
-         vi = this->variableIndexTableRowMap.valueI (row, -1);
-         qca = this->fieldChannels.value (vi, NULL);
          if (qca) {
             newPV = qca->getRecordName ();
          }
          break;
 
       case VALUE_COL:
-         trimmed = item->text ().trimmed ();
-         // newPV set to empty string if input is not a valid PV name
-         //
-         QERecordFieldName::extractPvName (trimmed, newPV);
+         // Is this a link field -
+         if (this->isLinkField.value (vi)) {
+            QString trimmed = item->text ().trimmed ();
+            // newPV set to empty string if input is not a valid PV name
+            //
+            QERecordFieldName::extractPvName (trimmed, newPV);
+         } else {
+            newPV = "";
+         }
          break;
 
       default:
-         DEBUG << "unexpected column number:" << item->column () << trimmed;
+         DEBUG << "unexpected column number:" << item->column ();
          return;
    }
 
@@ -1372,11 +1369,6 @@ void QEPvProperties::customTableContextMenuRequested (const QPoint& posIn)
       QPoint golbalPos = this->table->mapToGlobal (pos);
       QMenu* menu = this->buildContextMenu ();
 
-      // Any trailing '$' is really for local usage only.
-      //
-      if (newPV.endsWith ("$")) {
-         newPV.chop (1);
-      }
       this->contextMenuPvName = newPV;
       menu->exec (golbalPos);
    }

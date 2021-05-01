@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2016-2021 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2016,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -83,7 +83,6 @@ bool QERecordFieldName::pvNameIsValid (const QString & pvName)
    QChar c;
    bool result;
    int j;
-   int colonCount;
    int dotCount;
 
    if (pvName.length () == 0) {
@@ -100,16 +99,13 @@ bool QERecordFieldName::pvNameIsValid (const QString & pvName)
    // Hypothosize all okay
    //
    result = true;
-   colonCount = 0;
    dotCount = 0;
    for (j = 1; j < pvName.length (); j++) {
       c = pvName [j];
 
       if (c.isUpper() || c.isLower() || c.isDigit() ||
-         (c == '_')   || (c == '-')) {
+         (c == '_')   || (c == '-')  || (c == ':')) {
          // is good
-      } else if (c == ':') {
-         colonCount++;
       } else if ( c== '.' ) {
          dotCount++;
       } else {
@@ -121,9 +117,9 @@ bool QERecordFieldName::pvNameIsValid (const QString & pvName)
 
    // Expected format is CCCC:SSSS[.FFFF]
    // However many beamline PVs do not strictly follow the naming
-   // convension, so allow 1 or 2 colons.
+   // convension, so allow 0, 1 or more colons.
    //
-   if ((colonCount < 1) || (colonCount > 2) || (dotCount > 1)) {
+   if (dotCount > 1) {
       result = false;
    }
 

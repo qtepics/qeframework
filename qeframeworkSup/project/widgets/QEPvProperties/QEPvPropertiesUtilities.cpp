@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron
+ *  Copyright (c) 2012-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -72,7 +72,7 @@ QString QERecordSpec::getRecordType () const
 
 //------------------------------------------------------------------------------
 //
-QString QERecordSpec::getFieldName (const int index) const
+QString QERecordSpec::getFieldText (const int index) const
 {
    QString result = "";
    if ((0 <= index) && (index < this->list.size ())) {
@@ -84,6 +84,39 @@ QString QERecordSpec::getFieldName (const int index) const
       }
    }
    return result;
+}
+
+//------------------------------------------------------------------------------
+//
+QString QERecordSpec::getFieldName (const int index) const
+{
+   QString result;
+   result = this->getFieldText (index);
+   if (result.endsWith ('$') || result.endsWith ('*')) {
+      // Lose the qualifier.
+      result.chop (1);
+   }
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// Is long string mode is applicable.
+// This is applicable to LINK fields as well as long strings.
+//
+bool QERecordSpec::fieldMayUseCharArray (const int index) const
+{
+   QString text = this->getFieldText (index);
+   return (text.endsWith ('$') || text.endsWith ('*'));
+}
+
+//------------------------------------------------------------------------------
+// Indicates if the field is an INLINK, OUTLINK or FWDLINK field or
+// PV name field.
+//
+bool QERecordSpec::fieldIsLinkField (const int index) const
+{
+   QString text = this->getFieldText (index);
+   return text.endsWith ('*');
 }
 
 //------------------------------------------------------------------------------
@@ -122,7 +155,6 @@ QERecordSpecList::QERecordSpecList ()
 {
     // place holder:
 }
-
 
 //------------------------------------------------------------------------------
 //

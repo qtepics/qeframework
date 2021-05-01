@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron
+ *  Copyright (c) 2013-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,7 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
-/* The QEPvPropertiesUtilities class provides utilities for the main QEPvProperties widget.
+/* The QEPvPropertiesUtilities class provides utilities for the QEPvProperties widget.
  */
 
 #ifndef QE_PV_PROPERTIES_UTILITIES_H
@@ -36,8 +36,8 @@
 
 
 //------------------------------------------------------------------------------
-// This class provides a named (by record type: ai, bo, calc etc) list of record field names.
-// No other info about the field (DBF_INLINK, DBF_DOUBLE, DBF_MENU etc.) stored here.
+// This class provides a named (by record type: ai, bo, calc etc) list of
+// record field names.
 //
 class QERecordSpec {
 public:
@@ -50,12 +50,28 @@ public:
 
    QString getRecordType () const;
 
-   // If index is out of bounds, these functions return ""
+   // If index is out of bounds, this function returns "".
    //
    QString getFieldName (const int index) const;
+
+   // Indicates if long string mode is applicable.
+   // If index is out of bounds, this function returns false.
+   //
+   bool fieldMayUseCharArray (const int index) const;
+
+   // Indicates if the field is an INLINK, OUTLINK or FWDLINK field, or is
+   // otherwise used to hold a PV name (e.g. sscan record PV name fields).
+   // If index is out of bounds, this function returns false.
+   //
+   bool fieldIsLinkField (const int index) const;
+
+   // Returns field description.
+   // If index is out of bounds, this function returns "".
+   //
    QString getDescription (const int index) const;
 
 private:
+   QString getFieldText (const int index) const;
    QStringList list;
    QString recordType;
 };

@@ -215,6 +215,7 @@ private:
    QString previousRecordType;
 
    QList<QEString *> fieldChannels;
+   QList<bool> isLinkField;
    bool fieldsAreSorted;
 
    QEPVNameSelectDialog* pvNameSelectDialog;
