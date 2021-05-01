@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron.
+ *  Copyright (c) 2013-2021 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -228,6 +228,14 @@ public:
     static void listPVNames (QWidget* rootWidget,
                              const QString& targetFile,
                              const QString& comment);
+
+    /// Performs deep search and initiates updates.
+    ///
+    static void activate (QWidget* rootWidget);
+
+    /// Performs deep search and terminates updates.
+    ///
+    static void deactivate (QWidget* rootWidget);
 
     /// Returns the directory name as QString of the given pathname.
     /// This is essentially like the Linux dirname command.

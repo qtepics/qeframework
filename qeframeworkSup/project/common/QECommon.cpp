@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2013-2021 Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2014,2016,2017,2018  Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -42,6 +42,7 @@
 #include <QSize>
 #include <QWidget>
 #include <QEWidget.h>
+#include <QELabel.h>
 
 #define DEBUG qDebug () << "QECommon" << __LINE__ << __FUNCTION__ << "  "
 
@@ -51,8 +52,6 @@ QColor QEUtilities::fontColour (const QColor& backgroundColour)
 {
    QColor result;
    int r, g, b, a;
-   int wc;
-   bool isDark = false;
 
    // Split colour into components.
    //
@@ -62,11 +61,11 @@ QColor QEUtilities::fontColour (const QColor& backgroundColour)
    // Form weighted component wc. Weights based on algorithm:
    // http://stackoverflow.com/questions/1855884/determine-font-color-based-on-background-color
    //
-   wc = ((299 * r) + (587 * g) + (114 * b)) / 1000;   // 299 + 587 + 114 = 1000
+   const int wc = ((299 * r) + (587 * g) + (114 * b)) / 1000;   // 299 + 587 + 114 = 1000
 
    // Dark or bright background colour ?
    //
-   isDark = (wc < 124);
+   const bool isDark = (wc < 124);
    if (isDark) {
       result = QColor (255, 255, 255, 255);    // white font
    } else {
@@ -502,6 +501,48 @@ void QEUtilities::listPVNames (QWidget* rootWidget,
 }
 
 //------------------------------------------------------------------------------
+// static - cribbed from kubili and simplified.
+//
+void QEUtilities::activate (QWidget* rootWidget)
+{
+   QEWidgetList list = findAllQEWidgets (rootWidget);
+
+   const int number = list.count ();
+   for (int j = 0; j < number; j++) {
+      QEWidget* item = list.value (j, NULL);
+      if (item) {
+         QWidget* widget = item->getQWidget ();
+         if (widget) {
+            QELabel* label = dynamic_cast <QELabel*> (widget);
+            if (label) {
+               // Once the PV connects, text value and style will be set up.
+               //
+               label->setText ("");
+               label->setStyleSheet (label->getStyleDefault ());
+            }
+            item->activate ();
+         }
+      }
+   }
+}
+
+//------------------------------------------------------------------------------
+// static - cribbed from kubili and simplified.
+//
+void QEUtilities::deactivate (QWidget* rootWidget)
+{
+   QEWidgetList list = findAllQEWidgets (rootWidget);
+
+   const int number = list.count ();
+   for (int j = 0; j < number; j++) {
+      QEWidget* item = list.value (j, NULL);
+      if (item) {
+         item->deactivate ();
+      }
+   }
+}
+
+//------------------------------------------------------------------------------
 // static
 //
 QString QEUtilities::dirName (const QString& pathName)
@@ -514,6 +555,7 @@ QString QEUtilities::dirName (const QString& pathName)
 
 //------------------------------------------------------------------------------
 // static
+//
 void QEUtilities::treeWalkAndAppend (QObject* item, QEWidgetList& list)
 {
    // sainity check.
