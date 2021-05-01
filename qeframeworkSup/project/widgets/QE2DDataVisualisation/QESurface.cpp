@@ -39,7 +39,6 @@
 
 #define DEG2RAD(deg)    (TAU * (deg) / 360.0)
 
-
 static const double paintScale = 0.01;
 
 //------------------------------------------------------------------------------
@@ -189,6 +188,12 @@ void QESurface::paintEvent (QPaintEvent* event)
    const double zDataOrigin = (min + max) / 2.0;
    const double zDataHaSpan = (max - min) / 2.0;
 
+   // Calulate the working z scale nbase on user scale selection, selected min/max
+   // and widget height. The 0.4 is a bit arbitary and found empirically.
+   //
+   const double zSpan = MAX(max - min, 1.0);  // avod the divide by zero
+   const double zScale = this->mZScale*paintScale * this->height () * 0.4 / zSpan;
+
    // r, c and v are 0 or 1
    for (int r = 0; r < 2; r++) {
       for (int c = 0; c < 2; c++) {
@@ -198,7 +203,7 @@ void QESurface::paintEvent (QPaintEvent* event)
 
             d [0] = (c == 0 ? -xDataOrigin : +xDataOrigin)*this->mXScale*paintScale;
             d [1] = (r == 0 ? -yDataOrigin : +yDataOrigin)*this->mYScale*paintScale;
-            d [2] = (v == 0 ? -zDataHaSpan : +zDataHaSpan)*this->mZScale*paintScale;
+            d [2] = (v == 0 ? -zDataHaSpan : +zDataHaSpan)*zScale;
 
             this->vmult (e, rotMat, d);   // e = rotMat*d;
 
@@ -207,7 +212,7 @@ void QESurface::paintEvent (QPaintEvent* event)
             double x = f*e[0];
             double y = f*e[1];
 
-            // Translate to relavtibe to centre of screen.
+            // Translate to relavtive to centre of screen.
             //
             x += xScreenOrigin;
             y += yScreenOrigin;
@@ -290,7 +295,7 @@ void QESurface::paintEvent (QPaintEvent* event)
 
          d [0] = (c - xDataOrigin)*this->mXScale*paintScale;
          d [1] = (r - yDataOrigin)*this->mYScale*paintScale;
-         d [2] = (v - zDataOrigin)*this->mZScale*paintScale;
+         d [2] = (v - zDataOrigin)*zScale;
 
          this->vmult (e, rotMat, d);  // e = m*d;
 
@@ -481,6 +486,7 @@ void QESurface::mouseMoveEvent (QMouseEvent* event)
    QPointF intersectPostion;
    QPointF diff;
    double newDistance;
+   double refDistance;
    double newScale;
 
    if (this->mouseIsDown) {
@@ -496,13 +502,15 @@ void QESurface::mouseMoveEvent (QMouseEvent* event)
          case mkX:
          case mkY:
          case mkZ:
+            // TODO: revist this
             // Calc change of scale with respect to the origin.
             //
             intersectPostion = this->calcPerpIntersect (this->scalePositionA, this->scalePositionB, realPos);
             diff = intersectPostion - this->scalePositionA;
             newDistance = sqrt (diff.x()*diff.x() + diff.y()*diff.y());
-            // Avoid the divide by zero
-            newScale = (newDistance /MAX(this->referenceDistance, 1.0)) * this->referenceScale;
+            newDistance = MAX(newDistance, 1.0);              // Avoid zero distance
+            refDistance = MAX(this->referenceDistance, 1.0);  // Avoid the divide by zero
+            newScale = (newDistance /refDistance) * MAX(this->referenceScale, 1.0);
 
             switch (this->activeMarker) {
                case mkX: this->setXScale (newScale); break;
@@ -927,7 +935,7 @@ double QESurface::getYScale () const
 void QESurface::setZScale (const double zScaleIn)
 {
    this->mZScale = LIMIT (zScaleIn, 0.0, 10000.0);
-   if (this->mZScale <= 0.2) this->mZScale = 0.0;
+   if (this->mZScale <= 0.5) this->mZScale = 0.0;
    this->update ();
 }
 
@@ -1059,6 +1067,8 @@ void QESurface::vmult (Vector result, const Matrix a, const Vector x)
 QPointF QESurface::calcPerpIntersect (const QPointF p1, const QPointF p2,
                                       const QPointF p3)
 {
+   QPointF result;
+
    // A.x + B.y + C is a line through p1 and p2
    //
    const double A =  p2.y() - p1.y();
@@ -1074,10 +1084,15 @@ QPointF QESurface::calcPerpIntersect (const QPointF p1, const QPointF p2,
    // B.u - A.v + D = 0
    //
    const double s = A*A + B*B;
-   const double u = -(A*C + B*D)/s;
-   const double v = -(B*C - A*D)/s;
+   if (s <= 0) {
+      result = p1;
+   } else {
+      const double u = -(A*C + B*D)/s;
+      const double v = -(B*C - A*D)/s;
+      result =  QPointF (u, v);
+   }
 
-   return QPointF (u, v);
+   return result;
 }
 
 // end

@@ -80,8 +80,8 @@ public:
    };
 
    enum Constants {
-      maxNumberOfRows = 200,
-      maxNumberOfCols = 200,
+      maxNumberOfRows = 256,
+      maxNumberOfCols = 256,
    };
 
    // QESurface context menu values
