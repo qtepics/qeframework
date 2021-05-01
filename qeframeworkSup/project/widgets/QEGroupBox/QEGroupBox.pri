@@ -4,6 +4,8 @@
 # the Australian Synchrotron. This file is included into and as part
 # of the overall framework.pro project file.
 #
+# Copyright (c) 2017-2021 Australian Synchrotron
+#
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -17,21 +19,20 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (c) 2017 Australian Synchrotron
-#
 # Author:
 #   Andrew Starritt
 # Contact details:
 #   andrew.starritt@synchrotron.org.au
 #
 
-HEADERS += \
-    widgets/QEGroupBox/QEGroupBox.h
+QEGROUPBOX = widgets/QEGroupBox
 
-SOURCES += \
-    widgets/QEGroupBox/QEGroupBox.cpp
+INCLUDEPATH += $$QEGROUPBOX
 
-INCLUDEPATH += \
-    widgets/QEGroupBox
+HEADERS += $$QEGROUPBOX/QEFormGroupBox.h
+SOURCES += $$QEGROUPBOX/QEFormGroupBox.cpp
+
+HEADERS += $$QEGROUPBOX/QEGroupBox.h
+SOURCES += $$QEGROUPBOX/QEGroupBox.cpp
 
 # end

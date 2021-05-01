@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2017-2020 Australian Synchrotron
+ *  Copyright (c) 2017-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -52,6 +52,7 @@
 #include <QEPvFrame.h>
 #include <QEGeneralEdit.h>
 #include <QEGroupBox.h>
+#include <QEFormGroupBox.h>
 #include <QEHistogram.h>
 #include <QEScalarHistogram.h>
 #include <QEWaveformHistogram.h>
@@ -120,6 +121,7 @@ QE_IMPLEMENT_PLUGIN_MANAGER (QEFrame,             QESUPPORT,  ":/qe/plugin/QEFra
 QE_IMPLEMENT_PLUGIN_MANAGER (QEPvFrame,           QEMONITOR,  ":/qe/plugin/QEPvFrame.png",           true)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEGeneralEdit,       QECONTROL,  ":/qe/plugin/QEGeneralEdit.png",       false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEGroupBox,          QESUPPORT,  ":/qe/plugin/QEGroupBox.png",          true)
+QE_IMPLEMENT_PLUGIN_MANAGER (QEFormGroupBox,      QESUPPORT,  ":/qe/plugin/QEFormGroupBox.png",      false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEHistogram,         QETOOL,     ":/qe/plugin/QEHistogram.png",         false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEScalarHistogram,   QEGRAPHIC,  ":/qe/plugin/QEScalarHistogram.png",   false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEWaveformHistogram, QEGRAPHIC,  ":/qe/plugin/QEWaveformHistogram.png", false)

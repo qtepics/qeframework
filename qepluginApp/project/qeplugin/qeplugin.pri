@@ -58,6 +58,7 @@ OTHER_FILES += qeplugin/QEDistribution.png
 OTHER_FILES += qeplugin/QEFileBrowser.png
 OTHER_FILES += qeplugin/QEFileImage.png
 OTHER_FILES += qeplugin/QEForm.png
+OTHER_FILES += qeplugin/QEFormGroupBox.png
 OTHER_FILES += qeplugin/QEFormGrid.png
 OTHER_FILES += qeplugin/QEFormStateChange.png
 OTHER_FILES += qeplugin/QEFrame.png
