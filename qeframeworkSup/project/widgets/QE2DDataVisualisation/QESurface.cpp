@@ -981,7 +981,7 @@ bool QESurface::getShowScaling () const
 //
 static double randomFloat (const double a, const double b)
 {
-   double r = double (random()) / double (RAND_MAX);
+   double r = double (rand()) / double (RAND_MAX);
    r = a + (b-a)*r;
    return r;
 }
