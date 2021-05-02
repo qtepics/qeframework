@@ -34,7 +34,16 @@
 
 #define DEBUG qDebug () << "QEAbstract2DData" << __LINE__ << __FUNCTION__ << "  "
 
+// Magic value to represent no data
+// Special value used to indicate a no value.
+// This number is chosen as -(2.0 ** 48) because it:
+// a) can be exactly represented as a double, and
+// b) is a value that is not ever expected to 'turn up' as an actual value.
+//
+static const double noValue = -281474976710656.0;
+
 static const double minSpan = 1.0e-3;   /// duplicate
+
 
 //------------------------------------------------------------------------=-----
 // Constructor with no initialisation
@@ -96,7 +105,6 @@ void QEAbstract2DData::commonSetup ()
    this->setAllowDrop (true);
    this->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_ALWAYS);
 
-   this->addContextMenuScaling = true;
    this->rawNumberOfRows = 0;
    this->rawNumberOfCols = 0;
    this->sliceRowOffset = 0;
@@ -234,72 +242,7 @@ int QEAbstract2DData::getEffectiveDataWidth () const
 }
 
 //------------------------------------------------------------------------------
-//
-QEAbstract2DData::TwoDimensionalData
-QEAbstract2DData::getData () const
-{
-   return this->data;
-}
-
-//------------------------------------------------------------------------------
-//
-void QEAbstract2DData::findDataRowCol (const int displayRow, const int displayCol,
-                                       int& sourceRow, int& sourceCol) const
-{
-   int temp;
-
-   // Start with no rotation and no flipping.
-   //
-   sourceRow = displayRow;
-   sourceCol = displayCol;
-
-   // Processes slicing, rotation and flips.
-   // As we apply slice, rotate, then flip, we must first un-flip, un-rotate
-   // and then un-slice.
-   //
-   if (this->mVerticalFlip)
-      sourceRow = this->displayedNumberOfRows - 1 - sourceRow;
-
-   if (this->mHorizontalFlip)
-      sourceCol = this->displayedNumberOfCols - 1 - sourceCol;
-
-   switch (this->mRotation) {
-      case NoRotation:
-         // pass
-         break;
-
-      case Rotate90Right:
-         // Do the rotation
-         //
-         temp = sourceCol;
-         sourceCol = sourceRow;
-         sourceRow = this->slicedNumberOfRows - 1 - temp;
-         break;
-
-      case Rotate90Left:
-         // Do the rotation
-         //
-         temp = sourceRow;
-         sourceRow = sourceCol;
-         sourceCol = this->slicedNumberOfCols - 1 - temp;
-         break;
-
-      case Rotate180:
-         // Do the rotation
-         //
-         sourceRow = this->slicedNumberOfRows - 1 - sourceRow;
-         sourceCol = this->slicedNumberOfCols - 1 - sourceCol;
-         break;
-   }
-
-   // Lastly, de-slice the data, but first check out of range indices.
-   //
-   sourceRow += this->sliceRowOffset;
-   sourceCol += this->sliceColOffset;
-}
-
-//------------------------------------------------------------------------------
-//
+// Gets raw/source data value
 double QEAbstract2DData::getDataValue (const int sourceRow, const int sourceCol,
                                        const double defaultValue) const
 {
@@ -321,21 +264,119 @@ double QEAbstract2DData::getDataValue (const int sourceRow, const int sourceCol,
 }
 
 //------------------------------------------------------------------------------
+// Fins the bined value for the "rectangle" in the source data bounded by
+// the rows r1 to r2 inclusive and the columns c1 to c2 inclusive.
+//
+double QEAbstract2DData::getBinnedValue (const int r1, const int r2,
+                                         const int c1, const int c2) const
+{
+   const int number = (r2 - r1 + 1)*(c2 - c1 + 1);
+   double result = noValue;
+
+   // Check the non-binning cases first.
+   //
+   if (number < 1) {
+       result =  noValue;  // sanity check
+
+   } else if (number == 1) {
+      // Both bin sizes must both be one - just extract the value.
+      //
+      result = this->getDataValue (r1, c1, noValue);
+
+   }
+   // We need to bin the data.
+   //
+   else if (this->mDataBinning == decimate) {
+      // Simple decimation - pick 1 "central" value.
+      //
+      const int row = (r1 + r2) / 2;
+      const int col = (c1 + c2) / 2;
+      result = this->getDataValue (row, col, noValue);
+   }
+
+   else if (this->mDataBinning ==  mean) {
+      // Take average of all values. Ignore noValue elements.
+      //
+      double total = 0.0;
+      int count = 0;
+      for (int r = r1; r <= r2; r++) {
+         for (int c = c1; c <= c2; c++) {
+            double value = this->getDataValue (r, c, noValue);
+            if (value != noValue) {
+               total += value;
+               count += 1;
+            }
+         }
+      }
+
+      if (count > 0) {
+         result = total / double (count);
+      } else {
+         result = noValue;
+      }
+   }
+
+   else if (this->mDataBinning == median) {
+      // Take median of all values
+      //
+      OneDVectorData theBin (number);
+
+      for (int r = r1; r <= r2; r++) {
+         for (int c = c1; c <= c2; c++) {
+            double value = this->getDataValue (r, c, noValue);
+            if (value != noValue) {
+               theBin.append (value);
+            }
+         }
+      }
+
+      const int count = theBin.count();
+      if (count > 0) {
+         qSort (theBin);
+         result = theBin.value (count/2);
+      } else {
+         result = noValue;
+      }
+
+   } else {
+      DEBUG << "unexpected binning option " << this->mDataBinning;
+   }
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEAbstract2DData::dataIsAvailable () const
+{
+   return this->data.count () > 0;
+}
+
+//------------------------------------------------------------------------------
 //
 double QEAbstract2DData::getValue (const int displayRow, const int displayCol,
                                    const double defaultValue) const
 {
-   int sourceRow;
-   int sourceCol;
-
-   // Map/traslate the displayed row and column into the data/source row and column.
+   // Sanity checks
    //
-   this->findDataRowCol (displayRow, displayCol, sourceRow, sourceCol);
+   if ((displayRow < 0) || (displayCol < 0)) {
+      return defaultValue;
+   }
 
-   // Now that we have the source row and sorce col, extract the data value.
-   //
-   double result;
-   result = getDataValue (sourceRow, sourceCol, defaultValue);
+   if (displayRow >= this->cachedData.count()) {
+      return defaultValue;
+   }
+
+   OneDVectorData row = this->cachedData [displayRow];
+   if (displayCol >= row.count()) {
+      return defaultValue;
+   }
+
+   double result = row [displayCol];
+   if (result == noValue) {
+      return defaultValue;
+   }
+
    return result;
 }
 
@@ -347,6 +388,7 @@ int QEAbstract2DData::getUpdateCount () const
 }
 
 //------------------------------------------------------------------------------
+// Should this use the cached values??
 //
 void QEAbstract2DData::getDataMinMaxValues (double& min, double& max) const
 {
@@ -420,8 +462,11 @@ void QEAbstract2DData::getScaleModeMinMaxValues (double& min, double& max) const
          break;
 
       case displayed:
-         // Transient state - go with default
+         // Transient state - do nothing
+         break;
+
       default:
+         DEBUG << "unexpected ScaleMode option" << this->getScaleMode();
          break;
    }
 
@@ -471,18 +516,13 @@ void QEAbstract2DData::setReadOut (const QString& text)
 //
 void QEAbstract2DData::setMouseOverElement (const int displayRow, const int displayCol)
 {
-   // Special value used to indicate a no value.
-   // This number is chosen as -(2.0 ** 48) because it:
-   // a) can be exactly represented as a double, and
-   // b) is a value that is not ever expected to 'turn up' as an actual value.
-   //
-   static const double noValue = -281474976710656.0;
+   const double value = this->getValue (displayRow, displayCol, noValue);
 
-   int sourceRow;
-   int sourceCol;
-
-   this->findDataRowCol (displayRow, displayCol, sourceRow, sourceCol);
-   const double value = this->getDataValue (sourceRow, sourceCol, noValue);
+   /// TODO: Really need to convert display coordinated back to data coordinates.
+   /// When binning, choose a mid point row/col.
+   ///
+   int sourceRow = displayRow;
+   int sourceCol = displayCol;
 
    // Do we send a status message ?
    //
@@ -501,7 +541,7 @@ void QEAbstract2DData::setMouseOverElement (const int displayRow, const int disp
 
          message = QString ("row:%1  col:%2  value: %3 %4")
                .arg (sourceRow + 1, 3)   // This message is for a real person,  ...
-               .arg (sourceCol + 1, 3)   // not a C/C++ compiler, hence +1.
+               .arg (sourceCol + 1, 3)   // not a C/C++ compiler, hence the +1.
                .arg (value)
                .arg (egu);
 
@@ -539,7 +579,8 @@ void QEAbstract2DData::setMouseOverElement (const int displayRow, const int disp
 //
 void QEAbstract2DData::updateDataVisulation ()
 {
-   DEBUG << "abstract function not implemented error";
+   DEBUG << "error: abstract function not implemented in"
+         << this->metaObject()->className();
 }
 
 //------------------------------------------------------------------------------
@@ -558,47 +599,137 @@ void QEAbstract2DData::calculateDataVisulationValues()
             MAX (this->rawNumberOfCols, 1);
    }
 
-   int first;
-   int last;
-
-   // Calc first and last.
-   // If specified first and/or end are negative, when we count from end,
-   // i.e. an index of -1 meand last index, i.e. number - 1
+   // Now calculate the sliced, binned and rotated/flipped values.
    //
-   // Do the rows and vertical slices.
+   // Calc first and last sliced indices.
+   // If the first and/or end slice values are negative, then we count from end,
+   // i.e. an index value of -1 means the last index, i.e. number - 1.
+   //
+   // Do the horizontal and vertical slices.
    //
    #define UNSIGN_INDEX(index, number) LIMIT((index >= 0 ? index : number + index), 0, number)
 
-   first = UNSIGN_INDEX (this->mVerticalSliceFirst, this->rawNumberOfRows);
-   last  = UNSIGN_INDEX (this->mVerticalSliceLast,  this->rawNumberOfRows);
+   const int rowFirst = UNSIGN_INDEX (this->mVerticalSliceFirst, this->rawNumberOfRows);
+   const int rowLast  = UNSIGN_INDEX (this->mVerticalSliceLast,  this->rawNumberOfRows);
 
-   this->sliceRowOffset = first;
-   this->slicedNumberOfRows = MAX (last - first + 1, 0);   // allow zero, but not negative
+   this->sliceRowOffset = rowFirst;
+   this->slicedNumberOfRows = MAX (rowLast - rowFirst + 1, 0);   // allow zero, but not negative
 
    // Ditto the columns and horizontal slices
    //
-   first = UNSIGN_INDEX (this->mHorizontalSliceFirst, this->rawNumberOfCols);
-   last  = UNSIGN_INDEX (this->mHorizontalSliceLast,  this->rawNumberOfCols);
+   const int colFirst = UNSIGN_INDEX (this->mHorizontalSliceFirst, this->rawNumberOfCols);
+   const int colLast  = UNSIGN_INDEX (this->mHorizontalSliceLast,  this->rawNumberOfCols);
 
-   this->sliceColOffset = first;
-   this->slicedNumberOfCols = MAX (last - first + 1, 0);
+   this->sliceColOffset = colFirst;
+   this->slicedNumberOfCols = MAX (colLast - colFirst + 1, 0);
 
    #undef UNSIGN_INDEX
 
-   // Now calc rotation info
+   // Find number of binned rows and cols - round up.
+   //
+   const int rowBin = this->mVerticalBin;
+   const int colBin = this->mHorizontalBin;
+
+   this->binnedNumberOfRows = (this->slicedNumberOfRows + rowBin - 1) / rowBin;
+   this->binnedNumberOfCols = (this->slicedNumberOfCols + colBin - 1) / colBin;
+
+   // Calc rotation info
    //
    switch (this->mRotation) {
       case NoRotation:
       case Rotate180:
-         this->displayedNumberOfRows = this->slicedNumberOfRows;
-         this->displayedNumberOfCols = this->slicedNumberOfCols;
+         this->displayedNumberOfRows = this->binnedNumberOfRows;
+         this->displayedNumberOfCols = this->binnedNumberOfCols;
          break;
 
       case Rotate90Left:
       case Rotate90Right:
-         this->displayedNumberOfRows = this->slicedNumberOfCols;
-         this->displayedNumberOfCols = this->slicedNumberOfRows;
+         this->displayedNumberOfRows = this->binnedNumberOfCols;
+         this->displayedNumberOfCols = this->binnedNumberOfRows;
          break;
+   }
+
+   // Lastly slice, bin and rotate the data to create cachedData
+   //
+   this->cachedData.clear();
+
+   // Do a 2D size - all fill with noData for now.
+   //
+   this->cachedData.reserve (this->displayedNumberOfRows);
+   for (int r = 0; r < this->displayedNumberOfRows; r++) {
+      OneDVectorData row (this->displayedNumberOfCols, noValue);
+      this->cachedData.append(row);
+   }
+
+   // Determine the value in each cell.
+   //
+   for (int r = 0; r < this->displayedNumberOfRows; r++) {
+      for (int c = 0; c < this->displayedNumberOfCols; c++) {
+
+         // Start with no rotation and no flipping.
+         //
+         int sourceRow = r;
+         int sourceCol = c;
+
+         // Processes: slicing, binning, rotation and flips.
+         // As we apply slice, bin, rotate, then flip, we must first un-flip/un-rotate,
+         // de-bin and and then un-slice.
+         //
+         if (this->mVerticalFlip)
+            sourceRow = this->displayedNumberOfRows - 1 - sourceRow;
+
+         if (this->mHorizontalFlip)
+            sourceCol = this->displayedNumberOfCols - 1 - sourceCol;
+
+         switch (this->mRotation) {
+            int temp;
+
+            case NoRotation:
+               // pass
+               break;
+
+            case Rotate90Right:
+               // Do the rotation
+               //
+               temp = sourceCol;
+               sourceCol = sourceRow;
+               sourceRow = this->displayedNumberOfCols - 1 - temp;
+               break;
+
+            case Rotate90Left:
+               // Do the rotation
+               //
+               temp = sourceRow;
+               sourceRow = sourceCol;
+               sourceCol = this->displayedNumberOfRows - 1 - temp;
+               break;
+
+            case Rotate180:
+               // Do the rotation
+               //
+               sourceRow = this->displayedNumberOfRows - 1 - sourceRow;
+               sourceCol = this->displayedNumberOfCols - 1 - sourceCol;
+               break;
+         }
+
+         // First/last are inclusive
+         //
+         int sourceRowFirst = this->sliceRowOffset + sourceRow * rowBin;
+         int sourceRowLast  = sourceRowFirst + rowBin - 1;
+
+         int sourceColFirst = this->sliceColOffset + sourceCol * colBin;
+         int sourceColLast  = sourceColFirst + colBin - 1;
+
+         // The last bin will be smaller if not an number not an exact multiple
+         // of the bin size. Should we allow bin to extend outside of the slice?
+         //
+         sourceRowLast = MIN (sourceRowLast, rowLast);
+         sourceColLast = MIN (sourceColLast, colLast);
+
+         double value = this->getBinnedValue (sourceRowFirst, sourceRowLast,
+                                              sourceColFirst, sourceColLast);
+         this->cachedData[r][c] = value;
+      }
    }
 
    // Lastly call hook function.
@@ -647,7 +778,7 @@ void QEAbstract2DData::connectionChanged (QCaConnectionInfo& connectionInfo,
    switch (vi) {
       case DATA_PV_INDEX:
          if (isConnected) {
-            // Reset on connect, on disconnect leave last image in place.
+            // Reset on connect, on disconnect leave last data set in place.
             //
             this->data.clear ();
             this->calculateDataVisulationValues ();
@@ -682,7 +813,7 @@ void QEAbstract2DData::onDataArrayUpdate (const QVector<double>& values,
       this->data.removeFirst ();
    }
 
-   this->updateCount++;
+   this->updateCount = (this->updateCount + 1) % 1000000000;
 
    this->calculateDataVisulationValues ();
 
@@ -946,7 +1077,8 @@ int QEAbstract2DData::getHorizontalSliceLast () const
 //
 void  QEAbstract2DData::setVerticalBin  (const int bin)
 {
-    this->mVerticalBin = LIMIT(bin, 1, 100);
+   this->mVerticalBin = LIMIT (bin, 1, 100);
+   this->calculateDataVisulationValues();
 }
 
 //------------------------------------------------------------------------------
@@ -960,7 +1092,8 @@ int  QEAbstract2DData::getVerticalBin () const
 //
 void  QEAbstract2DData::setHorizontalBin  (const int bin)
 {
-   this->mHorizontalBin = LIMIT(bin, 1, 100);
+   this->mHorizontalBin = LIMIT (bin, 1, 100);
+   this->calculateDataVisulationValues();
 }
 
 //------------------------------------------------------------------------------
@@ -974,14 +1107,15 @@ int  QEAbstract2DData::getHorizontalBin () const
 //
 void  QEAbstract2DData::setDataBinning  (const DataBinning option)
 {
-    this->mDataBinning = option;
+   this->mDataBinning = option;
+   this->calculateDataVisulationValues();
 }
 
 //------------------------------------------------------------------------------
 //
 QEAbstract2DData::DataBinning  QEAbstract2DData::getDataBinning () const
 {
-    return mDataBinning;
+   return mDataBinning;
 }
 
 
@@ -1107,37 +1241,33 @@ QMenu* QEAbstract2DData::buildContextMenu ()
    action->setData (A2DDCM_HORIZONTAL_FLIP);
    menu->addAction (action);
 
-   // Not applicable to QESurface.
-   //
-   if (this->addContextMenuScaling) {
-      menu->addSeparator ();
+   menu->addSeparator ();
 
-      action = new QAction ("Manual Scale", menu);
-      action->setCheckable (true);
-      action->setChecked (this->getScaleMode() == manual);
-      action->setData (A2DDCM_MANUAL_SCALE);
-      menu->addAction (action);
+   action = new QAction ("Manual Scale", menu);
+   action->setCheckable (true);
+   action->setChecked (this->getScaleMode() == manual);
+   action->setData (A2DDCM_MANUAL_SCALE);
+   menu->addAction (action);
 
-      action = new QAction ("Operating Range Scale", menu);
-      action->setCheckable (true);
-      action->setChecked (this->getScaleMode() == operatingRange);
-      action->setData (A2DDCM_OPERATING_RANGE_SCALE);
-      menu->addAction (action);
+   action = new QAction ("Operating Range Scale", menu);
+   action->setCheckable (true);
+   action->setChecked (this->getScaleMode() == operatingRange);
+   action->setData (A2DDCM_OPERATING_RANGE_SCALE);
+   menu->addAction (action);
 
-      action = new QAction ("Dynamic Range Scale", menu);
-      action->setCheckable (true);
-      action->setChecked (this->getScaleMode() == dynamic);
-      action->setData (A2DDCM_DYNAMIC_SCALE);
-      menu->addAction (action);
+   action = new QAction ("Dynamic Range Scale", menu);
+   action->setCheckable (true);
+   action->setChecked (this->getScaleMode() == dynamic);
+   action->setData (A2DDCM_DYNAMIC_SCALE);
+   menu->addAction (action);
 
-      action = new QAction ("Use Displayed Range", menu);
-      action->setData (A2DDCM_DISPLAYED_SCALE);
-      menu->addAction (action);
+   action = new QAction ("Use Displayed Range", menu);
+   action->setData (A2DDCM_DISPLAYED_SCALE);
+   menu->addAction (action);
 
-      action = new QAction ("Min/Max Selection...", menu);
-      action->setData (A2DDCM_MIN_MAX_DIALOG);
-      menu->addAction (action);
-   }
+   action = new QAction ("Min/Max Selection...", menu);
+   action->setData (A2DDCM_MIN_MAX_DIALOG);
+   menu->addAction (action);
 
    return  menu;
 }

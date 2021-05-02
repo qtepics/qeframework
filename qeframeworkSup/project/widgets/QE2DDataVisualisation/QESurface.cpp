@@ -27,19 +27,17 @@
 #include "QESurface.h"
 
 #include <math.h>
-#include <stdlib.h>
 #include <QColor>
 #include <QCursor>
 #include <QDebug>
 #include <QPainter>
-#include <QTimer>
 #include <QECommon.h>
 
 #define DEBUG qDebug () << "QESurface" << __LINE__ << __FUNCTION__ << "  "
 
 #define DEG2RAD(deg)    (TAU * (deg) / 360.0)
 
-static const double paintScale = 0.01;
+static const double paintScale = 0.01;   // Percentage to real number factor
 
 //------------------------------------------------------------------------------
 //
@@ -80,8 +78,8 @@ void QESurface::commonSetup ()
 
    this->mShowGrid = false;
    this->mGridStyle = Qt::SolidLine;
-   this->mAxisColour = QColor (120,120,120);
-   this->mGridColour = QColor (0,0,0);
+   this->mAxisColour = QColor (120, 120, 120);
+   this->mGridColour = QColor (0, 0, 0);
    this->mShowSurface = true;
    this->mSurfaceStyle = Qt::SolidPattern;
    this->mTheta = -30.0;
@@ -92,7 +90,6 @@ void QESurface::commonSetup ()
    this->mZoom = 1000.0;
    this->mClampData = false;
    this->mShowScaling = false;
-   this->mTestDataEnabled = false;
    this->numberCols = 0;
    this->numberRows = 0;
 
@@ -102,7 +99,7 @@ void QESurface::commonSetup ()
    this->mouseIsDown = false;
    this->setMouseTracking (true);
 
-   this->setMinimumSize (320, 320);
+   this->setMinimumSize (120, 120);
 }
 
 //---------------------------------------------------------------------------------
@@ -123,14 +120,13 @@ void QESurface::paintAxis ()
    QPainter painter (this);
    QPen pen;
    QBrush brush;
+   // place holder
 }
 
 //------------------------------------------------------------------------------
 //
 void QESurface::paintEvent (QPaintEvent* event)
 {
-   // static int dd = 1000000;
-
    QFrame::paintEvent (event);   // call parent function first
 
    // Both numbers have been sanitised <= max number row/cols
@@ -138,8 +134,6 @@ void QESurface::paintEvent (QPaintEvent* event)
    const int nr = this->numberRows;
    const int nc = this->numberCols;
    if ((nr < 1) || (nc < 1)) return;
-
-   // DEBUG << "nr" << nr << "nc" << nc;
 
    QPainter painter (this);
    QPen pen;
@@ -164,7 +158,7 @@ void QESurface::paintEvent (QPaintEvent* event)
    rp [1][0] = 0.0;   rp [1][1] = cosp;  rp [1][2] = -sinp;
    rp [2][0] = 0.0;   rp [2][1] = sinp;  rp [2][2] = cosp;
 
-   // Combine into a single matrix m.
+   // Combine into a single rotation matrix m.
    //
    this->mmult (rotMat, rp, rt);  // rotMat = rp * rt
 
@@ -173,13 +167,10 @@ void QESurface::paintEvent (QPaintEvent* event)
    const double xScreenOrigin = this->width()/2.0;
    const double yScreenOrigin = this->height()/2.0;
 
-   // data origin:
-   //   x = +(nc -1)/2
-   //   y = +(nr -1)/2
-   //   z = (max - min) / 2
-
-   const double xDataOrigin = (nc-1)/2.0;
-   const double yDataOrigin = (nr-1)/2.0;
+   // Determine the plot origin
+   //
+   const double xDataOrigin = nc/2.0;
+   const double yDataOrigin = nr/2.0;
 
    double min;
    double max;
@@ -188,22 +179,28 @@ void QESurface::paintEvent (QPaintEvent* event)
    const double zDataOrigin = (min + max) / 2.0;
    const double zDataHaSpan = (max - min) / 2.0;
 
-   // Calulate the working z scale nbase on user scale selection, selected min/max
-   // and widget height. The 0.4 is a bit arbitary and found empirically.
+   // Calulate the working x, y and z scales baseed on widget width and height,
+   // user scale selections, number row/cols and selected min/max.
+   // The 0.6 and 0.4 values are bit arbitary and found empirically.
    //
-   const double zSpan = MAX(max - min, 1.0);  // avod the divide by zero
+   const double availableSize = MIN (this->width (), this->height ());
+   const double xScale = this->mXScale * paintScale * availableSize * 0.6 / (nr + 1);
+   const double yScale = this->mYScale * paintScale * availableSize * 0.6 / (nc + 1);
+   const double zSpan = MAX(max - min, 1.0);  // avoid the divide by zero
    const double zScale = this->mZScale*paintScale * this->height () * 0.4 / zSpan;
 
+   // Transform the 8 corners of the bounding cuboid.
    // r, c and v are 0 or 1
+   //
    for (int r = 0; r < 2; r++) {
       for (int c = 0; c < 2; c++) {
          for (int v = 0; v < 2; v++) {
             Vector d;
             Vector e;
 
-            d [0] = (c == 0 ? -xDataOrigin : +xDataOrigin)*this->mXScale*paintScale;
-            d [1] = (r == 0 ? -yDataOrigin : +yDataOrigin)*this->mYScale*paintScale;
-            d [2] = (v == 0 ? -zDataHaSpan : +zDataHaSpan)*zScale;
+            d [0] = (c == 0 ? -xDataOrigin : +xDataOrigin) * xScale;
+            d [1] = (r == 0 ? -yDataOrigin : +yDataOrigin) * yScale;
+            d [2] = (v == 0 ? -zDataHaSpan : +zDataHaSpan) * zScale;
 
             this->vmult (e, rotMat, d);   // e = rotMat*d;
 
@@ -232,7 +229,7 @@ void QESurface::paintEvent (QPaintEvent* event)
    QPointF box [5];
    QPointF line [2];
 
-   int s = 0;
+   int s;
 
    s = (this->zinfoCorners [0][0][0] < this->zinfoCorners [1][0][0]) ? 0 : 1;
    box [0] = this->transformedCorners [s][0][0];
@@ -273,31 +270,77 @@ void QESurface::paintEvent (QPaintEvent* event)
    box [4] = box [0];
    painter.drawPolyline (box, 5);
 
-// What is this ???
-//   for (int f = 1; f <= 4; f++) {
-//      const double g = f / 5.0;
-//      line [0] = g * box [0] + (1.0 - g) * box [1];
-//      line [1] = g * box [3] + (1.0 - g) * box [2];
-//      painter.drawPolyline (line, 2);
-//   }
 
    // Transform all grid points.
+   // We do one more in each direction as each point drawn as a 4-sided polygon
    //
-   for (int r = 0; r < nr; r++) {
-      for (int c = 0; c < nc; c++) {
+   for (int r = 0; r <= nr; r++) {
+      for (int c = 0; c <= nc; c++) {
          Vector d;
          Vector e;
-         double v = this->surfaceData [r][c];
+         double v;
+
+         // We calculate transformed co-ordinates round each point, so with nr x nc
+         // data points, there are (nr +1) x (nc +1) transformed co-ordinates.
+         //
+         //     A-----+-----+-----+
+         //     | v00 | v01 | v02 |
+         //     B-----C-----+-----D
+         //     | v10 | v11 | v12 |
+         //     +-----+-----+-----E
+         //
+         // The z value of is transformed co-ordinate set is based on the mean
+         // value of the 4 data points with which its associated (e.g. point C)
+         // However corner points (like A and E) are based on a single value
+         // and edge points (like B and D) are based on the mean of two values.
+         //
+         if (r == 0 && c == 0) {
+            // at a top left corner - just use value.
+            v = this->surfaceData [r][c];
+         }
+         else if (r == 0 && c == nc) {
+            // at a top right corner - just use value.
+            v = this->surfaceData [r][c-1];
+         }
+         else if (r == nr && c == 0) {
+            // at a bottom left corner - just use value
+            v = this->surfaceData [r-1][c];
+         }
+         else if (r == nr && c == nc) {
+            // at a bottom right corner - just use value.
+            v = this->surfaceData [r-1][c-1];
+         }
+         else if (r == 0) {
+            // at top edge, but not corner.
+            v = (this->surfaceData [r][c-1] + this->surfaceData [r][c])/2.0;
+         }
+         else if (r == nr) {
+            // at bottom edge.
+            v = (this->surfaceData [r-1][c-1] + this->surfaceData [r-1][c])/2.0;
+         }
+         else if (c == 0) {
+            // at left side edge.
+            v = (this->surfaceData [r-1][c] + this->surfaceData [r][c])/2.0;
+         }
+         else if (c == nc) {
+            // at right side edge.
+            v = (this->surfaceData [r-1][c-1] + this->surfaceData [r][c-1])/2.0;
+         }
+         else {
+             // in the middle - do a four way average.
+            v = (this->surfaceData [r-1][c-1] + this->surfaceData [r-1][c] +
+                 this->surfaceData [r  ][c-1] + this->surfaceData [r  ][c])/4.0;
+         }
 
          if (this->mClampData) {
             v = LIMIT (v, min, max);
          }
 
-         d [0] = (c - xDataOrigin)*this->mXScale*paintScale;
-         d [1] = (r - yDataOrigin)*this->mYScale*paintScale;
-         d [2] = (v - zDataOrigin)*zScale;
+         d [0] = (c - xDataOrigin) * xScale;
+         d [1] = (r - yDataOrigin) * yScale;
+         d [2] = (v - zDataOrigin) * zScale;
 
-         this->vmult (e, rotMat, d);  // e = m*d;
+         this->vmult (e, rotMat, d);    // e = M*d
 
          double f = z0 / (z0 - e [2]);  // perspective
 
@@ -328,34 +371,18 @@ void QESurface::paintEvent (QPaintEvent* event)
    for (bool ok = this->firstPoint(row, col);
         ok;  ok = this->nextPoint (row, col)) {
 
-      /// TODO: choose mean value for colour
-      //
-      double x = this->surfaceData [row][col];
-      double f = 0.0;
-      if (x >= max) {
-         f = 1.0;
-      } else if (x <= min) {
-         f = 0.0;
+      const double value = this->surfaceData [row][col];
+      double frac = 0.0;
+      if (value >= max) {
+         frac = 1.0;
+      } else if (value <= min) {
+         frac = 0.0;
       } else {
-         f = (x - min) / (max - min);
+         frac = (value - min) / (max - min);
       }
 
       QColor k;
-      k.setHsl (int ((1.0 - f) * 240.0) % 360, 255, int (88.0 + f*80.0));
-
-      //    registration colours
-      //      if ((row <  4) && (col < 4)) {
-      //         k = QColor ("#00c000");
-      //      }
-      //      if ((row <  4) && (col > nc - 6)) {
-      //         k = QColor ("#ff0000");
-      //      }
-      //      if ((row > nr - 6) && (col < 4)) {
-      //         k = QColor ("#ffff00");
-      //      }
-      //      if ((row > nr - 6) && (col > nc - 6)) {
-      //         k = QColor ("#80c0ff");
-      //      }
+      k.setHsl (int ((1.0 - frac) * 240.0) % 360, 255, int (88.0 + frac*80.0));
 
       brush.setColor (k);
       painter.setBrush (brush);
@@ -365,15 +392,11 @@ void QESurface::paintEvent (QPaintEvent* event)
       quad [1] = this->transformed [row+1][col  ];
       quad [2] = this->transformed [row+1][col+1];
       quad [3] = this->transformed [row  ][col+1];
-      //    quad [4] = quad [0];
-
       painter.drawPolygon (quad, 4);
    }
 
-
    QPointF mkloc;     // marker location
-
-   int t = 0;
+   int t;
 
    s = (this->zinfoCorners [0][0][0] < this->zinfoCorners [1][0][0]) ? 0 : 1;
    t = (this->zinfoCorners [0][0][0] < this->zinfoCorners [0][1][0]) ? 0 : 1;
@@ -394,7 +417,7 @@ void QESurface::paintEvent (QPaintEvent* event)
    //
    this->coMarker  = this->transformedCorners [s][t][0];
 
-   pen.setColor (QColor ("#003060"));  // dark bleuish
+   pen.setColor (QColor ("#003060"));  // dark blue
    pen.setWidth (1);
    pen.setStyle (Qt::SolidLine);
    painter.setPen (pen);
@@ -566,28 +589,38 @@ void QESurface::mouseReleaseEvent (QMouseEvent*)
 //
 void QESurface::updateDataVisulation ()
 {
-   int numberAvailableCols;
-   int numberAvailableRows;
-   this->getNumberRowsAndCols (numberAvailableRows, numberAvailableCols);
+   if (this->dataIsAvailable()) {
 
-   // Limit to what the widget can support
-   //
-   this->numberCols = MIN (numberAvailableCols, maxNumberOfCols);
-   this->numberRows = MIN (numberAvailableRows, maxNumberOfRows);
+      int numberAvailableCols;
+      int numberAvailableRows;
 
-   double min;   // default
-   double max;   // unused here
-   this->getScaleModeMinMaxValues (min, max);
+      this->getNumberRowsAndCols (numberAvailableRows, numberAvailableCols);
 
-   // Cache data locally - do we ready need this ??
-   //
-   for (int row = 0; row < this->numberRows; row++) {
-      for (int col = 0; col < this->numberCols; col++) {
-         double value = this->getValue (row, col, min);
-         this->surfaceData [row][col] = value;
+      // Limit to what the widget can support
+      //
+      this->numberCols = MIN (numberAvailableCols, maxNumberOfCols);
+      this->numberRows = MIN (numberAvailableRows, maxNumberOfRows);
+
+      double min;   // default
+      double max;   // unused here
+      this->getScaleModeMinMaxValues (min, max);
+
+      // Cache data locally - do we ready need this ??
+      // Yes - update to calc mean value of four corners
+      //
+      for (int row = 0; row < this->numberRows; row++) {
+         for (int col = 0; col < this->numberCols; col++) {
+            double value = this->getValue (row, col, min);
+            this->surfaceData [row][col] = value;
+         }
       }
+   } else {
+      this->numberCols = 1;
+      this->numberRows = 1;
+      this->surfaceData [0][0] = 0.0;
    }
-   this->update ();
+
+   this->update ();    // trigger paint event.
 }
 
 //------------------------------------------------------------------------------
@@ -625,7 +658,6 @@ QMenu* QESurface::buildContextMenu ()
    menu->addAction (action);
 
    return menu;
-
 }
 
 //------------------------------------------------------------------------------
@@ -684,26 +716,26 @@ bool QESurface::firstPoint (int& row, int& col)
    // Want to draw from back to front.
    // TODO Use corner zinfo - value independent
    //
-   const double z00 = this->zinfo [0]     [0];
-   const double z01 = this->zinfo [0]     [nc - 1];
-   const double z10 = this->zinfo [nr - 1][0];
-   const double z11 = this->zinfo [nr - 1][nc - 1];
+   const double z00 = this->zinfo [0] [0];
+   const double z01 = this->zinfo [0] [nc];
+   const double z10 = this->zinfo [nr][0];
+   const double z11 = this->zinfo [nr][nc];
 
    if ((z00 <= z01) && (z00 <= z10) && (z00) <= (z11)) {
-      this->iterationRowFirst = 0;
-      this->iterationColFirst = 0;
+      this->reverseRowOrder = false;
+      this->reverseColOrder = false;
       this->iterationRowMajor = (z01 < z10);
    } else if ((z01 <= z10) && (z01) <= (z11)) {
-      this->iterationRowFirst = 0;
-      this->iterationColFirst = nc - 2;
+      this->reverseRowOrder = false;
+      this->reverseColOrder = true;
       this->iterationRowMajor = (z00 < z11);
    } else if (z10 <= z11) {
-      this->iterationRowFirst = nr - 2;
-      this->iterationColFirst = 0;
+      this->reverseRowOrder = true;
+      this->reverseColOrder = false;
       this->iterationRowMajor = (z11 < z00);
    } else {
-      this->iterationRowFirst = nr - 2;
-      this->iterationColFirst = nc - 2;
+      this->reverseRowOrder = true;
+      this->reverseColOrder = true;
       this->iterationRowMajor = (z10 < z01);
    }
 
@@ -723,19 +755,18 @@ bool QESurface::nextPoint (int& row, int& col)
    if (nr <= 0) return false;
    if (nc <= 0) return false;
 
-   const int total = (nr - 1) * (nc - 1);
-   if (this->iterationCount >= total) return false;
+   if (this->iterationCount >= nr * nc) return false;
 
    if (this->iterationRowMajor) {
-      row = this->iterationCount / (nc - 1);
-      col = this->iterationCount % (nc - 1);
+      row = this->iterationCount / nc;
+      col = this->iterationCount % nc;
    } else {
-      col = this->iterationCount / (nr - 1);
-      row = this->iterationCount % (nr - 1);
+      col = this->iterationCount / nr;
+      row = this->iterationCount % nr;
    }
 
-   if (this->iterationRowFirst > 0) row = (nr - 2) - row;
-   if (this->iterationColFirst > 0) col = (nc - 2) - col;
+   if (this->reverseRowOrder) row = (nr - 1) - row;
+   if (this->reverseColOrder) col = (nc - 1) - col;
 
    this->iterationCount++;
    return true;
@@ -975,66 +1006,6 @@ bool QESurface::getShowScaling () const
 {
    return this->mShowScaling;
 }
-
-//------------------------------------------------------------------------------
-// returns a random float between a and b
-//
-static double randomFloat (const double a, const double b)
-{
-   double r = double (rand()) / double (RAND_MAX);
-   r = a + (b-a)*r;
-   return r;
-}
-
-//------------------------------------------------------------------------------
-// Relocate to abstarct widget
-void QESurface::setTestData (const bool testDataEnabledIn)
-{
-   if (this->mTestDataEnabled != testDataEnabledIn) {
-      this->mTestDataEnabled = testDataEnabledIn;
-
-      if (this->mTestDataEnabled) {
-
-         QPointF centres [8];
-         double amplitues [ARRAY_LENGTH (centres)];
-         double decays [ARRAY_LENGTH (centres)];
-
-         for (int q = 0; q < ARRAY_LENGTH (centres); q++) {
-            centres [q] = QPointF (randomFloat (20, maxNumberOfRows - 20),
-                                   randomFloat (20, maxNumberOfCols - 20));
-            amplitues [q] = randomFloat (-100, +100);
-            decays [q] = randomFloat (400, 2000);
-         }
-
-         for (int row = 0; row < maxNumberOfRows; row++) {
-            QVector <double> rowData;
-            for (int col = 0; col < maxNumberOfCols; col++) {
-               QPointF p = QPointF (row, col);
-
-               double v = 0.0;
-               for (int q = 0; q < ARRAY_LENGTH (centres); q++) {
-                  QPointF s = p - centres [q];
-
-                  double r2;
-                  double y;
-                  r2 = s.x()*s.x() + s.y()*s.y();
-                  y = amplitues[q]*exp (-r2 / decays [q]);
-                  v += y;
-               }
-               this->surfaceData [row][col] = v;
-            }
-         }
-      }
-   }
-}
-
-//------------------------------------------------------------------------------
-//
-bool QESurface::getTestData () const
-{
-   return this->mTestDataEnabled;
-}
-
 
 //------------------------------------------------------------------------------
 // static R = A.B

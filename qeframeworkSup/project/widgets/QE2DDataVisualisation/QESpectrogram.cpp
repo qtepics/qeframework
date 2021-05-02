@@ -147,11 +147,9 @@ bool QESpectrogram::eventFilter (QObject* watched, QEvent* event)
 //
 void QESpectrogram::updateDataVisulation ()
 {
-   const int number = this->getData().count();
-
    // Any data?
    //
-   if (number < 1) {
+   if (!this->dataIsAvailable()) {
       // No - nothing to do - clear image.
       //
       this->image = QImage ();

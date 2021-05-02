@@ -68,8 +68,6 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESurface :
    Q_PROPERTY (bool   clampData             READ getClampData     WRITE setClampData)
    Q_PROPERTY (bool   showScaling           READ getShowScaling   WRITE setShowScaling)
 
-   Q_PROPERTY (bool testDataEnabled         READ getTestData      WRITE setTestData)
-
 public:
    enum Markers {
       mkNone = -1,
@@ -135,9 +133,6 @@ public:
    void setShowScaling (const bool showScaling);
    bool getShowScaling () const;
 
-   void setTestData (const bool testDataEnabled);
-   bool getTestData () const;
-
    bool getShowGrid () const;
    bool getShowSurface () const;
    double getTheta () const;
@@ -164,13 +159,13 @@ protected:
    void mousePressEvent (QMouseEvent* event);
    void mouseMoveEvent (QMouseEvent* event);
    void mouseReleaseEvent (QMouseEvent* event);
-   void updateDataVisulation ();   // hook function
+   void updateDataVisulation ();                      // Hook function whem data updated
    QMenu* buildContextMenu ();                        // Build the specific context menu
    void contextMenuTriggered (int selectedItemNum);   // An action was selected from the context menu
 
 private:
    void commonSetup ();
-   void paintAxis ();  // Like QEAxisPainter, but any arbitary orientation
+   void paintAxis ();      // Like QEAxisPainter, but any arbitary orientation
 
    // iteration control functions.
    //
@@ -182,8 +177,8 @@ private:
    //
    int iterationCount;
    bool iterationRowMajor;
-   int iterationRowFirst;    // 0 or nr - 2   (posts and panels)
-   int iterationColFirst;    // 0 or nc - 2
+   bool reverseRowOrder;
+   bool reverseColOrder;
 
    Markers activeMarker;   // none, x, y, z
    QRect   markerBoxes   [NUMBER_OF_MARKERS];
@@ -218,13 +213,12 @@ private:
    bool mShowSurface;
    bool mClampData;
    bool mShowScaling;
-   bool mTestDataEnabled;
 
    int numberCols;    // <= maxNumberOfRows
    int numberRows;    // <= maxNumberOfCols
-   double  surfaceData [maxNumberOfRows][maxNumberOfCols];
-   QPointF transformed [maxNumberOfRows][maxNumberOfCols];
-   double  zinfo       [maxNumberOfRows][maxNumberOfCols];
+   double  surfaceData [maxNumberOfRows]  [maxNumberOfCols];
+   QPointF transformed [maxNumberOfRows+1][maxNumberOfCols+1];
+   double  zinfo       [maxNumberOfRows+1][maxNumberOfCols+1];
 
    QPointF transformedCorners [2][2][2];
    double zinfoCorners [2][2][2];

@@ -32,6 +32,7 @@
 #include <QString>
 #include <QSize>
 #include <QRect>
+#include <QVector>
 #include <QWidget>
 #include <QEFloating.h>
 #include <QEFloatingArray.h>
@@ -341,24 +342,21 @@ protected:
    QMenu* buildContextMenu ();                        // Build the specific context menu
    void contextMenuTriggered (int selectedItemNum);   // An action was selected from the context menu
 
-   // Data is held as a list of vectors.
-   // For 2D data, there is only one vector in the list.
+   // Returns true if any data is available.
    //
-   typedef QList<QEFloatingArray> TwoDimensionalData;
+   bool dataIsAvailable () const;
 
-   TwoDimensionalData getData () const;
-
-   // This function returns value at the displayed row and col position.
-   // It uses the slicing, rotation, and horizontal/vertical flip states to
-   // extract the underlying data value.
-   // If row or col out of range of the available data, this function
+   // This function returns value at the displayed row and column position.
+   // It takes account of the any slicing, binning, and rotation or horizontal/vertical flipping.
+   //
+   // If the row or col out of range of the available data, this function
    // returns the specified defaultValue.
-   //
-   // Essentially combines findDataRowCol and getDataValue.
    //
    double getValue (const int displayRow, const int displayCol,
                     const double defaultValue) const;
 
+   // Provides the quazi frame count modulo 1,000,000,000.
+   //
    int getUpdateCount () const;
 
    // Determines the min and max values to be used based on the scale mode and
@@ -369,8 +367,8 @@ protected:
    // This function returns the number of displayed rows and cols.
    // When 1D data is being accumulated, the number of rows (or cols) is the
    // potential number, not the number so far accumumated.
-   // Takes into account slicing and if/when a 90 degree rotation selected,
-   // switched the number of rows and cols.
+   // Takes into account slicing, binning and if/when a 90 degree rotation
+   // selected, switches the number of rows and cols.
    //
    void getNumberRowsAndCols (int& numberRows, int& numberCols) const;
 
@@ -383,11 +381,6 @@ protected:
 
    virtual void updateDataVisulation ();   // hook function
 
-   // Set true by default. Not every 2D widget needs the scaling options
-   // added to the context menu (e.g.QESurface).
-   //
-   bool addContextMenuScaling;
-
 private:
    void commonSetup ();
    void setReadOut (const QString& text);
@@ -398,14 +391,14 @@ private:
    //
    void getDataMinMaxValues (double& min, double& max) const;
 
-   // Converts the displayed row and col to source/data row and col.
-   // This accounts for flips, orientation and slices.
+   // Gets raw/source data value
    //
-   void findDataRowCol (const int displayRow, const int displayCol,
-                        int& sourceRow, int& sourceCol) const;
-
    double getDataValue (const int sourceRow, const int sourceCol,
                         const double defaultValue) const;
+
+   double getBinnedValue (const int r1, const int r2,
+                          const int c1, const int c2) const;
+
 
    QCaVariableNamePropertyManager dnpm;   // data name
    QCaVariableNamePropertyManager wnpm;   // width name
@@ -439,10 +432,21 @@ private:
    int mNumberOfSets;
    MouseMoveSignalFlags mMouseMoveSignals;
 
+   // Data is held as a list of vectors.
+   // For 2D data, there is only one vector in the list.
    // When mDataFormat is array2D, this is limited to one QEFloatingArray
    // When mDataFormat is array1D, is limited to mNumberOfSets QEFloatingArrays.
    //
+   typedef QList<QEFloatingArray> TwoDimensionalData;
    TwoDimensionalData data;
+
+   // This is the post sliced, binned and rotated data.
+   // Irrespective of mDataFormat, this a 2D representation of the data
+   //
+   typedef QVector<double>         OneDVectorData;
+   typedef QVector<OneDVectorData> TwoDVectorData;
+   TwoDVectorData cachedData;
+
    int updateCount;
 
    bool pvDataWidthAvailable;
@@ -455,14 +459,17 @@ private:
    int rawNumberOfRows;         // number of available/potential rows of data
    int rawNumberOfCols;         // number of columns of data
 
-   int sliceRowOffset;          // slice offset
-   int sliceColOffset;          // slice offset
+   int sliceRowOffset;          // row slice offset
+   int sliceColOffset;          // col slice offset
 
    int slicedNumberOfRows;      // number rows of data after sliceing
    int slicedNumberOfCols;      // number cols of data after sliceing
 
-   int displayedNumberOfRows;   // number rows of data after any rotation
-   int displayedNumberOfCols;   // number cols of data after any rotation
+   int binnedNumberOfRows;      // number rows of data after binning
+   int binnedNumberOfCols;      // number cols of data after binning
+
+   int displayedNumberOfRows;   // number rows of data after any flip/rotation
+   int displayedNumberOfCols;   // number cols of data after any flip/rotation
 
 private slots:
    void setVariableNameProperty (QString variableName,
