@@ -41,6 +41,9 @@ QEFormGroupBox::QEFormGroupBox (QWidget *parent) : QEGroupBox (parent)
    this->setCheckable (true);
    this->setChecked (true);
 
+   this->hideInnerFrameShape = false;
+   this->loadedFrameShape = QFrame::NoFrame;
+
    this->useFormTitle = false;
    this->loadedFormTitle = "";
 
@@ -100,6 +103,59 @@ void QEFormGroupBox::showEvent (QShowEvent* event)
 
 //------------------------------------------------------------------------------
 //
+QFrame* QEFormGroupBox::findUniqueFrame ()
+{
+   if (!this->form) return NULL;   // sanity check
+
+   QFrame* result = NULL;
+   int frameCount = 0;
+
+   QObjectList objList1 = this->form->children ();
+   const int number1 = objList1.count ();
+
+   for (int i = 0; i < number1; i++) {
+      QObject* obj1 = objList1.value (i, NULL);
+
+      // Looking for widgets
+      QWidget* widget = qobject_cast <QWidget*> (obj1);
+
+      if (widget) {
+         QObjectList objList2 = widget->children ();
+         const int number2  = objList2.count();
+
+         for (int j = 0; j <  number2 ; j++) {
+            QObject* obj2 = objList2.value (j, NULL);
+
+            // Looking for QFrame inc QEFrame
+            result = qobject_cast <QFrame*> (obj2);
+            if (result) {
+               frameCount++;
+            }
+         }
+      }
+   }
+
+   if (frameCount != 1) result = NULL;  // must be unique.
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEFormGroupBox::setHideInnerFrameShape (const bool hideInnerFrameShapeIn)
+{
+   this->hideInnerFrameShape = hideInnerFrameShapeIn;
+   this->updateInnerFrameShape();
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEFormGroupBox::getHideInnerFrameShape () const
+{
+   return this->hideInnerFrameShape;
+}
+
+//------------------------------------------------------------------------------
+//
 void QEFormGroupBox::setUseFormTitle (const bool useFormTitleIn)
 {
    this->useFormTitle = useFormTitleIn;
@@ -155,7 +211,21 @@ void QEFormGroupBox::restoreConfiguration (PersistanceManager* pm,
 void QEFormGroupBox::updateBoxTitle()
 {
    if (this->useFormTitle && !this->loadedFormTitle.isEmpty()) {
-      this->setTitle (this->loadedFormTitle);
+      this->setSubstitutedTitleProperty (this->loadedFormTitle);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+void QEFormGroupBox::updateInnerFrameShape()
+{
+   QFrame* frame = this->findUniqueFrame ();
+   if (frame) {
+      if (this->hideInnerFrameShape) {
+         frame->setFrameShape (QFrame::NoFrame);
+      } else {
+         frame->setFrameShape (this->loadedFrameShape);
+      }
    }
 }
 
@@ -182,6 +252,12 @@ void QEFormGroupBox::onFormLoaded (bool formLoaded)
    if (formLoaded) {
       this->loadedFormTitle = this->form->getQEGuiTitle() + " ";
       this->updateBoxTitle();
+
+      QFrame* frame = this->findUniqueFrame ();
+      if (frame) {
+         this->loadedFrameShape = frame->frameShape();
+      }
+      this->updateInnerFrameShape();
    }
 }
 

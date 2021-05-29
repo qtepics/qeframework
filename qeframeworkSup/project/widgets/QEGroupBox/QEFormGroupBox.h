@@ -30,6 +30,7 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QWidget>
+#include <QFrame>
 #include <QECommon.h>
 #include <persistanceManager.h>
 #include <UserMessage.h>
@@ -63,7 +64,8 @@ public:
    Q_PROPERTY (QString uiFile
                READ getUiFileNameProperty         WRITE setUiFileNameProperty)
    Q_PROPERTY (QString variableSubstitutions
-               READ getVariableNameSubstitutions  WRITE setVariableNameSubstitutions)
+               READ getVariableNameSubstitutionsProperty
+               WRITE setVariableNameSubstitutionsProperty)
    Q_PROPERTY (bool handleGuiLaunchRequests
                READ getHandleGuiLaunchRequests    WRITE setHandleGuiLaunchRequests)
    Q_PROPERTY (bool resizeContents
@@ -75,7 +77,15 @@ public:
    Q_PROPERTY (QEForm::MessageFilterOptions messageSourceFilter
                READ getMessageSourceFilter        WRITE setMessageSourceFilter)
 
-   // QEFormGroupBox specific property.
+   // QEFormGroupBox specific properties.
+
+   /// When true, the frame shape of the inner frame widget is set to NoShape
+   /// provided a unique QFrame (or QEFrame/other sub classes) is found at the
+   /// top level of the loaded form.
+   //
+   Q_PROPERTY (bool hideInnerFrameShape
+               READ getHideInnerFrameShape        WRITE setHideInnerFrameShape)
+
    /// When true, the form title is extracted from the loaded form and
    /// used to set the group box title.
    //
@@ -91,12 +101,15 @@ public:
    // Expose access to the internal QEForm widget's set/get functions.
    //
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (form, QString, getUiFileNameProperty, setUiFileNameProperty);
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (form, QString, getVariableNameSubstitutions,  setVariableNameSubstitutions);
+   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (form, QString, getVariableNameSubstitutionsProperty,  setVariableNameSubstitutionsProperty);
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (form, bool, getHandleGuiLaunchRequests, setHandleGuiLaunchRequests);
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (form, bool, getResizeContents ,  setResizeContents);
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (form, unsigned int, getMessageSourceId,  setMessageSourceId);
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (form, QEForm::MessageFilterOptions, getMessageFormFilter,  setMessageFormFilter);
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (form, QEForm::MessageFilterOptions, getMessageSourceFilter, setMessageSourceFilter);
+
+   void setHideInnerFrameShape (const bool useFormTitle);
+   bool getHideInnerFrameShape () const;
 
    void setUseFormTitle (const bool useFormTitle);
    bool getUseFormTitle () const;
@@ -110,7 +123,12 @@ protected:
 
 private:
    void updateBoxTitle();
+   void updateInnerFrameShape();
    void updateBoxMinMaxSizes();
+   QFrame* findUniqueFrame ();
+
+   bool hideInnerFrameShape;
+   QFrame::Shape loadedFrameShape;
 
    bool useFormTitle;
    QString loadedFormTitle;
