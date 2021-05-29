@@ -1034,7 +1034,7 @@ void QEPvProperties::setValueValue (const QVariant& value,
       //
       // TODO - move this logic into QEStringFormatting.
       //
-      const bool isDbfChar = (qca->getFieldType () == "CHAR");
+      const bool isDbfChar = (qca->getFieldType () == "DBF_CHAR");
 
       const QString pvName = qca->getRecordName ();
       const QString field = QERecordFieldName::fieldName (pvName);
