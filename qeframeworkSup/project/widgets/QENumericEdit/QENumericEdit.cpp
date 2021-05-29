@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron.
+ *  Copyright (c) 2013-2021 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -24,12 +24,13 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QENumericEdit.h"
 #include <math.h>
+#include <QColor>
 #include <QDebug>
 #include <QMessageBox>
-
 #include <QECommon.h>
-#include "QENumericEdit.h"
+#include <QEScaling.h>
 
 #define DEBUG qDebug () << "QENumericEdit" << __LINE__ << __FUNCTION__  << "  "
 
@@ -62,9 +63,16 @@ QENumericEdit::QENumericEdit (const QString& variableNameIn, QWidget* parent) :
 //
 void QENumericEdit::commonSetup ()
 {
-   // Create internal widget.
+   // Create internal widgets.
    //
    this->internalWidget = new QNumericEdit (this);
+
+   this->applyButton = new QPushButton ("A", this);
+   this->applyButton->setSizePolicy (QSizePolicy::Preferred, QSizePolicy::Preferred);
+   this->applyButton->setFocusPolicy (Qt::NoFocus);
+   this->applyButton->setFixedWidth (this->height ());  // keep square
+   const QString style = QEUtilities::colourToStyle (QColor (128, 232, 128));
+   this->applyButton->setStyleSheet (style);
 
    // Copy actual widget size policy to the containing widget, then ensure
    // internal widget will expand to fill container widget.
@@ -74,9 +82,18 @@ void QENumericEdit::commonSetup ()
 
    this->layout = new QHBoxLayout (this);
    this->layout->setMargin (0);    // extact fit.
-   this->layout->addWidget (this->internalWidget);
+   this->layout->setSpacing (QEScaling::scale (4));
 
+   // The layout takes ownership.
+   //
+   this->layout->addWidget (this->internalWidget);
+   this->layout->addWidget (this->applyButton);
+
+   // Button hidden until exposed.
+   //
+   this->applyButton->setVisible (false);
    this->setMinimumSize (this->internalWidget->minimumSize ());
+
    this->internalWidget->setPrecision (2);
    this->internalWidget->setLeadingZeros (3);
 
@@ -89,6 +106,11 @@ void QENumericEdit::commonSetup ()
    QObject::connect (this->internalWidget, SIGNAL (editingFinished ()),
                      this,                 SLOT   (editingFinished ()));
 
+   // QPushButton signals
+   //
+   QObject::connect (this->applyButton,    SIGNAL (clicked      (bool)),
+                     this,                 SLOT   (applyPressed (bool)));
+
    // Clear flags and ensure valid last value stored.
    //
    this->isFirstUpdate = false;
@@ -100,6 +122,7 @@ void QENumericEdit::commonSetup ()
    // Set default property values
    //
    this->addUnits = true;
+   this->useApplyButton = false;
    this->writeOnLoseFocus = false;
    this->writeOnEnter = true;
    this->writeOnFinish = true;
@@ -170,10 +193,13 @@ bool QENumericEdit::eventFilter (QObject* watched, QEvent* event)
    switch (type) {
       case QEvent::FontChange:
          if (watched == this) {
-            // Font must be mapped to the internal numeric edit
+            // Font must be mapped to the internal numeric edit amd apply button
             //
             if (this->internalWidget) {
                this->internalWidget->setFont (this->font ());
+            }
+            if (this->applyButton) {
+               this->applyButton->setFont (this->font ());
             }
          }
          break;
@@ -192,6 +218,14 @@ void QENumericEdit::focusInEvent (QFocusEvent* event)
 {
    this->internalWidget->setFocus ();        // pass to enclosed widget
    QEAbstractWidget::focusInEvent (event);   // pass to parent
+}
+
+//------------------------------------------------------------------------------
+//
+void QENumericEdit::resizeEvent (QResizeEvent* event)
+{
+   this->applyButton->setFixedWidth (this->height ());  // keep square
+   QEAbstractWidget::resizeEvent (event);   // pass to parent
 }
 
 //------------------------------------------------------------------------------
@@ -310,6 +344,13 @@ void QENumericEdit::writeNow ()
       qca->writeFloatingElement (this->getValue ());
       this->isModified = false;
    }
+}
+
+//------------------------------------------------------------------------------
+//
+void QENumericEdit::setDefaultStyle (const QString& style)
+{
+   this->setStyleDefault (style);
 }
 
 //------------------------------------------------------------------------------
@@ -489,7 +530,10 @@ void QENumericEdit::externalValueUpdate (const double& value,
    //
    bool allowUpdate;
 
-   if (this->hasFocus ()) {
+   // The internal QNumericEdit's internal QLineEdit holds the focus.
+   // Make hasFocus a QNumericEdit method
+   //
+   if (this->internalWidget->lineEdit->hasFocus ()) {
       allowUpdate = this->allowFocusUpdate || !this->isModified || this->isFirstUpdate;
    } else {
       // No focus - but maybe confirmation dialog present.
@@ -603,6 +647,14 @@ void QENumericEdit::internalValueChanged (const double)
 }
 
 //------------------------------------------------------------------------------
+// The user has pressed the apply button.
+//
+void QENumericEdit::applyPressed (bool)
+{
+   this->writeNow ();
+}
+
+//------------------------------------------------------------------------------
 // The user has pressed return/enter. (Not write when user enters the widget)
 // Note, it doesn't matter if the user presses return and both this function
 // AND editingFinished() is called since setText is called in each to clear
@@ -696,9 +748,45 @@ bool QENumericEdit::getAddUnits () const
 
 //------------------------------------------------------------------------------
 //
+void QENumericEdit::setUseApplyButton (const bool useApplyButtonIn)
+{
+   this->useApplyButton = useApplyButtonIn;
+   this->applyButton->setVisible (this->useApplyButton);
+   if (this->applyButton) {
+      this->setWriteOnEnter (false);
+      this->setWriteOnChange (false);
+      this->setWriteOnFinish (false);
+      this->setWriteOnLoseFocus (false);
+      this->setConfirmWrite (false);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+bool QENumericEdit::getUseApplyButton () const
+{
+   return this->useApplyButton;
+}
+
+//------------------------------------------------------------------------------
+//
+void QENumericEdit::setSubscribe (const bool subscribeIn)
+{
+   this->subscribe = subscribeIn;   // lives in VariableManager
+}
+
+//------------------------------------------------------------------------------
+//
+bool QENumericEdit::getSubscribe () const
+{
+   return this->subscribe;
+}
+
+//------------------------------------------------------------------------------
+//
 void QENumericEdit::setWriteOnLoseFocus (const bool value)
 {
-   this->writeOnLoseFocus = value;
+   this->writeOnLoseFocus = value && !this->useApplyButton;
 }
 
 //------------------------------------------------------------------------------
@@ -712,7 +800,7 @@ bool QENumericEdit::getWriteOnLoseFocus () const
 //
 void QENumericEdit::setWriteOnEnter (const bool value)
 {
-   this->writeOnEnter = value;
+   this->writeOnEnter = value && !this->useApplyButton;
 }
 
 //------------------------------------------------------------------------------
@@ -726,7 +814,7 @@ bool QENumericEdit::getWriteOnEnter () const
 //
 void QENumericEdit::setWriteOnFinish (const bool value)
 {
-   this->writeOnFinish = value;
+   this->writeOnFinish = value && !this->useApplyButton;
 }
 
 //------------------------------------------------------------------------------
@@ -740,7 +828,7 @@ bool QENumericEdit::getWriteOnFinish () const
 //
 void QENumericEdit::setWriteOnChange (const bool value)
 {
-   this->writeOnChange = value;
+   this->writeOnChange = value && !this->useApplyButton;
 
    // Confirm write and write on change are deemed mutually exclusive.
    //
@@ -758,7 +846,7 @@ bool QENumericEdit::getWriteOnChange () const
 //
 void QENumericEdit::setConfirmWrite (const bool value)
 {
-   this->confirmWrite = value;
+   this->confirmWrite = value && !this->useApplyButton;
 
    // Confirm write and write on change are deemed mutually exclusive.
    //

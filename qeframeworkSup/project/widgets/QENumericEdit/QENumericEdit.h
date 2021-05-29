@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2013-2021 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -16,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
@@ -28,9 +28,8 @@
 #define QE_NUMERIC_EDIT_H
 
 #include <QHBoxLayout>
-#include <QList>
+#include <QPushButton>
 #include <QString>
-#include <QVector>
 #include <QSize>
 
 #include <QECommon.h>
@@ -151,6 +150,16 @@ public:
    ///
    Q_PROPERTY (bool addUnits           READ getAddUnits         WRITE setAddUnits)
 
+   /// Sets if this widget subscribes for data updates and displays current data.
+   /// Default is 'true' (subscribes for and displays data updates)
+   ///
+   Q_PROPERTY (bool subscribe          READ getSubscribe        WRITE setSubscribe)
+
+   /// When set true, internal apply button is exposed and used to trigger write.
+   /// All other write are options set false and inhibited from being set true.
+   ///
+   Q_PROPERTY (bool useApplyButton     READ getUseApplyButton   WRITE setUseApplyButton)
+
    /// Sets if this widget automatically writes any changes when it loses focus.
    /// Default is 'false' (does not write any changes when it loses focus).
    ///
@@ -209,7 +218,10 @@ public:
 
    // Depricated versions of  getValue/setValue
    //
+   Q_DECL_DEPRECATED
    double getNumericValue () const;
+
+   Q_DECL_DEPRECATED
    void setNumericValue (const double value, const bool isUserUpdate = false);  // as opposed to system update
 
    // Property set and get functions.
@@ -219,6 +231,12 @@ public:
 
    void setAddUnits (const bool);
    bool getAddUnits () const;
+
+   void setUseApplyButton (const bool);
+   bool getUseApplyButton () const;
+
+   void setSubscribe (const bool);
+   bool getSubscribe () const;
 
    void setWriteOnLoseFocus (const bool);
    bool getWriteOnLoseFocus () const;
@@ -266,6 +284,7 @@ signals:
    /// Sent when the widget is updated following a data change
    /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
    /// For example a QList widget could log updates from this widget.
+   //
    void dbValueChanged ();                     // signal event
    void dbValueChanged (const QString& out);   // signal as formatted text
    void dbValueChanged (const int& out);       // signal as int if applicable
@@ -277,19 +296,22 @@ signals:
    // This signal is emitted using the QEEmitter::emitDbConnectionChanged function.
    /// Sent when the widget state updated following a channel connection change
    /// Applied to provary varible.
+   //
    void dbConnectionChanged (const bool& isConnected);
 
 public slots:
-   // Write the value (of the underlying QNumericEdit object) into the PV immediately.
+   // Write the value (of the underlying QNumericEdit object) to the PV immediately.
    //
    void writeNow ();
 
    /// Update the default style applied to this widget.
-   void setDefaultStyle (const QString& style) { this->setStyleDefault (style); }
+   //
+   void setDefaultStyle (const QString& style);
 
 protected:
    bool eventFilter (QObject* watched, QEvent* event);
    void focusInEvent (QFocusEvent* event);
+   void resizeEvent (QResizeEvent* event);
 
    // Return the Qt default context menu to add to the QE context menu.
    //
@@ -325,8 +347,10 @@ private:
 
    bool isOkayToWrite (const WriteOptions writeOption);
 
+   QHBoxLayout* layout;         // holds the internal numeric edit and apply button.
    QNumericEdit* internalWidget;
-   QHBoxLayout* layout;         // holds the internal widget - any layout type will do
+   QPushButton* applyButton;
+
    QEFloatingFormatting floatingFormatting;
 
    bool isFirstUpdate;
@@ -337,6 +361,7 @@ private:
 
    bool autoScale;
    bool addUnits;
+   bool useApplyButton;
    bool writeOnLoseFocus;
    bool writeOnEnter;
    bool writeOnFinish;
@@ -344,9 +369,9 @@ private:
    bool confirmWrite;
    bool allowFocusUpdate;
 
-   // If when autoScale set true, we save these values so that when autoScale set false
-   // we can reapply them.
-   ///
+   // If when autoScale set true, we save these values so that when autoScale
+   // is set falsewe can reapply them.
+   //
    int designLeadingZeros;
    int designPrecision;
    double designMinimum;
@@ -355,14 +380,17 @@ private:
 private slots:
    void connectionChanged (QCaConnectionInfo& connectionInfo,
                            const unsigned int &variableIndex);
-   void externalValueUpdate (const double& value, QCaAlarmInfo&, QCaDateTime&, const unsigned int&);
 
-   void useNewVariableNameProperty (QString variableNameIn,
-                                    QString variableNameSubstitutionsIn,
+   void externalValueUpdate (const double& value, QCaAlarmInfo&, 
+                             QCaDateTime&, const unsigned int&);
+
+   void useNewVariableNameProperty (QString variableName,
+                                    QString variableNameSubstitutions,
                                     unsigned int variableIndex);
 
    void internalValueChanged (const double value);
 
+   void applyPressed (bool);     // Act on the user pressing the apply button
    void returnPressed ();        // Act on the user pressing return in the widget
    void editingFinished ();      // Act on the user signaling text editing is complete (pressing return)
 };

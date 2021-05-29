@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2020 Australian Synchrotron.
+ *  Copyright (c) 2014-2021 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -70,6 +70,8 @@ void QNumericEdit::commonConstructor ()
    this->layout->setMargin (0);
    this->layout->setSpacing (0);
    this->layout->addWidget (this->lineEdit);
+
+   this->setMinimumSize (32, 16);
 
    // Ensure sensible auto values
    //
