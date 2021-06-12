@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2020 Australian Synchrotron
+ *  Copyright (c) 2012-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -123,14 +123,17 @@ QEArchiveManager::QEArchiveManager() {
    this->numberArchivesRead = 0;
    this->environmentErrorReported = false;
    this->timer = new QTimer (this);
+   this->setSourceId (9001);
 
    if (!archives.isEmpty ()) {
       this->archives = archives;
       this->pattern = pattern;
       this->lastReadTime = QDateTime::currentDateTime ().toUTC ().addSecs (-300);
 
-      this->setSourceId (9001);
    } else {
+      this->archives = "";
+      this->pattern = "";
+
       // Has this error already been reported??
       // Not strictly 100% thread safe but not strictly critical either.
       //
@@ -141,6 +144,10 @@ QEArchiveManager::QEArchiveManager() {
       }
    }
 }
+
+//------------------------------------------------------------------------------
+//
+QEArchiveManager::~QEArchiveManager() { }
 
 //------------------------------------------------------------------------------
 //
@@ -527,8 +534,13 @@ QEChannelArchiverManager& QEChannelArchiverManager::getInstance()
    return *instance;
 }
 
+//------------------------------------------------------------------------------
+//
 QEChannelArchiverManager::QEChannelArchiverManager() : QEArchiveManager() { }
 
+//------------------------------------------------------------------------------
+//
+QEChannelArchiverManager::~QEChannelArchiverManager() { }
 
 //------------------------------------------------------------------------------
 //
@@ -794,6 +806,10 @@ QEArchapplManager& QEArchapplManager::getInstance()
 //------------------------------------------------------------------------------
 //
 QEArchapplManager::QEArchapplManager() : QEArchiveManager() { }
+
+//------------------------------------------------------------------------------
+//
+QEArchapplManager::~QEArchapplManager() { }
 
 //------------------------------------------------------------------------------
 //

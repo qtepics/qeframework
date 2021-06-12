@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2020 Australian Synchrotron
+ *  Copyright (c) 2012-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -95,7 +95,7 @@ typedef QMap <QString, SourceSpec> PVNameToSourceSpecLookUp;
 
 //==============================================================================
 // Private
-// The following are private classes. They are only exposed in a header because
+// The following are private classes. They are only exposed in a header file because
 // the Qt SDK framework and/or meta object data compiler (moc) require that signals
 // and slots are declared in header files. Clients should use the QEArchiveAccess
 // specified above to initialise the archiver, request status or PV re-reads etc.
@@ -112,7 +112,8 @@ private:
                                          QEArchiveAccess::ArchiverPvInfoLists& data) = 0;
 
 protected:
-   explicit QEArchiveManager ();
+    explicit QEArchiveManager ();
+    virtual ~QEArchiveManager ();
 
    // Declaring but not implementing copy constructor and assignemnt operator to avoid
    // having many copies of a singleton.
@@ -199,7 +200,7 @@ private slots:
 };
 
 //==============================================================================
-// Implementation of archiver manager for EPICS Channel Archiver
+// Implementation of archiver manager for traditional EPICS Channel Archiver
 //
 class QEChannelArchiverManager : public QEArchiveManager {
    Q_OBJECT
@@ -207,7 +208,8 @@ class QEChannelArchiverManager : public QEArchiveManager {
 friend class QEArchiveAccess;
 
 private:
-   QEChannelArchiverManager();
+   explicit QEChannelArchiverManager();
+   ~QEChannelArchiverManager();
 
    static QEChannelArchiverManager& getInstance();
    bool getArchivePvInformation (QString& effectivePvName, QEArchiveAccess::ArchiverPvInfoLists& data);
@@ -225,7 +227,7 @@ private slots:
 };
 
 //==============================================================================
-// Implementation of archiver manager for Archiver Appliance
+// Implementation of archiver manager for newer Archiver Appliance
 //
 class QEArchapplManager : public QEArchiveManager {
    Q_OBJECT
@@ -233,7 +235,8 @@ class QEArchapplManager : public QEArchiveManager {
 friend class QEArchiveAccess;
 
 private:
-   QEArchapplManager();
+   explicit QEArchapplManager();
+   ~QEArchapplManager();
 
    static QEArchapplManager& getInstance();
    bool getArchivePvInformation (QString& effectivePvName, QEArchiveAccess::ArchiverPvInfoLists& data);
