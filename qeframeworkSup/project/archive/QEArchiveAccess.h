@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2017-2020 Australian Synchrotron
+ *  Copyright (c) 2017-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -56,25 +56,22 @@
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEArchiveAccess : public QObject, public UserMessage {
    Q_OBJECT
 public:
+   enum ArchiverTypes {
+      CA,
+      ARCHAPPL,
+      Error
+   };
+   Q_ENUMS (ArchiverTypes)
+
    explicit QEArchiveAccess (QObject* parent = 0);
    virtual ~QEArchiveAccess ();
 
-   unsigned int getMessageSourceId ();
+   // Exposes archiver type to the client
+   //
+   ArchiverTypes getArchiverType () const;
+
+   unsigned int getMessageSourceId () const;
    void setMessageSourceId (unsigned int messageSourceId);
-
-   // This function no longer does anything. Archives and pattern have to
-   // be defined using the appropriate environment variables.
-   // Please consult the documentation
-   //
-   Q_DECL_DEPRECATED
-   static void initialise (const QString& archives, const QString& pattern);
-
-   // This function no longer does anything. Archives and pattern have to
-   // be defined using the appropriate environment variables.
-   // Please consult the documentation
-   //
-   Q_DECL_DEPRECATED
-   static void initialise ();
 
    // Is archiver communication ready
    //
@@ -144,18 +141,8 @@ public:
                                         QString& effectivePvName,
                                         ArchiverPvInfoLists& data);
 
-   enum ArchiverTypes {
-      CA,
-      ARCHAPPL,
-      Error
-   };
-   Q_ENUMS (ArchiverTypes)
 
-   // Exposes archiver type to the client
-   //
-   static ArchiverTypes getArchiverType ();
-
-   // These are essentially a private type, but must be public for metat data registration.
+   // These are essentially a private type, but must be public for meta data registration.
    //
    struct PVDataRequests {
       QObject* userData;
@@ -212,6 +199,8 @@ private slots:
    void retryTimeout ();
 
 private:
+   void initialiseArchiverType ();
+
    // Used to convey a message during the creation of the object.
    //
    QString constructorMessage;

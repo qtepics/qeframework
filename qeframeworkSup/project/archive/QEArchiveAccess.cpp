@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2017-2020 Australian Synchrotron
+ *  Copyright (c) 2017-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -33,75 +33,98 @@
 #define DEBUG qDebug () << "QEArchiveAccess" << __LINE__ << __FUNCTION__  << "  "
 
 static QEArchiveManager* instance = NULL;
-static QMutex *archiveDataMutex = new QMutex ();
-static bool archiveTypeErrorReported = false;
+static QMutex* archiveDataMutex = new QMutex ();
+
+static bool theArchiverTypeDefined = false;
+static QEArchiveAccess::ArchiverTypes theArchiverType = QEArchiveAccess::Error;
 
 
-//==============================================================================
+//------------------------------------------------------------------------------
 //
-QEArchiveAccess::QEArchiveAccess (QObject * parent) : QObject (parent)
+void QEArchiveAccess::initialiseArchiverType ()
 {
-   // Are we using Archiver Appliance?
-   //
+   if (theArchiverTypeDefined) return;  // idempotent
+   theArchiverTypeDefined = true;
+
    QEAdaptationParameters ap ("QE_");
    const QString archiveString = ap.getString ("archive_type", "CA").toUpper();
 
-   this->pendingRequests.clear ();
-
    bool conversionStatus = false;
-   int archiverIntVal = QEUtilities::stringToEnum(*this, QString("ArchiverTypes"), archiveString, &conversionStatus);
+   int archiverIntVal = QEUtilities::stringToEnum (*this, QString("ArchiverTypes"),
+                                                   archiveString, &conversionStatus);
 
-   ArchiverTypes archiverType = QEArchiveAccess::Error;
-   if (conversionStatus) {
-      archiverType = (ArchiverTypes) archiverIntVal;
-   } else {
-      if (!archiveTypeErrorReported) {
-         archiveTypeErrorReported = true;
-         DEBUG << "QE_ARCHIVE_TYPE variable not correctly specified. Options are: CA or ARCHAPPL.";
-         this->constructorMessage = "QE_ARCHIVE_TYPE variable not correctly specified. Options are: CA or ARCHAPPL.";
-         this->constructorMessageType = message_types(MESSAGE_TYPE_ERROR);
-         // Print the message after the construction has finished
-         //
-         QTimer::singleShot(0, this, SLOT (sendMessagePostConstruction()));
-       }
+   if (!conversionStatus) {
+      this->constructorMessage =
+            QString ("QE_ARCHIVE_TYPE variable '%1' not correctly specified. "
+                     "Options are: CA or ARCHAPPL.").arg(archiveString);
+      this->constructorMessageType = message_types(MESSAGE_TYPE_ERROR);
+
+      DEBUG << this->constructorMessage;
+
+      // Print the message after the construction has finished
+      //
+      QTimer::singleShot(0, this, SLOT (sendMessagePostConstruction()));
       return;
    }
 
+   // Basic conversion
+   //
+   theArchiverType = static_cast<ArchiverTypes> (archiverIntVal);
+
    // Construct and initialise singleton QEArchiveManager object if needs be.
    //
-   switch (archiverType){
+   switch (theArchiverType) {
+
       case (QEArchiveAccess::CA):
          instance = &QEChannelArchiverManager::getInstance();
          break;
+
       case (QEArchiveAccess::ARCHAPPL):
          // Create ARCHAPPL manager instance only when built with ARCHAPPL support
          //
          #ifdef QE_ARCHAPPL_SUPPORT
             instance = &QEArchapplManager::getInstance();
          #else
-            DEBUG << "QE_ARCHIVE_TYPE=ARCHAPPL but the QEFramework has not been built with Archiver Appliance support. Please consult the documentation.";
-            this->constructorMessage = "QE_ARCHIVE_TYPE=ARCHAPPL but the QEFramework has not been built with Archiver Appliance support. Please consult the documentation.";
-            this->constructorMessageType = message_types(MESSAGE_TYPE_ERROR);
+            this->constructorMessage =
+               "QE_ARCHIVE_TYPE=ARCHAPPL but the QEFramework has not been built "
+               "with Archiver Appliance support. Please consult the documentation.";
+            this->constructorMessageType = message_types (MESSAGE_TYPE_ERROR);
+
+            DEBUG << this->constructorMessage;
+
             // Print the message after the construction has finished
             //
             QTimer::singleShot(0, this, SLOT (sendMessagePostConstruction()));
+            theArchiverType = QEArchiveAccess::Error;
          #endif
          break;
+
       default:
-         DEBUG << "Archiver type not supported";
-         this->constructorMessage = "Archiver type not supported";
+         this->constructorMessage =
+               QString ("Archiver type '%1' not supported").arg (archiveString);
          this->constructorMessageType = message_types(MESSAGE_TYPE_ERROR);
+
+         DEBUG << this->constructorMessage;
+
          // Print the message after the construction has finished
          //
          QTimer::singleShot(0, this, SLOT (sendMessagePostConstruction()));
-
-         return;
    }
+}
+
+
+//==============================================================================
+//
+QEArchiveAccess::QEArchiveAccess (QObject * parent) : QObject (parent)
+{
+   this->initialiseArchiverType ();  // idempotent
+
+   this->pendingRequests.clear ();
 
    // Connect status request response signals.
+   // Note: instance set up by initialiseArchiverType
    //
-   if( instance )
-   {
+   if (instance) {
       // Request that manager re-read the set of avialble PVs from the archiver.
       //
       QObject::connect (this,     SIGNAL (reInterogateArchives ()),
@@ -128,18 +151,27 @@ QEArchiveAccess::QEArchiveAccess (QObject * parent) : QObject (parent)
 
 //------------------------------------------------------------------------------
 //
-QEArchiveAccess::~QEArchiveAccess ()
-{
-}
+QEArchiveAccess::~QEArchiveAccess () { }
 
-void QEArchiveAccess::sendMessagePostConstruction()
+//------------------------------------------------------------------------------
+// Made non static to ensure at QEArchiveAccess instance exists before
+// the function is used.
+//
+QEArchiveAccess::ArchiverTypes QEArchiveAccess::getArchiverType () const
 {
-   this->sendMessage(this->constructorMessage, this->constructorMessageType);
+   return theArchiverType;
 }
 
 //------------------------------------------------------------------------------
 //
-unsigned int QEArchiveAccess::getMessageSourceId ()
+void QEArchiveAccess::sendMessagePostConstruction()
+{
+   this->sendMessage (this->constructorMessage, this->constructorMessageType);
+}
+
+//------------------------------------------------------------------------------
+//
+unsigned int QEArchiveAccess::getMessageSourceId () const
 {
    return this->getSourceId ();
 }
@@ -267,31 +299,9 @@ void QEArchiveAccess::readArchiveResponse (const QEArchiveAccess* archiveAccess,
    }
 }
 
-//------------------------------------------------------------------------------
-//
-QEArchiveAccess::ArchiverTypes QEArchiveAccess::getArchiverType ()
-{
-   return instance ? instance->archiverType : QEArchiveAccess::Error;
-}
 
 //------------------------------------------------------------------------------
 // static functions
-//------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------
-// Deprecated
-void QEArchiveAccess::initialise (const QString&, const QString&)
-{
-   qDebug () << "\n This function is obsolete. Archives and pattern have to be defined using the appropriate environment variables.\n";
-}
-
-//------------------------------------------------------------------------------
-// Deprecated
-void QEArchiveAccess::initialise ()
-{
-   qDebug () << "\n This function is obsolete. Archives and pattern have to be defined using the appropriate environment variables.\n";
-}
-
 //------------------------------------------------------------------------------
 //
 bool QEArchiveAccess::isReady ()

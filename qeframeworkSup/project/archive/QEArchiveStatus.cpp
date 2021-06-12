@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron
+ *  Copyright (c) 2013-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -46,7 +46,7 @@ void QEArchiveStatus::setStatusRowVisible (const int j, const bool visible)
    row->endPoint->setVisible (visible);
    row->state->setVisible (visible);
    row->numberPVs->setVisible (visible);
-   if (archiveAccess->getArchiverType() == QEArchiveAccess::CA) {
+   if (this->archiveType == QEArchiveAccess::CA) {
       row->available->setVisible (visible);
       row->read->setVisible (visible);
       row->pending->setVisible (visible);
@@ -77,11 +77,6 @@ void QEArchiveStatus::createInternalWidgets ()
    this->rowList [j].member->setStyleSheet (sheet);                      \
    this->gridLayout->addWidget (this->rowList [j].member, row, col++);   \
 }
-
-   const QEArchiveAccess::ArchiverTypes archType = QEArchiveAccess::getArchiverType();
-
-   this->archiveAccess = new QEArchiveAccess (this);
-   this->archiveAccess->setMessageSourceId (9001);
 
    this->verticalLayout = new QVBoxLayout (this);
    this->verticalLayout->setContentsMargins (0, 8, 0, 2);  // left, top, right, bottom
@@ -155,7 +150,7 @@ void QEArchiveStatus::createInternalWidgets ()
    CREATE_LABEL (hostNamePort,  Qt::AlignLeft,    "Host:Port");
    CREATE_LABEL (endPoint,      Qt::AlignLeft,    "End Point");
    CREATE_LABEL (state,         Qt::AlignHCenter, "Status");
-   if (archType == QEArchiveAccess::CA) {
+   if (this->archiveType == QEArchiveAccess::CA) {
       CREATE_LABEL (available,     Qt::AlignRight,   "Available");
       CREATE_LABEL (read,          Qt::AlignRight,   "Read");
    } else {
@@ -163,7 +158,7 @@ void QEArchiveStatus::createInternalWidgets ()
       this->rowList [j].read = NULL;
    }
    CREATE_LABEL (numberPVs,     Qt::AlignRight,   "Num PVs");
-   if (archType == QEArchiveAccess::CA) {
+   if (this->archiveType == QEArchiveAccess::CA) {
       CREATE_LABEL (pending,       Qt::AlignRight,   "Pending");
    } else {
       this->rowList [j].pending = NULL;
@@ -178,7 +173,7 @@ void QEArchiveStatus::createInternalWidgets ()
       CREATE_LABEL (hostNamePort, Qt::AlignLeft,     " - ");
       CREATE_LABEL (endPoint,     Qt::AlignLeft,     " - ");
       CREATE_LABEL (state,        Qt::AlignHCenter,  " - ");
-      if (archType == QEArchiveAccess::CA) {
+      if (this->archiveType == QEArchiveAccess::CA) {
          CREATE_LABEL (available,    Qt::AlignRight,    " - ");
          CREATE_LABEL (read,         Qt::AlignRight,    " - ");
       } else {
@@ -186,7 +181,7 @@ void QEArchiveStatus::createInternalWidgets ()
          this->rowList [j].read = NULL;
       }
       CREATE_LABEL (numberPVs,    Qt::AlignRight,    " - ");
-      if (archType == QEArchiveAccess::CA) {
+      if (this->archiveType == QEArchiveAccess::CA) {
          CREATE_LABEL (pending,      Qt::AlignRight,    " - ");
       } else {
          this->rowList [j].pending = NULL;
@@ -221,10 +216,18 @@ void QEArchiveStatus::calcMinimumHeight ()
 //
 QEArchiveStatus::QEArchiveStatus (QWidget* parent) : QEGroupBox (parent)
 {
+   // Create the QEArchiveAccess.
+   // This initiates, if not already done so, setting up the mean of accessing
+   // the archivesincluding, but not limited to the archiver type.
+   //
+   this->archiveAccess = new QEArchiveAccess (this);
+   this->archiveAccess->setMessageSourceId (9001);
+
+   this->archiveType = this->archiveAccess->getArchiverType ();
+
    this->createInternalWidgets();
 
-   const QEArchiveAccess::ArchiverTypes archType = QEArchiveAccess::getArchiverType();
-   switch (archType) {
+   switch (this->archiveType) {
       case QEArchiveAccess::CA:
          this->setTitle (" Channel Archiver Host Status ");
          break;
@@ -297,7 +300,7 @@ void QEArchiveStatus::archiveStatus (const QEArchiveAccess::StatusList& statusLi
          row->state->setText (QEUtilities::enumToString(QEArchapplInterface::staticMetaObject, QString("States"), state.state));
          row->numberPVs->setText (QString ("%1").arg (state.numberPVs));
 
-         if (archiveAccess->getArchiverType() == QEArchiveAccess::CA) {
+         if (this->archiveType == QEArchiveAccess::CA) {
             row->available->setText (QString ("%1").arg (state.available));
             row->read->setText (QString ("%1").arg (state.read));
             row->pending->setText (QString ("%1").arg (state.pending));
