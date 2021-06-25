@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #27 $
-# $DateTime: 2020/12/01 13:58:23 $
+# $Revision: #28 $
+# $DateTime: 2021/04/19 11:04:22 $
 # Last checked in by: $Author: starritt $
 #
 # Copyright (c) 2009-2021 Australian Synchrotron
