@@ -47,7 +47,7 @@ bool QEPlatform::isNaN (const double x)
 #ifdef WIN32
    return _isnan (x);
 #else
-   return isnan (x);
+   return std::isnan (x);
 #endif
 
 }
