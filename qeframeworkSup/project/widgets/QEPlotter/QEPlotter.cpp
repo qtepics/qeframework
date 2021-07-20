@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron.
+ *  Copyright (c) 2013-2021 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -2361,6 +2361,11 @@ void QEPlotter::plot ()
    xs = &this->xy [0];
    effectiveXSize = xs->effectiveSize ();
 
+   // The effectiveXSize cannot be more than the actual number of
+   // array elements in the X PV.
+   //
+   effectiveXSize = MIN (effectiveXSize,  xs->data.size());
+
    for (slot = 1; slot < ARRAY_LENGTH (this->xy); slot++) {
       ys = &this->xy [slot];
 
@@ -2379,8 +2384,14 @@ void QEPlotter::plot ()
 
       effectiveYSize = ys->effectiveSize ();
 
+      // The effectiveYSize cannot be more than the actual number of
+      // array elements in the Y PV.
+      //
+      effectiveYSize = MIN (effectiveYSize, ys->data.size());
+
       // Calculate actual number of points to plot.
       // Skip if none or only a single point.
+      // We need at least 2 points to plot anything.
       //
       number = MIN (effectiveXSize, effectiveYSize);
 
