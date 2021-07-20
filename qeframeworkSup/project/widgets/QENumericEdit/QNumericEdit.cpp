@@ -79,6 +79,7 @@ void QNumericEdit::commonConstructor ()
    this->mSuffix = "";
    this->mLeadingZeros = 3;
    this->mPrecision = 4;
+   this->mForceSign = false;
    this->mNotation = Fixed;
    this->minimumMin = this->calcLower ();
    this->maximumMax = this->calcUpper ();
@@ -595,9 +596,10 @@ bool QNumericEdit::isSignOrDigit (QChar qc) const
 //
 bool QNumericEdit::showSign () const
 {
-   // Only force '+' if the value can be negative.
+   // Force '+' if the value can be negative or the force sign property has
+   // been explicitly set.
    //
-   return (this->mMinimum < 0.0);
+   return (this->mMinimum < 0.0) or this->mForceSign;
 }
 
 //------------------------------------------------------------------------------
@@ -758,6 +760,21 @@ void QNumericEdit::setPrecision (const int value)
 int QNumericEdit::getPrecision () const
 {
    return this->mPrecision;
+}
+
+//------------------------------------------------------------------------------
+//
+void QNumericEdit::setForceSign (const bool forceSignIn)
+{
+   this->mForceSign = forceSignIn;
+   this->redisplayText ();
+}
+
+//------------------------------------------------------------------------------
+//
+bool QNumericEdit::getForceSign () const
+{
+   return this->mForceSign;
 }
 
 //------------------------------------------------------------------------------

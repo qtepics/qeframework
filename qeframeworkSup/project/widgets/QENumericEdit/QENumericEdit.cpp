@@ -28,6 +28,7 @@
 #include <math.h>
 #include <QColor>
 #include <QDebug>
+#include <QFontMetrics>
 #include <QMessageBox>
 #include <QECommon.h>
 #include <QEScaling.h>
@@ -41,7 +42,8 @@
 //
 QENumericEdit::QENumericEdit (QWidget* parent) :
    QEAbstractWidget (parent),
-   QESingleVariableMethods (this, PV_VARIABLE_INDEX)
+   QESingleVariableMethods (this, PV_VARIABLE_INDEX),
+   internalWidget (new QNumericEdit (this))
 {
    this->commonSetup ();
 }
@@ -51,7 +53,8 @@ QENumericEdit::QENumericEdit (QWidget* parent) :
 //
 QENumericEdit::QENumericEdit (const QString& variableNameIn, QWidget* parent) :
    QEAbstractWidget (parent),
-   QESingleVariableMethods (this, PV_VARIABLE_INDEX)
+   QESingleVariableMethods (this, PV_VARIABLE_INDEX),
+   internalWidget (new QNumericEdit (this))
 {
    this->commonSetup ();
    this->setVariableName (variableNameIn, PV_VARIABLE_INDEX);
@@ -65,12 +68,11 @@ void QENumericEdit::commonSetup ()
 {
    // Create internal widgets.
    //
-   this->internalWidget = new QNumericEdit (this);
-
-   this->applyButton = new QPushButton ("A", this);
+   this->applyButtonText = "A";
+   this->applyButton = new QPushButton (this->applyButtonText, this);
    this->applyButton->setSizePolicy (QSizePolicy::Preferred, QSizePolicy::Preferred);
    this->applyButton->setFocusPolicy (Qt::NoFocus);
-   this->applyButton->setFixedWidth (this->height ());  // keep square
+   this->setApplyButtonWidth ();
    const QString style = QEUtilities::colourToStyle (QColor (128, 232, 128));
    this->applyButton->setStyleSheet (style);
 
@@ -185,6 +187,16 @@ QENumericEdit::~QENumericEdit ()
 
 //------------------------------------------------------------------------------
 //
+void QENumericEdit::setApplyButtonWidth ()
+{
+   QFontMetrics fm (this->applyButton->font());
+   const int textWidth = fm.width (applyButtonText + "   ");  // allow 1.5 spaces each side
+   const int useWidth = MAX (textWidth, this->height());      // square or wider
+   this->applyButton->setFixedWidth (useWidth);
+}
+
+//------------------------------------------------------------------------------
+//
 bool QENumericEdit::eventFilter (QObject* watched, QEvent* event)
 {
    const QEvent::Type type = event->type ();
@@ -193,14 +205,17 @@ bool QENumericEdit::eventFilter (QObject* watched, QEvent* event)
    switch (type) {
       case QEvent::FontChange:
          if (watched == this) {
-            // Font must be mapped to the internal numeric edit amd apply button
+            // Font must be mapped to the internal numeric edit and apply button
             //
             if (this->internalWidget) {
                this->internalWidget->setFont (this->font ());
             }
+
             if (this->applyButton) {
                this->applyButton->setFont (this->font ());
             }
+
+            this->setApplyButtonWidth ();
          }
          break;
 
@@ -224,7 +239,7 @@ void QENumericEdit::focusInEvent (QFocusEvent* event)
 //
 void QENumericEdit::resizeEvent (QResizeEvent* event)
 {
-   this->applyButton->setFixedWidth (this->height ());  // keep square
+   this->setApplyButtonWidth ();            // keep square or wider
    QEAbstractWidget::resizeEvent (event);   // pass to parent
 }
 
@@ -766,6 +781,22 @@ void QENumericEdit::setUseApplyButton (const bool useApplyButtonIn)
 bool QENumericEdit::getUseApplyButton () const
 {
    return this->useApplyButton;
+}
+
+//------------------------------------------------------------------------------
+//
+void QENumericEdit::setApplyButtonText (const QString& text)
+{
+   this->applyButtonText = text;
+   this->applyButton->setText (text);
+   this->setApplyButtonWidth ();
+}
+
+//------------------------------------------------------------------------------
+//
+QString QENumericEdit::getApplyButtonText () const
+{
+   return this->applyButtonText;
 }
 
 //------------------------------------------------------------------------------

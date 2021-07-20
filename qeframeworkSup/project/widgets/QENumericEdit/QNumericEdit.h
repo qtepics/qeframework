@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2018 Australian Synchrotron.
+ *  Copyright (c) 2014-2021 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -92,29 +92,41 @@ public:
    //       precision, min and max are related.
    /// Notation used for formatting/editing. Default is fixed.
    ///
-   Q_PROPERTY(Notations notation     READ getNotation       WRITE setNotation)
+   Q_PROPERTY (Notations notation     READ getNotation       WRITE setNotation)
 
    /// Specify radix, default is Decimal.
+   ///
    Q_PROPERTY (QEFixedPointRadix::Radicies radix        READ getRadix          WRITE setRadix)
 
    /// Specify digit 'thousands' separator character, default is none.
+   ///
    Q_PROPERTY (QEFixedPointRadix::Separators separator  READ getSeparator      WRITE setSeparator)
 
    /// Speficies the number of leading zeros.
    /// Strictly speaking, this should be an unsigned int, but designer int properties editor much 'nicer'.
+   ///
    Q_PROPERTY (int leadingZeros      READ getLeadingZeros   WRITE setLeadingZeros)
 
    /// Precision used for the display and editing of numbers. The default is 4.
    /// Strictly speaking, this should be an unsigned int, but designer int properties editor much 'nicer'.
+   ///
    Q_PROPERTY (int  precision        READ getPrecision      WRITE setPrecision)
 
+   /// When true, there is always a sign charactere "+" or "-".
+   /// When false (default), no "+" sign when range of valued non-negative.
+   ///
+   Q_PROPERTY (bool forceSign        READ getForceSign      WRITE setForceSign)
+
    /// Specify the mimimum allowed value.
+   ///
    Q_PROPERTY (double minimum        READ getMinimum        WRITE setMinimum)
 
    /// Specify the maximum allowed value.
+   ///
    Q_PROPERTY (double maximum        READ getMaximum        WRITE setMaximum)
 
    /// Specify the value after min/max
+   ///
    Q_PROPERTY (double value          READ getValue          WRITE setValue)
 
 public:
@@ -147,6 +159,9 @@ public:
 
    void setPrecision (const int value);
    int getPrecision () const;
+
+   void setForceSign (const bool value);
+   bool getForceSign () const;
 
    void setNotation (const Notations notation);
    Notations getNotation () const;
@@ -190,6 +205,7 @@ private:
    double mMaximum;
    int mLeadingZeros;
    int mPrecision;
+   bool mForceSign;
    Notations mNotation;
    double mValue;         // the actual value
 

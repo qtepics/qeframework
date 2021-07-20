@@ -136,6 +136,11 @@ public:
    ///
    Q_PROPERTY (int precision           READ getPrecision        WRITE setPrecision)
 
+   /// When true, there is always a sign charactere "+" or "-".
+   /// When false (default), no "+" sign when range of valued non-negative.
+   ///
+   Q_PROPERTY (bool forceSign        READ getForceSign      WRITE setForceSign)
+
    /// Speficies the mimimum allowed value.
    /// This is only used if autoScale is false.
    ///
@@ -159,6 +164,10 @@ public:
    /// All other write are options set false and inhibited from being set true.
    ///
    Q_PROPERTY (bool useApplyButton     READ getUseApplyButton   WRITE setUseApplyButton)
+
+   /// The text displayed on the apply button. This default text is "A".
+   ///
+   Q_PROPERTY (QString applyButtonText READ getApplyButtonText  WRITE setApplyButtonText)
 
    /// Sets if this widget automatically writes any changes when it loses focus.
    /// Default is 'false' (does not write any changes when it loses focus).
@@ -235,6 +244,9 @@ public:
    void setUseApplyButton (const bool);
    bool getUseApplyButton () const;
 
+   void setApplyButtonText (const QString& text);
+   QString getApplyButtonText () const;
+
    void setSubscribe (const bool);
    bool getSubscribe () const;
 
@@ -271,6 +283,7 @@ public:
    // Expose access to the internal widget's set/get functions.
    //
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, bool, hasFrame, setFrame)
+   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, bool, getForceSign, setForceSign)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, Qt::Alignment, alignment, setAlignment)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, QNumericEdit::Notations, getNotation, setNotation)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, QEFixedPointRadix::Radicies, getRadix, setRadix)
@@ -337,6 +350,7 @@ protected:
 
 private:
    void commonSetup ();
+   void setApplyButtonWidth ();
 
    // Calculates and applies auto values.
    //
@@ -347,9 +361,9 @@ private:
 
    bool isOkayToWrite (const WriteOptions writeOption);
 
-   QHBoxLayout* layout;         // holds the internal numeric edit and apply button.
-   QNumericEdit* internalWidget;
+   QNumericEdit* const internalWidget;
    QPushButton* applyButton;
+   QHBoxLayout* layout;         // holds the internal numeric edit and apply button.
 
    QEFloatingFormatting floatingFormatting;
 
@@ -362,6 +376,7 @@ private:
    bool autoScale;
    bool addUnits;
    bool useApplyButton;
+   QString applyButtonText;
    bool writeOnLoseFocus;
    bool writeOnEnter;
    bool writeOnFinish;
