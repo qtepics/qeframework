@@ -42,18 +42,21 @@
 #include <UserMessage.h>
 #include <QEFrameworkLibraryGlobal.h>
 
-// This class provides user access to the archives and indirect usage of the
-// underlying QEArchiveManager.
-//
-// Currently only handles scalar values but can/will be extended to
-// provide array data retrival.
-//
-// NOTE: It is the creation of the first object of this class will cause the
-// QEArchiveManager to initialised if not already done so. The QEArchiveManager
-// may also be explicitly initialised prior to that by invoking one of the
-// static initialise functions.
-//
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEArchiveAccess : public QObject, public UserMessage {
+/// This class provides user access to the archives and indirect usage of the
+/// underlying QEArchiveManager.
+///
+/// Currently only handles scalar values but can/will be extended to
+/// provide array data retrival.
+///
+/// NOTE: It is the creation of the first object of this class will cause the
+/// QEArchiveManager to initialised if not already done so. The QEArchiveManager
+/// may also be explicitly initialised prior to that by invoking one of the
+/// static initialise functions.
+///
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEArchiveAccess :
+      public QObject,
+      public UserMessage
+{
    Q_OBJECT
 public:
    enum ArchiverTypes {
@@ -77,7 +80,7 @@ public:
    //
    static bool isReady ();
 
-   // Number of archiving interfaces. This should be 1 in case of Archiver Appliance
+   // Number of archiving interfaces.
    //
    static int getNumberInterfaces ();
 
@@ -107,7 +110,7 @@ public:
    //
    // Returned data is via setArchiveData signal.
    //
-   void readArchive (QObject* userData,                     // provides call back signal context
+   void readArchive (QObject* userData,      // provides call back signal context
                      const QString pvName,
                      const QCaDateTime startTime,
                      const QCaDateTime endTime,
@@ -177,7 +180,7 @@ signals:
                         const QCaDataPointList& pointsList,
                         const QString& pvName, const QString& supplementary);
 
-   // Depricated
+   Q_DECL_DEPRECATED
    void setArchiveData (const QObject*, const bool, const QCaDataPointList&);
 
    // Requests responses to/from the Archive Manager.
@@ -206,7 +209,7 @@ private:
    QString constructorMessage;
    message_types constructorMessageType;
 
-   // Hold a list (queue) of requesyt awaiting completion of intial
+   // Hold a list (queue) of requests awaiting completion of intial
    // data retrieval from the archivers.
    //
    typedef QList<PVDataRequests> PVDataRequestLists;
