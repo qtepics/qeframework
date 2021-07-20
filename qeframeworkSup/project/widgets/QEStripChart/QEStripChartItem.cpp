@@ -1971,9 +1971,6 @@ void QEStripChartItem::saveConfiguration (PMElement& parentElement)
    // Any config data to save? Also save expressions.
    //
    if (this->isInUse ()) {
-      QEStripChartNames meta1;
-      QEChannelArchiveInterface meta2 (QUrl (""));  // we need a concrete instance
-
       PMElement pvElement = parentElement.addElement ("PV");
       pvElement.addAttribute ("slot", (int) this->slot);
 
@@ -1995,15 +1992,18 @@ void QEStripChartItem::saveConfiguration (PMElement& parentElement)
       pvElement.addValue ("useReceiveTime", this->getUseReceiveTime ());
 
       QString lineDrawModeStr;
-      lineDrawModeStr = QEUtilities::enumToString (meta1, "LineDrawModes", this->getLineDrawMode());
+      lineDrawModeStr = QEUtilities::enumToString (QEStripChartNames::staticMetaObject,
+                                                   "LineDrawModes", this->getLineDrawMode());
       pvElement.addValue ("lineDrawMode", lineDrawModeStr);
 
       QString linePlotModeStr;
-      linePlotModeStr = QEUtilities::enumToString (meta1, "LinePlotModes", this->getLinePlotMode());
+      linePlotModeStr = QEUtilities::enumToString (QEStripChartNames::staticMetaObject,
+                                                   "LinePlotModes", this->getLinePlotMode());
       pvElement.addValue ("linePlotMode", linePlotModeStr);
 
       QString archiverHowStr;
-      archiverHowStr = QEUtilities::enumToString (meta2, "How", this->getArchiveReadHow());
+      archiverHowStr = QEUtilities::enumToString (QEArchiveInterface::staticMetaObject,
+                                                  "How", this->getArchiveReadHow());
       pvElement.addValue ("archiverHow", archiverHowStr);
 
       // Save any scaling.
@@ -2028,9 +2028,6 @@ void QEStripChartItem::restoreConfiguration (PMElement& parentElement)
    //
    status = pvElement.getValue ("Name", pvName);
    if (status) {
-      QEStripChartNames meta1;
-      QEChannelArchiveInterface meta2 (QUrl (""));
-
       this->setPvName (pvName, "");
 
       // Restore other settings - iff defined.
@@ -2058,7 +2055,8 @@ void QEStripChartItem::restoreConfiguration (PMElement& parentElement)
       status = pvElement.getValue ("lineDrawMode", lineDrawModeStr);
       if (status) {
          int ldm;
-         ldm = QEUtilities::stringToEnum (meta1, "LineDrawModes", lineDrawModeStr, &status);
+         ldm = QEUtilities::stringToEnum (QEStripChartNames::staticMetaObject,
+                                          "LineDrawModes", lineDrawModeStr, &status);
          if (status) {
             this->lineDrawMode = QEStripChartNames::LineDrawModes (ldm);
          }
@@ -2068,7 +2066,8 @@ void QEStripChartItem::restoreConfiguration (PMElement& parentElement)
       status = pvElement.getValue ("linePlotMode", linePlotModeStr);
       if (status) {
          int lpm;
-         lpm = QEUtilities::stringToEnum (meta1, "LinePlotModes", linePlotModeStr, &status);
+         lpm = QEUtilities::stringToEnum (QEStripChartNames::staticMetaObject,
+                                          "LinePlotModes", linePlotModeStr, &status);
          if (status) {
             this->linePlotMode = QEStripChartNames::LinePlotModes (lpm);
          }
@@ -2078,7 +2077,8 @@ void QEStripChartItem::restoreConfiguration (PMElement& parentElement)
       status = pvElement.getValue ("archiverHow", archiverHowStr);
       if (status) {
          int lpm;
-         lpm = QEUtilities::stringToEnum (meta2, "How", archiverHowStr, &status);
+         lpm = QEUtilities::stringToEnum (QEArchiveInterface::staticMetaObject,
+                                          "How", archiverHowStr, &status);
          if (status) {
             this->archiveReadHow = QEArchiveInterface::How (lpm);
          }
