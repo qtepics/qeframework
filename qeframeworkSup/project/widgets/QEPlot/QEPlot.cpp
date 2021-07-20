@@ -644,6 +644,7 @@ void QEPlot::establishConnection (unsigned int vi)
       //
       Trace* tr = this->traces[vi];
       if (!tr) return;           // sanity check.
+      tr->reset();               // clears any old data when re-activated.
       tr->isInUse = true;        // Controlled soley by the data variable.
    }
 
@@ -959,6 +960,7 @@ void QEPlot::plotData ()
       Trace* tr = this->traces[i];
       if (!tr) continue;
       if (!tr->isInUse) continue;
+      if (tr->width == 0) continue;   // use a separate bool proerty??
 
       QVector <double> xdata;
       QVector <double> ydata;
@@ -1702,7 +1704,7 @@ void QEPlot::setTraceWidth (const int traceWidth, const unsigned int variableInd
 {
    PV_INDEX_CHECK (variableIndex,);
    Trace* tr = this->traces[variableIndex];
-   tr->width = LIMIT (traceWidth, 1, 20);  // 20 arbitrary but sufficient
+   tr->width = LIMIT (traceWidth, 0, 20);  // 20 arbitrary but sufficient
    this->replotIsRequired = true;
 }
 

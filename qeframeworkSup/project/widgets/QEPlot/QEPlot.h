@@ -138,6 +138,8 @@ public:
    Q_PROPERTY (TraceStyles traceStyle8 READ getTraceStyle8 WRITE setTraceStyle8)
 
    // Pen width or dot size.
+   // Use zero for non visible.
+   //
    Q_PROPERTY (int traceWidth1 READ getTraceWidth1 WRITE setTraceWidth1)
    Q_PROPERTY (int traceWidth2 READ getTraceWidth2 WRITE setTraceWidth2)
    Q_PROPERTY (int traceWidth3 READ getTraceWidth3 WRITE setTraceWidth3)
