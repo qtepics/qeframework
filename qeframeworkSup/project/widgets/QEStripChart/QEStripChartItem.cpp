@@ -336,7 +336,9 @@ void QEStripChartItem::connectQcaSignals ()
 
    // Get, or at least, initiate fatching the description.
    //
-   this->description = qca->getDescription();
+   if (qca) {
+      this->description = qca->getDescription();
+   }
    this->setCaption();
 }
 
@@ -1670,10 +1672,8 @@ void QEStripChartItem::generateStatistics ()
 //
 void QEStripChartItem::runSelectNameDialog (QWidget* control)
 {
-   int n;
-
    this->chart->pvNameSelectDialog->setPvName (this->getPvName ());
-   n = this->chart->pvNameSelectDialog->exec (control ? control : this);
+   int n = this->chart->pvNameSelectDialog->exec (control ? control : this);
    if (n == 1) {
       // User has selected okay.
       //
