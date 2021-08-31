@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020 Australian Synchrotron
+ *  Copyright (c) 2020-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -57,6 +57,12 @@ public:
    ///
    Q_PROPERTY (int scaleWrap               READ getScaleWrap      WRITE setScaleWrap)
 
+   /// Margin 0 to 40 - default is 4
+   /// Margin area shows the alarm colour, provided not inhibited by
+   /// the value of the displayAlarmStateOption property.
+   ///
+   Q_PROPERTY (int margin                READ getMargin                WRITE setMargin)
+
 public:
    // QESpectrogram context menu values
    //
@@ -91,10 +97,12 @@ public:
 public slots:
    void setUseFalseColour (const bool useFalseColour);
    void setScaleWrap (const int scaleWrap);
+   void setMargin  (const int margin);
 
 public:
    bool getUseFalseColour () const;
    int getScaleWrap () const;
+   int getMargin () const;
 
 protected:
    // Override parent virtual functions.
@@ -135,6 +143,7 @@ private:
    //
    bool mUseFalseColour;
    int mScaleWrap;
+   int mMargin;
 };
 
 #endif  // QE_SPECTROGRAM_H

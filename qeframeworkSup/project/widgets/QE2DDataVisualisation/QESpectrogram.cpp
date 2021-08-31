@@ -72,7 +72,7 @@ void QESpectrogram::commonSetup ()
    //
    this->plotArea = new QWidget (NULL);
    this->layout = new QHBoxLayout (this);
-   this->layout->setMargin (4);    // make a property?
+   this->layout->setMargin (4);
    this->layout->setSpacing (0);
    this->layout->addWidget (this->plotArea);
    this->plotArea->setMouseTracking (true);
@@ -88,6 +88,7 @@ void QESpectrogram::commonSetup ()
 
    this->mUseFalseColour = true;
    this->mScaleWrap = 1;
+   this->mMargin = 4;
 
    // Set up the pixel maps
    //
@@ -404,6 +405,21 @@ void QESpectrogram::setScaleWrap (const int scaleWrap)
 int QESpectrogram::getScaleWrap () const
 {
    return this->mScaleWrap;
+}
+
+//------------------------------------------------------------------------------
+//
+void QESpectrogram::setMargin  (const int margin)
+{
+   this->mMargin = LIMIT (margin, 0, 40);
+   this->layout->setMargin (this->mMargin);
+}
+
+//------------------------------------------------------------------------------
+//
+int QESpectrogram::getMargin () const
+{
+   return this->mMargin;
 }
 
 // end

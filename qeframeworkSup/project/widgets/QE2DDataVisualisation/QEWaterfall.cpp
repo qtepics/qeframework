@@ -78,7 +78,7 @@ void QEWaterfall::commonSetup ()
    //
    this->plotArea = new QWidget (NULL);
    this->layout = new QHBoxLayout (this);
-   this->layout->setMargin (4);    // make a property?
+   this->layout->setMargin (4);
    this->layout->setSpacing (0);
    this->layout->addWidget (this->plotArea);
    this->plotArea->setMouseTracking (true);
@@ -95,7 +95,7 @@ void QEWaterfall::commonSetup ()
    this->mMutableHue = false;
    this->mTraceWidth = 1;
    this->mBackgroundColour = QColor ("#ffffff");
-
+   this->mMargin = 4;
 
    // NOTE: The axis objects are used as painters, not as widgets.
    //
@@ -489,6 +489,21 @@ void QEWaterfall::setMutableHue (const bool mutableHueIn)
 bool QEWaterfall::getMutableHue () const
 {
    return this->mMutableHue;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEWaterfall::setMargin  (const int margin)
+{
+   this->mMargin = LIMIT (margin, 0, 40);
+   this->layout->setMargin (this->mMargin);
+}
+
+//------------------------------------------------------------------------------
+//
+int QEWaterfall::getMargin () const
+{
+   return this->mMargin;
 }
 
 //==============================================================================
