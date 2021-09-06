@@ -29,6 +29,8 @@
 
 #include <QHBoxLayout>
 #include <QImage>
+#include <QPainter>
+#include <QRect>
 #include <QString>
 #include <QWidget>
 #include <QEAbstract2DData.h>
@@ -94,6 +96,18 @@ public:
    /// Destruction
    virtual ~QESpectrogram ();
 
+   // Allows a third party program/plugin to custiomise what is painted
+   // on the spectrogram, typically a synthetic overlay.
+   //
+   typedef void (*CustomisePaintHandlers) (QESpectrogram* spectrogram,
+                                           QPainter& painter,
+                                           const QRect rect,
+                                           QObject* context);
+
+   void setCustomisePaintHandler (CustomisePaintHandlers paintExtraHandler,
+                                  QObject* context = 0);
+   CustomisePaintHandlers getCustomisePaintHandler () const;
+
 public slots:
    void setUseFalseColour (const bool useFalseColour);
    void setScaleWrap (const int scaleWrap);
@@ -127,6 +141,11 @@ private:
    void paintSpectrogram ();
    void spectrogramMouseMove (const QPoint& pos);
    rgbPixel getFalseColor (const unsigned char value);  // also sets breakPoint1/2
+
+   // Optional reference to function used to enhance what is painted.
+   //
+   CustomisePaintHandlers customisePaintHandler;
+   QObject* customisePaintHandlerContext;
 
    QWidget* plotArea;      // internal widget on which we paint.
    QHBoxLayout* layout;    // holds the widget - any layout type will do

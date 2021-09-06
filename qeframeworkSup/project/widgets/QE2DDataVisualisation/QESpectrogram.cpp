@@ -26,7 +26,6 @@
 
 #include "QESpectrogram.h"
 #include <QDebug>
-#include <QPainter>
 #include <QECommon.h>
 
 #define DEBUG qDebug () << "QESpectrogram" << __LINE__ << __FUNCTION__ << "  "
@@ -68,6 +67,9 @@ QESpectrogram::~QESpectrogram () {}
 //
 void QESpectrogram::commonSetup ()
 {
+   this->customisePaintHandler = NULL;
+   this->customisePaintHandlerContext = NULL;
+
    // Create internal widget.
    //
    this->plotArea = new QWidget (NULL);
@@ -102,6 +104,22 @@ void QESpectrogram::commonSetup ()
 
       this->falseColourPixelMap [j] = this->getFalseColor (j);
    }
+}
+
+//------------------------------------------------------------------------------
+//
+void QESpectrogram::setCustomisePaintHandler (CustomisePaintHandlers handler,
+                                              QObject* context)
+{
+   this->customisePaintHandler = handler;
+   this->customisePaintHandlerContext = context;
+}
+
+//------------------------------------------------------------------------------
+//
+QESpectrogram::CustomisePaintHandlers QESpectrogram::getCustomisePaintHandler () const
+{
+   return this->customisePaintHandler;
 }
 
 //------------------------------------------------------------------------------
@@ -299,6 +317,13 @@ void QESpectrogram::paintSpectrogram ()
       //
       QColor bg ("#e0dcda");
       painter.fillRect (rect, bg);
+   }
+
+   // If user has define a function to paint some extra "stuff", call it now.
+   //
+   if (this->customisePaintHandler) {
+      this->customisePaintHandler (this, painter, rect,
+                                   this->customisePaintHandlerContext);
    }
 }
 
