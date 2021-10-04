@@ -969,11 +969,18 @@ void QEStripChartItem::newVariableNameProperty (QString pvName, QString substitu
 //
 void QEStripChartItem::addRealTimeDataPoint (const QCaDataPoint& point)
 {
+   // Instead of removing points one point at a time, we chunck the removing
+   // of these points into groups of 100 for efficiency reasons. The underlying
+   // container is a vector, and doing this one bpoint at a time can lead to
+   // a lot of shuffling. See Jira GUI-2XX.
+   //
+   static const int chunkSize = 100;
+
    // Do any decimation and/or dead-banding here.
    //
    this->realTimeDataPoints.append (point);
-   if (this->realTimeDataPoints.count () > this->maxRealTimePoints) {
-      this->realTimeDataPoints.removeFirst ();
+   if (this->realTimeDataPoints.count () >= this->maxRealTimePoints + chunkSize) {
+      this->realTimeDataPoints.removeFirstItems (chunkSize);
    }
 }
 

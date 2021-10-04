@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron
+ *  Copyright (c) 2012-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -176,7 +176,6 @@ QCaDataPointList::QCaDataPointList ()
 //
 QCaDataPointList::~QCaDataPointList () {}  // place holder
 
-
 //------------------------------------------------------------------------------
 //
 void QCaDataPointList::reserve (const int size)
@@ -208,6 +207,16 @@ void QCaDataPointList::removeFirst ()
 }
 
 //------------------------------------------------------------------------------
+// removes the first n available items from the list
+//
+void QCaDataPointList::removeFirstItems (const int n)
+{
+   int c = this->data.count ();
+   int r = MIN (c, n);
+   if (r > 0) this->data.remove (0, r);
+}
+
+//------------------------------------------------------------------------------
 //
 void QCaDataPointList::append (const QCaDataPoint& other)
 {
@@ -222,7 +231,6 @@ void  QCaDataPointList::append (const QCaDataPointList& other)
       this->data.append (other.data.value (j));
    }
 }
-
 
 //------------------------------------------------------------------------------
 //
@@ -251,7 +259,6 @@ QCaDataPoint QCaDataPointList::last () const
 {
    return this->data.last ();
 }
-
 
 //------------------------------------------------------------------------------
 //
@@ -296,7 +303,6 @@ int QCaDataPointList::indexBeforeTime (const QCaDateTime& searchTime,
    return first;
 }
 
-
 //------------------------------------------------------------------------------
 //
 const QCaDataPoint* QCaDataPointList::findNearestPoint (const QCaDateTime& searchTime) const
@@ -321,7 +327,6 @@ const QCaDataPoint* QCaDataPointList::findNearestPoint (const QCaDateTime& searc
    const QCaDataPoint*  result = (bsdt < sadt) ? &this->data [before] : &this->data [after];
    return result;
 }
-
 
 //------------------------------------------------------------------------------
 //

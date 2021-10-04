@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron
+ *  Copyright (c) 2013-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -71,7 +71,7 @@ public:
    explicit QCaDataPointList ();
    ~QCaDataPointList ();
 
-   // Provide access to the inner vector.
+   // Provide access to the inner vector functions.
    //
    void reserve (const int size);
    void clear ();
@@ -81,6 +81,10 @@ public:
    void append (const QCaDataPoint& other);
    void replace (const int i, const QCaDataPoint& t);
    int count () const;
+
+   // Removes the first n items from the list.
+   //
+   void removeFirstItems (const int n);
 
    QCaDataPoint value (const int j) const;
    QCaDataPoint last () const;
