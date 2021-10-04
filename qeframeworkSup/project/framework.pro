@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #28 $
-# $DateTime: 2021/04/19 11:04:22 $
+# $Revision: #29 $
+# $DateTime: 2021/09/29 16:41:26 $
 # Last checked in by: $Author: starritt $
 #
 # Copyright (c) 2009-2021 Australian Synchrotron
@@ -64,7 +64,7 @@ message ("QT_VERSION = "$$QT_MAJOR_VERSION"."$$QT_MINOR_VERSION"."$$QT_PATCH_VER
 equals( QT_MAJOR_VERSION, 4 ) {
     CONFIG += plugin uitools designer qwt
     QT += core gui xml network
-    warning( "**** QT4 is getting old. Active QT4 support will cease June 2021. ****" )
+    warning( "**** QT4 is getting old. Active QT4 support has ceased. ****" )
 }
 
 # Qt 5 configuration
