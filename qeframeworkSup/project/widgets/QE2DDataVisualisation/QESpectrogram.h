@@ -98,6 +98,7 @@ public:
 
    // Allows a third party program/plugin to custiomise what is painted
    // on the spectrogram, typically a synthetic overlay.
+   // This supplements rather than replaces the widget's paint functionality.
    //
    typedef void (*CustomisePaintHandlers) (QESpectrogram* spectrogram,
                                            QPainter& painter,
