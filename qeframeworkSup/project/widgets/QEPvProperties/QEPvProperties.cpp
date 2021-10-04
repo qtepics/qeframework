@@ -104,6 +104,7 @@ static void initialiseRecordSpecs ()
    pDefaultRecordSpec->append ("PROC,  \"Force Processing\"");
    pDefaultRecordSpec->append ("STAT,  \"Alarm Status\"");
    pDefaultRecordSpec->append ("SEVR,  \"Alarm Severity\"");
+   pDefaultRecordSpec->append ("AMSG,  \"Alarm Message\"");
    pDefaultRecordSpec->append ("NSTA,  \"New Alarm Status\"");
    pDefaultRecordSpec->append ("NSEV,  \"New Alarm Severity\"");
    pDefaultRecordSpec->append ("ACKS,  \"Alarm Ack Severity\"");
@@ -117,6 +118,7 @@ static void initialiseRecordSpecs ()
    pDefaultRecordSpec->append ("TPRO,  \"Trace Processing\"");
    pDefaultRecordSpec->append ("UDF,   \"Undefined\"");
    pDefaultRecordSpec->append ("UDFS,  \"Undefined Alarm Sevrty\"");
+   pDefaultRecordSpec->append ("UTAG,  \"Time Tag\"");
    pDefaultRecordSpec->append ("FLNK*, \"Forward Process Link\"");
    pDefaultRecordSpec->append ("VAL,   \"Current Value\"");
 
