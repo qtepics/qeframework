@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018 Australian Synchrotron
+ *  Copyright (C) 2018-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -74,12 +74,12 @@ QString QEPvNameUri::encodeUri () const
 
    switch (this->protocol) {
       case ca:
-         result = QString ("ca%1").arg (cds).arg(this->pvName);
+         result = QString ("ca%1%2").arg (cds).arg(this->pvName);
          break;
 
       case pva:
 #ifdef QE_INCLUDE_PV_ACCESS
-         result = QString ("pva%1").arg (cds).arg (this->pvName);
+         result = QString ("pva%1%2").arg (cds).arg (this->pvName);
 #endif
          break;
 

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2020 Australian Synchrotron
+ *  Copyright (c) 2009-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -32,6 +32,7 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
+#include <QEPvNameUri.h>
 #include <QEFrameworkLibraryGlobal.h>
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QCaAlarmInfo
@@ -50,7 +51,8 @@ public:
                           const Severity severity );
 
    // PV update status and severity
-   explicit QCaAlarmInfo( const QString& pvName,
+   explicit QCaAlarmInfo( const QEPvNameUri::Protocol protocol,
+                          const QString& pvName,
                           const Status status,
                           const Severity severity,
                           const QString& message );
@@ -78,35 +80,12 @@ public:
    QString getStyleColorName() const; // Return 'standard' style colour for the alarm state.
    QString getColorName() const;      // Return 'standard' colour for the alarm state.
 
-   static Severity getInvalidSeverity(); // Return a severity that will not match any valid severity
+   static Severity getInvalidSeverity();  // Return a severity that will not match any valid severity
    Severity getSeverity() const;      // Return the current severity
    Status   getStatus() const;        // Return the current status
 
-   // The following fuunctions take or return a QStringList with four elements indexed
-   // by alarm severity, i.e. no alarm, minor, major and invalid.
-   //
-   // NOTE: The following functions are all deprecated, and have been replaced
-   //       by functions out of QCaAlarmInfoColorNamesManager.
-   //
-   Q_DECL_DEPRECATED
-   static void setStyleColorNames( const QStringList& styleColorNames ); // Set prefered style colour names
-
-   Q_DECL_DEPRECATED
-   static QStringList getStyleColorNames();                              // Return prefered style colour names
-
-   Q_DECL_DEPRECATED
-   static void setColorNames( const QStringList& colorNames );           // Set prefered colour names
-
-   Q_DECL_DEPRECATED
-   static QStringList getColorNames();                                   // Return prefered colour names
-
-   Q_DECL_DEPRECATED
-   static QStringList getDefaultStyleColorNames();                       // Return default/standard style colour names
-
-   Q_DECL_DEPRECATED
-   static QStringList getDefaultColorNames();                            // Return default/standard colour names
-
 private:
+   QEPvNameUri::Protocol protocol;      // protocol - if known
    QString  pvName;      // pv/record name
    Status   status;      // Alarm state
    Severity severity;    // Alarm severity
@@ -168,7 +147,8 @@ private:
 
    // Checks if the given name is flagged as out of service.
    //
-   static bool isPvNameDeclaredOos (const QString& pvName);
+   static bool isPvNameDeclaredOos (const QEPvNameUri::Protocol protocol,
+                                    const QString& pvName);
 
    static QStringList OosPvNameList;
 

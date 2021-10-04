@@ -28,6 +28,7 @@
 #include <QApplication>
 #include <QDebug>
 #include <QTimer>
+#include <QEPvNameUri.h>
 #include <QERecordFieldName.h>
 
 #define DEBUG qDebug () << "QECaClient" << __LINE__ << __FUNCTION__ << "  "
@@ -366,9 +367,7 @@ QCaAlarmInfo QECaClient::getAlarmInfo () const
    const QCaAlarmInfo::Status   status   = (QCaAlarmInfo::Status) this->alarmStatus ();
    const QCaAlarmInfo::Severity severity = (QCaAlarmInfo::Severity) this->alarmSeverity ();
 
-   // TODO: Prefix with "ca://" ??
-   //
-   return QCaAlarmInfo (this->getPvName(), status, severity, "");
+   return QCaAlarmInfo (QEPvNameUri::ca, this->getPvName(), status, severity, "");
 }
 
 //------------------------------------------------------------------------------

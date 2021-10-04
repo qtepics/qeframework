@@ -34,6 +34,7 @@
 #include <QMutex>
 
 #include <epicsTime.h>
+#include <QEPvNameUri.h>
 #include <pv/monitor.h>
 #include <pv/pvAccess.h>
 #include <pv/pvData.h>
@@ -1028,9 +1029,7 @@ QCaAlarmInfo QEPvaClient::getAlarmInfo () const
    const QCaAlarmInfo::Status   status   = (QCaAlarmInfo::Status) this->alarm.status;
    const QCaAlarmInfo::Severity severity = (QCaAlarmInfo::Severity) this->alarm.severity;
 
-   // TODO: Prefix with "pva://" ??
-   //
-   return QCaAlarmInfo (this->getPvName(), status, severity, this->alarm.message);
+   return QCaAlarmInfo (QEPvNameUri::pva, this->getPvName(), status, severity, this->alarm.message);
 }
 
 //------------------------------------------------------------------------------

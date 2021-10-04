@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2020 Australian Synchrotron
+ *  Copyright (c) 2009-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,10 +18,11 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Author:
- *    Andrew Rhyder
- *  Contact details:
- *    andrew.rhyder@synchrotron.org.au
+ *  Original author: Andrew Rhyder
+ *  Maintained by:   Andrew Starritt
+ *
+ *  Contact details: andrews@ansto.gov.au
+ *  800 Blackburn Road, Clayton, Victoria 3168, Australia.
  */
 
 // Alarm info manager
@@ -38,7 +39,7 @@
 
 #define DEBUG  qDebug () << "QCaAlarmInfo" << __LINE__ << __FUNCTION__ << "  "
 
-// Quazi severity (set to more more than 3, i.e. INVALID)
+// Quazi OOS severity (set to more more than 3, i.e. INVALID)
 //
 static const QCaAlarmInfo::Severity OOS_ALARM = 4;
 static const int NUMBER_SEVERITIES = 5;
@@ -90,59 +91,13 @@ QStringList programColorNames [2] = {
 QStringList styleColorNames = defaultStyleColorNames;
 QStringList colorNames = defaultColorNames;
 
-
-//------------------------------------------------------------------------------
-// Update/extract current style names.
-// deprecated
-void QCaAlarmInfo::setStyleColorNames (const QStringList& styleColorNamesIn)
-{
-   QCaAlarmInfoColorNamesManager::setStyleColorNames (QCaAlarmInfoColorNamesManager::cnkOverride, styleColorNamesIn);
-}
-
-//------------------------------------------------------------------------------
-// deprecated
-QStringList QCaAlarmInfo::getStyleColorNames ()
-{
-   return QCaAlarmInfoColorNamesManager::getStyleColorNames (QCaAlarmInfoColorNamesManager::cnkOverride);
-}
-
-//------------------------------------------------------------------------------
-// Update/extract current color names.
-// deprecated
-void QCaAlarmInfo::setColorNames (const QStringList& colorNamesIn)
-{
-   QCaAlarmInfoColorNamesManager::setColorNames (QCaAlarmInfoColorNamesManager::cnkOverride, colorNamesIn);
-}
-
-//------------------------------------------------------------------------------
-// deprecated
-QStringList QCaAlarmInfo::getColorNames ()
-{
-   return QCaAlarmInfoColorNamesManager::getColorNames (QCaAlarmInfoColorNamesManager::cnkOverride);
-}
-
-//------------------------------------------------------------------------------
-// Extract constant default color style names.
-// deprecated
-QStringList QCaAlarmInfo::getDefaultStyleColorNames ()
-{
-   return QCaAlarmInfoColorNamesManager::getDefaultStyleColorNames ();
-}
-
-//------------------------------------------------------------------------------
-// Extract constant default color names.
-// deprecated
-QStringList QCaAlarmInfo::getDefaultColorNames ()
-{
-   return QCaAlarmInfoColorNamesManager::getDefaultColorNames ();
-}
-
 //------------------------------------------------------------------------------
 // Construct an empty instance.
 // By default there is no alarm present.
 //
 QCaAlarmInfo::QCaAlarmInfo ()
 {
+   this->protocol = QEPvNameUri::undefined;
    this->pvName = "";
    this->status = NO_ALARM;
    this->severity = NO_ALARM;
@@ -155,6 +110,7 @@ QCaAlarmInfo::QCaAlarmInfo ()
 QCaAlarmInfo::QCaAlarmInfo (const Status statusIn,
                             const Severity severityIn)
 {
+   this->protocol = QEPvNameUri::undefined;
    this->pvName = "";
    this->status = statusIn;
    this->severity = severityIn;
@@ -165,11 +121,13 @@ QCaAlarmInfo::QCaAlarmInfo (const Status statusIn,
 // Construct an instance given an alarm state and severity together with
 // pvName and mesage (PVA only).
 //
-QCaAlarmInfo::QCaAlarmInfo (const QString& pvNameIn,
+QCaAlarmInfo::QCaAlarmInfo (const QEPvNameUri::Protocol protocolIn,
+                            const QString& pvNameIn,
                             const Status statusIn,
                             const Severity severityIn,
                             const QString & messageIn)
 {
+   this->protocol = protocolIn;
    this->pvName = pvNameIn;
    this->status = statusIn;
    this->severity = severityIn;
@@ -275,7 +233,7 @@ bool QCaAlarmInfo::isInvalid () const
 //
 bool QCaAlarmInfo::isOutOfService() const
 {
-   return QCaAlarmInfoColorNamesManager::isPvNameDeclaredOos (this->pvName);
+   return QCaAlarmInfoColorNamesManager::isPvNameDeclaredOos (this->protocol, this->pvName);
 }
 
 //------------------------------------------------------------------------------
@@ -312,9 +270,13 @@ QString QCaAlarmInfo::style () const
 QString QCaAlarmInfo::getStyleColorName () const
 {
    Severity pvSeverity = this->severity;
-   if (QCaAlarmInfoColorNamesManager::isPvNameDeclaredOos(this->pvName)) {
+
+   bool isOos;
+   isOos = QCaAlarmInfoColorNamesManager::isPvNameDeclaredOos (this->protocol, this->pvName);
+   if (isOos) {
       pvSeverity = OOS_ALARM;
    }
+
    return styleColorNames.value (int (pvSeverity), "#ffffff");
 }
 
@@ -324,9 +286,13 @@ QString QCaAlarmInfo::getStyleColorName () const
 QString QCaAlarmInfo::getColorName () const
 {
    Severity pvSeverity = this->severity;
-   if (QCaAlarmInfoColorNamesManager::isPvNameDeclaredOos(this->pvName)) {
+
+   bool isOos;
+   isOos = QCaAlarmInfoColorNamesManager::isPvNameDeclaredOos (this->protocol, this->pvName);
+   if (isOos) {
       pvSeverity = OOS_ALARM;
    }
+
    return colorNames.value (int (pvSeverity), "#ffffff");
 }
 
@@ -489,16 +455,64 @@ void QCaAlarmInfoColorNamesManager::clearOosPvNameList ()
 
 //------------------------------------------------------------------------------
 // static
-bool QCaAlarmInfoColorNamesManager::isPvNameDeclaredOos (const QString& pvName)
+bool QCaAlarmInfoColorNamesManager::isPvNameDeclaredOos (const QEPvNameUri::Protocol protocol,
+                                                         const QString& pvName)
 {
-   bool result;
-   // TODO: Think about the protocol qualifier - currently absent
-   //       Think about .VAL vs. no field specified
-   //       What about allowing regular expressions.
+   // TODO: What about allowing regular expressions.
    //
-   result = !pvName.isEmpty() &&
-            QCaAlarmInfoColorNamesManager::OosPvNameList.contains(pvName);
-   return result;
+   // Do simple cases first
+   //
+   if (pvName.isEmpty())
+      return false;
+
+   if (OosPvNameList.contains (pvName))
+      return true;
+
+   QString effectivePvName = pvName;
+
+   // The PV 'as is' is not in the OosPvNameList
+   // If user has specified XXXXXX.VAL, check if XXXXXX is specfied.
+   // Similarly, if user specfied YYYYYY, check if YYYYYY.VAL is specfied.
+   //
+   // Note: This is similar to what the archiver interface does.
+   //
+   if (effectivePvName.right (4) == ".VAL") {
+      // Remove the .VAL field and try again.
+      //
+      effectivePvName.chop (4);
+   } else {
+      // Add .VAL and try again.
+      // This might now be name.FIELD.VAL but won't exist
+      //
+      effectivePvName.append (".VAL");
+   }
+
+   if (OosPvNameList.contains (effectivePvName))
+      return true;
+
+   // Check if PV name with an explict protocol has been defined.
+   //
+   QEPvNameUri uri = QEPvNameUri (pvName, protocol);
+   effectivePvName = uri.encodeUri ();
+
+   if (effectivePvName.isEmpty())
+      return false;
+
+   if (OosPvNameList.contains (effectivePvName))
+      return true;
+
+   // And again add/remove .VAL and try again
+   //
+   if (effectivePvName.right (4) == ".VAL") {
+      effectivePvName.chop (4);
+   } else {
+      effectivePvName.append (".VAL");
+   }
+
+   if (OosPvNameList.contains (effectivePvName))
+      return true;
+
+   return false;
 }
 
 //------------------------------------------------------------------------------
