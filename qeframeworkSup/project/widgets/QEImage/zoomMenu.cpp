@@ -1,5 +1,9 @@
-/*
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+/*  zoomMenu.cpp
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -13,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -48,7 +50,7 @@ zoomMenu::zoomMenu( QWidget *parent) : QMenu(parent)
     a = new QAction( "300%", this ); a->setData( imageContextMenu::ICM_ZOOM_300   ); addAction( a );
     a = new QAction( "400%", this ); a->setData( imageContextMenu::ICM_ZOOM_400   ); addAction( a );
 
-    setTitle( "Zoom" );
+    setTitle( "Local Zoom" );
 }
 
 // Get a zoom factor from the user.
@@ -70,3 +72,5 @@ void zoomMenu::enableAreaSelected( bool enable )
 {
     areaSelectedAction->setEnabled( enable );
 }
+
+// end

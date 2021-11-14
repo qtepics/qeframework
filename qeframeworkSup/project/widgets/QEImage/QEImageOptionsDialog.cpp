@@ -1,6 +1,9 @@
 /*  QEImageOptionsDialog.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -29,6 +30,9 @@
 
 #include "QEImageOptionsDialog.h"
 #include "ui_QEImageOptionsDialog.h"
+#include <QDebug>
+
+#define DEBUG qDebug () << "QEImageOptionsDialog" << __LINE__ << __FUNCTION__  << "  "
 
 QEImageOptionsDialog::QEImageOptionsDialog(QWidget *parent) :
     QEDialog(parent),
@@ -44,6 +48,7 @@ void QEImageOptionsDialog::initialise()
 {
     // Initial default settings
     optionSet( imageContextMenu::ICM_ENABLE_TIME,                 false );
+    optionSet( imageContextMenu::ICM_ENABLE_FALSE_COLOUR,         false );
     optionSet( imageContextMenu::ICM_ENABLE_CURSOR_PIXEL,         false );
     optionSet( imageContextMenu::ICM_ENABLE_HOZ1,                 false );
     optionSet( imageContextMenu::ICM_ENABLE_HOZ2,                 false );
@@ -79,6 +84,7 @@ void QEImageOptionsDialog::optionSet( imageContextMenu::imageContextMenuOptions 
     switch( option )
     {
         case imageContextMenu::ICM_ENABLE_TIME:                 ui->checkBoxTime              ->setChecked( checked ); break;
+        case imageContextMenu::ICM_ENABLE_FALSE_COLOUR:         ui->checkBoxFalseColour       ->setChecked( checked ); break;
         case imageContextMenu::ICM_ENABLE_CURSOR_PIXEL:         ui->checkBoxInfo              ->setChecked( checked ); break;
         case imageContextMenu::ICM_ENABLE_HOZ1:                 ui->checkBoxHorizontalProfile1->setChecked( checked ); break;
         case imageContextMenu::ICM_ENABLE_HOZ2:                 ui->checkBoxHorizontalProfile2->setChecked( checked ); break;
@@ -117,6 +123,7 @@ bool QEImageOptionsDialog::optionGet( imageContextMenu::imageContextMenuOptions 
     switch( option )
     {
         case imageContextMenu::ICM_ENABLE_TIME:                 return ui->checkBoxTime              ->isChecked();
+        case imageContextMenu::ICM_ENABLE_FALSE_COLOUR:         return ui->checkBoxFalseColour       ->isChecked();
         case imageContextMenu::ICM_ENABLE_CURSOR_PIXEL:         return ui->checkBoxInfo              ->isChecked();
         case imageContextMenu::ICM_ENABLE_HOZ1:                 return ui->checkBoxHorizontalProfile1->isChecked();
         case imageContextMenu::ICM_ENABLE_HOZ2:                 return ui->checkBoxHorizontalProfile2->isChecked();
@@ -161,6 +168,7 @@ void QEImageOptionsDialog::on_checkBoxButtonBar_clicked         (bool checked) {
 void QEImageOptionsDialog::on_checkBoxBrightnessContrast_clicked(bool checked) { emit optionChange( imageContextMenu::ICM_DISPLAY_IMAGE_DISPLAY_PROPERTIES, checked ); }
 void QEImageOptionsDialog::on_checkBoxRecorder_clicked          (bool checked) { emit optionChange( imageContextMenu::ICM_DISPLAY_RECORDER,                 checked ); }
 void QEImageOptionsDialog::on_checkBoxTime_clicked              (bool checked) { emit optionChange( imageContextMenu::ICM_ENABLE_TIME,                      checked ); }
+void QEImageOptionsDialog::on_checkBoxFalseColour_clicked       (bool checked) { emit optionChange( imageContextMenu::ICM_ENABLE_FALSE_COLOUR,              checked ); }
 void QEImageOptionsDialog::on_checkBoxInfo_clicked              (bool checked) { emit optionChange( imageContextMenu::ICM_ENABLE_CURSOR_PIXEL,              checked ); }
 void QEImageOptionsDialog::on_checkBoxArea1Selection_clicked    (bool checked) { emit optionChange( imageContextMenu::ICM_ENABLE_AREA1,                     checked ); }
 void QEImageOptionsDialog::on_checkBoxArea2Selection_clicked    (bool checked) { emit optionChange( imageContextMenu::ICM_ENABLE_AREA2,                     checked ); }
@@ -168,3 +176,5 @@ void QEImageOptionsDialog::on_checkBoxArea3Selection_clicked    (bool checked) {
 void QEImageOptionsDialog::on_checkBoxArea4Selection_clicked    (bool checked) { emit optionChange( imageContextMenu::ICM_ENABLE_AREA4,                     checked ); }
 void QEImageOptionsDialog::on_checkBoxTarget_clicked            (bool checked) { emit optionChange( imageContextMenu::ICM_ENABLE_TARGET,                    checked ); }
 void QEImageOptionsDialog::on_checkBoxBeam_clicked              (bool checked) { emit optionChange( imageContextMenu::ICM_ENABLE_BEAM,                      checked ); }
+
+// end

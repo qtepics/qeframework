@@ -1,6 +1,9 @@
 /*  QEImageOptionsDialog.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -27,8 +28,8 @@
  This class manages option selection for the QEImage widget
  */
 
-#ifndef QEIMAGEOPTIONSDIALOG_H
-#define QEIMAGEOPTIONSDIALOG_H
+#ifndef QE_IMAGE_OPTIONS_DIALOG_H
+#define QE_IMAGE_OPTIONS_DIALOG_H
 
 #include <QEDialog.h>
 #include <imageContextMenu.h>
@@ -62,6 +63,7 @@ private slots:
     void on_checkBoxBeam_clicked(bool checked);
     void on_checkBoxInfo_clicked(bool checked);
     void on_checkBoxTime_clicked(bool checked);
+    void on_checkBoxFalseColour_clicked(bool checked);
     void on_checkBoxBrightnessContrast_clicked(bool checked);
     void on_checkBoxRecorder_clicked(bool checked);
     void on_checkBoxButtonBar_clicked(bool checked);
@@ -79,7 +81,6 @@ private slots:
 
 signals:
     void optionChange( imageContextMenu::imageContextMenuOptions option, bool checked );    // Emitted when an option changed
-
 };
 
-#endif // QEIMAGEOPTIONSDIALOG_H
+#endif // QE_IMAGE_OPTIONS_DIALOG_H

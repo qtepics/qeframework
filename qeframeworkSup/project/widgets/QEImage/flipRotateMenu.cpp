@@ -1,5 +1,9 @@
-/*
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+/*  flipRotateMenu.cpp
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -13,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -40,14 +42,14 @@ flipRotateMenu::flipRotateMenu( QWidget *parent) : QMenu(parent)
     addAction( ACTION );
 
     // Create the buttons
-    NEW_FLIP_ROTATE_MENU_BUTTON( "Rotate 90 Clockwise",     ICM_ROTATE_RIGHT,    rotation90RAction )
-    NEW_FLIP_ROTATE_MENU_BUTTON( "Rotate 90 Anticlockwise", ICM_ROTATE_LEFT,     rotation90LAction )
-    NEW_FLIP_ROTATE_MENU_BUTTON( "Rotate 180",              ICM_ROTATE_180,      rotation180Action )
-    NEW_FLIP_ROTATE_MENU_BUTTON( "Flip Horizontal",         ICM_FLIP_HORIZONTAL, flipHAction )
-    NEW_FLIP_ROTATE_MENU_BUTTON( "Flip Vertical",           ICM_FLIP_VERTICAL,   flipVAction )
+    NEW_FLIP_ROTATE_MENU_BUTTON( "Local Rotate 90 Clockwise",     ICM_ROTATE_RIGHT,    rotation90RAction )
+    NEW_FLIP_ROTATE_MENU_BUTTON( "Local Rotate 90 Anticlockwise", ICM_ROTATE_LEFT,     rotation90LAction )
+    NEW_FLIP_ROTATE_MENU_BUTTON( "Local Rotate 180",              ICM_ROTATE_180,      rotation180Action )
+    NEW_FLIP_ROTATE_MENU_BUTTON( "Local Flip Horizontal",         ICM_FLIP_HORIZONTAL, flipHAction )
+    NEW_FLIP_ROTATE_MENU_BUTTON( "Local Flip Vertical",           ICM_FLIP_VERTICAL,   flipVAction )
 
     // Set the title
-    setTitle( "Flip / Rotate" );
+    setTitle( "Local Flip / Rotate" );
 }
 
 // Get a flip/rotate option from the user.
@@ -79,3 +81,5 @@ void flipRotateMenu::setChecked( const int rotation, const bool flipH, const boo
     flipHAction->setChecked( flipH );
     flipVAction->setChecked( flipV );
 }
+
+// end

@@ -1,5 +1,9 @@
-/*
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+/*  imageContextMenu.h
+ * 
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -29,8 +31,8 @@
  A function is available to present the menu to the user and return a user selection
  */
 
-#ifndef IMAGECONTEXTMENU_H
-#define IMAGECONTEXTMENU_H
+#ifndef QE_IMAGE_CONTEXT_MENU_H
+#define QE_IMAGE_CONTEXT_MENU_H
 
 #include <contextMenu.h>
 #include <QMenu>
@@ -49,6 +51,7 @@ public:
                                   ICM_SAVE,
                                   ICM_PAUSE,
                                   ICM_ENABLE_TIME,
+                                  ICM_ENABLE_FALSE_COLOUR,
                                   ICM_ENABLE_CURSOR_PIXEL,
                                   ICM_ABOUT_IMAGE,
                                   ICM_ENABLE_VERT1,
@@ -133,7 +136,8 @@ public:
                                   ICM_DISPLAY_BEAM,
                                   ICM_DISPLAY_TIMESTAMP,
                                   ICM_DISPLAY_ELLIPSE,
-                                  ICM_OPTIONS
+                                  ICM_OPTIONS,
+                                  ICM_LOCAL_CONTROL
                                 };
 
     // Present the context menu, and return whatever the user selects
@@ -151,4 +155,4 @@ private:
     void addMenuItemGeneric( QMenu* menu, const QString& title, const bool checkable, const bool checked, const imageContextMenuOptions option );
 };
 
-#endif // IMAGECONTEXTMENU_H
+#endif // QE_IMAGE_CONTEXT_MENU_H

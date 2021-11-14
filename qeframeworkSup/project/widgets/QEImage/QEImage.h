@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2020 Australian Synchrotron
+ *  Copyright (c) 2012-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -248,11 +248,15 @@ public:
     void setDisplayButtonBar( bool displayButtonBarIn );                ///< Access function for #displayButtonBar property - refer to #displayButtonBar property for details
     bool getDisplayButtonBar();                                         ///< Access function for #displayButtonBar property - refer to #displayButtonBar property for details
 
-    void setShowTime(bool pValue);                                      ///< Access function for #showTime property - refer to #showTime property for details
-    bool getShowTime();                                                 ///< Access function for #showTime property - refer to #showTime property for details
+public slots:
+    void setShowTime(const bool pValue);                                ///< Access function for #showTime property - refer to #showTime property for details
+public:
+    bool getShowTime() const;                                           ///< Access function for #showTime property - refer to #showTime property for details
 
-    void setUseFalseColour(bool pValue);                                ///< Access function for #useFalseColour property - refer to #useFalseColour property for details
-    bool getUseFalseColour();                                           ///< Access function for #useFalseColour property - refer to #useFalseColour property for details
+public slots:
+    void setUseFalseColour(const bool pValue);                           ///< Access function for #useFalseColour property - refer to #useFalseColour property for details
+public:
+    bool getUseFalseColour() const;                                      ///< Access function for #useFalseColour property - refer to #useFalseColour property for details
 
     void setVertSlice1MarkupColor(QColor pValue);                        ///< Access function for #vertSliceColor property - refer to #vertSliceColor property for details
     QColor getVertSlice1MarkupColor();                                   ///< Access function for #vertSliceColor property - refer to #vertSliceColor property for details

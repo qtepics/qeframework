@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2020 Australian Synchrotron
+ *  Copyright (c) 2012-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -355,7 +355,7 @@ void QEImage::setup()
     flipRotateButton->setMinimumWidth( buttonMenuWidth );
     QIcon flipRotateButtonIcon( ":/qe/image/flipRotate.png" );
     flipRotateButton->setIcon( flipRotateButtonIcon );
-    flipRotateButton->setToolTip("Flip and rotate options");
+    flipRotateButton->setToolTip("Local flip and rotate options");
     flipRotateButton->setMenu( frMenu );
 
 
@@ -3150,25 +3150,25 @@ int QEImage::getInitialVertScrollPos()
 }
 
 // Show time
-void QEImage::setShowTime(bool value)
+void QEImage::setShowTime(const bool value)
 {
     optionsDialog->optionSet( imageContextMenu::ICM_ENABLE_TIME, value );
 }
 
-bool QEImage::getShowTime()
+bool QEImage::getShowTime() const
 {
     return optionsDialog->optionGet( imageContextMenu::ICM_ENABLE_TIME );
 }
 
 // Use False Colour
-void QEImage::setUseFalseColour(bool value)
+void QEImage::setUseFalseColour(const bool value)
 {
-    imageDisplayProps->setFalseColour( value );
+    optionsDialog->optionSet( imageContextMenu::ICM_ENABLE_FALSE_COLOUR, value );
 }
 
-bool QEImage::getUseFalseColour()
+bool QEImage::getUseFalseColour() const
 {
-    return imageDisplayProps->getFalseColour();
+   return optionsDialog->optionGet( imageContextMenu::ICM_ENABLE_FALSE_COLOUR );
 }
 
 // Vertical slice 1 markup colour
@@ -5135,6 +5135,10 @@ void QEImage::showImageContextMenuCommon( const QPoint& pos, const QPoint& globa
 
         // Add the Selection menu
         cm->addSeparator();
+
+        // Does nothing - more of a title than anything.
+        addMenuItem( cm,      "Local Controls",              false,     false,                      imageContextMenu::ICM_LOCAL_CONTROL                     );
+
         sMenu->setChecked( getSelectionOption() );
         cm->addMenu( sMenu );
         cm->addMenu( mdMenu );
@@ -5142,8 +5146,8 @@ void QEImage::showImageContextMenuCommon( const QPoint& pos, const QPoint& globa
         // Add menu items
 
         //                    Title                            checkable  checked                     option
-        addMenuItem( cm,      "Save...",                       false,     false,                      imageContextMenu::ICM_SAVE                     );
-        addMenuItem( cm,      paused?"Resume":"Pause",         true,      paused,                     imageContextMenu::ICM_PAUSE                    );
+        addMenuItem( cm,      "Local Save...",                 false,     false,                      imageContextMenu::ICM_SAVE                     );
+        addMenuItem( cm,      paused?"Local Resume":"Local Pause", true,  paused,                     imageContextMenu::ICM_PAUSE                    );
 
         addMenuItem( cm,      "About image...",                false,     false,                      imageContextMenu::ICM_ABOUT_IMAGE              );
 
@@ -5200,7 +5204,8 @@ void QEImage::optionAction( imageContextMenu::imageContextMenuOptions option, bo
         case imageContextMenu::ICM_PAUSE:                            pauseClicked();                            break;
         case imageContextMenu::ICM_ENABLE_CURSOR_PIXEL:              showInfo                  ( checked );     break;
         case imageContextMenu::ICM_ABOUT_IMAGE:                      showImageAboutDialog();                    break;
-        case imageContextMenu::ICM_ENABLE_TIME:                      videoWidget->setShowTime  ( checked );     break;
+        case imageContextMenu::ICM_ENABLE_TIME:                      videoWidget->setShowTime   ( checked );    break;
+        case imageContextMenu::ICM_ENABLE_FALSE_COLOUR:              imageDisplayProps->setFalseColour( checked ); break;
         case imageContextMenu::ICM_ENABLE_VERT1:                     doEnableVertSlice1Selection( checked );    break;
         case imageContextMenu::ICM_ENABLE_VERT2:                     doEnableVertSlice2Selection( checked );    break;
         case imageContextMenu::ICM_ENABLE_VERT3:                     doEnableVertSlice3Selection( checked );    break;
@@ -5457,7 +5462,7 @@ void QEImage::actionRequest( QString action, QStringList /*arguments*/, bool ini
         }
     }
 
-    // Pause button
+    // Local pause button
     else if( action == "Pause")
     {
         if( initialise )
