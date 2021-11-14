@@ -1203,25 +1203,25 @@ QMenu* QEAbstract2DData::buildContextMenu ()
 
    menu->addSeparator ();
 
-   action = new QAction ("No Rotation", menu);
+   action = new QAction ("No Local Rotation", menu);
    action->setCheckable (true);
    action->setChecked (this->getRotation() == NoRotation);
    action->setData (A2DDCM_NO_ROTATION);
    menu->addAction (action);
 
-   action = new QAction ("Rotate 90 Right", menu);
+   action = new QAction ("Local Rotate 90 Right", menu);
    action->setCheckable (true);
    action->setChecked (this->getRotation() == Rotate90Right);
    action->setData (A2DDCM_ROTATE_90_RIGHT);
    menu->addAction (action);
 
-   action = new QAction ("Rotate 180", menu);
+   action = new QAction ("Local Rotate 180", menu);
    action->setCheckable (true);
    action->setChecked (this->getRotation() == Rotate180);
    action->setData (A2DDCM_ROTATE_180);
    menu->addAction (action);
 
-   action = new QAction ("Rotate 90 Left", menu);
+   action = new QAction ("Local Rotate 90 Left", menu);
    action->setCheckable (true);
    action->setChecked (this->getRotation() == Rotate90Left);
    action->setData (A2DDCM_ROTATE_90_LEFT);
@@ -1229,13 +1229,13 @@ QMenu* QEAbstract2DData::buildContextMenu ()
 
    menu->addSeparator ();
 
-   action = new QAction ("Vertical Flip (about horizontal axis)", menu);
+   action = new QAction ("Local Vertical Flip (about horizontal axis)", menu);
    action->setCheckable (true);
    action->setChecked (this->getVerticalFlip());
    action->setData (A2DDCM_VERTICAL_FLIP);
    menu->addAction (action);
 
-   action = new QAction ("Horizontal Flip (about vertical axis)", menu);
+   action = new QAction ("Local Horizontal Flip (about vertical axis)", menu);
    action->setCheckable (true);
    action->setChecked (this->getHorizontalFlip());
    action->setData (A2DDCM_HORIZONTAL_FLIP);
