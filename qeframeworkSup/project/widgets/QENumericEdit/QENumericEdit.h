@@ -151,7 +151,7 @@ public:
    ///
    Q_PROPERTY (double maximum          READ getMaximum          WRITE setMaximum)
 
-   /// If true (default), add engineering units supplied with the data.
+   /// If true (default is false), add engineering units supplied with the data.
    ///
    Q_PROPERTY (bool addUnits           READ getAddUnits         WRITE setAddUnits)
 

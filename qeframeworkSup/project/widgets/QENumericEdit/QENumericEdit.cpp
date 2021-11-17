@@ -123,7 +123,7 @@ void QENumericEdit::commonSetup ()
 
    // Set default property values
    //
-   this->addUnits = true;
+   this->addUnits = false;
    this->useApplyButton = false;
    this->writeOnLoseFocus = false;
    this->writeOnEnter = true;
