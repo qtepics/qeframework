@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2019  Australian Synchrotron.
+ *  Copyright (c) 2014-2021  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -81,9 +81,15 @@ QERadioGroup::~QERadioGroup() { }
 //
 void QERadioGroup::commonSetup (const QString& title)
 {
+   this->setMinimumSize (16, 16);   // start small - let designer set larger.
+
    // Create internal widget.
    //
    this->internalWidget = new QRadioGroup (this);
+
+   // Overall minumum size set by this widget, not the internal widget
+   //
+   this->internalWidget->setMinimumSize (0, 0);
 
    // Copy actual widget size policy to the containing widget, then ensure
    // internal widget will expand to fill container widget.
@@ -113,8 +119,6 @@ void QERadioGroup::commonSetup (const QString& title)
    // Title managed as second variable.
    //
    this->setVariableName (title, TITLE_VARIABLE_INDEX);
-
-   this->setMinimumSize (120, 40);
 
    // Set up default properties
    //
@@ -158,7 +162,7 @@ void QERadioGroup::commonSetup (const QString& title)
 //
 QSize QERadioGroup::sizeHint () const
 {
-   return QSize (200, 80);
+   return QSize (140, 40);
 }
 
 //---------------------------------------------------------------------------------

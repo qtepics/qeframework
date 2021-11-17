@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2019 Australian Synchrotron
+ *  Copyright (c) 2014-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -56,7 +56,7 @@ QRadioGroup::QRadioGroup (const QString& title, QWidget* parent) :
 //
 void QRadioGroup::commonSetup (const QString& title)
 {
-   this->setMinimumSize (120, 40);
+   this->setMinimumSize (16, 16);   // start small - let designer set larger.
 
    // Set up default properties
    //
@@ -98,7 +98,7 @@ void QRadioGroup::commonSetup (const QString& title)
 //
 QSize QRadioGroup::sizeHint () const
 {
-   return QSize (200, 80);
+   return QSize (140, 40);
 }
 
 //---------------------------------------------------------------------------------
@@ -189,7 +189,6 @@ void QRadioGroup::reCreateAllButtons ()
    //
    for (j = 0; j < this->getMaximumButtons (); j++) {
       button = this->createButton (this);
-      button->setGeometry (-40, -40, 20, 20);
       button->setVisible (false);
 
       QObject::connect (button, SIGNAL (clicked (bool)),
