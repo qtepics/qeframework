@@ -1,6 +1,9 @@
 /*  QESubstitutedLabel.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009,2010,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -78,6 +79,12 @@ public:
     //       to manage text displayed in the label.
     //       If you are reading this because you searched for SINGLEVARIABLEPROPERTIES, this section is not the standard set normally
     //       used for all widgets with a single variable, but some changes may be needed here as well
+
+    // Make the text proerty non-designable. This both hides the text property within
+    // designer and stops the text value from being written to the .ui file.
+    // And stop users accidentally setting wrong propery.
+    //
+    Q_PROPERTY(QString text READ text WRITE setText DESIGNABLE false)
 
     /// Label text to be substituted.
     /// This text will be copied to the label text after applying any macro substitutions from the textSubstitutions property
