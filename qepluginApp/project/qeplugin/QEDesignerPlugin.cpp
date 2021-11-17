@@ -75,6 +75,7 @@ QEWidgets::QEWidgets(QObject *parent) : QObject(parent) {
     widgets.append(new QEScalarHistogramManager(this));
     widgets.append(new QEScratchPadManager(this));
     widgets.append(new QEScriptManager(this));
+    widgets.append(new QESelectorManager(this));
     widgets.append(new QEShapeManager(this));
     widgets.append(new QESimpleShapeManager(this));
     widgets.append(new QESliderManager(this));

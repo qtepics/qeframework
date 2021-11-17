@@ -88,6 +88,7 @@
 #include <QESubstitutedLabel.h>
 #include <QETable.h>
 #include <QENTTable.h>
+#include <QESelector.h>
 #include <QESpectrogram.h>
 #include <QESurface.h>
 #include <QEWaterfall.h>
@@ -158,6 +159,7 @@ QE_IMPLEMENT_PLUGIN_MANAGER (QESubstitutedLabel,  QESUPPORT,  ":/qe/plugin/QESub
 QE_IMPLEMENT_PLUGIN_MANAGER (QETable,             QEMONITOR,  ":/qe/plugin/QETable.png",             false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QENTTable,           QEMONITOR,  ":/qe/plugin/QENTTable.png",           false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QESpectrogram,       QEMONITOR,  ":/qe/plugin/QESpectrogram.png",       false)
+QE_IMPLEMENT_PLUGIN_MANAGER (QESelector,          QECONTROL,  ":/qe/plugin/QESelector.png",          false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QESurface,           QEMONITOR,  ":/qe/plugin/QESurface.png",           false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEWaterfall,         QEMONITOR,  ":/qe/plugin/QEWaterfall.png",         false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEArchiveNameSearch, QEARCHIVE,  ":/qe/plugin/QEArchiveNameSearch.png", false)

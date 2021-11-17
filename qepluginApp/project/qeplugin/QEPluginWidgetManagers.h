@@ -642,6 +642,16 @@ class QEPLUGINLIBRARYSHARED_EXPORT QENTTableManager :
 
 //------------------------------------------------------------------------------
 //
+class QEPLUGINLIBRARYSHARED_EXPORT QESelectorManager :
+      public QObject, public QDesignerCustomWidgetInterface
+{
+   Q_OBJECT
+   Q_INTERFACES (QDesignerCustomWidgetInterface)
+   QE_DECLARE_PLUGIN_MANAGER (QESelector)
+};
+
+//------------------------------------------------------------------------------
+//
 class QEPLUGINLIBRARYSHARED_EXPORT QESpectrogramManager :
       public QObject, public QDesignerCustomWidgetInterface
 {

@@ -89,6 +89,7 @@ OTHER_FILES += qeplugin/QEResizeableFrame.png
 OTHER_FILES += qeplugin/QEScalarHistogram.png
 OTHER_FILES += qeplugin/QEScratchPad.png
 OTHER_FILES += qeplugin/QEScript.png
+OTHER_FILES += qeplugin/QESelector.png
 OTHER_FILES += qeplugin/QEShape.png
 OTHER_FILES += qeplugin/QESimpleShape.png
 OTHER_FILES += qeplugin/QESlider.png
