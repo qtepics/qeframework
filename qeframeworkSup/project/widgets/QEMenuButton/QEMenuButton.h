@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2019 Australian Synchrotron
+ *  Copyright (c) 2015-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -64,17 +64,18 @@ public:
 
    // start of QEMenuButton specific properties.
    //
-   /// Default macro substitutions. The default is no substitutions. The format is NAME1=VALUE1[,] NAME2=VALUE2...
+   /// Default macro substitutions. The default is no substitutions.
+   /// The format is NAME1=VALUE1[,] NAME2=VALUE2...
    /// Values may be quoted strings. For example, 'PUMP=PMP3, NAME = "My Pump"'
    /// These substitutions are applied to progran names and arguments etc.
-   //  Unlike most widgets we skip the property manager and associated 1 second delay
-   //  here as such changes do not cause numerous channel connections.
+   //  Unlike most widgets we skip the property manager and associated 1 second
+   //  delay here as such changes do not cause numerous channel connections.
    //
-   Q_PROPERTY (QString defaultSubstitutions READ getSubstitutionsProperty WRITE setSubstitutionsProperty)
+   Q_PROPERTY (QString defaultSubstitutions READ  getSubstitutionsProperty
+                                            WRITE setSubstitutionsProperty)
 
-   /// Label Text
-   // TODO - rebadge to text
-   Q_PROPERTY (QString labelText READ getLabelTextProperty WRITE setLabelTextProperty)
+   /// Button label text.
+   Q_PROPERTY (QString labelText READ getButtonTextProperty WRITE setButtonTextProperty)
 
    ///
    Q_PROPERTY (QIcon icon     READ getIcon WRITE setIcon)
@@ -99,8 +100,8 @@ public:
    // Note: currently, any substitutions apply to the menu items only, not
    // the button text.
    //
-   void setLabelTextProperty (const QString& labelText);
-   QString getLabelTextProperty () const;
+   void setButtonTextProperty (const QString& buttonText);
+   QString getButtonTextProperty () const;
 
    void setIcon (const QIcon& icon);
    QIcon getIcon () const;
@@ -126,6 +127,7 @@ protected:
 private:
    QPushButton* button;    // internal menu button widget
    QHBoxLayout* layout;    // holds the button widget - any layout type will do
+   QString buttonText;     // fixed un-subsitituted text.
 
    void resetMenuString ();
    void writeToVariable (qcaobject::QCaObject* qca);

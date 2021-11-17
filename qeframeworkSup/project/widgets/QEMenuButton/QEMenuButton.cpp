@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2019 Australian Synchrotron
+ *  Copyright (c) 2015-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,7 @@
 #include <QEMenuButtonData.h>
 #include <QEMenuButtonModel.h>
 
-#define DEBUG  qDebug () << "QEMenuButton" << __LINE__ << __FUNCTION__ << " "
+#define DEBUG  qDebug () << "QEMenuButton" << __LINE__ << __FUNCTION__ << "  "
 
 #define ACTION_DATA  "QE_MENU_BUTTON_ACTION_DATA"
 
@@ -59,7 +59,7 @@ QEMenuButton::QEMenuButton (QWidget* parent) : QEAbstractWidget (parent)
    this->setVariableAsToolTip (false);
    this->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_NEVER);
 
-   this->setLabelTextProperty ("MenuButton");
+   this->setButtonTextProperty ("MenuButton");
    this->button->setFont (this->font ());
 
    // Null menu specification.
@@ -68,7 +68,12 @@ QEMenuButton::QEMenuButton (QWidget* parent) : QEAbstractWidget (parent)
 
    // There are no variables per se, but we do use subsitutions.
    //
-   this->setNumVariables (0);
+   // Set up the number of variables managed by the variable name manager
+   // NOTE: there is no data associated with this widget, but it uses the same
+   // substitution mechanism as other data widgets.
+   // This is used for the menu button text.
+   //
+   this->variableNameManagerInitialise (0);
 
    this->buttonMainMenu = new QMenu (this);
 
@@ -300,7 +305,14 @@ void QEMenuButton::requestAction (const QEActionRequests& request)
 //
 void QEMenuButton::setSubstitutionsProperty (const QString& substitutions)
 {
-   this->setVariableNameAndSubstitutions ("", substitutions, 0);
+   // Set the substitutions
+   //
+   this->setVariableNameSubstitutions (substitutions);
+
+   // Update the button
+   if (this->button) {
+      this->button->setText (this->substituteThis (this->buttonText));
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -312,18 +324,19 @@ QString QEMenuButton::getSubstitutionsProperty () const
 
 //------------------------------------------------------------------------------
 //
-void QEMenuButton::setLabelTextProperty (const QString& labelTextIn)
+void QEMenuButton::setButtonTextProperty (const QString& buttonTextIn)
 {
+   this->buttonText = buttonTextIn;   // save ubn substituted button text
    if (this->button) {
-      this->button->setText (labelTextIn);
+      this->button->setText (this->substituteThis (this->buttonText));
    }
 }
 
 //------------------------------------------------------------------------------
 //
-QString QEMenuButton::getLabelTextProperty() const
+QString QEMenuButton::getButtonTextProperty() const
 {
-   return this->button->text ();
+   return this->buttonText;
 }
 
 //------------------------------------------------------------------------------
