@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #29 $
-# $DateTime: 2021/09/29 16:41:26 $
+# $Revision: #30 $
+# $DateTime: 2021/11/15 15:03:54 $
 # Last checked in by: $Author: starritt $
 #
 # Copyright (c) 2009-2021 Australian Synchrotron
@@ -209,6 +209,7 @@ include (widgets/QERecipe/QERecipe.pri)
 include (widgets/QEResizeableFrame/QEResizeableFrame.pri)
 include (widgets/QEScratchPad/QEScratchPad.pri)
 include (widgets/QEScript/QEScript.pri)
+include (widgets/QESelector/QESelector.pri)
 include (widgets/QEShape/QEShape.pri)
 include (widgets/QESimpleShape/QESimpleShape.pri)
 include (widgets/QESlider/QESlider.pri)
