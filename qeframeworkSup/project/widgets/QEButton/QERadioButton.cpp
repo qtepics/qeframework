@@ -1,6 +1,9 @@
 /*  QERadioButton.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009,2010,2016 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -71,6 +72,16 @@ void QERadioButton::setup() {
     // Set up a connection to recieve variable name property changes
     // The variable name property manager class only delivers an updated variable name after the user has stopped typing
     connectNewVariableNameProperty( SLOT ( useNewVariableNameProperty( QString, QString, unsigned int ) ) );
+}
+
+// place holder
+QERadioButton::~QERadioButton() { }
+
+// Setup default updateOption.
+//
+QEGenericButton::updateOptions QERadioButton::getDefaultUpdateOption()
+{
+   return QEGenericButton::UPDATE_STATE;
 }
 
 // Slot to receiver a 'process completed' signal from the application launcher
