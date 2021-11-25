@@ -4,6 +4,8 @@
 # the Australian Synchrotron. This file is included into and as part
 # of the overall framework.pro project file.
 #
+# Copyright (c) 2017-2021 Australian Synchrotron
+#
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -17,44 +19,51 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (c) 2017 Australian Synchrotron
-#
 # Author:
 #   Andrew Starritt
 # Contact details:
-#   andrew.starritt@synchrotron.org.au
+#   andrews@ansto.gov.au
 #
 
 QT += xml network
 
-OTHER_FILES += \
-    archive/drag_icon.png
+INCLUDEPATH += $$PWD
 
-RESOURCES += \
-    archive/archive.qrc
+HEADERS += $$PWD/QEArchapplInterface.h
+SOURCES += $$PWD/QEArchapplInterface.cpp
 
-HEADERS += \
-    archive/maiaFault.h \
-    archive/maiaObject.h \
-    archive/maiaXmlRpcClient.h \
-    archive/QEArchiveAccess.h \
-    archive/QEArchiveInterface.h \
-    archive/QEArchiveManager.h \
-    archive/QEArchiveStatus.h  \
-    archive/QEArchiveNameSearch.h
+HEADERS += $$PWD/QEArchiveAccess.h
+SOURCES += $$PWD/QEArchiveAccess.cpp
 
+HEADERS += $$PWD/QEArchiveInterface.h
+SOURCES += $$PWD/QEArchiveInterface.cpp
 
-SOURCES += \
-    archive/maiaFault.cpp \
-    archive/maiaObject.cpp \
-    archive/maiaXmlRpcClient.cpp \
-    archive/QEArchiveAccess.cpp \
-    archive/QEArchiveInterface.cpp \
-    archive/QEArchiveManager.cpp \
-    archive/QEArchiveStatus.cpp  \
-    archive/QEArchiveNameSearch.cpp
+HEADERS += $$PWD/QEArchiveInterfaceManager.h
+SOURCES += $$PWD/QEArchiveInterfaceManager.cpp
 
-INCLUDEPATH += \
-    archive
+HEADERS += $$PWD/QEArchiveManager.h
+SOURCES += $$PWD/QEArchiveManager.cpp
+
+HEADERS += $$PWD/QEArchiveNameSearch.h
+SOURCES += $$PWD/QEArchiveNameSearch.cpp
+
+HEADERS += $$PWD/QEArchiveStatus.h
+SOURCES += $$PWD/QEArchiveStatus.cpp
+
+HEADERS += $$PWD/QEChannelArchiveInterface.h
+SOURCES += $$PWD/QEChannelArchiveInterface.cpp
+
+HEADERS += $$PWD/maiaFault.h
+SOURCES += $$PWD/maiaFault.cpp
+
+HEADERS += $$PWD/maiaObject.h
+SOURCES += $$PWD/maiaObject.cpp
+
+HEADERS += $$PWD/maiaXmlRpcClient.h
+SOURCES += $$PWD/maiaXmlRpcClient.cpp
+
+OTHER_FILES += $$PWD/drag_icon.png
+
+RESOURCES += $$PWD/archive.qrc
 
 # end

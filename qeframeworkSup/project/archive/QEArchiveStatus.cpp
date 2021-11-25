@@ -297,7 +297,7 @@ void QEArchiveStatus::archiveStatus (const QEArchiveAccess::StatusList& statusLi
          // Note the extra space at end - indent only applies as per alignment
          row->hostNamePort->setText (QString ("%1:%2 ").arg (state.hostName).arg (state.portNumber));
          row->endPoint->setText (QString("%1 ").arg (state.endPoint));
-         row->state->setText (QEUtilities::enumToString(QEArchapplInterface::staticMetaObject, QString("States"), state.state));
+         row->state->setText (QEUtilities::enumToString (QEArchiveInterface::staticMetaObject, QString("States"), state.state));
          row->numberPVs->setText (QString ("%1").arg (state.numberPVs));
 
          if (this->archiveType == QEArchiveAccess::CA) {

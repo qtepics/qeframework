@@ -28,125 +28,66 @@
 #include <QEArchiveManager.h>
 #include <QECommon.h>
 
-#include <QEAdaptationParameters.h>
-
 #define DEBUG qDebug () << "QEArchiveAccess" << __LINE__ << __FUNCTION__  << "  "
 
-static QEArchiveManager* instance = NULL;
-static QMutex* archiveDataMutex = new QMutex ();
-
-static bool theArchiverTypeDefined = false;
-static QEArchiveAccess::ArchiverTypes theArchiverType = QEArchiveAccess::Error;
-
+static bool archiverInitialised = false;
+static QEArchiveManager* archiveManager = NULL;
 
 //------------------------------------------------------------------------------
 //
 void QEArchiveAccess::initialiseArchiverType ()
 {
-   if (theArchiverTypeDefined) return;  // idempotent
-   theArchiverTypeDefined = true;
+   if (archiverInitialised) return;  // idempotent. Do we need a mutex?
+   archiverInitialised = true;
 
-   QEAdaptationParameters ap ("QE_");
-   const QString archiveString = ap.getString ("archive_type", "CA").toUpper();
-
-   bool conversionStatus = false;
-   int archiverIntVal = QEUtilities::stringToEnum (*this, QString("ArchiverTypes"),
-                                                   archiveString, &conversionStatus);
-
-   if (!conversionStatus) {
-      this->constructorMessage =
-            QString ("QE_ARCHIVE_TYPE variable '%1' not correctly specified. "
-                     "Options are: CA or ARCHAPPL.").arg(archiveString);
-      this->constructorMessageType = message_types(MESSAGE_TYPE_ERROR);
-
-      DEBUG << this->constructorMessage;
+   archiveManager = QEArchiveManager::getInstance (this->constructorMessage);
+   if (!archiveManager) {
+      this->constructorMessageType = message_types (MESSAGE_TYPE_ERROR);
 
       // Print the message after the construction has finished
       //
       QTimer::singleShot(0, this, SLOT (sendMessagePostConstruction()));
-      return;
-   }
-
-   // Basic conversion
-   //
-   theArchiverType = static_cast<ArchiverTypes> (archiverIntVal);
-
-   // Construct and initialise singleton QEArchiveManager object if needs be.
-   //
-   switch (theArchiverType) {
-
-      case (QEArchiveAccess::CA):
-         instance = &QEChannelArchiverManager::getInstance();
-         break;
-
-      case (QEArchiveAccess::ARCHAPPL):
-         // Create ARCHAPPL manager instance only when built with ARCHAPPL support
-         //
-         #ifdef QE_ARCHAPPL_SUPPORT
-            instance = &QEArchapplManager::getInstance();
-         #else
-            this->constructorMessage =
-               "QE_ARCHIVE_TYPE=ARCHAPPL but the QEFramework has not been built "
-               "with Archiver Appliance support. Please consult the documentation.";
-            this->constructorMessageType = message_types (MESSAGE_TYPE_ERROR);
-
-            DEBUG << this->constructorMessage;
-
-            // Print the message after the construction has finished
-            //
-            QTimer::singleShot(0, this, SLOT (sendMessagePostConstruction()));
-            theArchiverType = QEArchiveAccess::Error;
-         #endif
-         break;
-
-      default:
-         this->constructorMessage =
-               QString ("Archiver type '%1' not supported").arg (archiveString);
-         this->constructorMessageType = message_types(MESSAGE_TYPE_ERROR);
-
-         DEBUG << this->constructorMessage;
-
-         // Print the message after the construction has finished
-         //
-         QTimer::singleShot(0, this, SLOT (sendMessagePostConstruction()));
    }
 }
 
-
-//==============================================================================
+//------------------------------------------------------------------------------
 //
 QEArchiveAccess::QEArchiveAccess (QObject * parent) : QObject (parent)
 {
    this->initialiseArchiverType ();  // idempotent
 
-   this->pendingRequests.clear ();
-
    // Connect status request response signals.
    // Note: instance set up by initialiseArchiverType
    //
-   if (instance) {
-      // Request that manager re-read the set of avialble PVs from the archiver.
-      //
-      QObject::connect (this,     SIGNAL (reInterogateArchives ()),
-                        instance, SLOT   (reInterogateArchives ()));
+   if (!archiveManager) return;   // sanity check
 
-      // archive status request and response.
-      //
-      QObject::connect (this,     SIGNAL (archiveStatusRequest ()),
-                        instance, SLOT   (archiveStatusRequest ()));
+   // Request that manager re-read the set of avialable PVs from the archiver.
+   //
+   QObject::connect (this,           SIGNAL (reInterogateArchives ()),
+                     archiveManager, SLOT   (reInterogateArchives ()));
 
-      QObject::connect (instance, SIGNAL (archiveStatusResponse (const QEArchiveAccess::StatusList&)),
-                        this,     SLOT   (archiveStatusResponse (const QEArchiveAccess::StatusList&)));
+   // Connect archive status request and response signals.
+   //
+   QObject::connect (this,           SIGNAL (archiveStatusRequest ()),
+                     archiveManager, SLOT   (archiveStatusRequest ()));
+
+   QObject::connect (archiveManager, SIGNAL (archiveStatusResponse (const QEArchiveAccess::StatusList&)),
+                     this,           SLOT   (archiveStatusResponse (const QEArchiveAccess::StatusList&)));
 
 
-      // Connect data request response signals.
-      //
-      QObject::connect (this,     SIGNAL (readArchiveRequest  (const QEArchiveAccess*, const QEArchiveAccess::PVDataRequests&)),
-                        instance, SLOT   (readArchiveRequest  (const QEArchiveAccess*, const QEArchiveAccess::PVDataRequests&)));
+   // Connect data request and response signals.
+   //
+   QObject::connect (this,           SIGNAL (readArchiveRequest  (const QEArchiveAccess*,
+                                                                  const QEArchiveAccess::PVDataRequests&)),
+                     archiveManager, SLOT   (readArchiveRequest  (const QEArchiveAccess*,
+                                                                  const QEArchiveAccess::PVDataRequests&)));
 
-      QObject::connect (instance, SIGNAL (readArchiveResponse (const QEArchiveAccess*, const QEArchiveAccess::PVDataResponses&)),
-                        this,     SLOT   (readArchiveResponse (const QEArchiveAccess*, const QEArchiveAccess::PVDataResponses&)));
-   }
+   // We send the archive data response to ourself, invoked by the archiveManager
+   // calling the archiveResponse function. In this way, the response is only
+   // sent to the acrive access object that requested it.
+   //
+   QObject::connect (this, SIGNAL (signalArchiveResponse (const QEArchiveAccess::PVDataResponses&)),
+                     this, SLOT   (actionArchiveResponse (const QEArchiveAccess::PVDataResponses&)));
 }
 
 //------------------------------------------------------------------------------
@@ -154,12 +95,12 @@ QEArchiveAccess::QEArchiveAccess (QObject * parent) : QObject (parent)
 QEArchiveAccess::~QEArchiveAccess () { }
 
 //------------------------------------------------------------------------------
-// Made non static to ensure at QEArchiveAccess instance exists before
+// Made non static to ensure a QEArchiveAccess instance exists before
 // the function is used.
 //
 QEArchiveAccess::ArchiverTypes QEArchiveAccess::getArchiverType () const
 {
-   return theArchiverType;
+   return archiveManager ? archiveManager->getArchiverType() : QEArchiveAccess::Error;
 }
 
 //------------------------------------------------------------------------------
@@ -187,7 +128,7 @@ void QEArchiveAccess::setMessageSourceId (unsigned int messageSourceIdIn)
 //
 void QEArchiveAccess::resendStatus ()
 {
-   if (instance) {
+   if (archiveManager) {
       emit this->archiveStatusRequest ();
    }
 }
@@ -196,7 +137,7 @@ void QEArchiveAccess::resendStatus ()
 //
 void QEArchiveAccess::reReadAvailablePVs ()
 {
-   if (instance) {
+   if (archiveManager) {
       emit this->reInterogateArchives ();
    }
 }
@@ -232,114 +173,68 @@ void QEArchiveAccess::readArchive (QObject* userData,
    request.how = how;
    request.element = element;
 
-   // What if the initial archive interrogation is incomplete, this request will
-   // immediately fail because PV name is unknown. Therefore, if not ready,
-   // then set up timer to call self in 1 second and re-issue reuqest.
-   // Ready?
-   //
-   if (this->isReady()) {
-      // Yes - hand-ball off to archiver manager thread.
-      //
-      emit this->readArchiveRequest (this, request);
-   } else {
-      // Not ready - save request and setup retry.
-      //
-      QMutexLocker locker (&this->pendingRequestMutex);
-
-      this->pendingRequests.append (request);
-
-      // Is this the first entry on the list?
-      //
-      if (this->pendingRequests.count() == 1) {
-         // Yes - set up timer to try again in 1 second.
-         //
-         QTimer::singleShot (1000, this, SLOT (retryTimeout ()));
-      }
-   }
+   emit this->readArchiveRequest (this, request);
 }
 
 //------------------------------------------------------------------------------
+// Called by the QEArchiverManager in the QEArchiverManager's thread
+// Sent to actionArchiveResponse slot processed in QEArchiveAccess's thread.
 //
-void QEArchiveAccess::retryTimeout ()
+void QEArchiveAccess::archiveResponse (const QEArchiveAccess::PVDataResponses& response) const
 {
-   // Now ready ?
-   //
-   if (this->isReady()) {
-      // Yes.
-      //
-      QMutexLocker locker (&this->pendingRequestMutex);
-      while (this->pendingRequests.count() > 0) {
-         // Extract and pass on to the archiver manager thread.
-         //
-         PVDataRequests request = this->pendingRequests.takeFirst();
-         emit this->readArchiveRequest (this, request);
-      }
-   } else {
-      // Still not ready - set up another retry.
-      //
-      QTimer::singleShot (1000, this, SLOT (retryTimeout ()));
-   }
+    emit this->signalArchiveResponse (response);
 }
 
 //------------------------------------------------------------------------------
-//
-void QEArchiveAccess::readArchiveResponse (const QEArchiveAccess* archiveAccess,
-                                           const QEArchiveAccess::PVDataResponses& response)
+// slot
+void QEArchiveAccess::actionArchiveResponse (const QEArchiveAccess::PVDataResponses& response)
 {
-   // Filter and re-broadcast status signal.
+   // Forward resonse on to the requestor.
    //
-   if (archiveAccess == this) {
-      emit this->setArchiveData (response.userData, response.isSuccess,
-                                 response.pointsList, response.pvName,
-                                 response.supplementary);
-
-      // Depricated form.
-      emit this->setArchiveData (response.userData, response.isSuccess,
-                                 response.pointsList);
-   }
+   emit this->setArchiveData (response.userData, response.isSuccess,
+                              response.pointsList, response.pvName,
+                              response.supplementary);
 }
-
 
 //------------------------------------------------------------------------------
 // static functions
 //------------------------------------------------------------------------------
 //
+//
 bool QEArchiveAccess::isReady ()
 {
-   return instance ? instance->allArchivesRead : false;
+   return archiveManager ? true : false;
 }
 
 //------------------------------------------------------------------------------
 //
 int QEArchiveAccess::getNumberInterfaces ()
 {
-   return instance ? instance->archiveInterfaceList.count () : 0;
+   return archiveManager ? archiveManager->getInterfaceCount () : 0;
 }
 
 //------------------------------------------------------------------------------
 //
 QString QEArchiveAccess::getPattern ()
 {
-   return instance ? instance->pattern : "";
+   return archiveManager ? archiveManager->getPattern() : "";
 }
 
 //------------------------------------------------------------------------------
 //
 int QEArchiveAccess::getNumberPVs ()
 {
-   QMutexLocker locker (archiveDataMutex);
-   return instance ? instance->pvNameToSourceLookUp.count () : 0;
+   return archiveManager ? archiveManager->getNumberPVs() : 0;
 }
 
 //------------------------------------------------------------------------------
 //
 QStringList QEArchiveAccess::getAllPvNames ()
 {
-   QMutexLocker locker (archiveDataMutex);
    QStringList result;
 
-   if (instance) {
-      result = instance->pvNameToSourceLookUp.keys ();
+   if (archiveManager) {
+      result = archiveManager->getAllPvNames ();
    }
 
    return  result;
@@ -355,8 +250,8 @@ bool QEArchiveAccess::getArchivePvInformation (const QString& pvName,
    effectivePvName = pvName;
    data.clear ();
 
-   if (instance && QEArchiveAccess::isReady () && !pvName.isEmpty ()) {
-      result = instance->getArchivePvInformation(effectivePvName, data);
+   if (archiveManager && !pvName.isEmpty ()) {
+      result = archiveManager->getArchivePvInformation (pvName, effectivePvName, data);
    }
 
    return result;
@@ -365,7 +260,7 @@ bool QEArchiveAccess::getArchivePvInformation (const QString& pvName,
 //------------------------------------------------------------------------------
 // Register own meta types.
 //
-bool QEArchiveAccess::registerMetaTypes()
+bool QEArchiveAccess::_registerMetaTypes()
 {
    qRegisterMetaType<QEArchiveAccess::Status> ("QEArchiveAccess::Status");
    qRegisterMetaType<QEArchiveAccess::StatusList> ("QEArchiveAccess::StatusList");
@@ -376,6 +271,6 @@ bool QEArchiveAccess::registerMetaTypes()
 
 // Elaborate on start up.
 //
-static const bool _elaborate = QEArchiveAccess::registerMetaTypes ();
+static const bool _elaborate = QEArchiveAccess::_registerMetaTypes ();
 
 // end
