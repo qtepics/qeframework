@@ -458,7 +458,7 @@ void QEWaveformHistogram::genReadOut (const int index)
       if (isDefined) {
          value = valueList.toList ().value (index);
          this->stringFormatting.setDbEgu (qca->getEgu ());
-         text.append (" ").append (this->stringFormatting.formatString (value));
+         text.append (" ").append (this->stringFormatting.formatString (value, 0));
       } else {
          text.append ("  undefined.");
       }

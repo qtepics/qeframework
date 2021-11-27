@@ -245,7 +245,6 @@ void QCaObject::clearConnectionState()
                                      this->getRecordName() );
 
    emit connectionChanged( connectionInfo, variableIndex );
-   emit connectionChanged( connectionInfo );
 }
 
 //------------------------------------------------------------------------------
@@ -362,29 +361,9 @@ void  QCaObject::setRequestedElementCount( unsigned int elementCount )
 }
 
 //------------------------------------------------------------------------------
-// Determine if the channel is currently connected
-//
-bool QCaObject::isChannelConnected() const
-{
-   bool result = false;
-   RESULT_SELECT (isConnected, getIsConnected);
-   return result;
-}
-
-//------------------------------------------------------------------------------
 // Extract last emmited connection info: indicates if channel is connected.
 //
 bool  QCaObject::getChannelIsConnected () const
-{
-   bool result = false;
-   RESULT_SELECT (isConnected, getIsConnected);
-   return result;
-}
-
-//------------------------------------------------------------------------------
-// Extract last emmited connection info: indicates if channel link is up.
-//
-bool  QCaObject::getIsLinkUp () const
 {
    bool result = false;
    RESULT_SELECT (isConnected, getIsConnected);
@@ -745,7 +724,6 @@ void QCaObject::connectionUpdate (const bool isConnected)
    QCaObject::disconnectedCount = QCaObject::totalChannelCount - QCaObject::connectedCount;
 
    emit connectionChanged( connectionInfo, this->variableIndex );
-   emit connectionChanged( connectionInfo );  // deprecated
 }
 
 //------------------------------------------------------------------------------

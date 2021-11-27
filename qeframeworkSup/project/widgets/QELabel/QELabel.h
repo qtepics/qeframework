@@ -257,14 +257,6 @@ public:
     UserLevels getUserLevelEnabledProperty() { return (UserLevels)getUserLevelEnabled(); }                  ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
     void setUserLevelEnabledProperty( UserLevels level ) { setUserLevelEnabled( (userLevelTypes::userLevels)level ); }      ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
 
-    /// DEPRECATED. USE displayAlarmStateOption INSTEAD.
-    /// If set (default) widget will indicate the alarm state of any variable data it is displaying.
-    /// If clear widget will never indicate the alarm state of any variable data it is displaying.
-    /// Typically the background colour is set to indicate the alarm state.
-    /// Note, this property is included in the set of standard properties as it applies to most widgets. It
-    /// will do nothing for widgets that don't display data.
-    Q_PROPERTY(bool displayAlarmState READ getDisplayAlarmState WRITE setDisplayAlarmState DESIGNABLE false)
-
     /// \enum DisplayAlarmStateOptions
     /// User friendly enumerations for #displayAlarmStateOption property - refer to #displayAlarmStateOption
     /// property and displayAlarmStateOptions enumeration for details.

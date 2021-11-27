@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2020 Australian Synchrotron
+ *  Copyright (c) 2012-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -179,25 +179,6 @@ void standardProperties::setRunVisible (bool visibleIn)
 bool standardProperties::getRunVisible () const
 {
    return this->applicationVisibility;
-}
-
-//------------------------------------------------------------------------------
-// DEPRECATED. USE setDisplayAlarmStateOption(displayAlarmStateOptions) INSTEAD
-// displayAlarmState. If set (default) widget will indicate the alarm state
-// of any variable data is displaying.
-//
-void standardProperties::setDisplayAlarmState (bool displayAlarmStateIn)
-{
-   this->displayAlarmState =
-       displayAlarmStateIn ? DISPLAY_ALARM_STATE_ALWAYS : DISPLAY_ALARM_STATE_NEVER;
-}
-
-//------------------------------------------------------------------------------
-// DEPRECATED. USE displayAlarmStateOptions getDisplayAlarmStateOption() INSTEAD
-//
-bool standardProperties::getDisplayAlarmState () const
-{
-   return this->displayAlarmState != DISPLAY_ALARM_STATE_NEVER;
 }
 
 //------------------------------------------------------------------------------

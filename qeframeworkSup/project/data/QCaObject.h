@@ -104,9 +104,7 @@ public:
    // Setup parameter access function
    unsigned int getVariableIndex () const;
 
-   // State machine access functions - use getChannelIsConnected
-   Q_DECL_DEPRECATED
-   bool isChannelConnected() const;
+   // isChannelConnected - use getChannelIsConnected
 
    void setUserMessage( UserMessage* userMessageIn );
 
@@ -151,9 +149,6 @@ public:
    //
    bool getChannelIsConnected () const;
 
-   Q_DECL_DEPRECATED
-   bool getIsLinkUp () const;
-
    // Conveniance functions for getLastData for scaler values and vector values.
    //
    bool getDataIsAvailable () const;
@@ -174,7 +169,6 @@ signals:
    void dataChanged( const QVariant& value, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex );
    void dataChanged( const QByteArray& value, unsigned long dataSize, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex );
    void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex );
-   void connectionChanged( QCaConnectionInfo& connectionInfo );   // deprecated
 
 public slots:
    bool writeData( const QVariant& value );

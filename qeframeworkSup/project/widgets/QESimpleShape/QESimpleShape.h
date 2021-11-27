@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron
+ *  Copyright (c) 2013-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -246,14 +246,6 @@ public:
     UserLevels getUserLevelEnabledProperty() { return (UserLevels)getUserLevelEnabled(); }                  ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
     void setUserLevelEnabledProperty( UserLevels level ) { setUserLevelEnabled( (userLevelTypes::userLevels)level ); }      ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
 
-    /// DEPRECATED. USE displayAlarmStateOption INSTEAD.
-    /// If set (default) widget will indicate the alarm state of any variable data it is displaying.
-    /// If clear widget will never indicate the alarm state of any variable data it is displaying.
-    /// Typically the background colour is set to indicate the alarm state.
-    /// Note, this property is included in the set of standard properties as it applies to most widgets. It
-    /// will do nothing for widgets that don't display data.
-    Q_PROPERTY(bool displayAlarmState READ getDisplayAlarmState WRITE setDisplayAlarmState DESIGNABLE false)
-
     /// \enum DisplayAlarmStateOptions
     /// User friendly enumerations for #displayAlarmStateOption property - refer to #displayAlarmStateOption
     /// property and displayAlarmStateOptions enumeration for details.
@@ -288,7 +280,7 @@ public:
    explicit QESimpleShape (const QString& variableName, QWidget* parent = 0);
    ~QESimpleShape ();
 
-   // Override paranet method of same name so that we can apply substitutions to
+   // Override parent method of same name so that we can apply substitutions to
    // both variable name managers.
    void setVariableNameSubstitutionsProperty (const QString& substitutions);
 

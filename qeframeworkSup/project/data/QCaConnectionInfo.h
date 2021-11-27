@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -49,9 +49,6 @@ public:
     ~QCaConnectionInfo();
 
     bool isChannelConnected() const;  // Return true if the channel is connected
-
-    Q_DECL_DEPRECATED
-    bool isLinkUp() const;            // Return true if the link is up
 
     QString variable() const;         // Return the variable name. Usefull if same slot is used for reporting multiple QCa connections
 

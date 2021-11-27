@@ -52,9 +52,6 @@ public:
 
    void updateToolTipAlarm (const QCaAlarmInfo& alarmInfo, const unsigned int variableIndex); // Update an alarm state
 
-   Q_DECL_DEPRECATED
-   void updateToolTipAlarm (const QString& alarm, const unsigned int variableIndex);          // Update an alarm state
-
    void updateToolTipConnection (bool connection, const unsigned int variableIndex = 0);      // Update a connection status
    void updateToolTipCustom (const QString& custom);                                          // Update the customisable part of the tooltip
 

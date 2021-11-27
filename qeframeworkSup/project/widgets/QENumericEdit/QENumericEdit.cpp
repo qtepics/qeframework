@@ -368,19 +368,6 @@ void QENumericEdit::setDefaultStyle (const QString& style)
    this->setStyleDefault (style);
 }
 
-//------------------------------------------------------------------------------
-// Depricated
-double QENumericEdit::getNumericValue () const
-{
-   return this->getValue();
-}
-
-//------------------------------------------------------------------------------
-// Depricated
-void QENumericEdit::setNumericValue (const double value, const bool isUserUpdate)
-{
-   this->setValue (value, isUserUpdate);
-}
 
 //==============================================================================
 // Slots/Hook functions

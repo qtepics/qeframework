@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2018 Australian Synchrotron
+ *  Copyright (c) 2011-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -454,14 +454,6 @@ public:
     UserLevels getUserLevelEnabledProperty() { return (UserLevels)getUserLevelEnabled(); }                  ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
     void setUserLevelEnabledProperty( UserLevels level ) { setUserLevelEnabled( (userLevelTypes::userLevels)level ); }      ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
 
-    /// DEPRECATED. USE displayAlarmStateOption INSTEAD.
-    /// If set (default) widget will indicate the alarm state of any variable data it is displaying.
-    /// If clear widget will never indicate the alarm state of any variable data it is displaying.
-    /// Typically the background colour is set to indicate the alarm state.
-    /// Note, this property is included in the set of standard properties as it applies to most widgets. It
-    /// will do nothing for widgets that don't display data.
-    Q_PROPERTY(bool displayAlarmState READ getDisplayAlarmState WRITE setDisplayAlarmState DESIGNABLE false)
-
     /// \enum DisplayAlarmStateOptions
     /// User friendly enumerations for #displayAlarmStateOption property - refer to #displayAlarmStateOption property and displayAlarmStateOptions enumeration for details.
     enum DisplayAlarmStateOptions { Never       = standardProperties::DISPLAY_ALARM_STATE_NEVER,          ///< Refer to DISPLAY_ALARM_STATE_NEVER for details
@@ -488,9 +480,12 @@ public:
 
     Q_ENUMS(PresentationOptions)
     Q_PROPERTY(PresentationOptions presentationOption READ getPresentationOptionProperty WRITE setPresentationOptionProperty)
-    enum PresentationOptions { buttonAndLabel = QEPeriodic::PRESENTATION_BUTTON_AND_LABEL,
-                               buttonOnly     = QEPeriodic::PRESENTATION_BUTTON_ONLY,
-                               labelOnly      = QEPeriodic::PRESENTATION_LABEL_ONLY };
+    enum PresentationOptions {
+       buttonAndLabel = QEPeriodic::PRESENTATION_BUTTON_AND_LABEL,
+       buttonOnly     = QEPeriodic::PRESENTATION_BUTTON_ONLY,
+       labelOnly      = QEPeriodic::PRESENTATION_LABEL_ONLY
+    };
+
     void setPresentationOptionProperty( PresentationOptions presentationOption ){ setPresentationOption( (QEPeriodic::presentationOptions)presentationOption ); }
     PresentationOptions getPresentationOptionProperty(){ return (PresentationOptions)getPresentationOption(); }
 
@@ -499,15 +494,18 @@ public:
     Q_ENUMS(VariableTypes)
     Q_PROPERTY(VariableTypes variableType1 READ getVariableType1Property WRITE setVariableType1Property)
     Q_PROPERTY(VariableTypes variableType2 READ getVariableType2Property WRITE setVariableType2Property)
-    enum VariableTypes { Number           = QEPeriodic::VARIABLE_TYPE_NUMBER,
-                         atomicWeight     = QEPeriodic::VARIABLE_TYPE_ATOMIC_WEIGHT,
-                         meltingPoint     = QEPeriodic::VARIABLE_TYPE_MELTING_POINT,
-                         boilingPoint     = QEPeriodic::VARIABLE_TYPE_BOILING_POINT,
-                         density          = QEPeriodic::VARIABLE_TYPE_DENSITY,
-                         group            = QEPeriodic::VARIABLE_TYPE_GROUP,
-                         ionizationEnergy = QEPeriodic::VARIABLE_TYPE_IONIZATION_ENERGY,
-                         userValue1       = QEPeriodic::VARIABLE_TYPE_USER_VALUE_1,
-                         userValue2       = QEPeriodic::VARIABLE_TYPE_USER_VALUE_2 };
+    enum VariableTypes {
+       Number           = QEPeriodic::VARIABLE_TYPE_NUMBER,
+       atomicWeight     = QEPeriodic::VARIABLE_TYPE_ATOMIC_WEIGHT,
+       meltingPoint     = QEPeriodic::VARIABLE_TYPE_MELTING_POINT,
+       boilingPoint     = QEPeriodic::VARIABLE_TYPE_BOILING_POINT,
+       density          = QEPeriodic::VARIABLE_TYPE_DENSITY,
+       group            = QEPeriodic::VARIABLE_TYPE_GROUP,
+       ionizationEnergy = QEPeriodic::VARIABLE_TYPE_IONIZATION_ENERGY,
+       userValue1       = QEPeriodic::VARIABLE_TYPE_USER_VALUE_1,
+       userValue2       = QEPeriodic::VARIABLE_TYPE_USER_VALUE_2
+    };
+
     void setVariableType1Property( VariableTypes variableType ){ setVariableType1( (QEPeriodic::variableTypes)variableType ); }
     void setVariableType2Property( VariableTypes variableType ){ setVariableType2( (QEPeriodic::variableTypes)variableType ); }
     VariableTypes getVariableType1Property(){ return (VariableTypes)getVariableType1(); }
@@ -525,7 +523,7 @@ public:
     Q_ENUMS(UserInfoSourceOptions)
     Q_PROPERTY(UserInfoSourceOptions userInfoSourceOption READ getUserInfoSourceOptionProperty WRITE setUserInfoSourceOptionProperty)
     enum UserInfoSourceOptions { userInfoSourceText = QEPeriodic::USER_INFO_SOURCE_TEXT,
-                               userInfoSourceFile = QEPeriodic::USER_INFO_SOURCE_FILE };
+                                 userInfoSourceFile = QEPeriodic::USER_INFO_SOURCE_FILE };
     void setUserInfoSourceOptionProperty( UserInfoSourceOptions userInfoSourceOption ){ setUserInfoSourceOption( (QEPeriodic::userInfoSourceOptions)userInfoSourceOption ); }
     UserInfoSourceOptions getUserInfoSourceOptionProperty(){ return (UserInfoSourceOptions)getUserInfoSourceOption(); }
 

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2019 Australian Synchrotron
+ *  Copyright (c) 2009-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -89,7 +89,7 @@ public:
     //   - Format a string based on a value
     //   - Translate a string and generate a value
     //===============================================
-    QString formatString( const QVariant& value, int arrayIndex = 0 ) const;  // default depricated and will be removed.
+    QString formatString( const QVariant& value, int arrayIndex ) const;
 
     QVariant formatValue( const QString& text, bool& ok ) const;
     QVariant formatValue( const QVector<QString>& text, bool& ok ) const;

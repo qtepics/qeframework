@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron.
+ *  Copyright (c) 2013-2021 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -798,28 +798,6 @@ QVariant QEGraphic::getMarkupData (const QEGraphicNames::Markups markup) const
 }
 
 //------------------------------------------------------------------------------
-// Depreciated
-void QEGraphic::setCrosshairsVisible (const bool isVisible)
-{
-   this->setMarkupVisible (QEGraphicNames::CrossHair, isVisible);
-}
-
-//------------------------------------------------------------------------------
-// Depreciated
-void QEGraphic::setCrosshairsVisible (const bool isVisible, const QPointF& position)
-{
-   this->setMarkupVisible (QEGraphicNames::CrossHair, isVisible);
-   this->setMarkupPosition (QEGraphicNames::CrossHair, position);
-}
-
-//------------------------------------------------------------------------------
-// Depreciated
-bool QEGraphic::getCrosshairsVisible () const
-{
-   return this->getMarkupVisible (QEGraphicNames::CrossHair);
-}
-
-//------------------------------------------------------------------------------
 //
 QPointF QEGraphic::pointToReal (const QPoint& pos, const QwtPlot::Axis selectedYAxis) const
 {
@@ -1072,13 +1050,6 @@ QEGraphic::Axis* QEGraphic::axisFromPosition (const QwtPlot::Axis axisPosition) 
    } else {
       return this->yAxisRight;
    }
-}
-
-//------------------------------------------------------------------------------
-//
-bool QEGraphic::rightButtonPressed () const
-{
-   return this->rightButtonIsPressed;
 }
 
 //------------------------------------------------------------------------------

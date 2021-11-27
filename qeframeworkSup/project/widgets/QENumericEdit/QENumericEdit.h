@@ -225,14 +225,6 @@ public:
    double getValue () const;
    void setValue (const double value, const bool isUserUpdate = false);  // as opposed to system update
 
-   // Depricated versions of  getValue/setValue
-   //
-   Q_DECL_DEPRECATED
-   double getNumericValue () const;
-
-   Q_DECL_DEPRECATED
-   void setNumericValue (const double value, const bool isUserUpdate = false);  // as opposed to system update
-
    // Property set and get functions.
    //
    void setAutoScale (const bool);

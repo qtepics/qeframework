@@ -50,6 +50,7 @@ public:
    Q_ENUMS (DisabledRecordPolicy)
 
    // TODO relocate other common property types here.
+   // We can't without breaking exisitng ui files.
 
    QEWidgetProperties (QObject* parent = 0);
    ~QEWidgetProperties ();

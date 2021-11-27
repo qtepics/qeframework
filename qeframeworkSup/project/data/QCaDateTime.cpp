@@ -2,7 +2,7 @@
  *
  *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -186,16 +186,6 @@ double QCaDateTime::secondsTo( const QDateTime & target ) const
 {
    qint64 msec = msecsTo_48 (*this, target);
    return (double) msec / (double) 1000.0;
-}
-
-
-/*
-  Returns a double which represents the date and time in seconds (to mS resolution) from the base time
- */
-double QCaDateTime::floating( const QDateTime & base ) const
-{
-    qint64 msec = msecsTo_48 (base, *this);
-    return (double) msec / (double) 1000.0;
 }
 
 /*

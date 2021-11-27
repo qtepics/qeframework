@@ -305,21 +305,6 @@ void QEToolTip::updateToolTipAlarm (const QCaAlarmInfo& alarmInfo,
    }
 }
 
-//------------------------------------------------------------------------------
-// Update an alarm state - DEPRECATED
-//
-void  QEToolTip::updateToolTipAlarm (const QString& alarm,
-                                     const unsigned int variableIndex)
-{
-   if ((int) variableIndex < this->variableList.count ()) {
-      static Variable emptyVariable;
-      Variable var = this->variableList.value (variableIndex, emptyVariable);
-      var.alarm = alarm;
-      this->variableList.replace (variableIndex, var);
-      this->displayToolTip ();
-   }
-}
-
 
 //------------------------------------------------------------------------------
 // Update the variable custom information used in the tool tip

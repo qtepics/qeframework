@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2018 Australian Synchrotron
+ *  Copyright (c) 2011-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -48,11 +48,6 @@ public:
 
     void setElement( QString elementIn,
                      QList<bool>& enabledList );
-
-    Q_DECL_DEPRECATED
-    void setElement( QString elementIn,
-                     QList<bool>& enabledList,
-                     QList<QString>& elementList );
 
     QString getElement() const;     // selected element by symbol
     int getAtomicNumber() const;    // selected element by atomic number 1 .. 118

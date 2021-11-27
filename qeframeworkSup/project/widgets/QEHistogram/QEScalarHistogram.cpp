@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2020 Australian Synchrotron.
+ *  Copyright (c) 2014-2021 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -409,7 +409,7 @@ void QEScalarHistogram::genReadOut (const int index)
       text = qca->getRecordName ();
       if (isDefined) {
          this->stringFormatting.setDbEgu (qca->getEgu ());
-         text.append (" ").append (this->stringFormatting.formatString (value));
+         text.append (" ").append (this->stringFormatting.formatString (value, 0));
       } else {
          text.append ("  undefined.");
       }

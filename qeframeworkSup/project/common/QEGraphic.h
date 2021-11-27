@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron.
+ *  Copyright (c) 2013-2021 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -135,17 +135,6 @@ public:
    void setMarkupData (const QEGraphicNames::Markups markup, const QVariant& text);
    QVariant getMarkupData (const QEGraphicNames::Markups markup) const;
 
-   // NOTE: Depricated - use setMarkupPosition/setMarkupVisible instead.
-   //
-   Q_DECL_DEPRECATED
-   void setCrosshairsVisible (const bool isVisible);                            ///< Depricated
-
-   Q_DECL_DEPRECATED
-   void setCrosshairsVisible (const bool isVisible, const QPointF& position);   ///< Depricated
-
-   Q_DECL_DEPRECATED
-   bool getCrosshairsVisible () const;                                          ///< Depricated
-
    /**
     * Allocates a curve, sets current curve attibutes and attaches to plot.
     *
@@ -223,9 +212,6 @@ public:
    // Calls inner QwtPlot replot.
    //
    void replot ();
-
-   Q_DECL_DEPRECATED
-   bool rightButtonPressed () const;    // to allow inhibition of context menu.
 
    QPointF getRealMousePosition () const;   // current mouse position in real world coords
 

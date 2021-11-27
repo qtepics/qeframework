@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2020 Australian Synchrotron
+ *  Copyright (c) 2009-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -53,13 +53,6 @@ public:
     ///
     QCaDateTime addSeconds( const double seconds ) const;
     double secondsTo( const QDateTime & target ) const;
-
-    /// Duration in seconds from base time to this time.
-    /// Note: this is the opposite sense to the parent QDateTime daysTo, secsTo
-    /// and msecsTo functions. Phase out
-    ///
-    Q_DECL_DEPRECATED
-    double floating( const QDateTime & base ) const;
 
     /// Recover original EPICS time constructor parameters.
     //
