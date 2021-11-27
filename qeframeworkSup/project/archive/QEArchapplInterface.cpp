@@ -574,7 +574,7 @@ void QEArchapplInterface::processValues(const QObject* userData, QNetworkReply* 
 //------------------------------------------------------------------------------
 // QE framework is being only built for CA Archiver only.
 //
-QEArchapplNetworkManager::QEArchapplNetworkManager(const QUrl&, QObject parent) : QObject (parent) {}
+QEArchapplNetworkManager::QEArchapplNetworkManager(const QUrl&, QObject* parent) : QObject (parent) {}
 
 QEArchapplNetworkManager::~QEArchapplNetworkManager() {}
 
