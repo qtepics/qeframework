@@ -255,6 +255,7 @@ void QEArchiveInterfaceManager::requestArchives ()
 void QEArchiveInterfaceManager::actionRequestArchives ()
 {
    this->state = QEArchiveInterface::Updating;
+   this->numberPVs = 0;        // reset the count
    this->archiveInterface->archivesRequest (this);
 }
 
