@@ -310,7 +310,8 @@ QEArchiveManager* QEArchiveManager::getInstance (QString& statusMessage)
          #else
             statusMessage =
                   "QE_ARCHIVE_TYPE=ARCHAPPL but the QEFramework has not been built "
-                  "with Archiver Appliance support. Please consult the documentation.";
+                  "with Archiver Appliance support, i.e. QE_ARCHAPPL_SUPPORT=YES. "
+                  "Please consult the documentation.";
             DEBUG << statusMessage;
          #endif
          break;
@@ -322,10 +323,14 @@ QEArchiveManager* QEArchiveManager::getInstance (QString& statusMessage)
          break;
    }
 
-   // Set the manager to belong to its own thread, and start it.
+   // Check we created the manager and it's thread.
    //
-   singletonManager->moveToThread (singletonThread);
-   singletonThread->start ();
+   if (singletonManager && singletonThread) {
+      // Set the manager to belong to its own thread, and start it.
+      //
+      singletonManager->moveToThread (singletonThread);
+      singletonThread->start ();
+   }
 
    return singletonManager;
 }
