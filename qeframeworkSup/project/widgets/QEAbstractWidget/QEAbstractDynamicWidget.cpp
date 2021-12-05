@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2016-2020 Australian Synchrotron
+ *  Copyright (c) 2016-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -287,11 +287,19 @@ QString QEAbstractDynamicWidget::getPersistantName () const
 //
 void QEAbstractDynamicWidget::loadNamedWidetConfiguration (const QString& filename)
 {
+   bool okay = false;
    PersistanceManager* pm = this->getPersistanceManager ();
    if (pm && !filename.isEmpty()) {        // sanity check
       this->useOwnPersistantName = true;   // indicate that we need specific persistance name
-      pm->restoreWidget (this, filename, this->getPersistantRootName (), "Default");
+      okay = pm->restoreWidget (this, filename, this->getPersistantRootName (), "Default");
       this->useOwnPersistantName = false;  // revert to default behaviour
+   }
+
+   if (okay) {
+      // File loaded successfully - update window title.
+      //
+      QString title = QString("%1  %2").arg(this->metaObject()->className()).arg(filename);
+      QEUtilities::setWindowTitle (this, title);
    }
 }
 
@@ -299,11 +307,19 @@ void QEAbstractDynamicWidget::loadNamedWidetConfiguration (const QString& filena
 //
 void QEAbstractDynamicWidget::saveNamedWidetConfiguration (const QString& filename)
 {
+   bool okay = false;
    PersistanceManager* pm = this->getPersistanceManager ();
    if (pm && !filename.isEmpty()) {        // sanity check
       this->useOwnPersistantName = true;   // indicate that we need specific persistance name
-      pm->saveWidget (this, filename, this->getPersistantRootName (), "Default");
+      okay = pm->saveWidget (this, filename, this->getPersistantRootName (), "Default");
       this->useOwnPersistantName = false;  // revert to default behaviour
+   }
+
+   if (okay) {
+      // File saved successfully - update window title.
+      //
+      QString title = QString("%1  %2").arg(this->metaObject()->className()).arg(filename);
+      QEUtilities::setWindowTitle (this, title);
    }
 }
 
