@@ -36,6 +36,7 @@
 #include <QColor>
 #include <QDebug>
 #include <QFileInfo>
+#include <QMainWindow>
 #include <QMetaEnum>
 #include <QMetaObject>
 #include <QRegExp>
@@ -633,6 +634,45 @@ QWidgetList QEUtilities::findAllQWidgets (QWidget* rootWidget)
    list.clear ();
    QEUtilities::treeWalkAndAppend (rootWidget, list);
    return list;
+}
+
+//------------------------------------------------------------------------------
+// static
+QMainWindow* QEUtilities::findMainWindow (QWidget* widget)
+{
+   // Find containing main form window.
+   //
+   QWidget* w = widget;
+   QMainWindow* m = qobject_cast <QMainWindow*> (w);
+   while (w && !m) {
+      // There is a parent and it is not a main window - ascend one level.
+      //
+      w = w->parentWidget();
+      m = qobject_cast <QMainWindow*> (w);
+   }
+   return m;
+}
+
+//------------------------------------------------------------------------------
+// static
+void QEUtilities::setWindowTitle (QWidget* widget, const QString& title)
+{
+   QMainWindow* m = QEUtilities::findMainWindow (widget);
+   if (m) {
+      m->setWindowTitle (title);
+   }
+}
+
+//------------------------------------------------------------------------------
+// static
+QString QEUtilities::getWindowTitle (QWidget* widget)
+{
+   QString result = "";
+   QMainWindow* m = QEUtilities::findMainWindow (widget);
+   if (m) {
+      result = m->windowTitle ();
+   }
+   return result;
 }
 
 //------------------------------------------------------------------------------

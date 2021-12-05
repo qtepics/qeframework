@@ -87,6 +87,7 @@
 // This particularly usefull for non-gui command line programs.
 //
 class QColor;
+class QMainWindow;
 class QWidget;
 class QEWidget;
 
@@ -242,6 +243,19 @@ public:
     /// This conveniance functions hides the faffing with QFileInfo/QDir
     ///
     static QString dirName (const QString& pathName);
+
+    /// Find containging MainWindow object, or return NULL if it does not exist.
+    /// The secified widget itself can be the MainWindow.
+    //
+    static QMainWindow* findMainWindow (QWidget* widget);
+
+    /// Sets the form title of the containing MainWindow if found.
+    ///
+    static void setWindowTitle (QWidget* widget, const QString& title);
+
+    /// Gets the form title of the containing MainWindow if found, else empty string.
+    ///
+    static QString getWindowTitle (QWidget* widget);
 
     /// Testing only - outputs the widget hierarchy to std out.
     ///
