@@ -133,6 +133,7 @@ private:
 
    void actionNamesRequest (const int index);
    void activateDataRequest (RequestInfo& info);
+   void dump() const;             // diagnostic debug output only.
 
    const int instance;
    QEArchiveInterface* archiveInterface;

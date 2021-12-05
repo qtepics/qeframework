@@ -221,6 +221,7 @@ void QEArchiveInterfaceManager::getStatus (QEArchiveAccess::Status& status) cons
    status.pending += this->archiveList.count() - this->responseCount;
    status.pending += this->requestQueue.count();
    status.pending += this->activeRequests.count();
+   // this->dump();
 }
 
 //------------------------------------------------------------------------------
@@ -255,7 +256,11 @@ void QEArchiveInterfaceManager::requestArchives ()
 void QEArchiveInterfaceManager::actionRequestArchives ()
 {
    this->state = QEArchiveInterface::Updating;
-   this->numberPVs = 0;        // reset the count
+   // reset all counts, clear the list.
+   this->requestIndex = 0;
+   this->archiveList.clear ();
+   this->responseCount = 0;
+   this->numberPVs = 0;
    this->archiveInterface->archivesRequest (this);
 }
 
@@ -283,12 +288,12 @@ void QEArchiveInterfaceManager::archivesResponse (
       // Channel Access arhiver
 
    } else {
+      this->state = QEArchiveInterface::Error;
+
       QString message;
       message = QString ("request failure from %1").arg (this->getName ());
       this->sendMessage (message, message_types (MESSAGE_TYPE_ERROR));
       DEBUG << message;
-
-      this->state = QEArchiveInterface::Error;
    }
 }
 
@@ -327,11 +332,17 @@ void QEArchiveInterfaceManager::pvNamesResponse (
    const NamesResponseContext* context =
          dynamic_cast <const NamesResponseContext*> (userData);
 
+   // this->dump();
+
    if (!context || (context->archiveInterfaceManager != this)) {
       DEBUG  << "instance" << this->instance << "userData mis-match";
       // Should we delete userData in this situation?
       return;
    }
+
+   // We must count the response regardless of whether good or bad.
+   //
+   this->responseCount++;  
 
    QEArchiveInterface::Archive archive = this->archiveList.value (context->instance);
    if (isSuccess) {
@@ -343,7 +354,6 @@ void QEArchiveInterfaceManager::pvNamesResponse (
       //
       emit this->aimPvNamesResponse (this, archive, pvNameList);
 
-      this->responseCount++;
       if (this->responseCount == this->archiveList.count()) {
          this->state = QEArchiveInterface::Complete;
       } else {
@@ -357,11 +367,15 @@ void QEArchiveInterfaceManager::pvNamesResponse (
       this->sendMessage (message);
 
    } else {
-      this->sendMessage (QString ("PV names failure from ").
-                         append (this->getName ()).
-                         append (" for archive ").
-                         append (archive.name),
-                         message_types (MESSAGE_TYPE_ERROR));
+      this->state = QEArchiveInterface::Error;
+
+      QString message;
+      message = QString ("PV names failure from %1 (%2)")
+            .arg (this->getName ())
+            .arg (archive.name);
+
+      this->sendMessage (message, message_types (MESSAGE_TYPE_ERROR));
+      DEBUG << message;
    }
 
    if (context) delete context;
@@ -496,21 +510,12 @@ void QEArchiveInterfaceManager::started ()
 
 //------------------------------------------------------------------------------
 // slot
-void QEArchiveInterfaceManager::aboutToQuitHandler ()
-{
-   QMutexLocker locker (this->aimMutex);
-   this->stop();
-   this->requestQueue.clear();
-   this->activeRequests.clear();
-}
-
-//------------------------------------------------------------------------------
-// slot
 void QEArchiveInterfaceManager::timeoutHandler ()
 {
    // Progress and time out any outstanding items
 
    // Are there any outstanding name requests?
+   // This requests are staggered at startup based to timer period (currently 100mS)
    //
    if (this->requestIndex < this->archiveList.count()) {
       this->actionNamesRequest (this->requestIndex);
@@ -518,6 +523,7 @@ void QEArchiveInterfaceManager::timeoutHandler ()
    }
 
    // TODO: timeout any old request still awaiting a response
+   // in the activeRequests queue.
 
    // process active items if any.
    //
@@ -529,6 +535,29 @@ void QEArchiveInterfaceManager::timeoutHandler ()
       info = this->requestQueue.dequeue();
       this->activateDataRequest (info);
    }
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QEArchiveInterfaceManager::aboutToQuitHandler ()
+{
+   QMutexLocker locker (this->aimMutex);
+   this->stop();
+   this->requestQueue.clear();
+   this->activeRequests.clear();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEArchiveInterfaceManager::dump() const
+{
+   DEBUG << "instance" << instance
+         << " ac" << this->archiveList.count()
+         << " rc" << this->responseCount
+         << " rq" << this->requestQueue.count()
+         << " ar" << this->activeRequests.count()
+         << " ri" <<   requestIndex
+         << " npv" << this->numberPVs << "\n";
 }
 
 // end
