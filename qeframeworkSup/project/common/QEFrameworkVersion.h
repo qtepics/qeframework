@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2020 Australian Synchrotron
+ *  Copyright (c) 2012-2021 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -45,8 +45,8 @@
 // (Also, after tagging QE_VERSION_STAGE should be set to QE_VERSION_STAGE_DEVELOPMENT)
 //
 #define QE_VERSION_MAJOR      3     // Public releases that include interface or paradigm changes that may require changes to the way the framework is used.
-#define QE_VERSION_MINOR      7     // Public releases containing significant new functionality (may include fixes as well)
-#define QE_VERSION_RELEASE    6     // Public releases containing backward compatible new functionality and/or fixes.
+#define QE_VERSION_MINOR      8     // Public releases containing significant new functionality (may include fixes as well)
+#define QE_VERSION_RELEASE    1     // Public releases containing backward compatible new functionality and/or fixes.
 
 // The integer version is (major << 16) + (minor << 8) + release, and this macro
 // is used to constuct an integer version number.
@@ -61,7 +61,7 @@
 
 // During tagging the version stage should be set to production
 // Note, development versions retain the version release of the last production release.
-// E.g  3.7.2 (Development) is development of 3.7.2 leading eventually to 3.7.3 or 3.8.1
+// E.g  3.8.1 (Development) is development of 3.6.1 leading eventually to 3.8.2 or 3.9.1
 //
 #define QE_VERSION_STAGE_DEVELOPMENT "Development"
 #define QE_VERSION_STAGE_PRODUCTION  "Production"
