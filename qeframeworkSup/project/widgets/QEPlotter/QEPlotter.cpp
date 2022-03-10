@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron.
+ *  Copyright (c) 2013-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -344,6 +344,8 @@ void QEPlotter::createInternalWidgets ()
    this->statusLayout->addWidget (this->comValue);
 
    this->colourDialog = new QColorDialog (this);
+   this->colourDialog->setOption (QColorDialog::ShowAlphaChannel, true);
+
    this->dataDialog = new QEPlotterItemDialog (this);
    this->rangeDialog = new QEStripChartRangeDialog (this);
    this->rangeDialog->setWindowTitle ("Plotter Y Range");
@@ -578,11 +580,12 @@ QEPlotter::QEPlotter (QWidget* parent) : QEAbstractDynamicWidget (parent)
 
    this->contextMenuIsOverGraphic = false;
    this->contextMenuRequestPosition = QPointF (0.0, 0.0);
-   this->contextMenuEmitText = "Emit Coordinates";
+   this->contextMenuEmitLegend = "Emit Coordinates";
    this->enableConextMenu = true;
    this->toolBarIsVisible = true;
    this->pvItemsIsVisible = true;
    this->statusIsVisible = true;
+   this->useFullLengthArraySubscriptions = false;  // go with modern behaviour by default.
 
    this->isReverse = false;
    this->isPaused = false;
@@ -802,6 +805,12 @@ qcaobject::QCaObject* QEPlotter::createQcaItem (unsigned int variableIndex)
       } else {
          this->xy [slot].dataKind = DataPVPlot;
          result = new QEFloating (pvName, this, &this->floatingFormatting, variableIndex);
+
+         if (result && !this->useFullLengthArraySubscriptions) {
+            // Only read effective number, e.g. as defied by .NORD for a waveform record.
+            //
+            result->setRequestedElementCount (0);
+         }
       }
 
       this->replotIsRequired = true;
@@ -1003,7 +1012,7 @@ void QEPlotter::generalContextMenuRequested (const QPoint& pos)
                                                this->contextMenuIsOverGraphic);
 
    this->generalContextMenu->setActionText (QEPlotterNames::PLOTTER_EMIT_COORDINATES,
-                                            this->contextMenuEmitText);
+                                            this->contextMenuEmitLegend);
 
    // Set current checked states.
    //
@@ -2955,12 +2964,12 @@ bool QEPlotter::getEnableConextMenu () const
 //
 void QEPlotter::setMenuEmitText  (const QString& text)
 {
-   this->contextMenuEmitText = text;
+   this->contextMenuEmitLegend = text;
 }
 
 QString QEPlotter::getMenuEmitText () const
 {
-    return this->contextMenuEmitText;
+    return this->contextMenuEmitLegend;
 }
 
 //------------------------------------------------------------------------------
@@ -3079,6 +3088,20 @@ void QEPlotter::setYLogarithmic (bool isLog)
 bool QEPlotter::getYLogarithmic () const
 {
    return this->plotArea->getYLogarithmic ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlotter::setFullLengthArraySubscriptions (const bool useFullLengthArraySubscriptionsIn)
+{
+   this->useFullLengthArraySubscriptions = useFullLengthArraySubscriptionsIn;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEPlotter::getFullLengthArraySubscriptions() const
+{
+   return this->useFullLengthArraySubscriptions;
 }
 
 //------------------------------------------------------------------------------

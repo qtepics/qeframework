@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron.
+ *  Copyright (c) 2013-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -90,8 +90,9 @@ QString  QEUtilities::colourToStyle (const QColor& backgroundColour,
    backgroundColour.getRgb (&br, &bg, &bb, &ba);
    foregroundColour.getRgb (&fr, &fg, &fb, &fa);
 
-   result.sprintf ("QWidget { background-color: #%02x%02x%02x; color: #%02x%02x%02x; }",
-                   br, bg, bb, fr, fg, fb );
+   result.sprintf ("QWidget { background-color: rgba(%d, %d, %d, %d);"
+                   " color: rgba(%d, %d, %d, %d); }",
+                   br, bg, bb, ba, fr, fg, fb, fa );
    return result;
 }
 
