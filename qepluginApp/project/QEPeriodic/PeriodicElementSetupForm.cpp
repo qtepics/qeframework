@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2018 Australian Synchrotron
+ *  Copyright (c) 2011-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -36,7 +36,7 @@
 
 PeriodicElementSetupForm::PeriodicElementSetupForm(const int element,
                                                    userInfoStruct* userInfo,
-                                                   QWidget *parent) :
+                                                   QWidget* parent) :
     QWidget(parent),
     ui(new Ui::PeriodicElementSetupForm)
 {
@@ -45,8 +45,10 @@ PeriodicElementSetupForm::PeriodicElementSetupForm(const int element,
     const QEPeriodic::elementInfoStruct* info = &QEPeriodic::elementInfo [element];
 
     ui->frame->setToolTip( info->name );
-    ui->checkBoxEnable->setToolTip( "Check if " + info->name + " is to be selected by user");
-    ui->checkBoxEnable->setText( info->symbol + "       ");
+    ui->checkBoxEnable->setToolTip( "Check if " + info->name + " is to be selected by user" );
+    QString text;
+    text.sprintf( "%-2s %3d", info->symbol.toStdString().c_str(), info->number );
+    ui->checkBoxEnable->setText( text );
     ui->checkBoxEnable->setChecked( userInfo->enable );
     QString styleSheet;
     styleSheet = QEUtilities::colourToStyle( QEPeriodic::categoryColour( info->category ) );
