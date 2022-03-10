@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2021 Australian Synchrotron
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -345,6 +345,7 @@ void QEPlot::setup ()
    this->axisEnableX = true;
    this->axisEnableY = true;
    this->selectedYAxis = Left;
+   this->useFullLengthArraySubscriptions = false;  // go with modern behaviour by default.
 
    this->mMouseMoveSignals = signalData;
 
@@ -616,6 +617,13 @@ qcaobject::QCaObject* QEPlot::createQcaItem (unsigned int vi)
       // Create the item as a QEFloating
       //
       result = new QEFloating (pvName, this, &this->floatingFormatting, vi);
+
+      if (result && !this->useFullLengthArraySubscriptions) {
+         // Only read effective number, e.g. as defied by .NORD for a waveform record.
+         //
+         result->setRequestedElementCount (0);
+      }
+
    } else {
       // Must be the size variable
       //
@@ -1904,6 +1912,20 @@ void QEPlot::setMouseMoveSignals (const MouseMoveSignalFlags flags)
 QEPlot::MouseMoveSignalFlags QEPlot::getMouseMoveSignals () const
 {
    return this->mMouseMoveSignals;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlot::setFullLengthArraySubscriptions (const bool useFullLengthArraySubscriptionsIn)
+{
+   this->useFullLengthArraySubscriptions = useFullLengthArraySubscriptionsIn;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEPlot::getFullLengthArraySubscriptions() const
+{
+   return this->useFullLengthArraySubscriptions;
 }
 
 //------------------------------------------------------------------------------

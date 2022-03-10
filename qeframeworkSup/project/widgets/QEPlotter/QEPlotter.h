@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron.
+ *  Copyright (c) 2013-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -69,14 +69,6 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlotter : public QEAbstractDynamicWid
 {
    Q_OBJECT
 public:
-
-   /// Default macro substitutions. The default is no substitutions.
-   /// The format is NAME1=VALUE1[,] NAME2=VALUE2...
-   /// Values may be quoted strings. For example, 'SAMPLE=SAM1, NAME = "Ref foil"'
-   /// These substitutions are applied to all the variable names.
-   //
-   Q_PROPERTY (QString variableSubstitutions READ getVariableSubstitutions WRITE setVariableSubstitutions)
-
    // Layout control
    //
    Q_PROPERTY (bool enableContextMenu  READ getEnableConextMenu  WRITE setEnableConextMenu)
@@ -112,7 +104,8 @@ public:
 
    // Context menu legend
    //
-   Q_PROPERTY (QString contextMenuEmitText    READ getMenuEmitText      WRITE setMenuEmitText)
+   Q_PROPERTY (QString contextMenuEmitLegend
+               READ getMenuEmitText    WRITE setMenuEmitText)
 
    // Data and Size properties,
    //
@@ -134,6 +127,10 @@ public:
    Q_PROPERTY (QString DataVariableO   READ getDataPVO  WRITE setDataPVO)
    Q_PROPERTY (QString DataVariableP   READ getDataPVP  WRITE setDataPVP)
 
+   // These variables is used to read effective waveforms sizes, e.g. wavefom.NORD,
+   // and control how many points are plotted. If not specified/connected then the
+   // whole array is used for display purposes.
+   //
    Q_PROPERTY (QString SizeVariableX   READ getSizePVX  WRITE setSizePVX)
    Q_PROPERTY (QString SizeVariableA   READ getSizePVA  WRITE setSizePVA)
    Q_PROPERTY (QString SizeVariableB   READ getSizePVB  WRITE setSizePVB)
@@ -192,6 +189,20 @@ public:
    /// Allows specification of alias as a 'single property', which is also a slot.
    ///
    Q_PROPERTY (QStringList aliasNames  READ getAliasNameSet  WRITE setAliasNameSet)
+
+   /// Older servers (3.14 era as I recall) do not support zero length subscriptions.
+   /// Enable this property to work with ancient IOCs.
+   /// Note: This applies to all arrays, no per plot control is provided.
+   ///
+   Q_PROPERTY (bool fullLengthArraySubscriptions
+               READ getFullLengthArraySubscriptions WRITE setFullLengthArraySubscriptions)
+
+   /// Default macro substitutions. The default is no substitutions.
+   /// The format is NAME1=VALUE1[,] NAME2=VALUE2...
+   /// Values may be quoted strings. For example, 'SAMPLE=SAM1, NAME = "Ref foil"'
+   /// These substitutions are applied to all the variable names.
+   //
+   Q_PROPERTY (QString variableSubstitutions READ getVariableSubstitutions WRITE setVariableSubstitutions)
 
 public:
    explicit QEPlotter (QWidget *parent = 0);
@@ -275,6 +286,9 @@ public:
 
    void setYMaximum (const double yMaximum);
    double getYMaximum () const;
+
+   void setFullLengthArraySubscriptions (const bool useFullLengthArraySubscriptions);
+   bool getFullLengthArraySubscriptions() const;
 
    // Control paused state.
    //
@@ -452,6 +466,7 @@ private:
    QEPlotterNames::ScaleModes xScaleMode;
    QEPlotterNames::ScaleModes yScaleMode;
    QEPlotterStateList  stateList;
+   bool useFullLengthArraySubscriptions;
 
    bool enableConextMenu;
    bool toolBarIsVisible;
@@ -471,7 +486,7 @@ private:
 
    bool    contextMenuIsOverGraphic;
    QPointF contextMenuRequestPosition;   // only meaninful when contextMenuIsOverGraphic is true.
-   QString contextMenuEmitText;
+   QString contextMenuEmitLegend;        // this text appears on the context menu
 
    // Range of (unscaled) values of last plot.
    //

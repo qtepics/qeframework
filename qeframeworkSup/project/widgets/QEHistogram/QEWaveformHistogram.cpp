@@ -34,7 +34,7 @@
 //------------------------------------------------------------------------------
 // Constructor with no initialisation
 //
-QEWaveformHistogram::QEWaveformHistogram (QWidget * parent) :
+QEWaveformHistogram::QEWaveformHistogram (QWidget* parent) :
    QEHistogram (parent),
    QEWidget (this),
    QEStringFormattingMethods ()
@@ -57,6 +57,7 @@ QEWaveformHistogram::QEWaveformHistogram (QWidget * parent) :
    this->setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
    this->setUseDbPrecision (false);
    this->setAddUnits (true);
+   this->useFullLengthArraySubscriptions = false;  // go with modern behaviour by default.
    this->isFirstUpdate = true;
 
    // Set up data
@@ -102,6 +103,12 @@ qcaobject::QCaObject* QEWaveformHistogram::createQcaItem (unsigned int pvi)
    if (pvi == 0) {
       QString pvName = this->getSubstitutedVariableName (pvi);
       result = new QEFloating (pvName, this, &this->floatingFormatting, pvi);
+
+      if (result && !this->useFullLengthArraySubscriptions) {
+         // Only read effective number, e.g. as defied by .NORD for a waveform record.
+         //
+         result->setRequestedElementCount (0);
+      }
    }
 
    return result;
@@ -420,6 +427,20 @@ void QEWaveformHistogram::setReadoutNotation (const Notations notationIn)
 QEWaveformHistogram::Notations QEWaveformHistogram::getReadoutNotation () const
 {
    return Notations (this->getNotation());
+}
+
+//------------------------------------------------------------------------------
+//
+void QEWaveformHistogram::setFullLengthArraySubscriptions (const bool useFullLengthArraySubscriptionsIn)
+{
+   this->useFullLengthArraySubscriptions = useFullLengthArraySubscriptionsIn;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEWaveformHistogram::getFullLengthArraySubscriptions() const
+{
+   return this->useFullLengthArraySubscriptions;
 }
 
 //------------------------------------------------------------------------------

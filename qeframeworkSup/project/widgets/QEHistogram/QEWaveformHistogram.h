@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2021  Australian Synchrotron.
+ *  Copyright (c) 2014-2022  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -97,6 +97,9 @@ public:
    // QEWaveformHistogram specific properties ========================================
    //
    Q_PROPERTY (QString variable READ getVariableNameProperty WRITE setVariableNameProperty)
+
+   /// Default macro substitutions. The default is no substitutions.
+   ///
    Q_PROPERTY (QString variableSubstitutions READ getPvNameSubstitutions WRITE
                setPvNameSubstitutions)
 
@@ -106,6 +109,13 @@ public:
    Q_PROPERTY (int       readoutPrecision  READ getReadoutPrecision WRITE setReadoutPrecision)
    Q_PROPERTY (Formats   readoutFormat     READ getReadoutFormat    WRITE setReadoutFormat)
    Q_PROPERTY (Notations readoutNotation   READ getReadoutNotation  WRITE setReadoutNotation)
+
+   /// Older servers (3.14 era as I recall) do not support zero length subscriptions.
+   /// Enable this property to work with ancient IOCs.
+   /// Note: This applies to all arrays, no per plot control is provided.
+   ///
+   Q_PROPERTY (bool fullLengthArraySubscriptions
+               READ getFullLengthArraySubscriptions WRITE setFullLengthArraySubscriptions)
    //
    // End QEWaveformHistogram specific properties ===================================
 
@@ -250,6 +260,9 @@ public:
    void setReadoutNotation (const Notations notation);
    Notations getReadoutNotation () const;
 
+   void setFullLengthArraySubscriptions (const bool useFullLengthArraySubscriptions);
+   bool getFullLengthArraySubscriptions() const;
+
 signals:
    // This signal is emitted using the QEEmitter::emitDbConnectionChanged function.
    /// Sent when the widget state updated following a channel connection change
@@ -301,6 +314,7 @@ private:
    QEFloatingFormatting floatingFormatting;
    int selectedChannel;         //
    ScaleModes mScaleMode;
+   bool useFullLengthArraySubscriptions;
    bool isFirstUpdate;
 
 private slots:

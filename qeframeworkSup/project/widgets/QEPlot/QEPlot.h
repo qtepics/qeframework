@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2021 Australian Synchrotron
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -104,9 +104,9 @@ public:
    Q_PROPERTY (QString variable7 READ getVariableName7Property WRITE setVariableName7Property)
    Q_PROPERTY (QString variable8 READ getVariableName8Property WRITE setVariableName8Property)
 
-   /// These variables is used to read effective waveforms sizes, e.g. wavefom.NORD
-   /// If not specified/connected then the whole array is used for display purposes.
-   /// Note: Only applicable to waveforms, still connects but otherwsie ignored for scalars.
+   /// These variables is used to read effective waveforms sizes, e.g. wavefom.NORD, and control how many
+   /// points are plotted. If not specified/connected then the whole array is used for display purposes.
+   /// Note: Only applicable to waveforms, still connects but otherwise ignored for scalars.
    ///
    Q_PROPERTY (QString sizeVariable1 READ getSizeVariableName1Property WRITE setSizeVariableName1Property)
    Q_PROPERTY (QString sizeVariable2 READ getSizeVariableName2Property WRITE setSizeVariableName2Property)
@@ -211,6 +211,13 @@ public:
 
    Q_PROPERTY (MouseMoveSignalFlags mouseMoveSignals READ getMouseMoveSignals
                                                      WRITE setMouseMoveSignals)
+
+   /// Older servers (3.14 era as I recall) do not support zero length subscriptions.
+   /// Enable this property to work with ancient IOCs.
+   /// Note: This applies to all arrays, no per plot control is provided.
+   ///
+   Q_PROPERTY (bool fullLengthArraySubscriptions
+               READ getFullLengthArraySubscriptions WRITE setFullLengthArraySubscriptions)
 
    /// Default macro substitutions. The default is no substitutions.
    /// The format is NAME1=VALUE1[,] NAME2=VALUE2...
@@ -373,6 +380,9 @@ public:
    void setMouseMoveSignals (const MouseMoveSignalFlags flags);
    MouseMoveSignalFlags getMouseMoveSignals () const;
 
+   void setFullLengthArraySubscriptions (const bool useFullLengthArraySubscriptions);
+   bool getFullLengthArraySubscriptions() const;
+
 signals:
    // Note, the following signals are common to many QE widgets,
    // if changing the doxygen comments, ensure relevent changes are migrated to all instances
@@ -456,6 +466,7 @@ private:
    bool gridEnableMinorY;
    QColor gridMajorColor;
    QColor gridMinorColor;
+   bool useFullLengthArraySubscriptions;
 
    // Trace update and movement properties
    int tickRate;                // mS
