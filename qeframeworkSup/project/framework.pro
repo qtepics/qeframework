@@ -1,9 +1,9 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #30 $
-# $DateTime: 2021/11/15 15:03:54 $
+# $Revision: #31 $
+# $DateTime: 2022/03/09 21:09:41 $
 # Last checked in by: $Author: starritt $
 #
-# Copyright (c) 2009-2021 Australian Synchrotron
+# Copyright (c) 2009-2022 Australian Synchrotron
 #
 # This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
@@ -72,6 +72,12 @@ equals( QT_MAJOR_VERSION, 4 ) {
 equals( QT_MAJOR_VERSION, 5 ) {
     CONFIG += plugin qwt
     QT += core gui xml network uitools designer
+}
+
+# Qt 6 configuration
+#
+equals( QT_MAJOR_VERSION, 6 ) {
+    error( "**** The framework project file has not been configured for Qt6 (yet) ****" )
 }
 
 # Check EPICS dependancies
@@ -229,6 +235,10 @@ INSTALLS += QEINCLUDE
 
 message( "Note: By default qtcreator does not have a 'make install' build step. When using qtcreator, modify the project " )
 message( "....: to add an install build step which is required to install header files to $$INSTALL_DIR/include" )
+
+# Add private headers to the list of headers - post install stuff.
+#
+HEADERS += $$PRIVATE
 
 #===========================================================
 # Set up EPICS
