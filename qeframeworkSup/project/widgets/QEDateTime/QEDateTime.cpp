@@ -34,6 +34,7 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QDebug>
+#include <QMouseEvent>
 #include <QTimer>
 #include <QECommon.h>
 #include <QEPlatform.h>
