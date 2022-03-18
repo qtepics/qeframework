@@ -1,6 +1,9 @@
 /*  QEMenuButtonItem.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2015-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2015,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -52,12 +53,18 @@
 /// as an when needed.  Also some function name changes such as parent => getParent
 /// and some changes just to follow QE prefered style.
 ///
+
+// Differed declaration - avoids mutual header inclusions.
+//
+class QEMenuButton;
+
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEMenuButtonItem
 {
 public:
    explicit QEMenuButtonItem (const QString& name,
                               const bool isSubMenuContainer,
-                              QEMenuButtonItem* parent = NULL);
+                              QEMenuButton* owner,
+                              QEMenuButtonItem* parent);
    ~QEMenuButtonItem ();
 
    QString getName () const;
@@ -90,12 +97,14 @@ public:
 
 private:
    void appendChild (QEMenuButtonItem* theChild);
+   QString getSubstitutedName () const;
 
    typedef QList<QEMenuButtonItem*> QEMenuButtonItemList;
    QEMenuButtonItemList childItems;
    QEMenuButtonItem* parentItem;
 
 public:   // need to be public to allow << and >> operators access
+   QEMenuButton* owner;
    QString name;
    bool isSubMenuContainer;
    QEMenuButtonData data;   // only applies to non-containers

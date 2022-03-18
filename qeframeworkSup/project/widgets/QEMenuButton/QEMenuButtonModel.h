@@ -1,6 +1,9 @@
 /*  QEMenuButtonModel.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2015-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2015,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -101,7 +102,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEMenuButtonModel : public QAbstractIte
 {
    Q_OBJECT
 public:
-   explicit QEMenuButtonModel (QObject* parent = 0);
+   explicit QEMenuButtonModel (QEMenuButton* parent);
    ~QEMenuButtonModel ();
 
    bool parseXml (const QString& xml);  // create model from XML string
@@ -178,6 +179,7 @@ private:
    QString heading;
 
    QEMenuButtonItem* requestedInsertItem;     //
+   QEMenuButton* owner;
 };
 
 

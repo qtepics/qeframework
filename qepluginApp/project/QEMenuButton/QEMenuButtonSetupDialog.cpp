@@ -1,6 +1,9 @@
 /*  QEMenuButtonSetupDialog.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2015-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
@@ -24,6 +25,7 @@
  */
 
 // Ensure uint64_t is available for all compilers
+//
 #ifdef __cplusplus
  #ifdef _STDINT_H
   #undef _STDINT_H
@@ -112,7 +114,7 @@ QEMenuButtonSetupDialog::QEMenuButtonSetupDialog (QEMenuButton* menuButtonIn, QW
    this->owner = menuButtonIn;
    if (!this->owner) return;  // sanity check
 
-   this->model = new QEMenuButtonModel (this);
+   this->model = new QEMenuButtonModel (NULL);
 
    QString xml = this->owner->getMenuString ();
 
@@ -207,6 +209,7 @@ QEMenuButtonSetupDialog::QEMenuButtonSetupDialog (QEMenuButton* menuButtonIn, QW
 QEMenuButtonSetupDialog::~QEMenuButtonSetupDialog()
 {
    delete this->ui;
+   delete this->model;
 }
 
 //------------------------------------------------------------------------------
@@ -373,7 +376,8 @@ void QEMenuButtonSetupDialog::treeMenuSelected  (QAction* action)
          }
 
          item = new QEMenuButtonItem (QString ("X%1").arg (n++),
-                                      intAction == ADD_SUB_MENU_ACTION);
+                                      intAction == ADD_SUB_MENU_ACTION,
+                                      NULL, NULL);
          this->model->addItemToModel (item, attachTo);
 
          index = this->model->getIndex (item);

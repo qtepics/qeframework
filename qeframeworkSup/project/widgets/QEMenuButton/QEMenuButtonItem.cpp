@@ -1,6 +1,9 @@
 /*  QEMenuButtonItem.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2015-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,27 +18,28 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
 
+#include "QEMenuButtonItem.h"
 #include <QDebug>
-#include <QEMenuButtonItem.h>
+#include <QEMenuButton.h>
 
-#define DEBUG  qDebug () << "QEMenuButtonItem" << __FUNCTION__ << __LINE__ << ":"
+#define DEBUG  qDebug () << "QEMenuButtonItem" << __LINE__ << __FUNCTION__ << "  "
 
 //------------------------------------------------------------------------------
 //
 QEMenuButtonItem::QEMenuButtonItem (const QString& nameIn,
                                     const bool subMenuContainerIn,
+                                    QEMenuButton* ownerIn,
                                     QEMenuButtonItem* parent)
 {
    this->name = nameIn;
    this->isSubMenuContainer = subMenuContainerIn;
+   this->owner = ownerIn;
    this->parentItem = parent;
 
    // Add to parent's own/specific QEMenuButtonItem child list.
@@ -174,7 +178,8 @@ bool QEMenuButtonItem::extractFromDomElement (const QDomElement& element)
 
       QDomElement childElement = element.firstChildElement ("");
       while (!childElement.isNull ()) {
-         QEMenuButtonItem* subItem = new QEMenuButtonItem (">>undefined<<", false, this);
+         QEMenuButtonItem* subItem;
+         subItem = new QEMenuButtonItem (">>undefined<<", false, this->owner, this);
          result = subItem->extractFromDomElement (childElement);
          if (!result) break;
          childElement = childElement.nextSiblingElement ("");
@@ -248,6 +253,19 @@ bool QEMenuButtonItem::extractFromDomElement (const QDomElement& element)
    return result;
 }
 
+//------------------------------------------------------------------------------
+//
+QString QEMenuButtonItem::getSubstitutedName () const
+{
+   QString result;
+   if (this->owner) {
+      result = this->owner->substituteThis (this->name);
+   } else {
+      result = this->name;
+   }
+   return result;
+}
+
 
 //------------------------------------------------------------------------------
 //
@@ -256,7 +274,7 @@ QAction* QEMenuButtonItem::constructAction (QMenu* parent)
    QAction* result = NULL;
 
    if (!this->getIsSubMenuContainer()) {
-      result = new QAction (this->name, parent);
+      result = new QAction (this->getSubstitutedName(), parent);
       result->setData (this->data.toVariant());
    }
 
@@ -270,7 +288,7 @@ QMenu* QEMenuButtonItem::constructMenu (QMenu* parent)
    QMenu* result = NULL;
 
    if (this->getIsSubMenuContainer ()) {
-      result = new QMenu (this->name, parent);
+      result = new QMenu (this->getSubstitutedName(), parent);
 
       const int n = this->childCount ();
       for (int j = 0; j < n; j++) {
@@ -427,7 +445,7 @@ QDataStream& operator>> (QDataStream& stream, QEMenuButtonItem& that)
       int n;
       stream >> n;
       for (int j = 0; j < n; j++) {
-         QEMenuButtonItem* child = new QEMenuButtonItem ("", false, &that);
+         QEMenuButtonItem* child = new QEMenuButtonItem ("", false, that.owner, &that);
          stream >> *child;
       }
    } else {

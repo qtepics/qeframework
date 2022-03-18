@@ -1,6 +1,9 @@
 /*  QEMenuButtonModel.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2015-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,13 +18,13 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
+
+#include "QEMenuButtonModel.h"
 
 #include <QDebug>
 #include <QMimeData>
@@ -29,10 +32,8 @@
 
 #include <QEMenuButton.h>
 #include <QEMenuButtonItem.h>
-#include <QEMenuButtonModel.h>
 
-#define DEBUG  qDebug () << "QEMenuButtonModel:" << __FUNCTION__ << __LINE__
-
+#define DEBUG  qDebug () << "QEMenuButtonModel"  << __LINE__ << __FUNCTION__ << "  "
 
 // XML tag/attribute names etc.
 //
@@ -43,14 +44,15 @@ static const QString mineType         = "application/vnd.text.list";
 
 //------------------------------------------------------------------------------
 //
-QEMenuButtonModel::QEMenuButtonModel (QObject* parent) :
-   QAbstractItemModel (parent)
+QEMenuButtonModel::QEMenuButtonModel (QEMenuButton* parent) :
+   QAbstractItemModel (parent),
+   owner (parent)
 {
    // The core item is a QTreeView/QAbstractItemModel artefact
    // Note: this item does not/must not have a parent.
    // It is a place holder - not visible per se.
    //
-   this->coreItem = new QEMenuButtonItem ("coreItem", true, NULL);
+   this->coreItem = new QEMenuButtonItem ("coreItem", true, this->owner, NULL);
    this->heading = "Menu Tree";
 
    this->requestedInsertItem = NULL;
@@ -98,7 +100,7 @@ bool QEMenuButtonModel::parseXml (const QString& xml)
       return false;
    }
 
-   QEMenuButtonItem* replacementCore = new QEMenuButtonItem ("coreItem", true, NULL);
+   QEMenuButtonItem* replacementCore = new QEMenuButtonItem ("coreItem", true, this->owner, NULL);
 
    // The core element is not serilaised, it is a model artefact.
    // This code snippet (~ 8 lines) mirrors QEMenuButtonItem::extractFromDomElement
@@ -106,7 +108,8 @@ bool QEMenuButtonModel::parseXml (const QString& xml)
    bool status = true;
    QDomElement childElement = docElem.firstChildElement ("");
    while (!childElement.isNull ()) {
-      QEMenuButtonItem* subItem = new QEMenuButtonItem (">>undefined<<", false, replacementCore);
+      QEMenuButtonItem* subItem;
+      subItem = new QEMenuButtonItem (">>undefined<<", false, this->owner, replacementCore);
       status = subItem->extractFromDomElement (childElement);
       if (!status) break;
       childElement = childElement.nextSiblingElement ("");
@@ -512,7 +515,7 @@ bool QEMenuButtonModel::dropMimeData (const QMimeData* data, Qt::DropAction acti
    // We currently expect only one item (albeit a submenu container with its own
    // child menu items).
    //
-   QEMenuButtonItem* item = new QEMenuButtonItem ("", false);
+   QEMenuButtonItem* item = new QEMenuButtonItem ("", false, this->owner, NULL);
    stream >> *item;
    this->addItemToModel (item, attachTo, attachPosition);
 

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2021 Australian Synchrotron
+ *  Copyright (c) 2015-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -69,9 +69,9 @@ QEMenuButton::QEMenuButton (QWidget* parent) : QEAbstractWidget (parent)
    // There are no variables per se, but we do use subsitutions.
    //
    // Set up the number of variables managed by the variable name manager
-   // NOTE: there is no data associated with this widget, but it uses the same
-   // substitution mechanism as other data widgets.
-   // This is used for the menu button text.
+   // NOTE: there are no PVs associated with this widget, but it uses the same
+   // substitution mechanism as other QE widgets.
+   // This is used for the menu button text, menu items, PV names and PV values.
    //
    this->variableNameManagerInitialise (0);
 
@@ -163,7 +163,8 @@ void QEMenuButton::menuTriggered (QAction* action)
    QEMenuButtonData buttonData = action->data ().value<QEMenuButtonData> ();
 
    // If there is a command to run, run it, with substitutions applied to the
-   // command and arguments
+   // command and arguments. Note the applicationLauncher itself handles the
+   // substitutions to both program name and the arguments.
    //
    if (!buttonData.programName.isEmpty ()) {
 
@@ -198,7 +199,9 @@ void QEMenuButton::menuTriggered (QAction* action)
    // If variable defined, then write to it.
    //
    if (!buttonData.variable.isEmpty()) {
-      qcaobject::QCaObject* qca = new qcaobject::QCaObject (buttonData.variable, this, 0);
+
+      QString pvName = this->substituteThis (buttonData.variable);
+      qcaobject::QCaObject* qca = new qcaobject::QCaObject (pvName, this, 0);
 
       // Store the required action data as a dynamic qca property.
       //
@@ -226,34 +229,47 @@ void QEMenuButton::writeToVariable (qcaobject::QCaObject* qca)
    QVariant actionData = qca->property (ACTION_DATA);
    QEMenuButtonData buttonData = actionData.value<QEMenuButtonData> ();
 
+   QString variableValue = this->substituteThis (buttonData.variableValue);
+
    bool okay = false;
    QVariant pvData;
 
    switch (buttonData.format) {
       case QEStringFormatting::FORMAT_FLOATING:
-         pvData = QVariant (double (buttonData.variableValue.toDouble (&okay)));
+         pvData = QVariant (double (variableValue.toDouble (&okay)));
          break;
 
       case QEStringFormatting::FORMAT_INTEGER:
-         pvData = QVariant (int (buttonData.variableValue.toInt (&okay)));
+         pvData = QVariant (int (variableValue.toInt (&okay)));
          break;
 
       case QEStringFormatting::FORMAT_UNSIGNEDINTEGER:
-         pvData = QVariant (qlonglong (buttonData.variableValue.toLongLong (&okay)));
+         pvData = QVariant (qlonglong (variableValue.toLongLong (&okay)));
          break;
 
       case QEStringFormatting::FORMAT_DEFAULT:
          /// TODO - fix this option, but go with string for now.
 
       case QEStringFormatting::FORMAT_STRING:
-         pvData = QVariant (buttonData.variableValue);
+         pvData = QVariant (variableValue);
          okay = true;
          break;
 
       case QEStringFormatting::FORMAT_TIME:
       case QEStringFormatting::FORMAT_LOCAL_ENUMERATE:
-      default:
+         DEBUG << "unhandled format value" << buttonData.format;
+         okay = false;
+         break;
+
+      case QEStringFormatting::FORMAT_NT_TABLE:
+      case QEStringFormatting::FORMAT_NT_IMAGE:
+      case QEStringFormatting::FORMAT_OPAQUE:
          DEBUG << "unexpected format value" << buttonData.format;
+         okay = false;
+         break;
+
+      default:
+         DEBUG << "erroneous format value" << buttonData.format;
          okay = false;
          break;
    }
@@ -381,11 +397,12 @@ void QEMenuButton::setMenuString (const QString& menuStringIn)
       this->theMenuString = menuStringIn;
    }
 
-   QEMenuButtonModel model (NULL);
+   QEMenuButtonModel model (this);
    bool status = model.parseXml (this->getMenuString ());
    if (status) {
       model.constructMenu (this->buttonMainMenu);
    }
+   // model deconstructs here
 }
 
 //------------------------------------------------------------------------------
