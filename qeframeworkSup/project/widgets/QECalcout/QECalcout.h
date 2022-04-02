@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2018-2019 Australian Synchrotron
+ *  Copyright (c) 2018-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -197,6 +197,21 @@ public slots:
    void inpj (const int j);
    void inpk (const int k);
    void inpl (const int l);
+
+   // Replicated for boolean inputs.
+   //
+   void inpa (const bool a);
+   void inpb (const bool b);
+   void inpc (const bool c);
+   void inpd (const bool d);
+   void inpe (const bool e);
+   void inpf (const bool f);
+   void inpg (const bool g);
+   void inph (const bool h);
+   void inpi (const bool i);
+   void inpj (const bool j);
+   void inpk (const bool k);
+   void inpl (const bool l);
 
 public:
    double geta () const;
