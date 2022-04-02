@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2021 Australian Synchrotron
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -101,7 +101,7 @@ public:
     // These properties should be identical for specific button widgets (QEPushButton, QERadioButton and QECheckBox)
     // WHEN MAKING CHANGES: search for GENERIC-BUTTON-PROPERTIES  and change all occurances.
 public:
-    // Important proerties first
+    // Important, as in most commonly used, properties first.
     //
     /// Button label text (prior to substitution).
     /// Macro substitutions will be applied to this text and the result will be set as the button text.

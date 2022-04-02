@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron
+ *  Copyright (c) 2013-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -68,7 +68,7 @@ public:
     static void getScaling (int& m, int& d);
 
     /// Set application wide additional font scaling values.
-    /// The final font scaling is this (m * fm) / (d * fd)
+    /// The final font scaling is thus (m * fm) / (d * fd)
     /// Both values default to 1, which is a null scaling.
     /// Only valid scaling values (fm > 0, fd > 0) are accepted.
     //
