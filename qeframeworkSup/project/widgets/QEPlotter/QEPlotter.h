@@ -647,6 +647,7 @@ public slots:
                           const unsigned int& variableIndex);
 
 private slots:
+   void postContruction ();
    void letterButtonClicked (bool checked);
    void checkBoxStateChanged (int state);
    void tickTimeout ();

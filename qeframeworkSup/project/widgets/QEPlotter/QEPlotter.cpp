@@ -642,6 +642,17 @@ QEPlotter::QEPlotter (QWidget* parent) : QEAbstractDynamicWidget (parent)
 
    this->setToolTipSummary ();
    this->pushState ();  // baseline state - there is always at least one.
+
+   // Somethings just need to be done post construction in order to work as expected.
+   //
+   QTimer::singleShot(1, this, SLOT(postContruction ()));
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlotter::postContruction ()
+{
+   this->itemResize->setFixedWidth (256);
 }
 
 //------------------------------------------------------------------------------
