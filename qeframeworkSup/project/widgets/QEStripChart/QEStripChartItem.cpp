@@ -1617,10 +1617,27 @@ bool QEStripChartItem::eventFilter (QObject *obj, QEvent *event)
 //
 void QEStripChartItem::writeTraceToFile ()
 {
+   if (!this->isInUse()) return;   // sanity check
+
+   const QString pvName = this->getPvName();
+   QString nicePvName;
+   QString defaultPath;
    QString filename;
 
+   // Replace characters that are un-suitable as part of a file name.
+   //
+   nicePvName = pvName.toLower().replace(':', '-').replace('/', '-').replace('\\', '-');
+
+   // Form the default full path name
+   //
+   defaultPath = QString ("%1/%2.txt")
+         .arg (this->chart->getDefaultDir ())
+         .arg (nicePvName);
+
+   // Launch the dialog
+   //
    filename = QFileDialog::getSaveFileName
-         (this, "Select output trace file", this->chart->getDefaultDir (),
+         (this, "Select " + pvName + " output trace file", defaultPath,
           "Text files(*.txt);;All files(*.*)");
 
    if (filename.isEmpty ()) {
@@ -1635,11 +1652,12 @@ void QEStripChartItem::writeTraceToFile ()
 
    QTextStream ts (&file);
 
+   ts << "# Process variable: " << pvName << "\n";
    ts << "#   No  TimeStamp                      Relative Time    Value                Okay     Severity    Status\n";
 
    QCaDataPointList dataPoints = this->extractPlotPoints (false);
-
    dataPoints.toStream (ts, true, true);
+
    file.close ();
 }
 
@@ -1727,7 +1745,6 @@ void QEStripChartItem::contextMenuRequested (const QPoint & pos)
       this->emptyMenu->exec (golbalPos, 0);
    }
 }
-
 
 //------------------------------------------------------------------------------
 //

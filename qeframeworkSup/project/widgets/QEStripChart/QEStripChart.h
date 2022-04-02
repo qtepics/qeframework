@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2021 Australian Synchrotron
+ *  Copyright (c) 2012-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -106,6 +106,7 @@ public:
    Q_PROPERTY (bool enableContextMenu  READ getEnableConextMenu  WRITE setEnableConextMenu)
    Q_PROPERTY (bool toolBarIsVisible   READ getToolBarVisible    WRITE setToolBarVisible)
    Q_PROPERTY (bool pvItemsIsVisible   READ getPvItemsVisible    WRITE setPvItemsVisible)
+   Q_PROPERTY (int numberPvsVisible    READ getNumberPvsVisible  WRITE setNumberPvsVisible)
 
    // Note, a property macro in the form 'Q_PROPERTY(QString variableName READ ...' doesn't work.
    // A property name ending with 'Name' results in some sort of string a variable being displayed,
@@ -236,6 +237,7 @@ public slots:
    void videoModeSelected (const QEStripChartNames::VideoModes mode);
    void yRangeSelected (const QEStripChartNames::ChartYRanges scale);
    void yScaleModeSelected (const QEStripChartNames::YScaleModes mode);
+   void writeTraceToFile (const int slot);
 
 protected:
    bool eventFilter (QObject* watched, QEvent* event);
@@ -347,6 +349,7 @@ private:
    bool enableConextMenu;
    bool toolBarIsVisible;
    bool pvItemsIsVisible;
+   int numberPvsVisible;
 
    // Functions
    //
@@ -378,6 +381,9 @@ public:
 
    void setPvItemsVisible (bool visible);
    bool getPvItemsVisible () const;
+
+   void setNumberPvsVisible (int number);
+   int getNumberPvsVisible () const;
 
    void    setVariableNameProperty (const int slot, const QString& pvName);
    QString getVariableNameProperty (const int slot) const;

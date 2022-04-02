@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2021 Australian Synchrotron.
+ *  Copyright (c) 2012-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -71,18 +71,21 @@ static const QColor clWhite (0xFF, 0xFF, 0xFF, 0xFF);
 static const QColor clBlack (0x00, 0x00, 0x00, 0xFF);
 
 #define PV_DELTA_HEIGHT    18
-#define PV_FRAME_HEIGHT    (8 + (NUMBER_OF_PVS / 2) * PV_DELTA_HEIGHT)
+#define PV_FRAME_HEIGHT    (8 + ((NUMBER_OF_PVS + 1) / 2) * PV_DELTA_HEIGHT)
 #define PV_SCROLL_HEIGHT   (PV_FRAME_HEIGHT + 6)
+
+// required height for n PVs.
+//
+#define PV_ITEM_HEIGHT(n)  (8 + ((int(n) + 1)/ 2) * 19 + 6)
 
 // default height is for ten (as opposed to 16) PVs.
 //
-#define PV_DEFAULT_HEIGHT  (8 + (10 / 2) * PV_DELTA_HEIGHT + 6)
-
+#define PV_DEFAULT_HEIGHT  PV_ITEM_HEIGHT(10)
 
 #define MINIMUM_SPAN   1.0E-12    // Absolute min y range
 #define MINIMUM_RATIO  1.0E-6     // Min relative range, e.g. 1000000 to 1000001
 
-// We use a shared time for all QEPlotters.
+// We use a shared time for all QEStripCharts.
 //
 QTimer* QEStripChart::tickTimer = NULL;
 
@@ -1066,6 +1069,7 @@ QEStripChart::QEStripChart (QWidget * parent) : QEAbstractDynamicWidget (parent)
    this->enableConextMenu = true;
    this->toolBarIsVisible = true;
    this->pvItemsIsVisible = true;
+   this->setNumberPvsVisible (10);
 
    // We always use UTC (EPICS) time within the strip chart.
    // Set directly here as using setEndTime has side effects.
@@ -1195,6 +1199,21 @@ void QEStripChart::setPvItemsVisible (bool visibleIn)
 bool QEStripChart::getPvItemsVisible () const
 {
    return this->pvItemsIsVisible;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChart::setNumberPvsVisible (int number)
+{
+   this->numberPvsVisible = LIMIT (number, 0, NUMBER_OF_PVS);
+   this->pvResizeFrame->setFixedHeight (PV_ITEM_HEIGHT (this->numberPvsVisible));
+}
+
+//------------------------------------------------------------------------------
+//
+int QEStripChart::getNumberPvsVisible () const
+{
+   return this->numberPvsVisible;
 }
 
 //------------------------------------------------------------------------------
@@ -1346,6 +1365,16 @@ void QEStripChart::updateItemMenu (const int slot, QAction* action, const bool i
    QEStripChartItem* item = this->getItem (slot);
    if (item) {
       item->updateMenu (action, inUseMenu);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChart::writeTraceToFile (const int slot)
+{
+   QEStripChartItem* item = this->getItem (slot);
+   if (item) {
+      item->writeTraceToFile ();
    }
 }
 
