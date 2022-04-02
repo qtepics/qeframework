@@ -76,7 +76,7 @@ QEFileImage::~QEFileImage() {}
 void QEFileImage::setup()
 {
    this->threshold = NULL_THRESHOLD;
-   this->thresholdColour = QColor("#ffffff");
+   this->thresholdColor= QColor("#ffffff");
    this->scaledContents = false;
 
    // Set up data
@@ -248,7 +248,7 @@ void QEFileImage::setImageFileName(const QString& text)
       if (image.format() == QImage::Format_RGB32) {
          // Yes - do thresholding the fast way.
          //
-         const QRgb tRgb = this->thresholdColour.rgb();
+         const QRgb tRgb = this->thresholdColor.rgb();
 
          for (int row = 0; row < nr; row++) {
             QRgb* rowData = (QRgb*) image.scanLine(row);
@@ -256,7 +256,7 @@ void QEFileImage::setImageFileName(const QString& text)
             for (int col = 0; col < nc; col++) {
                QColor pc = QColor (rowData[col]);
 
-               // Decompise colour to find its luminescence
+               // Decompise colour to find its lightness.
                //
                int h, s, l, a;
                pc.getHsl (&h, &s, &l, &a);
@@ -274,13 +274,13 @@ void QEFileImage::setImageFileName(const QString& text)
             for (int col = 0; col < nc; col++) {
                QColor pc = image.pixelColor(col, row);
 
-               // Decompise colour to find its luminescence
+               // Decompise colour to find its lightness.
                //
                int h, s, l, a;
                pc.getHsl (&h, &s, &l, &a);
 
                if (l >= this->threshold) {
-                  image.setPixelColor(col, row, this->thresholdColour);
+                  image.setPixelColor(col, row, this->thresholdColor);
                }
             }
          }
@@ -317,17 +317,17 @@ QString QEFileImage::getImageFileName () const
 
 //------------------------------------------------------------------------------
 // slot function
-void QEFileImage::setThresholdColour (const QColor thresholdColourIn)
+void QEFileImage::setThresholdColor (const QColor thresholdColorIn)
 {
-   this->thresholdColour = thresholdColourIn;
+   this->thresholdColor = thresholdColorIn;
    this->setImageFileName(this->fileName);   // trigger reprocessing of the same file
 }
 
 //------------------------------------------------------------------------------
 //
-QColor QEFileImage::getThresholdColour () const
+QColor QEFileImage::getThresholdColor () const
 {
-   return this->thresholdColour;
+   return this->thresholdColor;
 }
 
 //------------------------------------------------------------------------------

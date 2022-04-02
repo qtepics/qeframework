@@ -204,15 +204,15 @@ public:
 
    // === Start widget specific properties =====================================
 
-   /// Defines the luminescence threshold: range 0 .. 255,
+   /// Defines the lightness threshold: range 0 .. 255,
    /// or 256 for no thresholding.
    ///
    Q_PROPERTY(int threshold READ getThreshold WRITE setThreshold)
 
-   /// Defines to colour to be substituted when the pixel luminescence exceeds
+   /// Defines to colour to be substituted when the pixel lightness exceeds
    /// the given threshold. The default colour is white.
    ///
-   Q_PROPERTY(QColor thresholdColor READ getThresholdColour WRITE setThresholdColour)
+   Q_PROPERTY(QColor thresholdColor READ getThresholdColor WRITE setThresholdColor)
 
    /// Flag the pixmap is to be scaled to fit the frame.
    /// Similar operation to scaledContents property for a QLabel/QEFrame.
@@ -242,9 +242,9 @@ public:
    // All public setter functions are also slot functions.
 
 public slots:
-   void setThresholdColour(const QColor thresholdColour);
+   void setThresholdColor(const QColor thresholdColor);
 public:
-   QColor getThresholdColour() const;
+   QColor getThresholdColor() const;
 
 public slots:
    void setThreshold(const int threshold);
@@ -304,7 +304,7 @@ private:
    bool isConnected;
    QString fileName;
    QFileSystemWatcher fileMon;
-   QColor thresholdColour;
+   QColor thresholdColor;
    int threshold;
 
    // Flag the pixmap for the background is to be scaled to fit the frame.
