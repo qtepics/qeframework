@@ -35,29 +35,41 @@
 #include <QClipboard>
 #include <QDebug>
 #include <QMouseEvent>
-#include <QTimer>
 #include <QECommon.h>
 #include <QEPlatform.h>
 
 #define DEBUG  qDebug () << "QEDateTime" << __LINE__ << __FUNCTION__ << "  "
 
+// We use a shared timer for all QEDateTime widget instances.
+// This means they will all update in sync.
+//
+QTimer *QEDateTime::tickTimer = NULL;
+
 //------------------------------------------------------------------------------
 // Constructor with no initialisation
 //
-QEDateTime::QEDateTime(QWidget *parent) : QLabel(parent)
+QEDateTime::QEDateTime (QWidget* parent) : QLabel (parent)
 {
-   QTimer *timer = new QTimer(this);
-   connect(timer, SIGNAL(timeout()), this, SLOT(kick()));
+   // Create common QEDateTime timer if needs be.
+   //
+   if (QEDateTime::tickTimer == NULL) {
+      QEDateTime::tickTimer = new QTimer (NULL);
+      QEDateTime::tickTimer->start (1000);      // Go at 1Hz
+   }
 
-   // initializations
+   // Initialisations
+   //
    this->dateTimeFormat = "yyyy-MM-dd hh:mm:ss";
    this->timeZone = Qt::LocalTime;
    this->showZone = false;
-   this->setMinimumSize(180, 20);
-   this->setAlignment(Qt::AlignHCenter);
+   this->setAlignment (Qt::AlignHCenter);
 
-   timer->start(1000);  // at 1 sec interval.
-   QTimer::singleShot(1, this, SLOT (kick())); // initial date time set
+   // Create connection from timer to this object.
+   //
+   this->connect (QEDateTime::tickTimer, SIGNAL (timeout ()),
+                  this, SLOT (kick ()));
+
+   QTimer::singleShot (1, this, SLOT (kick ()));        // initial date time set
 
    // Allow and setup local context menu.
    //
@@ -68,80 +80,87 @@ QEDateTime::QEDateTime(QWidget *parent) : QLabel(parent)
    // Build the context menu - note unlike QEWidget paradigm, we do this only once.
    //
    this->contextMenu = new QMenu (this);
-   QAction* action = new QAction("Copy time text ", this->contextMenu);
+   QAction* action = new QAction ("Copy time text ", this->contextMenu);
    this->contextMenu->addAction (action);
 
    QObject::connect (this->contextMenu, SIGNAL (triggered (QAction*)),
-                     this, SLOT (contextMenuTriggered(QAction*)));
+                     this, SLOT (contextMenuTriggered (QAction*)));
 
    // Setup event filtering
    //
-   this->installEventFilter(this);
+   this->installEventFilter (this);
 }
 
 //------------------------------------------------------------------------------
 //
-QEDateTime::~QEDateTime( ) { }  // place holder
+QEDateTime::~QEDateTime () {}  // place holder
 
 //------------------------------------------------------------------------------
 //
-QString QEDateTime::getDateTimeFormat() const
+QSize QEDateTime::sizeHint () const
+{
+   return QSize (180, 17);
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEDateTime::getDateTimeFormat () const
 {
    return this->dateTimeFormat;
 }
 
 //------------------------------------------------------------------------------
 //
-void QEDateTime::setDateTimeFormat(const QString format)
+void QEDateTime::setDateTimeFormat (const QString format)
 {
    this->dateTimeFormat = format;
 }
 
 //------------------------------------------------------------------------------
 //
-Qt::TimeSpec QEDateTime::getTimeZone() const
+Qt::TimeSpec QEDateTime::getTimeZone () const
 {
    return this->timeZone;
 }
 
 //------------------------------------------------------------------------------
 //
-void QEDateTime::setTimeZone(const Qt::TimeSpec zone)
+void QEDateTime::setTimeZone (const Qt::TimeSpec zone)
 {
    // We disallow OffsetFromUTC and TimeZone
    //
-   this->timeZone = zone == Qt::LocalTime ? Qt::LocalTime : Qt::UTC;
+   this->timeZone = (zone == Qt::LocalTime) ? Qt::LocalTime : Qt::UTC;
 }
 
 //------------------------------------------------------------------------------
 //
-bool QEDateTime::getShowZone() const
+bool QEDateTime::getShowZone () const
 {
    return this->showZone;
 }
 
 //------------------------------------------------------------------------------
 //
-void QEDateTime::setShowZone(const bool zone)
+void QEDateTime::setShowZone (const bool zone)
 {
    this->showZone = zone;
 }
 
 //------------------------------------------------------------------------------
 //
-bool QEDateTime::eventFilter (QObject* watched, QEvent *event)
+bool QEDateTime::eventFilter (QObject* watched, QEvent* event)
 {
    const QEvent::Type type = event->type ();
-   QMouseEvent* mouseEvent = NULL;
+   QMouseEvent *mouseEvent = NULL;
 
    switch (type) {
 
       case QEvent::MouseButtonPress:
-         mouseEvent = static_cast<QMouseEvent *> (event);
-         if ((watched == this) && (mouseEvent->button() == MIDDLE_BUTTON)) {
-            QClipboard* cb = QApplication::clipboard();
-            cb->setText(this->text());
-            return true;  // we have handled this mouse button event
+         mouseEvent = static_cast < QMouseEvent*>(event);
+         if ((watched == this) && (mouseEvent->button () == MIDDLE_BUTTON)) {
+            QClipboard *cb = QApplication::clipboard ();
+            cb->setText (this->text ());
+            return true;        // we have handled this mouse button event
          }
          break;
 
@@ -166,29 +185,29 @@ void QEDateTime::contextMenuTriggered (QAction*)
 {
    // Is only one action - no need to decode the required action.
    //
-   QClipboard* cb = QApplication::clipboard();
-   cb->setText(this->text());
+   QClipboard *cb = QApplication::clipboard ();
+   cb->setText (this->text ());
 }
 
 //------------------------------------------------------------------------------
 // slot
-void QEDateTime::kick()
+void QEDateTime::kick ()
 {
    QDateTime timeNow;
 
-   if (this->timeZone == Qt::LocalTime){
-      timeNow = QDateTime::currentDateTime().toLocalTime();
+   if (this->timeZone == Qt::LocalTime) {
+      timeNow = QDateTime::currentDateTime ().toLocalTime ();
    } else {
-      timeNow = QDateTime::currentDateTime().toUTC();
+      timeNow = QDateTime::currentDateTime ().toUTC ();
    }
 
-   QString timeString = timeNow.toString(this->dateTimeFormat);
-   if (this->showZone){
-      QString zoneName = QEUtilities::getTimeZoneTLA(timeNow);
-      timeString.append(" " + zoneName);
+   QString timeString = timeNow.toString (this->dateTimeFormat);
+   if (this->showZone) {
+      QString zoneName = QEUtilities::getTimeZoneTLA (timeNow);
+      timeString.append (" " + zoneName);
    }
 
-   this->setText(timeString);
+   this->setText (timeString);
 }
 
 // end
