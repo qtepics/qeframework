@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2021 Australian Synchrotron
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -33,153 +33,188 @@
 #include <QString>
 #include <QStringList>
 #include <QVector>
-#include <QDataStream>
-#include <QTextStream>
-
 #include <QELocalEnumeration.h>
 #include <QEFrameworkLibraryGlobal.h>
-
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStringFormatting {
 public:
 
-    /// \enum formats
-    /// Formatting options
-    enum formats { FORMAT_DEFAULT,              ///< Format according to the EPICS database record type
-                   FORMAT_FLOATING,             ///< Format as a floating point number
-                   FORMAT_INTEGER,              ///< Format as an integer
-                   FORMAT_UNSIGNEDINTEGER,      ///< Format as an unsigned integer
-                   FORMAT_TIME,                 ///< Format as a time - value must be in seconds
-                   FORMAT_LOCAL_ENUMERATE,      ///< Format as a selection from the local enumerations set by setLocalEnumeration()
-                   FORMAT_STRING,               ///< Format as a string
-                   // Specials for specific PVA varient types
-                   FORMAT_NT_TABLE,             ///< Format as a NTTable
-                   FORMAT_NT_IMAGE,             ///< Format as a NTNDArray
-                   FORMAT_OPAQUE                ///< Format as opaque, i.e. unknown/unhandled type.
-               };
+   /// \enum formats
+   /// Formatting options
+   enum formats {
+      FORMAT_DEFAULT,           ///< Format according to the EPICS database record type
+      FORMAT_FLOATING,          ///< Format as a floating point number
+      FORMAT_INTEGER,           ///< Format as an integer
+      FORMAT_UNSIGNEDINTEGER,   ///< Format as an unsigned integer
+      FORMAT_TIME,              ///< Format as a time - value must be in seconds
+      FORMAT_LOCAL_ENUMERATE,   ///< Format as a selection from the local enumerations set by setLocalEnumeration()
+      // Above selectable in designer
+      FORMAT_STRING,            ///< Format as a string
+      // Specials for specific PVA varient types
+      FORMAT_NT_TABLE,          ///< Format as a NTTable
+      FORMAT_NT_IMAGE,          ///< Format as a NTNDArray
+      FORMAT_OPAQUE             ///< Format as opaque, i.e. unknown/unhandled type.
+   };
 
-    /// \enum notations
-    /// Notations when formatting a floating point number
-    enum notations { NOTATION_FIXED      = QTextStream::FixedNotation,        ///< Standard floating point 123456.789
-                     NOTATION_SCIENTIFIC = QTextStream::ScientificNotation,   ///< Scientific representation 1.23456789e6
-                     NOTATION_AUTOMATIC  = QTextStream::SmartNotation         ///< Automatic choice of standard or scientific notation
-                };    // WARNING keep these enumerations the same as QTextStream
+   /// \enum notations
+   /// Notations when formatting a floating point number
+   enum notations {
+      NOTATION_FIXED = 0,       ///< Standard floating point 123456.789
+      NOTATION_SCIENTIFIC,      ///< Scientific representation 1.23456789e+06
+      NOTATION_AUTOMATIC        ///< Automatic choice of standard or scientific notation
+   };
 
-    /// \num separators
-    /// Defines the digit 'thousands' separator to be used.
-    enum separators { SEPARATOR_NONE = 0,        ///< Use no separator,  e.g. 123456.123456789
-                      SEPARATOR_COMMA,           ///< Use ',' as separator, e.g. 123,456.123,456,789
-                      SEPARATOR_UNDERSCORE,      ///< Use '_' as separator, e.g. 123_456.123_456_789
-                      SEPARATOR_SPACE            ///< Use ' ' as separator, e.g. 123 456.123 456 789
-                    };
+   /// \num separators
+   /// Defines the digit 'thousands' separator to be used.
+   enum separators {
+      SEPARATOR_NONE = 0,       ///< Use no separator,  e.g. 123456.123456789
+      SEPARATOR_COMMA,          ///< Use ',' as separator, e.g. 123,456.123,456,789
+      SEPARATOR_UNDERSCORE,     ///< Use '_' as separator, e.g. 123_456.123_456_789
+      SEPARATOR_SPACE           ///< Use ' ' as separator, e.g. 123 456.123 456 789
+   };
 
-    /// \enum arrayActions
-    /// What action to take when formatting array data
-    enum arrayActions { APPEND, ///< Interpret each element in the array as an unsigned integer and append string representations of each element from the array with a space in between each.
-                        ASCII,  ///< Interpret each element from the array as a character in a string. Translate all non printing characters to '?' except for trailing zeros (ignore them)
-                        INDEX   ///< Interpret the element selected by setArrayIndex() as an unsigned integer
-                    };
+   /// \enum arrayActions
+   /// What action to take when formatting array data
+   enum arrayActions {
+      APPEND,                   ///< Interpret each element in the array as an unsigned integer and append string representations of each element from the array with a space in between each.
+      ASCII,                    ///< Interpret each element from the array as a character in a string. Translate all non printing characters to '?' except for trailing zeros (ignore them)
+      INDEX                     ///< Interpret the element selected by setArrayIndex() as an unsigned integer
+   };
 
-    // Construction
-    explicit QEStringFormatting();
-    ~QEStringFormatting();
+   // Construction/destruction
+   explicit QEStringFormatting ();
+   ~QEStringFormatting ();
 
-    //===============================================
-    // Main functions of this class:
-    //   - Format a string based on a value
-    //   - Translate a string and generate a value
-    //===============================================
-    QString formatString( const QVariant& value, int arrayIndex ) const;
+   //===============================================
+   // Main functions of this class:
+   //   - Format a string based on a value and array index (typically 0)
+   //   - Translate a string and generate a value
+   //===============================================
+   //
+   QString formatString (const QVariant& value, int arrayIndex) const;
+   QVariant formatValue (const QString& text, bool& ok) const;
+   QVariant formatValue (const QVector<QString>& text, bool& ok) const;
 
-    QVariant formatValue( const QString& text, bool& ok ) const;
-    QVariant formatValue( const QVector<QString>& text, bool& ok ) const;
 
+   // Functions to set up formatting information from the database
+   //
+   void setDbEgu (const QString egu); // Units to be added (or removed) from the formatted string if 'addUnits' flag is set
+   void setDbEnumerations (const QStringList enumerations);
+   void setDbPrecision (const unsigned int dbPrecisionIn);
 
-    // Functions to set up formatting information from the database
-    void setDbEgu( QString egu );      // Units to be added (or removed) from the formatted string if 'addUnits' flag is set
-    void setDbEnumerations( QStringList enumerations );
-    void setDbPrecision( unsigned int dbPrecisionIn );
+   // Functions to configure the formatting
+   //
+   void setPrecision (const int precision);
+   void setUseDbPrecision (const bool useDbPrecision);
+   void setLeadingZero (const bool leadingZero);
+   void setTrailingZeros (const bool trailingZeros);
+   void setForceSign (const bool forceSign);
+   void setFormat (const formats format);
+   void setSeparator (const separators separator);
+   void setRadix (const int radix);
+   void setNotation (const notations notation);
+   void setArrayAction (const arrayActions arrayActionIn);
+   void setAddUnits (const bool addUnits);
+   void setLocalEnumeration (const QString /*localEnumerationList */ localEnumerationIn);
+   void setUseRadixPrefix (const bool useRadixPrefix);
+   void setLeadingZeros (const int leadingZeros);
 
-    // Functions to configure the formatting
-    void setPrecision( int precision );
-    void setUseDbPrecision( bool useDbPrecision );
-    void setLeadingZero( bool leadingZero );
-    void setTrailingZeros( bool trailingZeros );
-    void setForceSign( bool forceSign );
-    void setFormat( formats format );
-    void setSeparator( const separators separator );
-    void setRadix( const int radix );
-    void setNotation( notations notation );
-    void setArrayAction( arrayActions arrayActionIn );
-    void setAddUnits( bool addUnits );
-    void setLocalEnumeration( QString/*localEnumerationList*/ localEnumerationIn );
+   // Functions to read the formatting configuration
+   //
+   int getPrecision () const;
+   bool getUseDbPrecision () const;
+   bool getLeadingZero () const;
+   bool getTrailingZeros () const;
+   bool getForceSign () const;
+   formats getFormat () const;
+   separators getSeparator () const;
+   unsigned int getRadix () const;
+   notations getNotation () const;
+   arrayActions getArrayAction () const;
+   bool getAddUnits () const;
+   QString getLocalEnumeration () const;
+   QELocalEnumeration getLocalEnumerationObject () const;
+   bool getUseRadixPrefix () const;
+   int getLeadingZeros () const;
 
-    // Functions to read the formatting configuration
-    int          getPrecision() const;
-    bool         getUseDbPrecision() const;
-    bool         getLeadingZero() const;
-    bool         getTrailingZeros() const;
-    bool         getForceSign() const;
-    formats      getFormat() const;
-    separators   getSeparator () const;
-    unsigned int getRadix() const;
-    notations    getNotation() const;
-    arrayActions getArrayAction() const;
-    bool         getAddUnits() const;
-    QString      getLocalEnumeration() const;
-    QELocalEnumeration getLocalEnumerationObject() const;
+   // Primative conversion functions.
+   // While these are primarily intended for use internally, they have
+   // be made public as may be useful to bespoke applications and plugins.
+   //
+   // Provides integer and floating point number to QString.
+   // Note: overloaded function names.
+   //
+   QString toString (const long value) const;
+   QString toString (const unsigned long value) const;
+   QString toString (const double value) const;
+
+   // Provides QString to numeric type.
+   // The returned value only meaningful/valid if the okay argument is set true.
+   // Note: the base/radix value of the formatting object is used unless the
+   // input string overrides this with a radix base identification prefix.
+   // E.g. "8#dddd" for octal, "16#dddd" ot "0xdddd" for hex.
+   // Note: 10# may be used for decimal.
+   //
+   long toLong (const QString& image, bool& okay) const;
+   unsigned long toULong (const QString& image, bool& okay) const;
+   double toDouble (const QString& image, bool& okay) const;
 
 private:
-    // isNumeric set true iff value is numeric data.
-    //
-    QString formatElementString( const QVariant& value, bool& isNumeric ) const;
+   // isNumeric set true iff value is numeric data.
+   //
+    QString formatElementString (const QVariant& value, bool& isNumeric) const;
 
-    // Type specific conversion functions
-    // TODO: These SHOULD be rebadged formatToFloatingString etc.
-    //
-    void formatFromFloating( const QVariant& value ) const;
-    void formatFromInteger( const QVariant& value ) const;
-    void formatFromUnsignedInteger( const QVariant& value ) const;
-    void formatFromTime( const QVariant& value ) const;
-    void formatFromEnumeration( const QVariant& value ) const;
-    void formatFromString( const QVariant &value ) const;
+   // Time specific conversion function.
+   // The value parameter must be in seconds.
+   //
+   QString timeToString (const QVariant& value) const;
 
-    // Utility functions
-    void determineDbFormat( const QVariant &value ) const;
-    void applyForceSign () const;
-    QString insertSeparators( const QString& image ) const;
-    QString realImage (const double item,
-                       const notations notation,
-                       const bool forceSign,
-                       const int zeros,
-                       const int prec) const;
+   // This function determines and updates dbFormat and dbFormatArray.
+   //
+   void determineDbFormat (const QVariant& value) const;
 
-    // Error reporting
-    void formatFailure( QString message ) const;
+   // These templates are private - only instatiated internally.
+   //
+   template<typename Number>
+   QString toIntegerStringGeneric (const Number) const;
 
-    // Formatted output string
-    mutable QTextStream stream;
-    mutable QString outStr;
-    mutable formats dbFormat;        // Format determined from read value (Floating, integer, etc).
-    mutable bool dbFormatArray;      // True if read value is an array
+   template<typename Number>
+   Number toIntegerValueGeneric (const QString& image, bool& okay) const;
 
-    // Database information
-    QString dbEgu;
-    QStringList dbEnumerations;
-    unsigned int dbPrecision;
+   // If the nominated notation is NOTATION_FIXED or NOTATION_SCIENTIFIC
+   // this function just returns false or true respectively.
+   // However, if the nominated is NOTATION_AUTOMATIC it will return true if
+   // scientific notation is the most appropriate notation for the given value.
+   //
+   bool useScientificNotation (const double value) const;
 
-    // Formatting configuration
-    bool useDbPrecision;             // Use the number of decimal places displayed as defined in the database.
-    bool leadingZero;                // Add a leading zero when required.
-    bool trailingZeros;              // Add trailing zeros when required (up to the precision).
-    bool forceSign;                  // Add "+" for numeric values >= 0
-    formats format;                  // Presentation required (Floating, integer, etc).
-    notations notation;              // Required notation for floating point formats
-    separators separator;            // Thousands separator (applies to numeric values only)
-    bool addUnits;                   // Flag use engineering units from database
-    int precision;                   // Floating point precision. Used if 'useDbPrecision' is false.
-    QELocalEnumeration localEnumerations;  // Local enumeration values.
-    arrayActions arrayAction;       // Action to take when processing array or waveform data
+   // Error reporting
+   QString formatFailure (const QString message) const;
+
+   // Formatted output string
+   mutable formats dbFormat;    // Format determined from read value (Floating, integer, etc).
+   mutable bool dbFormatArray;  // True if read value is an array
+
+   // Database information
+   QString dbEgu;
+   QStringList dbEnumerations;
+   unsigned int dbPrecision;
+
+   // Formatting configuration
+   bool useDbPrecision;         // Use the number of decimal places displayed as defined in the database.
+   bool leadingZero;            // Add a leading zero when required.
+   bool trailingZeros;          // Add trailing zeros when required (up to the precision).
+   bool forceSign;              // Add "+" for numeric values >= 0
+   formats format;              // Presentation required (Floating, integer, etc).
+   notations notation;          // Required notation for floating point formats
+   separators separator;        // Thousands separator (applies to numeric values only)
+   bool addUnits;               // Flag use engineering units from database
+   int precision;               // Floating point precision. Used if 'useDbPrecision' is false.
+   QELocalEnumeration localEnumerations;        // Local enumeration values.
+   arrayActions arrayAction;    // Action to take when processing array or waveform data
+   int leadingZeros;            // number of leading zeros
+   int radixBase;               // Radix value: 2 - 16
+   bool useRadixPrefix;         // Only applies to non-base 10 representations
 };
 
-#endif // QE_STRING_FORMATTING_H
+#endif                          // QE_STRING_FORMATTING_H

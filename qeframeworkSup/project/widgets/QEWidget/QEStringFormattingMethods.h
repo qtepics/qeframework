@@ -1,6 +1,9 @@
 /*  QEStringFormattingMethods.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009,2010,2015,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -31,9 +32,11 @@
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStringFormattingMethods {
 
-  public:
+public:
     virtual ~QEStringFormattingMethods(){}
 
+    // Must be overriden by concrete sub-classes.
+    //
     virtual void stringFormattingChange() = 0;
 
     // String formatting properties
@@ -46,12 +49,20 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStringFormattingMethods {
     void setUseDbPrecision( bool useDbPrecision );
     bool getUseDbPrecision() const;
 
+    // leadingZeros
+    void setLeadingZeros( const int leadingZeros );
+    int getLeadingZeros() const;
+
     // leadingZero
+    Q_DECL_DEPRECATED
     void setLeadingZero( bool leadingZero );
+    Q_DECL_DEPRECATED
     bool getLeadingZero() const;
 
     // trailingZeros
+    Q_DECL_DEPRECATED
     void setTrailingZeros( bool trailingZeros );
+    Q_DECL_DEPRECATED
     bool getTrailingZeros() const;
 
     // forceSign
@@ -89,7 +100,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStringFormattingMethods {
     // Access underlying local enumerations object (as opposed to property string)
     QELocalEnumeration getLocalEnumerationObject() const;
 
-  protected:
+protected:
     QEStringFormatting stringFormatting;
 };
 
