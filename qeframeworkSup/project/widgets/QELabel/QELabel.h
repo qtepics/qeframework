@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2020 Australian Synchrotron
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -300,13 +300,9 @@ public:
     /// If false, the precision property is used.
     Q_PROPERTY(bool useDbPrecision READ getUseDbPrecision WRITE setUseDbPrecision)
 
-    /// If true (default), always add a leading zero when formatting numbers.
+    /// The minimum number of leading digits before any decimal/radix point. The defult is 1.
     ///
-    Q_PROPERTY(bool leadingZero READ getLeadingZero WRITE setLeadingZero)
-
-    /// If true (default), always remove any trailing zeros when formatting numbers.
-    ///
-    Q_PROPERTY(bool trailingZeros READ getTrailingZeros WRITE setTrailingZeros)
+    Q_PROPERTY(int leadingZeros READ getLeadingZeros WRITE setLeadingZeros)
 
     /// If true (default), add engineering units supplied with the data.
     ///

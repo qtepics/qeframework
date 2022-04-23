@@ -101,9 +101,10 @@ public:
     // Opening new gui ui file.
     //
     // Note, a property macro in the form 'Q_PROPERTY(QString guiName READ ...' doesn't work.
-    // A property name ending with 'Name' results in some sort of string variable being displayed, but will only accept alphanumeric and won't generate callbacks on change.
+    // A property name ending with 'Name' results in some sort of string variable being displayed,
+    // but will only accept alphanumeric and won't generate callbacks on change.
     /// File name of GUI to be presented on button click.
-    /// File name can be absolute, relative to the path of the QEform in which the QERadioButton is located,
+    /// File name can be absolute, relative to the path of the QEForm in which the button widget is located,
     /// relative to the any path in the path list published in the ContainerProfile class, or relative to the current path.
     /// See QEWidget::openQEFile() in QEWidget.cpp for details.
     Q_PROPERTY(QString guiFile READ getGuiName WRITE setGuiName)
@@ -429,13 +430,9 @@ public:
     /// If false, the precision property is used.
     Q_PROPERTY(bool useDbPrecision READ getUseDbPrecision WRITE setUseDbPrecision)
 
-    /// If true (default), always add a leading zero when formatting numbers.
+    /// The minimum number of leading digits before any decimal/radix point. The defult is 1.
     ///
-    Q_PROPERTY(bool leadingZero READ getLeadingZero WRITE setLeadingZero)
-
-    /// If true (default), always remove any trailing zeros when formatting numbers.
-    ///
-    Q_PROPERTY(bool trailingZeros READ getTrailingZeros WRITE setTrailingZeros)
+    Q_PROPERTY(int leadingZeros READ getLeadingZeros WRITE setLeadingZeros)
 
     /// If true (default), add engineering units supplied with the data.
     ///
