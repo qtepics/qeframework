@@ -27,13 +27,13 @@
 # This file provides a list record types and their associated field names and
 # optional descrptions for use by the QEPvProperties widget. Field names with
 # a '$' suffix are read as long strings. Field names with an '*' suffix are also
-# read as long strings, but also idicated that the filed may hold a PV name.
-# Other than that, no interpretation of these fields, other than that they exist.
+# read as long strings, but also indicated that the field may hold a PV name.
+# Other than that, no interpretation of these fields, apart that they exist,
 # is provided here.
 #
-# Note: the DTYP filed has been remove from sone record types tjat d not need it,
-# e.g. calc, fanout. Attempting to read this field on older IOCs (and we still have
-# a few) caused then to segment fault and crash - not good.
+# Note: the DTYP filed has been removed from sone record types that do not need
+# it, e.g. calc, fanout. Attempting to read this field on older IOCs (and we
+# still have a few) caused then to segment fault and crash - not good.
 #
 # The file includes all the records from base-7-0-3, most of the records from
 # the synApps distribution, together with the AS developed concat record 
@@ -45,7 +45,7 @@
 #
 # This file is derived from each record's dbd file.
 #
-# TODO Complete definitions for camac, dxp and vme record types.
+# TODO: Complete definitions for camac, dxp and vme record types.
 #
 
 #-------------------------------------------------------------------------------

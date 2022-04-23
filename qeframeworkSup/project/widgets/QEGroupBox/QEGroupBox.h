@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2021 Australian Synchrotron
+ *  Copyright (c) 2012-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -62,6 +62,7 @@ Q_OBJECT
 
 
     // Standard properties less tooltip, allowDrop, use alarm state, oos aware.
+    //
     // BEGIN-STANDARD-V2-PROPERTIES ===================================================
     // Standard properties
     // These properties should be identical for every widget using them.
@@ -72,6 +73,12 @@ public slots:
     /// Widget will be hidden if hidden by a call this slot, by will only be made visible by a calll to this slot if the user level allows.
     void setManagedVisible( bool v ){ setRunVisible( v ); }
 public:
+    /// variableAsToolTip not applicale to V2 options.
+    /// Class should ensure this option is initialised to false.
+
+    /// allowDrop not applicale to V2 options.
+    /// Class should ensure this option is initialised to false.
+
     /// Display the widget. Default is true.
     /// Setting this property false is usefull if widget is only used to provide a signal - for example, when supplying data to a QELink widget.
     /// Note, when false the widget will still be visible in Qt Designer.
@@ -139,6 +146,9 @@ public:
     void setUserLevelVisibilityProperty( UserLevels level ) { setUserLevelVisibility( (userLevelTypes::userLevels)level ); }///< Access function for #userLevelVisibility property - refer to #userLevelVisibility property for details
     UserLevels getUserLevelEnabledProperty() { return (UserLevels)getUserLevelEnabled(); }                  ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
     void setUserLevelEnabledProperty( UserLevels level ) { setUserLevelEnabled( (userLevelTypes::userLevels)level ); }      ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
+
+    /// displayAlarmStateOption not applicale to V2 options.
+    /// Class should ensure this option is initialised to DISPLAY_ALARM_STATE_NEVER.
 
 public:
     // END-STANDARD-V2-PROPERTIES =====================================================

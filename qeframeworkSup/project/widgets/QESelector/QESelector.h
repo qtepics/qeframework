@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2021 Australian Synchrotron
+ *  Copyright (c) 2021-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -49,8 +49,8 @@
 /// name for use with the sscan record.
 ///
 /// A delimiter may also be specified. Only text before the delimiter is written
-/// to the PV. In this way a user friendly comment can be added to the cmbo box
-/// drop down list. The typlical delimtere would be a space or comma.
+/// to the PV. In this way a user friendly comment can be added to the combo box
+/// drop down list. A typlical delimiter would be a space or comma.
 ///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESelector :
       public QEAbstractWidget,
