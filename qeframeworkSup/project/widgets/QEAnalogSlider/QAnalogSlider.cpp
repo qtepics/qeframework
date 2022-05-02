@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2019 Australian Synchrotron
+ *  Copyright (c) 2015-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -68,6 +68,7 @@ void QAnalogSlider::commonSetup ()
 
    // Set up default properties
    //
+   this->mFontColour  = QColor (0,     0,   0);   // black
    this->mValue = 0.0;
    this->mMinimum = 0.0;
    this->mMaximum = 10.0;
@@ -491,6 +492,21 @@ void QAnalogSlider::setShowApply (const bool show)
 bool QAnalogSlider::getShowApply () const
 {
    return this->mShowApply;
+}
+
+//------------------------------------------------------------------------------
+//
+void QAnalogSlider::setFontColour (const QColor fontColourIn)
+{
+   this->mFontColour = fontColourIn;
+   this->axisPainter->setPenColour (this->mFontColour);
+}
+
+//------------------------------------------------------------------------------
+//
+QColor QAnalogSlider::getFontColour () const
+{
+   return this->mFontColour;
 }
 
 //------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2019 Australian Synchrotron
+ *  Copyright (c) 2015-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -24,8 +24,8 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
-#ifndef QANALOG_SLIDER_H
-#define QANALOG_SLIDER_H
+#ifndef QE_QANALOG_SLIDER_H
+#define QE_QANALOG_SLIDER_H
 
 #include <QFrame>
 #include <QPushButton>
@@ -42,17 +42,22 @@
 #include <QEAxisPainter.h>
 #include <QEFrameworkLibraryGlobal.h>
 
-/// QAnalogSlider is a non EPICS aware slider that provides an analog equivilent of the QSlider.
-/// It is deemed analog as it can be set by/emits floating point (double) values as opposed to interger values.
-/// It is also decorated with a scale and text showing the current value; it also provides a save-restore capability.
+/// QAnalogSlider is a non EPICS aware slider that provides an analog equivilent
+/// of the QSlider.  It is deemed analog as it can be set by/emits floating point
+/// (double) values as opposed to interger values.  It is also decorated with a
+/// scale and text showing the current value; it also provides a local save and
+/// restore capability.
 ///
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QAnalogSlider : public QFrame {
-
-Q_OBJECT
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QAnalogSlider : public QFrame
+{
+   Q_OBJECT
 public:
-   /// Precision used for the display and editing of numbers. The default is 4.
-   /// Strictly speaking, this should be an unsigned int, but designer int properties
-   /// editor much 'nicer'.
+   /// Speficies the current value.
+   Q_PROPERTY (double value          READ getValue            WRITE setValue)
+
+   /// Precision used for the display and editing of numbers. The default is 2.
+   /// Strictly speaking, this should be an unsigned int, but the designer int
+   /// properties editor much 'nicer'.
    Q_PROPERTY (int  precision        READ getDesignPrecision  WRITE setDesignPrecision)
 
    /// Speficies the mimimum allowed value.
@@ -85,8 +90,12 @@ public:
    /// Enables/disables the apply value capability.
    Q_PROPERTY (bool showApply        READ getShowApply        WRITE setShowApply)
 
-   /// Speficies the value.
-   Q_PROPERTY (double value          READ getValue            WRITE setValue)
+   /// Font colour
+   ///
+   Q_PROPERTY (QColor fontColour     READ getFontColour       WRITE setFontColour)
+
+   /// Alternative to isEnabled. Default is true.
+   Q_PROPERTY (bool   isActive       READ getIsActive         WRITE setIsActive)
 
 public:
    /// Create with default title.
@@ -139,6 +148,9 @@ public:
 
    void setShowApply (const bool show);
    bool getShowApply () const;
+
+   void setFontColour (const QColor fontColour);             ///< Access function for #fontColour - refer to #fontColour property for details
+   QColor getFontColour () const;                       ///< Access function for #fontColour - refer to #fontColour property for details
 
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (intSlilder, bool, hasTracking, setTracking)
 
@@ -204,6 +216,7 @@ private:
    bool mIsActive;
    bool mShowSaveRevert;
    bool mShowApply;
+   QColor mFontColour;
 
    double savedValue;
 
@@ -233,4 +246,4 @@ private slots:
     void revertButtonClicked (bool);
 };
 
-#endif // QANALOG_SLIDER_H
+#endif // QE_QANALOG_SLIDER_H
