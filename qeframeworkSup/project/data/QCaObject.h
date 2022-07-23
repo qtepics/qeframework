@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2021 Australian Synchrotron
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -73,12 +73,12 @@ public:
    static int* getDisconnectedCountRef();
    static int* getConnectedCountRef();
 
-   QCaObject( const QString& recordName, QObject *eventObject,
+   QCaObject( const QString& recordName, QObject *parent,
               const unsigned int variableIndex,
               SignalsToSendFlags signalsToSend=SIG_VARIANT,
               priorities priorityIn=QE_PRIORITY_NORMAL );
 
-   QCaObject( const QString& recordName, QObject *eventObject,
+   QCaObject( const QString& recordName, QObject *parent,
               const unsigned int variableIndex,
               UserMessage* userMessageIn,
               SignalsToSendFlags signalsToSend=SIG_VARIANT,

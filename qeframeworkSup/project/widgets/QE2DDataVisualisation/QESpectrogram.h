@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020-2021 Australian Synchrotron
+ *  Copyright (c) 2020-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -133,7 +133,7 @@ private:
    // Structure used when setting current image. Cribbed from QEImage.
    //
    struct rgbPixel {
-      unsigned char p[4]; // R/G/B/Alpha
+      unsigned char p[4]; // B/G/R/Alpha
    };
 
    typedef rgbPixel RgbPixelMaps [256];

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2018 Australian Synchrotron
+ *  Copyright (c) 2013-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -52,13 +52,14 @@ public:
 
 public slots:
    // Re-postion dialog to the centre of the specified widget.
+   // Note: this hides the overloaded virtual fuction.
    //
    virtual int exec (QWidget* targetWidget);
 
 protected:
-   // Spcified the widget on the dialog to be centered over the target widget.
+   // Specify the widget with the dialog that is to be centered over the target widget.
    //
-   void setSourceWidget (QWidget* widget);
+   void setSourceWidget (QWidget* sourceWidget);
 
 private:
    // Widget (within dialog) to use to colocate over targetWidget - default is this.
