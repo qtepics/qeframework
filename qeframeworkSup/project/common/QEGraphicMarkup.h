@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2019 Australian Synchrotron.
+ *  Copyright (c) 2014-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -111,7 +111,7 @@ protected:
    //
    virtual void plotMarkup () = 0;
 
-   QPointF positon;   // notional current position
+   QPointF position;  // notional current position
    QVariant data;     // any associated data
    QPen pen;
    QBrush brush;

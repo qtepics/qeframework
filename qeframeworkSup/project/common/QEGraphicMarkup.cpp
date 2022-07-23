@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2018 Australian Synchrotron.
+ *  Copyright (c) 2014-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -50,7 +50,7 @@ QEGraphicMarkup::QEGraphicMarkup (const QEGraphicNames::Markups markupIn,
    markup (markupIn)
 {
    this->owner = ownerIn;
-   this->positon = QPointF (0.0, 0.0);
+   this->position = QPointF (0.0, 0.0);
    this->data = "";
    this->inUse = false;
    this->visible = false;
@@ -59,7 +59,7 @@ QEGraphicMarkup::QEGraphicMarkup (const QEGraphicNames::Markups markupIn,
    this->cursor = Qt::CrossCursor;
    this->activationButton = Qt::LeftButton;
 
-   this->positon = QPointF (0.0, 0.0);
+   this->position = QPointF (0.0, 0.0);
    this->pen.setColor (QColor (0, 0, 0, 255));
    this->pen.setStyle (Qt::SolidLine);
    this->pen.setWidth (1);
@@ -84,14 +84,14 @@ QEGraphicNames::Markups QEGraphicMarkup::getMarkup () const
 //
 void QEGraphicMarkup::setCurrentPosition (const QPointF& currentPositionIn)
 {
-   this->positon = currentPositionIn;
+   this->position = currentPositionIn;
 }
 
 //-----------------------------------------------------------------------------
 //
 QPointF QEGraphicMarkup::getCurrentPosition () const
 {
-   return this->positon;
+   return this->position;
 }
 
 //-----------------------------------------------------------------------------
@@ -122,8 +122,8 @@ void QEGraphicMarkup::saveConfiguration (PMElement& parentElement)
    element.addValue ("visible", this->visible);
    element.addValue ("enabled", this->enabled);
    element.addValue ("selected", this->selected);
-   element.addValue ("positon_x", this->positon.x());
-   element.addValue ("positon_y", this->positon.y());
+   element.addValue ("position_x", this->position.x());
+   element.addValue ("position_y", this->position.y());
 }
 
 //-----------------------------------------------------------------------------
@@ -142,10 +142,10 @@ void QEGraphicMarkup::restoreConfiguration (PMElement& parentElement)
    element.getValue ("visible", this->visible);
    element.getValue ("enabled", this->enabled);
    element.getValue ("selected", this->selected);
-   status  = element.getValue ("positon_x", px);
-   status &= element.getValue ("positon_y", py);
+   status  = element.getValue ("position_x", px);
+   status &= element.getValue ("position_y", py);
    if (status) {
-      this->positon = QPointF (px, py);
+      this->position = QPointF (px, py);
    }
 }
 
@@ -316,7 +316,7 @@ bool QEGraphicMarkup::isSelected () const
 void QEGraphicMarkup::emitCurrentPostion ()
 {
    if (this->isSelected () && this->owner) {
-      emit this->owner->markupMove (this->markup, this->positon);
+      emit this->owner->markupMove (this->markup, this->position);
    }
 }
 
@@ -347,7 +347,7 @@ void QEGraphicAreaMarkup::mousePress (const QPointF& realMousePosition, const Qt
 
    if (button == this->activationButton) {
       this->origin = realMousePosition;
-      this->positon = realMousePosition;
+      this->position = realMousePosition;
       this->setVisible (true);
       this->emitCurrentPostion ();
    }
@@ -358,9 +358,9 @@ void QEGraphicAreaMarkup::mousePress (const QPointF& realMousePosition, const Qt
 void QEGraphicAreaMarkup::mouseRelease (const QPointF& realMousePosition, const Qt::MouseButton button)
 {
    if (button == this->activationButton) {
-      this->positon = realMousePosition;
+      this->position = realMousePosition;
       if (this->isValidArea ()) {
-         emit this->getOwner()->areaDefinition (this->origin, this->positon);
+         emit this->getOwner()->areaDefinition (this->origin, this->position);
       }
       this->setSelected (false);
       this->setVisible (false);
@@ -371,7 +371,7 @@ void QEGraphicAreaMarkup::mouseRelease (const QPointF& realMousePosition, const 
 //
 void QEGraphicAreaMarkup::mouseMove  (const QPointF& realMousePosition)
 {
-   this->positon = realMousePosition;
+   this->position = realMousePosition;
    bool valid = this->isValidArea ();
    this->pen.setColor (valid ? QColor (0x60E060)    // greenish
                              : QColor (0xC08080));  // redish gray
@@ -384,7 +384,7 @@ void QEGraphicAreaMarkup::mouseMove  (const QPointF& realMousePosition)
 bool QEGraphicAreaMarkup::isValidArea () const
 {
    const int minDiff = 8;
-   const QPoint diff = this->getOwner()->pixelDistance (this->origin, this->positon);
+   const QPoint diff = this->getOwner()->pixelDistance (this->origin, this->position);
 
    bool xokay = ((diff.x () > minDiff) && (diff.x () > ABS (3 * diff.y ())));
    bool yokay = ((diff.y () > minDiff) && (diff.y () > ABS (3 * diff.x ())));
@@ -399,16 +399,16 @@ void QEGraphicAreaMarkup::plotMarkup ()
    QEGraphicNames::DoubleVector xdata;
    QEGraphicNames::DoubleVector ydata;
 
-   xdata << this->positon.x ();  ydata << this->positon.y ();
-   xdata << this->origin.x ();   ydata << this->positon.y ();
+   xdata << this->position.x ();  ydata << this->position.y ();
+   xdata << this->origin.x ();   ydata << this->position.y ();
    xdata << this->origin.x ();   ydata << this->origin.y ();
-   xdata << this->positon.x ();  ydata << this->origin.y ();
-   xdata << this->positon.x ();  ydata << this->positon.y ();
+   xdata << this->position.x ();  ydata << this->origin.y ();
+   xdata << this->position.x ();  ydata << this->position.y ();
 
    this->plotCurve (xdata, ydata);
 
    const int minDiff = 8;
-   const QPoint diff = this->getOwner()->pixelDistance (this->origin, this->positon);
+   const QPoint diff = this->getOwner()->pixelDistance (this->origin, this->position);
 
    bool xokay = ((diff.x () > minDiff) && (diff.x () > ABS (3 * diff.y ())));
    bool yokay = ((diff.y () > minDiff) && (diff.y () > ABS (3 * diff.x ())));
@@ -417,8 +417,8 @@ void QEGraphicAreaMarkup::plotMarkup ()
       xdata.clear();
       ydata.clear();
 
-      xdata << this->origin.x ();   ydata << (this->origin.y () + this->positon.y ()) / 2.0;
-      xdata << this->positon.x ();  ydata << (this->origin.y () + this->positon.y ()) / 2.0;
+      xdata << this->origin.x ();   ydata << (this->origin.y () + this->position.y ()) / 2.0;
+      xdata << this->position.x ();  ydata << (this->origin.y () + this->position.y ()) / 2.0;
 
       QPen pen;
 
@@ -434,8 +434,8 @@ void QEGraphicAreaMarkup::plotMarkup ()
       xdata.clear();
       ydata.clear();
 
-      xdata << (this->origin.x () + this->positon.x ()) / 2.0;  ydata << this->origin.y ();
-      xdata << (this->origin.x () + this->positon.x ()) / 2.0;  ydata << this->positon.y ();
+      xdata << (this->origin.x () + this->position.x ()) / 2.0;  ydata << this->origin.y ();
+      xdata << (this->origin.x () + this->position.x ()) / 2.0;  ydata << this->position.y ();
 
       QPen pen;
 
@@ -464,7 +464,7 @@ QEGraphicLineMarkup::QEGraphicLineMarkup (QEGraphic* ownerIn) :
 //
 QPointF QEGraphicLineMarkup::getSlope () const
 {
-   return this->positon - this->origin;
+   return this->position - this->origin;
 }
 
 //-----------------------------------------------------------------------------
@@ -475,7 +475,7 @@ void QEGraphicLineMarkup::mousePress (const QPointF& realMousePosition, const Qt
 
    if (button == this->activationButton) {
       this->origin = realMousePosition;
-      this->positon = realMousePosition;
+      this->position = realMousePosition;
       this->setVisible (true);
       this->emitCurrentPostion ();
    }
@@ -486,8 +486,8 @@ void QEGraphicLineMarkup::mousePress (const QPointF& realMousePosition, const Qt
 void QEGraphicLineMarkup::mouseRelease (const QPointF& realMousePosition, const Qt::MouseButton button)
 {
    if (button == this->activationButton) {
-      this->positon = realMousePosition;
-      emit this->getOwner()->lineDefinition (this->origin, this->positon);
+      this->position = realMousePosition;
+      emit this->getOwner()->lineDefinition (this->origin, this->position);
       this->setSelected (false);
       this->setVisible (false);
    }
@@ -497,7 +497,7 @@ void QEGraphicLineMarkup::mouseRelease (const QPointF& realMousePosition, const 
 //
 void QEGraphicLineMarkup::mouseMove    (const QPointF& realMousePosition)
 {
-   this->positon = realMousePosition;
+   this->position = realMousePosition;
    this->emitCurrentPostion ();
 }
 
@@ -527,7 +527,7 @@ void QEGraphicLineMarkup::plotMarkup ()
 
    xdata.clear (); ydata.clear ();
    xdata << this->origin.x ();   ydata << this->origin.y ();
-   xdata << this->positon.x ();  ydata << this->positon.y ();
+   xdata << this->position.x ();  ydata << this->position.y ();
 
    this->pen.setWidth (1);
    this->plotCurve (xdata, ydata);
@@ -548,7 +548,7 @@ QEGraphicBoxMarkup::QEGraphicBoxMarkup (QEGraphic* ownerIn) :
 //
 bool QEGraphicBoxMarkup::isOver (const QPointF& point, int& distance) const
 {
-   return this->isOverHere (this->positon, point, distance);
+   return this->isOverHere (this->position, point, distance);
 }
 
 //-----------------------------------------------------------------------------
@@ -576,7 +576,7 @@ void QEGraphicBoxMarkup::plotMarkup ()
 
    // Extract point of interest.
    //
-   const QPoint poi = this->getOwner()->realToPoint (this->positon);
+   const QPoint poi = this->getOwner()->realToPoint (this->position);
    xdata.clear (); ydata.clear ();
    for (int j = 0; j < ARRAY_LENGTH (box); j++) {
       itemF = this->getOwner()->pointToReal (poi + box [j]);
@@ -691,16 +691,16 @@ QEGraphicCrosshairsMarkup::QEGraphicCrosshairsMarkup (QEGraphic* ownerIn) :
 //
 bool QEGraphicCrosshairsMarkup::isOver (const QPointF& point, int& distance) const
 {
-   return this->isOverHere (this->positon, point, distance);
+   return this->isOverHere (this->position, point, distance);
 }
 
 //-----------------------------------------------------------------------------
 //
 void QEGraphicCrosshairsMarkup::mousePress (const QPointF& realMousePosition, const Qt::MouseButton)
 {
-   this->positon = realMousePosition;
+   this->position = realMousePosition;
    this->pen.setColor (QColor (0x606060));  // dark grayish
-   emit this->getOwner()->crosshairsMove (this->positon);  // depricated
+   emit this->getOwner()->crosshairsMove (this->position);  // depricated
    this->emitCurrentPostion ();
 }
 
@@ -708,7 +708,7 @@ void QEGraphicCrosshairsMarkup::mousePress (const QPointF& realMousePosition, co
 //
 void QEGraphicCrosshairsMarkup::mouseRelease (const QPointF& realMousePosition, const Qt::MouseButton)
 {
-   this->positon = realMousePosition;
+   this->position = realMousePosition;
    this->setSelected (false);
    this->pen.setColor (QColor (0xA0A0A0));  // light grayish
 }
@@ -717,8 +717,8 @@ void QEGraphicCrosshairsMarkup::mouseRelease (const QPointF& realMousePosition, 
 //
 void QEGraphicCrosshairsMarkup::mouseMove (const QPointF& realMousePosition)
 {
-   this->positon = realMousePosition;
-   emit this->getOwner()->crosshairsMove (this->positon);  // depreciated
+   this->position = realMousePosition;
+   emit this->getOwner()->crosshairsMove (this->position);  // depreciated
    this->emitCurrentPostion ();
 }
 
@@ -741,7 +741,7 @@ void QEGraphicCrosshairsMarkup::setVisible (const bool visibleIn)
       this->getOwner()->getYRange (ymin, ymax);
 
       middle = QPointF ((xmin + xmax)/2.0, (ymin + ymax)/2.0);
-      this->positon = middle;
+      this->position = middle;
    }
 }
 
@@ -756,14 +756,14 @@ void QEGraphicCrosshairsMarkup::plotMarkup ()
 
    this->getOwner()->getYRange (min, max);
    xdata.clear ();    ydata.clear ();
-   xdata << positon.x ();  ydata << min;
-   xdata << positon.x ();  ydata << max;
+   xdata << position.x ();  ydata << min;
+   xdata << position.x ();  ydata << max;
    this->plotCurve (xdata, ydata);
 
    this->getOwner()->getXRange (min, max);
    xdata.clear ();  ydata.clear ();
-   xdata << min;    ydata << positon.y ();
-   xdata << max;    ydata << positon.y ();
+   xdata << min;    ydata << position.y ();
+   xdata << max;    ydata << position.y ();
    this->plotCurve (xdata, ydata);
 }
 
@@ -794,7 +794,7 @@ void QEGraphicHVBaseMarkup::mousePress (const QPointF& realMousePosition, const 
 
    switch (button) {
       case Qt::LeftButton:
-         this->positon = realMousePosition;
+         this->position = realMousePosition;
          this->setEnabled (true);
          this->emitCurrentPostion ();
          break;
@@ -817,7 +817,7 @@ void QEGraphicHVBaseMarkup::mousePress (const QPointF& realMousePosition, const 
 //
 void QEGraphicHVBaseMarkup::mouseRelease (const QPointF& realMousePosition, const Qt::MouseButton)
 {
-   this->positon = realMousePosition;
+   this->position = realMousePosition;
    this->setSelected (false);
 }
 
@@ -825,7 +825,7 @@ void QEGraphicHVBaseMarkup::mouseRelease (const QPointF& realMousePosition, cons
 //
 void QEGraphicHVBaseMarkup::mouseMove (const QPointF& realMousePosition)
 {
-   this->positon = realMousePosition;
+   this->position = realMousePosition;
    this->emitCurrentPostion ();
 }
 
@@ -913,9 +913,9 @@ bool QEGraphicHorizontalMarkup::isOver (const QPointF& point, int& distance) con
    this->getOwner()->getXRange (xmin, xmax);
    if (this->isEnabled ()) {
       // Allow any x to match.
-      poiF = QPointF (point.x (), this->positon.y ());
+      poiF = QPointF (point.x (), this->position.y ());
    } else {
-      poiF = QPointF (xmax, this->positon.y());
+      poiF = QPointF (xmax, this->position.y());
    }
 
    return this->isOverHere (poiF, point, distance);
@@ -929,8 +929,8 @@ void QEGraphicHorizontalMarkup::relocate ()
    double ymax;
 
    this->getOwner()->getYRange (ymin, ymax);
-   if      (this->positon.y () < ymin) this->positon.setY (ymin);
-   else if (this->positon.y () > ymax) this->positon.setY (ymax);
+   if      (this->position.y () < ymin) this->position.setY (ymin);
+   else if (this->position.y () > ymax) this->position.setY (ymax);
 }
 
 //-----------------------------------------------------------------------------
@@ -938,7 +938,7 @@ void QEGraphicHorizontalMarkup::relocate ()
 void QEGraphicHorizontalMarkup::getLine (double& xmin, double& xmax, double& ymin, double& ymax)
 {
    this->getOwner()->getXRange (xmin, xmax);
-   ymin = ymax = this->positon.y ();
+   ymin = ymax = this->position.y ();
 }
 
 //-----------------------------------------------------------------------------
@@ -982,9 +982,9 @@ bool QEGraphicVerticalMarkup::isOver (const QPointF& point, int& distance) const
    this->getOwner()->getYRange (ymin, ymax);
    if (this->isEnabled ()) {
       // Allow any y to match.
-      poiF = QPointF (this->positon.x (), point.y ());
+      poiF = QPointF (this->position.x (), point.y ());
    } else {
-      poiF = QPointF (this->positon.x (), ymax);
+      poiF = QPointF (this->position.x (), ymax);
    }
 
    return this->isOverHere (poiF, point, distance);
@@ -998,15 +998,15 @@ void QEGraphicVerticalMarkup::relocate ()
    double xmax;
 
    this->getOwner()->getXRange (xmin, xmax);
-   if      (this->positon.x () < xmin) this->positon.setX (xmin);
-   else if (this->positon.x () > xmax) this->positon.setX (xmax);
+   if      (this->position.x () < xmin) this->position.setX (xmin);
+   else if (this->position.x () > xmax) this->position.setX (xmax);
 }
 
 //-----------------------------------------------------------------------------
 //
 void QEGraphicVerticalMarkup::getLine (double& xmin, double& xmax, double& ymin, double& ymax)
 {
-   xmin = xmax = this->positon.x ();
+   xmin = xmax = this->position.x ();
    this->getOwner()->getYRange (ymin, ymax);
 }
 
