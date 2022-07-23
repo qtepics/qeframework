@@ -367,6 +367,7 @@ QEPlotter::DataSets::DataSets ()
    this->dbSize = 0;
    this->pvName = "";
    this->aliasName = "";
+   this->description = "";
    this->expression = "";
    this->expressionIsValid = false;
    this->dataIsConnected = false;
@@ -682,37 +683,65 @@ void QEPlotter::updateLabel (const int slot)
    SLOT_CHECK (slot,);
 
    DataSets* ds = &this->xy [slot];
-   QString text;
+   QString caption;
+   QEAbstractDynamicWidget::PVLabelMode labelMode;
+   qcaobject::QCaObject* qca = NULL;
 
-   text.clear ();
+   caption.clear ();
 
    switch (ds->dataKind) {
       case NotInUse:
          break;
 
       case DataPVPlot:
-         // If an alias name is defined - use it.
+         labelMode = this->getPVLabelMode ();
+
+         // If an alias name/description is defined - use it if requested.
          //
-         if (!ds->aliasName.isEmpty() && ds->aliasName != "<>") {
-            text.append (ds->aliasName);
-         } else {
-            text.append (ds->pvName);
+         switch (labelMode) {
+            case QEAbstractDynamicWidget::useAliasName:
+               if (!ds->aliasName.isEmpty() && ds->aliasName != "<>") {
+                  caption.append (ds->aliasName);
+               } else {
+                  caption.append (ds->pvName);
+               }
+               break;
+
+            case QEAbstractDynamicWidget::useDescription:
+               // First refresh description - if we can.
+               //
+               qca = this->getQcaItem (viOfDataSlot (slot));
+               if (qca) {
+                  ds->description = qca->getDescription();
+               }
+
+               if (!ds->description.isEmpty()) {
+                  caption.append (ds->description);
+               } else {
+                  caption.append (ds->pvName);
+               }
+               break;
+
+            case QEAbstractDynamicWidget::usePvName:
+            default:
+               caption.append (ds->pvName);
+               break;
          }
          break;
 
       case CalculationPlot:
          if (ds->expressionIsValid) {
-            text.append (":= ");
-            text.append (ds->expression);
+            caption.append (":= ");
+            caption.append (ds->expression);
          } else {
-            text.append ("invalid expr.");
+            caption.append ("invalid expr.");
          }
          break;
 
    }
 
    if (ds->itemName) {
-      ds->itemName->setText (text);
+      ds->itemName->setText (caption);
    }
 }
 
@@ -863,6 +892,8 @@ void QEPlotter::establishConnection (unsigned int variableIndex)
    const int slot = this->slotOf (variableIndex);
    SLOT_CHECK (slot,);
 
+   DataSets* ds = &this->xy [slot];
+
    // Create a connection.
    // If successfull, the QCaObject object that will supply data update signals will be returned
    // Note createConnection creates the connection and returns reference to existing QCaObject.
@@ -872,15 +903,22 @@ void QEPlotter::establishConnection (unsigned int variableIndex)
    if (!qca) {
       return;
    }
+
    if (this->isDataIndex (variableIndex)) {
 
-      this->xy [slot].clear ();  // Clear any old data.
+      ds->clear ();  // Clear any old data.
 
       QObject::connect (qca, SIGNAL (connectionChanged     (QCaConnectionInfo &, const unsigned int &)),
                         this, SLOT  (dataConnectionChanged (QCaConnectionInfo &, const unsigned int &)));
 
       QObject::connect (qca, SIGNAL (floatingArrayChanged (const QVector<double>&, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)),
                         this, SLOT  (dataArrayChanged     (const QVector<double>&, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)));
+
+      // Get, or at least, initiate fatching the description.
+      //
+      if (qca) {
+         ds->description = qca->getDescription();
+      }
 
    } else if (this->isSizeIndex (variableIndex)) {
       QObject::connect (qca, SIGNAL (connectionChanged     (QCaConnectionInfo &, const unsigned int &)),
@@ -1042,6 +1080,16 @@ void QEPlotter::generalContextMenuRequested (const QPoint& pos)
                                                this->isDraggingVariable ());
    this->generalContextMenu->setActionChecked (QEPlotterNames::PLOTTER_DRAG_DATA,
                                                !this->isDraggingVariable ());
+
+   // Set up Use PV name, Alias and or descritiom.
+   //
+   const QEAbstractDynamicWidget::PVLabelMode plm = this->getPVLabelMode ();
+   this->generalContextMenu->setActionChecked (QEPlotterNames::PLOTTER_SELECT_USE_PV_NAME,
+                                               plm == QEAbstractDynamicWidget::usePvName);
+   this->generalContextMenu->setActionChecked (QEPlotterNames::PLOTTER_SELECT_USE_ALIAS_NAME,
+                                               plm == QEAbstractDynamicWidget::useAliasName);
+   this->generalContextMenu->setActionChecked (QEPlotterNames::PLOTTER_SELECT_USE_DESCRIPTION,
+                                               plm == QEAbstractDynamicWidget::useDescription);
 
    this->generalContextMenu->exec (golbalPos);
 }
@@ -1339,6 +1387,18 @@ void QEPlotter::menuSelected (const QEPlotterNames::MenuActions action, const in
 
       case QEPlotterNames::PLOTTER_DRAG_DATA:
          this->contextMenuTriggered (contextMenu::CM_DRAG_DATA);
+         break;
+
+      case QEPlotterNames::PLOTTER_SELECT_USE_PV_NAME:
+         this->contextMenuTriggered (QEPlotter::ADWCM_SELECT_USE_PV_NAME);
+         break;
+
+      case QEPlotterNames::PLOTTER_SELECT_USE_ALIAS_NAME:
+         this->contextMenuTriggered (QEPlotter::ADWCM_SELECT_USE_ALIAS_NAME);
+         break;
+
+      case QEPlotterNames::PLOTTER_SELECT_USE_DESCRIPTION:
+         this->contextMenuTriggered (QEPlotter::ADWCM_SELECT_USE_DESCRIPTION);
          break;
 
          //----------------------------------------------------------------------------
@@ -1927,6 +1987,15 @@ void QEPlotter::lineSelected (const QPointF&, const QPointF&)
 
 //------------------------------------------------------------------------------
 //
+void QEPlotter::pvLabelModeChanged ()
+{
+   for (int slot = 0; slot < NUMBER_OF_SLOTS; slot++) {
+      this->updateLabel (slot);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
 bool QEPlotter::eventFilter (QObject *obj, QEvent *event)
 {
    const QEvent::Type type = event->type ();
@@ -2266,10 +2335,21 @@ void QEPlotter::dataConnectionChanged (QCaConnectionInfo& connectionInfo,
 
    SLOT_CHECK (slot,);
 
-   this->xy [slot].dataIsConnected = connectionInfo.isChannelConnected ();
-   this->updateToolTipConnection (this->xy [slot].dataIsConnected, variableIndex);
+   DataSets* ds = &this->xy [slot];
+
+   ds->dataIsConnected = connectionInfo.isChannelConnected ();
+   this->updateToolTipConnection (ds->dataIsConnected, variableIndex);
    this->replotIsRequired = true;
    this->setToolTipSummary ();
+
+   if (ds->dataIsConnected) {
+      // We have a channel connect.
+      //
+      qcaobject::QCaObject* qca = this->getQcaItem(variableIndex);
+      if (qca) {
+         ds->description = qca->getDescription();
+      }
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -2752,6 +2832,12 @@ void QEPlotter::tickTimeout ()
    }
 
    if (this->replotIsRequired) {
+      // Refesh (description) labels.
+      //
+      for (int slot = 0; slot < NUMBER_OF_SLOTS; slot++) {
+         this->updateLabel (slot);
+      }
+
       this->plot ();   // clears replotIsRequired
    }
 }

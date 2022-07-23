@@ -167,7 +167,7 @@ public:
    Q_PROPERTY (QString AliasNameO      READ getAliasO   WRITE setAliasO)
    Q_PROPERTY (QString AliasNameP      READ getAliasP   WRITE setAliasP)
 
-   // There is no X colour - we plot the Ys agaist X.
+   // There is no X colour - we plot the Ys against X.
    //
    Q_PROPERTY (QColor  ColourA         READ getColourA  WRITE setColourA)
    Q_PROPERTY (QColor  ColourB         READ getColourB  WRITE setColourB)
@@ -304,40 +304,64 @@ public:
    // We can define the access functions using a macro.
    // Alas, due to SDK/moc limitation, we cannot embedded the property
    // definitions in a macro.
+   // Note: we declare each setter as a slot function.
+   // The public slots directive also cannot be embedded in a macro.
    //
-   #define PROPERTY_ACCESS(letter, slot)                                                 \
-      void    setDataPV##letter (QString name)  { this->setXYDataPV (slot, name); }      \
-      QString getDataPV##letter () const { return this->getXYDataPV (slot); }            \
-                                                                                         \
-      void    setSizePV##letter (QString name)  { this->setXYSizePV (slot, name); }      \
-      QString getSizePV##letter () const { return this->getXYSizePV (slot); }            \
-                                                                                         \
-      void    setAlias##letter  (QString name)  { this->setXYAlias (slot, name); }       \
-      QString getAlias##letter  () const { return this->getXYAlias (slot); }             \
-                                                                                         \
-      void    setColour##letter (QColor colour)  { this->setXYColour (slot, colour); }   \
-      QColor  getColour##letter () const { return this->getXYColour (slot); }
+#define PROPERTY_ACCESS_SETTER(letter, slot)                                        \
+   void    setDataPV##letter (QString name)  { this->setXYDataPV (slot, name); }    \
+   void    setSizePV##letter (QString name)  { this->setXYSizePV (slot, name); }    \
+   void    setAlias##letter  (QString name)  { this->setXYAlias  (slot, name); }    \
+   void    setColour##letter (QColor colour) { this->setXYColour (slot, colour); }
 
 
-   PROPERTY_ACCESS  (X, 0)
-   PROPERTY_ACCESS  (A, 1)
-   PROPERTY_ACCESS  (B, 2)
-   PROPERTY_ACCESS  (C, 3)
-   PROPERTY_ACCESS  (D, 4)
-   PROPERTY_ACCESS  (E, 5)
-   PROPERTY_ACCESS  (F, 6)
-   PROPERTY_ACCESS  (G, 7)
-   PROPERTY_ACCESS  (H, 8)
-   PROPERTY_ACCESS  (I, 9)
-   PROPERTY_ACCESS  (J, 10)
-   PROPERTY_ACCESS  (K, 11)
-   PROPERTY_ACCESS  (L, 12)
-   PROPERTY_ACCESS  (M, 13)
-   PROPERTY_ACCESS  (N, 14)
-   PROPERTY_ACCESS  (O, 15)
-   PROPERTY_ACCESS  (P, 16)
+#define PROPERTY_ACCESS_GETTER(letter, slot)                                        \
+   QString getDataPV##letter () const { return this->getXYDataPV (slot); }          \
+   QString getSizePV##letter () const { return this->getXYSizePV (slot); }          \
+   QString getAlias##letter  () const { return this->getXYAlias  (slot); }          \
+   QColor  getColour##letter () const { return this->getXYColour (slot); }
 
-   #undef PROPERTY_ACCESS
+
+public slots:
+   PROPERTY_ACCESS_SETTER  (X, 0)
+   PROPERTY_ACCESS_SETTER  (A, 1)
+   PROPERTY_ACCESS_SETTER  (B, 2)
+   PROPERTY_ACCESS_SETTER  (C, 3)
+   PROPERTY_ACCESS_SETTER  (D, 4)
+   PROPERTY_ACCESS_SETTER  (E, 5)
+   PROPERTY_ACCESS_SETTER  (F, 6)
+   PROPERTY_ACCESS_SETTER  (G, 7)
+   PROPERTY_ACCESS_SETTER  (H, 8)
+   PROPERTY_ACCESS_SETTER  (I, 9)
+   PROPERTY_ACCESS_SETTER  (J, 10)
+   PROPERTY_ACCESS_SETTER  (K, 11)
+   PROPERTY_ACCESS_SETTER  (L, 12)
+   PROPERTY_ACCESS_SETTER  (M, 13)
+   PROPERTY_ACCESS_SETTER  (N, 14)
+   PROPERTY_ACCESS_SETTER  (O, 15)
+   PROPERTY_ACCESS_SETTER  (P, 16)
+
+public:
+   PROPERTY_ACCESS_GETTER  (X, 0)
+   PROPERTY_ACCESS_GETTER  (A, 1)
+   PROPERTY_ACCESS_GETTER  (B, 2)
+   PROPERTY_ACCESS_GETTER  (C, 3)
+   PROPERTY_ACCESS_GETTER  (D, 4)
+   PROPERTY_ACCESS_GETTER  (E, 5)
+   PROPERTY_ACCESS_GETTER  (F, 6)
+   PROPERTY_ACCESS_GETTER  (G, 7)
+   PROPERTY_ACCESS_GETTER  (H, 8)
+   PROPERTY_ACCESS_GETTER  (I, 9)
+   PROPERTY_ACCESS_GETTER  (J, 10)
+   PROPERTY_ACCESS_GETTER  (K, 11)
+   PROPERTY_ACCESS_GETTER  (L, 12)
+   PROPERTY_ACCESS_GETTER  (M, 13)
+   PROPERTY_ACCESS_GETTER  (N, 14)
+   PROPERTY_ACCESS_GETTER  (O, 15)
+   PROPERTY_ACCESS_GETTER  (P, 16)
+
+   
+#undef PROPERTY_ACCESS_SETTER
+#undef PROPERTY_ACCESS_GETTER
 
 public slots:
    // Allows the chart range to be specified externally.
@@ -385,6 +409,10 @@ signals:
    void requestAction (const QEActionRequests&);
 
 protected:
+   // Override QEAbstractDynamicWidget functions.
+   //
+   void pvLabelModeChanged ();
+
    // Implementation of QEWidget's virtual funtions
    //
    qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
@@ -405,7 +433,7 @@ protected:
    QVariant copyData ();
 
    void saveConfiguration (PersistanceManager* pm);
-   void restoreConfiguration (PersistanceManager* pm, restorePhases restorePhase);
+   void restoreConfiguration (PersistanceManager* pm, restorePhases restorePhase); 
 
    int findSlot (QObject *obj);
    QString getXYExpandedDataPV (const int slot) const;
@@ -525,6 +553,7 @@ private:
       QString letter;
       QString pvName;
       QString aliasName;
+      QString description;
       QString expression;        // when dataKind is CalculationPlot
       bool expressionIsValid;
       QEExpressionEvaluation* calculator;

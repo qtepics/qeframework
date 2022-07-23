@@ -1,6 +1,9 @@
 /*  QEPlotterMenu.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2017 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -99,6 +100,14 @@ QEPlotterMenu::QEPlotterMenu (QWidget* parent) : QMenu (parent)
    this->make (this, "Drag variable name",      true, QEPlotterNames::PLOTTER_DRAG_VARIABLE );
    this->setActionChecked (QEPlotterNames::PLOTTER_DRAG_VARIABLE, true);
    this->make (this, "Drag data",               true, QEPlotterNames::PLOTTER_DRAG_DATA );
+
+   // Similar to QEAbstractDynamicWidget menu construction.
+   //
+   this->addSeparator ();
+   this->make (this, "Use PV Names",                     true, QEPlotterNames::PLOTTER_SELECT_USE_PV_NAME );
+   this->make (this, "Use Alias Names (if available)",   true, QEPlotterNames::PLOTTER_SELECT_USE_ALIAS_NAME);
+   this->make (this, "Use Descriptions (if available)",  true, QEPlotterNames::PLOTTER_SELECT_USE_DESCRIPTION );
+   this->setActionChecked (QEPlotterNames::PLOTTER_SELECT_USE_ALIAS_NAME, true);
 
    QObject::connect (this, SIGNAL (triggered             (QAction* ) ),
                      this, SLOT   (contextMenuTriggered  (QAction* )));
