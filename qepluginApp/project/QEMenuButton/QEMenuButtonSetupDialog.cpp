@@ -31,9 +31,9 @@
   #undef _STDINT_H
  #endif
  # include <stdint.h>
-
 #endif
 
+#include "QEMenuButtonSetupDialog.h"
 #include <QtDesigner>
 #include <QDebug>
 #include <QStringList>
@@ -44,12 +44,9 @@
 #include <QEMenuButtonItem.h>
 #include <QEMenuButtonModel.h>
 
-#include <QEMenuButtonSetupDialog.h>
 #include <ui_QEMenuButtonSetupDialog.h>
 
-#define DEBUG  qDebug () << "QEMenuButtonSetupDialog:" << __FUNCTION__ << __LINE__
-
-#define NUMBER_OF_ENTRIES   16
+#define DEBUG  qDebug () << "QEMenuButtonSetupDialog" << __LINE__ << __FUNCTION__ << "  "
 
 // Used to qualify context menu actions.
 //
@@ -58,10 +55,25 @@ enum Actions { ADD_MENU_ITEM_ACTION = 1,
                ADD_SUB_MENU_ACTION };
 
 
+// Must be consistant with QEMenuButtonSetupDialog.ui
+// We need a map as FORMAT_TIME and FORMAT_LOCAL_ENUMERATE
+// are not applicable here.
+//
+#define NUMBER_FORMATS   5
+
+static const QEStringFormatting::formats formatMap [NUMBER_FORMATS] = {
+   QEStringFormatting::FORMAT_DEFAULT,
+   QEStringFormatting::FORMAT_FLOATING,
+   QEStringFormatting::FORMAT_INTEGER,
+   QEStringFormatting::FORMAT_UNSIGNEDINTEGER,
+   QEStringFormatting::FORMAT_STRING
+};
+
 //-----------------------------------------------------------------------------
 // Create the dialog
 //
-QEMenuButtonSetupDialog::QEMenuButtonSetupDialog (QEMenuButton* menuButtonIn, QWidget* parent) :
+QEMenuButtonSetupDialog::QEMenuButtonSetupDialog (QEMenuButton* menuButtonIn,
+                                                  QWidget* parent) :
    QDialog (parent),
    ui (new Ui::QEMenuButtonSetupDialog)
 {
@@ -275,7 +287,21 @@ void QEMenuButtonSetupDialog::itemSelected (QEMenuButtonItem* item)
 
          this->ui->variableName->setText (item->data.variable);
          this->ui->variableValue->setText (item->data.variableValue);
-         this->ui->variableFormat->setCurrentIndex ((int) item->data.format);
+
+         bool formatFound = false;
+         for (int j = 0; j < NUMBER_FORMATS; j++) {
+            if (item->data.format == formatMap[j]) {
+               // We have a match ;-)
+               this->ui->variableFormat->setCurrentIndex (j);
+               formatFound = true;
+               break;
+            }
+         }
+         if (!formatFound) {
+            DEBUG << "string format" << item->data.format << "not valid for QEMenuButton";
+            // default to FORMAT_DEFAULT
+            this->ui->variableFormat->setCurrentIndex (0);
+         }
       }
 
    } else {
@@ -476,12 +502,11 @@ void QEMenuButtonSetupDialog::comboBoxActivated (int index)
       item->data.creationOption = QEActionRequests::Options (index);
 
    } else if (comboBox == this->ui->variableFormat) {
-      item->data.format = QEStringFormatting::formats (index);
+      item->data.format = formatMap [index];
 
    } else {
       qDebug() << "Unexpected " << comboBox->objectName ();
    }
-
 }
 
 //-----------------------------------------------------------------------------

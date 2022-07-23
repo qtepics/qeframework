@@ -160,6 +160,9 @@
            <property name="toolTip">
             <string> Reset </string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
+           </property>
            <property name="text">
             <string>r</string>
            </property>
@@ -213,6 +216,9 @@
            </property>
            <property name="toolTip">
             <string> Reset </string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
             <string>r</string>
@@ -296,6 +302,9 @@
            <property name="toolTip">
             <string> Reset </string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
+           </property>
            <property name="text">
             <string>r</string>
            </property>
@@ -352,6 +361,9 @@
            </property>
            <property name="toolTip">
             <string> Reset </string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
             <string>r</string>
@@ -446,6 +458,9 @@
            <property name="toolTip">
             <string> Reset </string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
+           </property>
            <property name="text">
             <string>r</string>
            </property>
@@ -527,6 +542,9 @@
            </property>
            <property name="toolTip">
             <string> Reset </string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
             <string>r</string>
@@ -651,6 +669,9 @@
            <property name="toolTip">
             <string> Reset </string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
+           </property>
            <property name="text">
             <string>r</string>
            </property>
@@ -708,6 +729,9 @@
            <property name="toolTip">
             <string> Reset </string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
+           </property>
            <property name="text">
             <string>r</string>
            </property>
@@ -764,6 +788,9 @@
            </property>
            <property name="toolTip">
             <string> Reset </string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
             <string>r</string>
@@ -847,6 +874,9 @@
            <property name="toolTip">
             <string> Reset </string>
            </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
+           </property>
            <property name="text">
             <string>r</string>
            </property>
@@ -887,6 +917,9 @@
            </property>
            <property name="toolTip">
             <string> Reset </string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
             <string>r</string>
@@ -948,16 +981,6 @@
            </item>
            <item>
             <property name="text">
-             <string>Time</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>LocalEnumeraion</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
              <string>String</string>
             </property>
            </item>
@@ -979,6 +1002,9 @@
            </property>
            <property name="toolTip">
             <string> Reset </string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
             <string>r</string>
