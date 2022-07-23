@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2021 Australian Synchrotron
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -290,8 +290,25 @@ void QEToolTip::updateToolTipAlarm (const QCaAlarmInfo& alarmInfo,
 {
    if ((int) variableIndex < this->variableList.count ()) {
       QString alarmText;
+      QString alarmMessageText;
 
-      alarmText = alarmInfo.severityName ();
+      alarmText = alarmInfo.severityName();
+
+      // Add status, however avoid double no alarm.
+      //
+      if (alarmInfo.getStatus() > 0) {
+         alarmText.append (", ");
+         alarmText.append (alarmInfo.statusName());
+      }
+
+      // Add message if there is any.
+      // Note: is always an empty string for Channel Access.
+      //
+      alarmMessageText = alarmInfo.messageText();
+      if (!alarmMessageText.isEmpty()) {
+         alarmText.append (", ");
+         alarmText.append (alarmMessageText);
+      }
 
       if (alarmInfo.isOutOfService()) {
          alarmText.append (", OOS");
