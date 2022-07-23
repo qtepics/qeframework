@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2019 Australian Synchrotron
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -33,13 +33,22 @@
 #include <QString>
 #include <QEFrameworkLibraryGlobal.h>
 
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QELink : public QLabel, public QEWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QELink :
+      public QLabel, public QEWidget
+{
    Q_OBJECT
 
-  public:
-    QELink( QWidget *parent = 0 );
+public:
+    explicit QELink( QWidget *parent = 0 );
 
-    enum conditions { CONDITION_EQ, CONDITION_NE, CONDITION_GT, CONDITION_GE, CONDITION_LT, CONDITION_LE };
+    enum conditions {
+       CONDITION_EQ,
+       CONDITION_NE,
+       CONDITION_GT,
+       CONDITION_GE,
+       CONDITION_LT,
+       CONDITION_LE
+    };
 
     // Property convenience functions
 
@@ -67,7 +76,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QELink : public QLabel, public QEWidget
     void    setOutFalseValue( QString outFalseValue );
     QString getOutFalseValue();
 
-  protected:
+protected:
     conditions condition;       // Rule for comparing incoming signal
     QVariant comparisonValue;    // Value to compare incoming signal against
 
@@ -76,7 +85,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QELink : public QLabel, public QEWidget
     QVariant outTrueValue;      // Value to send in signal if condition matches
     QVariant outFalseValue;     // Value to send in signal if condition does not match
 
-  public slots:
+public slots:
     void in( const bool& in );
     void in( const int& in );
     void in( const long& in );
@@ -86,7 +95,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QELink : public QLabel, public QEWidget
 
     void autoFillBackground( const bool& enable );
 
-  signals:
+signals:
     void out( const bool& out );
     void out( const int& out );
     void out( const long& out );
@@ -95,21 +104,25 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QELink : public QLabel, public QEWidget
     void out( const QString& out );
 
 
-  private:
+private:
     bool isProcessing;
     void sendValue( bool match );
     void emitValue( QVariant value );
 
-  public:
+public:
     // Qt Designer Properties - condition
     Q_ENUMS(ConditionNames)
     Q_PROPERTY(ConditionNames condition READ getConditionProperty WRITE setConditionProperty)
-    enum ConditionNames { Equal              = QELink::CONDITION_EQ,
-                          NotEqual           = QELink::CONDITION_NE,
-                          GreaterThan        = QELink::CONDITION_GT,
-                          GreaterThanOrEqual = QELink::CONDITION_GE,
-                          LessThan           = QELink::CONDITION_LT,
-                          LessThanOrEqual    = QELink::CONDITION_LE };
+
+    enum ConditionNames {
+        Equal              = QELink::CONDITION_EQ,
+        NotEqual           = QELink::CONDITION_NE,
+        GreaterThan        = QELink::CONDITION_GT,
+        GreaterThanOrEqual = QELink::CONDITION_GE,
+        LessThan           = QELink::CONDITION_LT,
+        LessThanOrEqual    = QELink::CONDITION_LE
+    };
+
     void setConditionProperty( ConditionNames condition ){ setCondition( (QELink::conditions)condition ); }
     ConditionNames getConditionProperty(){ return (ConditionNames)getCondition(); }
 

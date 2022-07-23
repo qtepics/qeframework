@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2020 Australian Synchrotron.
+ *  Copyright (c) 2014-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -92,10 +92,12 @@ public:
    // been kept to help maintain compatibility. For PvText/LocalEnumeration formats,
    // the virtual getItemText/getItemColour functions are used to determine.
    //
-   enum TextFormats { FixedText,           ///< Use user specified fixed text (default)
-                      StateSet,            ///< Use one of the stae Set values
-                      PvText,              ///< Use EPICS value agumented with units if selected.
-                      LocalEnumeration };  ///< Use specied enumeration values, PV value used to select item
+   enum TextFormats {
+      FixedText,        ///< Use user specified fixed text (default)
+      StateSet,         ///< Use one of the stae Set values
+      PvText,           ///< Use EPICS value agumented with units if selected.
+      LocalEnumeration  ///< Use specied enumeration values, PV value used to select item
+   };
    Q_ENUMS (TextFormats)
 
    /// Nominated text format
