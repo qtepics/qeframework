@@ -43,7 +43,7 @@
 #include <QEFrameworkLibraryGlobal.h>
 
 /// QAnalogSlider is a non EPICS aware slider that provides an analog equivilent
-/// of the QSlider.  It is deemed analog as it can be set by/emits floating point
+/// of the QSlider.  It is deemed analog as it can be se by/emits floating point
 /// (double) values as opposed to interger values.  It is also decorated with a
 /// scale and text showing the current value; it also provides a local save and
 /// restore capability.
@@ -149,8 +149,14 @@ public:
    void setShowApply (const bool show);
    bool getShowApply () const;
 
-   void setFontColour (const QColor fontColour);             ///< Access function for #fontColour - refer to #fontColour property for details
+   void setFontColour (const QColor fontColour);        ///< Access function for #fontColour - refer to #fontColour property for details
    QColor getFontColour () const;                       ///< Access function for #fontColour - refer to #fontColour property for details
+
+   // A nod to the EPICS aware class derived from this class.
+   //
+   void setIsActive (const bool value);
+   bool getIsActive ();
+
 
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (intSlilder, bool, hasTracking, setTracking)
 
@@ -167,11 +173,6 @@ signals:
    void appliedValue (const int value);                 // overloaded form
 
 protected:
-   // A nod to the EPICS aware class derived from this class.
-   //
-   void setIsActive (const bool value);
-   bool getIsActive ();
-
    // internal widget access
    //
    QEAxisPainter* getAxisPainter () { return this->axisPainter; }
