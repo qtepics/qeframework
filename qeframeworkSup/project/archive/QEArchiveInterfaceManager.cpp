@@ -159,7 +159,6 @@ QEArchiveInterfaceManager* QEArchiveInterfaceManager::createInterfaceManager (
       case QEArchiveAccess::CA:
          thread = new QThread (owner);
          interface = new QEChannelArchiveInterface (url, NULL);
-         interface->moveToThread (thread);
 
          break;
 
