@@ -907,7 +907,7 @@
           <number>6</number>
          </property>
         </widget>
-        <widget class="QCheckBox" name="Sow_Regression_CheckBox">
+        <widget class="QCheckBox" name="Show_Regression_CheckBox">
          <property name="geometry">
           <rect>
            <x>480</x>

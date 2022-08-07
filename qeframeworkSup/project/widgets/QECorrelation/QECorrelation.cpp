@@ -322,7 +322,7 @@ void QECorrelation::setup ()
 
    QObject::connect (this->uiForm->Time_Select_Button, SIGNAL (clicked (bool)),
                      this, SLOT (timeSelectButtonClick (bool)));
-   QObject::connect (this->uiForm->Sow_Regression_CheckBox, SIGNAL (stateChanged (int)),
+   QObject::connect (this->uiForm->Show_Regression_CheckBox, SIGNAL (stateChanged (int)),
                      this, SLOT (plotRegressionStateChanged (int)));
 
 
@@ -840,7 +840,7 @@ void QECorrelation::reDrawPlane ()
    pen.setStyle (Qt::DashLine);
    this->plotArea->setGridPen (pen);
 
-   if (this->uiForm->Sow_Regression_CheckBox->checkState() == Qt::Checked){
+   if (this->uiForm->Show_Regression_CheckBox->checkState() == Qt::Checked){
       if (this->regression_slope!=this->regression_slope){ // is nan
       }else{
          pen.setColor (QColor ("red"));
