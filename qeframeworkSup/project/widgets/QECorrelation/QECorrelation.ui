@@ -907,6 +907,19 @@
           <number>6</number>
          </property>
         </widget>
+        <widget class="QCheckBox" name="Sow_Regression_CheckBox">
+         <property name="geometry">
+          <rect>
+           <x>480</x>
+           <y>7</y>
+           <width>100</width>
+           <height>24</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Plot regression</string>
+         </property>
+        </widget>
        </widget>
       </item>
       <item>

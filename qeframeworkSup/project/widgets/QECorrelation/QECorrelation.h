@@ -180,6 +180,10 @@ private:
    double yMin;
    double yMax;
 
+   double regression_slope;
+   double regression_intersept;
+   double correlation_coef;
+
    enum PlotModes { pmDots = 1, pmLines };
    enum ScaleModes { smDynamic, smManual, smData };
 
@@ -194,7 +198,7 @@ private:
 
    void setup ();
    void setReadOut (const QString status);
-   void calculateCorrelationAndRegression (double &correlation_coef, double &regression_slope, double &regression_intersept);
+   void calculateCorrelationAndRegression ();
    void updateDataArrays ();
    void reDrawPlane ();
    void runSelectNameDialog (const int instance);
@@ -234,6 +238,7 @@ private slots:
    void manualScaleClick (bool);
    void plotModeSelect (bool);
    void timeSelectButtonClick (bool);
+   void plotRegressionStateChanged (bool);
    void numberSamplesEditChange  (const double);
    void sampleIntervalEditChange (const double);
 };

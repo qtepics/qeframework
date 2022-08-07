@@ -322,6 +322,9 @@ void QECorrelation::setup ()
 
    QObject::connect (this->uiForm->Time_Select_Button, SIGNAL (clicked (bool)),
                      this, SLOT (timeSelectButtonClick (bool)));
+   QObject::connect (this->uiForm->Sow_Regression_CheckBox, SIGNAL (stateChanged (int)),
+                     this, SLOT (plotRegressionStateChanged (int)));
+
 
    QObject::connect (this->uiForm->Number_Samples_Edit, SIGNAL (valueChanged (const double)),
                      this, SLOT (numberSamplesEditChange (const double)));
@@ -690,7 +693,7 @@ void QECorrelation::setReadOut (const QString status)
 // Refer to http://en.wikipedia.org/wiki/Correlation_and_dependence
 // and to https://en.wikipedia.org/wiki/Simple_linear_regression
 //
-void QECorrelation::calculateCorrelationAndRegression (double &correlation_coef, double &regression_slope, double &regression_intersept)
+void QECorrelation::calculateCorrelationAndRegression ()
 {
    int number;
    double sumX;
@@ -710,10 +713,10 @@ void QECorrelation::calculateCorrelationAndRegression (double &correlation_coef,
 
    number = this->xData.count ();
    if (number <= 0){
-	   correlation_coef     = 0.0;
-	   regression_slope     = 0.0;
-	   regression_intersept = 0.0;
-	   return ;
+      this->correlation_coef = 0.0;
+      this->regression_slope = std::nan("0");
+      this->regression_intersept = std::nan("0");
+      return ;
    }
 
    // Sum x, x^2, y, y^2 and xy.
@@ -758,17 +761,17 @@ void QECorrelation::calculateCorrelationAndRegression (double &correlation_coef,
       sdX = sqrt (varX);
       sdY = sqrt (varY);
 
-      correlation_coef = (meanXY - meanX * meanY) / (sdX * sdY);
+      this->correlation_coef = (meanXY - meanX * meanY) / (sdX * sdY);
    } else {
-	  correlation_coef = 0.0;
+      this->correlation_coef = 0.0;
    }
 
    if (varX != 0.0){
-      regression_slope = (meanXY - meanX * meanY) / varX;
-      regression_intersept = meanY - regression_slope*meanX;
+      this->regression_slope = (meanXY - meanX * meanY) / varX;
+      this->regression_intersept = meanY - regression_slope*meanX;
    }else{
-	   regression_slope=std::nan("0");
-	   regression_intersept=std::nan("0");
+      this->regression_slope = std::nan("0");
+      this->regression_intersept = std::nan("0");
    }
    return;
 }
@@ -837,6 +840,16 @@ void QECorrelation::reDrawPlane ()
    pen.setStyle (Qt::DashLine);
    this->plotArea->setGridPen (pen);
 
+   if (this->uiForm->Sow_Regression_CheckBox->checkState() == Qt::Checked){
+      if (this->regression_slope!=this->regression_slope){ // is nan
+      }else{
+         pen.setColor (QColor ("red"));
+         this->plotArea->setCurveStyle (QwtPlotCurve::Lines);
+         this->plotArea->setCurvePen (pen);
+         this->plotArea->plotCurveData ({TX_Min, TX_Max}, {this->regression_slope*TX_Min+this->regression_intersept, this->regression_slope*TX_Max+this->regression_intersept});
+      }
+   }
+
    pen.setColor (QColor ("blue"));
    pen.setStyle (Qt::SolidLine);
 
@@ -873,8 +886,6 @@ void QECorrelation::updateDataArrays ()
    int extra;
    int number;
    double correlation;
-   double slope;
-   double intersept;
 
    samplePeriod = this->uiForm->Sample_Interval_Edit->getValue ();
    maximumPoints = (int) this->uiForm->Number_Samples_Edit->getValue ();
@@ -896,15 +907,19 @@ void QECorrelation::updateDataArrays ()
    maximumPeriod = samplePeriod * maximumPoints;
    currentPeriod = samplePeriod * number;
 
-   this->calculateCorrelationAndRegression (correlation, slope, intersept);
+   this->calculateCorrelationAndRegression ();
 
    this->uiForm->Number_Points_Label->setText (QString ("%1").arg (number));
    this->uiForm->Maximum_Sample_Label->setText (QEUtilities::intervalToString (maximumPeriod, 0, false));
    this->uiForm->Ongoing_Sample_Label->setText (QEUtilities::intervalToString (currentPeriod, 0, false));
-   this->uiForm->Correlation_Value_Label->setText (QString ("%1").arg (correlation, 0, 'f', 4));
-   this->uiForm->Regression_Slope_Value_Label->setText (QString ("%1").arg (slope, 0, 'f', 4));
-   this->uiForm->Regression_Intercept_Value_Label->setText (QString ("%1").arg (intersept, 0, 'f', 4));
-
+   this->uiForm->Correlation_Value_Label->setText (QString ("%1").arg (this->correlation_coef, 0, 'f', 4));
+   if (this->regression_slope!=this->regression_slope){ // is nan
+      this->uiForm->Regression_Slope_Value_Label->setText (QString ("---"));
+      this->uiForm->Regression_Intercept_Value_Label->setText (QString ("---"));
+   }else{
+      this->uiForm->Regression_Slope_Value_Label->setText (QString ("%1").arg (this->regression_slope, 0, 'f', 4));
+      this->uiForm->Regression_Intercept_Value_Label->setText (QString ("%1").arg (this->regression_intersept, 0, 'f', 4));
+   }
    this->replotIsRequired = true;
 }
 
@@ -1374,6 +1389,12 @@ void QECorrelation::timeSelectButtonClick (bool)
 
       this->setReadOut ("Archive data request issued");
    }
+}
+
+//------------------------------------------------------------------------------
+//
+void QECorrelation::plotRegressionStateChanged (bool){
+   this->replotIsRequired = true;
 }
 
 //------------------------------------------------------------------------------
