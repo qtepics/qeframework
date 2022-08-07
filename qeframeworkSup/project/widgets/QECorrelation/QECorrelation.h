@@ -180,9 +180,9 @@ private:
    double yMin;
    double yMax;
 
-   double regression_slope;
-   double regression_intersept;
-   double correlation_coef;
+   double regressionSlope;
+   double regressionIntersept;
+   double correlationCoef;
 
    enum PlotModes { pmDots = 1, pmLines };
    enum ScaleModes { smDynamic, smManual, smData };
