@@ -688,10 +688,10 @@ void QECorrelation::setReadOut (const QString status)
 
 //------------------------------------------------------------------------------
 // Refer to http://en.wikipedia.org/wiki/Correlation_and_dependence
+// and to https://en.wikipedia.org/wiki/Simple_linear_regression
 //
-double QECorrelation::calculateCorrelationCoefficient ()
+void QECorrelation::calculateCorrelationAndRegression (double &correlation_coef, double &regression_slope, double &regression_intersept)
 {
-   double result;
    int number;
    double sumX;
    double sumY ;
@@ -709,7 +709,12 @@ double QECorrelation::calculateCorrelationCoefficient ()
    double sdY;
 
    number = this->xData.count ();
-   if (number <= 0) return 0.0;
+   if (number <= 0){
+	   correlation_coef     = 0.0;
+	   regression_slope     = 0.0;
+	   regression_intersept = 0.0;
+	   return ;
+   }
 
    // Sum x, x^2, y, y^2 and xy.
    //
@@ -753,12 +758,19 @@ double QECorrelation::calculateCorrelationCoefficient ()
       sdX = sqrt (varX);
       sdY = sqrt (varY);
 
-      result = (meanXY - meanX * meanY) / (sdX * sdY);
+      correlation_coef = (meanXY - meanX * meanY) / (sdX * sdY);
    } else {
-      result = 0.0;
+	  correlation_coef = 0.0;
    }
 
-   return result;
+   if (varX != 0.0){
+      regression_slope = (meanXY - meanX * meanY) / varX;
+      regression_intersept = meanY - regression_slope*meanX;
+   }else{
+	   regression_slope=std::nan("0");
+	   regression_intersept=std::nan("0");
+   }
+   return;
 }
 
 //------------------------------------------------------------------------------
@@ -861,6 +873,8 @@ void QECorrelation::updateDataArrays ()
    int extra;
    int number;
    double correlation;
+   double slope;
+   double intersept;
 
    samplePeriod = this->uiForm->Sample_Interval_Edit->getValue ();
    maximumPoints = (int) this->uiForm->Number_Samples_Edit->getValue ();
@@ -882,12 +896,14 @@ void QECorrelation::updateDataArrays ()
    maximumPeriod = samplePeriod * maximumPoints;
    currentPeriod = samplePeriod * number;
 
-   correlation = this->calculateCorrelationCoefficient ();
+   this->calculateCorrelationAndRegression (correlation, slope, intersept);
 
    this->uiForm->Number_Points_Label->setText (QString ("%1").arg (number));
    this->uiForm->Maximum_Sample_Label->setText (QEUtilities::intervalToString (maximumPeriod, 0, false));
    this->uiForm->Ongoing_Sample_Label->setText (QEUtilities::intervalToString (currentPeriod, 0, false));
    this->uiForm->Correlation_Value_Label->setText (QString ("%1").arg (correlation, 0, 'f', 4));
+   this->uiForm->Regression_Slope_Value_Label->setText (QString ("%1").arg (slope, 0, 'f', 4));
+   this->uiForm->Regression_Intercept_Value_Label->setText (QString ("%1").arg (intersept, 0, 'f', 4));
 
    this->replotIsRequired = true;
 }

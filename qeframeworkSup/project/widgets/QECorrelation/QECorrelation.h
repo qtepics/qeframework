@@ -194,7 +194,7 @@ private:
 
    void setup ();
    void setReadOut (const QString status);
-   double calculateCorrelationCoefficient ();
+   void calculateCorrelationAndRegression (double &correlation_coef, double &regression_slope, double &regression_intersept);
    void updateDataArrays ();
    void reDrawPlane ();
    void runSelectNameDialog (const int instance);

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>672</width>
-    <height>536</height>
+    <height>562</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -65,13 +65,13 @@
         <property name="minimumSize">
          <size>
           <width>0</width>
-          <height>136</height>
+          <height>162</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
           <width>16777215</width>
-          <height>136</height>
+          <height>162</height>
          </size>
         </property>
         <property name="font">
@@ -563,7 +563,7 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>92</y>
+           <y>118</y>
            <width>660</width>
            <height>20</height>
           </rect>
@@ -659,7 +659,7 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>112</y>
+           <y>138</y>
            <width>660</width>
            <height>20</height>
           </rect>
@@ -813,6 +813,98 @@
          <property name="icon">
           <iconset resource="../QEStripChart/QEStripChart.qrc">
            <normaloff>:/qe/stripchart/save_file.png</normaloff>:/qe/stripchart/save_file.png</iconset>
+         </property>
+        </widget>
+        <widget class="QLabel" name="Regression_Slope_Value_Label">
+         <property name="geometry">
+          <rect>
+           <x>120</x>
+           <y>95</y>
+           <width>84</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QLabel { background-color: rgb(224,224,224); } QLabel { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="text">
+          <string>+99.7852</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="indent">
+          <number>6</number>
+         </property>
+        </widget>
+        <widget class="QLabel" name="Label7">
+         <property name="geometry">
+          <rect>
+           <x>4</x>
+           <y>95</y>
+           <width>108</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string>QLabel { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="text">
+          <string>Regression slope: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="Label8">
+         <property name="geometry">
+          <rect>
+           <x>216</x>
+           <y>95</y>
+           <width>108</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>8</pointsize>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string>QLabel { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="text">
+          <string>Intercept: </string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="Regression_Intercept_Value_Label">
+         <property name="geometry">
+          <rect>
+           <x>292</x>
+           <y>95</y>
+           <width>84</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QLabel { background-color: rgb(224,224,224); } QLabel { color: rgb(0,0,0); }</string>
+         </property>
+         <property name="text">
+          <string>-1.2345</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="indent">
+          <number>6</number>
          </property>
         </widget>
        </widget>
