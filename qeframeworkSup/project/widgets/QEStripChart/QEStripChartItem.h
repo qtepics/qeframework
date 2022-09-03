@@ -78,6 +78,8 @@ public:
    void setPvName (const QString& pvName, const QString& substitutions);
    QString getPvName () const;
    QString getEgu () const;
+   QString getDescription () const;    // Extracts the PV DESCription field.
+   QString getCaptionLabel () const;   // As used in the name bar.
 
    bool isScaled () const;
 

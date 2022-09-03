@@ -871,8 +871,6 @@ void QEStripChart::plotMouseMove  (const QPointF& position)
       mouseReadOut.append (f);
    }
 
-   this->setReadOut (mouseReadOut);
-
    // If the box markup is enabled, thean just leave the selected data point alone,
    // otherwise check to see if we are hovering over a data point.
    //
@@ -887,21 +885,30 @@ void QEStripChart::plotMouseMove  (const QPointF& position)
       nearest = this->findNearestPoint (position, this->selectedPointSlot);
       if (nearest) {
          QEStripChartItem* item = this->getItem (this->selectedPointSlot);
-         if (!item) return;
+         if (item) {
+            this->selectedPointDateTime = nearest->datetime;
+            this->selectedPointValue = nearest->value;
 
-         this->selectedPointDateTime = nearest->datetime;
-         this->selectedPointValue = nearest->value;
+            this->plotArea->setMarkupVisible (QEGraphicNames::Box, true);
+            this->plotArea->setMarkupPosition (QEGraphicNames::Box, item->dataPointToReal(*nearest));
 
-         this->plotArea->setMarkupVisible (QEGraphicNames::Box, true);
-         this->plotArea->setMarkupPosition (QEGraphicNames::Box, item->dataPointToReal(*nearest));
+            // Form the string/image of the value.
+            //
+            const QString svalue = QString::number(nearest->value, 'e', 5);
 
-         QStringList info;
-         info.append (item->getPvName());
-         info.append (QString ("%1 %2").arg (nearest->value,0, 'e', 5).arg (item->getEgu ()));
-         info.append (nearest->datetime.toString (format).left (format.length() - 2));
+            mouseReadOut.append (QString (" [%1  %2]").arg (item->getCaptionLabel()).arg (svalue));
 
-         this->plotArea->setMarkupData (QEGraphicNames::Box, QVariant (info));
-         this->setContextMenuPolicy (Qt::NoContextMenu);
+            QStringList info;
+            info.append (item->getPvName());
+            const QString desc = item->getDescription();
+            if (!desc.isEmpty()) info.append (desc);
+            info.append (QString ("%1 %2").arg (svalue).arg (item->getEgu ()));
+            info.append (nearest->datetime.toString (format).left (format.length() - 2));
+
+            this->plotArea->setMarkupData (QEGraphicNames::Box, QVariant (info));
+            this->setContextMenuPolicy (Qt::NoContextMenu);
+         }
+
       } else {
          this->plotArea->setMarkupVisible (QEGraphicNames::Box, false);
          this->setContextMenuPolicy (Qt::CustomContextMenu);
@@ -914,6 +921,8 @@ void QEStripChart::plotMouseMove  (const QPointF& position)
          this->replotIsRequired = true;
       }
    }
+
+   this->setReadOut (mouseReadOut);
 }
 
 //------------------------------------------------------------------------------

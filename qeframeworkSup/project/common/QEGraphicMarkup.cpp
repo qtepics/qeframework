@@ -600,8 +600,10 @@ void QEGraphicBoxMarkup::plotMarkup ()
    // Finds the maximum width required.
    //
    const QStringList info = this->data.toStringList ();
+   const int numberLines = info.count();
    int maxTextWidth = 0;
-   for (int j = 0; j < 3; j++) {
+
+   for (int j = 0; j < numberLines; j++) {
       int textWidth  = fm.width (info.value (j));
       maxTextWidth = MAX (maxTextWidth, textWidth);
    }
@@ -612,7 +614,7 @@ void QEGraphicBoxMarkup::plotMarkup ()
    // Set up info box outline.
    //
    const int w = gap + maxTextWidth + gap;
-   const int h = gap + 3*verticalTextSpacing;
+   const int h = gap + numberLines*verticalTextSpacing;
    const QPoint infoBoxOutLine [5] = {
       QPoint (0, 0), QPoint (w, 0), QPoint (w, -h), QPoint (0, -h),  QPoint (0, 0)
    };
@@ -669,7 +671,7 @@ void QEGraphicBoxMarkup::plotMarkup ()
    this->pen.setWidth (1);
 
    QPoint textOrigin = infoBoxCorner + QPoint (gap, -h + verticalTextSpacing);
-   for (int j = 0; j < 3; j++) {
+   for (int j = 0; j < numberLines; j++) {
       this->owner->drawText (textOrigin + QPoint (0, j*verticalTextSpacing), info.value (j),
                              QEGraphicNames::PixelPosition, false);
    }

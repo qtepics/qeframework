@@ -149,7 +149,6 @@ QEStripChartItem::QEStripChartItem (QEStripChart* chartIn,
    this->caLabel->setForceSign (true);
    this->caLabel->setUseDbPrecision (false);
    this->caLabel->setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
-   this->caLabel->setTrailingZeros (false);
    this->caLabel->setArrayAction (QEStringFormatting::INDEX);
    this->caLabel->setArrayIndex (0);
 
@@ -419,66 +418,82 @@ QString QEStripChartItem::getEgu () const
 
 //------------------------------------------------------------------------------
 //
-void QEStripChartItem::setCaption ()
+QString QEStripChartItem::getDescription () const
 {
-   QString caption;
+   return  this->isInUse () ? this->description : "";
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEStripChartItem::getCaptionLabel () const
+{
+   QString result;
    QEAbstractDynamicWidget::PVLabelMode labelMode;
    QString substitutedPVName;
-
-   caption.clear ();
 
    switch (this->dataKind) {
       case NotInUse:
          break;
 
       case PVData:
-         if (this->scaling.isScaled ()) {
-            caption.append ("*");
-         } else {
-            caption.append (" ");
-         }
-
          labelMode = this->chart->getPVLabelMode ();
          substitutedPVName = this->caLabel->getSubstitutedVariableName (0);
 
          switch (labelMode) {
             case QEAbstractDynamicWidget::useAliasName:
                if (!this->aliasName.isEmpty() && this->aliasName != "<>") {
-                  caption.append (this->aliasName);
+                  result = this->aliasName;
                } else {
-                  caption.append (substitutedPVName);
+                  result = substitutedPVName;
                }
                break;
 
             case QEAbstractDynamicWidget::useDescription:
                if (!this->description.isEmpty()) {
-                  caption.append (this->description);
+                  result = this->description;
                } else {
-                  caption.append (substitutedPVName);
+                  result = substitutedPVName;
                }
                break;
 
             case QEAbstractDynamicWidget::usePvName:
             default:
-               caption.append (substitutedPVName);
+               result = substitutedPVName;
                break;
          }
          break;
 
       case CalculationData:
          if (this->expressionIsValid) {
-            if (this->scaling.isScaled ()) {
-               caption.append ("*");
-            } else {
-               caption.append (" ");
-            }
-            caption.append (":= ");
-            caption.append (this->expression);
+            result = this->expression;
          } else {
-            caption.append ("invalid expr.");
+            result = "invalid expr.";
          }
          break;
    }
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChartItem::setCaption ()
+{
+   QString caption;
+
+   caption.clear ();
+
+   if (this->isInUse() && this->scaling.isScaled ()) {
+      caption.append ("*");
+   } else {
+      caption.append (" ");  // alignment spacer
+   }
+
+   if (this->dataKind == CalculationData) {
+      caption.append (":= ");
+   }
+
+   caption.append (this->getCaptionLabel());
 
    this->pvName->setText (caption);
 }
