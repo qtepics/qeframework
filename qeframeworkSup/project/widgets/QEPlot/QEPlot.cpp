@@ -151,6 +151,7 @@ public:
    const QEPlot* owner;
    const int instance;
    int width;
+   bool isVisible;
 
    QEArchiveAccess archiveAccess;  // Allow access to archivers
 
@@ -205,6 +206,7 @@ QEPlot::Trace::Trace (const int instanceIn, QEPlot* parent) :
    }
    this->style = QwtPlotCurve::Lines;
    this->width = 1;
+   this->isVisible = true;
 
    // Set up connection to archive access.
    // Note: we go via the owner which has class defined in the header file,
@@ -966,9 +968,10 @@ void QEPlot::plotData ()
    //
    for (int i = 0; i < QEPLOT_NUM_PLOTS; i++) {
       Trace* tr = this->traces[i];
-      if (!tr) continue;
+      if (!tr) continue;    // sanity check
       if (!tr->isInUse) continue;
-      if (tr->width == 0) continue;   // use a separate bool proerty??
+      if (!tr->isVisible) continue;
+      if (tr->width == 0) continue;
 
       QVector <double> xdata;
       QVector <double> ydata;
@@ -1769,6 +1772,32 @@ QString QEPlot::getTraceLegend (const unsigned int variableIndex) const
 }
 
 //------------------------------------------------------------------------------
+//
+void QEPlot::setTraceVisible (const bool traceVisible, const unsigned int variableIndex)
+{
+   PV_INDEX_CHECK (variableIndex,);
+
+   Trace* tr = this->traces[variableIndex];
+   if (!tr) return;    // sanity check
+
+   tr->isVisible = traceVisible;
+   this->replotIsRequired = true;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEPlot::getTraceVisible (const unsigned int variableIndex) const
+{
+   PV_INDEX_CHECK (variableIndex, false);
+
+   Trace* tr = this->traces[variableIndex];
+   if (!tr) return false;    // sanity check
+
+   return tr->isVisible;
+}
+
+
+//------------------------------------------------------------------------------
 // Access functions for xUnit
 void QEPlot::setXUnit (const QString& xUnit)
 {
@@ -1992,6 +2021,16 @@ void QEPlot::setTraceLegend##name (const QString& traceLegend)              \
 QString QEPlot::getTraceLegend##name () const                               \
 {                                                                           \
    return this->getTraceLegend (index);                                     \
+}                                                                           \
+/*  */                                                                      \
+void QEPlot::setTraceVisible##name (const bool visible)                     \
+{                                                                           \
+   this->setTraceVisible (visible, index);                                  \
+}                                                                           \
+/*  */                                                                      \
+bool QEPlot::getTraceVisible##name () const                                 \
+{                                                                           \
+  return this->getTraceVisible (index);                                     \
 }
 
 

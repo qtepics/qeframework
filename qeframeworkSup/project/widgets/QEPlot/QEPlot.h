@@ -117,8 +117,6 @@ public:
    Q_PROPERTY (QString sizeVariable7 READ getSizeVariableName7Property WRITE setSizeVariableName7Property)
    Q_PROPERTY (QString sizeVariable8 READ getSizeVariableName8Property WRITE setSizeVariableName8Property)
 
-   /// Widget specific properties
-   ///
    Q_PROPERTY (QColor traceColor1 READ getTraceColor1 WRITE setTraceColor1)
    Q_PROPERTY (QColor traceColor2 READ getTraceColor2 WRITE setTraceColor2)
    Q_PROPERTY (QColor traceColor3 READ getTraceColor3 WRITE setTraceColor3)
@@ -137,8 +135,17 @@ public:
    Q_PROPERTY (TraceStyles traceStyle7 READ getTraceStyle7 WRITE setTraceStyle7)
    Q_PROPERTY (TraceStyles traceStyle8 READ getTraceStyle8 WRITE setTraceStyle8)
 
+   Q_PROPERTY (bool traceVisible1 READ getTraceVisible1 WRITE setTraceVisible1)
+   Q_PROPERTY (bool traceVisible2 READ getTraceVisible2 WRITE setTraceVisible2)
+   Q_PROPERTY (bool traceVisible3 READ getTraceVisible3 WRITE setTraceVisible3)
+   Q_PROPERTY (bool traceVisible4 READ getTraceVisible4 WRITE setTraceVisible4)
+   Q_PROPERTY (bool traceVisible5 READ getTraceVisible5 WRITE setTraceVisible5)
+   Q_PROPERTY (bool traceVisible6 READ getTraceVisible6 WRITE setTraceVisible6)
+   Q_PROPERTY (bool traceVisible7 READ getTraceVisible7 WRITE setTraceVisible7)
+   Q_PROPERTY (bool traceVisible8 READ getTraceVisible8 WRITE setTraceVisible8)
+
    // Pen width or dot size.
-   // Use zero for non visible.
+   // Use zero for non visible or use is visible
    //
    Q_PROPERTY (int traceWidth1 READ getTraceWidth1 WRITE setTraceWidth1)
    Q_PROPERTY (int traceWidth2 READ getTraceWidth2 WRITE setTraceWidth2)
@@ -298,6 +305,9 @@ public:
    void setTraceLegend (const QString& traceLegend, const unsigned int variableIndex);
    QString getTraceLegend (const unsigned int variableIndex) const;
 
+   void setTraceVisible (const bool traceVisible, const unsigned int variableIndex);
+   bool getTraceVisible (const unsigned int variableIndex) const;
+
    // moc does not allow us to use macros to define Q_PROPERTIES, but we can
    // use a macro do define the associated get/set functions.
    //
@@ -331,6 +341,29 @@ public:
     PROPERTY_ACCESS_FUNCTIONS (8)
 
 #undef PROPERTY_ACCESS_FUNCTIONS
+
+// These can't use the  PROPERTY_ACCESS_FUNCTIONS macro as the
+// setter function are decalred as slots.
+//
+public slots:
+   void setTraceVisible1 (const bool visible);
+   void setTraceVisible2 (const bool visible);
+   void setTraceVisible3 (const bool visible);
+   void setTraceVisible4 (const bool visible);
+   void setTraceVisible5 (const bool visible);
+   void setTraceVisible6 (const bool visible);
+   void setTraceVisible7 (const bool visible);
+   void setTraceVisible8 (const bool visible);
+
+public:
+   bool getTraceVisible1 () const;
+   bool getTraceVisible2 () const;
+   bool getTraceVisible3 () const;
+   bool getTraceVisible4 () const;
+   bool getTraceVisible5 () const;
+   bool getTraceVisible6 () const;
+   bool getTraceVisible7 () const;
+   bool getTraceVisible8 () const;
 
    void setXUnit (const QString& xUnit);
    QString getXUnit () const;
