@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2018 Australian Synchrotron.
+ *  Copyright (c) 2011-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -568,7 +568,12 @@ int QEPeriodic::getSelectedAtomicNumber() const
 // selected (because the other element has the same values) The current write button element is
 // checked for a match first. If it is even an approximate match it is selected. If it does not match,
 // then the closest element match is returned.
-bool QEPeriodic::getElementTextForValue( const double& value, const unsigned int& variableIndex, QEPeriodicComponentData& componentData, const QString& currentText, QString& newText )
+//
+bool QEPeriodic::getElementTextForValue( const double& value,
+                                         const unsigned int& variableIndex,
+                                         QEPeriodicComponentData& componentData,
+                                         const QString& currentText,
+                                         QString& newText )
 {
     // Save the value
     if( variableIndex == componentData.variableIndex1 )

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2021 Australian Synchrotron
+ *  Copyright (c) 2011-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -36,7 +36,8 @@ namespace Ui {
     class PeriodicDialog;
 }
 
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT PeriodicDialog : public QEDialog {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT PeriodicDialog : public QEDialog 
+{
     Q_OBJECT
 public:
     PeriodicDialog( QWidget *parent = 0 );
@@ -49,7 +50,8 @@ public:
     void setElement( QString elementIn,
                      QList<bool>& enabledList );
 
-    QString getElement() const;     // selected element by symbol
+    QString getElementName() const; // selected element name
+    QString getElement() const;     // selected element symbol
     int getAtomicNumber() const;    // selected element by atomic number 1 .. 118
 
 public slots:
@@ -63,7 +65,8 @@ protected:
 private:
     Ui::PeriodicDialog *m_ui;
     int selectedAtomicNumber;
-    QString elementSelected;
+    QString selectedElementSymbol;
+    QString selectedElementName;
     bool colourise;
 
     typedef QEOneToOne <int, QPushButton*> ElementSlotButtonMap;

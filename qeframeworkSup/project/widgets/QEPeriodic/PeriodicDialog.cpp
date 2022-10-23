@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2021 Australian Synchrotron
+ *  Copyright (c) 2011-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -127,7 +127,7 @@ PeriodicDialog::PeriodicDialog( QWidget *parent ) :
     }
 
     selectedAtomicNumber = 0;
-    elementSelected = "";
+    selectedElementSymbol = "";
 }
 
 //------------------------------------------------------------------------------
@@ -156,7 +156,8 @@ int PeriodicDialog::exec( QWidget* targetWidget )
     // Clear selection
     //
     selectedAtomicNumber = 0;
-    elementSelected = "";
+    selectedElementSymbol = "";
+    selectedElementName = "";
     return QEDialog::exec( targetWidget );    // call parent
 }
 
@@ -175,11 +176,20 @@ void PeriodicDialog::changeEvent( QEvent *e )
 }
 
 //------------------------------------------------------------------------------
+// Return the full element name of the element last selected
+// Used to determine what element was selected by the user.
+//
+QString PeriodicDialog::getElementName() const
+{
+   return selectedElementName;
+}
+
+//------------------------------------------------------------------------------
 // Return the symbolic name of the element last selected
 // Used to determine what element was selected by the user.
 QString PeriodicDialog::getElement() const
 {
-    return elementSelected;
+    return selectedElementSymbol;
 }
 
 //------------------------------------------------------------------------------
@@ -236,7 +246,8 @@ void PeriodicDialog::noteElementSelected()
     if( j >= 0 && j < NUM_ELEMENTS ){
         const QEPeriodic::elementInfoStruct* info = &QEPeriodic::elementInfo [j];
         selectedAtomicNumber = info->number;
-        elementSelected = info->symbol;
+        selectedElementName = info->name;
+        selectedElementSymbol = info->symbol;
         this->accept ();
     }
 

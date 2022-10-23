@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2021 Australian Synchrotron
+ *  Copyright (c) 2011-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -43,7 +43,7 @@
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPeriodicComponentData
 {
 public:
-    QEPeriodicComponentData()
+    explicit QEPeriodicComponentData()
     {
         variableIndex1 = 0;
         lastData1 = 0.0;
@@ -53,6 +53,7 @@ public:
         lastData2 = 0.0;
         haveLastData2 = false;
     }
+    ~QEPeriodicComponentData() {}
 
     unsigned int variableIndex1;
     double lastData1;
@@ -68,7 +69,13 @@ public:
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT userInfoStruct
 {
 public:
-    userInfoStruct() { enable = false; value1 = 0.0; value2 = 0.0; }
+    explicit userInfoStruct() { 
+        enable = false; 
+        value1 = 0.0; 
+        value2 = 0.0; 
+    }
+   ~userInfoStruct() {}
+
     bool    enable;         // True if element is available for the user to select
     double  value1;         // User value to be written to and compared against the first variable
     double  value2;         // User value to be written to and compared against the second variable
@@ -131,15 +138,17 @@ public:
     userInfoStruct userInfo[NUM_ELEMENTS];                      // Array of dynamic element information
 
     // Element information options
-    enum variableTypes { VARIABLE_TYPE_NUMBER,
-                         VARIABLE_TYPE_ATOMIC_WEIGHT,
-                         VARIABLE_TYPE_MELTING_POINT,
-                         VARIABLE_TYPE_BOILING_POINT,
-                         VARIABLE_TYPE_DENSITY,
-                         VARIABLE_TYPE_GROUP,
-                         VARIABLE_TYPE_IONIZATION_ENERGY,
-                         VARIABLE_TYPE_USER_VALUE_1,
-                         VARIABLE_TYPE_USER_VALUE_2 };
+    enum variableTypes {
+        VARIABLE_TYPE_NUMBER,
+        VARIABLE_TYPE_ATOMIC_WEIGHT,
+        VARIABLE_TYPE_MELTING_POINT,
+        VARIABLE_TYPE_BOILING_POINT,
+        VARIABLE_TYPE_DENSITY,
+        VARIABLE_TYPE_GROUP,
+        VARIABLE_TYPE_IONIZATION_ENERGY,
+        VARIABLE_TYPE_USER_VALUE_1,
+        VARIABLE_TYPE_USER_VALUE_2
+    };
 
     // Property convenience functions
 
@@ -148,9 +157,12 @@ public:
     bool getSubscribe() const;
 
     // presentation options
-    enum presentationOptions { PRESENTATION_BUTTON_AND_LABEL,
-                               PRESENTATION_BUTTON_ONLY,
-                               PRESENTATION_LABEL_ONLY };
+    enum presentationOptions {
+        PRESENTATION_BUTTON_AND_LABEL,
+        PRESENTATION_BUTTON_ONLY,
+        PRESENTATION_LABEL_ONLY
+    };
+
     void setPresentationOption( presentationOptions presentationOptionIn );
     presentationOptions getPresentationOption() const;
 
@@ -161,7 +173,6 @@ public:
     // variable 2 type
     void setVariableType2( variableTypes variableType2In );
     variableTypes getVariableType2() const;
-
 
     // variable 1 tolerance
     void setVariableTolerance1( double variableTolerance1In );
@@ -193,8 +204,11 @@ public:
     bool isColourised() const;
 
     // user info source options
-    enum userInfoSourceOptions { USER_INFO_SOURCE_TEXT,
-                                 USER_INFO_SOURCE_FILE, };
+    enum userInfoSourceOptions {
+        USER_INFO_SOURCE_TEXT,
+        USER_INFO_SOURCE_FILE
+    };
+
     void setUserInfoSourceOption( userInfoSourceOptions userInfoSourceOptionIn );
     userInfoSourceOptions getUserInfoSourceOption() const;
 
@@ -253,7 +267,6 @@ protected:
     double variableTolerance1;
     double variableTolerance2;
 
-
     void establishConnection( unsigned int variableIndex );
 
 private:
@@ -275,12 +288,15 @@ private:
     int selectedAtomicNumber;    //       we need to fix this.
     bool colourise;
 
-    bool getElementTextForValue( const double& value, const unsigned int& variableIndex, QEPeriodicComponentData& componentData, const QString& currentText, QString& newText );
+    bool getElementTextForValue( const double& value, const unsigned int& variableIndex,
+                                 QEPeriodicComponentData& componentData,
+                                 const QString& currentText, QString& newText );
 
     presentationOptions presentationOption;
     void updatePresentationOptions();
 
-    float elementMatch( int i, bool haveFirstVariable, double lastData1, bool haveSecondVariable, double lastData2 );
+    float elementMatch( int i, bool haveFirstVariable, double lastData1,
+                        bool haveSecondVariable, double lastData2 );
 
     QString userInfoText;
     QString userInfoFile;
@@ -299,11 +315,13 @@ protected:
     QVariant copyData();
     void paste( QVariant s );
 
-    enum variableIndexes{ WRITE_VARIABLE_1,
-                          WRITE_VARIABLE_2,
-                          READ_VARIABLE_1,
-                          READ_VARIABLE_2,
-                          QEPERIODIC_NUM_VARIABLES /*Must be last*/ };
+    enum variableIndexes {
+        WRITE_VARIABLE_1,
+        WRITE_VARIABLE_2,
+        READ_VARIABLE_1,
+        READ_VARIABLE_2,
+        QEPERIODIC_NUM_VARIABLES /*Must be last*/
+    };
 
     //=================================================================================
     // Multiple Variable properties
@@ -427,10 +445,11 @@ public:
 
     /// \enum UserLevels
     /// User friendly enumerations for #userLevelVisibility and #userLevelEnabled properties - refer to #userLevelVisibility and #userLevelEnabled properties and userLevel enumeration for details.
-    enum UserLevels { User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
-                      Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
-                      Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
-                              };
+    enum UserLevels {
+        User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
+        Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
+        Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
+    };
     Q_ENUMS(UserLevels)
 
     /// Lowest user level at which the widget is visible. Default is 'User'.
@@ -456,10 +475,11 @@ public:
 
     /// \enum DisplayAlarmStateOptions
     /// User friendly enumerations for #displayAlarmStateOption property - refer to #displayAlarmStateOption property and displayAlarmStateOptions enumeration for details.
-    enum DisplayAlarmStateOptions { Never       = standardProperties::DISPLAY_ALARM_STATE_NEVER,          ///< Refer to DISPLAY_ALARM_STATE_NEVER for details
-                                    Always      = standardProperties::DISPLAY_ALARM_STATE_ALWAYS,         ///< Refer to DISPLAY_ALARM_STATE_ALWAYS for details
-                                    WhenInAlarm = standardProperties::DISPLAY_ALARM_STATE_WHEN_IN_ALARM   ///< Refer to DISPLAY_ALARM_STATE_WHEN_IN_ALARM for details
-                              };
+    enum DisplayAlarmStateOptions {
+        Never       = standardProperties::DISPLAY_ALARM_STATE_NEVER,          ///< Refer to DISPLAY_ALARM_STATE_NEVER for details
+        Always      = standardProperties::DISPLAY_ALARM_STATE_ALWAYS,         ///< Refer to DISPLAY_ALARM_STATE_ALWAYS for details
+        WhenInAlarm = standardProperties::DISPLAY_ALARM_STATE_WHEN_IN_ALARM   ///< Refer to DISPLAY_ALARM_STATE_WHEN_IN_ALARM for details
+    };
     Q_ENUMS(DisplayAlarmStateOptions)
     /// If 'Always' (default) widget will indicate the alarm state of any variable data it is displaying, including 'No Alarm'
     /// If 'Never' widget will never indicate the alarm state of any variable data it is displaying.
