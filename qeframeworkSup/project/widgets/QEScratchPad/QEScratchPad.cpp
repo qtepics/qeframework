@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron
+ *  Copyright (c) 2013-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -166,7 +166,6 @@ void QEScratchPad::createInternalWidgets ()
       item->value->setUseDbPrecision (false);
       item->value->setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
       item->value->setSeparator (QEStringFormatting::SEPARATOR_COMMA);
-      item->value->setTrailingZeros (false);
       item->value->setArrayAction (QEStringFormatting::INDEX);
       item->value->setArrayIndex (0);
       item->value->setEditPvUserLevel (level);
@@ -433,7 +432,22 @@ bool QEScratchPad::itemLessThan (const int a, const int b, QObject*) const
       return false;  // same, so not less than
    }
 
-   return (this->items [a]->pvName->text() < this->items [b]->pvName->text());
+   const QString sa = this->items [a]->pvName->text();
+   const QString sb = this->items [b]->pvName->text();
+
+   // We do a basic string compare, case sensitive, however we do a secial
+   // for empty strings (so that they are placed at the bottom of the form.
+   //
+   if (sa.isEmpty()) {
+      // not less than any non empty b string and not less than an empty b string
+      return false;
+   } else if (sb.isEmpty()) {
+      // is less than empty b unless a also empty.
+      return !sa.isEmpty();
+   } else {
+      // regular string caompare
+      return (sa < sb);
+   }
 }
 
 //---------------------------------------------------------------------------------
@@ -943,7 +957,7 @@ void QEScratchPad::contextMenuTriggered (int selectedItemNum)
 
    switch (selectedItemNum) {
       case QEScratchPadMenu::SCRATCHPAD_SORT_PV_NAMES:
-         this->setSelectItem (NULL_SELECTION, false);
+         this->setSelectItem (NULL_SELECTION, false);  // de-select any selected item.
          this->sort (0, n-1, NULL);
          break;
 
