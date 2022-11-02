@@ -688,59 +688,15 @@ QString QEStringFormatting::timeToString (const QVariant& value) const
    QString result;
    bool okay;
    double seconds;
-   double time;
-   QString sign;
-   int days;
-   int hours;
-   int mins;
-   int secs;
-   int nanoSecs;
-   QString image;
-   int effectivePrecision;
-   QString fraction;
 
    seconds = value.toDouble (&okay);
    if (okay) {
-      if (seconds >= 0.0) {
-         time = seconds;
-         sign = this->forceSign ? "+" : "";
-      } else {
-         time = -seconds;
-         sign = "-";
-      }
-
-#define EXTRACT(item, spi) { item = int (floor (time / spi)); time = time - (spi * item); }
-
-      EXTRACT (days, 86400.0);
-      EXTRACT (hours, 3600.0);
-      EXTRACT (mins, 60.0);
-      EXTRACT (secs, 1.0);
-      EXTRACT (nanoSecs, 1.0E-9);
-
-#undef EXTRACT
-
-      // Include days field if rquired or if requested.
+      // Select data base or user precision as appropriate, nand ensure sensible.
       //
-      if ((days > 0) || this->leadingZero) {
-         image.sprintf ("%d %02d:%02d:%02d", days, hours, mins, secs);
-      } else {
-         image.sprintf ("%02d:%02d:%02d", hours, mins, secs);
-      }
+      int effectivePrecision = this->useDbPrecision ? this->dbPrecision : this->precision;
+      effectivePrecision = LIMIT (effectivePrecision, 0, 9);
 
-      // Select data base or user precision as appropriate.
-      //
-      effectivePrecision = this->useDbPrecision ? this->dbPrecision : this->precision;
-      if (effectivePrecision > 9)
-         effectivePrecision = 9;
-
-      if (effectivePrecision > 0) {
-         fraction.sprintf (".%09d", nanoSecs);
-         fraction.truncate (effectivePrecision + 1);
-      } else {
-         fraction = "";
-      }
-
-      result = sign + image + fraction;
+      result = QEUtilities::intervalToString (seconds, effectivePrecision, true);
    } else {
       result = this->formatFailure (QString
                                     ("Warning from formatFromTime()."
