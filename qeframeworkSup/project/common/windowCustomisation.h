@@ -1,6 +1,9 @@
 /*  windowCustomisation.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -78,6 +79,10 @@
                         <Program Name="firefox">
                             <Arguments>www.google.com</Arguments>
                         </Program>
+                        <PV Name="BSXPDS01MOT31.VAL">
+                            <Value>12.4</Value>
+                            <Format>Double</Format>
+                        </PV>
                         <MacroSubstitutions>REGION=1</MacroSubstitutions>
                         <Customisation>ROI</Customisation>
                     </Item>
@@ -144,6 +149,7 @@
 #include <QMap>
 #include <ContainerProfile.h>
 #include <applicationLauncher.h>
+#include <QEStringFormatting.h>
 #include <QEFrameworkLibraryGlobal.h>
 
 
@@ -154,270 +160,305 @@
 class customisationLog
 {
 public:
-    customisationLog(){ error = false; }
-    ~customisationLog(){}
+   explicit customisationLog();
+   ~customisationLog();
 
-    void add( const QString message )                                            { log.append( QString( prefix ).append( message ) ); }
-    void add( const QString message, const QString param1 )                      { log.append( QString( prefix ).append( message ).append( param1 ) ); }
-    void add( const QString message, const QString param1, const QString param2 ){ log.append( QString( prefix ).append( message ).append( param1 ).append( param2 ) ); }
+   void add( const QString message ) ;
+   void add( const QString message, const QString param1 ) ;
+   void add( const QString message, const QString param1, const QString param2 );
 
-    void startLevel(){ prefix.append( "    " ); }
-    void endLevel()  { prefix.truncate( prefix.length()-4 ); }
-    void flagError() { error = true; add( "ERROR: ^^^^^^^^^^^^^^^^^^^^^"); }
+   void startLevel();
+   void endLevel();
+   void flagError();
 
-    const QString getLog(){ QString s; for( int i = 0; i < log.count(); i++ ) s.append( log.at(i) ).append( "\n"); return s; }
-    bool    getError(){ return error; }
+   const QString getLog() const;
+   bool  getError() const;
 
 private:
-    QStringList  log;    // Log of customisaiton files loaded for diagnosis
-    QString      prefix; // Current indentation, used while building customisationLog
-    bool         error;  // Log reports an error (as well as normal processing)
+   QStringList  log;    // Log of customisaiton files loaded for diagnosis
+   QString      prefix; // Current indentation, used while building customisationLog
+   bool         error;  // Log reports an error (as well as normal processing)
 };
 
-// Class to determine if an item is checkable (check box or radio button) and if it is exclusive (a radio button)
+// Class to determine if an item is checkable (check box or radio button) and
+// if it is exclusive (a radio button)
 class itemCheckInfo
 {
 public:
-    itemCheckInfo();
-    itemCheckInfo( QDomElement itemElement );
-    itemCheckInfo( const itemCheckInfo &other );
-    const QString getKey(){ return key; }
-    const QString getValue(){ return value; }
-    bool getCheckable(){ return checkable; }
+   explicit itemCheckInfo();
+   ~itemCheckInfo();
+   itemCheckInfo( QDomElement itemElement );
+   itemCheckInfo( const itemCheckInfo &other );
+   QString getKey() const { return key; }
+   QString getValue() const { return value; }
+   bool getCheckable() const { return checkable; }
 
 private:
-    QString key;        // Macro substitution key
-    QString value;      // Macro substitution value
-    bool checkable;     // True if checkable
+   QString key;        // Macro substitution key
+   QString value;      // Macro substitution value
+   bool checkable;     // True if checkable
 };
 
+// Class used to hold PV information
+//
+class QEPvInfo {
+public:
+   explicit QEPvInfo() {
+      pvName = "";
+      value = "";
+      format = QEStringFormatting::FORMAT_DEFAULT;
+   }
+   ~QEPvInfo() {}
+
+   QString pvName;
+   QString value;                      // value to write to the variable
+   QEStringFormatting::formats format; // default is FORMAT_DEFAULT
+};
 
 // Class defining an individual item (base class for button or menu item)
-class windowCustomisationItem: public QObject
+// Note: this now inherits ContainerProfile
+//
+class windowCustomisationItem: public QObject, ContainerProfile
 {
-    Q_OBJECT
+   Q_OBJECT
 public:
-    windowCustomisationItem( // Construction
-                      const QObject* launchRequestReceiver,                // Object (typically QEGui application) which will accept requests to launch a new GUI
-                      const QList<windowCreationListItem>& windowsIn,      // Windows to display (centrals and docks)
-                      const QString programIn,                             // Program to run
-                      const QStringList argumentsIn );                     // Arguments for 'program'
+   windowCustomisationItem( // Construction
+                            const QObject* launchRequestReceiver,          // Object (typically QEGui application) which will accept requests to launch a new GUI
+                            const QList<windowCreationListItem>& windows,  // Windows to display (centrals and docks)
+                            const QString program,                         // Program to run
+                            const QStringList arguments,                   // Arguments for 'program'
+                            const QEPvInfo& pvInfo);                       // PV name, value and format
 
-    windowCustomisationItem(windowCustomisationItem* item);                 // Copy constructor
-    windowCustomisationItem();                                              // Construct instance of class defining an individual item when none exists (for example, a menu placeholder)
-    windowCustomisationItem( const QString builtInActionIn );               // Construct instance of class defining a built in application action
-    windowCustomisationItem( const QString builtInActionIn,                 // Construct instance of class defining a built in application action
-                             const QString widgetNameIn );                  // widget name if built in function is for a widget, not the application
-    windowCustomisationItem( const QString dockTitleIn, bool unused );      // Construct instance of class defining a link to an existing dock
+   windowCustomisationItem( windowCustomisationItem* item) ;               // Copy constructor
+   windowCustomisationItem();                                              // Construct instance of class defining an individual item when none exists (for example, a menu placeholder)
+   windowCustomisationItem( const QString builtInActionIn );               // Construct instance of class defining a built in application action
+   windowCustomisationItem( const QString builtInActionIn,                 // Construct instance of class defining a built in application action
+                            const QString widgetNameIn );                  // widget name if built in function is for a widget, not the application
+   windowCustomisationItem( const QString dockTitleIn, bool unused );      // Construct instance of class defining a link to an existing dock
+   ~windowCustomisationItem();                                             // Destructor
 
-    void commonInit();
+   void commonInit();
 
-    QString getProgram(){return programLauncher.getProgram();}
-    QStringList getArguments(){return programLauncher.getArguments();}
+   QString getProgram() const {return programLauncher.getProgram();}
+   QStringList getArguments()const {return programLauncher.getArguments();}
 
-    QString getBuiltInAction(){return builtInAction;}
+   QEPvInfo getPvInfo() const { return pvInfo; }
 
-    QString getDockTitle(){ return dockTitle; }                             // Return the title of an existing dock (used to find the pre-existing dock)
-    QString getGUITitle(){ return guiTitle; }                               // Return the title to be applied to a new GUI
-    bool createsDocks();                                                    // Return true if at least one dock is created by this item
+   QString getBuiltInAction() const {return builtInAction;}
 
-    void initialise();
-    void logItem( customisationLog& log );
-    void addUserLevelAccess( QDomElement element, customisationLog& log  ); // Note the user levels at which the item is enabled and visible
-    void setUserLevelState( userLevelTypes::userLevels currentUserLevel );  // Set the visibility and enabled state of the item according to the user level
-    QAction* getAction(){ return iAction; }                                 // Return embedded QAction
+   QString getDockTitle() const { return dockTitle; }                      // Return the title of an existing dock (used to find the pre-existing dock)
+   QString getGUITitle() const { return guiTitle; }                        // Return the title to be applied to a new GUI
+   bool createsDocks();                                                    // Return true if at least one dock is created by this item
+
+   void initialise();
+   void logItem( customisationLog& log );
+   void addUserLevelAccess( QDomElement element, customisationLog& log  ); // Note the user levels at which the item is enabled and visible
+   void setUserLevelState( userLevelTypes::userLevels currentUserLevel );  // Set the visibility and enabled state of the item according to the user level
+   QAction* getAction() const { return iAction; }                          // Return embedded QAction
 
 private:
-    // Item action
-    QList<windowCreationListItem> windows;          // Windows to create (.ui files and how to present them)
-    QString dockTitle;                              // Title of dock to locate the associate with (not used when creating a new UI in a dock. In that case the dock to associate with is returned in the useDock() slot)
+   // Item action
+   QList<windowCreationListItem> windows;          // Windows to create (.ui files and how to present them)
+   QString dockTitle;                              // Title of dock to locate the associate with (not used when creating a new UI in a dock. In that case the dock to associate with is returned in the useDock() slot)
 
-    QString builtInAction;                          // Identifier of action built in to the application
+   QString builtInAction;                          // Identifier of action built in to the application
 
-    QString widgetName;                             // Widget to locate if passing this action on to a widget in a GUI
-    QString guiTitle;                               // Title to give GUI. This overrides any title specified in the GUI.
+   QString widgetName;                             // Widget to locate if passing this action on to a widget in a GUI
+   QString guiTitle;                               // Title to give GUI. This overrides any title specified in the GUI.
 
-    applicationLauncher programLauncher;            // Manage any program that needs to be started
+   applicationLauncher programLauncher;            // Manage any program that needs to be started
 
-    userLevelTypes::userLevels userLevelVisible;    // User level at which the item will be visible
-    userLevelTypes::userLevels userLevelEnabled;    // User level at which the item will be enabled
+   QEPvInfo pvInfo;                                // Manage any variable to be written to
+
+   userLevelTypes::userLevels userLevelVisible;    // User level at which the item will be visible
+   userLevelTypes::userLevels userLevelEnabled;    // User level at which the item will be enabled
 protected:
-    ContainerProfile profile;                       // Profile to use while creating customisations.
-    QAction* iAction;
+   ContainerProfile profile;                       // Profile to use while creating customisations.
+   QAction* iAction;
 
 public slots:
-    void itemAction();                              // Slot to call when action is triggered
+   void itemAction();                              // Slot to call when action is triggered
 
 signals:
-    void newGui( const QEActionRequests& request );
-
+   void newGui( const QEActionRequests& request );
 };
 
 
 // Class defining an individual menu item
+//
 class windowCustomisationMenuItem : public windowCustomisationItem
 {
 public:
-    enum menuObjectTypes { MENU_UNKNOWN, MENU_ITEM, MENU_PLACEHOLDER, MENU_BUILT_IN };
-    windowCustomisationMenuItem( // Construction (menu item to create new GUI windows or docks)
-                          customisationLog& log,                               // Log of customisation files loaded for diagnosis.
+   enum menuObjectTypes {
+      MENU_UNKNOWN,
+      MENU_ITEM,
+      MENU_PLACEHOLDER,
+      MENU_BUILT_IN
+   };
 
-                          const QStringList menuHierarchyIn,                   // Location in menus to place this item. for example: 'Imaging'->'Region of interest'
-                          const QString titleIn,                               // Name of this item. for example: 'Region 1'
-                          const menuObjectTypes type,                          // type of menu object - must be MENU_ITEM
-                          const bool separatorIn,                              // Separator required before this
-                          const itemCheckInfo& checkInfoIn,                     // Information about the item's checkable state
+   windowCustomisationMenuItem( // Construction (menu item to create new GUI windows or docks)
+                                customisationLog& log,                               // Log of customisation files loaded for diagnosis.
 
-                          const QObject* launchRequestReceiver,                // Object (typically QEGui application) which will accept requests to launch a new GUI
-                          const QList<windowCreationListItem>& windowsIn,      // Windows to display (centrals and docks)
-                          const QString programIn,                             // Program to run
-                          const QStringList argumentsIn );                     // Arguments for 'program or for built in function
+                                const QStringList menuHierarchyIn,                   // Location in menus to place this item. for example: 'Imaging'->'Region of interest'
+                                const QString titleIn,                               // Name of this item. for example: 'Region 1'
+                                const menuObjectTypes type,                          // type of menu object - must be MENU_ITEM
+                                const bool separatorIn,                              // Separator required before this
+                                const itemCheckInfo& checkInfoIn,                     // Information about the item's checkable state
 
+                                const QObject* launchRequestReceiver,                // Object (typically QEGui application) which will accept requests to launch a new GUI
+                                const QList<windowCreationListItem>& windowsIn,      // Windows to display (centrals and docks)
+                                const QString programIn,                             // Program to run
+                                const QStringList argumentsIn,                    // Arguments for 'program or for built in function
+                                const QEPvInfo& pvInfo);
 
-    windowCustomisationMenuItem( // Construction (placeholder menu item)
-                          customisationLog& log,                               // Log of customisation files loaded for diagnosis.
+   windowCustomisationMenuItem( // Construction (placeholder menu item)
+                                customisationLog& log,                               // Log of customisation files loaded for diagnosis.
 
-                          const QStringList menuHierarchyIn,                   // Location in menus for application to place future items. for example: 'File' -> 'Recent'
-                          const QString titleIn,                               // Identifier of placeholder. for example: 'Recent'
-                          const menuObjectTypes typeIn,                        // type of menu object - must be MENU_PLACEHOLDER
-                          const bool separatorIn,                              // Separator required before this
-                          const itemCheckInfo& checkInfoIn );                   // Information about the item's checkable state
+                                const QStringList menuHierarchyIn,                   // Location in menus for application to place future items. for example: 'File' -> 'Recent'
+                                const QString titleIn,                               // Identifier of placeholder. for example: 'Recent'
+                                const menuObjectTypes typeIn,                        // type of menu object - must be MENU_PLACEHOLDER
+                                const bool separatorIn,                              // Separator required before this
+                                const itemCheckInfo& checkInfoIn );                   // Information about the item's checkable state
 
-    windowCustomisationMenuItem( // Construction (menu item to pass a action request on to the application, or a QE widget inthe application)
-                          customisationLog& log,                               // Log of customisation files loaded for diagnosis.
+   windowCustomisationMenuItem( // Construction (menu item to pass a action request on to the application, or a QE widget inthe application)
+                                customisationLog& log,                               // Log of customisation files loaded for diagnosis.
 
-                          const QStringList menuHierarchyIn,                   // Location in menus for application to place future items. for example: 'File' -> 'Recent'
-                          const QString titleIn,                               // Title for this item. for example: 'Region 1' Usually same as name of built in function. (for example, function='Copy' and title='Copy', but may be different (function='LaunchApplication1' and title='paint.exe')
-                          const menuObjectTypes typeIn,                        // type of menu object - must be MENU_BUILT_IN
-                          const bool separatorIn,                              // Separator required before this
-                          const itemCheckInfo& checkInfoIn,                     // Information about the item's checkable state
+                                const QStringList menuHierarchyIn,                   // Location in menus for application to place future items. for example: 'File' -> 'Recent'
+                                const QString titleIn,                               // Title for this item. for example: 'Region 1' Usually same as name of built in function. (for example, function='Copy' and title='Copy', but may be different (function='LaunchApplication1' and title='paint.exe')
+                                const menuObjectTypes typeIn,                        // type of menu object - must be MENU_BUILT_IN
+                                const bool separatorIn,                              // Separator required before this
+                                const itemCheckInfo& checkInfoIn,                     // Information about the item's checkable state
 
-                          const QString builtIn,                               // Name of built in function (built into the application or a QE widget). For example: 'Region 1'
-                          const QString widgetNameIn );                        // widget name if built in function is for a widget, not the application
+                                const QString builtIn,                               // Name of built in function (built into the application or a QE widget). For example: 'Region 1'
+                                const QString widgetNameIn );                        // widget name if built in function is for a widget, not the application
 
-    windowCustomisationMenuItem( // Construction (menu item to pass a action request on to the application, or a QE widget inthe application)
-                          customisationLog& log,                               // Log of customisation files loaded for diagnosis.
+   windowCustomisationMenuItem( // Construction (menu item to pass a action request on to the application, or a QE widget inthe application)
+                                customisationLog& log,                               // Log of customisation files loaded for diagnosis.
 
-                          const QStringList menuHierarchyIn,                   // Location in menus for application to place future items. for example: 'File' -> 'Recent'
-                          const QString titleIn,                               // Title for this item. for example: 'Region 1' Usually same as name of built in function. (for example, function='Copy' and title='Copy', but may be different (function='LaunchApplication1' and title='paint.exe')
-                          const menuObjectTypes typeIn,                        // type of menu object - must be MENU_BUILT_IN
-                          const bool separatorIn,                              // Separator required before this
-                          const itemCheckInfo& checkInfoIn,                     // Information about the item's checkable state
+                                const QStringList menuHierarchyIn,                   // Location in menus for application to place future items. for example: 'File' -> 'Recent'
+                                const QString titleIn,                               // Title for this item. for example: 'Region 1' Usually same as name of built in function. (for example, function='Copy' and title='Copy', but may be different (function='LaunchApplication1' and title='paint.exe')
+                                const menuObjectTypes typeIn,                        // type of menu object - must be MENU_BUILT_IN
+                                const bool separatorIn,                              // Separator required before this
+                                const itemCheckInfo& checkInfoIn,                     // Information about the item's checkable state
 
-                          const QString dockTitleIn );                         // Title of existing dock widget to assocaite the menu item with
+                                const QString dockTitleIn );                         // Title of existing dock widget to assocaite the menu item with
 
-    windowCustomisationMenuItem(windowCustomisationMenuItem* menuItem);
+   windowCustomisationMenuItem(windowCustomisationMenuItem* menuItem);               // Copy constructor
+   ~windowCustomisationMenuItem();
 
-    QStringList getMenuHierarchy(){return menuHierarchy;}
-    void prependMenuHierarchy( QStringList preMenuHierarchy );
-    QString getTitle(){return title;}
-    menuObjectTypes getType(){ return type; }
+   QStringList getMenuHierarchy(){return menuHierarchy;}
+   void prependMenuHierarchy( QStringList preMenuHierarchy );
+   QString getTitle() const { return title; }
+   menuObjectTypes getType() const { return type; }
 
-    bool hasSeparator(){ return separator; }
-    const itemCheckInfo& getCheckInfo() { return checkInfo; }
+   bool hasSeparator() const { return separator; }
+   const itemCheckInfo& getCheckInfo() const { return checkInfo; }
 
 private:
-    menuObjectTypes type;
-    // Menu bar details.
-    // All details are optional.
-    // A menu item is created if menuHierarchy contains at least one level and title exists
-    QStringList menuHierarchy;  // Location in menus to place this item. for example: 'Imaging'->'Region of interest'
-    QString title;              // Name of this item. for example: 'Region 1'
-    bool separator;             // Separator should appear before this item
-    itemCheckInfo checkInfo;    // Information about the item's checkable state
+   menuObjectTypes type;
+   // Menu bar details.
+   // All details are optional.
+   // A menu item is created if menuHierarchy contains at least one level and title exists
+   QStringList menuHierarchy;  // Location in menus to place this item. for example: 'Imaging'->'Region of interest'
+   QString title;              // Name of this item. for example: 'Region 1'
+   bool separator;             // Separator should appear before this item
+   itemCheckInfo checkInfo;    // Information about the item's checkable state
 };
 
 // Class defining an individual button item
+//
 class windowCustomisationButtonItem : public windowCustomisationItem
 {
 public:
-    windowCustomisationButtonItem( // Construction
-                            const QString buttonGroupIn,                         // Name of toolbar button group in which to place a button
-                            const QString buttonToolbarIn,                       // Name of toolbar in which to place a button
-                            const Qt::ToolBarArea buttonLocationIn,              // Location of toolbar in which to place a button
-                            const QString buttonTextIn,                          // Text to place in button
-                            const QString buttonIconIn,                          // Icon for button
+   windowCustomisationButtonItem( // Construction
+                                  const QString buttonGroupIn,                         // Name of toolbar button group in which to place a button
+                                  const QString buttonToolbarIn,                       // Name of toolbar in which to place a button
+                                  const Qt::ToolBarArea buttonLocationIn,              // Location of toolbar in which to place a button
+                                  const QString buttonTextIn,                          // Text to place in button
+                                  const QString buttonIconIn,                          // Icon for button
+                                  const QObject* launchRequestReceiver,                // Object (typically QEGui application) which will accept requests to launch a new GUI
+                                  const QList<windowCreationListItem>& windowsIn,      // Windows to display (centrals and docks)
+                                  const QString programIn,                             // Program to run
+                                  const QStringList argumentsIn,                       // Arguments for 'program' and for action
+                                  const QEPvInfo& pvInfo);                             // PV name, value and format
 
-                            const QObject* launchRequestReceiver,                // Object (typically QEGui application) which will accept requests to launch a new GUI
-                            const QList<windowCreationListItem>& windowsIn,      // Windows to display (centrals and docks)
-                            const QString programIn,                             // Program to run
-                            const QStringList argumentsIn );                     // Arguments for 'program' and for action
+   windowCustomisationButtonItem( // Construction
+                                  const QString buttonGroupIn,                         // Name of toolbar button group in which to place a button
+                                  const QString buttonToolbarIn,                       // Name of toolbar in which to place a button
+                                  const Qt::ToolBarArea buttonLocationIn,              // Location of toolbar in which to place a button
+                                  const QString buttonTextIn,                          // Text to place in button
+                                  const QString buttonIconIn,                          // Icon for button
 
-    windowCustomisationButtonItem( // Construction
-                            const QString buttonGroupIn,                         // Name of toolbar button group in which to place a button
-                            const QString buttonToolbarIn,                       // Name of toolbar in which to place a button
-                            const Qt::ToolBarArea buttonLocationIn,              // Location of toolbar in which to place a button
-                            const QString buttonTextIn,                          // Text to place in button
-                            const QString buttonIconIn,                          // Icon for button
+                                  const QString builtIn,                               // Name of built in function (built into the application or a QE widget). For example: 'Region 1'
+                                  const QString widgetNameIn );                        // widget name if built in function is for a widget, not the application
 
-                            const QString builtIn,                               // Name of built in function (built into the application or a QE widget). For example: 'Region 1'
-                            const QString widgetNameIn );                        // widget name if built in function is for a widget, not the application
+   windowCustomisationButtonItem( // Construction
+                                  const QString buttonGroupIn,                         // Name of toolbar button group in which to place a button
+                                  const QString buttonToolbarIn,                       // Name of toolbar in which to place a button
+                                  const Qt::ToolBarArea buttonLocationIn,              // Location of toolbar in which to place a button
+                                  const QString buttonTextIn,                          // Text to place in button
+                                  const QString buttonIconIn );                        // Icon for button
 
-    windowCustomisationButtonItem( // Construction
-                            const QString buttonGroupIn,                         // Name of toolbar button group in which to place a button
-                            const QString buttonToolbarIn,                       // Name of toolbar in which to place a button
-                            const Qt::ToolBarArea buttonLocationIn,              // Location of toolbar in which to place a button
-                            const QString buttonTextIn,                          // Text to place in button
-                            const QString buttonIconIn );                        // Icon for button
+   windowCustomisationButtonItem(windowCustomisationButtonItem* buttonItem);           // Copy construct
+   ~windowCustomisationButtonItem();
 
-    windowCustomisationButtonItem(windowCustomisationButtonItem* buttonItem);
-
-    QString getButtonGroup(){ return buttonGroup; }
-    QString getButtonToolbar(){ return buttonToolbar; }
-    Qt::ToolBarArea getButtonLocation(){ return buttonLocation; }
-    QString getButtonText(){ return buttonText; }
-    QString getButtonIcon(){ return buttonIcon; }
+   QString getButtonGroup() const { return buttonGroup; }
+   QString getButtonToolbar() const { return buttonToolbar; }
+   Qt::ToolBarArea getButtonLocation() const { return buttonLocation; }
+   QString getButtonText() const { return buttonText; }
+   QString getButtonIcon() const { return buttonIcon; }
 
 private:
-    // Button details.
-    // All details are optional.
-    // A button is created if buttonText or buttonIcon is available
-    QString buttonGroup;            // Name of toolbar button group in which to place a button
-    QString buttonToolbar;          // Name of toolbar in which to place a button
-    Qt::ToolBarArea buttonLocation; // Location of toolbar in which to place a button
-    QString buttonText;             // Text to place in button
-    QString buttonIcon;             // Icon for button
+   // Button details.
+   // All details are optional.
+   // A button is created if buttonText or buttonIcon is available
+   QString buttonGroup;            // Name of toolbar button group in which to place a button
+   QString buttonToolbar;          // Name of toolbar in which to place a button
+   Qt::ToolBarArea buttonLocation; // Location of toolbar in which to place a button
+   QString buttonText;             // Text to place in button
+   QString buttonIcon;             // Icon for button
 };
 
 // Class defining the customisation of a window.
 // Generated from an XML customisation file.
+//
 class windowCustomisation
 {
 public:
-    windowCustomisation( const QString nameIn );       // Construction - create a named, empty, customisation
-    ~windowCustomisation();                            // Destruction
+   windowCustomisation( const QString nameIn );       // Construction - create a named, empty, customisation
+   ~windowCustomisation();                            // Destruction
 
-    void addItem( windowCustomisationMenuItem* menuItem, QStringList preMenuHierarchy = QStringList() );      // Add a menu item to the customisation
-    void addItem( windowCustomisationButtonItem* button );    // Add a button to the customisation
+   void addItem( windowCustomisationMenuItem* menuItem, QStringList preMenuHierarchy = QStringList() );      // Add a menu item to the customisation
+   void addItem( windowCustomisationButtonItem* button );    // Add a button to the customisation
 
-    QList<windowCustomisationMenuItem*> getMenuItems(){return menuItems;}      // get Menu items list
-    QList<windowCustomisationButtonItem*> getButtons(){return buttons;}        // get Buttons list
-    QString getName(){ return name; }
+   QList<windowCustomisationMenuItem*> getMenuItems() const {return menuItems;}  // get Menu items list
+   QList<windowCustomisationButtonItem*> getButtons() const {return buttons;}    // get Buttons list
+   QString getName(){ return name; }
 
-    static QEActionRequests::Options translateCreationOption( QString creationOption );
+   static QEActionRequests::Options translateCreationOption( QString creationOption );
 
 private:
-    QString name;                                  // Customisation name
-    QList<windowCustomisationMenuItem*> menuItems; // Menu items to be added to menu bar to implement customisation
-    QList<windowCustomisationButtonItem*> buttons; // Buttons to be added to tool bar to implement customisation
+   QString name;                                  // Customisation name
+   QList<windowCustomisationMenuItem*> menuItems; // Menu items to be added to menu bar to implement customisation
+   QList<windowCustomisationButtonItem*> buttons; // Buttons to be added to tool bar to implement customisation
 };
 
 // Window customisation information per Main Window
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT windowCustomisationInfo : public ContainerProfile
 {
 public:
-    windowCustomisationInfo () {}
-    ~windowCustomisationInfo () {}
+   windowCustomisationInfo ();
+   ~windowCustomisationInfo ();
 
-    void userLevelChangedGeneral( userLevelTypes::userLevels ); // Repond to a user level change (this is an implementation for the base ContainerProfile class
+   void userLevelChangedGeneral( userLevelTypes::userLevels ); // Repond to a user level change (this is an implementation for the base ContainerProfile class
 
-    QMap<QString, QMenu*> placeholderMenus;    // Menus where application may insert items
-    QMap<QString, QMenu*> menus;               // All menus added by customisation system
-    QMap<QString, QToolBar*> toolbars;         // All tool bars added by customisation system
-    QList<windowCustomisationItem*> items;     // All menu bar items and toolbar buttons. (These customisation
-                                               // items are also the actual QActions used in the menus and
-                                               // buttons, except where the customisation is a dock, in which
-                                               // case the QAction is the sourced from the dock widget itself)
+   QMap<QString, QMenu*> placeholderMenus;    // Menus where application may insert items
+   QMap<QString, QMenu*> menus;               // All menus added by customisation system
+   QMap<QString, QToolBar*> toolbars;         // All tool bars added by customisation system
+   QList<windowCustomisationItem*> items;     // All menu bar items and toolbar buttons. (These customisation
+   // items are also the actual QActions used in the menus and
+   // buttons, except where the customisation is a dock, in which
+   // case the QAction is the sourced from the dock widget itself)
 };
 
 // Class to hold a relationship between a customisation menu item, and an actual QMenu.
@@ -425,13 +466,13 @@ public:
 class menuItemToBeActivated
 {
 public:
-    menuItemToBeActivated( menuItemToBeActivated* other ){ item = other->item; menu = other->menu; }
-    menuItemToBeActivated(){ item = NULL; menu = NULL; }
-    menuItemToBeActivated( windowCustomisationMenuItem* itemIn, QMenu* menuIn ){ item = itemIn; menu = menuIn; }
+   menuItemToBeActivated( menuItemToBeActivated* other ){ item = other->item; menu = other->menu; }
+   menuItemToBeActivated(){ item = NULL; menu = NULL; }
+   menuItemToBeActivated( windowCustomisationMenuItem* itemIn, QMenu* menuIn ){ item = itemIn; menu = menuIn; }
 
-    windowCustomisationMenuItem* item;  // Customisation item reference
-    QMenu* menu;                        // Menu reference
-    //!!! location required in item (or placeholder of some sort)
+   windowCustomisationMenuItem* item;  // Customisation item reference
+   QMenu* menu;                        // Menu reference
+   //!!! location required in item (or placeholder of some sort)
 };
 
 // Class managing all customisation sets
@@ -439,58 +480,70 @@ public:
 // Multiple .xml files may be loaded, each defining one or more named customisations.
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT windowCustomisationList : public QObject, ContainerProfile
 {
-    Q_OBJECT
+   Q_OBJECT
 public:
-    typedef QMap<QString, QDockWidget*> dockMap;                    // Used to pass a list of docks than may be linked to menu items based on the dock title
+   typedef QMap<QString, QDockWidget*> dockMap;                    // Used to pass a list of docks than may be linked to menu items based on the dock title
 
-    windowCustomisationList();
+   explicit windowCustomisationList();
+   ~windowCustomisationList();
 
-    bool loadCustomisation( QString xmlFile );                      // Load a set of customisations
-    void applyCustomisation( QMainWindow* mw, QString customisationName, windowCustomisationInfo* customisationInfo, dockMap dockedComponents = dockMap() ); // Add the named customisation set to a main window. Return true if named customisation found and loaded.
+   bool loadCustomisation( QString xmlFile );                      // Load a set of customisations
+   void applyCustomisation( QMainWindow* mw, QString customisationName,
+                            windowCustomisationInfo* customisationInfo,
+                            dockMap dockedComponents = dockMap() ); // Add the named customisation set to a main window. Return true if named customisation found and loaded.
 
-    windowCustomisation* getCustomisation(QString name);
-    void initialise( windowCustomisationInfo* customisationInfo );
+   windowCustomisation* getCustomisation(QString name);
+   void initialise( windowCustomisationInfo* customisationInfo );
 
-    customisationLog  log;                              // Log of customisaiton files loaded for diagnosis.
+   customisationLog log;                              // Log of customisaiton files loaded for diagnosis.
 
 private:
 
-    QMenu* buildMenuPath( windowCustomisationInfo* customisationInfo, QMenuBar* menuBar, const QStringList menuHierarchy );
+   QMenu* buildMenuPath( windowCustomisationInfo* customisationInfo, QMenuBar* menuBar, const QStringList menuHierarchy );
 
-    void addIncludeCustomisation( QDomElement includeCustomisationElement, windowCustomisation* customisation, QStringList menuHierarchy = QStringList() );
-    void parseMenuElement( QDomElement element, windowCustomisation* customisation, QStringList menuHierarchy );          // Parse menu customisation data
+   void addIncludeCustomisation( QDomElement includeCustomisationElement,
+                                 windowCustomisation* customisation,
+                                 QStringList menuHierarchy = QStringList() );
 
-    bool requiresSeparator( QDomElement itemElement );          // Determine if an item contains a 'separator' tag
+   void parseMenuElement( QDomElement element, windowCustomisation* customisation,
+                          QStringList menuHierarchy );          // Parse menu customisation data
 
-    bool parseMenuAndButtonItem( QDomElement itemElement,
-                                 QString& title,
-                                 QList<windowCreationListItem>& windows,
-                                 QString& builtIn,
-                                 QString& program,
-                                 QString& widgetName,
-                                 QStringList& arguments,
-                                 QString& dockTitle );
-    void parseDockItem( QDomElement itemElement, QList<windowCreationListItem>& windows, QString& dockTitle, QString& guiTitle );
+   bool requiresSeparator( QDomElement itemElement );          // Determine if an item contains a 'separator' tag
 
-    windowCustomisationMenuItem* createMenuItem       ( QDomElement itemElement, QStringList menuHierarchy); // Create a custom menu item
-    windowCustomisationMenuItem* createMenuPlaceholder( QDomElement itemElement, QStringList menuHierarchy); // Create a placeholder menu (for the application to add stuff to)
+   bool parseMenuAndButtonItem( QDomElement itemElement,
+                                QString& title,
+                                QList<windowCreationListItem>& windows,
+                                QString& builtIn,
+                                QString& program,
+                                QString& widgetName,
+                                QStringList& arguments,
+                                QString& dockTitle,
+                                QEPvInfo& pvInfo);
 
-    windowCustomisationButtonItem* createButtonItem( // Create a button customisation item
-                                              QDomElement itemElement);
-    QList<windowCustomisation*> customisationList;                         // List of customisations
+   void parseDockItem( QDomElement itemElement,
+                       QList<windowCreationListItem>& windows,
+                       QString& dockTitle,
+                       QString& guiTitle );
 
-    // Variables to manage setting up 'toggle view' actions from docks created as a result of, but after, the window customisation has been applied.
-    QList<menuItemToBeActivated> toBeActivatedList;     // Transient list of menus and customisation menu items
-    QMainWindow* toBeActivatedMW;                       // Main Window being customised. Used to connect to to receive signals relating to newly created docks
-    QMenu*       toBeActivatedMenu;                     // Menu currently currently waiting on a dock to be created (at which point the dock's 'toggle view' action will be added)
+   windowCustomisationMenuItem* createMenuItem       ( QDomElement itemElement, QStringList menuHierarchy); // Create a custom menu item
+   windowCustomisationMenuItem* createMenuPlaceholder( QDomElement itemElement, QStringList menuHierarchy); // Create a placeholder menu (for the application to add stuff to)
 
-    QString      lastAppliedCustomisation;              // Last customisation applied by applyCustomisation() - successfully, or unsuccessfully
+   windowCustomisationButtonItem* createButtonItem( // Create a button customisation item
+                                                    QDomElement itemElement);
+   QList<windowCustomisation*> customisationList;                         // List of customisations
 
-    void userLevelChangedGeneral( userLevelTypes::userLevels ); // Repond to a user level change (this is an implementation for the base ContainerProfile class
+   // Variables to manage setting up 'toggle view' actions from docks created as a result of, but after, the window customisation has been applied.
+   QList<menuItemToBeActivated> toBeActivatedList;     // Transient list of menus and customisation menu items
+   QMainWindow* toBeActivatedMW;                       // Main Window being customised. Used to connect to to receive signals relating to newly created docks
+   QMenu*       toBeActivatedMenu;                     // Menu currently currently waiting on a dock to be created (at which point the dock's 'toggle view' action will be added)
+
+   QString      lastAppliedCustomisation;              // Last customisation applied by applyCustomisation() - successfully, or unsuccessfully
+
+   void userLevelChangedGeneral( userLevelTypes::userLevels ); // Repond to a user level change (this is an implementation for the base ContainerProfile class
 
 private slots:
-    void activateDocks();                               // Slot to create any docks required to support dock menu items. Docked GUIs are created at the time customisation is applied.
-    void useDock( QDockWidget* dock );                  // Slot to receive notification a docked GUI has been created. Used to then associate the dock's 'toggle view' action to be added to relevent menus
+   void activateDocks();                               // Slot to create any docks required to support dock menu items. Docked GUIs are created at the time customisation is applied.
+   void useDock( QDockWidget* dock );                  // Slot to receive notification a docked GUI has been created. Used to then associate the dock's 'toggle view' action to be added to relevent menus
 };
 
 

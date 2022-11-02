@@ -46,6 +46,7 @@ HEADERS += \
    common/QEGraphicNames.h \
    common/QEOneToOne.h \
    common/QEPlatform.h \
+   common/QEPvWriteOnce.h \
    common/QEQuickSort.h \
    common/QERecordFieldName.h \
    common/QEScaling.h \
@@ -75,6 +76,7 @@ SOURCES += \
    common/QEGraphicMarkup.cpp \
    common/QEGraphicNames.cpp \
    common/QEPlatform.cpp \
+   common/QEPvWriteOnce.cpp \
    common/QEQuickSort.cpp \
    common/QERecordFieldName.cpp \
    common/QEScaling.cpp \

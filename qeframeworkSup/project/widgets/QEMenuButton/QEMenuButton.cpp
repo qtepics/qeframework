@@ -27,13 +27,12 @@
 #include "QEMenuButton.h"
 #include <QDebug>
 #include <QECommon.h>
+#include <QEPvWriteOnce.h>
 #include <QEStringFormatting.h>
 #include <QEMenuButtonData.h>
 #include <QEMenuButtonModel.h>
 
 #define DEBUG  qDebug () << "QEMenuButton" << __LINE__ << __FUNCTION__ << "  "
-
-#define ACTION_DATA  "QE_MENU_BUTTON_ACTION_DATA"
 
 //------------------------------------------------------------------------------
 //
@@ -200,104 +199,13 @@ void QEMenuButton::menuTriggered (QAction* action)
    //
    if (!buttonData.variable.isEmpty()) {
 
-      QString pvName = this->substituteThis (buttonData.variable);
-      qcaobject::QCaObject* qca = new qcaobject::QCaObject (pvName, this, 0);
+      QEPvWriteOnce* writeAndForget = new QEPvWriteOnce (buttonData.variable,
+                                                         buttonData.variableValue,
+                                                         buttonData.format,
+                                                         this);
 
-      // Store the required action data as a dynamic qca property.
-      //
-      qca->setProperty (ACTION_DATA, action->data ());
-
-      // We are writing, only need wait for a successful connection.
-      // No subscribe/siggle shot read needed.
-      //
-      QObject::connect (qca,  SIGNAL (connectionChanged (QCaConnectionInfo&, const unsigned int&)),
-                        this, SLOT   (connectionChanged (QCaConnectionInfo&, const unsigned int&)));
-
-      // Need to explicity subscribe, singleShotRead or connectChannel
-      // As we are write only, connectChannel will do.
-      //
-      qca->connectChannel ();
-   }
-}
-
-//------------------------------------------------------------------------------
-//
-void QEMenuButton::writeToVariable (qcaobject::QCaObject* qca)
-{
-   if (!qca) return;
-
-   QVariant actionData = qca->property (ACTION_DATA);
-   QEMenuButtonData buttonData = actionData.value<QEMenuButtonData> ();
-
-   QString variableValue = this->substituteThis (buttonData.variableValue);
-
-   bool okay = false;
-   QVariant pvData;
-
-   switch (buttonData.format) {
-      case QEStringFormatting::FORMAT_FLOATING:
-         pvData = QVariant (double (variableValue.toDouble (&okay)));
-         break;
-
-      case QEStringFormatting::FORMAT_INTEGER:
-         pvData = QVariant (int (variableValue.toInt (&okay)));
-         break;
-
-      case QEStringFormatting::FORMAT_UNSIGNEDINTEGER:
-         pvData = QVariant (qlonglong (variableValue.toLongLong (&okay)));
-         break;
-
-      case QEStringFormatting::FORMAT_DEFAULT:
-         /// TODO - fix this option, but go with string for now.
-
-      case QEStringFormatting::FORMAT_STRING:
-         pvData = QVariant (variableValue);
-         okay = true;
-         break;
-
-      case QEStringFormatting::FORMAT_TIME:
-      case QEStringFormatting::FORMAT_LOCAL_ENUMERATE:
-         DEBUG << "unhandled format value" << buttonData.format;
-         okay = false;
-         break;
-
-      case QEStringFormatting::FORMAT_NT_TABLE:
-      case QEStringFormatting::FORMAT_NT_IMAGE:
-      case QEStringFormatting::FORMAT_OPAQUE:
-         DEBUG << "unexpected format value" << buttonData.format;
-         okay = false;
-         break;
-
-      default:
-         DEBUG << "erroneous format value" << buttonData.format;
-         okay = false;
-         break;
-   }
-
-   // Was the conversion successful.
-   //
-   if (okay) {
-      qca->writeData (pvData);
-   } else {
-      DEBUG << "conversion of " << buttonData.variableValue <<  "to"
-            << buttonData.format <<  " failed.";
-   }
-
-   // The object will be deleted when control returns to the event loop.
-   // Or can we just delete it now??
-   //
-   qca->deleteLater();
-}
-
-//------------------------------------------------------------------------------
-//
-void QEMenuButton::connectionChanged (QCaConnectionInfo& connectionInfo, const unsigned int&)
-{
-   qcaobject::QCaObject* qca = dynamic_cast <qcaobject::QCaObject*> (QObject::sender());
-   if (!qca) return;
-
-   if (connectionInfo.isChannelConnected()) {
-      this->writeToVariable (qca);
+      QString macroSubs = this->getMacroSubstitutions();
+      writeAndForget->writeNow (macroSubs);   // ... and forget
    }
 }
 

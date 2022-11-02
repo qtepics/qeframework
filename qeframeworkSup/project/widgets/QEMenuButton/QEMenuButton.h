@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2021 Australian Synchrotron
+ *  Copyright (c) 2015-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -37,7 +37,6 @@
 #include <QSize>
 #include <QString>
 
-#include <QCaObject.h>
 #include <QECommon.h>
 #include <QEActionRequests.h>
 #include <QEAbstractWidget.h>
@@ -130,14 +129,10 @@ private:
    QString buttonText;     // fixed un-subsitituted text.
 
    void resetMenuString ();
-   void writeToVariable (qcaobject::QCaObject* qca);
 
 private slots:
    void menuTriggered (QAction *action);
    void programCompletedSlot ();
-
-   void connectionChanged (QCaConnectionInfo& connectionInfo,
-                           const unsigned int& variableIndex);
 
    /// Default slot used to create a new GUI if there is no slot indicated in the
    /// ContainerProfile class. This slot is typically used when the button menu item
