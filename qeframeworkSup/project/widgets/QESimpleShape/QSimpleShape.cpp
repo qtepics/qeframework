@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2020 Australian Synchrotron.
+ *  Copyright (c) 2014-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -629,6 +629,56 @@ void QSimpleShape::paintEvent (QPaintEvent*)
          f = 8 * (180 - (2*this->centreAngle - this->spanAngle));
          g = - 16 * this->spanAngle;
          painter.drawPie (rect, f, g);
+         break;
+
+     case heart:
+         // For heart beat
+         // Note: we round down the sizes (dx, dy) and
+         // effectively round up centre (x0, y0).
+         //
+         dx = double (rect.right () - rect.left () - 1)/2.0;
+         dy = double (rect.top () - rect.bottom () + 1)/2.0;  // Note: the sign flip
+
+         x0 = double (rect.right () + rect.left () + 1)/2.0;
+         y0 = double (rect.top () + rect.bottom () + 1)/2.0;
+
+         p = 0;
+         polygon[p++] = QPoint (x0,            y0 - 1.000*dy);
+         polygon[p++] = QPoint (x0 - 0.900*dx, y0 + 0.200*dy);
+         polygon[p++] = QPoint (x0 - 0.933*dx, y0 + 0.250*dy);
+         polygon[p++] = QPoint (x0 - 0.983*dx, y0 + 0.371*dy);
+         polygon[p++] = QPoint (x0 - 1.000*dx, y0 + 0.500*dy);
+         polygon[p++] = QPoint (x0 - 0.983*dx, y0 + 0.629*dy);
+         polygon[p++] = QPoint (x0 - 0.933*dx, y0 + 0.750*dy);
+         polygon[p++] = QPoint (x0 - 0.854*dx, y0 + 0.854*dy);
+         polygon[p++] = QPoint (x0 - 0.750*dx, y0 + 0.933*dy);
+         polygon[p++] = QPoint (x0 - 0.629*dx, y0 + 0.983*dy);
+         polygon[p++] = QPoint (x0 - 0.500*dx, y0 + 1.000*dy);
+         polygon[p++] = QPoint (x0 - 0.371*dx, y0 + 0.983*dy);
+         polygon[p++] = QPoint (x0 - 0.250*dx, y0 + 0.933*dy);
+         polygon[p++] = QPoint (x0 - 0.146*dx, y0 + 0.854*dy);
+         polygon[p++] = QPoint (x0 - 0.067*dx, y0 + 0.750*dy);
+         polygon[p++] = QPoint (x0 - 0.017*dx, y0 + 0.629*dy);
+
+         polygon[p++] = QPoint (x0 - 0.000*dx, y0 + 0.500*dy);
+
+         polygon[p++] = QPoint (x0 + 0.017*dx, y0 + 0.629*dy);
+         polygon[p++] = QPoint (x0 + 0.067*dx, y0 + 0.750*dy);
+         polygon[p++] = QPoint (x0 + 0.146*dx, y0 + 0.854*dy);
+         polygon[p++] = QPoint (x0 + 0.250*dx, y0 + 0.933*dy);
+         polygon[p++] = QPoint (x0 + 0.371*dx, y0 + 0.983*dy);
+         polygon[p++] = QPoint (x0 + 0.500*dx, y0 + 1.000*dy);
+         polygon[p++] = QPoint (x0 + 0.629*dx, y0 + 0.983*dy);
+         polygon[p++] = QPoint (x0 + 0.750*dx, y0 + 0.933*dy);
+         polygon[p++] = QPoint (x0 + 0.854*dx, y0 + 0.854*dy);
+         polygon[p++] = QPoint (x0 + 0.933*dx, y0 + 0.750*dy);
+         polygon[p++] = QPoint (x0 + 0.983*dx, y0 + 0.629*dy);
+         polygon[p++] = QPoint (x0 + 1.000*dx, y0 + 0.500*dy);
+         polygon[p++] = QPoint (x0 + 0.983*dx, y0 + 0.371*dy);
+         polygon[p++] = QPoint (x0 + 0.933*dx, y0 + 0.250*dy);
+         polygon[p++] = QPoint (x0 + 0.900*dx, y0 + 0.200*dy);
+
+         painter.drawPolygon (polygon, p);
          break;
 
      default:
