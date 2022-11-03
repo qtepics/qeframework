@@ -53,25 +53,58 @@
 
 #define DEBUG qDebug () << "windowCustomisation" << __LINE__ << __FUNCTION__ << "  "
 
-
-
 //==============================================================================
 // customisationLog
 //==============================================================================
 //
-customisationLog::customisationLog(){ error = false; }
+customisationLog::customisationLog()
+{
+   error = false;
+}
+
 customisationLog::~customisationLog(){}
 
-void customisationLog::add( const QString message )                                            { log.append( QString( prefix ).append( message ) ); }
-void customisationLog::add( const QString message, const QString param1 )                      { log.append( QString( prefix ).append( message ).append( param1 ) ); }
-void customisationLog::add( const QString message, const QString param1, const QString param2 ){ log.append( QString( prefix ).append( message ).append( param1 ).append( param2 ) ); }
+void customisationLog::add( const QString message )
+{
+   log.append( QString( prefix ).append( message ) );
+}
 
-void customisationLog::startLevel(){ prefix.append( "    " ); }
-void customisationLog::endLevel()  { prefix.truncate( prefix.length()-4 ); }
-void customisationLog::flagError() { error = true; add( "ERROR: ^^^^^^^^^^^^^^^^^^^^^"); }
+void customisationLog::add( const QString message, const QString param1 )
+{
+   log.append( QString( prefix ).append( message ).append( param1 ) );
+}
 
-const QString customisationLog::getLog() const { QString s; for( int i = 0; i < log.count(); i++ ) s.append( log.at(i) ).append( "\n"); return s; }
-bool  customisationLog::getError() const  { return error; }
+void customisationLog::add( const QString message, const QString param1, const QString param2 )
+{
+   log.append( QString( prefix ).append( message ).append( param1 ).append( param2 ) );
+}
+
+void customisationLog::startLevel()
+{
+   prefix.append( "    " );
+}
+
+void customisationLog::endLevel()
+{
+   prefix.truncate( prefix.length()-4 );
+}
+
+void customisationLog::flagError()
+{
+   error = true; add( "ERROR: ^^^^^^^^^^^^^^^^^^^^^");
+}
+
+
+const QString customisationLog::getLog() const
+{
+   QString s;
+   for( int i = 0; i < log.count(); i++ ) s.append( log.at(i) ).append( "\n");
+   return s;
+}
+
+bool customisationLog::getError() const {
+   return error;
+}
 
 
 //==============================================================================

@@ -157,7 +157,8 @@
 // Used for diagnosis.
 // Available in QEGui help about.
 // Output to console if it includes an error
-class customisationLog
+//
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT customisationLog
 {
 public:
    explicit customisationLog();
