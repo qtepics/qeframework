@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2020 Australian Synchrotron.
+ *  Copyright (c) 2014-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -169,14 +169,7 @@ QString QEFixedPointRadix::toString (const double value,
       }
    }
 
-   QString result;
-   double work;
-   int mostSig;
-   int s;
-   double prs;
-   int t;
-
-   result = "";
+   QString result = "";
 
    // Do leading sign if needed or requested.
    //
@@ -188,8 +181,8 @@ QString QEFixedPointRadix::toString (const double value,
        result.append ('-');
    }
 
-   work = ABS (value);
-   mostSig = 0;
+   double work = ABS (value);
+   int mostSig = 0;
    while (pow (dblRadix, int (mostSig + 1)) < work) {
       mostSig++;
    }
@@ -205,10 +198,10 @@ QString QEFixedPointRadix::toString (const double value,
    //
    work = work + (pow ((1.0/dblRadix), precision) * 0.499999999);
 
-   for (s = mostSig; s >= -precision; s--) {
+   for (int s = mostSig; s >= -precision; s--) {
 
-      prs = pow (dblRadix, s);
-      t = int (floor (work / prs));
+      double prs = pow (dblRadix, s);
+      int t = int (floor (work / prs));
       work = work - t*prs;
 
       result.append (radixChars [t]);
