@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2018 Australian Synchrotron
+ *  Copyright (c) 2012-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -46,7 +46,7 @@ VideoWidget::VideoWidget(QWidget *parent) : QWidget(parent)
     setAutoFillBackground(false);
 
     QPalette palette = this->palette();
-    palette.setColor(QPalette::Background, Qt::black);
+    palette.setColor(QPalette::Window, Qt::black);
     setPalette(palette);
 
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -397,7 +397,7 @@ void VideoWidget::mouseMoveEvent( QMouseEvent* event )
 // The wheel has been moved over the image
 void VideoWidget::wheelEvent( QWheelEvent* event )
 {
-    int zoomAmount = event->delta() / 12;
+    int zoomAmount = event->angleDelta().y() / 12;
     emit zoomInOut( zoomAmount );
 }
 

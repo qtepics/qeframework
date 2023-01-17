@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2019 Australian Synchrotron
+ *  Copyright (c) 2019-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -101,7 +101,6 @@ SingleItemContainer (const QString& actualArgIn,
    QFont font;
    font.setPointSize (10);
    font.setBold (true);
-   font.setWeight (75);
    this->closeButton->setFont (font);
    this->closeButton->setStyleSheet (QLatin1String ("background-color: rgb(105, 155, 205);\n"
                                                     "color: rgb(255, 255, 255);"));
@@ -564,7 +563,7 @@ QEDynamicFormGrid::GridOrders QEDynamicFormGrid::getGridOrder () const
 void  QEDynamicFormGrid::setMargin (const int marginIn)
 {
    this->margin = LIMIT (marginIn, 0, 20);
-   this->scrollFrameLayout->setMargin (this->margin);
+   this->scrollFrameLayout->setContentsMargins (this->margin, this->margin, this->margin, this->margin);
 }
 
 //------------------------------------------------------------------------------

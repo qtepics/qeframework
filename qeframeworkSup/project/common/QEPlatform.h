@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2015-2022 Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -16,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015,2017 Australian Synchrotron.
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
@@ -30,6 +30,7 @@
 
 #include <Qt>
 #include <QtGlobal>
+#include <QString>
 #include <QEFrameworkLibraryGlobal.h>
 
 /// Geneal purpose platform specific functions used to hide compiler, environment
@@ -46,18 +47,18 @@ public:
    /// This function test if the specified double floating point number is +/-Infinity.
    static bool isInf (const double x);
 
-protected:
-   QEPlatform () { }
-};
 
-/// Pick correct definition for middle button.
-/// Note, at time of writing (building on qt4.6 through qt5.3) MidButton would
-/// work for all, but it is due to be removed in the future.
-///
-#if QT_VERSION < 0x040700
-#define MIDDLE_BUTTON Qt::MidButton
+#if QT_VERSION < 0x060000
+#define QEKeepEmptyParts QString::KeepEmptyParts
+#define QESkipEmptyParts QString::SkipEmptyParts
 #else
-#define MIDDLE_BUTTON Qt::MiddleButton
+#define QEKeepEmptyParts Qt::KeepEmptyParts
+#define QESkipEmptyParts Qt::SkipEmptyParts
 #endif
+
+protected:
+   explicit QEPlatform () { }
+   ~QEPlatform () { }
+};
 
 # endif // QE_PLATFORM_H

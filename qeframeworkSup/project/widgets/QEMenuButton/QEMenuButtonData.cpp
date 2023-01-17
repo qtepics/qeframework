@@ -1,6 +1,9 @@
 /*  QEMenuButtonData.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2015-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,16 +18,15 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2015 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
 
-#include <QEOneToOne.h>
 #include "QEMenuButtonData.h"
+#include <QECommon.h>
+#include <QEOneToOne.h>
 
 #define DEBUG  qDebug () << "QEMenuButtonData" << __FUNCTION__ << __LINE__ << ":"
 
@@ -130,7 +132,7 @@ QString QEMenuButtonData::join  (const QStringList& x)
 //
 QStringList QEMenuButtonData::split (const QString& x)
 {
-   QStringList result = x.split (' ', QString::SkipEmptyParts);
+   QStringList result = QEUtilities::split (x);
    return result;
 }
 

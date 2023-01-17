@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron
+ *  Copyright (c) 2012-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -25,10 +25,9 @@
  *
  */
 
+#include "QEStripChartAdjustPVDialog.h"
 #include <QVariant>
-#include <QEStripChartAdjustPVDialog.h>
 #include <ui_QEStripChartAdjustPVDialog.h>
-
 #include <QDebug>
 
 //------------------------------------------------------------------------------
@@ -97,13 +96,13 @@ void QEStripChartAdjustPVDialog::setValueScaling (const ValueScaling & valueScal
 
    this->valueScale.get (d, m, c);
 
-   text.sprintf (" %g", d);
+   text = QString::asprintf (" %g", d);
    this->ui->originEdit->setText (text);
 
-   text.sprintf (" %g", m);
+   text = QString::asprintf (" %g", m);
    this->ui->slopeEdit->setText (text);
 
-   text.sprintf (" %g", c);
+   text = QString::asprintf (" %g", c);
    this->ui->offsetEdit->setText (text);
 }
 

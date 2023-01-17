@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/archapplDataSup/src/Makefile $
-# $Revision: #4 $
-# $DateTime: 2020/02/05 18:13:24 $
+# $Revision: #6 $
+# $DateTime: 2023/01/17 12:53:36 $
 # Last checked in by: $Author: starritt $
 #
 # Makefile to build a library that parses Google Protocol Buffers data recieved from Archiver Appliance
@@ -38,7 +38,8 @@ endif
 
 # This control variable can be modified in $(TOP)/configuration/CONFIG_SITE
 # or defined as an environment variable.
-# Required libraries location
+# Required libraries location.
+# On Ubuntu 22.04, this is /usr/lib/x86_64-linux-gnu
 #
 ifdef PROTOBUF_LIB_DIR
    SHRLIB_SEARCH_DIRS += $(PROTOBUF_LIB_DIR)
@@ -69,9 +70,14 @@ include $(TOP)/configure/RULES
 archapplData.cpp : archapplProto.pb.cc
 
 # Recall this runs in the O.<epics host arch> sub-directory/
+# The copy of archapplData.cpp make a weird (non-detrimental) error go away.
 #
 archapplProto.pb.cc : ../archapplProto.proto
+	$(CP) ../archapplData.cpp .
 	protoc --proto_path=.. --cpp_out=.  ../archapplProto.proto && \
 	$(CP) archapplProto.pb.h ../
+
+clean:
+	rm -f archapplProto.pb.h
 
 # end

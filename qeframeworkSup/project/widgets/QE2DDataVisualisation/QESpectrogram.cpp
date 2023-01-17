@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020-2021 Australian Synchrotron
+ *  Copyright (c) 2020-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -74,7 +74,7 @@ void QESpectrogram::commonSetup ()
    //
    this->plotArea = new QWidget (NULL);
    this->layout = new QHBoxLayout (this);
-   this->layout->setMargin (4);
+   this->layout->setContentsMargins (4, 4, 4, 4);
    this->layout->setSpacing (0);
    this->layout->addWidget (this->plotArea);
    this->plotArea->setMouseTracking (true);
@@ -437,7 +437,7 @@ int QESpectrogram::getScaleWrap () const
 void QESpectrogram::setMargin  (const int margin)
 {
    this->mMargin = LIMIT (margin, 0, 40);
-   this->layout->setMargin (this->mMargin);
+   this->layout->setContentsMargins (this->mMargin, this->mMargin, this->mMargin, this->mMargin);
 }
 
 //------------------------------------------------------------------------------

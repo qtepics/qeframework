@@ -157,7 +157,7 @@ bool QEDateTime::eventFilter (QObject* watched, QEvent* event)
 
       case QEvent::MouseButtonPress:
          mouseEvent = static_cast < QMouseEvent*>(event);
-         if ((watched == this) && (mouseEvent->button () == MIDDLE_BUTTON)) {
+         if ((watched == this) && (mouseEvent->button () == Qt::MiddleButton)) {
             QClipboard *cb = QApplication::clipboard ();
             cb->setText (this->text ());
             return true;        // we have handled this mouse button event

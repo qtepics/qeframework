@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2018-2021 Australian Synchrotron
+ *  Copyright (c) 2018-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -66,7 +66,7 @@ enum PVIndices {
 #define DATA_LABEL(index) ( (index == xPvIndex) ? this->uiForm->CA_DataLabel1 : this->uiForm->CA_DataLabel2 )
 
 static const int numberOfCorrelationPoints = 5000;
-static const double minSpan = 0.001;
+static const double minSpan = 1.0e-12;
 
 static const QColor clWhite (0xFF, 0xFF, 0xFF, 0xFF);
 static const QColor clBlack (0x00, 0x00, 0x00, 0xFF);
@@ -122,7 +122,7 @@ void QECorrelation::setup ()
    //
    this->plotArea = new QEGraphic (NULL);
    this->plotLayout = new QHBoxLayout (this->uiForm->Plane);
-   this->plotLayout->setMargin (6);
+   this->plotLayout->setContentsMargins (6, 6, 6, 6);
    this->plotLayout->addWidget (this->plotArea);
 
    // Configure parant classes
@@ -252,6 +252,11 @@ void QECorrelation::setup ()
    pVLabel = this->uiForm->PV_Label2;
    pVLabel->setAcceptDrops (true);
    pVLabel->installEventFilter (this);
+
+   // Setup standary display formating.
+   //
+   this->setStandardFormat (this->uiForm->CA_DataLabel1);
+   this->setStandardFormat (this->uiForm->CA_DataLabel2);
 
    // Set up archiver access
    //
@@ -946,32 +951,32 @@ void QECorrelation::graphicMouseMove (const QPointF& posn)
 
    mouseReadOut = "";
 
-   f.sprintf (" x: %+.6g", posn.x ());
+   f = QString::asprintf (" x: %+.6g", posn.x ());
    mouseReadOut.append (f);
 
-   f.sprintf ("  y: %+.6g", posn.y ());
+   f = QString::asprintf ("  y: %+.6g", posn.y ());
    mouseReadOut.append (f);
 
    if (this->plotArea->getSlopeIsDefined (slope)) {
       const double dx = slope.x ();
       const double dy = slope.y ();
 
-      f.sprintf ("  dx: %+.6g", dx);
+      f = QString::asprintf ("  dx: %+.6g", dx);
       mouseReadOut.append (f);
 
-      f.sprintf ("  dy: %+.6g", dy);
+      f = QString::asprintf ("  dy: %+.6g", dy);
       mouseReadOut.append (f);
 
       // Calculate slope, but avoid the divide by 0.
       //
       mouseReadOut.append ("  dy/dx: ");
       if (dx != 0.0) {
-         f.sprintf ("%+.6g", dy/dx);
+         f = QString::asprintf ("%+.6g", dy/dx);
       } else {
          if (dy != 0.0) {
-            f.sprintf ("%sinf", (dy >= 0.0) ? "+" : "-");
+            f = QString::asprintf ("%sinf", (dy >= 0.0) ? "+" : "-");
          } else {
-            f.sprintf ("n/a");
+            f = QString::asprintf ("n/a");
          }
       }
       mouseReadOut.append (f);

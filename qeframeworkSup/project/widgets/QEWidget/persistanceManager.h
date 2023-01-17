@@ -42,7 +42,6 @@
 #include <QStringList>
 #include <QXmlStreamWriter>
 #include <QEFrameworkLibraryGlobal.h>
-#include <QXmlDefaultHandler>
 #include <QVariant>
 #include <QDomDocument>
 
@@ -161,7 +160,7 @@ private:
 //------------------------------------------------------------------------------
 // Persistance manager
 //
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT PersistanceManager : public QXmlDefaultHandler
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT PersistanceManager
 {
 public:
    friend class PMElement;

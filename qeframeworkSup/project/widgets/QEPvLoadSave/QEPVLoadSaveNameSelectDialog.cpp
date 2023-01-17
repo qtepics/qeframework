@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2021 Australian Synchrotron
+ *  Copyright (c) 2021-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -27,7 +27,7 @@
 
 #include "QEPVLoadSaveNameSelectDialog.h"
 #include <QDebug>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QStringList>
 
 #include <ui_QEPVLoadSaveNameSelectDialog.h>
@@ -77,12 +77,14 @@ QEPVLoadSaveNameSelectDialog::QEPVLoadSaveNameSelectDialog (QWidget *parent) :
    QObject::connect (this->ui->clearButton, SIGNAL (clicked       (bool)),
                      this,                  SLOT   (clearClicked  (bool)));
 
+#if QT_VERSION < 0x060000
 #ifndef QT_NO_COMPLETER
    // Could not get completer to work - yet.
    for (int j = 0; j < PT_NUMBER; j++) {
       this->pvNameEdit[j]->setAutoCompletion (true);
       this->pvNameEdit[j]->setAutoCompletionCaseSensitivity (Qt::CaseSensitive);
    }
+#endif
 #endif
 
 }
@@ -141,8 +143,8 @@ void QEPVLoadSaveNameSelectDialog::getPvNames (QString& setPointPvNameOut,
 //
 void QEPVLoadSaveNameSelectDialog::applyFilter ()
 {
-   QString pattern = this->ui->filterEdit->text ().trimmed ();
-   QRegExp regExp (pattern, Qt::CaseSensitive, QRegExp::RegExp);
+   const QString pattern = this->ui->filterEdit->text ().trimmed ();
+   const QRegularExpression re (pattern, QRegularExpression::NoPatternOption);
 
    // Form list of PV names from both the user defined arbitary list
    // and the list extarcted from the QEArchiveAccess.
@@ -155,7 +157,7 @@ void QEPVLoadSaveNameSelectDialog::applyFilter ()
    const int m = findNames.count ();
 
    this->filteredNames.clear ();
-   this->filteredNames = findNames.getMatchingPvNames (regExp, true);
+   this->filteredNames = findNames.getMatchingPvNames (re, true);
    const int n = this->filteredNames.count ();
 
    for (int j = 0; j < PT_NUMBER; j++) {

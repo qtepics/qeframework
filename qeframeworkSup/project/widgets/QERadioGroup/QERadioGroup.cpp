@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2021  Australian Synchrotron.
+ *  Copyright (c) 2014-2022  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -98,7 +98,7 @@ void QERadioGroup::commonSetup (const QString& title)
    this->internalWidget->setSizePolicy (QSizePolicy::Preferred, QSizePolicy::Preferred);
 
    this->layout = new QHBoxLayout (this);
-   this->layout->setMargin (0);    // extact fit.
+   this->layout->setContentsMargins (0, 0, 0, 0);    // extact fit.
    this->layout->addWidget (this->internalWidget);
 
    QObject::connect (this->internalWidget, SIGNAL (valueChanged         (const int)),

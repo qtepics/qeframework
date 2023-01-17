@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2021 Australian Synchrotron
+ *  Copyright (c) 2012-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -305,7 +305,7 @@ void QEImage::setup()
 
     buttonGroup = new QFrame;
     QHBoxLayout* buttonLayout = new QHBoxLayout();
-    buttonLayout->setMargin( 0 );
+    buttonLayout->setContentsMargins( 0, 0, 0, 0 );
     buttonGroup->setLayout( buttonLayout );
 
     pauseButton = new QPushButton( buttonGroup );
@@ -371,7 +371,7 @@ void QEImage::setup()
 
     // Create main layout containing image, label, and button layouts
     mainLayout = new QGridLayout;
-    mainLayout->setMargin( 0 );
+    mainLayout->setContentsMargins( 0, 0, 0, 0 );
     graphicsLayout->addWidget( vSliceLabel,    1, 1 );
     graphicsLayout->addWidget( hSliceLabel,    2, 0 );
     graphicsLayout->addWidget( profileLabel,   4, 0 );
@@ -1717,7 +1717,8 @@ void QEImage::setPvaImage( const QVariant& value,
 
     // Decompress if needs be.
     //
-    bool status = imageData.decompressData ();
+    // bool status =
+    imageData.decompressData ();
 
     // set the format
     setFormatOption( imageData.getFormat() );
@@ -1936,7 +1937,7 @@ void QEImage::setImageFile( QString name )
 #else
     const uchar* iDataPtr = stdImage.bits();
 #endif
-    int iDataSize = stdImage.byteCount();
+    int iDataSize = stdImage.sizeInBytes();
 
     QByteArray baData;
     baData.resize( iDataSize );
@@ -4041,7 +4042,8 @@ void QEImage::setFullScreen( bool fullScreenIn )
             // (and set up context sensitive menu (right click menu))
             fullScreenMainWindow = new fullScreenWindow( this );
             fullScreenMainWindow->setContextMenuPolicy( Qt::CustomContextMenu );
-            connect( fullScreenMainWindow, SIGNAL( customContextMenuRequested( const QPoint& )), this, SLOT( showImageContextMenuFullScreen( const QPoint& )));
+            connect( fullScreenMainWindow, SIGNAL( customContextMenuRequested( const QPoint& )),
+                     this, SLOT( showImageContextMenuFullScreen( const QPoint& )));
 
             // Move the video widget into the full screen window
             QWidget* w = scrollArea->takeWidget();
@@ -5159,7 +5161,7 @@ void QEImage::showImageContextMenuCommon( const QPoint& pos, const QPoint& globa
         frMenu->setChecked( iProcessor.getRotation(), iProcessor.getFlipHoz(), iProcessor.getFlipVert() );
         cm->addMenu( frMenu );
 
-        // Add 'full scree' item
+        // Add 'full screen' item
         addMenuItem( cm,      "Full Screen",                   true,      fullScreen,                 imageContextMenu::ICM_FULL_SCREEN              );
 
         // Add option... dialog

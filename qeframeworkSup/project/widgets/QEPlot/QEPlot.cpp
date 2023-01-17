@@ -317,7 +317,7 @@ void QEPlot::setup ()
    this->legendArea->setFixedWidth (2);    // effectivetly invisible.
    this->layout = new QHBoxLayout (this);
    this->layoutMargin = 0;
-   this->layout->setMargin (this->layoutMargin);
+   this->layout->setContentsMargins (this->layoutMargin, this->layoutMargin, this->layoutMargin, this->layoutMargin);
    this->layout->setSpacing (0);
    this->layout->addWidget (this->plotArea);
    this->layout->addWidget (this->legendArea);
@@ -470,9 +470,9 @@ void QEPlot::plotMouseMove (const QPointF& posn)
       }
 
       if (allDataIsWaveform) {
-         f.sprintf ("X: %+.10g", posn.x ());
+         f = QString::asprintf ("X: %+.10g", posn.x ());
          message.append (f);
-         f.sprintf ("    Y: %+.10g", posn.y ());
+         f = QString::asprintf ("    Y: %+.10g", posn.y ());
          message.append (f);
       } else {
          // Note: Cribbed from the StripChart - keep alligned.
@@ -498,7 +498,7 @@ void QEPlot::plotMouseMove (const QPointF& posn)
 
          // Show y value associated with current cursor position.
          //
-         f.sprintf ("    Value: %+.10g", posn.y ());
+         f = QString::asprintf ("    Value: %+.10g", posn.y ());
          message.append (f);
       }
 
@@ -545,7 +545,7 @@ bool QEPlot::eventFilter (QObject* watched, QEvent* event)
       case QEvent::MouseButtonPress:
          if (this->plotArea->isCanvasObject (watched)) {
             mouseEvent = static_cast<QMouseEvent *> (event);
-            if (mouseEvent->buttons() & (Qt::LeftButton | MIDDLE_BUTTON)) {
+            if (mouseEvent->buttons() & (Qt::LeftButton | Qt::MiddleButton)) {
                // The left or middle button has been pressed.
                // Initiate dragging or middle click.
                this->qcaMousePressEvent (mouseEvent);
@@ -1177,7 +1177,7 @@ void QEPlot::drawLegend ()
       pen.setWidth (1);
       painter.setPen (pen);
       painter.drawText (leftText, top + boxSize, tr->legend);
-      maxTextWidth = MAX (maxTextWidth, fm.width (tr->legend));
+      maxTextWidth = MAX (maxTextWidth, fm.horizontalAdvance (tr->legend));
 
       row++;
    }
@@ -1919,7 +1919,7 @@ int QEPlot::getTickRate () const
 void QEPlot::setMargin (const int marginIn)
 {
    this->layoutMargin = LIMIT (marginIn, 0, 100);
-   this->layout->setMargin (layoutMargin);
+   this->layout->setContentsMargins (layoutMargin, layoutMargin, layoutMargin, layoutMargin);
 }
 
 //------------------------------------------------------------------------------

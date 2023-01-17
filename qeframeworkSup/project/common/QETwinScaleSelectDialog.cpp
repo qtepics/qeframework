@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2017-2022 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2017 Australian Synchrotron
  *
  * Author:            Andraz Pozar
  * Contact details:   andraz.pozar@synchrotron.org.au
@@ -80,16 +80,16 @@ void QETwinScaleSelectDialog::setActiveMap (const ScaleLimit& scaleOne, const Sc
    this->scaleOne = scaleOne;
    this->scaleTwo = scaleTwo;
 
-   text.sprintf (" %g", this->scaleOne.min);
+   text = QString::asprintf (" %g", this->scaleOne.min);
    this->ui->scaleOneMinEdit->setText (text);
 
-   text.sprintf (" %g", this->scaleOne.max);
+   text = QString::asprintf (" %g", this->scaleOne.max);
    this->ui->scaleOneMaxEdit->setText (text);
 
-   text.sprintf (" %g", this->scaleTwo.min);
+   text = QString::asprintf (" %g", this->scaleTwo.min);
    this->ui->scaleTwoMinEdit->setText (text);
 
-   text.sprintf (" %g", this->scaleTwo.max);
+   text = QString::asprintf (" %g", this->scaleTwo.max);
    this->ui->scaleTwoMaxEdit->setText (text);
 
    this->ui->scaleOneMinEdit->setFocus ();

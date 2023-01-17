@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2016-2021 Australian Synchrotron
+ *  Copyright (c) 2016-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -29,11 +29,11 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QECommon.h>
+#include <QELabel.h>
 #include <persistanceManager.h>
 #include <contextMenu.h>
 
 #define DEBUG qDebug() << "QEAbstractComplexWidget" << __LINE__ << __FUNCTION__ << "  "
-
 
 //------------------------------------------------------------------------------
 //
@@ -87,6 +87,22 @@ userLevelTypes::userLevels QEAbstractDynamicWidget::minimumEditPvUserLevel () co
    return this->getEnableEditPv () ?
           userLevelTypes::USERLEVEL_USER :
           userLevelTypes::USERLEVEL_ENGINEER;
+}
+
+//------------------------------------------------------------------------------
+// Sub class utility
+//
+void QEAbstractDynamicWidget::setStandardFormat (QELabel* dataLabel)
+{
+   if (!dataLabel) return;   // sanity check
+
+   dataLabel->setPrecision (6);
+   dataLabel->setForceSign (true);
+   dataLabel->setUseDbPrecision (false);
+   dataLabel->setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
+   dataLabel->setSeparator (QEStringFormatting::SEPARATOR_COMMA);
+   dataLabel->setArrayAction (QEStringFormatting::INDEX);
+   dataLabel->setArrayIndex (0);
 }
 
 //------------------------------------------------------------------------------
@@ -149,7 +165,7 @@ void QEAbstractDynamicWidget::addPvNameSet (const QString& pvNameSet)
 
    // Split input string using white space as delimiter.
    //
-   pvNameList = pvNameSet.split (QRegExp ("\\s+"), QString::SkipEmptyParts);
+   pvNameList = QEUtilities::split (pvNameSet);
    this->addPvNameList (pvNameList);
 }
 

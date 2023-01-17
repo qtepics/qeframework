@@ -1,4 +1,5 @@
-/*
+/* maiaObject.cpp
+ *
  * libMaia - maiaObject.cpp
  * Copyright (c) 2003 Frerich Raabe <raabe@kde.org> and
  *                    Ian Reinhart Geiser <geiseri@kde.org>
@@ -148,7 +149,7 @@ QDomElement MaiaObject::toXml(QVariant arg) {
 		return tagValue;
 
 	} default:
-		qDebug() << "Failed to marshal unknown variant type: " << arg.type() << endl;
+      qDebug() << "Failed to marshal unknown variant type: " << arg.type();
 	}
 	return QDomElement(); //QString::null;
 }

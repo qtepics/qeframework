@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2021 Australian Synchrotron
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -36,6 +36,7 @@
 #include <QECommon.h>
 #include <QEAdaptationParameters.h>
 #include <QEArchiveInterface.h>
+#include <QEPlatform.h>
 
 #define DEBUG  qDebug () << "QCaAlarmInfo" << __LINE__ << __FUNCTION__ << "  "
 
@@ -527,9 +528,10 @@ void QCaAlarmInfoColorNamesManager::extractAdaptationColors ()
    int number;
 
    // Do styleColorNames
+   //
    namesSet = ap.getString ("style_color_names", "");
    if (!namesSet.isEmpty ()) {
-      nameList = namesSet.split (":", QString::KeepEmptyParts);
+      nameList = namesSet.split (":", QEKeepEmptyParts);
 
       // We can't do a simple assign - user may have specified less or more than
       // the expected number of severity colour names.
@@ -542,9 +544,10 @@ void QCaAlarmInfoColorNamesManager::extractAdaptationColors ()
    }
 
    // Ditto colorNames
+   //
    namesSet = ap.getString ("color_names", "");
    if (!namesSet.isEmpty ()) {
-      nameList = namesSet.split(":", QString::KeepEmptyParts);
+      nameList = namesSet.split (":", QEKeepEmptyParts);
       number = MIN (nameList.count(), NUMBER_SEVERITIES);
       for (int j = 0; j < number; j++) {
          const QString v = nameList.value (j, "");

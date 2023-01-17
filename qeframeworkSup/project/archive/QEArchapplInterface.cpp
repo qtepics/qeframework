@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2021 Australian Synchrotron
+ *  Copyright (c) 2021-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -537,7 +537,8 @@ void QEArchapplInterface::processValues(const QObject* userData, QNetworkReply* 
       //
       // Here we combine all three into one timestamp and covert to local time
       //
-      QDateTime pointDateTime(QDate(onePointData.year, 1, 1));
+      QTime zeroTime (0, 0, 0);
+      QDateTime pointDateTime(QDate(onePointData.year, 1, 1), zeroTime);
       pointDateTime.setTimeSpec(Qt::UTC);
       pointDateTime = pointDateTime.addSecs(onePointData.seconds);
       pointDateTime = pointDateTime.addMSecs((int)(onePointData.nanos/1000000));

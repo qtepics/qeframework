@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2019 Australian Synchrotron
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +27,8 @@
 #ifndef QE_WIDGET_H
 #define QE_WIDGET_H
 
+#include <QFile>
+#include <QIODevice>
 #include <QList>
 #include <QObject>
 #include <VariableManager.h>
@@ -273,7 +275,7 @@ public:
 
     /// Looks for a file in a standard set of locations (and opens the file)
     ///
-    QFile* openQEFile( QString name, QFile::OpenModeFlag mode );
+    QFile* openQEFile( QString name, QIODevice::OpenModeFlag mode );
 
     /// Static method that looks for a file in a standard set of locations
     /// Returns a pointer to a QFile which is the caller's responsibility to delete, or NULL if the file was not found.

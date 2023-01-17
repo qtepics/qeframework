@@ -1,6 +1,9 @@
 /*  QEFormGrid.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -219,7 +220,7 @@ void QEFormGrid::commonSetup (const QString& uiFileIn,
    this->slotMacroData = new MacroData ("SLOT", this);
 
    this->layout = new QGridLayout (this);
-   this->layout->setMargin (2);
+   this->layout->setContentsMargins (2, 2, 2, 2);
    this->layout->setSpacing (2);
 
    // Create initial number of sub-forms.
@@ -546,14 +547,18 @@ QEFormGrid::GridOrders QEFormGrid::getGridOrder ()
 //
 void  QEFormGrid::setMargin (int margin)
 {
-   this->layout->setMargin (margin);
+   this->layout->setContentsMargins (margin, margin, margin, margin);
 }
 
 //------------------------------------------------------------------------------
 //
 int  QEFormGrid::getMargin ()
 {
-   return this->layout->margin ();
+   QMargins m = this->layout->contentsMargins();
+
+   // All should be the same, nevertheless return the mean value.
+   //
+   return (m.top() + m.bottom() + m.left() + m.right()) / 4;
 }
 
 //------------------------------------------------------------------------------

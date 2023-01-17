@@ -183,7 +183,7 @@ void QSimpleShape::paintEvent (QPaintEvent*)
       case roundRectangle:
          // Normalise corner radii.
          //
-         painter.drawRoundRect (rect, 1200.0 / rect.width (), 1200.0 / rect.height ());
+         painter.drawRoundedRect (rect, 1200.0 / rect.width (), 1200.0 / rect.height ());
          break;
 
 
@@ -724,7 +724,7 @@ void QSimpleShape::paintEvent (QPaintEvent*)
       painter.setFont (pf);
       QFontMetrics fm = painter.fontMetrics ();
 
-      const int textWidth  = fm.width (text);
+      const int textWidth  = fm.horizontalAdvance (text);
       const int textHeight = fm.height ();
 
       // baseLineOffset is the difference between the bottom of an 'normal' char
@@ -748,7 +748,7 @@ void QSimpleShape::paintEvent (QPaintEvent*)
       if (this->indent < 0) {
          // Indent -ve, use the x standard (as per QLabel).
          //
-         xIndent = fm.width ("x") / 2;
+         xIndent = fm.horizontalAdvance ("x") / 2;
          yIndent = baseLineOffset;
       }
 

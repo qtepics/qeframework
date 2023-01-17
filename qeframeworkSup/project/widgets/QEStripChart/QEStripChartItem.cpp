@@ -145,16 +145,7 @@ QEStripChartItem::QEStripChartItem (QEStripChart* chartIn,
 
    // We have to be general here.
    //
-   this->caLabel->setPrecision (6);
-   this->caLabel->setForceSign (true);
-   this->caLabel->setUseDbPrecision (false);
-   this->caLabel->setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
-   this->caLabel->setArrayAction (QEStringFormatting::INDEX);
-   this->caLabel->setArrayIndex (0);
-
-   QFont font = this->caLabel->font ();
-   font.setFamily ("Monospace");
-   this->caLabel->setFont (font);
+   this->chart->setStandardFormat (this->caLabel);
 
    if (slot < QEStripChart::NUMBER_OF_PVS) {
       defaultColour = item_colours [this->slot];
@@ -905,7 +896,7 @@ void QEStripChartItem::calculateAndUpdate (const QCaDateTime& datetimeIn,
    // This is not a PV, so update the CA label text directly.
    //
    QString numericText = "-";
-   if (okay) numericText.sprintf ("%+.9g", value);
+   if (okay) numericText = QString::asprintf ("%+.9g", value);
    this->caLabel->setText (numericText);
    this->caLabel->setStyleSheet (calcStyle);
 
@@ -1535,8 +1526,7 @@ void QEStripChartItem::pvNameDropEvent (QDropEvent *event)
    if (!mime->text().isEmpty ()) {
       // Get the component textual parts
       //
-      QStringList pieces = mime->text ().split (QRegExp ("\\s+"),
-                                                QString::SkipEmptyParts);
+      QStringList pieces = QEUtilities::split (mime->text ());
 
       // Carry out the drop action
       // Assume only the first text part is of interest

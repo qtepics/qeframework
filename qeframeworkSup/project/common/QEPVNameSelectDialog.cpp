@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron
+ *  Copyright (c) 2013-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -26,8 +26,9 @@
  */
 
 #include "QEPVNameSelectDialog.h"
+#include <QtGlobal>
 #include <QDebug>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QStringList>
 
 #include <ui_QEPVNameSelectDialog.h>
@@ -89,12 +90,13 @@ QEPVNameSelectDialog::QEPVNameSelectDialog (QWidget *parent) :
    QObject::connect (this->ui->clearButton, SIGNAL (clicked       (bool)),
                      this,                  SLOT   (clearClicked  (bool)));
 
+#if QT_VERSION < 0x060000
 #ifndef QT_NO_COMPLETER
    // Could not get completer to work - yet.
    this->ui->pvNameEdit->setAutoCompletion (true);
    this->ui->pvNameEdit->setAutoCompletionCaseSensitivity (Qt::CaseSensitive);
 #endif
-
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -142,7 +144,7 @@ QString QEPVNameSelectDialog::getPvName ()
 void QEPVNameSelectDialog::applyFilter ()
 {
    QString pattern = this->ui->filterEdit->text ().trimmed ();
-   QRegExp regExp (pattern, Qt::CaseSensitive, QRegExp::RegExp);
+   QRegularExpression re (pattern, QRegularExpression::NoPatternOption);
 
    // Form list of PV names from both the user defined arbitary list
    // and the list extarcted from the QEArchiveAccess.
@@ -155,7 +157,7 @@ void QEPVNameSelectDialog::applyFilter ()
    const int m = findNames.count ();
 
    this->filteredNames.clear ();
-   this->filteredNames = findNames.getMatchingPvNames (regExp, true);
+   this->filteredNames = findNames.getMatchingPvNames (re, true);
    const int n = this->filteredNames.count ();
 
    this->ui->pvNameEdit->clear ();

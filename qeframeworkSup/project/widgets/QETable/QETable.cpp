@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2020 Australian Synchrotron.
+ *  Copyright (c) 2014-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +27,7 @@
 #include "QETable.h"
 
 #include <QAction>
+#include <QBrush>
 #include <QColor>
 #include <QDebug>
 #include <QTimer>
@@ -188,12 +189,15 @@ void QETable::DataSets::rePopulateTable ()
 void QETable::DataSets::rePopulateData ()
 {
    QTableWidget* table = this->owner->table;  // alias
+   QBrush brush;
    QColor backgroundColour;
    QColor textColour;
 
    if (!table) return;                   // sainity check
    if (!this->isInUse ()) return;        // nothing to see here ... move along ...
    if (this->index < 0) return;
+
+   brush.setStyle (Qt::SolidPattern);
 
    // Use connected/alarm state to find background/foreground colours.
    //
@@ -243,12 +247,14 @@ void QETable::DataSets::rePopulateData ()
       } else {
          // Beyond end of data
          image = "";
-         backgroundColour = QColor ("#c8c8c8");  // light gray
+         backgroundColour = QColor (0xc8c8c8);   // light gray
       }
 
       item->setText (image);
-      item->setBackgroundColor (backgroundColour);
-      item->setTextColor (textColour);
+      brush.setColor (backgroundColour);
+      item->setBackground (brush);
+      brush.setColor (textColour);
+      item->setForeground (brush);
    }
 }
 
@@ -281,7 +287,7 @@ QETable::QETable (QWidget* parent) : QEAbstractDynamicWidget (parent)
    this->table->setSizePolicy (QSizePolicy::Preferred, QSizePolicy::Preferred);
 
    this->layout = new QHBoxLayout (this);
-   this->layout->setMargin (0);    // extact fit.
+   this->layout->setContentsMargins (0, 0, 0, 0);    // extact fit.
    this->layout->addWidget (this->table);
 
    // Initialise data set objects.

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2020 Australian Synchrotron
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -307,7 +307,7 @@ QString QEWidget::defaultFileLocation() const
 // Returns an open file given a file name.
 // This uses findQEFile() to find files in a consistant set of locations. Refer to findQEFile() for details.
 //
-QFile* QEWidget::openQEFile( QString name, QFile::OpenModeFlag mode )
+QFile* QEWidget::openQEFile( QString name, QIODevice::OpenModeFlag mode )
 {
     // Find the file
     QFile* uiFile = findQEFile( name, this );

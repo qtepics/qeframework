@@ -98,30 +98,20 @@ QStringList QEPvNameSearch::getAllPvNames () const
 
 //------------------------------------------------------------------------------
 //
-QStringList QEPvNameSearch::getMatchingPvNames (const QRegExp& regExp,
+QStringList QEPvNameSearch::getMatchingPvNames (const QRegularExpression& reIn,
                                                 const bool exactMatch) const
 {
    QStringList result;
-   int n;
-   int j;
 
+   QRegularExpression re = reIn;
    if (exactMatch) {
-      // QStringList::filter (regExp) does not do an exact match, so we must
-      // do own element-by-element filtering.
+      // Bracket the original expression with '^' and '$', and form a modified expression.
+      // Double '^^" and/or '$$' are okay and we don;t need to check for that.
       //
-      n = this->pvNameList.count ();
-      for (j = 0; j < n; j++) {
-         QString pvName = this->pvNameList.value (j);
-
-         if (regExp.exactMatch (pvName)) {
-            result.append (pvName);
-         }
-      }
-   } else {
-      // No exact match required - can use in built function.
-      //
-      result = this->pvNameList.filter (regExp);
+      QString pattern = QString ("^") + reIn.pattern() + QString ("$");
+      re.setPattern (pattern);
    }
+   result = this->pvNameList.filter (re);
    return result;
 }
 

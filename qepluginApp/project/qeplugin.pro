@@ -1,9 +1,9 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qepluginApp/project/qeplugin.pro $
-# $Revision: #6 $
-# $DateTime: 2022/03/09 21:09:41 $
+# $Revision: #7 $
+# $DateTime: 2023/01/12 14:50:32 $
 # Last checked in by: $Author: starritt $
 #
-# Copyright (c) 2017-2022 Australian Synchrotron
+# Copyright (c) 2017-2023 Australian Synchrotron
 #
 # This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
@@ -66,7 +66,7 @@ message ("QT_VERSION = "$$QT_MAJOR_VERSION"."$$QT_MINOR_VERSION"."$$QT_PATCH_VER
 equals( QT_MAJOR_VERSION, 4 ) {
     CONFIG += plugin uitools designer qwt
     QT += core gui xml network
-    warning( "**** QT4 is getting old. Active QT4 support will cease June 2021. ****" )
+    error( "**** QT4 is old. Active QT4 support has ceased. ****" )
 }
 
 # Qt 5 configuration
@@ -79,7 +79,8 @@ equals( QT_MAJOR_VERSION, 5 ) {
 # Qt 6 configuration
 #
 equals( QT_MAJOR_VERSION, 6 ) {
-    error( "**** The plugin project file has not been configured for Qt6 (yet) ****" )
+    CONFIG += plugin qwt
+    QT += core gui xml network uitools designer
 }
 
 # Check QE_FRAMEWORK dependancies

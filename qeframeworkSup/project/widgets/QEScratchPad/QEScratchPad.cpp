@@ -66,7 +66,7 @@ void QEScratchPad::createInternalWidgets ()
    // Main layout.
    //
    this->vLayout = new QVBoxLayout (this);
-   this->vLayout->setMargin (2);
+   this->vLayout->setContentsMargins (2, 2, 2, 2);
    this->vLayout->setSpacing (1);
 
    this->titleFrame = new QFrame (this);
@@ -126,7 +126,7 @@ void QEScratchPad::createInternalWidgets ()
 
    this->scrollLayout = new QVBoxLayout (scrollContents);
    this->scrollLayout->setSpacing (spacing);
-   this->scrollLayout->setMargin (margin);
+   this->scrollLayout->setContentsMargins (margin, margin, margin, margin);
 
    const userLevelTypes::userLevels level = this->minimumEditPvUserLevel ();
 
@@ -173,7 +173,7 @@ void QEScratchPad::createInternalWidgets ()
       // Set up layout - paramers must be same as titlelayout
       //
       item->hLayout = new QHBoxLayout (item->frame);
-      item->hLayout->setMargin (horMargin);
+      item->hLayout->setContentsMargins (horMargin, horMargin, horMargin, horMargin);
       item->hLayout->setSpacing (horSpacing);
 
       // Add to layouts
@@ -630,8 +630,7 @@ void QEScratchPad::pvNameDropEvent (const int slot, QDropEvent *event)
    if (!mime->text().isEmpty ()) {
       // Get the component textual parts
       //
-      QStringList pieces = mime->text ().split (QRegExp ("\\s+"),
-                                                QString::SkipEmptyParts);
+      QStringList pieces = QEUtilities::split (mime->text ());
 
       // Carry out the drop action
       //

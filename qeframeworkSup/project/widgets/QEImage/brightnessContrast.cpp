@@ -1,5 +1,9 @@
-/*
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+/*  brightnessContrast.cpp
+ * 
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -13,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -107,7 +109,7 @@ imageDisplayProperties::imageDisplayProperties()
     advancedButton->setToolTip( "Switch between minimal and full image display properties");
     advancedButton->setMaximumWidth(20);
     advancedButton->setCheckable(true);
-    advancedButton->setContentsMargins(0,0,0,0);
+    advancedButton->setContentsMargins( 0, 0, 0, 0);
 
     autoBrightnessCheckBox = new QCheckBox( "Auto", this );
     autoBrightnessCheckBox->setToolTip( "Set brightness and contrast to use the full dynamic range of an area when an area is selected");
@@ -219,7 +221,7 @@ imageDisplayProperties::imageDisplayProperties()
     imageDisplayPropertiesSub2Layout->addWidget( gradientSlider,    1, 1 );
     imageDisplayPropertiesSub2Layout->addWidget( gradientSpinBox,   1, 2 );
 
-    imageDisplayPropertiesSub4Layout->setMargin( 0 );
+    imageDisplayPropertiesSub4Layout->setContentsMargins( 0, 0, 0, 0 );
     imageDisplayPropertiesSub4Layout->addWidget( zeroValueSlider,     100 );
     imageDisplayPropertiesSub4Layout->addWidget( new QWidget( this ), 20 );
 
@@ -227,7 +229,7 @@ imageDisplayProperties::imageDisplayProperties()
     imageDisplayPropertiesSub2Layout->addLayout( imageDisplayPropertiesSub4Layout,   2, 1 );
     imageDisplayPropertiesSub2Layout->addWidget( zeroValueSpinBox,  2, 2 );
 
-    imageDisplayPropertiesSub5Layout->setMargin( 0 );
+    imageDisplayPropertiesSub5Layout->setContentsMargins( 0, 0, 0, 0 );
     imageDisplayPropertiesSub5Layout->addWidget( new QWidget( this ), 20 );
     imageDisplayPropertiesSub5Layout->addWidget( fullValueSlider,     100 );
 

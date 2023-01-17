@@ -82,7 +82,7 @@ void QAnalogSlider::commonSetup ()
    // Setup internal widgets.
    //
    this->layout = new QVBoxLayout (this);   // VBox
-   this->layout->setMargin (2);
+   this->layout->setContentsMargins (2, 2, 2, 2);
    this->layout->setSpacing (0);
 
    this->sliderLayout = new QHBoxLayout ();
@@ -204,8 +204,8 @@ void QAnalogSlider::setTextImage ()
 
    // The arg (...,'f') almost works but has no '+' option.
    //
-   format.sprintf ("%%+0.%df", this->mPrecision);
-   x.sprintf(format.toStdString().c_str(), this->mValue);
+   format = QString::asprintf ("%%+0.%df", this->mPrecision);
+   x = QString::asprintf (format.toStdString().c_str(), this->mValue);
 
    this->rightImage->setText (x);
 }
@@ -573,8 +573,8 @@ void QAnalogSlider::setSavedValue (const double savedValueIn)
    QString format;
    QString x;
 
-   format.sprintf ("%%+0.%df", this->mPrecision);
-   x.sprintf (format.toStdString().c_str(), this->savedValue);
+   format = QString::asprintf ("%%+0.%df", this->mPrecision);
+   x = QString::asprintf (format.toStdString().c_str(), this->savedValue);
    this->leftImage->setText (x);
 
    this->axisPainter->setMarkerValue (SAVE_REVERT_MARKER, this->savedValue);

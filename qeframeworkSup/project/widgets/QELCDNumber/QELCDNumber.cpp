@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2018 Australian Synchrotron
+ *  Copyright (c) 2018-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -91,7 +91,7 @@ void QELCDNumber::setup ()
    this->internalWidget->setSizePolicy (QSizePolicy::Preferred, QSizePolicy::Preferred);
 
    this->layout = new QHBoxLayout (this);
-   this->layout->setMargin (0);    // extact fit.
+   this->layout->setContentsMargins (0, 0, 0, 0);    // extact fit.
    this->layout->addWidget (this->internalWidget);
 
    this->setMinimumSize (this->internalWidget->minimumSize ());

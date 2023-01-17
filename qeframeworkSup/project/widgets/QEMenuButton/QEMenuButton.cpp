@@ -49,7 +49,7 @@ QEMenuButton::QEMenuButton (QWidget* parent) : QEAbstractWidget (parent)
    this->button->setSizePolicy (QSizePolicy::Preferred, QSizePolicy::Preferred);
 
    this->layout = new QHBoxLayout (this);
-   this->layout->setMargin (0);    // extact fit.
+   this->layout->setContentsMargins (0, 0, 0, 0);    // extact fit.
    this->layout->addWidget (this->button);
 
    // Set default property values

@@ -1,5 +1,7 @@
 /*  QEStripChartState.cpp
  *
+ *  Copyright (c) 2013-2022 Australian Synchrotron.
+ *
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -59,7 +59,7 @@ void QEStripChartState::saveConfiguration (PMElement& parentElement)
 
    // We use double here as toTime_t returns a uint (as opposed to an int).
    //
-   stateElement.addValue ("EndDateTime", (double) this->endDateTime.toTime_t ());
+   stateElement.addValue ("EndDateTime", (double) this->endDateTime.toSecsSinceEpoch ());
 }
 
 //------------------------------------------------------------------------------
@@ -119,14 +119,13 @@ void QEStripChartState::restoreConfiguration (PMElement& parentElement)
 
    status = stateElement.getValue ("EndDateTime", doubleVal);
    if (status) {
-      this->endDateTime.setTime_t ((uint) doubleVal);
+      this->endDateTime.setSecsSinceEpoch (qint64 (doubleVal));
    }
 }
 
 
-
 //==============================================================================
-//
+// QEStripChartStateList
 //==============================================================================
 //
 QEStripChartStateList::QEStripChartStateList ()

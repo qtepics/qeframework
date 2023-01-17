@@ -1,6 +1,9 @@
 /*  QEDialog.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,24 +18,18 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
 
-#include <QDebug>
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QMainWindow>
-#include <QTimer>
-
-#include "QECommon.h"
 #include "QEDialog.h"
+#include <QDebug>
+#include <QTimer>
+#include "QECommon.h"
 
-#define DEBUG qDebug () << "QEDialog" << __FUNCTION__ << ":" << __LINE__
+#define DEBUG qDebug () << "QEDialog"  << __LINE__ << __FUNCTION__ << "  "
 
 //------------------------------------------------------------------------------
 //
@@ -111,7 +108,7 @@ void QEDialog::relocateToCenteredPosition ()
 QRect QEDialog::constrainGeometry (const QRect& geometry)
 {
    const int gap = 20;
-   const QRect screen = QApplication::desktop ()->screenGeometry (0);
+   const QRect screen = QEUtilities::desktopGeometry ();
    const QSize size = geometry.size ();
    QPoint position = geometry.topLeft ();
 
@@ -119,16 +116,6 @@ QRect QEDialog::constrainGeometry (const QRect& geometry)
    int sleft = screen.left ();
    int sright = screen.right ();
    int sbottom = screen.bottom ();
-
-   // We assume screens are in a regular block, e.g. 1x1, 1x4, 2x2, 2x1 etc.
-   //
-   for (int j = 1; j < QApplication::desktop ()->screenCount(); j++) {
-      const QRect s2 = QApplication::desktop ()->screenGeometry (j);
-      stop    = MIN (stop,    s2.top());
-      sleft   = MIN (sleft,   s2.left());
-      sright  = MAX (sright,  s2.right());
-      sbottom = MAX (sbottom, s2.bottom());
-   }
 
    // Constain X position.
    //

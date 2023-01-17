@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2021 Australian Synchrotron.
+ *  Copyright (c) 2014-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -27,7 +27,7 @@
 #ifndef QE_PV_NAME_SEARCH_H
 #define QE_PV_NAME_SEARCH_H
 
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QString>
 #include <QStringList>
 
@@ -68,7 +68,7 @@ public:
    // PV names containing the substring str. The cs parameter determines whether
    // the string comparison is case sensitive or case insensitive.
    //
-   QStringList getMatchingPvNames (const QRegExp& regExp, const bool exactMatch) const;
+   QStringList getMatchingPvNames (const QRegularExpression& re, const bool exactMatch) const;
    QStringList getMatchingPvNames (const QString& str, const Qt::CaseSensitivity cs) const;
 
 private:

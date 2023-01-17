@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
+ *  Copyright (c) 2011-2023  Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -16,28 +18,21 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2011  Australian Synchrotron.
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
 
-//  Bit wise display of integer values.
-
-/*
-  This class is a BitStatus widget based on directly QWidget.
-  It provides similar functionality to that provided by the edm/medm/dephi
-  widgets of the same name.
- */
-
-#include <QBitStatus.h>
+#include "QBitStatus.h"
+#include <QDebug>
 #include <QECommon.h>
+
+#define DEBUG  qDebug () << "QBitStatus"  << __LINE__<< __FUNCTION__ << "  "
 
 //------------------------------------------------------------------------------
 //
-QBitStatus::QBitStatus( QWidget *parent ) : QWidget (parent)
+QBitStatus::QBitStatus (QWidget *parent) : QWidget (parent)
 {
    // Set up data
    //
@@ -76,7 +71,7 @@ QSize QBitStatus::sizeHint () const {
 
 //------------------------------------------------------------------------------
 //
-QColor QBitStatus::getBorderPaintColour ()
+QColor QBitStatus::getBorderPaintColour () const
 {
    return this->getIsActive()
          ? this->mBorderColour : QEUtilities::blandColour (this->mBorderColour);
@@ -84,7 +79,7 @@ QColor QBitStatus::getBorderPaintColour ()
 
 //------------------------------------------------------------------------------
 //
-QColor QBitStatus::getOffPaintColour ()
+QColor QBitStatus::getOffPaintColour () const
 {
    return this->getIsActive ()
          ? this->mOffColour : QEUtilities::blandColour (this->mOffColour);
@@ -92,7 +87,7 @@ QColor QBitStatus::getOffPaintColour ()
 
 //------------------------------------------------------------------------------
 //
-QColor QBitStatus::getOnPaintColour ()
+QColor QBitStatus::getOnPaintColour () const
 {
    return this->getIsActive ()
          ? this->mOnColour : QEUtilities::blandColour (this->mOnColour);
@@ -100,7 +95,7 @@ QColor QBitStatus::getOnPaintColour ()
 
 //------------------------------------------------------------------------------
 //
-QColor QBitStatus::getInvalidPaintColour ()
+QColor QBitStatus::getInvalidPaintColour () const
 {
    return this->getIsActive ()
          ? this->mInvalidColour : QEUtilities::blandColour (this->mInvalidColour);
@@ -159,9 +154,9 @@ void QBitStatus::drawItem (QPainter & painter, const QRect & rect)
 
 }
 
-/* ---------------------------------------------------------------------------
- *  Draw the bit status.
- */
+//-----------------------------------------------------------------------------
+// Draw the bit status.
+//
 void QBitStatus::paintEvent (QPaintEvent *)
 {
    QPainter painter (this);
@@ -347,7 +342,7 @@ void QBitStatus::set##name (const type value)  {             \
    }                                                         \
  }                                                           \
                                                              \
-type QBitStatus::get##name () {                              \
+type QBitStatus::get##name () const {                        \
    return this->m##name;                                     \
 }
 
@@ -401,7 +396,9 @@ void QBitStatus::setOnClearMask (const QString value)
    }
 }
 
-QString QBitStatus::getOnClearMask ()
+//-----------------------------------------------------------------------------
+//
+QString QBitStatus::getOnClearMask () const
 {
    return this->intToMask (this->mOnClearMask);
 }
@@ -420,7 +417,9 @@ void QBitStatus::setOffClearMask (const QString value)
    }
 }
 
-QString QBitStatus::getOffClearMask ()
+//-----------------------------------------------------------------------------
+//
+QString QBitStatus::getOffClearMask () const
 {
    return this->intToMask (this->mOffClearMask);
 }
@@ -429,40 +428,42 @@ QString QBitStatus::getOffClearMask ()
 //
 void QBitStatus::setReversePolarityMask (const QString value)
 {
-   int temp;
-
-   temp = this->maskToInt (value);
-
+   const int temp = this->maskToInt (value);
    if (this->mReversePolarityMask != temp) {
       this->mReversePolarityMask = temp;
       this->update ();
    }
 }
 
-QString QBitStatus::getReversePolarityMask ()
+//-----------------------------------------------------------------------------
+//
+QString QBitStatus::getReversePolarityMask () const
 {
    return this->intToMask (this->mReversePolarityMask);
 }
-
-
 
 //=============================================================================
 // Private static functions
 //=============================================================================
 //
-/* ---------------------------------------------------------------------------
- *  Converts integer to a binary mask of hexadecimal characters.
- */
-QString QBitStatus::intToMask (int n)
+// Converts integer to a binary mask of hexadecimal characters.
+//
+QString QBitStatus::intToMask (const int n)
 {
-   QString result ("");
-   result.sprintf ("%02X-%02X-%02X-%02X", (n>>24)&255, (n>>16)&255, (n>>8)&255, (n>>0)&255);
+   QString result;
+
+   const int x1 = (n>>24)&255;
+   const int x2 = (n>>16)&255;
+   const int x3 = (n>>8)&255;
+   const int x4 = (n>>0)&255;
+
+   result = QString::asprintf ("%02X-%02X-%02X-%02X", x1, x2, x3, x4);
    return result;
 }
 
-/* ---------------------------------------------------------------------------
- *  Converts a hexadecimal character mask to an integer;
- */
+//-----------------------------------------------------------------------------
+// Converts a hexadecimal character mask to an integer;
+//
 int QBitStatus::maskToInt (const QString mask)
 {
    int result;

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2019 Australian Synchrotron
+ *  Copyright (C) 2019-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -73,7 +73,7 @@ void QEOpaqueData::clear () { }   // place holder.
 QVariant QEOpaqueData::toVariant () const
 {
    QVariant result;
-   result.setValue < QEOpaqueData > (*this);
+   result.setValue (*this);
    return result;
 }
 

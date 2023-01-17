@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron
+ *  Copyright (c) 2013-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,7 @@
  */
 
 #include "QEFloatingArray.h"
+#include <algorithm>
 #include <QDebug>
 #include <QtAlgorithms>
 #include <QECommon.h>
@@ -173,9 +174,17 @@ QEFloatingArray QEFloatingArray::medianFilter (const int window)
 
          // Extract vector slice, sort and extract middle, i.e. median, value.
          //
-         QVector<double> temp = this->mid (pos, end - pos + 1);
-         qSort (temp);
-         result.append (temp [temp.size ()/2]);
+         QVector<double> qtemp = this->mid (pos, end - pos + 1);
+         std::vector <double> temp;
+
+         // Create a std vector form the QVector. Is there a better way?
+         //
+         for (int j = 0; j < qtemp.size(); j++) {
+            temp.push_back(qtemp[j]);
+         }
+
+         std::sort (temp.begin(), temp.end());
+         result.append (temp [qtemp.size ()/2]);
       }
    } else {
       // Window size is 1 (identity) or invalid - just return this vector.

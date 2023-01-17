@@ -40,6 +40,8 @@
 #include <QCoreApplication>
 #include <UserMessage.h>
 
+enum tableColName { INDEX, ENABLE, PROG, ARG, DIR, TIME, STOP, LOG, NUM_OF_COL };
+#define SMALL_COL_SIZE 60
 
 // =============================================================================
 //  QESCRIPT METHODS
@@ -1529,23 +1531,28 @@ _QTableWidgetScript::_QTableWidgetScript(QWidget *pParent) :
 //
 void _QTableWidgetScript::refreshSize()
 {
-   int i;
-   int hidden;
-
-
-   hidden = 0;
-   for(i = 0; i < this->columnCount(); i++)
+   // update small fixed cols size first
+   int num_of_small_size_cols = 0;
+   int num_of_large_size_cols = 0;
+   for(int i = 0; i < this->columnCount(); i++)
    {
-      if (this->isColumnHidden(i))
-      {
-         hidden++;
+      if (this->isColumnHidden(i)) continue;
+      if ( i < PROG || i > DIR ){
+          this->setColumnWidth(i, SMALL_COL_SIZE);
+          num_of_small_size_cols++;
+      }
+      else{
+          num_of_large_size_cols++;
       }
    }
-
-
-   for(i = 0; i < this->columnCount(); i++)
+   // update large size cols then
+   for(int i = 0; i < this->columnCount(); i++)
    {
-      this->setColumnWidth(i, this->width() / (this->columnCount() - hidden));
+      if (this->isColumnHidden(i)) continue;
+      if ( num_of_large_size_cols > 0 && i >= PROG && i <= DIR ){
+          this->setColumnWidth(i, (this->width() - num_of_small_size_cols*SMALL_COL_SIZE) / num_of_large_size_cols);
+          qDebug() << "Large";
+      }
    }
 }
 
@@ -1553,12 +1560,8 @@ void _QTableWidgetScript::refreshSize()
 //
 void _QTableWidgetScript::resizeEvent(QResizeEvent *)
 {
-   // TODO: this condition should always be execute when inside Qt Designer
-   if (initialized == false)
-   {
-      refreshSize();
-      initialized = true;
-   }
+   refreshSize();
+   initialized = true;
 }
 
 // end

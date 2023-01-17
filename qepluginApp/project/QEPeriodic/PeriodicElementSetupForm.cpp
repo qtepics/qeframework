@@ -47,7 +47,7 @@ PeriodicElementSetupForm::PeriodicElementSetupForm(const int element,
     ui->frame->setToolTip( info->name );
     ui->checkBoxEnable->setToolTip( "Check if " + info->name + " is to be selected by user" );
     QString text;
-    text.sprintf( "%-2s %3d", info->symbol.toStdString().c_str(), info->number );
+    text = QString::asprintf( "%-2s %3d", info->symbol.toStdString().c_str(), info->number );
     ui->checkBoxEnable->setText( text );
     ui->checkBoxEnable->setChecked( userInfo->enable );
     QString styleSheet;

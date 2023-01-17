@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2021 Australian Synchrotron
+ *  Copyright (c) 2021-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -167,6 +167,20 @@ void QEFormGroupBox::setUseFormTitle (const bool useFormTitleIn)
 bool QEFormGroupBox::getUseFormTitle () const
 {
    return this->useFormTitle;
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QEFormGroupBox::setUiFileName (const QString& uiFileName)
+{
+   this->setUiFileNameProperty (uiFileName);
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QEFormGroupBox::setUiFileSubstitutions (const QString& uiFileNameSubstitutions)
+{
+   this->setVariableNameSubstitutionsProperty (uiFileNameSubstitutions);
 }
 
 //------------------------------------------------------------------------------

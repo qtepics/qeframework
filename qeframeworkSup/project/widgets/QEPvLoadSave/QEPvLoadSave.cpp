@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron
+ *  Copyright (c) 2013-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -117,7 +117,7 @@ QEPvLoadSave::Halves::Halves (const Sides sideIn, QEPvLoadSave* ownerIn, QBoxLay
    layout->addWidget (container);
 
    this->halfLayout = new QVBoxLayout (this->container);
-   this->halfLayout->setMargin (2);
+   this->halfLayout->setContentsMargins (2, 2, 2, 2);
    this->halfLayout->setSpacing (2);
 
    this->header = new QFrame ();
@@ -357,7 +357,7 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    // Create internal widgets.
    //
    this->overallLayout = new QVBoxLayout (this);
-   this->overallLayout->setMargin (2);
+   this->overallLayout->setContentsMargins (2, 2, 2, 2);
    this->overallLayout->setSpacing (2);
 
    this->sidesFrame = new QFrame ();    // Note addwidget sets parent
@@ -366,7 +366,7 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    this->overallLayout->addWidget (sidesFrame);
 
    this->sideBySidelayout = new QHBoxLayout (this->sidesFrame);
-   this->sideBySidelayout->setMargin (0);
+   this->sideBySidelayout->setContentsMargins (0, 0, 0, 0);
    this->sideBySidelayout->setSpacing (2);
 
    for (int t = 0; t < ARRAY_LENGTH (this->half); t++) {

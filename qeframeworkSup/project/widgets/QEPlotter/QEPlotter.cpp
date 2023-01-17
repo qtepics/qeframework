@@ -111,7 +111,7 @@ void QEPlotter::createSlotWidgets (const int slot)
    }
 
    QHBoxLayout* frameLayout = new QHBoxLayout (frame);
-   frameLayout->setMargin (0);
+   frameLayout->setContentsMargins (0, 0, 0, 0);
    frameLayout->setSpacing (2);
 
    QPushButton* letter = new QPushButton (frame);
@@ -185,7 +185,7 @@ void QEPlotter::createInternalWidgets ()
    // Main layout.
    //
    this->vLayout = new QVBoxLayout (this);
-   this->vLayout->setMargin (4);
+   this->vLayout->setContentsMargins (4, 4, 4, 4);
    this->vLayout->setSpacing (4);
 
    // Create tool bar frame and tool buttons.
@@ -220,7 +220,7 @@ void QEPlotter::createInternalWidgets ()
    // Inside main frame - layout left to right.
    //
    this->hLayout = new QHBoxLayout (this->theMainFrame);
-   this->hLayout->setMargin (0);
+   this->hLayout->setContentsMargins (0, 0, 0, 0);
    this->hLayout->setSpacing (4);
 
    this->plotFrame = new QFrame (this->theMainFrame);
@@ -231,7 +231,7 @@ void QEPlotter::createInternalWidgets ()
    // Inside plot frame - whole thing.
    //
    this->plotLayout = new QVBoxLayout (this->plotFrame);
-   this->plotLayout->setMargin (4);
+   this->plotLayout->setContentsMargins (4, 4, 4, 4);
    this->plotLayout->setSpacing (4);
 
    this->plotArea = new QEGraphic (this->plotFrame);
@@ -278,7 +278,7 @@ void QEPlotter::createInternalWidgets ()
    this->itemScrollArea->setWidget (this->itemFrame);
 
    this->itemLayout = new QVBoxLayout (this->itemFrame);
-   this->itemLayout->setMargin (2);
+   this->itemLayout->setContentsMargins (2, 2, 2, 2);
    this->itemLayout->setSpacing (4);
 
    for (slot = 0; slot < ARRAY_LENGTH (this->xy); slot++) {
@@ -290,7 +290,7 @@ void QEPlotter::createInternalWidgets ()
    // Inside status frame - layout left to right.
    //
    this->statusLayout = new QHBoxLayout (this->statusFrame);
-   this->statusLayout->setMargin (4);
+   this->statusLayout->setContentsMargins (4, 4, 4, 4);
    this->statusLayout->setSpacing (8);
 
    this->slotIndicator = new QLabel ("", this->statusFrame);
@@ -1615,8 +1615,7 @@ void QEPlotter::pvNameDropEvent (const int slot, QDropEvent *event)
    if (!mime->text().isEmpty ()) {
       // Get the component textual parts
       //
-      QStringList pieces = mime->text ().split (QRegExp ("\\s+"),
-                                                QString::SkipEmptyParts);
+      QStringList pieces = QEUtilities::split (mime->text ());
 
       // Carry out the drop action
       //
@@ -1862,32 +1861,32 @@ void QEPlotter::plotMouseMove (const QPointF& posn)
 
    mouseReadOut = "";
 
-   f.sprintf ("  x: %+.6g", posn.x ());
+   f = QString::asprintf ("  x: %+.6g", posn.x ());
    mouseReadOut.append (f);
 
-   f.sprintf ("  y: %+.6g", posn.y ());
+   f = QString::asprintf ("  y: %+.6g", posn.y ());
    mouseReadOut.append (f);
 
    if (this->plotArea->getSlopeIsDefined (slope)) {
       const double dx = slope.x ();
       const double dy = slope.y ();
 
-      f.sprintf ("  dx: %+.6g", dx);
+      f = QString::asprintf ("  dx: %+.6g", dx);
       mouseReadOut.append (f);
 
-      f.sprintf ("  dy: %+.6g", dy);
+      f = QString::asprintf ("  dy: %+.6g", dy);
       mouseReadOut.append (f);
 
       // Calculate slope, but avoid the divide by 0.
       //
       mouseReadOut.append ("  dy/dx: ");
       if (dx != 0.0) {
-         f.sprintf ("%+.6g", dy/dx);
+         f = QString::asprintf ("%+.6g", dy/dx);
       } else {
          if (dy != 0.0) {
-            f.sprintf ("%sinf", (dy >= 0.0) ? "+" : "-");
+            f = QString::asprintf ("%sinf", (dy >= 0.0) ? "+" : "-");
          } else {
-            f.sprintf ("n/a");
+            f = QString::asprintf ("n/a");
          }
       }
       mouseReadOut.append (f);

@@ -39,6 +39,7 @@
 #include <QStringList>
 #include <QModelIndex>
 #include <QModelIndexList>
+#include <QEStringFormatting.h>
 
 #include <QEMenuButton.h>
 #include <QEMenuButtonItem.h>

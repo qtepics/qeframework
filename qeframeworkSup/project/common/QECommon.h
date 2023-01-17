@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron.
+ *  Copyright (c) 2013-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,6 +31,7 @@
 #include <math.h>
 #include <QDateTime>
 #include <QList>
+#include <QRect>
 #include <QObject>
 #include <QString>
 #include <QStringList>
@@ -217,6 +218,10 @@ public:
     ///
     static QWidget* findWidget (QWidget* parent, const QString& className);
 
+    /// Split a string to a string list based on white space, skipping empty parts.
+    ///
+    static QStringList split (const QString& s);
+
     /// Converts QVariant to a QStringList, where each string item is further
     /// split using white space as delimiter. This function was principally
     /// designed for use within the paste/drop functions of widgets that support
@@ -256,6 +261,15 @@ public:
     /// Gets the form title of the containing MainWindow if found, else empty string.
     ///
     static QString getWindowTitle (QWidget* widget);
+
+    /// Returns the virtual desktop geometry.
+    ///
+    static QRect desktopGeometry ();
+
+    /// Returns the screen geometry (of the specified widget)
+    /// If specified widhet is null, then returns desktopGeometry.
+    ///
+    static QRect screenGeometry (QWidget* widget);
 
     /// Testing only - outputs the widget hierarchy to std out.
     ///

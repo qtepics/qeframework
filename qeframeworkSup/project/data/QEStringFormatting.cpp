@@ -111,7 +111,7 @@ QVariant QEStringFormatting::formatValue (const QString& text, bool& ok) const
    QVariant value;
 
    // Strip unit if present
-   QString unitlessText = text.trimmed ();
+   QString unitlessText = text;
    if (this->addUnits) {
       if (this->dbEgu == unitlessText.right (this->dbEgu.length ()))
          unitlessText.chop (this->dbEgu.length ());

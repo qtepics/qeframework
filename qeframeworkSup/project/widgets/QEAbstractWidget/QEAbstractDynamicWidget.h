@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2016-2021 Australian Synchrotron
+ *  Copyright (c) 2016-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -33,6 +33,8 @@
 #include <QEFrameworkLibraryGlobal.h>
 #include <ContainerProfile.h>
 #include <QEFrame.h>
+
+class QELabel;    // differed - need avoid some weird meta data compiler error.
 
 /// Provides a common abstract base class for dynamic widgets, i.e. dynamic in the
 /// sense that the user can add/removed and modifiy PVs used by the widget at run time.
@@ -143,7 +145,10 @@ protected:
    virtual void pvLabelModeChanged ();                // Used for sub-class notification
    virtual void enableEditPvChanged ();               // Used for sub-class notification
 
-   userLevelTypes::userLevels minimumEditPvUserLevel () const; // Sub-class convienence
+   // Sub-class convienence utility functions.
+   //
+   userLevelTypes::userLevels minimumEditPvUserLevel () const;
+   void setStandardFormat (QELabel* dataLabel);
 
 protected slots:
    // Leverage off the persistant manager capability to load/save widget configurations.

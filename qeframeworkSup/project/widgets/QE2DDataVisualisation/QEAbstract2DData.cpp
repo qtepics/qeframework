@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020-2021 Australian Synchrotron.
+ *  Copyright (c) 2020-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,7 @@
  */
 
 #include "QEAbstract2DData.h"
+#include <algorithm>
 #include <QAction>
 #include <QDebug>
 #include <QECommon.h>
@@ -319,21 +320,21 @@ double QEAbstract2DData::getBinnedValue (const int r1, const int r2,
    else if (this->mDataBinning == median) {
       // Take median of all values
       //
-      OneDVectorData theBin (number);
+      std::vector<double> theBin;
 
       for (int r = r1; r <= r2; r++) {
          for (int c = c1; c <= c2; c++) {
             double value = this->getDataValue (r, c, noValue);
             if (value != noValue) {
-               theBin.append (value);
+               theBin.push_back (value);
             }
          }
       }
 
-      const int count = theBin.count();
+      const int count = theBin.size();
       if (count > 0) {
-         qSort (theBin);
-         result = theBin.value (count/2);
+         std::sort(theBin.begin(), theBin.end());
+         result = theBin[count/2];
       } else {
          result = noValue;
       }

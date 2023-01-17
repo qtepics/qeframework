@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2020 Australian Synchrotron
+ *  Copyright (c) 2015-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -677,14 +677,14 @@ void QEAxisPainter::paint (QPainter& painter,
 
          if (this->getLogScale ()) {
             vt.setNum (mvalue, 'e', 0);
-            // vt.sprintf ("%.0e", mvalue);
+            // vt = QString::asprintf ("%.0e", mvalue);
          } else {
             vt.setNum (mvalue, 'f', this->mPrecision);
             // vt = QString ("%1").arg (mvalue, 0, 'g', 4);
             // if (!vt.contains(".")) vt.append(".0");
          }
 
-         this->maxTextWidth = MAX (this->maxTextWidth, fm.width (vt));
+         this->maxTextWidth = MAX (this->maxTextWidth, fm.horizontalAdvance (vt));
          this->maxTextHeight = 10;
 
          p2 = this->isLeftRight () ? QPoint (x, y + sign*(majorTick + 1)) :
@@ -773,7 +773,7 @@ void QEAxisPainter::drawAxisText (QPainter& painter, const QPoint& position,
    painter.setFont (pf);
 
    QFontMetrics fm = painter.fontMetrics ();
-   const int textWidth = fm.width (text);
+   const int textWidth = fm.horizontalAdvance (text);
    const int textHeight = pf.pointSize ();  // For height, pointSize seems better than fm.height ()
 
    int x;

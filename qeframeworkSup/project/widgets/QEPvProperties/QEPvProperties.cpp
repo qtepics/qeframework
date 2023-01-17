@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2021 Australian Synchrotron.
+ *  Copyright (c) 2012-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -274,7 +274,7 @@ void QEPvProperties::createInternalWidgets ()
    this->table = new QTableWidget (40, NUMBER_COLS, this);
 
    this->vlayout = new QVBoxLayout (this);
-   this->vlayout->setMargin (4);
+   this->vlayout->setContentsMargins (4, 4, 4, 4);
    this->vlayout->setSpacing (4);
    this->vlayout->addWidget (this->topFrame);
    this->vlayout->addWidget (this->enumerationResize);
@@ -382,10 +382,12 @@ void QEPvProperties::common_setup ()
 
    // Configure widgets
    //
+#if QT_VERSION < 0x060000
 #ifndef QT_NO_COMPLETER
    // Could not get completer to work
    this->box->setAutoCompletion (true);
    this->box->setAutoCompletionCaseSensitivity (Qt::CaseSensitive);
+#endif
 #endif
 
    this->box->setEditable (true);

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron
+ *  Copyright (c) 2012-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -25,6 +25,7 @@
  */
 
 #include <QELog.h>
+#include <QBrush>
 #include <QDebug>
 #include <QList>
 #include <QStringList>
@@ -376,11 +377,13 @@ void QELog::setOptionsLayout (optionsLayoutProperty pValue)
 
    delete layout ();
 
+   const int m = this->mainLayoutMargin;
+
    switch (pValue) {
       case Top:
          this->optionsLayout = Top;
          qLayoutMain = new QVBoxLayout (this);
-         qLayoutMain->setMargin (this->mainLayoutMargin);
+         qLayoutMain->setContentsMargins (m, m, m, m);
          qLayoutChild = new QHBoxLayout ();
          qLayoutChild->addWidget (qCheckBoxInfoMessage);
          qLayoutChild->addWidget (qCheckBoxWarningMessage);
@@ -396,7 +399,7 @@ void QELog::setOptionsLayout (optionsLayoutProperty pValue)
       case Bottom:
          this->optionsLayout = Bottom;
          qLayoutMain = new QVBoxLayout (this);
-         qLayoutMain->setMargin (this->mainLayoutMargin);
+         qLayoutMain->setContentsMargins (m, m, m, m);
          qLayoutChild = new QHBoxLayout ();
          qLayoutMain->addWidget (qTableWidgetLog);
          qLayoutChild->addWidget (qCheckBoxInfoMessage);
@@ -412,7 +415,7 @@ void QELog::setOptionsLayout (optionsLayoutProperty pValue)
       case Left:
          this->optionsLayout = Left;
          qLayoutMain = new QHBoxLayout (this);
-         qLayoutMain->setMargin (this->mainLayoutMargin);
+         qLayoutMain->setContentsMargins (m, m, m, m);
          qLayoutChild = new QVBoxLayout ();
          qLayoutChild->addWidget (qCheckBoxInfoMessage);
          qLayoutChild->addWidget (qCheckBoxWarningMessage);
@@ -426,7 +429,7 @@ void QELog::setOptionsLayout (optionsLayoutProperty pValue)
       case Right:
          this->optionsLayout = Right;
          qLayoutMain = new QHBoxLayout (this);
-         qLayoutMain->setMargin (this->mainLayoutMargin);
+         qLayoutMain->setContentsMargins (m, m, m, m);
          qLayoutChild = new QVBoxLayout ();
          qLayoutChild->addWidget (qCheckBoxInfoMessage);
          qLayoutChild->addWidget (qCheckBoxWarningMessage);
@@ -665,17 +668,20 @@ void QELog::addLog (int pType, QString pMessage,
       qTableWidgetLog->setRowHidden (i, !this->qCheckBoxErrorMessage->isChecked ());
    }
 
-   qTableWidgetItem =
-         new QTableWidgetItem (dateTime.toString ("yyyy/MM/dd - hh:mm:ss"));
-   qTableWidgetItem->setTextColor (color);
+   QBrush brush;
+   brush.setStyle (Qt::SolidPattern);
+   brush.setColor (color);
+
+   qTableWidgetItem = new QTableWidgetItem (dateTime.toString ("yyyy/MM/dd - hh:mm:ss"));
+   qTableWidgetItem->setForeground (brush);
    this->qTableWidgetLog->setItem (i, 0, qTableWidgetItem);
 
    qTableWidgetItem = new QTableWidgetItem (type);
-   qTableWidgetItem->setTextColor (color);
+   qTableWidgetItem->setForeground (brush);
    this->qTableWidgetLog->setItem (i, 1, qTableWidgetItem);
 
    qTableWidgetItem = new QTableWidgetItem (pMessage);
-   qTableWidgetItem->setTextColor (color);
+   qTableWidgetItem->setForeground (brush);
    this->qTableWidgetLog->setItem (i, 2, qTableWidgetItem);
 
    if (this->isScrollToBottom) {
@@ -707,13 +713,17 @@ void QELog::refreshLog ()
          color = this->qColorError;
       }
 
-      qTableWidgetItem->setTextColor (color);
+      QBrush brush;
+      brush.setStyle (Qt::SolidPattern);
+      brush.setColor (color);
+
+      qTableWidgetItem->setForeground (brush);
 
       qTableWidgetItem = this->qTableWidgetLog->item (i, 0);
-      qTableWidgetItem->setTextColor (color);
+      qTableWidgetItem->setForeground (brush);
 
       qTableWidgetItem = this->qTableWidgetLog->item (i, 2);
-      qTableWidgetItem->setTextColor (color);
+      qTableWidgetItem->setForeground (brush);
    }
 }
 
@@ -724,7 +734,7 @@ void QELog::setMargin (int marginIn)
    this->mainLayoutMargin = LIMIT (marginIn, -1, 32);
    QLayout* layout = this->layout();
    if (layout) {
-      layout->setMargin (this->mainLayoutMargin);
+      layout->setContentsMargins (this->mainLayoutMargin, this->mainLayoutMargin, this->mainLayoutMargin, this->mainLayoutMargin);
    }
 }
 

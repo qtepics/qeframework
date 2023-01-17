@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron.
+ *  Copyright (c) 2013-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -83,7 +83,7 @@ void QENumericEdit::commonSetup ()
    this->internalWidget->setSizePolicy (QSizePolicy::Preferred, QSizePolicy::Preferred);
 
    this->layout = new QHBoxLayout (this);
-   this->layout->setMargin (0);    // extact fit.
+   this->layout->setContentsMargins (0, 0, 0, 0);    // extact fit.
    this->layout->setSpacing (QEScaling::scale (4));
 
    // The layout takes ownership.
@@ -190,7 +190,7 @@ QENumericEdit::~QENumericEdit ()
 void QENumericEdit::setApplyButtonWidth ()
 {
    QFontMetrics fm (this->applyButton->font());
-   const int textWidth = fm.width (applyButtonText + "   ");  // allow 1.5 spaces each side
+   const int textWidth = fm.horizontalAdvance (applyButtonText + "   ");  // allow 1.5 spaces each side
    const int useWidth = MAX (textWidth, this->height());      // square or wider
    this->applyButton->setFixedWidth (useWidth);
 }

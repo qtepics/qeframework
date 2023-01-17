@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2019 Australian Synchrotron
+ *  Copyright (C) 2018-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -224,7 +224,7 @@ QVariant QENTTableData::getItem (const int row, const int col) const
 QVariant QENTTableData::toVariant () const
 {
    QVariant result;
-   result.setValue < QENTTableData > (*this);
+   result.setValue (*this);
    return result;
 }
 

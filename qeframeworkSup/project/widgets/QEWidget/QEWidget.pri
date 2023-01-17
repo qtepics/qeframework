@@ -38,8 +38,6 @@ SOURCES += $$PWD/QEDragDrop.cpp
 HEADERS += $$PWD/QEEmitter.h
 SOURCES += $$PWD/QEEmitter.cpp
 
-HEADERS += $$PWD/QEEnums.h
-
 HEADERS += $$PWD/QEFrameworkLibraryGlobal.h
 
 HEADERS += $$PWD/QEGlobalStyle.h

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (c) 2014-2020  Australian Synchrotron.
+ *  Copyright (c) 2014-2022  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -29,6 +29,7 @@
 #include <QBrush>
 #include <QMouseEvent>
 #include <QPen>
+#include <QRandomGenerator>
 
 #include <QECommon.h>
 #include <QEScaling.h>
@@ -605,7 +606,7 @@ int QEHistogram::maxPaintTextWidth (QPainter& painter) const
          if (j > 1000) break;  // sainity check
 
          QString text = this->coordinateText (value);
-         int w = fm.width (text);
+         int w = fm.horizontalAdvance (text);
          if (result < w) result = w;
       }
    } else {
@@ -931,6 +932,8 @@ bool QEHistogram::eventFilter (QObject *obj, QEvent* event)
 //
 void QEHistogram::createTestData ()
 {
+   QRandomGenerator rg;
+
    this->clear ();
 
    for (int j = 0; j < this->mTestSize; j++) {
@@ -943,12 +946,12 @@ void QEHistogram::createTestData ()
       if (j == 0 || j == this->mTestSize - 1) {
          v = this->mMaximum;
       } else {
-         f = qrand () / (double) RAND_MAX;
+         f = rg.generateDouble();
          v = f * (this->mMaximum - this->mMinimum) +  this->mMinimum;
       }
 
-      f = qrand () / (double) RAND_MAX;
-      c.setHsl ((int)(f * 360.0), 255, 128);
+      f = rg.generateDouble();
+      c.setHsl (int (f * 360.0), 255, 128);
 
       this->dataArray << v;
       this->colourArray << c;
@@ -981,7 +984,8 @@ type QEHistogram::get##name () const {                       \
 
 PROPERTY_ACCESS (int,    BarWidth,         LIMIT (value, 1, 120),                                 NO_EXTRA)
 PROPERTY_ACCESS (int,    Gap,              LIMIT (value, 0, 20),                                  NO_EXTRA)
-PROPERTY_ACCESS (int,    Margin,           LIMIT (value, 0, 20),                                  this->layoutA->setMargin (this->mMargin))
+PROPERTY_ACCESS (int,    Margin,           LIMIT (value, 0, 20),                                  this->layoutA->setContentsMargins (this->mMargin, this->mMargin, 
+                                                                                                                                     this->mMargin, this->mMargin))
 PROPERTY_ACCESS (double, Minimum,          LIMIT (value, -1.0E20, this->mMaximum - MINIMUM_SPAN), this->mAutoScale = false)
 PROPERTY_ACCESS (double, Maximum,          LIMIT (value, this->mMinimum + MINIMUM_SPAN, +1.0E40), this->mAutoScale = false)
 PROPERTY_ACCESS (double, BaseLine,         value,                                                 NO_EXTRA)
@@ -1032,7 +1036,7 @@ void QEHistogram::setOrientation (const Qt::Orientation orientation)
       this->layoutB = SELECT ((QBoxLayout*) new QHBoxLayout (this->histogramAxisPlusArea),
                               (QBoxLayout*) new QVBoxLayout (this->histogramAxisPlusArea));
 
-      this->layoutB->setMargin (0);
+      this->layoutB->setContentsMargins (0, 0, 0, 0);
       this->layoutB->setSpacing (0);
 
       this->axisPainter->setOrientation (SELECT (QEAxisPainter::Bottom_To_Top,
@@ -1052,7 +1056,7 @@ void QEHistogram::setOrientation (const Qt::Orientation orientation)
       this->layoutA = SELECT ((QBoxLayout*) new QVBoxLayout (this),
                               (QBoxLayout*) new QHBoxLayout (this));
 
-      this->layoutA->setMargin (this->mMargin);
+      this->layoutA->setContentsMargins (this->mMargin, this->mMargin, this->mMargin, this->mMargin);
       this->layoutA->setSpacing (2);
 
       this->scrollbar->setOrientation (orientation);

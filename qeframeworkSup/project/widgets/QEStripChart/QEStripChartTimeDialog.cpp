@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2012-2022 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -16,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012,2016 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
@@ -25,8 +25,8 @@
  *
  */
 
+#include "QEStripChartTimeDialog.h"
 #include <QDebug>
-#include <QEStripChartTimeDialog.h>
 #include <QECommon.h>
 #include <ui_QEStripChartTimeDialog.h>
 
@@ -151,23 +151,8 @@ QDateTime QEStripChartTimeDialog::getEndDateTime ()
 //
 QString QEStripChartTimeDialog::timeFormat (const int duration)
 {
-   QString image;
-   int temp = ABS (duration);
-   int days;
-   int hours;
-   int mins;
-   int secs;
-
-   #define EXTRACT(item, spi) { item = temp / spi; temp = temp - (spi * item); }
-
-   EXTRACT (days, 86400);
-   EXTRACT (hours, 3600);
-   EXTRACT (mins, 60);
-   EXTRACT (secs, 1);
-
-   #undef EXTRACT
-
-   image.sprintf ("%s%d %02d:%02d:%02d", (duration < 0 ? "-" : ""), days, hours, mins, secs);
+   QString image;   
+   image = QEUtilities::intervalToString (duration, 0, true);
    return image;
 }
 

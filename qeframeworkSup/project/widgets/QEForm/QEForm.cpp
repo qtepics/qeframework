@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2020 Australian Synchrotron
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -57,6 +57,7 @@
 
 static const QString noFileNameSpecified = QString ("No file name specified");
 
+//------------------------------------------------------------------------------
 // Constructor.
 // No UI file is read. After construction uiFileName (and macroSubstitution)
 // properties must be set and then QEForm::readUiFile() called.  If this QEForm
@@ -75,9 +76,10 @@ QEForm::QEForm( QWidget* parent ) :
    // Don't alert if UI is not found (it wont be as there isn't one specified) and
    // note that form won't be loaded manually. It will load automatically
    // when QE widgets are 'activated' (when updates are initiated)
-   commonInit( false, false );
+   this->commonInit( false, false );
 }
 
+//------------------------------------------------------------------------------
 // Constructor.
 // UI filename is supplied and saved. No filename or macro substituition properties
 // need to be set, and the caller must call QEForm::readUiFile() after construction
@@ -89,35 +91,36 @@ QEForm::QEForm( const QString& uiFileNameIn, QWidget* parent ) :
    // Common construction
    // Alert if UI is not found and note that form will be loaded manually -  it
    // will not load automatically when QE widgets are 'activated' (when updates are initiated)
-   commonInit( true, true );
+   this->commonInit( true, true );
 
    // Set up the filename during construction
-   uiFileName = uiFileNameIn;
+   this->uiFileName = uiFileNameIn;
 }
 
+//------------------------------------------------------------------------------
 // Common construction
 void QEForm::commonInit( const bool alertIfUINoFoundIn, const bool loadManuallyIn )
 {
    // Set up the number of variables managed by the variable name manager.
    // NOTE: there is no data associated with this widget, but it uses the same mechanism as other data widgets to manage the UI filename and macro substitutions.
    // The standard variable name and macros mechanism is used by QEForm for UI file name and marcos
-   setNumVariables(1);
+   this->setNumVariables(1);
 
    // Note if this QEForm widget will be manually loaded by calling QEForm::readUiFile()
    // If loadManually is set true, it will not load automatically when QE widgets are 'activated' (when updates are initiated)
    // If loadManually is set false, this QEForm widget will load itself when QE widgets are 'activated' (when updates are initiated)
-   loadManually = loadManuallyIn;
+   this->loadManually = loadManuallyIn;
 
-   savedCurrentPath = "";
+   this->savedCurrentPath = "";
 
-   setAcceptDrops(true);
+   this->setAcceptDrops(true);
 
-   ui = NULL;
+   this->ui = NULL;
 
-   placeholderLabel = NULL;
+   this->placeholderLabel = NULL;
 
-   disconnectedCountRef = NULL;
-   connectedCountRef = NULL;
+   this->disconnectedCountRef = NULL;
+   this->connectedCountRef = NULL;
 
    // If in designer mark up the form noting there is no file name set yet.
    // If not in designer, this will be done then establishConnection() is called.
@@ -126,19 +129,19 @@ void QEForm::commonInit( const bool alertIfUINoFoundIn, const bool loadManuallyI
    // This was done all the time without any problems when the file was loaded
    // synchronously. Now establishConnection() loads the form as a timed event.
    //
-   if( inDesigner() ){
-      displayPlaceholder( noFileNameSpecified );
+   if( this->inDesigner() ){
+      this->displayPlaceholder( noFileNameSpecified );
    }
 
-   alertIfUINoFound = alertIfUINoFoundIn;
-   handleGuiLaunchRequests = false;
-   resizeContents = true;
+   this->alertIfUINoFound = alertIfUINoFoundIn;
+   this->handleGuiLaunchRequests = false;
+   this->resizeContents = true;
 
    // Set up the UserMessage class
-   setFormFilter( MESSAGE_FILTER_MATCH );
-   setSourceFilter( MESSAGE_FILTER_NONE );
-   childMessageFormId = getNextMessageFormId();
-   setChildFormId( childMessageFormId );
+   this->setFormFilter( MESSAGE_FILTER_MATCH );
+   this->setSourceFilter( MESSAGE_FILTER_NONE );
+   this->childMessageFormId = getNextMessageFormId();
+   this->setChildFormId( childMessageFormId );
 
    // Setup a valid local profile if no profile was published
    if( !isProfileDefined() )
@@ -149,31 +152,35 @@ void QEForm::commonInit( const bool alertIfUINoFoundIn, const bool loadManuallyI
    }
 
    // Altough we still monitor the file, we ignore chanhes unless ebabled.
-   fileMonitoringIsEnabled = false;
+   this->fileMonitoringIsEnabled = false;
 
    // Prepare to recieve notification that the ui file being displayed has changed
-   QObject::connect( &fileMon, SIGNAL( fileChanged( const QString & ) ),
-                     this,     SLOT(   fileChanged( const QString & ) ) );
+   QObject::connect( &this->fileMon, SIGNAL( fileChanged( const QString & ) ),
+                     this,           SLOT(   fileChanged( const QString & ) ) );
 
 
    // Set up a connection to recieve variable name property changes (Actually only interested in substitution changes
-   QObject::connect( &variableNamePropertyManager, SIGNAL(  newVariableNameProperty( QString, QString, unsigned int ) ),
-                     this,                         SLOT( useNewVariableNameProperty( QString, QString, unsigned int) ) );
+   QObject::connect( &this->variableNamePropertyManager, SIGNAL(  newVariableNameProperty( QString, QString, unsigned int ) ),
+                     this,                               SLOT( useNewVariableNameProperty( QString, QString, unsigned int) ) );
 }
 
+//------------------------------------------------------------------------------
 // Destructor.
 QEForm::~QEForm()
 {
    // Close any existing form
-   if( ui )
-      ui->close();
+   if( this->ui )
+      this->ui->close();
 }
 
+//------------------------------------------------------------------------------
+//
 QSize QEForm::sizeHint () const
 {
    return QSize (200, 40);
 }
 
+//------------------------------------------------------------------------------
 /*
     Start updating. (or in the case of QEForm widget, load the form)
     Implementation of VariableNameManager's virtual funtion to establish a connection
@@ -184,7 +191,7 @@ QSize QEForm::sizeHint () const
 void QEForm::establishConnection( unsigned int variableIndex )
 {
    // Do nothing if form will be manually loaded by calling QEForm::readUiFile()
-   if( loadManually )
+   if( this->loadManually )
       return;
 
    // Get the fully substituted variable name
@@ -201,22 +208,25 @@ void QEForm::establishConnection( unsigned int variableIndex )
    // Avoid loading a form twice if file name has not changed. This is
    // especially important if forms are deeply nested causing the problem
    // to grow exponentially
-   if( newFileName != uiFileName )
+   if( newFileName != this->uiFileName )
    {
       // Note the required filename and schedule it to be loaded once all events have
       // been processed. It may be loaded immediately by calling readUiFile() now,
       // but this keeps things a bit more interactive.
-      uiFileName = newFileName;
+      this->uiFileName = newFileName;
       QTimer::singleShot( 0, this, SLOT(reloadLater()));
    }
 }
 
+//------------------------------------------------------------------------------
 // Clear names.
-void QEForm::clearUiFileNames () {
-   uiFileName = "";
-   fullUiFileName = "";
+void QEForm::clearUiFileNames ()
+{
+   this->uiFileName = "";
+   this->fullUiFileName = "";
 }
 
+//------------------------------------------------------------------------------
 // Load the form once all events have been processed.
 void QEForm::reloadLater()
 {
@@ -225,9 +235,10 @@ void QEForm::reloadLater()
 
    // And propogate fileMonitoringIsEnabled state to any sub QEForms.
    //
-   setEmbeddedFileMonitoringIsEnabled( this, fileMonitoringIsEnabled );
+   setEmbeddedFileMonitoringIsEnabled( this, this->fileMonitoringIsEnabled );
 }
 
+//------------------------------------------------------------------------------
 // Debug function to list the widget hierarchy
 //void showObjects( QObject* obj )
 //{
@@ -248,23 +259,24 @@ void QEForm::reloadLater()
 //    depth--;
 //}
 
+//------------------------------------------------------------------------------
 // Read a UI file.
 // The file read depends on the value of uiFileName
 bool QEForm::readUiFile()
 {
    // Close any pre-existing gui in the form
-   if( ui )
+   if( this->ui )
    {
       delete ui;
-      ui = NULL;
+      this->ui = NULL;
    }
 
    // Assume file is bad
    bool fileLoaded = false;
-   savedCurrentPath = "";
+   this->savedCurrentPath = "";
 
    // If no name has been provided...
-   if (uiFileName.isEmpty())
+   if (this->uiFileName.isEmpty())
    {
       displayPlaceholder( noFileNameSpecified );
    }
@@ -299,19 +311,20 @@ bool QEForm::readUiFile()
 
          // Note the full file path
          QDir uiDir;
-         fullUiFileName = uiDir.cleanPath( uiDir.absoluteFilePath( uiFile->fileName() ) );
+         this->fullUiFileName = uiDir.cleanPath( uiDir.absoluteFilePath( uiFile->fileName() ) );
 
          // Ensure no other files are being monitored (belt and braces)
-         fileMon.clearPath();
+         this->fileMon.clearPath();
 
          // Is this a resource file?
-         bool isResourceFile = (fullUiFileName.left(1).compare( QString( ":" )) == 0);
+         bool isResourceFile = (this->fullUiFileName.left(1).compare( QString( ":" )) == 0);
+         // try this->fullUiFileName.startsWith(":");
 
          // Monitor the opened file (if not from the Qt resource database which can't be monitored)
          // Do not monitor if not enabled - this uses resourses.
-         if( !isResourceFile && fileMonitoringIsEnabled)
+         if( !isResourceFile && this->fileMonitoringIsEnabled)
          {
-            fileMon.setPath( fullUiFileName );
+            this->fileMon.setPath( this->fullUiFileName );
          }
 
          // If profile has been published (for example by an application creating this form), then publish our own local profile
@@ -333,7 +346,7 @@ bool QEForm::readUiFile()
          setPublishedParentPath( fileInfo.absolutePath() );
 
          // If this form is handling form launch requests from object created within it, replace any form launcher with our own
-         if( handleGuiLaunchRequests )
+         if( this->handleGuiLaunchRequests )
             savedGuiLaunchConsumer = replaceGuiLaunchConsumer( this );
 
          // Note the current published message form ID, and set up a new
@@ -341,7 +354,7 @@ bool QEForm::readUiFile()
          // This new message form ID will also be used when matching the
          // form ID of received messages
          unsigned int parentMessageFormId = getPublishedMessageFormId();
-         setPublishedMessageFormId( childMessageFormId );
+         setPublishedMessageFormId( this->childMessageFormId );
 
          // Flag the newly created QE widgets of this form should hold off activating
          // themselves (connecting) until the form has been fully loaded.
@@ -358,7 +371,7 @@ bool QEForm::readUiFile()
          if( isResourceFile ) {
             // Just load it.
             //
-            ui = loader.load( uiFile );
+            this->ui = loader.load( uiFile );
          } else {
             // This is a regular file.
             // Change the current directory to the directory holding the ui file before
@@ -368,7 +381,7 @@ bool QEForm::readUiFile()
             // location of any reference file has been maintained from designer environment
             // to the deployed environment.
             //
-            savedCurrentPath = QDir::currentPath();
+            this->savedCurrentPath = QDir::currentPath();
 
             // Find fullUiFileName containing directory name.
             QString loaderPath = QFileInfo (fullUiFileName).dir().path ();
@@ -376,18 +389,18 @@ bool QEForm::readUiFile()
             bool b = QDir::setCurrent( loaderPath );
             if (!b) DEBUG << "set loader path " << loaderPath << " failed";
 
-            ui = loader.load( uiFile );
+            this->ui = loader.load( uiFile );
 
             // Now reset the current path back to where we were.
             //
-            resetCurrentPath();
+            this->resetCurrentPath();
          }
          uiFile->close();
 
          if( !ui )
          {
             // Load a placeholder as the ui file could not be loaded
-            displayPlaceholder( QString( "Could not load " ).append( fullUiFileName ) );
+            this->displayPlaceholder( QString( "Could not load " ).append( fullUiFileName ) );
          }
 
          // Apply scaling. This may be re-applied if this is an embedded QEForm, but
@@ -398,25 +411,25 @@ bool QEForm::readUiFile()
          QEScaling::applyToWidget( ui );
 
          // Set the window title (performing macro substitutions if required)
-         setupWindowTitle( uiFile->fileName() );
+         this->setupWindowTitle( uiFile->fileName() );
 
          // Reset the flag indicating newly created QE widgets of this form should hold off activating
          // themselves (connecting) until the form has been fully loaded.
-         setDontActivateYet( oldDontActivateYet );
+         this->setDontActivateYet( oldDontActivateYet );
 
          // Restore the original published message form ID
-         setPublishedMessageFormId( parentMessageFormId );
+         this->setPublishedMessageFormId( parentMessageFormId );
 
          // Remove this form's macro substitutions now all it's children are created
-         removePriorityMacroSubstitutions();
+         this->removePriorityMacroSubstitutions();
 
          // Reset the published current object's path to what ever it was
-         setPublishedParentPath( getParentPath() );
+         this->setPublishedParentPath( this->getParentPath() );
 
          // If this form is handling form launch requests from object created within it, put back any original
          // form launcher now all objects have been created
-         if ( handleGuiLaunchRequests )
-            replaceGuiLaunchConsumer( savedGuiLaunchConsumer );
+         if ( this->handleGuiLaunchRequests )
+            this->replaceGuiLaunchConsumer( savedGuiLaunchConsumer );
 
          // Any QE widgets that have just been created need to be activated.
          // They can be activated now all the widgets have been loaded in this form.
@@ -434,11 +447,11 @@ bool QEForm::readUiFile()
             QEWidget* containedWidget;
             while( (containedWidget = getNextContainedWidget()) )
             {
-               if( containedFrameworkVersion.isEmpty() )
+               if( this->containedFrameworkVersion.isEmpty() )
                {
-                  containedFrameworkVersion = containedWidget->getFrameworkVersion();
-                  disconnectedCountRef = containedWidget->getDisconnectedCountRef();
-                  connectedCountRef = containedWidget->getConnectedCountRef();
+                  this->containedFrameworkVersion = containedWidget->getFrameworkVersion();
+                  this->disconnectedCountRef = containedWidget->getDisconnectedCountRef();
+                  this->connectedCountRef = containedWidget->getConnectedCountRef();
                }
                containedWidget->activate();
             }
@@ -447,15 +460,15 @@ bool QEForm::readUiFile()
          // If the published profile was published within this method, release it so nothing created later tries to use this object's services
          if( localProfile )
          {
-            releaseProfile();
+            this->releaseProfile();
          }
 
          // If a .ui is present, manage resizing it
-         if( ui )
+         if( this->ui )
          {
             // If the QEForm contents should take all its sizing clues from the QEForm, then set the top ui widget to match
             // the QEForm's size related properties.
-            if( resizeContents )
+            if( this->resizeContents )
             {
                QRect formRect = ui->geometry();
                ui->setGeometry( formRect.x(), formRect.y(), width(), height() );
@@ -471,12 +484,12 @@ bool QEForm::readUiFile()
             else
             {
                QRect formRect = geometry();
-               setGeometry( formRect.x(), formRect.y(), ui->width(), ui->height() );
-               setSizePolicy( ui->sizePolicy() );
-               setMinimumSize( ui->minimumSize() );
-               setMaximumSize( ui->maximumSize() );
-               setSizeIncrement( ui->sizeIncrement() );
-               setBaseSize( ui->baseSize() );
+               this->setGeometry( formRect.x(), formRect.y(), ui->width(), ui->height() );
+               this->setSizePolicy( ui->sizePolicy() );
+               this->setMinimumSize( ui->minimumSize() );
+               this->setMaximumSize( ui->maximumSize() );
+               this->setSizeIncrement( ui->sizeIncrement() );
+               this->setBaseSize( ui->baseSize() );
             }
 
             // Set the QEForm contents margin to zero (should always be zero already???) and rely on the QEForm's
@@ -505,7 +518,7 @@ bool QEForm::readUiFile()
             if( !lo )
             {
                lo = new QVBoxLayout;
-               lo->setMargin( 0 );   // seamless and boarderless
+               lo->setContentsMargins( 0, 0, 0, 0 );   // seamless and boarderless
                setLayout( lo );
             }
             lo->addWidget( ui );
@@ -535,7 +548,7 @@ void QEForm::resetCurrentPath () {
    {
       // Change directory back to where we were.
       //
-      QDir::setCurrent (savedCurrentPath);
+      QDir::setCurrent (this->savedCurrentPath);
    }
 }
 
@@ -543,25 +556,41 @@ void QEForm::resetCurrentPath () {
 //
 void QEForm::requestAction( const QEActionRequests& request )
 {
-   startGui( request );
+   this->startGui( request );
 }
 
+//------------------------------------------------------------------------------
+// slot
+void QEForm::setUiFileName( const QString& uiFileName )
+{
+   this->setUiFileNameProperty( uiFileName );
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QEForm::setUiFileSubstitutions( const QString& uiFileNameSubstitutions )
+{
+   this->setVariableNameSubstitutionsProperty( uiFileNameSubstitutions );
+}
+
+
+//------------------------------------------------------------------------------
 // Display or clear a placeholder.
 // A place holder is placed in the form if the form cannot be populated.
 // (Either no file name has been provided, or the file cannot be opened.)
 void QEForm::displayPlaceholder( const QString& message )
 {
    // Add a message...
-   if( !placeholderLabel )
+   if( !this->placeholderLabel )
    {
       // Create the label with the required text
-      placeholderLabel = new QLabel( message, this );
+      this->placeholderLabel = new QLabel( message, this );
 
       // Make sure the label is not drawn through when marking out the area of the QEForm
-      placeholderLabel->setAutoFillBackground( true );
+      this->placeholderLabel->setAutoFillBackground( true );
 
       // Present the new label
-      placeholderLabel->show();
+      this->placeholderLabel->show();
 
       // Force a paint event so the area of the blank QEForm will be shown
       update();
@@ -569,33 +598,36 @@ void QEForm::displayPlaceholder( const QString& message )
    else
    {
       // Update the label text as the message has changed
-      placeholderLabel->setText( message );
-      placeholderLabel->adjustSize();
+      this->placeholderLabel->setText( message );
+      this->placeholderLabel->adjustSize();
    }
 }
 
+//------------------------------------------------------------------------------
 // Clear a placeholder.
 //
 void QEForm::clearPlaceholder()
 {
    // Remove a message if needs be...
-   if( placeholderLabel )
+   if( this->placeholderLabel )
    {
-      delete placeholderLabel;
-      placeholderLabel = NULL;
+      delete this->placeholderLabel;
+      this->placeholderLabel = NULL;
    }
 }
 
+//------------------------------------------------------------------------------
 // Mark out the area of the form until the contents is populated by a .ui file
 void QEForm::paintEvent(QPaintEvent * /* event */)
 {
    // If the placeholder label is present (if a message saying no .ui file has
    // been loaded) then mark out the area of the QEForm
-   if( placeholderLabel )
+   if( this->placeholderLabel )
    {
       // Move the placeholder label away from the very corner so the border can be seen.
       // (This coudln't be done during when creating the label as the sizing was not valid yet)
-      placeholderLabel->setGeometry( 1, 1, placeholderLabel->width(), placeholderLabel->height() );
+      this->placeholderLabel->setGeometry( 1, 1, this->placeholderLabel->width(),
+                                           this->placeholderLabel->height() );
 
       // Mark out the area of the QEForm
       QPainter painter( this );
@@ -605,11 +637,14 @@ void QEForm::paintEvent(QPaintEvent * /* event */)
    }
 }
 
-// Set the title to the name of the top level widget title, if it has one, or to the file name
+//------------------------------------------------------------------------------
+// Set the title to the name of the top level widget title, if it has
+// one, or to the file name.
+//
 void QEForm::setupWindowTitle( QString filename )
 {
    // Set the title to the name of the top level widget title, if it has one
-   title.clear();
+   this->title.clear();
    if( ui )
    {
       QVariant windowTitleV = ui->property( "windowTitle" );
@@ -628,65 +663,71 @@ void QEForm::setupWindowTitle( QString filename )
                 windowTitle != QString( "Dialog" ) &&
                 windowTitle != QString( "Form" ) )
             {
-               title = substituteThis( windowTitle );
+               this->title = substituteThis( windowTitle );
             }
          }
       }
    }
 
    // If no title was obtained from the ui, use the file name
-   if( title.isEmpty() )
+   if( this->title.isEmpty() )
    {
       // Extract the file name part used for the window title
       QFileInfo fileInfo( filename );
-      title = QString( "QEGui " ).append( fileInfo.fileName() );
-      if( title.endsWith( ".ui" ) )
-         title.chop( 3 );
+      this->title = QString( "QEGui " ).append( fileInfo.fileName() );
+      if( this->title.endsWith( ".ui" ) )
+         this->title.chop( 3 );
    }
 }
 
 
+//------------------------------------------------------------------------------
 // Set the form title.
-// This is used to override any title set - through setWindowTitle() - when reading a ui file in readUiFile().
+// This is used to override any title set - through setWindowTitle() - when
+// reading a ui file in readUiFile().
+//
 void QEForm::setQEGuiTitle( const QString titleIn )
 {
-   title = titleIn;
+   this->title = titleIn;
 }
 
+//------------------------------------------------------------------------------
 // Get the form title
-QString QEForm::getQEGuiTitle()
+QString QEForm::getQEGuiTitle() const
 {
-   return title;
+   return this->title;
 }
 
+//------------------------------------------------------------------------------
 // Get the standard, absolute UI file name
-QString QEForm::getFullFileName()
+QString QEForm::getFullFileName() const
 {
-   return fullUiFileName;
+   return this->fullUiFileName;
 }
 
+//------------------------------------------------------------------------------
 // Reload the ui file
 void QEForm::reloadFile()
 {
-   if( ui )
-   {
+   if( ui ) {
       ui->close();
    }
-   readUiFile();
+   this->readUiFile();
 }
 
+//------------------------------------------------------------------------------
 // Slot for reloading the file if it has changed.
 // It doesn't matter if it has been deleted, a reload attempt will still tell
 // the user what they need to know - that the file has gone.
 void QEForm::fileChanged ( const QString & /*path*/ )
 {
    // Only action if monitoring is enabled.
-   if( fileMonitoringIsEnabled ){
+   if( this->fileMonitoringIsEnabled ){
       // Ensure we aren't monitoring files any more
-      fileMon.clearPath();
+      this->fileMon.clearPath();
 
       // Reload the file
-      reloadFile();
+      this->reloadFile();
    }
 }
 
@@ -696,9 +737,10 @@ void QEForm::useNewVariableNameProperty( QString variableNameIn,
                                          QString variableNameSubstitutionsIn,
                                          unsigned int variableIndex )
 {
-   setVariableNameAndSubstitutions( variableNameIn, variableNameSubstitutionsIn, variableIndex );
+   this->setVariableNameAndSubstitutions( variableNameIn, variableNameSubstitutionsIn, variableIndex );
 }
 
+//------------------------------------------------------------------------------
 // Receive new log messages.
 // This widget doesn't do anything itself with messages, but it can regenerate
 // the message as if it came from itself.
@@ -708,9 +750,10 @@ void QEForm::newMessage( QString msg, message_types type )
    // This way messages from widgets in QEForm widgets will be filtered as if they came from the form. This means a widget can
    // treat a sibling QEForm as a single message generating entity (and set up filters accordingly) and not worry about
    // exactly what widget within the form generated the message.
-   sendMessage( msg, type );
+   this->sendMessage( msg, type );
 }
 
+//------------------------------------------------------------------------------
 // The form is being resized.
 // Resize the ui to match.
 // (not required if a layout is present)
@@ -726,16 +769,19 @@ void QEForm::resizeEvent ( QResizeEvent * event )
    }
 }
 
+//------------------------------------------------------------------------------
 // Get the version of the framework that loaded this form.
 // Note this may vary within the same application.
-// For example, QEGui may create a QEform programatically using the QE framework library it has loaded on startup,
-// and then use Qt's UI loader to load a UI file containing a QEForm which is created by another version of the
-// QE framework found by the UI Loader plugin location process.
-QString QEForm::getContainedFrameworkVersion()
+// For example, QEGui may create a QEform programatically using the QE framework
+// library it has loaded on startup, and then use Qt's UI loader to load a UI
+// file containing a QEForm which is created by another version of the QE framework
+// found by the UI Loader plugin location process.
+QString QEForm::getContainedFrameworkVersion() const
 {
-   return containedFrameworkVersion;
+   return this->containedFrameworkVersion;
 }
 
+//------------------------------------------------------------------------------
 // Return the disconnected count of all widgets loaded by UILoader.
 // Note, this originates from the a static counter in the QEPlugin shared library loaded by UILoader.
 // If this QEForm widget has been loaded by UILoader, it could access these counters directly.
@@ -743,12 +789,13 @@ QString QEForm::getContainedFrameworkVersion()
 // all widgets within this widgets (those with connections to be counted) will have been created by
 // the same QEPlugin library but (on Windows at least) mapped to a different location. This is a problem on windows,
 // not Linux where the library is not mapped twice.
-int QEForm::getDisconnectedCount()
+int QEForm::getDisconnectedCount() const
 {
    // Return the disconnected count if it is available.
-   return disconnectedCountRef?*disconnectedCountRef:0;
+   return this->disconnectedCountRef ? *this->disconnectedCountRef : 0;
 }
 
+//------------------------------------------------------------------------------
 // Return the disconnected count of all widgets loaded by UILoader.
 // Note, this originates from the a static counter in the QEPlugin shared library loaded by UILoader.
 // If this QEForm widget has been loaded by UILoader, it could access these counters directly.
@@ -756,44 +803,50 @@ int QEForm::getDisconnectedCount()
 // all widgets within this widgets (those with connections to be counted) will have been created by
 // the same QEPlugin library but (on Windows at least) mapped to a different location. This is a problem on windows,
 // not Linux where the library is not mapped twice.
-int QEForm::getConnectedCount()
+int QEForm::getConnectedCount() const
 {
    // Return the connected count if it is available.
-   return connectedCountRef?*connectedCountRef:0;
+   return this->connectedCountRef ? *this->connectedCountRef : 0;
 }
 
+//------------------------------------------------------------------------------
 // Get the full form file name as used to open the file (inclusing all substitutions)
-QString QEForm::getUiFileName()
+QString QEForm::getUiFileName() const
 {
-   return fullUiFileName;
+   return this->fullUiFileName;
 }
 
+//------------------------------------------------------------------------------
 // Flag indicating if form should action (i.e. reload) ui file when ui file changes.
 // Current set by qegui when edit menu item enabled. May it should/could be a property as well.
 void QEForm::setFileMonitoringIsEnabled( bool fileMonitoringIsEnabledIn )
 {
-   fileMonitoringIsEnabled = fileMonitoringIsEnabledIn;
+   this->fileMonitoringIsEnabled = fileMonitoringIsEnabledIn;
 
-   bool isResourceFile = (fullUiFileName.left(1).compare( QString( ":" )) == 0);
-   if( !isResourceFile && fileMonitoringIsEnabled )
+   bool isResourceFile = (this->fullUiFileName.left(1).compare( QString( ":" )) == 0);
+   if( !isResourceFile && this->fileMonitoringIsEnabled )
    {
-      fileMon.setPath( fullUiFileName );
+      this->fileMon.setPath( this->fullUiFileName );
    } else {
-      fileMon.clearPath();
+      this->fileMon.clearPath();
    }
 
    // Now propagate monitoring enabled state to any embedded sub forms.
    //
-   setEmbeddedFileMonitoringIsEnabled( this, fileMonitoringIsEnabled );
+   this->setEmbeddedFileMonitoringIsEnabled( this, this->fileMonitoringIsEnabled );
 }
 
-bool QEForm::getFileMonitoringIsEnabled()
+//------------------------------------------------------------------------------
+//
+bool QEForm::getFileMonitoringIsEnabled() const
 {
-   return fileMonitoringIsEnabled;
+   return this->fileMonitoringIsEnabled;
 }
 
+//------------------------------------------------------------------------------
 // [static] Performs a widget tree walk from specified parent looking form QEForm
 // widgets, and then invokes setFileMonitoringIsEnabled.
+//
 void QEForm::setEmbeddedFileMonitoringIsEnabled( QWidget* parent, bool fileMonitoringIsEnabled )
 {
    QObjectList childList = parent->children();
@@ -822,9 +875,10 @@ void QEForm::setEmbeddedFileMonitoringIsEnabled( QWidget* parent, bool fileMonit
    }
 }
 
+//------------------------------------------------------------------------------
 // Find a widget within the ui loaded by the QEForm.
 // Returns NULL if no UI is loaded yet or if the named widget can't be found.
-QWidget* QEForm::getChild( QString name )
+QWidget* QEForm::getChild( QString name ) const
 {
    // If no UI yet, return nothing
    if( !this->ui )
@@ -833,32 +887,42 @@ QWidget* QEForm::getChild( QString name )
    }
 
    // Return the widget if it can be found
-   return findChild<QWidget*>( name );
+   return this->findChild<QWidget*>( name );
 }
 
 //==============================================================================
 // Property convenience functions
-
+//------------------------------------------------------------------------------
 // Flag indicating form should handle gui form launch requests
 void QEForm::setHandleGuiLaunchRequests( bool handleGuiLaunchRequestsIn )
 {
-   handleGuiLaunchRequests = handleGuiLaunchRequestsIn;
-}
-bool QEForm::getHandleGuiLaunchRequests()
-{
-   return handleGuiLaunchRequests;
+   this->handleGuiLaunchRequests = handleGuiLaunchRequestsIn;
 }
 
-// Flag indicating form should resize contents to match form size (otherwise resize form to match contents)
+//------------------------------------------------------------------------------
+//
+bool QEForm::getHandleGuiLaunchRequests() const
+{
+   return this->handleGuiLaunchRequests;
+}
+
+//------------------------------------------------------------------------------
+// Flag indicating form should resize contents to match form size
+// (otherwise resize form to match contents)
+//
 void QEForm::setResizeContents( bool resizeContentsIn )
 {
-   resizeContents = resizeContentsIn;
-}
-bool QEForm::getResizeContents()
-{
-   return resizeContents;
+   this->resizeContents = resizeContentsIn;
 }
 
+//------------------------------------------------------------------------------
+//
+bool QEForm::getResizeContents() const
+{
+   return this->resizeContents;
+}
+
+//------------------------------------------------------------------------------
 // Save configuration
 void QEForm::saveConfiguration( PersistanceManager* pm )
 {
@@ -867,12 +931,13 @@ void QEForm::saveConfiguration( PersistanceManager* pm )
    PMElement f =  pm->addNamedConfiguration( pname );
 
    // Save macro substitutions
-   QString macroSubs = getMacroSubstitutions();
+   QString macroSubs = this->getMacroSubstitutions();
    macroSubs = macroSubs.trimmed();
    if( !macroSubs.isEmpty() )
    {
       // Build a list of macro substitution parts from the string
-      //!!! this won't be nessesary when the macroSubstitutionList class is used to hold macro substitutions instead of a string
+      //!!! this won't be nessesary when the macroSubstitutionList class is
+      //!!! used to hold macro substitutions instead of a string
       macroSubstitutionList parts = macroSubstitutionList( getMacroSubstitutions() );
 
       // Add a clean macro substitutionns string from the parts
@@ -890,6 +955,7 @@ void QEForm::saveConfiguration( PersistanceManager* pm )
    }
 }
 
+//------------------------------------------------------------------------------
 // Apply any saved configuration
 void QEForm::restoreConfiguration( PersistanceManager* pm, restorePhases restorePhase )
 {
@@ -902,8 +968,8 @@ void QEForm::restoreConfiguration( PersistanceManager* pm, restorePhases restore
 
    // Get data for this form, if any
    // (do nothing if no data)
-   QString pname = persistantName( "QEForm" );
-   PMElement f =  pm->getNamedConfiguration( pname );
+   QString pname = this->persistantName( "QEForm" );
+   PMElement f = pm->getNamedConfiguration( pname );
 
    if( f.isNull() )
    {
@@ -940,13 +1006,13 @@ void QEForm::restoreConfiguration( PersistanceManager* pm, restorePhases restore
    // Determine if the environment this form was created in was the correct environment
    // (Was the macro substitutions and paths the same)
    bool environmentChanged = false;
-   if( macroSubstitutions != getMacroSubstitutions() )
+   if( macroSubstitutions != this->getMacroSubstitutions() )
    {
       environmentChanged = true;
    }
    else
    {
-      QStringList currentPathList = getPathList();
+      QStringList currentPathList = this->getPathList();
       if( currentPathList.count() != pathList.count() )
       {
          environmentChanged = true;
@@ -967,10 +1033,82 @@ void QEForm::restoreConfiguration( PersistanceManager* pm, restorePhases restore
    // Reload the file in the correct environment if the environment it was created in was not correct
    if( environmentChanged )
    {
-      setupProfile( getGuiLaunchConsumer(), pathList, getParentPath(), macroSubstitutions );
-      reloadFile();
-      releaseProfile();
+      this->setupProfile( getGuiLaunchConsumer(), pathList, getParentPath(), macroSubstitutions );
+      this->reloadFile();
+      this->releaseProfile();
    }
+}
+
+//------------------------------------------------------------------------------
+//
+void QEForm::setUniqueIdentifier( QString name )
+{
+   this->uniqueIdentifier = name;
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEForm::getUniqueIdentifier() const
+{
+   return this->uniqueIdentifier;
+}
+
+//------------------------------------------------------------------------------
+// Property access functions.
+//------------------------------------------------------------------------------
+//
+void QEForm::setUiFileNameProperty( QString uiFileName )
+{
+   this->variableNamePropertyManager.setVariableNameProperty( uiFileName );
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEForm::getUiFileNameProperty() const
+{
+   return this->variableNamePropertyManager.getVariableNameProperty();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEForm::setVariableNameSubstitutionsProperty( QString variableNameSubstitutions )
+{
+   this->variableNamePropertyManager.setSubstitutionsProperty( variableNameSubstitutions );
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEForm::getVariableNameSubstitutionsProperty() const
+{
+   return this->variableNamePropertyManager.getSubstitutionsProperty();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEForm::setMessageFormFilter( MessageFilterOptions messageFormFilter )
+{
+   this->setFormFilter( (message_filter_options)messageFormFilter );
+}
+
+//------------------------------------------------------------------------------
+//
+QEForm::MessageFilterOptions QEForm::getMessageFormFilter() const
+{
+   return (MessageFilterOptions)this->getFormFilter();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEForm::setMessageSourceFilter( MessageFilterOptions messageSourceFilter )
+{
+   this->setSourceFilter( (message_filter_options)messageSourceFilter );
+}
+
+//------------------------------------------------------------------------------
+//
+QEForm::MessageFilterOptions QEForm::getMessageSourceFilter() const
+{
+   return (MessageFilterOptions)this->getSourceFilter();
 }
 
 // end

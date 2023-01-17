@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2017-2021 Australian Synchrotron.
+ *  Copyright (c) 2017-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -50,7 +50,7 @@ QESurface:: QESurface (QWidget* parent) :
 //------------------------------------------------------------------------------
 //
 QESurface::QESurface (const QString& dataVariableName,
-                          QWidget* parent):
+                      QWidget* parent):
    QEAbstract2DData (dataVariableName, parent)
 {
    this->commonSetup();
@@ -59,8 +59,8 @@ QESurface::QESurface (const QString& dataVariableName,
 //------------------------------------------------------------------------------
 //
 QESurface::QESurface (const QString& dataVariableName,
-                          const QString& widthVariableName,
-                          QWidget* parent) :
+                      const QString& widthVariableName,
+                      QWidget* parent) :
    QEAbstract2DData (dataVariableName, widthVariableName, parent)
 {
    this->commonSetup();
@@ -436,10 +436,10 @@ void QESurface::paintEvent (QPaintEvent* event)
 
    if (this->mShowScaling) {
       QString text;
-      text.sprintf ("theta: %+06.1f  phi: %+06.1f"
-                    "  x-scale: %.1f%%  y-scale: %.1f%%  z-scale: %.1f%%",
-                    this->mTheta, this->mPhi,
-                    this->mXScale, this->mYScale, this->mZScale);
+      text = QString::asprintf ("theta: %+06.1f  phi: %+06.1f"
+                                "  x-scale: %.1f%%  y-scale: %.1f%%  z-scale: %.1f%%",
+                                this->mTheta, this->mPhi,
+                                this->mXScale, this->mYScale, this->mZScale);
       painter.drawText (QPoint (8, this->height () - 8), text);
    }
 }
@@ -451,7 +451,9 @@ void  QESurface::wheelEvent (QWheelEvent* event)
    // factor**48 == 100 - just because I can.
    //
    static const double factor = 1.1006941712522096;
-   if (event->delta () < 0) {
+
+   const int wheelDelta = event->angleDelta().y();
+   if (wheelDelta < 0) {
       this->setXScale (this->getXScale() * factor);
       this->setYScale (this->getYScale() * factor);
       this->setZScale (this->getZScale() * factor);

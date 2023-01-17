@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron.
+ *  Copyright (c) 2013-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -30,6 +30,10 @@
 #include <math.h>
 #include <iostream>
 
+#include <QApplication>
+#if QT_VERSION < 0x060000
+#include <QDesktopWidget>
+#endif
 #include <QDir>
 #include <QLayout>
 #include <QtGlobal>
@@ -39,9 +43,12 @@
 #include <QMainWindow>
 #include <QMetaEnum>
 #include <QMetaObject>
-#include <QRegExp>
+#include <QPoint>
+#include <QRegularExpression>
 #include <QSize>
+#include <QScreen>
 #include <QWidget>
+#include <QEPlatform.h>
 #include <QEWidget.h>
 #include <QELabel.h>
 
@@ -90,9 +97,9 @@ QString  QEUtilities::colourToStyle (const QColor& backgroundColour,
    backgroundColour.getRgb (&br, &bg, &bb, &ba);
    foregroundColour.getRgb (&fr, &fg, &fb, &fa);
 
-   result.sprintf ("QWidget { background-color: rgba(%d, %d, %d, %d);"
-                   " color: rgba(%d, %d, %d, %d); }",
-                   br, bg, bb, ba, fr, fg, fb, fa );
+   result = QString::asprintf ("QWidget { background-color: rgba(%d, %d, %d, %d);"
+                               " color: rgba(%d, %d, %d, %d); }",
+                               br, bg, bb, ba, fr, fg, fb, fa );
    return result;
 }
 
@@ -113,7 +120,7 @@ QString QEUtilities::offBackgroundStyle ()
    // Standard background on Linux is #d6d2d0. Add #0a0a0a
    // Windows may be a bit different.
    //
-   return QEUtilities::colourToStyle (QColor ("#e0dcda"));
+   return QEUtilities::colourToStyle (QColor (0xe0dcda));
 }
 
 //------------------------------------------------------------------------------
@@ -194,7 +201,8 @@ int QEUtilities::roundToInt (const double x, bool* ok)
 
 //------------------------------------------------------------------------------
 //
-QString QEUtilities::intervalToString (const double interval, const int precision,
+QString QEUtilities::intervalToString (const double interval,
+                                       const int precision,
                                        const bool showDays)
 {
    QString result;
@@ -210,13 +218,13 @@ QString QEUtilities::intervalToString (const double interval, const int precisio
 
    if (interval >= 0.0) {
       seconds = +interval;
-      sign= "";
+      sign = "";
    } else {
       seconds = -interval;
-      sign= "-";
+      sign = "-";
    }
 
-   #define EXTRACT(item, spi) { item = int (floor (seconds / spi)); seconds = seconds - (spi * item); }
+#define EXTRACT(item, spi) { item = int (floor (seconds / spi)); seconds = seconds - (spi * item); }
 
    EXTRACT (days, 86400.0);
    EXTRACT (hours, 3600.0);
@@ -224,25 +232,24 @@ QString QEUtilities::intervalToString (const double interval, const int precisio
    EXTRACT (secs, 1.0);
    EXTRACT (nanoSecs, 1.0E-9);
 
-   #undef EXTRACT
+#undef EXTRACT
 
    if (showDays || (days != 0)) {
-      image.sprintf ("%d %02d:%02d:%02d", days, hours, mins, secs);
+      image = QString::asprintf ("%d %02d:%02d:%02d", days, hours, mins, secs);
    } else {
-      image.sprintf ("%02d:%02d:%02d", hours, mins, secs);
+      image = QString::asprintf ("%02d:%02d:%02d", hours, mins, secs);
    }
 
    if (precision > 0) {
       // Limit precision to 9.
       //
-      fraction.sprintf (".%09d", nanoSecs);
+      fraction = QString::asprintf (".%09d", nanoSecs);
       fraction.truncate (MIN (9, precision) + 1);
    } else {
       fraction = "";
    }
 
    result = sign.append (image).append (fraction);
-
    return result;
 }
 
@@ -402,6 +409,16 @@ int QEUtilities::stringToEnum (const QMetaObject& mo,
 
 //------------------------------------------------------------------------------
 //
+QStringList QEUtilities::split (const QString& s)
+{
+   QStringList result;
+   QRegularExpression re ("\\s+", QRegularExpression::NoPatternOption);
+   result = s.split (re, QESkipEmptyParts);
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
 QStringList QEUtilities::variantToStringList (const QVariant& v)
 {
    QStringList result;
@@ -410,12 +427,8 @@ QStringList QEUtilities::variantToStringList (const QVariant& v)
    result.clear ();
    vlist = v.toStringList ();  // Do variant split
    for (int v = 0; v < vlist.count(); v++) {
-      QString s;
-      QStringList slist;
-
-      s = vlist.value (v);
-      slist = s.split (QRegExp ("\\s+"), QString::SkipEmptyParts); // Do white space split
-
+      const QString s = vlist.value (v);
+      const QStringList slist = QEUtilities::split (s); // Do white space split
       result.append (slist);
    }
 
@@ -678,6 +691,75 @@ QString QEUtilities::getWindowTitle (QWidget* widget)
 
 //------------------------------------------------------------------------------
 // static
+QRect QEUtilities::desktopGeometry ()
+{
+   QRect result;
+#if QT_VERSION < 0x060000
+   // Qt5 - cribbed from QEDialog
+   //
+   const QRect screen = QApplication::desktop ()->screenGeometry (0);
+   int stop = screen.top ();
+   int sleft = screen.left ();
+   int sright = screen.right ();
+   int sbottom = screen.bottom ();
+
+   // We assume screens are in a regular block, e.g. 1x1, 1x4, 2x2, 2x1 etc.
+   //
+   for (int j = 1; j < QApplication::desktop ()->screenCount(); j++) {
+      const QRect s2 = QApplication::desktop ()->screenGeometry (j);
+      stop    = MIN (stop,    s2.top());
+      sleft   = MIN (sleft,   s2.left());
+      sright  = MAX (sright,  s2.right());
+      sbottom = MAX (sbottom, s2.bottom());
+   }
+   result = QRect (sleft, stop, sright - sleft, sbottom - stop);
+#else
+   // Qt6++
+   QRegion virtualGeometry;
+   for (auto screen : QGuiApplication::screens()) {
+      virtualGeometry += screen->geometry();
+   }
+   result = virtualGeometry.boundingRect();
+#endif
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// static
+QRect QEUtilities::screenGeometry (QWidget* widget)
+{
+   // If no widget is specified, go with the primary screen as default.
+   //
+   if (!widget) return QApplication::primaryScreen()->geometry();
+
+   QPoint pos = widget->geometry().topLeft();   // should we use the centre?
+   QPoint golbalPos;
+
+   // In order to calculate the global position correctly, we
+   // need to know if the widget is a main window.
+   //
+   QMainWindow* mainCheck = qobject_cast <QMainWindow*> (widget);
+   if (mainCheck) {
+      // Is a main window - just use the position as is.
+      //
+      golbalPos = pos;
+   } else {
+      // Regular widget - map it.
+      //
+      golbalPos = widget->mapToGlobal (pos);
+   }
+
+   QScreen* screen = QApplication::screenAt (golbalPos);
+
+   // If we can't identify a screen, go with the default.
+   //
+   if (!screen) return QApplication::primaryScreen()->geometry();
+
+   return screen->geometry();
+}
+
+//------------------------------------------------------------------------------
+// static
 void QEUtilities::debugWidgetHierarchy (const QWidget* root,
                                         const int instance,
                                         const int level)
@@ -693,39 +775,39 @@ void QEUtilities::debugWidgetHierarchy (const QWidget* root,
    QString b2;       // sizing info
    QString b3 = "";  // layout info
 
-   b1.sprintf ("%d.%-2d%s %s:%s", level, instance,
-               gap.toStdString().c_str(),
-               root->objectName ().toStdString().c_str(),
-               root->metaObject()->className ());
+   b1 = QString::asprintf ("%d.%-2d%s %s:%s", level, instance,
+                           gap.toStdString().c_str(),
+                           root->objectName ().toStdString().c_str(),
+                           root->metaObject()->className ());
 
-   b2.sprintf (" (%3d,%4d %3dx%3d)  (%3dx%3d)  (%3dx%3d)",
-               root->geometry().x(), root->geometry().y(),
-               root->size().width(), root->size().height(),
-               root->minimumWidth(), root->minimumHeight(),
-               root->maximumWidth(), root->maximumHeight());
+   b2 = QString::asprintf (" (%3d,%4d %3dx%3d)  (%3dx%3d)  (%3dx%3d)",
+                           root->geometry().x(), root->geometry().y(),
+                           root->size().width(), root->size().height(),
+                           root->minimumWidth(), root->minimumHeight(),
+                           root->maximumWidth(), root->maximumHeight());
 
    QLayout* lay = root->layout();
    if (lay) {
-      b3.sprintf ("  %s:%s",
-                  lay->objectName ().toStdString().c_str(),
-                  lay->metaObject()->className ());
+      b3 = QString::asprintf ("  %s:%s",
+                              lay->objectName ().toStdString().c_str(),
+                              lay->metaObject()->className ());
    }
 
    QString buffer;
-   buffer.sprintf ("%-52s %-42s %s\n",
-                   b1.toStdString().c_str(),
-                   b2.toStdString().c_str(),
-                   b3.toStdString().c_str());
+   buffer = QString::asprintf ("%-52s %-42s %s\n",
+                               b1.toStdString().c_str(),
+                               b2.toStdString().c_str(),
+                               b3.toStdString().c_str());
 
    std::cout << buffer.toStdString().c_str();
 
    QObjectList objList = root->children ();
    for (int j = 0; j < objList.count (); j++) {
-       QObject* child = objList.value (j, NULL);
-       if( child && child->isWidgetType ()) {
-          const QWidget* w = (QWidget*) child;
-          QEUtilities::debugWidgetHierarchy (w, j, level + 1);
-       }
+      QObject* child = objList.value (j, NULL);
+      if( child && child->isWidgetType ()) {
+         const QWidget* w = (QWidget*) child;
+         QEUtilities::debugWidgetHierarchy (w, j, level + 1);
+      }
    }
 }
 

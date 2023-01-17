@@ -2,7 +2,7 @@
  *
  *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
  *
- *  Copyright (c) 2009-2021 Australian Synchrotron
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -23,9 +23,9 @@
  *    andrew.rhyder@synchrotron.org.au
  */
 
+#include "QCaDateTime.h"
 #include <QString>
 #include <QTextStream>
-#include <QCaDateTime.h>
 #include <QDebug>
 
 static const QDateTime qtEpoch    (QDate( 1970, 1, 1 ), QTime( 0, 0, 0, 0 ), Qt::UTC );
@@ -33,46 +33,12 @@ static const QDateTime epicsEpoch (QDate( 1990, 1, 1 ), QTime( 0, 0, 0, 0 ), Qt:
 static unsigned long EPICSQtEpocOffset = qtEpoch.secsTo ( epicsEpoch );
 
 /*
-  Qt 4.6 does not have the msecsTo function - so we roll our own.
-
-  Return the number of milliseconds from this datetime to the other datetime.
-  If the other datetime is earlier than this datetime, the value returned is negative.
-
-  Based on msecsTo out of qt-everywhere-opensource-src-4.8.4/src/corelib/tools/qdatetime.cpp
-*/
-static qint64 msecsTo_48 (const QDateTime& self, const QDateTime& other)
-{
-#if (QT_VERSION >= QT_VERSION_CHECK(4, 8, 0))
-   return self.msecsTo( other );
-#else
-   // More or less a direct copy of 4.8 code.
-   //
-   enum { MSECS_PER_DAY = 86400000 };
-
-   QDate selfDate;
-   QDate otherDate;
-   QTime selfTime;
-   QTime otherTime;
-
-   selfDate = self.toUTC().date();
-   selfTime = self.toUTC().time();
-
-   otherDate = other.toUTC().date();
-   otherTime = other.toUTC().time();
-
-   return (static_cast<qint64>(selfDate.daysTo(otherDate)) * static_cast<qint64>(MSECS_PER_DAY)) +
-           static_cast<qint64>(selfTime.msecsTo(otherTime));
-#endif
-}
-
-
-/*
   Construct an empty QCa date time
  */
 QCaDateTime::QCaDateTime()
 {
-    nSec = 0;
-    userTag = 0;
+    this->nSec = 0;
+    this->userTag = 0;
 }
 
 /*
@@ -80,8 +46,8 @@ QCaDateTime::QCaDateTime()
  */
 QCaDateTime::QCaDateTime( QDateTime dt ) : QDateTime( dt )
 {
-    nSec = 0;
-    userTag = 0;
+    this->nSec = 0;
+    this->userTag = 0;
 }
 
 /*
@@ -95,12 +61,11 @@ QCaDateTime::QCaDateTime( const unsigned long seconds,
 
     // First calculate mSecs and remaining nSecs
     // Down to the millisecond goes in the Qt base class structure,
-    // the remaining nanoseconds are saved in this class
+    // the remaining nanoseconds are saved in this class.
     //
     mSec = nanoseconds / 1000000;
-    nSec = nanoseconds % 1000000;
+    this->nSec = nanoseconds % 1000000;
 
-#if (QT_VERSION >= QT_VERSION_CHECK(4, 8, 0))
     // Calc number of mSecs since the epoc.
     // Note, although the EPICS time stamp is in seconds since a base, the method which
     // takes seconds since a base time uses a different base, so an offset is added.
@@ -108,15 +73,8 @@ QCaDateTime::QCaDateTime( const unsigned long seconds,
     qint64 mSecsSinceEpoch;
     mSecsSinceEpoch = ((qint64) (seconds + EPICSQtEpocOffset)) * 1000 + mSec;
     setMSecsSinceEpoch (mSecsSinceEpoch);
-#else
-    // setMSecsSinceEpoch does not exist in older versions.
-    //
-    QDateTime temp;
-    temp.setTime_t( seconds + EPICSQtEpocOffset );
-    *this = temp.addMSecs (mSec);
-#endif
     
-    userTag = userTagIn;
+    this->userTag = userTagIn;
 }
 
 /*
@@ -128,8 +86,8 @@ QCaDateTime& QCaDateTime::operator=( const QCaDateTime& other )
     *(QDateTime*) this = (QDateTime) other;
 
     // and then copy class specific stuff.
-    nSec = other.nSec;
-    userTag = other.userTag;
+    this->nSec = other.nSec;
+    this->userTag = other.userTag;
 
     // return value as well.
     return *this;
@@ -142,14 +100,14 @@ QString QCaDateTime::text() const
 {
     // Format the date and time to millisecond resolution
     QString out;
-    out = toString( QString( "yyyy-MM-dd hh:mm:ss.zzz" ));
+    out = this->toString( QString( "yyyy-MM-dd hh:mm:ss.zzz" ));
 
     // Add down to nanosecond resolution
     QTextStream s( &out );
     s.setFieldAlignment( QTextStream::AlignRight );
     s.setPadChar( '0' );
     s.setFieldWidth( 6 );
-    s << nSec;
+    s << this->nSec;
 
     return out;
 }
@@ -184,8 +142,8 @@ QCaDateTime QCaDateTime::addSeconds( const double seconds ) const
  */
 double QCaDateTime::secondsTo( const QDateTime & target ) const
 {
-   qint64 msec = msecsTo_48 (*this, target);
-   return (double) msec / (double) 1000.0;
+   qint64 msec = this->msecsTo (target);
+   return double (msec) / double (1000.0);
 }
 
 /*
@@ -193,7 +151,7 @@ double QCaDateTime::secondsTo( const QDateTime & target ) const
  */
 unsigned long QCaDateTime::getSeconds() const
 {
-   qint64 msec = msecsTo_48 (epicsEpoch, *this);
+   qint64 msec = epicsEpoch.msecsTo (*this);
 
    if( msec < 0 ) msec = 0;
    return (unsigned long) (msec / 1000);
@@ -204,12 +162,12 @@ unsigned long QCaDateTime::getSeconds() const
  */
 unsigned long QCaDateTime::getNanoSeconds() const
 {
-   qint64 msec = msecsTo_48 (epicsEpoch, *this);
+   qint64 msec = epicsEpoch.msecsTo (*this);
 
    if( msec < 0 ) msec = 0;
 
    msec = msec % 1000;
-   return  (unsigned long) (msec * 1000000) + nSec;
+   return  (unsigned long) (msec * 1000000) + this->nSec;
 }
 
 /*
@@ -217,7 +175,7 @@ unsigned long QCaDateTime::getNanoSeconds() const
  */
 int QCaDateTime::getUserTag() const
 {
-   return userTag;
+   return this->userTag;
 }
 
 // end

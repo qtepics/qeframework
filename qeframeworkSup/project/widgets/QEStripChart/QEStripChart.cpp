@@ -27,7 +27,6 @@
 #include "QEStripChart.h"
 #include "QEStripChartToolBar.h"
 #include "QEStripChartItem.h"
-#include "QEStripChartUtilities.h"
 
 #include <math.h>
 
@@ -43,7 +42,6 @@
 #include <QMutex>
 #include <QPen>
 #include <QPushButton>
-#include <QRegExp>
 #include <QScrollArea>
 #include <QStringList>
 #include <QToolButton>
@@ -141,9 +139,12 @@ void QEPVNameLists::prependOrMoveToFirst (const QString& item)
       this->insert (this->predefined, item);
 
    } else if (posn > this->predefined) {
-      // item in list - move to front of not quarenteened.
+      // item in list - move to front if not predefined.
+#if QT_VERSION < 0x060000
       this->swap (this->predefined, posn);
-
+#else
+      this->swapItemsAt (this->predefined, posn);
+#endif
    }
    // else posn in range >=0 to <=predefined - nothing to do.
    // Either predefined or already in top undefined slot.
@@ -219,7 +220,7 @@ void QEPVNameLists::constructor () {
       // Split input string using space as delimiter.
       // Could extend to use regular expression and split on any white space character.
       //
-      QStringList pvNameList = predefined.split (' ', QString::SkipEmptyParts);
+      QStringList pvNameList = QEUtilities::split (predefined);
 
       // Processin reverse order (as use insert into list with prependOrMoveToFirst).
       // We don't use append as this do not check for duplicates.
@@ -379,14 +380,14 @@ void QEStripChart::createInternalWidgets ()
    // Create layouts.
    //
    this->layout1 = new QVBoxLayout (this);
-   this->layout1->setMargin (4);
+   this->layout1->setContentsMargins (4, 4, 4, 4);
    this->layout1->setSpacing (4);
    this->layout1->addWidget (this->toolBarResize);
    this->layout1->addWidget (this->pvResizeFrame);
    this->layout1->addWidget (this->plotFrame);
 
    this->layout2 = new QVBoxLayout (this->plotFrame);
-   this->layout2->setMargin (4);
+   this->layout2->setContentsMargins (4, 4, 4, 4);
    this->layout2->setSpacing (4);
    this->layout2->addWidget (this->plotArea);
 
@@ -828,7 +829,7 @@ void QEStripChart::plotMouseMove  (const QPointF& position)
 
    // Show y value associated with current cursor position.
    //
-   f.sprintf ("    Value: %+.10g", position.y ());
+   f = QString::asprintf ("    Value: %+.10g", position.y ());
    mouseReadOut.append (f);
 
    // Is the line markup "on show"?
@@ -853,19 +854,19 @@ void QEStripChart::plotMouseMove  (const QPointF& position)
       f = QEUtilities::intervalToString (dt, prec, false);
       mouseReadOut.append (QString  ("    dt: %1 ").arg (f));
 
-      f.sprintf ("  dy: %+.6g", dy);
+      f = QString::asprintf ("  dy: %+.6g", dy);
       mouseReadOut.append (f);
 
       // Calculate slope, but avoid the divide by 0.
       //
       mouseReadOut.append ("  dy/dt: ");
       if (dt != 0.0) {
-         f.sprintf ("%+.6g", dy/dt);
+         f = QString::asprintf ("%+.6g", dy/dt);
       } else {
          if (dy != 0.0) {
-            f.sprintf ("%sinf", (dy >= 0.0) ? "+" : "-");
+            f = QString::asprintf ("%sinf", (dy >= 0.0) ? "+" : "-");
          } else {
-            f.sprintf ("n/a");
+            f = QString::asprintf ("n/a");
          }
       }
       mouseReadOut.append (f);

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2021 Australian Synchrotron
+ *  Copyright (c) 2021-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -113,6 +113,12 @@ public:
 
    void setUseFormTitle (const bool useFormTitle);
    bool getUseFormTitle () const;
+
+public slots:
+   // Slot function equivilents of setUiFileNameProperty and setVariableNameSubstitutionsProperty
+   //
+   void setUiFileName (const QString& uiFileName);
+   void setUiFileSubstitutions (const QString& uiFileNameSubstitutions);
 
 protected:
    // Override parents virtual functions.

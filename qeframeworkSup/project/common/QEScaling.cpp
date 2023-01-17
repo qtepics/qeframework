@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron
+ *  Copyright (c) 2013-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -32,7 +32,7 @@
 #include <QLayout>
 #include <QGridLayout>
 #include <QHeaderView>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QSize>
 #include <QTableWidget>
 #include <QTreeView>
@@ -710,7 +710,7 @@ QString QEScaling::scaleStyleSheet (const QString& input)
    if (input.isEmpty()) return input;
 
    const QString pattern = "[0-9][0-9]*p[xt]";
-   const QRegExp re = QRegExp (pattern, Qt::CaseSensitive, QRegExp::RegExp2);
+   const QRegularExpression re (pattern, QRegularExpression::NoPatternOption);
 
    QString workingInput = input;
    QString result = "";

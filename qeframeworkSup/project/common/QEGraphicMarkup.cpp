@@ -457,7 +457,7 @@ QEGraphicLineMarkup::QEGraphicLineMarkup (QEGraphic* ownerIn) :
 {
    this->pen.setColor(QColor (0x60A0E0));  // blueish
    this->origin = QPointF (0.0, 0.0);
-   this->activationButton = MIDDLE_BUTTON;
+   this->activationButton = Qt::MiddleButton;
 }
 
 //-----------------------------------------------------------------------------
@@ -604,7 +604,7 @@ void QEGraphicBoxMarkup::plotMarkup ()
    int maxTextWidth = 0;
 
    for (int j = 0; j < numberLines; j++) {
-      int textWidth  = fm.width (info.value (j));
+      int textWidth  = fm.horizontalAdvance (info.value (j));
       maxTextWidth = MAX (maxTextWidth, textWidth);
    }
 
@@ -801,7 +801,7 @@ void QEGraphicHVBaseMarkup::mousePress (const QPointF& realMousePosition, const 
          this->emitCurrentPostion ();
          break;
 
-      case MIDDLE_BUTTON:
+      case Qt::MiddleButton:
          this->setEnabled (false);
          this->setSelected (false);
          break;

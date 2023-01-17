@@ -1,6 +1,9 @@
 /*  QEDragDrop.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  Copyright (c) 2012-2022 Australian Synchrotron
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012,2014,2016,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -64,7 +65,7 @@
 #include <QDrag>
 #include <QClipboard>
 #include <QApplication>
-#include <QEPlatform.h>
+#include <QECommon.h>
 #include <QGraphicsOpacityEffect>
 #include <QLinearGradient>
 
@@ -164,8 +165,7 @@ void QEDragDrop::qcaDropEvent(QDropEvent *event, const bool allText)
         else
         {
             // Get the component textual parts
-            QStringList pieces = mime->text().split(QRegExp("\\s+"),
-                                                    QString::SkipEmptyParts);
+            QStringList pieces = QEUtilities::split(mime->text());
 
             // Carry out the drop action
             // Assume only the first text part is of interest
@@ -213,7 +213,7 @@ void QEDragDrop::qcaMousePressEvent(QMouseEvent* event)
 
         // Not drag drop per se, but here is where we handle button events.
         //
-        else if( button == MIDDLE_BUTTON )
+        else if( button == Qt::MiddleButton )
         {
             postPvInformation();
         }
@@ -233,7 +233,7 @@ void QEDragDrop::qcaMousePressEvent(QMouseEvent* event)
             examinePVProperties();
         }
 
-        else if( button == MIDDLE_BUTTON )
+        else if( button == Qt::MiddleButton )
         {
             plotInStripChart();
         }

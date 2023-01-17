@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2019 Australian Synchrotron
+ *  Copyright (c) 2011-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -339,9 +339,9 @@ void QEAnalogIndicator::drawAxis  (QPainter & painter, QRect & axis)
          QString vt;
 
          if (this->getLogScale () ) {
-            vt.sprintf ("%.0e", value);
+            vt = QString::asprintf ("%.0e", value);
          } else {
-            vt.sprintf ("%.1f", value);
+            vt = QString::asprintf ("%.1f", value);
          }
 
          p2 = this->isLeftRight () ? QPoint (x, y + majorTick + 1) : QPoint (x + majorTick + 1, y);
@@ -709,9 +709,9 @@ void QEAnalogIndicator::drawMeter (QPainter & painter, QRect &area, const double
          QString vt;
 
          if (this->getLogScale () ) {
-            vt.sprintf ("%.0e", value);
+            vt = QString::asprintf ("%.0e", value);
          } else {
-            vt.sprintf ("%.1f", value);
+            vt = QString::asprintf ("%.1f", value);
          }
          p1 = RPOINT (0.88);
          this->drawText (painter, p1, vt, 7);
@@ -767,7 +767,7 @@ void QEAnalogIndicator::drawText (QPainter & painter, QPoint & textCentre, QStri
    // Centre text. For height, pointSize seems better than fm.height ()
    // painter.drawText takes bottom left coordinates.
    //
-   x = textCentre.x () - fm.width (text)/2;
+   x = textCentre.x () - fm.horizontalAdvance (text)/2;
    y = textCentre.y () + (pf.pointSize () + 1) / 2;
 
    pen.setColor (this->getFontPaintColour ());
@@ -798,7 +798,7 @@ void QEAnalogIndicator::drawAxisText (QPainter & painter, QPoint & textCentre, Q
    // painter.drawText needs bottom left coordinates.
    //
    if (this->isLeftRight ()) {
-      x = textCentre.x () - fm.width (text)/2;
+      x = textCentre.x () - fm.horizontalAdvance (text)/2;
       y = textCentre.y () +  pf.pointSize ();
    } else {
       x = textCentre.x ();
@@ -953,7 +953,7 @@ QString QEAnalogIndicator::getTextImage () const
 {
    QString result;
 
-   result.sprintf ("%+0.7g", this->mValue);
+   result = QString::asprintf ("%+0.7g", this->mValue);
    return result;
 }
 

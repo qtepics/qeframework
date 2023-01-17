@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron.
+ *  Copyright (c) 2013-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -1032,7 +1032,7 @@ void QEGraphic::drawTexts (QPainter* painter)
 
       if (item.isCentred) {
          QFontMetrics fm = painter->fontMetrics ();
-         x -= fm.width (item.text)/2;
+         x -= fm.horizontalAdvance (item.text)/2;
          y += (ps + 1)/2;
       }
 
@@ -1286,7 +1286,7 @@ void QEGraphic::canvasMousePress (QMouseEvent* mouseEvent)
    //
    if (button == Qt::LeftButton) {
       search = this->graphicMarkupsSet->value (QEGraphicNames::Area, NULL);
-   } else if (button == MIDDLE_BUTTON) {
+   } else if (button == Qt::MiddleButton) {
       search = this->graphicMarkupsSet->value (QEGraphicNames::Line, NULL);
    }
 
@@ -1435,7 +1435,7 @@ bool QEGraphic::eventFilter (QObject* obj, QEvent* event)
          if (obj == this->plot->canvas ()) {
 
             emit wheelRotate (this->realMousePosition,
-                              wheelEvent->delta ());
+                              wheelEvent->angleDelta().y());
 
             return true;  // we have handled wheel event
          }
