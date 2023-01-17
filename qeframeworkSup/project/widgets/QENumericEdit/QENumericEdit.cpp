@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron.
+ *  Copyright (c) 2013-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -643,7 +643,8 @@ void QENumericEdit::calculateAutoValues ()
 void QENumericEdit::internalValueChanged (const double)
 {
    this->isModified = true;
-   if (this->writeOnChange) {
+   // GUI-320
+   if (this->writeOnChange && !this->isFirstUpdate) {
       this->writeNow ();
    }
 }
