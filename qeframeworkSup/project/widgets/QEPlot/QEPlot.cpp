@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2022 Australian Synchrotron
+ *  Copyright (c) 2009-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -317,7 +317,8 @@ void QEPlot::setup ()
    this->legendArea->setFixedWidth (2);    // effectivetly invisible.
    this->layout = new QHBoxLayout (this);
    this->layoutMargin = 0;
-   this->layout->setContentsMargins (this->layoutMargin, this->layoutMargin, this->layoutMargin, this->layoutMargin);
+   this->layout->setContentsMargins (this->layoutMargin, this->layoutMargin,
+                                     this->layoutMargin, this->layoutMargin);
    this->layout->setSpacing (0);
    this->layout->addWidget (this->plotArea);
    this->layout->addWidget (this->legendArea);
@@ -440,6 +441,13 @@ QEPlot::~QEPlot ()
 QSize QEPlot::sizeHint () const
 {
    return QSize (240, 100);
+}
+
+//------------------------------------------------------------------------------
+//
+QEGraphic* QEPlot::getGraphic () const
+{
+   return this->plotArea;
 }
 
 //------------------------------------------------------------------------------

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2019 Australian Synchrotron.
+ *  Copyright (c) 2019-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -48,21 +48,25 @@ QEGraphicNames::QEGraphicMarkupsSets* QEGraphicNames::createGraphicMarkupsSet (Q
    // Construct markups and insert into marksup set.
    //
    result = new QEGraphicMarkupsSets ();
-   result->insert (Area,             new QEGraphicAreaMarkup (owner));
-   result->insert (Line,             new QEGraphicLineMarkup (owner));
-   result->insert (Box,              new QEGraphicBoxMarkup (owner));
-   result->insert (CrossHair,        new QEGraphicCrosshairsMarkup (owner));
+   result->insert (Area,               new QEGraphicAreaMarkup (owner));
+   result->insert (Line,               new QEGraphicLineMarkup (owner));
+   result->insert (Box,                new QEGraphicBoxMarkup (owner));
+   result->insert (CrossHair,          new QEGraphicCrosshairsMarkup (owner));
 
    // There are multiple instances of each type - we need to be explicit.
    //
-   result->insert (HorizontalLine_1, new QEGraphicHorizontalMarkup (HorizontalLine_1, owner));
-   result->insert (HorizontalLine_2, new QEGraphicHorizontalMarkup (HorizontalLine_2, owner));
-   result->insert (HorizontalLine_3, new QEGraphicHorizontalMarkup (HorizontalLine_3, owner));
-   result->insert (HorizontalLine_4, new QEGraphicHorizontalMarkup (HorizontalLine_4, owner));
-   result->insert (VerticalLine_1,   new QEGraphicVerticalMarkup (VerticalLine_1, owner));
-   result->insert (VerticalLine_2,   new QEGraphicVerticalMarkup (VerticalLine_2, owner));
-   result->insert (VerticalLine_3,   new QEGraphicVerticalMarkup (VerticalLine_3, owner));
-   result->insert (VerticalLine_4,   new QEGraphicVerticalMarkup (VerticalLine_4, owner));
+   result->insert (HorizontalLine_1,   new QEGraphicHorizontalMarkup (HorizontalLine_1, owner));
+   result->insert (HorizontalLine_2,   new QEGraphicHorizontalMarkup (HorizontalLine_2, owner));
+   result->insert (HorizontalLine_3,   new QEGraphicHorizontalMarkup (HorizontalLine_3, owner));
+   result->insert (HorizontalLine_4,   new QEGraphicHorizontalMarkup (HorizontalLine_4, owner));
+   result->insert (VerticalLine_1,     new QEGraphicVerticalMarkup   (VerticalLine_1, owner));
+   result->insert (VerticalLine_2,     new QEGraphicVerticalMarkup   (VerticalLine_2, owner));
+   result->insert (VerticalLine_3,     new QEGraphicVerticalMarkup   (VerticalLine_3, owner));
+   result->insert (VerticalLine_4,     new QEGraphicVerticalMarkup   (VerticalLine_4, owner));
+   result->insert (HorizontalMarker_1, new QEGraphicHorizontalMarkerMarkup (HorizontalMarker_1, owner));
+   result->insert (HorizontalMarker_2, new QEGraphicHorizontalMarkerMarkup (HorizontalMarker_2, owner));
+   result->insert (VerticalMarker_1,   new QEGraphicVerticalMarkerMarkup   (VerticalMarker_1, owner));
+   result->insert (VerticalMarker_2,   new QEGraphicVerticalMarkerMarkup   (VerticalMarker_2, owner));
 
    return result;
 }

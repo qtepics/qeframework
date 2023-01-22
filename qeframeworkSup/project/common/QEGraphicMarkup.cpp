@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2022 Australian Synchrotron.
+ *  Copyright (c) 2014-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -766,6 +766,104 @@ void QEGraphicCrosshairsMarkup::plotMarkup ()
    xdata.clear ();  ydata.clear ();
    xdata << min;    ydata << position.y ();
    xdata << max;    ydata << position.y ();
+   this->plotCurve (xdata, ydata);
+}
+
+
+//=============================================================================
+// QEGraphicHorizontalMarkerMarkup
+//=============================================================================
+//
+QEGraphicHorizontalMarkerMarkup::QEGraphicHorizontalMarkerMarkup
+  (QEGraphicNames::Markups markup, QEGraphic* ownerIn) :
+   QEGraphicMarkup (markup, ownerIn)
+{
+   this->pen.setColor (QColor (0xFF8080));
+   this->pen.setWidth (1);
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEGraphicHorizontalMarkerMarkup::setVisible (const bool visibleIn)
+{
+   if (!this->isInUse()) return;
+
+   double ymin;
+   double ymax;
+   QPointF middle;
+
+   QEGraphicMarkup::setVisible (visibleIn);
+
+   if (visibleIn) {
+      this->getOwner()->getYRange (ymin, ymax);
+
+      middle = QPointF (0.0, (ymin + ymax)/2.0);
+      this->position = middle;
+   }
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEGraphicHorizontalMarkerMarkup::plotMarkup ()
+{
+   QEGraphicNames::DoubleVector xdata;
+   QEGraphicNames::DoubleVector ydata;
+   double min;
+   double max;
+
+   this->getOwner()->getXRange (min, max);
+   xdata.clear ();  ydata.clear ();
+   xdata << min;    ydata << position.y ();
+   xdata << max;    ydata << position.y ();
+   this->plotCurve (xdata, ydata);
+}
+
+
+//=============================================================================
+// QEGraphicVerticalMarkerMarkup
+//=============================================================================
+//
+QEGraphicVerticalMarkerMarkup::QEGraphicVerticalMarkerMarkup
+  (QEGraphicNames::Markups markup, QEGraphic* ownerIn) :
+   QEGraphicMarkup (markup, ownerIn)
+{
+   this->pen.setColor (QColor (0xFF8080));  // light blueish
+   this->pen.setWidth (1);
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEGraphicVerticalMarkerMarkup::setVisible (const bool visibleIn)
+{
+   if (!this->isInUse()) return;
+
+   double xmin;
+   double xmax;
+   QPointF middle;
+
+   QEGraphicMarkup::setVisible (visibleIn);
+
+   if (visibleIn) {
+      this->getOwner()->getXRange (xmin, xmax);
+
+      middle = QPointF ((xmin + xmax)/2.0, 0.0);
+      this->position = middle;
+   }
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEGraphicVerticalMarkerMarkup::plotMarkup ()
+{
+   QEGraphicNames::DoubleVector xdata;
+   QEGraphicNames::DoubleVector ydata;
+   double min;
+   double max;
+
+   this->getOwner()->getYRange (min, max);
+   xdata.clear ();    ydata.clear ();
+   xdata << position.x ();  ydata << min;
+   xdata << position.x ();  ydata << max;
    this->plotCurve (xdata, ydata);
 }
 

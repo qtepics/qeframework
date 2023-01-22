@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron.
+ *  Copyright (c) 2013-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -71,19 +71,23 @@ public:
    Q_ENUMS (Markups)
 
    enum Markups {
-      None              = 0x0000,
-      Area              = 0x0001,
-      Line              = 0x0002,
-      CrossHair         = 0x0004,
-      HorizontalLine_1  = 0x0010,
-      HorizontalLine_2  = 0x0020,
-      HorizontalLine_3  = 0x0040,
-      HorizontalLine_4  = 0x0080,
-      VerticalLine_1    = 0x0100,
-      VerticalLine_2    = 0x0200,
-      VerticalLine_3    = 0x0400,
-      VerticalLine_4    = 0x0800,
-      Box               = 0x1000
+      None               = 0x000000,
+      Area               = 0x000001,   // Draws rectangle from origin to current mouse position.
+      Line               = 0x000002,   // Draws a line from origin to current mouse position.
+      CrossHair          = 0x000004,   // Draws crosshairs about to current (mouse) position.
+      HorizontalLine_1   = 0x000010,   // Draws horizontal line through current position.
+      HorizontalLine_2   = 0x000020,   // Ditto
+      HorizontalLine_3   = 0x000040,   // Ditto
+      HorizontalLine_4   = 0x000080,   // Ditto
+      VerticalLine_1     = 0x000100,   // Draws vertical line through current position.
+      VerticalLine_2     = 0x000200,   // Ditto
+      VerticalLine_3     = 0x000400,   // Ditto
+      VerticalLine_4     = 0x000800,   // Ditto
+      Box                = 0x001000,   // Draws a box around the position.
+      HorizontalMarker_1 = 0x002000,   // Draws horizontal line - no mouse control.
+      HorizontalMarker_2 = 0x004000,   // Ditto
+      VerticalMarker_1   = 0x008000,   // Draws vertical line - no mouse control.
+      VerticalMarker_2   = 0x010000    // Ditto
    };
 
    Q_DECLARE_FLAGS (MarkupFlags, Markups)

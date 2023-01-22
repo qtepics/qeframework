@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2022 Australian Synchrotron.
+ *  Copyright (c) 2014-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -199,6 +199,35 @@ protected:
    void plotMarkup ();
 };
 
+//-----------------------------------------------------------------------------
+// Draws horizontal line - like Crosshairs only 1 dimension.
+//
+class QEGraphicHorizontalMarkerMarkup : public QEGraphicMarkup {
+public:
+   explicit QEGraphicHorizontalMarkerMarkup (QEGraphicNames::Markups markup, QEGraphic* owner);
+
+   void setVisible (const bool visible);
+
+   // No isOver, mousePress, mouseRelease or mouseMove.
+   // This is currently a display only markup.
+protected:
+   void plotMarkup ();
+};
+
+//-----------------------------------------------------------------------------
+// Draws horizontal line - like Crosshairs only 1 dimension.
+//
+class QEGraphicVerticalMarkerMarkup : public QEGraphicMarkup {
+public:
+   explicit QEGraphicVerticalMarkerMarkup (QEGraphicNames::Markups markup, QEGraphic* owner);
+
+   void setVisible (const bool visible);
+
+   // No isOver, mousePress, mouseRelease or mouseMove.
+   // This is currently a display only markup.
+protected:
+   void plotMarkup ();
+};
 
 //-----------------------------------------------------------------------------
 // (Abstract) base class for QEGraphicHorizontalMarkup/QEGraphicVerticalMarkup.

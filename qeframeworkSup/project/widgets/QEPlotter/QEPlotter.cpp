@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron.
+ *  Copyright (c) 2013-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -101,7 +101,7 @@ QTimer* QEPlotter::tickTimer = NULL;
 //
 void QEPlotter::createSlotWidgets (const int slot)
 {
-   SLOT_CHECK(slot,)
+   SLOT_CHECK(slot,);
 
    QFrame* frame = new QFrame (this->itemFrame);
    frame->setFixedHeight (16);
@@ -236,7 +236,8 @@ void QEPlotter::createInternalWidgets ()
 
    this->plotArea = new QEGraphic (this->plotFrame);
    this->plotArea->setAvailableMarkups
-         (QEGraphicNames::Area | QEGraphicNames::Line | QEGraphicNames::CrossHair);
+         (QEGraphicNames::Area | QEGraphicNames::Line | QEGraphicNames::CrossHair |
+          QEGraphicNames::VerticalMarker_1 | QEGraphicNames::HorizontalMarker_1);
 
    this->plotLayout->addWidget (this->plotArea);
 
@@ -558,10 +559,10 @@ QEPlotter::QEPlotter (QWidget* parent) : QEAbstractDynamicWidget (parent)
    //
    this->generalContextMenu = NULL;
 
-   this->setNumVariables (2*ARRAY_LENGTH (this->xy));
+   this->setNumVariables (TOTAL_VI_NUMBER);
 
    for (int slot = 0; slot < ARRAY_LENGTH (this->xy); slot++) {
-      this->xy [slot].setContext (this, slot);   // set owner and slot number.
+      this->xy [slot].setContext (this, slot);   // set owner and own slot number.
       this->xy [slot].colour = item_colours [slot];
 
       this->updateLabel (slot);
@@ -569,9 +570,13 @@ QEPlotter::QEPlotter (QWidget* parent) : QEAbstractDynamicWidget (parent)
       // Set variable index numbers.
       // Must be consistent with the isDataIndex ()  etc. functions.
       //
-      this->xy [slot].dataVariableNameManager.setVariableIndex (2*slot + 0);
-      this->xy [slot].sizeVariableNameManager.setVariableIndex (2*slot + 1);
+      this->xy [slot].dataVariableNameManager.setVariableIndex (PVS_PER_SLOT*slot + 0);
+      this->xy [slot].sizeVariableNameManager.setVariableIndex (PVS_PER_SLOT*slot + 1);
    }
+
+   this->xMarkerVariableNameManager.setVariableIndex (NONE_SLOT_VI_BASE + 0);
+   this->yMarkerVariableNameManager.setVariableIndex (NONE_SLOT_VI_BASE + 1);
+
 
    // Configure the panel.
    //
@@ -613,6 +618,15 @@ QEPlotter::QEPlotter (QWidget* parent) : QEAbstractDynamicWidget (parent)
       QObject::connect (vpnm, SIGNAL (newVariableNameProperty (QString, QString, unsigned int)),
                         this, SLOT   (setNewVariableName      (QString, QString, unsigned int)));
    }
+
+   vpnm = &this->xMarkerVariableNameManager;
+   QObject::connect (vpnm, SIGNAL (newVariableNameProperty (QString, QString, unsigned int)),
+                     this, SLOT   (setNewVariableName      (QString, QString, unsigned int)));
+
+   vpnm = &this->yMarkerVariableNameManager;
+   QObject::connect (vpnm, SIGNAL (newVariableNameProperty (QString, QString, unsigned int)),
+                     this, SLOT   (setNewVariableName      (QString, QString, unsigned int)));
+
 
    // Connect action requests to consumer, e.g. qegui.
    //
@@ -668,13 +682,15 @@ QSize QEPlotter::sizeHint () const {
 
 //------------------------------------------------------------------------------
 //
-bool QEPlotter::isDataIndex   (const unsigned int vi) const { return (vi % 2) == 0; }
-bool QEPlotter::isSizeIndex   (const unsigned int vi) const { return !isDataIndex (vi); }
-bool QEPlotter::isXIndex      (const unsigned int vi) const { return (vi < 2); }
-bool QEPlotter::isYIndex      (const unsigned int vi) const { return !isXIndex (vi); }
-int  QEPlotter::slotOf        (const unsigned int vi) const { return (vi / 2); }
-unsigned int QEPlotter::viOfDataSlot (const int slot) const { return 2 * slot + 0; }
-unsigned int QEPlotter::viOfSizeSlot (const int slot) const { return 2 * slot + 1; }
+bool QEPlotter::isSlotIndex   (const unsigned int vi) const { return (vi < NONE_SLOT_VI_BASE);}
+bool QEPlotter::isMarkerIndex (const unsigned int vi) const { return (vi >= NONE_SLOT_VI_BASE) and (vi < TOTAL_VI_NUMBER); }
+bool QEPlotter::isDataIndex   (const unsigned int vi) const { return isSlotIndex (vi) && ((vi % PVS_PER_SLOT) == 0); }
+bool QEPlotter::isSizeIndex   (const unsigned int vi) const { return isSlotIndex (vi) && ((vi % PVS_PER_SLOT) == 1); }
+bool QEPlotter::isXIndex      (const unsigned int vi) const { return isSlotIndex (vi) && (vi < PVS_PER_SLOT); }
+bool QEPlotter::isYIndex      (const unsigned int vi) const { return isSlotIndex (vi) && !isXIndex (vi); }
+int  QEPlotter::slotOf        (const unsigned int vi) const { return vi / PVS_PER_SLOT; }
+unsigned int QEPlotter::viOfDataSlot (const int slot) const { return PVS_PER_SLOT * slot + 0; }
+unsigned int QEPlotter::viOfSizeSlot (const int slot) const { return PVS_PER_SLOT * slot + 1; }
 
 //------------------------------------------------------------------------------
 //
@@ -778,6 +794,15 @@ void QEPlotter::setNewVariableName (QString variableName,
                                     QString variableNameSubstitutions,
                                     unsigned int variableIndex)
 {
+   // Deal with marker special case first.
+   //
+   if (this->isMarkerIndex (variableIndex)) {
+      // Note: essentially calls establishConnection and then createQcaItem.
+      //
+      this->setVariableNameAndSubstitutions (variableName, variableNameSubstitutions, variableIndex);
+      return;
+   }
+
    const int slot = this->slotOf (variableIndex);
    SLOT_CHECK (slot,);
 
@@ -791,9 +816,11 @@ void QEPlotter::setNewVariableName (QString variableName,
    } else if (this->isSizeIndex (variableIndex)) {
       this->xy [slot].sizeKind = NotSpecified;
       this->xy [slot].sizeIsConnected = false;
+   } else {
+      DEBUG << "Unexpected variableIndex" << variableIndex;
    }
 
-   // Note: essentially calls createQcaItem.
+   // Note: essentially calls establishConnection and then createQcaItem.
    //
    this->setVariableNameAndSubstitutions (variableName, variableNameSubstitutions, variableIndex);
 
@@ -820,8 +847,6 @@ void QEPlotter::setNewVariableName (QString variableName,
 //
 qcaobject::QCaObject* QEPlotter::createQcaItem (unsigned int variableIndex)
 {
-   const int slot = this->slotOf (variableIndex);
-   SLOT_CHECK (slot, NULL);
 
    qcaobject::QCaObject* result = NULL;
    QString pvName;
@@ -831,6 +856,9 @@ qcaobject::QCaObject* QEPlotter::createQcaItem (unsigned int variableIndex)
    pvName = this->getSubstitutedVariableName (variableIndex).trimmed ();
 
    if (this->isDataIndex (variableIndex)) {
+      const int slot = this->slotOf (variableIndex);
+      SLOT_CHECK (slot, NULL);
+
       // Has designer/user defined a calculation (as opposed to a PV name)?.
       // Note: no valid PV name starts with =.
       //
@@ -858,6 +886,9 @@ qcaobject::QCaObject* QEPlotter::createQcaItem (unsigned int variableIndex)
 
    } else if (this->isSizeIndex (variableIndex)) {
 
+      const int slot = this->slotOf (variableIndex);
+      SLOT_CHECK (slot, NULL);
+
       // Has designer/user just set an integer (as opposed to a PV name)?.
       // Note: no sensible PV names are just integers.
       //
@@ -876,6 +907,9 @@ qcaobject::QCaObject* QEPlotter::createQcaItem (unsigned int variableIndex)
          this->xy [slot].fixedSize = 0;
          this->xy [slot].dbSize = 0;
       }
+
+   } else if (this->isMarkerIndex(variableIndex)) {
+      result = new QEFloating (pvName, this, &this->floatingFormatting, variableIndex);
    }
 
    return result;
@@ -889,11 +923,6 @@ qcaobject::QCaObject* QEPlotter::createQcaItem (unsigned int variableIndex)
 //
 void QEPlotter::establishConnection (unsigned int variableIndex)
 {
-   const int slot = this->slotOf (variableIndex);
-   SLOT_CHECK (slot,);
-
-   DataSets* ds = &this->xy [slot];
-
    // Create a connection.
    // If successfull, the QCaObject object that will supply data update signals will be returned
    // Note createConnection creates the connection and returns reference to existing QCaObject.
@@ -905,6 +934,9 @@ void QEPlotter::establishConnection (unsigned int variableIndex)
    }
 
    if (this->isDataIndex (variableIndex)) {
+      const int slot = this->slotOf (variableIndex);
+      SLOT_CHECK (slot,);
+      DataSets* ds = &this->xy [slot];
 
       ds->clear ();  // Clear any old data.
 
@@ -926,6 +958,13 @@ void QEPlotter::establishConnection (unsigned int variableIndex)
 
       QObject::connect (qca, SIGNAL (integerChanged   (const long &, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)),
                         this, SLOT  (sizeValueChanged (const long &, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)));
+
+   } else if (this->isMarkerIndex(variableIndex)) {
+      QObject::connect (qca, SIGNAL (connectionChanged       (QCaConnectionInfo &, const unsigned int &)),
+                        this, SLOT  (markerConnectionChanged (QCaConnectionInfo &, const unsigned int &)));
+
+      QObject::connect (qca, SIGNAL (floatingChanged    (const double &, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)),
+                        this, SLOT  (markerValueChanged (const double &, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)));
    }
 }
 
@@ -1792,7 +1831,7 @@ QStringList QEPlotter::getDataPvNameSet () const
       QString pvName;
 
       if (this->xy [slot].dataKind == DataPVPlot) {
-      pvName = this->getXYExpandedDataPV (slot);
+         pvName = this->getXYExpandedDataPV (slot);
       } else {
          // Either not in use or more importantly CalculationPlot which is
          // not a PV per se.
@@ -2280,23 +2319,23 @@ void QEPlotter::setToolTipSummary ()
    QString customText;
 
    for (int slot = 0; slot < ARRAY_LENGTH (this->xy); slot++) {
-       DataSets* ds = &this->xy [slot];
+      DataSets* ds = &this->xy [slot];
 
-       if (ds->dataKind == DataPVPlot) {
-          if (ds->dataIsConnected) {
-             connected++;
-          } else {
-             disconnected++;
-          }
-       }
+      if (ds->dataKind == DataPVPlot) {
+         if (ds->dataIsConnected) {
+            connected++;
+         } else {
+            disconnected++;
+         }
+      }
 
-       if (ds->sizeKind == SizePVName) {
-          if (ds->sizeIsConnected) {
-             connected++;
-          } else {
-             disconnected++;
-          }
-       }
+      if (ds->sizeKind == SizePVName) {
+         if (ds->sizeIsConnected) {
+            connected++;
+         } else {
+            disconnected++;
+         }
+      }
    }
 
    total = connected + disconnected;
@@ -2401,6 +2440,56 @@ void QEPlotter::sizeValueChanged (const long& value,
    this->setToolTipSummary ();
 }
 
+//------------------------------------------------------------------------------
+//
+void QEPlotter::markerConnectionChanged (QCaConnectionInfo& connectionInfo,
+                                         const unsigned int& variableIndex)
+{
+   QEGraphicNames::Markups markup;
+
+   if (variableIndex == NONE_SLOT_VI_BASE + 0) {
+      markup = QEGraphicNames::VerticalMarker_1;
+   } else if (variableIndex == NONE_SLOT_VI_BASE + 1) {
+      markup = QEGraphicNames::HorizontalMarker_1;
+   } else {
+      DEBUG << "unexpected variableIndex" << variableIndex;
+      return;
+   }
+
+   const bool isConnected = connectionInfo.isChannelConnected();
+   if (!isConnected) {
+      QEGraphic* g = this->getGraphic ();
+      g->setMarkupVisible (markup, false);
+   }
+
+   this->updateToolTipConnection (isConnected, variableIndex);
+   this->replotIsRequired = true;
+// this->setToolTipSummary ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlotter::markerValueChanged (const double& value,
+                                    QCaAlarmInfo&,
+                                    QCaDateTime&,
+                                    const unsigned int& variableIndex)
+{
+   QEGraphicNames::Markups markup;
+
+   if (variableIndex == NONE_SLOT_VI_BASE + 0) {
+      markup = QEGraphicNames::VerticalMarker_1;
+   } else if (variableIndex == NONE_SLOT_VI_BASE + 1) {
+      markup = QEGraphicNames::HorizontalMarker_1;
+   } else {
+      DEBUG << "unexpected variableIndex" << variableIndex;
+      return;
+   }
+
+   QEGraphic* g = this->getGraphic ();
+   g->setMarkupVisible (markup, true);
+   g->setMarkupPosition (markup, QPointF (value, value));
+   this->replotIsRequired = true;
+}
 
 //------------------------------------------------------------------------------
 // Plot and plot related functions
@@ -2855,6 +2944,9 @@ void QEPlotter::setVariableSubstitutions (QString defaultSubstitutions)
       this->xy [slot].dataVariableNameManager.setSubstitutionsProperty (defaultSubstitutions);
       this->xy [slot].sizeVariableNameManager.setSubstitutionsProperty (defaultSubstitutions);
    }
+
+   this->xMarkerVariableNameManager.setSubstitutionsProperty (defaultSubstitutions);
+   this->yMarkerVariableNameManager.setSubstitutionsProperty (defaultSubstitutions);
 }
 
 //------------------------------------------------------------------------------
@@ -2864,6 +2956,34 @@ QString QEPlotter::getVariableSubstitutions () const
    // Any one of these name managers can provide the subsitutions.
    //
    return this->xy [0].dataVariableNameManager.getSubstitutionsProperty ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlotter::setXMarkerPV (const QString& pvName)
+{
+   this->xMarkerVariableNameManager.setVariableNameProperty(pvName);
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEPlotter::getXMarkerPV () const
+{
+   return this->xMarkerVariableNameManager.getVariableNameProperty();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlotter::setYMarkerPV (const QString& pvName)
+{
+   this->yMarkerVariableNameManager.setVariableNameProperty(pvName);
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEPlotter::getYMarkerPV () const
+{
+   return this->yMarkerVariableNameManager.getVariableNameProperty();
 }
 
 //------------------------------------------------------------------------------
@@ -3065,7 +3185,7 @@ void QEPlotter::setMenuEmitText  (const QString& text)
 
 QString QEPlotter::getMenuEmitText () const
 {
-    return this->contextMenuEmitLegend;
+   return this->contextMenuEmitLegend;
 }
 
 //------------------------------------------------------------------------------
@@ -3155,7 +3275,7 @@ void QEPlotter::setVideoMode (const VideoModes mode)
 
 QEPlotter::VideoModes QEPlotter::getVideoMode () const
 {
-    return this->isReverse ? reverse : normal;
+   return this->isReverse ? reverse : normal;
 }
 
 //------------------------------------------------------------------------------
@@ -3222,7 +3342,7 @@ void QEPlotter::setXMinimum (const double xMinimumIn)
 
 double QEPlotter::getXMinimum () const
 {
-    return this->fixedMinX;
+   return this->fixedMinX;
 }
 
 //------------------------------------------------------------------------------

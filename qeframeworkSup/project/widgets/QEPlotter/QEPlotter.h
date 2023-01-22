@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron.
+ *  Copyright (c) 2013-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -43,6 +43,8 @@
 #include <QWidget>
 
 #include <QEFrameworkLibraryGlobal.h>
+#include <QCaAlarmInfo.h>
+#include <QCaDateTime.h>
 #include <QEActionRequests.h>
 #include <QEFloatingArray.h>
 #include <QEFloatingFormatting.h>
@@ -106,6 +108,12 @@ public:
    //
    Q_PROPERTY (QString contextMenuEmitLegend
                READ getMenuEmitText    WRITE setMenuEmitText)
+
+   // X and Y marker position PVs
+   // Markers displayed iff PV connected abd value available.
+   //
+   Q_PROPERTY (QString xMarkerVariable READ getXMarkerPV  WRITE setXMarkerPV)
+   Q_PROPERTY (QString yMarkerVariable READ getYMarkerPV  WRITE setYMarkerPV)
 
    // Data and Size properties,
    //
@@ -210,9 +218,18 @@ public:
    QSize sizeHint () const;
 
    enum Constants {
+      PVS_PER_SLOT = 2,        // data and size
       NUMBER_OF_PLOTS = 16,
-      NUMBER_OF_SLOTS = 17     // includes the X slot
+      NUMBER_OF_SLOTS = 17,    // includes the X slot
+      NONE_SLOT_VI_BASE = PVS_PER_SLOT * NUMBER_OF_SLOTS,
+      TOTAL_VI_NUMBER = NONE_SLOT_VI_BASE + 2  // includes the X and Y marker PVs
    };
+
+   void setXMarkerPV (const QString& pvName);
+   QString getXMarkerPV () const;
+
+   void setYMarkerPV (const QString& pvName);
+   QString getYMarkerPV () const;
 
    // Single function for all 'Data Set' properties.
    // Slot 0 is the X PV slot.
@@ -363,13 +380,7 @@ public:
 #undef PROPERTY_ACCESS_SETTER
 #undef PROPERTY_ACCESS_GETTER
 
-public slots:
-   // Allows the chart range to be specified externally.
-   // Chart mode will become fixed scale (as opposed to dynamic or fractional)
-   //
-   void setXRange (const double xMinimum, const double xMaximum);
-   void setYRange (const double yMinimum, const double yMaximum);
-
+public:
 signals:
    // Indicates data index cossponding to (vertical) crosshairs.
    // Emitted each time the cross hairs are moved.
@@ -383,10 +394,16 @@ signals:
    void xCoordinateSelected   (double xvalue);
    void yCoordinateSelected   (double yvalue);
 
+public slots:
+   // Allows the chart range to be specified externally.
+   // Chart mode will become fixed scale (as opposed to dynamic or fractional)
+   //
+   void setXRange (const double xMinimum, const double xMaximum);
+   void setYRange (const double yMinimum, const double yMaximum);
+
    // Set, get and emit set of active data PV names.
    // Note: this applies to the data PV names only and does not include any sizing PVs.
    //
-public slots:
    void setDataPvNameSet (const QStringList& pvNameSet);
    void setAliasNameSet (const QStringList& aliasNameSet);
 
@@ -495,6 +512,9 @@ private:
    QEPlotterNames::ScaleModes yScaleMode;
    QEPlotterStateList  stateList;
    bool useFullLengthArraySubscriptions;
+
+   QCaVariableNamePropertyManager xMarkerVariableNameManager;
+   QCaVariableNamePropertyManager yMarkerVariableNameManager;
 
    bool enableConextMenu;
    bool toolBarIsVisible;
@@ -642,6 +662,8 @@ private:
    // Provides consistant interpretation of variableIndex.
    // Must be consistent with variableIndex allocation in the contructor.
    //
+   bool isSlotIndex   (const unsigned int vi) const;
+   bool isMarkerIndex (const unsigned int vi) const;
    bool isDataIndex   (const unsigned int vi) const;
    bool isSizeIndex   (const unsigned int vi) const;
    bool isXIndex      (const unsigned int vi) const;
@@ -674,6 +696,14 @@ public slots:
                           QCaAlarmInfo& alarmInfo,
                           QCaDateTime& timeStamp,
                           const unsigned int& variableIndex);
+
+   void markerConnectionChanged (QCaConnectionInfo& connectionInfo,
+                                 const unsigned int& variableIndex);
+
+   void markerValueChanged (const double& value,
+                            QCaAlarmInfo& alarmInfo,
+                            QCaDateTime& timeStamp,
+                            const unsigned int& variableIndex);
 
 private slots:
    void postContruction ();
