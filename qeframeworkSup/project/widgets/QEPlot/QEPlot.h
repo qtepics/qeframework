@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2022 Australian Synchrotron
+ *  Copyright (c) 2009-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -415,6 +415,8 @@ public:
 
    void setFullLengthArraySubscriptions (const bool useFullLengthArraySubscriptions);
    bool getFullLengthArraySubscriptions() const;
+
+   QEGraphic* getGraphic () const;   // allow access to the embedded graphic object.
 
 signals:
    // Note, the following signals are common to many QE widgets,
