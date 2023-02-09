@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2022 Australian Synchrotron
+ *  Copyright (c) 2015-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -73,6 +73,10 @@ public:
    /// Minor scale interval.
    /// Only applies for linear scale (not log scale)
    Q_PROPERTY (double majorInterval  READ getMajorInterval  WRITE setMajorInterval)
+
+   /// Inverted apperance.
+   /// Default (false) is left ot right.
+   Q_PROPERTY (bool invertedAppearance READ getInvertedAppearance WRITE setInvertedAppearance)
 
    /// Controls when valueChanged signal is emitted.
    /// If tracking is enabled (the default), the slider emits the valueChanged () signal while the slider is being dragged.
@@ -155,10 +159,12 @@ public:
    // A nod to the EPICS aware class derived from this class.
    //
    void setIsActive (const bool value);
-   bool getIsActive ();
+   bool getIsActive () const;
 
+   void setInvertedAppearance (const bool invertedAppearance);     ///< Access function for #invertedAppearance
+   bool getInvertedAppearance () const;                            ///< Access function for #invertedAppearance
 
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (intSlilder, bool, hasTracking, setTracking)
+   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (intSlider, bool, hasTracking, setTracking)
 
    // Access saved value.
    //
@@ -202,8 +208,8 @@ private:
 
    // Converts between slider integer positions and associated real values.
    //
-   int convertToInt (const double x);
-   double convertToFloat (const int j);
+   int convertToInt (const double x) const;
+   double convertToFloat (const int j) const;
 
    // intervals are stored in the AxisPainter. We do not duplicate
    // them here. However, the widget value is stored here (as opposed to in the
@@ -215,6 +221,7 @@ private:
    double mMaximum;
    int mPrecision;
    bool mIsActive;
+   bool mInvertedAppearnce;
    bool mShowSaveRevert;
    bool mShowApply;
    QColor mFontColour;
@@ -225,7 +232,7 @@ private:
    //
    QVBoxLayout* layout;
    QBoxLayout* sliderLayout;   // we need a gap each siode of the slider.
-   QSlider* intSlilder;
+   QSlider* intSlider;
    QFrame* labelFrame;
    QBoxLayout* labelLayout;    // and save, revert and apply buttons
    QEAxisPainter* axisPainter;

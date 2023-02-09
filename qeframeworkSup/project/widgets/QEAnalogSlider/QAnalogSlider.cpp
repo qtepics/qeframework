@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2022 Australian Synchrotron
+ *  Copyright (c) 2015-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -89,13 +89,13 @@ void QAnalogSlider::commonSetup ()
    this->sliderLayout->setContentsMargins (sliderMargin, 0, sliderMargin, 0);  // left, top, right, bottom
    this->sliderLayout->setSpacing (0);
 
-   this->intSlilder = new QSlider (this);
-   this->intSlilder->setOrientation (Qt::Horizontal);
-   this->intSlilder->setMinimum (0);
-   this->intSlilder->setMaximum (1000);   // consistant with defaults (prec = 2 , range 0 to 10)
-   this->intSlilder->setPageStep (1);
+   this->intSlider = new QSlider (this);
+   this->intSlider->setOrientation (Qt::Horizontal);
+   this->intSlider->setMinimum (0);
+   this->intSlider->setMaximum (1000);   // consistant with defaults (prec = 2 , range 0 to 10)
+   this->intSlider->setPageStep (1);
 
-   this->sliderLayout->addWidget (this->intSlilder);
+   this->sliderLayout->addWidget (this->intSlider);
 
    this->axisPainter = new QEAxisPainter (this);
 
@@ -166,8 +166,8 @@ void QAnalogSlider::commonSetup ()
    this->setShowSaveRevert (false);
    this->setShowApply (false);
 
-   QObject::connect (this->intSlilder, SIGNAL (valueChanged          (int)),
-                     this,             SLOT   (sliderPositionChanged (const int)));
+   QObject::connect (this->intSlider, SIGNAL (valueChanged          (int)),
+                     this,            SLOT   (sliderPositionChanged (const int)));
 
    QObject::connect (this->saveButton, SIGNAL (clicked           (bool)),
                      this,             SLOT   (saveButtonClicked (bool)));
@@ -181,6 +181,7 @@ void QAnalogSlider::commonSetup ()
 
    // Ensure widgets consistant with current settings
    //
+   this->setInvertedAppearance (false);
    this->saveButton->setVisible (this->mShowSaveRevert);
    this->revertButton->setVisible (this->mShowSaveRevert);
    this->applyButton->setVisible (this->mShowApply);
@@ -240,7 +241,7 @@ void QAnalogSlider::setIsActive (const bool value)
 
    // We enable/disable all internal widgets, the QAnalogSlider itself remains active.
    //
-   this->intSlilder->setEnabled (this->mIsActive);
+   this->intSlider->setEnabled (this->mIsActive);
    this->axisPainter->setEnabled (this->mIsActive);
    this->leftImage->setEnabled (this->mIsActive);
    this->centreImage->setEnabled (this->mIsActive);
@@ -249,7 +250,7 @@ void QAnalogSlider::setIsActive (const bool value)
 
 //------------------------------------------------------------------------------
 //
-bool QAnalogSlider::getIsActive ()
+bool QAnalogSlider::getIsActive () const
 {
    return this->mIsActive;
 }
@@ -412,6 +413,32 @@ double QAnalogSlider::getMajorInterval () const
 
 //------------------------------------------------------------------------------
 //
+void QAnalogSlider::setInvertedAppearance (const bool invertedAppearance)
+{
+   this->mInvertedAppearnce = invertedAppearance;
+
+   // Apply to the slider widget.
+   //
+   this->intSlider->setInvertedAppearance (this->mInvertedAppearnce);
+
+   // Apply to the axis painter widget.
+   //
+   QEAxisPainter::Orientations orientation;
+   orientation = this->mInvertedAppearnce
+         ? QEAxisPainter::Right_To_Left
+         : QEAxisPainter::Left_To_Right;
+   this->axisPainter->setOrientation (orientation);
+}
+
+//------------------------------------------------------------------------------
+//
+bool QAnalogSlider::getInvertedAppearance () const
+{
+   return this->mInvertedAppearnce;
+}
+
+//------------------------------------------------------------------------------
+//
 void QAnalogSlider::setLeftText (const QString& leftText)
 {
    this->leftImage->setText (leftText);
@@ -532,9 +559,9 @@ void QAnalogSlider::updateAxisAndSlider ()
    int b = int (max / tick);
 
    this->slotValueChangeInhibited = true;
-   this->intSlilder->setMinimum (a);
-   this->intSlilder->setMaximum (b);
-   this->intSlilder->setMinimum (a);
+   this->intSlider->setMinimum (a);
+   this->intSlider->setMaximum (b);
+   this->intSlider->setMinimum (a);
    this->slotValueChangeInhibited = false;
 
    // Must reset slider value/position.
@@ -547,10 +574,10 @@ void QAnalogSlider::updateAxisAndSlider ()
 void QAnalogSlider::setSliderValue ()
 {
    int posn = this->convertToInt (this->mValue);
-   if (this->intSlilder->value () != posn) {
+   if (this->intSlider->value () != posn) {
       // We are setting the slider position - esure we disgard signal/slot updates.
       this->slotValueChangeInhibited = true;
-      this->intSlilder->setValue (posn);
+      this->intSlider->setValue (posn);
       this->slotValueChangeInhibited = false;
    }
 }
@@ -611,32 +638,32 @@ void QAnalogSlider::applyButtonClicked (bool)
 
 //------------------------------------------------------------------------------
 //
-int QAnalogSlider::convertToInt (const double x)
+int QAnalogSlider::convertToInt (const double x) const
 {
-   double x0 = this->getMinimum ();
-   double x1 = this->getMaximum ();
+   const double x0 = this->getMinimum ();
+   const double x1 = this->getMaximum ();
 
-   double y0 = (double) this->intSlilder->minimum ();
-   double y1 = (double) this->intSlilder->maximum ();
+   const double y0 = (double) this->intSlider->minimum ();
+   const double y1 = (double) this->intSlider->maximum ();
 
-   double m = (y1 - y0) / (x1 - x0);
-   double c = y0 - m*x0;
+   const double m = (y1 - y0) / (x1 - x0);
+   const double c = y0 - m*x0;
 
    return int (m*x + c);
 }
 
 //------------------------------------------------------------------------------
 //
-double QAnalogSlider::convertToFloat (const int ix)
+double QAnalogSlider::convertToFloat (const int ix) const
 {
-   double x0 = (double) this->intSlilder->minimum ();
-   double x1 = (double) this->intSlilder->maximum ();
+   const double x0 = (double) this->intSlider->minimum ();
+   const double x1 = (double) this->intSlider->maximum ();
 
-   double y0 = this->getMinimum ();
-   double y1 = this->getMaximum ();
+   const double y0 = this->getMinimum ();
+   const double y1 = this->getMaximum ();
 
-   double m = (y1 - y0) / (x1 - x0);
-   double c = y0 - m*x0;
+   const double m = (y1 - y0) / (x1 - x0);
+   const double c = y0 - m*x0;
 
    return m*ix + c;
 }
