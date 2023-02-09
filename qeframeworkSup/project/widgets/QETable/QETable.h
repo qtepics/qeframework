@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2014-2023 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2014,2016,2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -39,6 +39,8 @@
 
 #include <QECommon.h>
 #include <QEAbstractDynamicWidget.h>
+#include <QEStringFormatting.h>
+#include <QEStringFormattingMethods.h>
 #include <QEFloatingArray.h>
 #include <QEFloatingFormatting.h>
 #include <persistanceManager.h>
@@ -58,10 +60,13 @@
    class which provides generic support such as macro substitutions, drag/drop,
    and standard properties. QEAbstractWidget provides all standard properties.
  */
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QETable : public QEAbstractDynamicWidget {
-
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QETable :
+      public QEAbstractDynamicWidget,
+      public QEStringFormattingMethods
+{
    Q_OBJECT
 
+public:
    // Must be consistant with the number of variable name properties below and
    // calls to PROPERTY_ACCESS below.
    //
@@ -134,7 +139,66 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QETable : public QEAbstractDynamicWidge
    /// Sets table grid style. Defaults to SolidLine.
    ///
    Q_PROPERTY (Qt::PenStyle gridStyle READ gridStyle           WRITE setGridStyle)
+
+   // The following is a sub-set of the standard string formatting properties.
    //
+   /// If true (default), add engineering units supplied with the data.
+   ///
+   Q_PROPERTY (bool addUnits READ getAddUnits WRITE setAddUnits)
+
+   /// If false (default), no "+" sign, when true always add a sign.
+   ///
+   Q_PROPERTY (bool forceSign READ getForceSign WRITE setForceSign)
+
+   /// \enum  Formats
+   /// User friendly enumerations for format property - refer to QEStringFormatting::formats for details.
+   /// Note: no LocalEnumeration option
+   enum Formats {
+      Default          = QEStringFormatting::FORMAT_DEFAULT,            ///< Format as best appropriate for the data type
+      Floating         = QEStringFormatting::FORMAT_FLOATING,           ///< Format as a floating point number
+      Integer          = QEStringFormatting::FORMAT_INTEGER,            ///< Format as an integer
+      UnsignedInteger  = QEStringFormatting::FORMAT_UNSIGNEDINTEGER,    ///< Format as an unsigned integer
+      Time             = QEStringFormatting::FORMAT_TIME                ///< Format as a time
+   };
+   Q_ENUMS(Formats)
+
+   /// Format to apply to data. Default is 'Default' in which case the data type
+   /// supplied with the data determines how the data is formatted.
+   /// For all other options, an attempt is made to format the data as requested
+   /// (whatever its native form).
+   ///
+   Q_PROPERTY (Formats format READ getFormatProperty WRITE setFormatProperty)
+
+   /// \enum Separators
+   /// User friendly enumerations for seprator property - refer to QEStringFormatting::formats for details.
+   ///
+   enum Separators {
+      NoSeparator = QEStringFormatting::SEPARATOR_NONE,         ///< Use no separator
+      Comma       = QEStringFormatting::SEPARATOR_COMMA,        ///< Use ',' as separator
+      Underscore  = QEStringFormatting::SEPARATOR_UNDERSCORE,   ///< Use '_' as separator
+      Space       = QEStringFormatting::SEPARATOR_SPACE         ///< Use ' ' as separator
+   };
+   Q_ENUMS (Separators)
+
+   /// Seperators used for interger and fixed point formatting. Default is None.
+   ///
+   Q_PROPERTY(Separators separator READ getSeparatorProperty WRITE setSeparatorProperty)
+
+   /// \enum Notations
+   /// User friendly enumerations for notation property - refer to QEStringFormatting::notations for details.
+   ///
+   enum Notations {
+      Fixed       = QEStringFormatting::NOTATION_FIXED,         ///< Refer to QEStringFormatting::NOTATION_FIXED for details
+      Scientific  = QEStringFormatting::NOTATION_SCIENTIFIC,    ///< Refer to QEStringFormatting::NOTATION_SCIENTIFIC for details
+      Automatic   = QEStringFormatting::NOTATION_AUTOMATIC      ///< Refer to QEStringFormatting::NOTATION_AUTOMATIC for details
+   };
+   Q_ENUMS(Notations)
+
+   /// Notation used for numerical formatting. Default is fixed.
+   ///
+   Q_PROPERTY(Notations notation READ getNotationProperty WRITE setNotationProperty)
+
+
    // End of QETable specific properties =========================================
 
 public:
@@ -164,6 +228,15 @@ public:
 
    void setOrientation (const Qt::Orientation orientation);
    Qt::Orientation getOrientation () const;
+
+   void setFormatProperty (const Formats format);
+   Formats getFormatProperty () const;
+
+   void setSeparatorProperty (const Separators separator);
+   Separators getSeparatorProperty () const;
+
+   void setNotationProperty (const Notations notation);
+   Notations getNotationProperty () const;
 
    int addPvName (const QString& pvName);
    void clearAllPvNames ();
@@ -228,6 +301,16 @@ public:
    int getSelection () const;
    QStringList getPvNameSet () const;
 
+   // Allow third party plugins and display managers finer formatting control.
+   // Note: (Re)setting common/property foratting setting will override the any
+   // individual slot setting values.
+   //
+   void setSlotAddUnits  (const int slot, const bool addUnits);
+   void setSlotForceSign (const int slot, const bool forceSign);
+   void setSlotFormat    (const int slot, const QEStringFormatting::formats format);
+   void setSlotSeparator (const int slot, const QEStringFormatting::separators separator);
+   void setSlotNotation  (const int slot, const QEStringFormatting::notations notation);
+
 signals:
    void selectionChanged (int value);
    void pvNameSetChanged (const QStringList& pvNameSet);
@@ -251,11 +334,14 @@ protected:
    void establishConnection (unsigned int variableIndex);
    qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
    void activated ();
+   void stringFormattingChange ();
 
    // Context menu
    //
-   enum OwnContextMenuOptions { CM_HORIZONTAL_TABLE = ADWCM_SUB_CLASS_WIDGETS_START_HERE,
-                                CM_VERTICAL_TABLE };
+   enum OwnContextMenuOptions {
+      CM_HORIZONTAL_TABLE = ADWCM_SUB_CLASS_WIDGETS_START_HERE,
+      CM_VERTICAL_TABLE
+   };
 
    QMenu* buildContextMenu ();                        // Build the QETable specific context menu
    void contextMenuTriggered (int selectedItemNum);   // An action was selected from the context menu
@@ -324,6 +410,7 @@ private:
       QString title;
       QCaVariableNamePropertyManager variableNameManager;
       bool isConnected;
+      QEStringFormatting stringFormatting;  // each data set gets own copy
 
    private:
       QETable* owner;
@@ -352,5 +439,12 @@ private slots:
 
    void timeout ();
 };
+
+#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
+Q_DECLARE_METATYPE (QETable::Formats)
+Q_DECLARE_METATYPE (QETable::Separators)
+Q_DECLARE_METATYPE (QETable::Notations)
+#endif
+
 
 #endif // QE_TABLE_H

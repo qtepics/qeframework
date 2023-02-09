@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2022 Australian Synchrotron.
+ *  Copyright (c) 2014-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -35,7 +35,7 @@
 #include <QECommon.h>
 #include <QEFloating.h>
 #include <QHeaderView>
-
+#include <QVariant>
 
 #define DEBUG qDebug () << "QETable" << __LINE__ << __FUNCTION__ << "  "
 
@@ -242,8 +242,8 @@ void QETable::DataSets::rePopulateData ()
 
       QString image;
       if (j < this->data.count ()) {
-         double value = this->data.value (j);
-         image = QString ("%1 ").arg (value);    // no EGU or formatting (yet).
+         const double value = this->data.value (j);
+         image = this->stringFormatting.formatString (QVariant (value), 0);
       } else {
          // Beyond end of data
          image = "";
@@ -305,6 +305,14 @@ QETable::QETable (QWidget* parent) : QEAbstractDynamicWidget (parent)
    this->selectionChangeInhibited = false;
    this->pvNameSetChangeInhibited = false;
    this->titlesChangeInhibited = false;
+
+   // Formatting property values
+   //
+   this->setAddUnits (false);
+   this->setForceSign (false);
+   this->setFormat (QEStringFormatting::FORMAT_DEFAULT);
+   this->setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
+   this->setSeparator (QEStringFormatting::SEPARATOR_NONE);
 
    this->columnWidthMinimum = 80;
    this->orientation = Qt::Vertical;
@@ -473,6 +481,18 @@ void QETable::activated ()
 }
 
 //------------------------------------------------------------------------------
+// We need to override pure virtual functions.
+//
+void QETable::stringFormattingChange()
+{
+   // Copy common setting to each data set's string formatter.
+   //
+   for (int slot = 0; slot < ARRAY_LENGTH (this->dataSet); slot++) {
+      this->dataSet[slot].stringFormatting = this->stringFormatting;
+   }
+}
+
+//------------------------------------------------------------------------------
 //
 QMenu* QETable::buildContextMenu ()
 {
@@ -547,6 +567,16 @@ void QETable::dataArrayChanged (const QVector<double>& values,
 
    this->dataSet [slot].data = QEFloatingArray (values);
    this->dataSet [slot].alarmInfo = alarmInfo;
+
+   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   if (qca) {
+      // Extract meta info.
+      //
+      this->dataSet [slot].stringFormatting.setDbPrecision (qca->getPrecision());
+      this->dataSet [slot].stringFormatting.setDbEgu (qca->getEgu());
+      this->dataSet [slot].stringFormatting.setDbEnumerations (qca->getEnumerations());
+   }
+
    this->dataSet [slot].rePopulateData ();
    // this->rePopulateData = true;
 
@@ -782,6 +812,50 @@ QStringList QETable::getPvNameSet () const
    return result;
 }
 
+//------------------------------------------------------------------------------
+//
+void QETable::setSlotAddUnits  (const int slot, const bool addUnits)
+{
+   SLOT_CHECK (slot,);
+   this->dataSet [slot].stringFormatting.setAddUnits (addUnits);
+}
+
+//------------------------------------------------------------------------------
+//
+void QETable::setSlotForceSign (const int slot, const bool forceSign)
+{
+   SLOT_CHECK (slot,);
+   this->dataSet [slot].stringFormatting.setForceSign (forceSign);
+}
+
+//------------------------------------------------------------------------------
+//
+void QETable::setSlotFormat (const int slot,
+                             const QEStringFormatting::formats format)
+{
+   SLOT_CHECK (slot,);
+   this->dataSet [slot].stringFormatting.setFormat (format);
+}
+
+//------------------------------------------------------------------------------
+//
+void QETable::setSlotSeparator (const int slot,
+                                const QEStringFormatting::separators separator)
+{
+   SLOT_CHECK (slot,);
+   this->dataSet [slot].stringFormatting.setSeparator (separator);
+}
+
+//------------------------------------------------------------------------------
+//
+void QETable::setSlotNotation  (const int slot,
+                                const QEStringFormatting::notations notation)
+{
+   SLOT_CHECK (slot,);
+   this->dataSet [slot].stringFormatting.setNotation (notation);
+}
+
+
 //==============================================================================
 // Properties
 // Update variable name etc.
@@ -944,6 +1018,48 @@ void QETable::setOrientation (const Qt::Orientation orientationIn)
 Qt::Orientation QETable::getOrientation () const
 {
    return this->orientation;
+}
+
+//------------------------------------------------------------------------------
+//
+void QETable::setFormatProperty (const Formats format )
+{
+   this->setFormat (static_cast<QEStringFormatting::formats> (format));
+}
+
+//------------------------------------------------------------------------------
+//
+QETable::Formats QETable::getFormatProperty() const
+{
+   return static_cast<Formats> (this->getFormat());
+}
+
+//------------------------------------------------------------------------------
+//
+void QETable::setSeparatorProperty (const Separators separator)
+{
+   this->setSeparator (static_cast<QEStringFormatting::separators>(separator));
+}
+
+//------------------------------------------------------------------------------
+//
+QETable::Separators QETable::getSeparatorProperty() const
+{
+   return static_cast<Separators>(this->getSeparator());
+}
+
+//------------------------------------------------------------------------------
+//
+void QETable::setNotationProperty (const Notations notation )
+{
+   this->setNotation (static_cast<QEStringFormatting::notations>(notation));
+}
+
+//------------------------------------------------------------------------------
+//
+QETable::Notations QETable::getNotationProperty() const
+{
+   return static_cast<Notations>(this->getNotation());
 }
 
 //==============================================================================
