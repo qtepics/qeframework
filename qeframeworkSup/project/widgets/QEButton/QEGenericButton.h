@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2020 Australian Synchrotron
+ *  Copyright (c) 2009-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -40,7 +40,8 @@
 #include <applicationLauncher.h>
 #include <QEWidgetProperties.h>
 
-// Class common to all QE buttons
+/// Class common to all QE buttons
+///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGenericButton :
         public QEWidget,
         public managePixmaps,
@@ -52,22 +53,25 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGenericButton :
     QEGenericButton( QAbstractButton *owner );
     virtual ~QEGenericButton(){}
 
-    enum VariableAllocation { VAR_PRIMARY = 0, // Primary Contyrol PV
-                              VAR_READBACK,    // Alternative readback PV - QEPushButton only
-                              NUMBER_OF_VARIABLES };  // Maximum number of variables.
+    enum VariableAllocation {
+       VAR_PRIMARY = 0,      // Primary Control PV
+       VAR_READBACK,         // Alternative readback PV - QEPushButton only
+       NUMBER_OF_VARIABLES   // Maximum number of variables - must be last
+    };
 
     // Applicable when subscribe is set true.
     // Would have liked to use a flag, but want to maintain backward compatibility.
     //
-    enum updateOptions { UPDATE_NONE                = 0x00,  // For completeness
-                         UPDATE_TEXT                = 0x01,  // Update text
-                         UPDATE_ICON                = 0x02,  // Update icon
-                         UPDATE_TEXT_AND_ICON       = 0x03,
-                         UPDATE_STATE               = 0x04,  // Update state - inc. alarm state
-                         UPDATE_TEXT_AND_STATE      = 0x05,
-                         UPDATE_ICON_AND_STATE      = 0x06,
-                         UPDATE_TEXT_ICON_AND_STATE = 0x07
-                       };
+    enum updateOptions {
+       UPDATE_NONE                = 0x00,  // For completeness
+       UPDATE_TEXT                = 0x01,  // Update text
+       UPDATE_ICON                = 0x02,  // Update icon
+       UPDATE_TEXT_AND_ICON       = 0x03,
+       UPDATE_STATE               = 0x04,  // Update state - inc. alarm state
+       UPDATE_TEXT_AND_STATE      = 0x05,
+       UPDATE_ICON_AND_STATE      = 0x06,
+       UPDATE_TEXT_ICON_AND_STATE = 0x07
+    };
 
     // subscribe
     void setSubscribe( bool subscribe );

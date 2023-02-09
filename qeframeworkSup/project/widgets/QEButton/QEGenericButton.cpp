@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2020 Australian Synchrotron
+ *  Copyright (c) 2009-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -30,6 +30,7 @@
  */
 
 #include <alarm.h>
+#include <UserMessage.h>
 #include <QEGenericButton.h>
 #include <QDebug>
 #include <QMessageBox>
@@ -373,9 +374,45 @@ void QEGenericButton::setGenericButtonText( const QString& text, QCaAlarmInfo& a
 
     // Update the button state if required
     // Display checked if text matches what is written when checked
+    // See GUI-323
+    //
     if( (updateOption & UPDATE_STATE) == UPDATE_STATE )
     {
-        setButtonState( !text.compare( clickCheckedText ) );
+        if( text.compare( clickCheckedText ) == 0){
+            setButtonState( true );
+
+        } else if( text.compare( clickText ) == 0 ){
+            setButtonState( false );
+
+        } else {
+            // Can we be clever/helpfull? Not too clever I hope.
+            //
+            qcaobject::QCaObject* qca = this->getQcaItem( VAR_PRIMARY );
+            const int state = qca ? qca->getIntegerValue() : -1;
+            bool b1, b2;
+            const int s1 = clickCheckedText.toInt( &b1 );
+            const int s2 = clickText.toInt( &b2 );
+
+            if( b1 && (state == s1) ){
+                setButtonState( true );
+
+            } else if( b2 && (state == s2) ){
+                setButtonState( false );
+
+            } else {
+                QString message;
+                message = QString( "%1: '%2' (%3) is not one of: '%4' or '%5'" )
+                      .arg( getQWidget()->metaObject()->className() )
+                      .arg( text )
+                      .arg( state )
+                      .arg( clickText )
+                      .arg( clickCheckedText );
+
+                message_types mt( MESSAGE_TYPE_WARNING, MESSAGE_KIND_STATUS );
+                this->sendMessage( message, mt );
+                DEBUG << message;
+            }
+        }
     }
 
     // Update the text if required
