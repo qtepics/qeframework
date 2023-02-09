@@ -181,9 +181,13 @@ void QSimpleShape::paintEvent (QPaintEvent*)
          this->equaliseRect (rect);
          // fall through
       case roundRectangle:
-         // Normalise corner radii.
-         //
-         painter.drawRoundedRect (rect, 1200.0 / rect.width (), 1200.0 / rect.height ());
+         {
+            // Normalise corner radii.
+            //
+            double size = MIN(rect.width(), rect.height());
+            double radius = 0.25 * size;
+            painter.drawRoundedRect (rect, radius, radius);
+         }
          break;
 
 
