@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2019 Australian Synchrotron
+ *  Copyright (c) 2009-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,64 +31,40 @@
 
 #include <QString>
 #include <QVariant>
-#include <Generic.h>
 
 #include <QEFrameworkLibraryGlobal.h>
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFloatingFormatting {
 public:
+   // Construction
+   explicit QEFloatingFormatting();
+   ~QEFloatingFormatting();
 
-    // Formatting enumerations
-    enum formats { FORMAT_e = 'e',   // format as [-]9.9e[+|-]999
-                   FORMAT_E = 'E',   // format as [-]9.9E[+|-]999
-                   FORMAT_f = 'f',   // format as [-]9.9
-                   FORMAT_g = 'g',   // use e or f format, whichever is the most concise
-                   FORMAT_G = 'G' }; // use E or f format, whichever is the most concise
+   //===============================================
+   // Main functions of this class:
+   //   - Format a double based on a value
+   //   - Translate a double and generate a value
+   //===============================================
+   /// This is used to convert the QVariant value received from a QCaObject,
+   /// which is still based on the data variable type, to a double.
+   double formatFloating( const QVariant &value ) const;
+   double formatFloating( const QVariant &value, int arrayIndex ) const;
 
+   /// This is used to convert the QVariant value received from a QCaObject,
+   /// which is still based on the data variable type, to a double array.
+   /// Typically used where the input QVariant value is an array of data values,
+   /// but will work for any QVariant type.
+   QVector<double> formatFloatingArray( const QVariant &value ) const;
 
-    // Construction
-    explicit QEFloatingFormatting();
-    ~QEFloatingFormatting();
-
-    //===============================================
-    // Main functions of this class:
-    //   - Format a double based on a value
-    //   - Translate a double and generate a value
-    //===============================================
-    /// Given a data value of any type, format it as an double according to the formatting instructions held by the class.
-    /// This is used to convert the QVariant value received from a QCaObject, which is still based on the data variable type, to a double.
-    double formatFloating( const QVariant &value ) const;
-    double formatFloating( const QVariant &value, int arrayIndex ) const;
-
-    /// Given a data value of any type, format it as an array of doubles according to the formatting instructions held by the class.
-    /// This is used to convert the QVariant value received from a QCaObject, which is still based on the data variable type, to a double array.
-    /// Typically used where the input QVariant value is an array of data values, but will work for any QVariant type.
-    QVector<double> formatFloatingArray( const QVariant &value ) const;
-
-    QVariant formatValue( const double &floatingValue, generic::generic_types valueType ) const;
-    QVariant formatValue( const QVector<double> &floatingValue, generic::generic_types valueType ) const;
-
-    // Functions to configure the formatting
-    void setPrecision( unsigned int precision );
-    void setFormat( formats format );
-
-    // Functions to read the formatting configuration
-    unsigned int getPrecision() const;
-    formats getFormat() const;
+   QVariant formatValue( const double &floatingValue) const;
+   QVariant formatValue( const QVector<double> &floatingValue) const;
 
 private:
-    // Private functions to read the formatting configuration
-    char getFormatChar() const;
+   // Utility function to convert variant to double.
+   double varToDouble( const QVariant& item ) const;
 
-    // Utility function to convert variant to double.
-    double varToDouble( const QVariant& item ) const;
-
-    // Error reporting
-    double formatFailure( QString message ) const;
-
-    // Formatting configuration
-    unsigned int precision;
-    formats format;
+   // Error reporting
+   double formatFailure( QString message ) const;
 };
 
 #endif // QE_FLOATING_FORMATTING_H

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2019 Australian Synchrotron
+ *  Copyright (c) 2009-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -32,165 +32,131 @@
 
 #define DEBUG qDebug () << "QEIntegerFormatting" << __LINE__ << __FUNCTION__ << "  "
 
-/*
-    ???
-*/
-QEIntegerFormatting::QEIntegerFormatting() {
-    // Default formatting properties.
-    radix = 10;
-}
+//------------------------------------------------------------------------------
+// Dummy constructor/destructor
+//
+QEIntegerFormatting::QEIntegerFormatting() { }
 
+//------------------------------------------------------------------------------
+//
 QEIntegerFormatting::~QEIntegerFormatting() { }
 
-/*
-    Generate a value given an integer, using formatting defined within this class.
-    The formatting mainly applies if formatting as a string. For example, what is
-    the number base? should a sign always be included? are leading zeros requried?
-    The formatting could include properties related to other types. For example, generate
-    an error if attempting to convert a negative integer to an unsigned integer.
-*/
-QVariant QEIntegerFormatting::formatValue( const long &integerValue,
-                                           generic::generic_types valueType ) const
+//------------------------------------------------------------------------------
+// Generate a value given an integer, using formatting defined within this class.
+// The formatting mainly applies if formatting as a string. For example, what is
+// the number base? should a sign always be included? are leading zeros requried?
+// The formatting could include properties related to other types. For example, generate
+// an error if attempting to convert a negative integer to an unsigned integer.
+//
+QVariant QEIntegerFormatting::formatValue( const long &integerValue) const
 {
-    switch( valueType ) {
-        case generic::GENERIC_STRING :
-        {
-            QString string = QString::number( integerValue, radix);
-            QVariant sValue( string );
-            return sValue;
-        }
-        case generic::GENERIC_SHORT :
-        case generic::GENERIC_LONG :
-        {
-            QVariant lValue( (qlonglong) integerValue );
-            return lValue;
-        }
-        case generic::GENERIC_UNSIGNED_SHORT :
-        case generic::GENERIC_UNSIGNED_CHAR :
-        case generic::GENERIC_UNSIGNED_LONG :
-        {
-            qulonglong unsignedIntegerValue;
-            ( integerValue < 0 ) ? unsignedIntegerValue=0 : unsignedIntegerValue=integerValue;
-            QVariant ulValue( unsignedIntegerValue );
-            return ulValue;
-        }
-        case generic::GENERIC_FLOAT :
-        case generic::GENERIC_DOUBLE :
-        {
-            QVariant dValue( (double)integerValue );
-            return dValue;
-        }
-        case generic::GENERIC_UNKNOWN :
-        default :
-        {
-            //qDebug() << "QEIntegerFormatting::formatValue() Unknown value 'Generic' type: " << valueType;
-            QVariant unknown;
-            return unknown;
-        }
-    }
-    //qDebug() << "QEIntegerFormatting::formatValue() Unknown value 'Generic' type: " << valueType;
-    QVariant unknown;
-    return unknown;
+   // Qt has a hidden Long variant type which we do not use.
+   return QVariant (qlonglong (integerValue));
 }
 
-/*
-    Generate a value given an array of integer numbers, using formatting defined within this class.
-    The formatting mainly applies if formatting as a string. For example, what is
-    the number base? should a sign always be included? are leading zeros requried?
-    The formatting could include properties related to other types. For example, generate
-    an error if attempting to convert a negative integer to an unsigned integer.
-*/
-QVariant QEIntegerFormatting::formatValue( const QVector<long> &integerValue,
-                                           generic::generic_types valueType ) const
+//------------------------------------------------------------------------------
+// Generate a value given an array of integer numbers, using formatting defined within this class.
+// The formatting mainly applies if formatting as a string. For example, what is
+// the number base? should a sign always be included? are leading zeros requried?
+// The formatting could include properties related to other types. For example, generate
+// an error if attempting to convert a negative integer to an unsigned integer.
+//
+QVariant QEIntegerFormatting::formatValue( const QVector<long> &integerValue) const
 {
    QList<QVariant> array;
    int arraySize = integerValue.size();
    for( int i = 0; i < arraySize; i++ )
    {
-       array.append( formatValue( integerValue[i], valueType ));
+      array.append( formatValue( integerValue[i] ));
    }
    return array;
 }
 
-/*
-    Generate an integer given a value, using formatting defined within this class.
-    The value may be an array of variants or a single variant
-*/
+//------------------------------------------------------------------------------
+// Generate an integer given a value, using formatting defined within this class.
+// The value may be an array of variants or a single variant
+//
 long QEIntegerFormatting::formatInteger( const QVariant &value ) const
 {
-   return  formatInteger( value, 0 );
+   return formatInteger( value, 0 );
 }
 
-long QEIntegerFormatting::formatInteger( const QVariant &value, const int arrayIndex ) const
+//------------------------------------------------------------------------------
+//
+long QEIntegerFormatting::formatInteger( const QVariant &value,
+                                         const int arrayIndex ) const
 {
-    long result;
+   long result;
 
-    // If the value is a list, get the specified item from the list.
-    // Otherwise, just use the value as is
-    if( value.type() == QVariant::List )
-    {
-        const QVariantList list = value.toList();
+   // If the value is a list, get the specified item from the list.
+   // Otherwise, just use the value as is.
+   //
+   if( value.type() == QVariant::List )
+   {
+      const QVariantList list = value.toList();
 
-        if (arrayIndex >= 0 && arrayIndex < list.count()) {
-           const QVariant element = list.value (arrayIndex);
-           result = varToLong ( element );
-        } else {
-           result = formatFailure ("array index out of range" );
-        }
-    }
+      if (arrayIndex >= 0 && arrayIndex < list.count()) {
+         const QVariant element = list.value (arrayIndex);
+         result = varToLong ( element );
+      } else {
+         result = formatFailure ("array index out of range" );
+      }
+   }
 
-    else if( QEVectorVariants::isVectorVariant( value ) ){
-        // This is one of our vector variants.
-        //
-        result = QEVectorVariants::getIntegerValue ( value, arrayIndex, 0 );
+   else if( QEVectorVariants::isVectorVariant( value ) ){
+      // This is one of our vector variants.
+      //
+      result = QEVectorVariants::getIntegerValue ( value, arrayIndex, 0 );
 
-    } else {
-        // Otherwise is a scaler or non convertable type.
-        result = varToLong ( value );
-    }
+   } else {
+      // Otherwise is a scaler or non convertable type.
+      result = varToLong ( value );
+   }
 
-    return result;
+   return result;
 }
 
-/*
-    Generate an integer array given a value, using formatting defined within this class.
-*/
+//------------------------------------------------------------------------------
+// Generate an integer array given a value, using formatting defined within this class.
+//
 QVector<long> QEIntegerFormatting::formatIntegerArray( const QVariant &value ) const
 {
-    QVector<long> result;
+   QVector<long> result;
 
-    // If the value is a list, populate a list, converting each of the items to a long
-    if( value.type() == QVariant::List )
-    {
-        const QVariantList list = value.toList();
-        for( int i=0; i < list.count(); i++ )
-        {
-            const QVariant element = list.value (i);
-            result.append( varToLong ( element ) );
-        }
-    }
+   // If the value is a list, populate a list, converting each of the
+   // items to a long.
+   //
+   if( value.type() == QVariant::List )
+   {
+      const QVariantList list = value.toList();
+      for( int i=0; i < list.count(); i++ )
+      {
+         const QVariant element = list.value (i);
+         result.append( varToLong ( element ) );
+      }
+   }
 
-    else if( QEVectorVariants::isVectorVariant( value ) ){
+   else if( QEVectorVariants::isVectorVariant( value ) ){
 
-        // This is one of our vectors variant.
-        // We can convert to a QVector<long>
-        //
-        bool okay;
-        result = QEVectorVariants::convertToIntegerVector ( value, okay );
+      // This is one of our vectors variant.
+      // We can convert to a QVector<long>
+      //
+      bool okay;
+      result = QEVectorVariants::convertToIntegerVector ( value, okay );
 
-    } else  {
-        // The value is not a list/vector so build a list with a single long.
-        //
-        result.append( varToLong ( value ) );
-    }
+   } else  {
+      // The value is not a list/vector so build a list with a single long.
+      //
+      result.append( varToLong ( value ) );
+   }
 
-    return result;
+   return result;
 }
 
-/*
-    QVariant provides a toLongLong function, but not a toLong function with
-    valiation, i.e. out of range.
- */
+//------------------------------------------------------------------------------
+// QVariant provides a toLongLong function, but not a toLong function with
+//  valiation, i.e. out of range.
+//
 long QEIntegerFormatting::varToLong (const QVariant& item ) const
 {
    const QString name = item.typeName();
@@ -209,38 +175,16 @@ long QEIntegerFormatting::varToLong (const QVariant& item ) const
    return long (temp);
 }
 
-/*
-    Do something with the fact that the value could not be formatted as requested.
-*/
+//------------------------------------------------------------------------------
+// Do something with the fact that the value could not be formatted as requested.
+//
 long QEIntegerFormatting::formatFailure( QString message ) const
 {
-    // Log the format failure if required.
-    qDebug() << "QEIntegerFormatting" << message;
+   // Log the format failure if required.
+   qDebug() << "QEIntegerFormatting" << message;
 
-    // Return whatever is required for a formatting falure.
-    return 0;
-}
-
-/*
-    Set the numer system base.
-    Relevent when formatting the string as an interger.
-    Any radix of 2 or more is accepted. Check the conversion code that uses this number to see what values are expected.
-    At the time of writing (16/2/9) it is anticipated that floating point numbers will always be base 10 and integer numbers will
-    be base 2, 8, 10, or 16.
-    ??? if radix processing beocomes significant, create a radix class that can be used for both QEIntegerFormatting and QEStringFormatting.
-*/
-void QEIntegerFormatting::setRadix( unsigned int radixIn )
-{
-    if( radixIn >= 2 )
-        radix = int( radixIn );
-}
-
-/*
-    Get the numerical base. See setRadix() for the use of 'radix'.
-*/
-unsigned int QEIntegerFormatting::getRadix() const
-{
-    return radix;
+   // Return whatever is required for a formatting falure.
+   return 0;
 }
 
 // end

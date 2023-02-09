@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2022 Australian Synchrotron
+ *  Copyright (c) 2009-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -150,13 +150,28 @@ public:
    bool getChannelIsConnected () const;
 
    // Conveniance functions for getLastData for scaler values and vector values.
+   // The scalar functions honour arrayIndex.
    //
    bool getDataIsAvailable () const;
    QString getStringValue () const;   // note: raw string conversion, no units, precision or other QEString formatting
+   bool getBooleanValue () const;     // 0 values are false, non-zero are true, non-numeric are undefined.
    long getIntegerValue () const;
    double getFloatingValue () const;
+   QVector<bool> getBooleanArray () const;
    QVector<long> getIntegerArray () const;
    QVector<double> getFloatingArray () const;
+
+   // And the associate setter functions.
+   // Essentially conveniance function for writeDataElement/writeData.
+   // The scalar functions honour arrayIndex and use writeDataElement.
+   //
+   void writeStringValue (const QString& value);
+   void writeBooleanValue (const bool value);
+   void writeIntegerValue (const long value);
+   void writeFloatingValue (const double value);
+   void writeBooleanArray (const QVector<bool>& array);
+   void writeIntegerArray (const QVector<long>& array);
+   void writeFloatingArray (const QVector<double>& array);
 
    // Identity type. The type should be considered private.
    //

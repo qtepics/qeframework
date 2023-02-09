@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2021 Australian Synchrotron
+ *  Copyright (C) 2018-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +28,7 @@
 #include <QApplication>
 #include <QDebug>
 #include <QTimer>
+#include <acai_version.h>
 #include <QEPvNameUri.h>
 #include <QERecordFieldName.h>
 
@@ -190,66 +191,84 @@ QVariant QECaClient::getPvData () const
 }
 
 //------------------------------------------------------------------------------
-// Write a data out to channel
+// Write a data out to channel.
+// We convert to the hold field type here - if we can.
 //
 bool QECaClient::putPvData (const QVariant& value)
 {
    const QVariant::Type vtype = value.type ();
+   const ACAI::ClientFieldType fieldType = this->hostFieldType ();
+   const QString fieldName = clientFieldTypeImage (fieldType).c_str();
 
-   bool result = false;
-   bool knownType = true;  // hypothesize we can handle the variant type.
-   bool okay;
+   // Note: min and max field value functions require ACAI 1.6.4 or later.
+   //
+   #if (ACAI_VERSION < ACAI_INT_VERSION(1, 6, 4))
+   #error The EPICS Qt framework required ACAI 1.6.4 or later.
+   #endif
+
+   const double min = this->minFieldValue();
+   const double max = this->maxFieldValue();
+
+   bool result = true;        // hypothesize success
+   bool knownType = true;     // hypothesize we can handle the variant type.
+   bool valueOkay = true;     // hypothesize value coverts to numeric type
+   bool valueInRange = true;  // hypothesize value in field type range
    QString extra = "";
+
+// DEBUG << this->getPvName() << fieldName << min  << max;
 
    if (vtype != QVariant::List) {
       // Process as scaler
-      //      
+      //
       ACAI::ClientInteger i;
       ACAI::ClientFloating f;
       QByteArray bytes;
 
-      switch (vtype) {
-         case QVariant::Char:
-         case QVariant::Bool:
-         case QVariant::Int:
-            i = value.toInt (&okay);
-            if (okay) {
-               result = this->putInteger (i);
-            }
-            break;
-
-         case QVariant::UInt:
-         case QVariant::LongLong:
-         case QVariant::ULongLong:
-            f = value.toDouble (&okay);
-            if (okay) {
-               if ((f >= -2147483648.0) && (f < 2147483647.0)) {
-                  i = value.toInt (&okay);
-                  if (okay) {
-                     result = this->putInteger (i);
-                  }
-               } else {
-                  // Too big for int - use double.
-                  result = this->putFloating (f);
-               }
-            }
-            break;
-
-         case QVariant::Double:
-            f = value.toDouble (&okay);
-            if (okay) {
-               result = this->putFloating (f);
-            }
-            break;
-
-         case QVariant::String:
+      switch (fieldType) {
+         case ACAI::ClientFieldSTRING:
             result = this->putString (value.toString ().toStdString ());
             break;
 
-         case QVariant::ByteArray:
-            bytes = value.toByteArray ();
-            // NOTE: requires acai 1-5-8 orlater.
-            result = this->putByteArray ((void*) bytes.constData (), bytes.size());
+         case ACAI::ClientFieldENUM:
+         case ACAI::ClientFieldCHAR:
+         case ACAI::ClientFieldSHORT:
+         case ACAI::ClientFieldLONG:
+            f = value.toDouble (&valueOkay);
+            if (!valueOkay) {
+               result = false;
+               break;
+            }
+
+            if ((f < min) || (f > max)) {
+               valueInRange = false;
+               result = false;
+               break;
+            }
+
+            i = value.toInt (&valueOkay);
+            if (!valueOkay) {
+               result = false;
+               break;
+            }
+
+            result = this->putInteger (i);
+            break;
+
+         case ACAI::ClientFieldFLOAT:
+         case ACAI::ClientFieldDOUBLE:
+            f = value.toDouble (&valueOkay);
+            if (!valueOkay) {
+               result = false;
+               break;
+            }
+
+            if ((f < min) || (f > max)) {
+               valueInRange = false;
+               result = false;
+               break;
+            }
+
+            result = this->putFloating (f);
             break;
 
          default:
@@ -257,72 +276,117 @@ bool QECaClient::putPvData (const QVariant& value)
             knownType = false;
             break;
       }
-      extra = QString(", type %1.").arg (value.typeName ());
+
+      extra = QString(", source type %1.").arg (value.typeName ());
 
    } else {
       // Process as array.
       //
-      QVariantList valueArray = value.toList ();
+      const QVariantList valueArray = value.toList ();
       const int number = valueArray.count ();
+      const QVariant firstValue = valueArray.value (0);
 
       ACAI::ClientFloatingArray fltArray;
       ACAI::ClientIntegerArray  intArray;
       ACAI::ClientStringArray   strArray;
 
-      // Use type of first element to determine type.
-      // We only cater of lists of basic types.
-      //
-      QVariant firstValue = valueArray.value (0);
-      switch (firstValue.type ()) {
-         case QVariant::Char:
-         case QVariant::Bool:
-         case QVariant::Int:
-            for (int j = 0; j < number; j++) {
-               intArray.push_back (valueArray.value (j).toInt ());
-            }
-            result = this->putIntegerArray (intArray);
-            break;
-
-         case QVariant::UInt:
-         case QVariant::LongLong:
-         case QVariant::ULongLong:
-         case QVariant::Double:
-            for (int j = 0; j < number; j++) {
-               fltArray.push_back (valueArray.value (j).toDouble ());
-            }
-            result = this->putFloatingArray (fltArray);
-            break;
-
-         case QVariant::String:
+      switch (fieldType) {
+         case ACAI::ClientFieldSTRING:
             for (int j = 0; j < number; j++) {
                strArray.push_back (valueArray.value (j).toString ().toStdString ());
             }
             result = this->putStringArray (strArray);
             break;
 
+         case ACAI::ClientFieldENUM:
+         case ACAI::ClientFieldCHAR:
+         case ACAI::ClientFieldSHORT:
+         case ACAI::ClientFieldLONG:
+            for (int j = 0; j < number; j++) {
+               ACAI::ClientFloating f;
+               f = valueArray.value (j).toDouble (&valueOkay);
+               if (!valueOkay) {
+                  result = false;
+                  break;
+               }
+
+               if ((f < min) || (f > max)) {
+                  valueInRange = false;
+                  result = false;
+                  break;
+               }
+
+               ACAI::ClientInteger i;
+               i = valueArray.value (j).toInt (&valueOkay);
+               if (!valueOkay) {
+                  result = false;
+                  break;
+               }
+
+               intArray.push_back (i);
+            }
+            if (result) {
+               result = this->putIntegerArray (intArray);
+            }
+            break;
+
+         case ACAI::ClientFieldFLOAT:
+         case ACAI::ClientFieldDOUBLE:
+            for (int j = 0; j < number; j++) {
+               ACAI::ClientFloating f;
+               f = valueArray.value (j).toDouble (&valueOkay);
+               if (!valueOkay) {
+                  result = false;
+                  break;
+               }
+
+               if ((f < min) || (f > max)) {
+                  valueInRange = false;
+                  result = false;
+                  break;
+               }
+
+               fltArray.push_back (f);
+            }
+            if (result) {
+               result = this->putFloatingArray (fltArray);
+            }
+            break;
+
          default:
             result = false;
             knownType = false;
             break;
       }
-      extra = QString(" list of %1.").arg (firstValue.typeName ());
+
+      extra = QString(" source list of %1.").arg (firstValue.typeName ());
    }
 
-   // Report error - if we can.
+   // Report error - use the UserMessage system if we can otherwise use qDebug.
    //
    if (!result) {
-      QString msg( this->cPvName() );
-      msg.append( " Put channel failed: " );
+      QString msg (this->getPvName());
+      msg.append (" Put channel failed: ");
 
       QString data = value.toString();
-      if( data.length() > 40 ){
-         data = data.left (18) + "..." + data.right( 18 );
+      if (data.length() > 40) {
+         data = data.left (18) + "..." + data.right (18);
       }
       msg.append (data);
       msg.append (extra);
 
-      if( !knownType ){
-         msg.append (" Unhandled varient type.");
+      if (!valueOkay) {
+         msg.append (" Value is not numeric.");
+      }
+      else if (!valueInRange) {
+         msg.append (" Value out of range for ");
+         msg.append (fieldName);
+         msg.append (" field type.");
+      }
+      else if (!knownType) {
+         msg.append (" Unhandled field type ");
+         msg.append (fieldName);
+         msg.append (".");
       }
       else if (!this->isConnected()) {
          msg.append (" Channel disconnected.");
@@ -331,13 +395,13 @@ bool QECaClient::putPvData (const QVariant& value)
          msg.append (" Channel has no write access.");
 
       } else {
-         msg.append (" Unknown error");
+         msg.append (" Unknown error.");
       }
 
       UserMessage* user_msg = this->getUserMessage();
       if (user_msg) {
-         user_msg->sendMessage (msg, "QCaObject::writeData()",
-                                message_types ( MESSAGE_TYPE_ERROR ));
+         user_msg->sendMessage (msg, "QECaClient::putPvData()",
+                                message_types (MESSAGE_TYPE_ERROR));
       } else {
          DEBUG << msg;
       }
@@ -428,7 +492,7 @@ static QECaClientManager* singleton = NULL;
 // static
 void QECaClientManager::initialise ()
 {
-   if (!singleton) {     // Mutex ??
+   if (!singleton) {   // Mutex needed ??
       singleton = new QECaClientManager ();
    }
 }

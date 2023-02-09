@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2021 Australian Synchrotron
+ *  Copyright (c) 2009-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -35,6 +35,7 @@
 #include <QEBaseClient.h>
 #include <QECaClient.h>
 #include <QEPvaClient.h>
+#include <QEStringFormatting.h>
 #include <QEIntegerFormatting.h>
 #include <QEFloatingFormatting.h>
 
@@ -385,11 +386,21 @@ bool  QCaObject::getDataIsAvailable() const
 //
 QString  QCaObject::getStringValue() const
 {
-   QString result = "";
-   if (this->caClient) {
-      result =  QString::fromStdString (this->caClient->getString (this->getArrayIndex()));
-   }
+   QEStringFormatting formatter;
+   QString result;
+   result = formatter.formatString (this->getVariant(), this->arrayIndex);
    return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the current value as boolean
+//
+bool QCaObject::getBooleanValue() const
+{
+   QEFloatingFormatting formatter;
+   double temp;
+   temp = formatter.formatFloating (this->getVariant(), this->arrayIndex);
+   return (temp != 0.0);
 }
 
 //------------------------------------------------------------------------------
@@ -406,11 +417,28 @@ long  QCaObject::getIntegerValue() const
 //------------------------------------------------------------------------------
 // Return the current value as floating
 //
-double  QCaObject::getFloatingValue() const
+double QCaObject::getFloatingValue() const
 {
    QEFloatingFormatting formatter;
    double result;
    result = formatter.formatFloating (this->getVariant(), this->arrayIndex);
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// Return the current value as boolean array
+//
+QVector<bool> QCaObject::getBooleanArray () const
+{
+   QEFloatingFormatting formatter;
+   QVector<bool> result;
+   QVector<double> temp;
+   temp = formatter.formatFloatingArray (this->getVariant());
+   const int n = temp.count();
+   for (int j = 0; j < n; j++) {
+      const bool b = (temp.value(j, 0.0) != 0.0);
+      result.append (b);
+   }
    return result;
 }
 
@@ -434,6 +462,81 @@ QVector<double> QCaObject::getFloatingArray () const
    QVector<double> result;
    result = formatter.formatFloatingArray (this->getVariant());
    return result;
+}
+
+//------------------------------------------------------------------------------
+//
+void QCaObject::writeStringValue (const QString& value)
+{
+   QVariant varData;
+   varData.setValue (value);
+   this->writeDataElement (varData);
+}
+
+//------------------------------------------------------------------------------
+//
+void QCaObject::writeBooleanValue (const bool value)
+{
+   QVariant varData;
+   varData.setValue (value ? 1 : 0);  // bool to integer
+   this->writeDataElement (varData);
+}
+
+//------------------------------------------------------------------------------
+//
+void QCaObject::writeIntegerValue (const long value)
+{
+   QVariant varData;
+   varData.setValue (value);
+   this->writeDataElement (varData);
+}
+
+//------------------------------------------------------------------------------
+//
+void QCaObject::writeFloatingValue (const double value)
+{
+   QVariant varData;
+   varData.setValue (value);
+   this->writeDataElement (varData);
+}
+
+//------------------------------------------------------------------------------
+//
+void QCaObject::writeBooleanArray (const QVector<bool>& array)
+{
+   QVariantList varData;
+   for (int j = 0; j < array.count(); j++) {
+      QVariant varElement;
+      varElement.setValue (array.value (j) ? 1 : 0);  // bool to integer
+      varData.append (varElement);
+   }
+   this->writeData (varData);
+}
+
+//------------------------------------------------------------------------------
+//
+void QCaObject::writeIntegerArray (const QVector<long>& array)
+{
+   QVariantList varData;
+   for (int j = 0; j < array.count(); j++) {
+      QVariant varElement;
+      varElement.setValue (array.value (j));
+      varData.append (varElement);
+   }
+   this->writeData (varData);
+}
+
+//------------------------------------------------------------------------------
+//
+void QCaObject::writeFloatingArray (const QVector<double>& array)
+{
+   QVariantList varData;
+   for (int j = 0; j < array.count(); j++) {
+      QVariant varElement;
+      varElement.setValue (array.value (j));
+      varData.append (varElement);
+   }
+   this->writeData (varData);
 }
 
 //------------------------------------------------------------------------------
