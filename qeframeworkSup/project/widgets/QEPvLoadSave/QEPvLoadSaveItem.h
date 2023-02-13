@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2013-2021 Australian Synchrotron
+ *  Copyright (C) 2013-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -37,7 +37,6 @@
 #include <QVariantList>
 #include <QModelIndex>
 
-#include <Generic.h>
 #include <QCaObject.h>
 #include <QCaDataPoint.h>
 #include <QEArchiveManager.h>
@@ -276,11 +275,6 @@ signals:
 private:
    QString calcNodeName () const;  // Merges three PV names into a single node name.
    void setupQCaObjects ();        // Create/updates internal QCaObjects
-
-   // Convert to PV item data to variant best matching the channels generic data
-   // type, and hence best matching the PV server's native field type.
-   //
-   static QVariant convertToNativeType (const generic::generic_types gdt, const QVariant& from);
 
    // Conveniance function
    //

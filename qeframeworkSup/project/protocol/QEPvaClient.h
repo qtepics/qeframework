@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2021 Australian Synchrotron
+ *  Copyright (C) 2018-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -40,7 +40,6 @@
 #endif
 
 #include <QEBaseClient.h>
-#include <Generic.h>
 #include <QCaAlarmInfo.h>
 #include <QCaDateTime.h>
 #include <QEPvaData.h>
@@ -75,7 +74,6 @@ public:
 
    // Override QEBaseClient parent functions.
    //
-   generic::generic_types getDataType () const;
    QVariant getPvData () const;
    bool putPvData (const QVariant& value);
 

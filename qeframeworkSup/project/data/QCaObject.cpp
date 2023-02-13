@@ -324,18 +324,6 @@ unsigned int QCaObject::getVariableIndex () const
 }
 
 //------------------------------------------------------------------------------
-// Returns the type of data being read or to be written.
-// This will be Type::GENERIC_UNKNOWN if a connection has never been established.
-//
-generic::generic_types QCaObject::getDataType() const
-{
-   using namespace generic;
-   generic::generic_types result = GENERIC_UNKNOWN;
-   RESULT_SELECT (getDataType, getDataType);
-   return result;
-}
-
-//------------------------------------------------------------------------------
 // Setup the user message mechanism.
 // After calling this method the QCaObject can report errors to the user.
 //

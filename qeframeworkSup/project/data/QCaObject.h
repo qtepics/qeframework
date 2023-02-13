@@ -32,7 +32,6 @@
 #include <QFlags>
 
 #include <UserMessage.h>
-#include <Generic.h>
 #include <QCaAlarmInfo.h>
 #include <QCaDateTime.h>
 #include <QCaConnectionInfo.h>
@@ -129,7 +128,6 @@ public:
    double getWarningLimitLower() const;
    double getControlLimitUpper() const;
    double getControlLimitLower() const;
-   generic::generic_types getDataType() const;
    QString getHostName() const;
    QString getFieldType() const;
    unsigned long getElementCount() const;  // num elements available on server as oppsoed to num elements actually subscribed for.

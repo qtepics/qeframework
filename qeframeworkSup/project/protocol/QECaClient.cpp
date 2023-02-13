@@ -78,28 +78,6 @@ void QECaClient::requestDescription ()
 
 //------------------------------------------------------------------------------
 //
-generic::generic_types QECaClient::getDataType() const
-{
-   using namespace generic;
-   generic::generic_types result = GENERIC_UNKNOWN;
-
-   const ACAI::ClientFieldType fieldType = this->hostFieldType ();
-   switch (fieldType) {
-      case ACAI::ClientFieldSTRING:  result = GENERIC_STRING; break;
-      case ACAI::ClientFieldSHORT:   result = GENERIC_SHORT;  break;
-      case ACAI::ClientFieldFLOAT:   result = GENERIC_FLOAT;  break;
-      case ACAI::ClientFieldENUM:    result = GENERIC_SHORT;  break;
-      case ACAI::ClientFieldCHAR:    result = GENERIC_UNSIGNED_CHAR; break;
-      case ACAI::ClientFieldLONG:    result = GENERIC_LONG;   break;
-      case ACAI::ClientFieldDOUBLE:  result = GENERIC_DOUBLE; break;
-      default: break;
-   }
-
-   return result;
-}
-
-//------------------------------------------------------------------------------
-//
 QVariant QECaClient::getPvData () const
 {
    QVariant result = QVariant (QVariant::Invalid);  // default

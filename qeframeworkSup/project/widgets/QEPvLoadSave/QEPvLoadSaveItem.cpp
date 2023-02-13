@@ -773,58 +773,6 @@ void QEPvLoadSaveLeaf::extractPVData ()
 }
 
 //-----------------------------------------------------------------------------
-// private static
-//
-QVariant QEPvLoadSaveLeaf::convertToNativeType (const generic::generic_types gdt, const QVariant& from)
-{
-   QVariant result;
-   bool okay;
-
-   switch (gdt) {
-      case generic::GENERIC_STRING:
-         result = QVariant (from.toString ());
-         okay = true;
-         break;
-
-      case generic::GENERIC_SHORT:
-         result = QVariant (from.toInt (&okay));
-         break;
-
-      case generic::GENERIC_UNSIGNED_SHORT:
-      case generic::GENERIC_UNSIGNED_CHAR:
-         result = QVariant (from.toUInt (&okay));
-         break;
-
-      case generic::GENERIC_LONG:
-         result = QVariant (from.toLongLong (&okay));
-         break;
-
-      case generic::GENERIC_UNSIGNED_LONG :
-         result = QVariant (from.toULongLong (&okay));
-         break;
-
-      case generic::GENERIC_FLOAT:
-      case generic::GENERIC_DOUBLE:
-         result = QVariant (from.toDouble (&okay));
-         break;
-
-      case generic::GENERIC_UNKNOWN:
-         result = QVariant (from.toString ());
-         okay = true;
-         break;
-
-      default:
-         result = from;
-         okay = false;
-   }
-
-   if (!okay) {
-      DEBUG << "convert failed " << generic::typeImage (gdt) << from;
-   }
-   return result;
-}
-
-//-----------------------------------------------------------------------------
 //
 void QEPvLoadSaveLeaf::applyPVData ()
 {
@@ -832,33 +780,10 @@ void QEPvLoadSaveLeaf::applyPVData ()
    this->actionIsComplete = false;
 
    if (this->qcaSetPoint && this->qcaSetPoint->getChannelIsConnected ()) {
-
-      generic::generic_types gdt = this->qcaSetPoint->getDataType ();
-
-      // Convert value, or each element if needs be, to the native PV type
-      // before writing to the PV server.
+      // We now can reply on writeData (which directly calls CA/PVA Client->putPvData)
+      // to convert the variant to the appropriate format.
       //
-      QVariant nativeValue;
-
-      if (this->value.type() == QVariant::List) {
-         QVariantList valueList = this->value.toList ();
-         const int n = valueList.count ();
-         QVariantList nativeList;
-         for (int j = 0; j < n; j++) {
-            nativeList.append (this->convertToNativeType (gdt, valueList.value (j)));
-         }
-         nativeValue = QVariant (nativeList);
-
-      } else if (QEVectorVariants::isVectorVariant (this->value)) {
-
-         nativeValue = this->value;
-
-      } else {
-         // Scalar - Just use value as is, and let EPICS IOC do any required conversion.
-         nativeValue = this->value;
-      }
-
-      bool status = this->qcaSetPoint->writeData (nativeValue);
+      bool status = this->qcaSetPoint->writeData (this->value);
       this->emitReportActionComplete (status);
    } else {
       this->emitReportActionComplete (false);

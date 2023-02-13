@@ -31,7 +31,6 @@
 #include <acai_client.h>
 
 #include <QEBaseClient.h>
-#include <Generic.h>
 #include <QCaAlarmInfo.h>
 #include <QCaDateTime.h>
 #include <QEFrameworkLibraryGlobal.h>
@@ -50,7 +49,6 @@ public:
 
    // Override QEBaseClient parent functions.
    //
-   generic::generic_types getDataType () const;
    QVariant getPvData () const;
    bool putPvData (const QVariant& value);
 

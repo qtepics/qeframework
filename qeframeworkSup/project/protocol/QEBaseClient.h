@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2021 Australian Synchrotron
+ *  Copyright (C) 2018-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -32,7 +32,6 @@
 #include <QStringList>
 #include <QVariant>
 #include <QEFrameworkLibraryGlobal.h>
-#include <Generic.h>
 #include <QCaAlarmInfo.h>
 #include <QCaDateTime.h>
 #include <UserMessage.h>
@@ -65,7 +64,6 @@ public:
 
    // Sub classes must provide these.
    //
-   virtual generic::generic_types getDataType() const = 0;
    virtual QVariant getPvData () const = 0;
    virtual bool putPvData (const QVariant& value) = 0;
    virtual QStringList getEnumerations() const = 0;

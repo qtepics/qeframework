@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (C) 2018-2021 Australian Synchrotron
+ *  Copyright (C) 2018-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -774,87 +774,6 @@ void QEPvaClient::closeChannel ()
 
 //------------------------------------------------------------------------------
 //
-generic::generic_types QEPvaClient::getDataType() const
-{
-   using namespace generic;
-   generic::generic_types result = GENERIC_UNKNOWN;
-
-   // sainity checks
-   if (this->putter.get() == NULL || this->putRequester.get() == NULL) {
-      return result;
-   }
-
-   QEPvaPutRequesterInterface* interface =
-         dynamic_cast <QEPvaPutRequesterInterface*> (this->putRequester.get ());
-   if (!interface) {
-      DEBUG << "dynamic cast failed. objects";
-      return result;
-   }
-
-   pvd::StructureConstPtr structure = interface->getStructure();
-   if (structure.get() == NULL) {
-      DEBUG << this->getPvName() << this->uniqueId << "null structure";
-      return result;
-   }
-
-   pvd::FieldConstPtr field = structure->getField("value");
-   if (field.get() == NULL) {
-      DEBUG << "null value field";
-      return result;
-   }
-
-   pvd::Type fieldType = field->getType();
-   pvd::ScalarType scalarType;
-
-   if (fieldType == pvd::scalar) {
-      pvd::ScalarConstPtr scalar;
-      scalar = std::tr1::static_pointer_cast<const pvd::Scalar> (field);
-
-      scalarType = scalar->getScalarType ();
-
-   } else if (fieldType == pvd::scalarArray) {
-      pvd::ScalarArrayConstPtr scalarArray;
-      scalarArray = std::tr1::static_pointer_cast<const pvd::ScalarArray> (field);
-
-      scalarType = scalarArray->getElementType ();
-
-   } else if (fieldType == pvd::structure) {
-      pvd::StructureConstPtr structure;
-      structure = std::tr1::static_pointer_cast<const pvd::Structure> (field);
-
-      if (structure->getID () == "enum_t") {
-         scalarType = pvd::pvInt;  // i.e. index
-      } else {
-         DEBUG << "unhandled structure type " << QString::fromStdString (structure->getID());
-         return result;
-      }
-   } else {
-      DEBUG << "unhandled field type " << pvd::TypeFunc::name (fieldType);
-      return result;
-   }
-
-   // TODO: Verify these - extenend the generic type.
-   switch (scalarType) {
-      case pvd::pvBoolean: result = GENERIC_UNSIGNED_CHAR; break;
-      case pvd::pvByte:    result = GENERIC_SHORT; break;
-      case pvd::pvShort:   result = GENERIC_SHORT; break;
-      case pvd::pvInt:     result = GENERIC_LONG; break;
-      case pvd::pvLong:    result = GENERIC_LONG; break;
-      case pvd::pvUByte:   result = GENERIC_UNSIGNED_CHAR; break;
-      case pvd::pvUShort:  result = GENERIC_UNSIGNED_SHORT; break;
-      case pvd::pvUInt:    result = GENERIC_UNSIGNED_LONG; break;
-      case pvd::pvULong:   result = GENERIC_UNSIGNED_LONG; break;
-      case pvd::pvFloat:   result = GENERIC_FLOAT;  break;
-      case pvd::pvDouble:  result = GENERIC_DOUBLE; break;
-      case pvd::pvString:  result = GENERIC_STRING; break;
-      default:             DEBUG << "undandled";    break;
-   }
-
-   return result;
-}
-
-//------------------------------------------------------------------------------
-//
 QVariant QEPvaClient::getPvData () const
 {
    return this->pvData;
@@ -1182,7 +1101,6 @@ QEPvaClient::QEPvaClient (const QString& pvName,
 QEPvaClient::~QEPvaClient () { }
 bool QEPvaClient::openChannel (const ChannelModesFlags) { return false; }
 void QEPvaClient::closeChannel () { }
-generic::generic_types QEPvaClient::getDataType() const { return generic::GENERIC_UNKNOWN; }
 bool QEPvaClient::getIsConnected () const { return false; }
 bool QEPvaClient::dataIsAvailable () const { return false; }
 QString QEPvaClient::getId () const { return ""; }
