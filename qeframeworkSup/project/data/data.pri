@@ -4,6 +4,8 @@
 # the Australian Synchrotron. This file is included into and as part
 # of the overall framework.pro project file.
 #
+# Copyright (c) 2017-2023 Australian Synchrotron
+#
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -17,56 +19,63 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (c) 2017 Australian Synchrotron
-#
 # Author:
 #   Andrew Starritt
 # Contact details:
-#   andrew.starritt@synchrotron.org.au
+#   andrews@ansto.gov.au
 #
 
-INCLUDEPATH += \
-   data
+INCLUDEPATH += $$PWD
 
-HEADERS += \
-   data/Generic.h \
-   data/QCaAlarmInfo.h \
-   data/QCaConnectionInfo.h \
-   data/QCaDataPoint.h \
-   data/QCaDateTime.h \
-   data/QCaObject.h \
-   data/QCaVariableNamePropertyManager.h \
-   data/QEByteArray.h \
-   data/QEFloating.h \
-   data/QEFloatingArray.h \
-   data/QEFloatingFormatting.h \
-   data/QEInteger.h \
-   data/QEIntegerArray.h \
-   data/QEIntegerFormatting.h \
-   data/QELocalEnumeration.h \
-   data/QEString.h \
-   data/QEStringFormatting.h \
-   data/qepicspv.h
+HEADERS += $$PWD/QCaAlarmInfo.h
+SOURCES += $$PWD/QCaAlarmInfo.cpp
 
+HEADERS += $$PWD/QCaConnectionInfo.h
+SOURCES += $$PWD/QCaConnectionInfo.cpp
 
-SOURCES += \
-   data/Generic.cpp \
-   data/QCaAlarmInfo.cpp \
-   data/QCaConnectionInfo.cpp \
-   data/QCaDataPoint.cpp \
-   data/QCaDateTime.cpp \
-   data/QCaObject.cpp \
-   data/QCaVariableNamePropertyManager.cpp \
-   data/QEByteArray.cpp \
-   data/QEFloating.cpp \
-   data/QEFloatingArray.cpp \
-   data/QEFloatingFormatting.cpp \
-   data/QEInteger.cpp \
-   data/QEIntegerArray.cpp \
-   data/QEIntegerFormatting.cpp \
-   data/QELocalEnumeration.cpp \
-   data/QEString.cpp \
-   data/QEStringFormatting.cpp \
-   data/qepicspv.cpp
+HEADERS += $$PWD/QCaDataPoint.h
+SOURCES += $$PWD/QCaDataPoint.cpp
+
+HEADERS += $$PWD/QCaDateTime.h
+SOURCES += $$PWD/QCaDateTime.cpp
+
+HEADERS += $$PWD/QCaObject.h
+SOURCES += $$PWD/QCaObject.cpp
+
+HEADERS += $$PWD/QCaVariableNamePropertyManager.h
+SOURCES += $$PWD/QCaVariableNamePropertyManager.cpp
+
+HEADERS += $$PWD/QEByteArray.h
+SOURCES += $$PWD/QEByteArray.cpp
+
+HEADERS += $$PWD/QEFloating.h
+SOURCES += $$PWD/QEFloating.cpp
+
+HEADERS += $$PWD/QEFloatingArray.h
+SOURCES += $$PWD/QEFloatingArray.cpp
+
+HEADERS += $$PWD/QEFloatingFormatting.h
+SOURCES += $$PWD/QEFloatingFormatting.cpp
+
+HEADERS += $$PWD/QEInteger.h
+SOURCES += $$PWD/QEInteger.cpp
+
+HEADERS += $$PWD/QEIntegerArray.h
+SOURCES += $$PWD/QEIntegerArray.cpp
+
+HEADERS += $$PWD/QEIntegerFormatting.h
+SOURCES += $$PWD/QEIntegerFormatting.cpp
+
+HEADERS += $$PWD/QELocalEnumeration.h
+SOURCES += $$PWD/QELocalEnumeration.cpp
+
+HEADERS += $$PWD/QEString.h
+SOURCES += $$PWD/QEString.cpp
+
+HEADERS += $$PWD/QEStringFormatting.h
+SOURCES += $$PWD/QEStringFormatting.cpp
+
+HEADERS += $$PWD/qepicspv.h
+SOURCES += $$PWD/qepicspv.cpp
 
 # end

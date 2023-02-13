@@ -4,7 +4,7 @@
 # the Australian Synchrotron. This file is included into and as part
 # of the overall framework.pro project file.
 #
-# Copyright (C) 2018 Australian Synchrotron
+# Copyright (c) 2017-2023 Australian Synchrotron
 #
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -22,40 +22,38 @@
 # Author:
 #   Andrew Starritt
 # Contact details:
-#   andrew.starritt@synchrotron.org.au
+#   andrews@ansto.gov.au
 #
 
-PROTOCOL = protocol
+INCLUDEPATH += $$PWD
 
-INCLUDEPATH += $$PROTOCOL
+HEADERS += $$PWD/QEBaseClient.h
+SOURCES += $$PWD/QEBaseClient.cpp
 
-HEADERS += $$PROTOCOL/QEPvaCheck.h
+HEADERS += $$PWD/QECaClient.h
+SOURCES += $$PWD/QECaClient.cpp
 
-HEADERS += $$PROTOCOL/QEPvNameUri.h
-SOURCES += $$PROTOCOL/QEPvNameUri.cpp
+HEADERS += $$PWD/QENTNDArrayData.h
+SOURCES += $$PWD/QENTNDArrayData.cpp
 
-HEADERS += $$PROTOCOL/QEPvaData.h
-SOURCES += $$PROTOCOL/QEPvaData.cpp
+HEADERS += $$PWD/QENTTableData.h
+SOURCES += $$PWD/QENTTableData.cpp
 
-HEADERS += $$PROTOCOL/QENTNDArrayData.h
-SOURCES += $$PROTOCOL/QENTNDArrayData.cpp
+HEADERS += $$PWD/QEOpaqueData.h
+SOURCES += $$PWD/QEOpaqueData.cpp
 
-HEADERS += $$PROTOCOL/QENTTableData.h
-SOURCES += $$PROTOCOL/QENTTableData.cpp
+HEADERS += $$PWD/QEPvNameUri.h
+SOURCES += $$PWD/QEPvNameUri.cpp
 
-HEADERS += $$PROTOCOL/QEOpaqueData.h
-SOURCES += $$PROTOCOL/QEOpaqueData.cpp
+HEADERS += $$PWD/QEPvaCheck.h
 
-HEADERS += $$PROTOCOL/QEVectorVariants.h
-SOURCES += $$PROTOCOL/QEVectorVariants.cpp
+HEADERS += $$PWD/QEPvaClient.h
+SOURCES += $$PWD/QEPvaClient.cpp
 
-HEADERS += $$PROTOCOL/QEBaseClient.h
-SOURCES += $$PROTOCOL/QEBaseClient.cpp
+HEADERS += $$PWD/QEPvaData.h
+SOURCES += $$PWD/QEPvaData.cpp
 
-HEADERS += $$PROTOCOL/QECaClient.h
-SOURCES += $$PROTOCOL/QECaClient.cpp
-
-HEADERS += $$PROTOCOL/QEPvaClient.h
-SOURCES += $$PROTOCOL/QEPvaClient.cpp
+HEADERS += $$PWD/QEVectorVariants.h
+SOURCES += $$PWD/QEVectorVariants.cpp
 
 # end
