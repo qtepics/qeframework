@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #32 $
-# $DateTime: 2023/01/12 14:50:32 $
+# $Revision: #33 $
+# $DateTime: 2023/02/15 12:39:43 $
 # Last checked in by: $Author: starritt $
 #
 # Copyright (c) 2009-2023 Australian Synchrotron
@@ -309,7 +309,7 @@ isEmpty( _ADSUPPORT ) {
 
     DEFINES += QE_AD_SUPPORT
 
-    LIBS += -L$$(ADSUPPORT)/lib/$$(EPICS_HOST_ARCH) -ljpeg -lHDF5_lz4_plugin -lblosc -lHDF5_bshuf_plugin
+    LIBS += -L$$(ADSUPPORT)/lib/$$(EPICS_HOST_ARCH) -ljpeg -lblosc -lbitshuffle -lzlib
 
     # Set runtime path for shared libraries
     #
