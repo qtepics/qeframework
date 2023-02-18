@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2021 Australian Synchrotron
+ *  Copyright (c) 2012-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -33,6 +33,7 @@
 #include "standardProperties.h"
 #include <QDebug>
 #include <QEWidget.h>
+#include <QEStringFormattingMethods.h>
 
 #define DEBUG  qDebug () << "standardProperties" << __LINE__ << __FUNCTION__ << "  "
 
@@ -182,6 +183,16 @@ bool standardProperties::getRunVisible () const
 }
 
 //------------------------------------------------------------------------------
+//
+void standardProperties::invokeStringFormattingChange ()
+{
+   QEStringFormattingMethods* sfm = dynamic_cast<QEStringFormattingMethods*>(this->owner);
+   if (sfm) {
+      sfm->stringFormattingChange ();
+   }
+}
+
+//------------------------------------------------------------------------------
 // displayAlarmState. If set (default) widget will indicate the alarm state of
 // any variable data is displaying.
 //
@@ -189,6 +200,7 @@ void standardProperties::
 setDisplayAlarmStateOption (displayAlarmStateOptions displayAlarmStateIn)
 {
    this->displayAlarmState = displayAlarmStateIn;
+   this->invokeStringFormattingChange ();
 }
 
 //------------------------------------------------------------------------------
@@ -199,12 +211,12 @@ standardProperties::getDisplayAlarmStateOption () const
    return this->displayAlarmState;
 }
 
-
 //------------------------------------------------------------------------------
 //
 void standardProperties::setOosAware (const bool oosAwareIn)
 {
    this->isOosAware = oosAwareIn;
+   this->invokeStringFormattingChange ();
 }
 
 //------------------------------------------------------------------------------
