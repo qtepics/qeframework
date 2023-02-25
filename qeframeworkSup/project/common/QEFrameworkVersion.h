@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2021 Australian Synchrotron
+ *  Copyright (c) 2012-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -65,7 +65,7 @@
 //
 #define QE_VERSION_STAGE_DEVELOPMENT "Development"
 #define QE_VERSION_STAGE_PRODUCTION  "Production"
-#define QE_VERSION_STAGE             QE_VERSION_STAGE_DEVELOPMENT
+#define QE_VERSION_STAGE             QE_VERSION_STAGE_PRODUCTION
 
 #define QE_VERSION_STRING     STRINGIFY(QE_VERSION_MAJOR) "." \
                               STRINGIFY(QE_VERSION_MINOR) "." \
@@ -82,11 +82,11 @@ public:
    virtual ~QEFrameworkVersion();
 
    static unsigned int getMajor ();         // e.g. 3
-   static unsigned int getMinor ();         // e.g. 7
-   static unsigned int getRelease ();       // e.g. 5
+   static unsigned int getMinor ();         // e.g. 9
+   static unsigned int getRelease ();       // e.g. 1
    static const QString getStage ();        // e.g. "Production"
    static const QString getString ();       // e.g. "3.9.1 (Production)"
-   static const QString getDateTime ();     // e.g. "Nov 19 2022 21:23:02"
+   static const QString getDateTime ();     // e.g. "Feb 21 2023 16:16:27"
 
    // Conditional compile attributes.
    //
@@ -96,8 +96,8 @@ public:
    //
    static const QString getQtVersionStr ();     // e.g. "QT 5.12.8"
    static const QString getQwtVersionStr ();    // e.g. "QWT 6.1.3"
-   static const QString getEpicsVersionStr ();  // e.g. "EPICS 7.0.4.1"
-   static const QString getAcaiVersionStr ();   // e.g. "ACAI 1.5.8"
+   static const QString getEpicsVersionStr ();  // e.g. "EPICS 7.0.7"
+   static const QString getAcaiVersionStr ();   // e.g. "ACAI 1.7.3"
 };
 
 #endif // QE_FRAMEWORK_VERSION_H
