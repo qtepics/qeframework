@@ -181,21 +181,23 @@ bool QECaClient::putPvData (const QVariant& value)
    // Note: min and max field value functions require ACAI 1.6.4 or later.
    //
    #if (ACAI_VERSION < ACAI_INT_VERSION(1, 6, 4))
-   #error The EPICS Qt framework required ACAI 1.6.4 or later.
+   #error The EPICS Qt framework requires ACAI 1.6.4 or later.
    #endif
-
-   const double min = this->minFieldValue();
-   const double max = this->maxFieldValue();
 
    bool result = true;        // hypothesize success
    bool knownType = true;     // hypothesize we can handle the variant type.
-   bool valueOkay = true;     // hypothesize value coverts to numeric type
+   bool valueOkay = true;     // hypothesize value converts to numeric type
    bool valueInRange = true;  // hypothesize value in field type range
    QString extra = "";
 
-// DEBUG << this->getPvName() << fieldName << min  << max;
-
-   if (vtype != QVariant::List) {
+   // Do special for ByteArray type (see GUI-216)
+   //
+   if (vtype == QVariant::ByteArray) {
+      QByteArray bytes = value.toByteArray ();
+      // NOTE: requires acai 1-5-8 orlater.
+      result = this->putByteArray ((void*) bytes.constData (), bytes.size());
+   }
+   else if (vtype != QVariant::List) {
       // Process as scaler
       //
       ACAI::ClientInteger i;
@@ -208,44 +210,37 @@ bool QECaClient::putPvData (const QVariant& value)
             break;
 
          case ACAI::ClientFieldENUM:
+            result = this->varientToEnumIndex (value, i, valueInRange);
+            if (!result) break;
+            result = this->putInteger (i);
+            break;
+
          case ACAI::ClientFieldCHAR:
+            if (vtype == QVariant::String) {
+               // Treat as long string.
+               QString str = value.toString ();
+               const int len = str.length();
+               const char* text = str.toStdString().c_str();
+               result = this->putByteArray (text, len + 1); // include the zero
+            } else {
+               // Treat as numeric.
+               result = this->varientToInteger (value, i, valueInRange);
+               if (!result) break;
+               result = this->putInteger (i);
+            }
+            break;
+
          case ACAI::ClientFieldSHORT:
          case ACAI::ClientFieldLONG:
-            f = value.toDouble (&valueOkay);
-            if (!valueOkay) {
-               result = false;
-               break;
-            }
-
-            if ((f < min) || (f > max)) {
-               valueInRange = false;
-               result = false;
-               break;
-            }
-
-            i = value.toInt (&valueOkay);
-            if (!valueOkay) {
-               result = false;
-               break;
-            }
-
+            result = this->varientToInteger (value, i, valueInRange);
+            if (!result) break;
             result = this->putInteger (i);
             break;
 
          case ACAI::ClientFieldFLOAT:
          case ACAI::ClientFieldDOUBLE:
-            f = value.toDouble (&valueOkay);
-            if (!valueOkay) {
-               result = false;
-               break;
-            }
-
-            if ((f < min) || (f > max)) {
-               valueInRange = false;
-               result = false;
-               break;
-            }
-
+            result = this->varientToFloat (value, f, valueInRange);
+            if (!result) break;
             result = this->putFloating (f);
             break;
 
@@ -277,30 +272,26 @@ bool QECaClient::putPvData (const QVariant& value)
             break;
 
          case ACAI::ClientFieldENUM:
+            // Do we get arrays of enums?
+            //
+            for (int j = 0; j < number; j++) {
+               ACAI::ClientInteger i;
+               result = this->varientToEnumIndex (valueArray.value (j), i, valueInRange);
+               if (!result) break;
+               intArray.push_back (i);
+            }
+            if (result) {
+               result = this->putIntegerArray (intArray);
+            }
+            break;
+
          case ACAI::ClientFieldCHAR:
          case ACAI::ClientFieldSHORT:
          case ACAI::ClientFieldLONG:
             for (int j = 0; j < number; j++) {
-               ACAI::ClientFloating f;
-               f = valueArray.value (j).toDouble (&valueOkay);
-               if (!valueOkay) {
-                  result = false;
-                  break;
-               }
-
-               if ((f < min) || (f > max)) {
-                  valueInRange = false;
-                  result = false;
-                  break;
-               }
-
                ACAI::ClientInteger i;
-               i = valueArray.value (j).toInt (&valueOkay);
-               if (!valueOkay) {
-                  result = false;
-                  break;
-               }
-
+               result = this->varientToInteger (valueArray.value (j), i, valueInRange);
+               if (!result) break;
                intArray.push_back (i);
             }
             if (result) {
@@ -312,18 +303,8 @@ bool QECaClient::putPvData (const QVariant& value)
          case ACAI::ClientFieldDOUBLE:
             for (int j = 0; j < number; j++) {
                ACAI::ClientFloating f;
-               f = valueArray.value (j).toDouble (&valueOkay);
-               if (!valueOkay) {
-                  result = false;
-                  break;
-               }
-
-               if ((f < min) || (f > max)) {
-                  valueInRange = false;
-                  result = false;
-                  break;
-               }
-
+               result = this->varientToFloat (valueArray.value (j), f, valueInRange);
+               if (!result) break;
                fltArray.push_back (f);
             }
             if (result) {
@@ -383,6 +364,100 @@ bool QECaClient::putPvData (const QVariant& value)
       } else {
          DEBUG << msg;
       }
+   }
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QECaClient::varientToFloat (const QVariant& qValue,
+                                 ACAI::ClientFloating& fltValue,
+                                 bool& valueInRange)
+{
+   bool result;
+   valueInRange = true;   // hypothesize good input
+
+   fltValue = qValue.toDouble (&result);
+   if (result) {
+      const double min = this->minFieldValue();
+      const double max = this->maxFieldValue();
+
+      if ((fltValue < min) || (fltValue > max)) {
+         valueInRange = false;
+         result = false;
+      }
+   }
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QECaClient::varientToInteger (const QVariant& qValue,
+                                   ACAI::ClientInteger& intValue,
+                                   bool& valueInRange)
+{
+   bool result;
+   valueInRange = true;   // hypothesize good input
+
+   // Alas toInt does a really rubbish job with respect to out of range float
+   // values; e.g. QVariant(double, 4.44e+18) can be "successfully" converted
+   // to an int by toInt() and return an "okay" result. So we to toDouble first
+   // and check the range.
+   //
+   double f = qValue.toDouble (&result);
+   if (result) {
+      const double min = this->minFieldValue();
+      const double max = this->maxFieldValue();
+
+      if ((f < min) || (f > max)) {
+         valueInRange = false;
+         result = false;
+      } else {
+         // We could call toInt here but the conversion might be expensive
+         // and we already have a numeric value.
+         //
+         intValue = static_cast<ACAI::ClientInteger> (f);
+      }
+   }
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QECaClient::varientToEnumIndex (const QVariant& qValue,
+                                     ACAI::ClientInteger& index,
+                                     bool& valueInRange)
+{
+   const QVariant::Type vtype = qValue.type ();
+   bool result;
+   valueInRange = true;   // hypothesize good input
+   result = true;
+
+   // value van be string or not-string.
+   //
+   if (vtype == QVariant::String) {
+      // Decode the "string" value
+      // NOTE: This checks the known enumeration values.
+      // If the IOC has been patched and there has been no channel re-connection,
+      // then the user/client will continue to use the original enum values.
+      //
+      ACAI::ClientString enumText = qValue.toString ().toStdString ();
+      index = this->getEnumerationIndex (enumText);
+      if (index < 0) {
+         valueInRange = false;
+         result = false;
+      }
+   }
+
+   if ((vtype != QVariant::String) || !result) {
+      // Either the varient is a not string type or the string did not match,
+      // however we may have a string like "3" which is a perfectly good integer.
+      // Decode the "integer" value.
+      //
+      result = this->varientToInteger (qValue, index, valueInRange);
    }
 
    return result;

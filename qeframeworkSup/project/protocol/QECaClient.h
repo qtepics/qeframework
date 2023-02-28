@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2021 Australian Synchrotron
+ *  Copyright (C) 2018-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -65,6 +65,12 @@ protected:
    void putCallbackNotifcation (const bool isSuccessful);
 
 private:
+   // Local conveniance functions.
+   //
+   bool varientToFloat (const QVariant& qValue, ACAI::ClientFloating& fValue, bool& valueInRange);
+   bool varientToInteger (const QVariant& qValue, ACAI::ClientInteger& iValue, bool& valueInRange);
+   bool varientToEnumIndex (const QVariant& qValue, ACAI::ClientInteger& index, bool& valueInRange);
+
    QECaClient* descriptionClient;  // connects to the .DESC field
 
 private slots:
