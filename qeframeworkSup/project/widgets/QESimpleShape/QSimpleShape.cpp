@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2022 Australian Synchrotron.
+ *  Copyright (c) 2014-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -160,6 +160,11 @@ void QSimpleShape::paintEvent (QPaintEvent*)
    rect.setHeight (rect.height () - ew);
 
    switch (this->getShape ()) {
+
+      case noShape:
+         // pass - draw nothing
+         break;
+
 
       case circle:
          this->equaliseRect (rect);
@@ -580,6 +585,25 @@ void QSimpleShape::paintEvent (QPaintEvent*)
          polygon[p++] = QPoint (rect.left (),  y1);
          polygon[p++] = QPoint (x1,            y1);
          polygon[p++] = polygon[0];            // close loop
+         painter.drawPolygon (polygon, p);
+         break;
+
+      case tick:
+         // We work in percentages
+         //
+         dx = double (rect.right ()  - rect.left ())/100.0;
+         dy = double (rect.bottom () - rect.top ())/100.0;
+         x0 = rect.left ();
+         y0 = rect.top ();
+
+         p = 0;
+         polygon[p++]  = QPoint (x0 +  87*dx,  y0 +   0*dy);
+         polygon[p++]  = QPoint (x0 +  88*dx,  y0 +   1*dy);
+         polygon[p++]  = QPoint (x0 +  40*dx,  y0 + 100*dy);
+         polygon[p++]  = QPoint (x0 +  37*dx,  y0 + 100*dy);
+         polygon[p++]  = QPoint (x0 +  13*dx,  y0 +  61*dy);
+         polygon[p++]  = QPoint (x0 +  14*dx,  y0 +  60*dy);
+         polygon[p++]  = QPoint (x0 +  38*dx,  y0 +  90*dy);
          painter.drawPolygon (polygon, p);
          break;
 

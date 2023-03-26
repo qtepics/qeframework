@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2022 Australian Synchrotron.
+ *  Copyright (c) 2014-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -44,12 +44,12 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QSimpleShape : public QWidget  {
 public:
    // QSimpleShape specific properties ==============================================
    //
-   enum Shapes { circle, ellipse, rectangle, roundRectangle, roundSquare, square,
+   enum Shapes { noShape, circle, ellipse, rectangle, roundRectangle, roundSquare, square,
                  triangleUp, triangleDown, triangleLeft, triangleRight,
                  triangleTopRight, triangleBottomRight, triangleBottomLeft, triangleTopLeft,
                  diamond, equalDiamond, arrowUp, arrowDown, arrowLeft, arrowRight,
                  crossHorizontal, crossVertical, hexagon, octogon,
-                 snakeHorizontal, snakeVertical, pentagon, star, plus, cross,
+                 snakeHorizontal, snakeVertical, pentagon, star, plus, tick, cross,
                  roundpie, pie, heart };
    Q_ENUMS (Shapes)
 
