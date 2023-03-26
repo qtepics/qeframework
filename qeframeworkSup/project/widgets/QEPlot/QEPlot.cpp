@@ -841,7 +841,7 @@ void QEPlot::setPlotData (const double value, QCaAlarmInfo& alarmInfo,
 // Update the plotted data with a new array of values
 // This is a slot used to recieve data updates from a QCaObject based class.
 //
-void QEPlot::setPlotData (const QVector <double>&values,
+void QEPlot::setPlotData (const QVector <double>& values,
                           QCaAlarmInfo& alarmInfo, QCaDateTime&,
                           const unsigned int& variableIndex)
 {
@@ -959,7 +959,7 @@ void QEPlot::purgeOldData () {
 //
 void QEPlot::plotData ()
 {
-   const QCaDateTime now = QDateTime::currentDateTime ().toUTC();
+   const QCaDateTime now = QDateTime::currentDateTimeUtc();
 
    // First release any/all allocated curves.
    //
@@ -1020,13 +1020,38 @@ void QEPlot::plotData ()
             // Only display that portion of the data that is needed.
             //
             if ((x >= this->xFirst) && (x <= this->xLast)) {
-               xRange.merge (x);
-               yRange.merge (y);
-               xdata.append (x);
-               ydata.append (y);
+
+               // Can't plot NaN or Inf, and also can cause a freeze if we try.
+               //
+               const bool plotable = (!QEPlatform::isNaN (y) &&
+                                      !QEPlatform::isInf (y));
+
+               if (plotable) {
+                  // Just append to the x/y data
+                  //
+                  xRange.merge (x);
+                  yRange.merge (y);
+                  xdata.append (x);
+                  ydata.append (y);
+               } else {
+                  // This point is not plotable.
+                  // plot what we have so far (need at least 1 point).
+                  //
+                  if (xdata.count () >= 1) {
+                     // Plot it, and clear the data in order to start again.
+                     //
+                     this->plotArea->plotCurveData (xdata, ydata, QwtPlot::yLeft);
+                     xdata.clear ();
+                     ydata.clear ();
+                  }
+               }
             }
          }
-         this->plotArea->plotCurveData (xdata, ydata, QwtPlot::yLeft);
+         // Plot what, if anything,  we have accumulated.
+         //
+         if (xdata.count () >= 1) {
+            this->plotArea->plotCurveData (xdata, ydata, QwtPlot::yLeft);
+         }
 
       } else {
          // It is a scalar.
@@ -1044,7 +1069,13 @@ void QEPlot::plotData ()
 
          for (int i = 0; i < n; i++) {
             const QCaDataPoint point = tr->scalarData.value(i);
-            if (point.isDisplayable()) {
+
+            // Can't plot NaN or Inf, and also can cause a freeze if we try.
+            //
+            const bool plotable = (!QEPlatform::isNaN (point.value) &&
+                                   !QEPlatform::isInf (point.value));
+
+            if (plotable && point.isDisplayable()) {
                // Just append to the x/y data
                //
                xdata.append (now.secondsTo (point.datetime));
@@ -1052,11 +1083,11 @@ void QEPlot::plotData ()
                yRange.merge (point.value);
 
             } else {
-               // This point is not displayable.
+               // This point is not plotable/displayable.
                // plot what we have so far (need at least 1 point).
                //
                if (xdata.count () >= 1) {
-                  // The current point is unplotable (invalid/disconneted).
+                  // The current point is unplotable (invalid/disconneted/NaN/Inf).
                   // Create  a valid stopper point consisting of prev. point
                   // value and this point's time.
                   //
