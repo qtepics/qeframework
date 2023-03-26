@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2022  Australian Synchrotron.
+ *  Copyright (c) 2014-2023  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -104,11 +104,11 @@ void QERadioGroup::commonSetup (const QString& title)
    QObject::connect (this->internalWidget, SIGNAL (valueChanged         (const int)),
                      this,                 SLOT   (internalValueChanged (const int)));
 
-   // Set default property values
+   // Set default property values.
    //
    // Set up data
    // This control uses a single data source
-   // We use 2nd "variable" for the title.
+   // We use the 2nd "variable" for the title.
    //
    this->setNumVariables (2);
 
@@ -341,11 +341,11 @@ void QERadioGroup::valueUpdate (const long &value,
    //
    this->currentIndex = value;
 
-   if (this->valueToIndex.containsF (value)) {
-      selectedIndex = this->valueToIndex.valueF (value, -1);
+   if (this->valueIndexMap.containsF (value)) {
+      selectedIndex = this->valueIndexMap.valueF (value, -1);
    } else {
       // We haven't mapped this value - use hidden selection.
-      // This will uncheck all the "real" buttons
+      // This will uncheck all the "real" buttons.
       //
       selectedIndex = -1;
    }
@@ -376,12 +376,12 @@ void QERadioGroup::setRadioGroupText ()
    int n;
    int j;
 
-   // Build forward and revserse EPICS value to button index/position maps.
+   // Build forward and reverse EPICS value to button index/position maps.
    // We do this even when using db enuberations and the mapping is trivial.
    //
    // Clear maps.
    //
-   this->valueToIndex.clear ();
+   this->valueIndexMap.clear ();
 
    if (this->useDbEnumerations) {
       qca = getQcaItem (PV_VARIABLE_INDEX);
@@ -391,14 +391,14 @@ void QERadioGroup::setRadioGroupText ()
          // Create indentity map.
          //
          for (j = 0; j < enumerations.count (); j++) {
-            this->valueToIndex.insertF (j, j);
+            this->valueIndexMap.insertF (j, j);
          }
       }
 
    } else {
 
       // Build up enumeration list using the local enumerations.  This may be
-      // sparce    e.g.: 1 => Red, 5 => Blue, 63 => Green.  We create a reverse
+      // sparce: e.g.: 1 => Red, 5 => Blue, 63 => Green.  We create a reverse
       // map 0 => 1; 1 => 5; 2 => 63 so that when user selects the an element,
       // say Blue, we can map this directly to integer value of 5.
       //
@@ -422,7 +422,7 @@ void QERadioGroup::setRadioGroupText ()
          }
          enumerations.append (text);
 
-         this->valueToIndex.insertF (n, j);
+         this->valueIndexMap.insertF (n, j);
       }
    }
 
@@ -440,23 +440,53 @@ void QERadioGroup::internalValueChanged (const int selectedIndex)
    // If a QCa object is present (if there is a variable to write to)
    // then write the value
    if (qca) {
-      int value;
-
       // Validate using inverse mapping.
       //
-      if (!this->valueToIndex.containsI (selectedIndex)) {
+      if (!this->valueIndexMap.containsI (selectedIndex)) {
          return;
       }
 
       // Get the value associated with this button.
       //
-      value = this->valueToIndex.valueI (selectedIndex);
+      const int value = this->valueIndexMap.valueI (selectedIndex);
 
       // Don't write current value.
+      // Do we actually need this check?
       //
       if (value == this->getCurrentIndex ()) {
          return;
       }
+
+      // Write the value
+      //
+      qca->writeIntegerElement (value);
+   }
+}
+
+//------------------------------------------------------------------------------
+// Write a value immedietly. Keep in line with QEComboBox.
+//
+void QERadioGroup::writeNow()
+{
+   // Get the variable to write to
+   //
+   QEInteger *qca = (QEInteger *) getQcaItem (PV_VARIABLE_INDEX);
+
+   // If a QCa object is present (if there is a variable to write to)
+   // then write the value.
+   //
+   if (qca) {
+      const int selectedIndex = this->getCurrentIndex();
+
+      // Validate using inverse mapping.
+      //
+      if (!this->valueIndexMap.containsI (selectedIndex)) {
+         return;
+      }
+
+      // Get the value associated with this button.
+      //
+      const int value = this->valueIndexMap.valueI (selectedIndex);
 
       // Write the value
       //
@@ -550,6 +580,44 @@ void QERadioGroup::setLocalEnumerations (const QString& localEnumerationsIn)
 QString QERadioGroup::getLocalEnumerations () const
 {
    return this->localEnumerations.getLocalEnumeration ();
+}
+
+//==============================================================================
+// Custom context menu
+//
+QMenu* QERadioGroup::buildContextMenu ()
+{
+   // Start with the standard QE Widget menu
+   //
+   QMenu* menu = QEWidget::buildContextMenu ();
+
+   QAction* action;
+   action = new QAction ("Apply current selection", menu);
+   action->setCheckable (false);
+   action->setData (QERG_APPLY_CURRENT_SELECTION);
+
+   contextMenu::insertBefore (menu, action, contextMenu::CM_SHOW_PV_PROPERTIES);
+   contextMenu::insertSeparatorBefore (menu, contextMenu::CM_SHOW_PV_PROPERTIES);
+
+   return menu;
+}
+
+//------------------------------------------------------------------------------
+//
+void QERadioGroup::contextMenuTriggered (int selectedItemNum)
+{
+   switch (selectedItemNum) {
+
+      case QERG_APPLY_CURRENT_SELECTION:
+         this->writeNow();
+         break;
+
+      default:
+         // Call parent class function.
+         //
+         QEWidget::contextMenuTriggered (selectedItemNum);
+         break;
+   }
 }
 
 //==============================================================================

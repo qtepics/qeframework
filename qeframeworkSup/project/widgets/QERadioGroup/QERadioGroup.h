@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2019  Australian Synchrotron.
+ *  Copyright (c) 2014-2023  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -29,9 +29,11 @@
 
 #include <QHBoxLayout>
 #include <QList>
+#include <QMenu>
 #include <QString>
-#include <QVector>
 #include <QSize>
+#include <QVector>
+#include <QWidget>
 
 #include <QECommon.h>
 #include <QEAbstractWidget.h>
@@ -126,6 +128,15 @@ public:
    // End of QERadioGroup specific properties =========================================
 
 public:
+   // QEComboBox Context Menu values
+   //
+   enum OwnContextMenuOptions {
+      QERG_NONE = CM_SPECIFIC_WIDGETS_START_HERE,
+      QERG_APPLY_CURRENT_SELECTION,
+      QERG_SUB_CLASS_WIDGETS_START_HERE
+   };
+
+
    /// Create without a variable.
    /// Use setVariableNameProperty() and setSubstitutionsProperty() to define a
    /// variable and, optionally, macro substitutions later.
@@ -193,6 +204,9 @@ signals:
    void dbConnectionChanged (const bool& isConnected);
 
 public slots:
+   /// write the value (of the underlying QComboBox object) into the PV immediately
+   void writeNow();
+
    /// Update the default style applied to this widget.
    void setDefaultStyle (const QString& style) { this->setStyleDefault (style); }
 
@@ -205,6 +219,10 @@ protected:
    void activated ();
    void establishConnection (unsigned int variableIndex);
    qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+
+   // Menu related
+   QMenu* buildContextMenu ();                        // Build the specific context menu
+   void contextMenuTriggered (int selectedItemNum);   // An action was selected from the context menu
 
    // Drag and Drop
    void dragEnterEvent (QDragEnterEvent *event) { qcaDragEnterEvent( event ); }
@@ -234,7 +252,7 @@ private:
    //   value 63  <==> radio group index 2 (text "Green")
    //
    typedef QEOneToOne<int, int> ValueIndexAssociations;
-   ValueIndexAssociations valueToIndex;
+   ValueIndexAssociations valueIndexMap;
 
    bool useDbEnumerations;
    int  currentIndex;
@@ -247,7 +265,8 @@ private:
 private slots:
    void connectionChanged (QCaConnectionInfo& connectionInfo,
                            const unsigned int &variableIndex);
-   void valueUpdate (const long& value, QCaAlarmInfo&, QCaDateTime&, const unsigned int&);
+   void valueUpdate (const long& value, QCaAlarmInfo&,
+                     QCaDateTime&, const unsigned int&);
 
    void useNewVariableNameProperty (QString variableNameIn,
                                     QString variableNameSubstitutionsIn,

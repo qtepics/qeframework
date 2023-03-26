@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2009-2023 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009-2018 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -63,9 +63,14 @@ QEComboBox::QEComboBox( const QString &variableNameIn, QWidget *parent ) :
 }
 
 //------------------------------------------------------------------------------
+// Place holder
+QEComboBox::~QEComboBox() { }
+
+//------------------------------------------------------------------------------
 // Common construction
 //
-void QEComboBox::setup() {
+void QEComboBox::setup()
+{
    // Some environmnts seem to stuff this up - set explicitly.
    updatePropertyStyle ("QWidget { selection-background-color: rgb(80, 160, 255); } " );
 
@@ -133,8 +138,8 @@ bool QEComboBox::eventFilter (QObject *obj, QEvent *event)
 // Implementation of QEWidget's virtual funtion to create the specific type of QCaObject required.
 // For a Combo box a QCaObject that streams integers is required.
 //
-qcaobject::QCaObject* QEComboBox::createQcaItem( unsigned int variableIndex ) {
-
+qcaobject::QCaObject* QEComboBox::createQcaItem( unsigned int variableIndex )
+{
    qcaobject::QCaObject* result = NULL;
 
    // Create the item as a QEInteger
@@ -151,8 +156,8 @@ qcaobject::QCaObject* QEComboBox::createQcaItem( unsigned int variableIndex ) {
 // establish a connection to a PV as the variable name has changed.
 // This function may also be used to initiate updates when loaded as a plugin.
 //
-void QEComboBox::establishConnection( unsigned int variableIndex ) {
-
+void QEComboBox::establishConnection( unsigned int variableIndex )
+{
    // Create a connection.
    // If successfull, the QCaObject object that will supply data update signals will be returned
    qcaobject::QCaObject* qca = createConnection( variableIndex );
@@ -224,8 +229,9 @@ void QEComboBox::connectionChanged( QCaConnectionInfo& connectionInfo, const uns
 // Note, this will still be called once if not subscribing to set up enumeration values.
 // See  QEComboBox::dynamicSetup() for details.
 //
-void QEComboBox::setValueIfNoFocus( const long& value,QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& ) {
-
+void QEComboBox::setValueIfNoFocus( const long& value,QCaAlarmInfo& alarmInfo,
+                                    QCaDateTime&, const unsigned int& )
+{
    // If and only if first update (for this connection) then use enumeration
    // values to populate the combo box.
    // If not subscribing, there will still be an initial update to get enumeration values.
@@ -245,9 +251,9 @@ void QEComboBox::setValueIfNoFocus( const long& value,QCaAlarmInfo& alarmInfo, Q
    // First caluate index value irrespective of whether we update or not.
    // The data HAS changed and we should signal the correct information
    int index;
-   if( valueToIndex.containsF (value) )
+   if( valueIndexMap.containsF (value) )
    {
-      index = valueToIndex.valueF (value);
+      index = valueIndexMap.valueF (value);
    }
    else
    {
@@ -289,7 +295,8 @@ void QEComboBox::setValueIfNoFocus( const long& value,QCaAlarmInfo& alarmInfo, Q
 //------------------------------------------------------------------------------
 // Set the text - either from the data base or from the localEnumertion
 //
-void QEComboBox::setComboBoxText() {
+void QEComboBox::setComboBoxText()
+{
    qcaobject::QCaObject * qca = NULL;
    QStringList enumerations;
    QString text;
@@ -301,7 +308,7 @@ void QEComboBox::setComboBoxText() {
    //
    // Clear value to index mapping.
    //
-   valueToIndex.clear();
+   valueIndexMap.clear();
 
    if( useDbEnumerations ) {
       qca = getQcaItem( PV_VARIABLE_INDEX );
@@ -311,7 +318,7 @@ void QEComboBox::setComboBoxText() {
          // Create indentity map.
          //
          for( int j = 0; j < enumerations.count(); j++ ) {
-            valueToIndex.insertF ( j, j );
+            valueIndexMap.insertF ( j, j );
          }
       }
 
@@ -339,7 +346,7 @@ void QEComboBox::setComboBoxText() {
          int j = enumerations.count ();
          enumerations.append( text );
 
-         valueToIndex.insertF( n, j );
+         valueIndexMap.insertF( n, j );
       }
    }
 
@@ -359,8 +366,8 @@ void QEComboBox::setComboBoxText() {
 //------------------------------------------------------------------------------
 // The user has changed the Combo box.
 //
-void QEComboBox::userValueChanged( int index ) {
-
+void QEComboBox::userValueChanged( int index )
+{
    // Do nothing unless writing on change
    if( !writeOnChange )
       return;
@@ -372,17 +379,16 @@ void QEComboBox::userValueChanged( int index ) {
    // then write the value
    if( qca )
    {
-      int value;
-
       // Validate
       //
-      if (!valueToIndex.containsI (index)) {
+      if (!valueIndexMap.containsI (index)) {
          return;
       }
 
       // Don't write same value.
+      // Is this test actully get exersized?
       //
-      value = valueToIndex.valueI (index);
+      const int value = valueIndexMap.valueI (index);
       if (value == lastValue) {
          return;
       }
@@ -418,21 +424,55 @@ void QEComboBox::writeNow()
    // then write the value
    if( qca )
    {
-      int index;
-      int value;
-
-      index = currentIndex();
+      const int index = currentIndex();
 
       // Validate
       //
-      if (!valueToIndex.containsI ( index )) {
+      if (!valueIndexMap.containsI ( index )) {
          return;
       }
 
-      value = valueToIndex.valueI (index);
+      const int value = valueIndexMap.valueI (index);
 
       // Write the value
       qca->writeIntegerElement( value );
+   }
+}
+
+//==============================================================================
+// Context Menu
+QMenu* QEComboBox::buildContextMenu ()
+{
+   // Start with the standard QE Widget menu
+   //
+   QMenu* menu = QEWidget::buildContextMenu ();
+
+   QAction* action;
+   action = new QAction ("Apply current selection", menu);
+   action->setCheckable (false);
+   action->setData (QECB_APPLY_CURRENT_SELECTION);
+
+   contextMenu::insertBefore (menu, action, contextMenu::CM_SHOW_PV_PROPERTIES);
+   contextMenu::insertSeparatorBefore (menu, contextMenu::CM_SHOW_PV_PROPERTIES);
+
+   return menu;
+}
+
+//------------------------------------------------------------------------------
+//
+void  QEComboBox::contextMenuTriggered (int selectedItemNum)
+{
+   switch (selectedItemNum) {
+
+      case QECB_APPLY_CURRENT_SELECTION:
+         this->writeNow();
+         break;
+
+      default:
+         // Call parent class function.
+         //
+         QEWidget::contextMenuTriggered (selectedItemNum);
+         break;
    }
 }
 

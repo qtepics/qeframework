@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2020 Australian Synchrotron
+ *  Copyright (c) 2009-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +28,10 @@
 #define QE_COMBOBOX_H
 
 #include <QComboBox>
+#include <QMenu>
+#include <QString>
+#include <QWidget>
+
 #include <QEOneToOne.h>
 #include <QEWidget.h>
 #include <QEInteger.h>
@@ -45,8 +49,18 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEComboBox :
    Q_OBJECT
 
 public:
-   QEComboBox( QWidget *parent = 0 );
-   QEComboBox( const QString& variableName, QWidget *parent = 0 );
+   // QEComboBox Context Menu values
+   //
+   enum OwnContextMenuOptions {
+      QECB_NONE = CM_SPECIFIC_WIDGETS_START_HERE,
+      QECB_APPLY_CURRENT_SELECTION,
+      QECB_SUB_CLASS_WIDGETS_START_HERE
+   };
+
+
+   explicit QEComboBox( QWidget *parent = 0 );
+   explicit QEComboBox( const QString& variableName, QWidget *parent = 0 );
+   ~QEComboBox();
 
    // write on change
    void setWriteOnChange( bool writeOnChangeIn );
@@ -131,7 +145,7 @@ private:
    //   value  5  <==> combo box index 1 (text "Blue")
    //   value 63  <==> combo box index 2 (text "Green")
    //
-   ValueIndexAssociations valueToIndex;
+   ValueIndexAssociations valueIndexMap;
 
    bool isConnected;
    bool isFirstUpdate;
@@ -142,8 +156,12 @@ private:
 
    bool ignoreSingleShotRead;
 
-   // Drag and Drop
 protected:
+   // Menu related
+   QMenu* buildContextMenu ();                        // Build the specific context menu
+   void contextMenuTriggered (int selectedItemNum);   // An action was selected from the context menu
+
+   // Drag and Drop
    void dragEnterEvent(QDragEnterEvent *event) { qcaDragEnterEvent( event ); }
    void dropEvent(QDropEvent *event)           { qcaDropEvent( event ); }
    // Don't drag from interactive widget void mousePressEvent(QMouseEvent *event)    { qcaMousePressEvent( event ); }
