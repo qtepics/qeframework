@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2022 Australian Synchrotron.
+ *  Copyright (c) 2012-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -96,14 +96,14 @@ QTimer* QEStripChart::tickTimer = NULL;
 //
 class QEPVNameLists : public QStringList {
 public:
-   static void constructor ();   // idempotent - constucts a sigleton class
+   static void constructor ();   // idempotent - constucts a singleton class
 
    void prependOrMoveToFirst (const QString & item);
    void saveConfiguration (PMElement & parentElement);
    void restoreConfiguration (PMElement & parentElement);
 private:
    QMutex *mutex;
-   int predefined;
+   int predefinedCount;
    explicit QEPVNameLists ();
    virtual ~QEPVNameLists ();
 };
@@ -113,7 +113,7 @@ private:
 QEPVNameLists::QEPVNameLists ()
 {
    this->mutex = new QMutex ();
-   this->predefined = 0;
+   this->predefinedCount = 0;
 }
 
 //------------------------------------------------------------------------------
@@ -129,21 +129,22 @@ void QEPVNameLists::prependOrMoveToFirst (const QString& item)
 {
    QMutexLocker locker (this->mutex);
 
-   int posn;
-
    // Is item already in the list?
    //
-   posn = this->indexOf (item, 0);
+   const int posn = this->indexOf (item, 0);
    if (posn < 0) {
       // Not in list
-      this->insert (this->predefined, item);
+      // Ensure insert postiton is not out of bounds - Qt6 can't cope.
+      //
+      const int insertHere = MIN (this->predefinedCount, this->count());
+      this->insert (insertHere, item);
 
-   } else if (posn > this->predefined) {
+   } else if (posn > this->predefinedCount) {
       // item in list - move to front if not predefined.
 #if QT_VERSION < 0x060000
-      this->swap (this->predefined, posn);
+      this->swap (this->predefinedCount, posn);
 #else
-      this->swapItemsAt (this->predefined, posn);
+      this->swapItemsAt (this->predefinedCount, posn);
 #endif
    }
    // else posn in range >=0 to <=predefined - nothing to do.
@@ -159,12 +160,10 @@ void QEPVNameLists::prependOrMoveToFirst (const QString& item)
 void QEPVNameLists::saveConfiguration (PMElement& parentElement)
 {
    PMElement predefinedElement = parentElement.addElement ("Predefined");
-   int number;
-   int j;
 
-   number = this->count ();
+   const int number = this->count ();
    predefinedElement.addAttribute ("Number", number);
-   for (j = 0; j < number; j++) {
+   for (int j = 0; j < number; j++) {
       PMElement pvElement = predefinedElement.addElement ("PV");
       pvElement.addAttribute ("id", j);
       pvElement.addValue ("Name", this->value (j));
@@ -178,24 +177,23 @@ void QEPVNameLists::restoreConfiguration (PMElement& parentElement)
 {
    PMElement predefinedElement = parentElement.getElement ("Predefined");
    int number;
-   int j;
-   QString pvName;
-   bool status;
 
    if (predefinedElement.isNull ()) return;
 
-   status = predefinedElement.getAttribute ("Number", number);
+   const bool status = predefinedElement.getAttribute ("Number", number);
    if (status) {
       this->clear ();
+      this->predefinedCount = 0;   // must be <= the number in the list
 
       // Read in reverse order (as use insert into list with prependOrMoveToFirst).
       //
-      for (j = number - 1; j >= 0; j--) {
+      for (int j = number - 1; j >= 0; j--) {
          PMElement pvElement = predefinedElement.getElement ("PV", "id", j);
 
          if (pvElement.isNull ()) continue;
 
-         status = pvElement.getValue ("Name", pvName);
+         QString pvName;
+         const bool status = pvElement.getValue ("Name", pvName);
          if (status) {
             this->prependOrMoveToFirst (pvName);
          }
@@ -232,7 +230,7 @@ void QEPVNameLists::constructor () {
             predefinedPVNameList->prependOrMoveToFirst (pvName);
          }
       }
-      predefinedPVNameList->predefined = predefinedPVNameList->count ();
+      predefinedPVNameList->predefinedCount = predefinedPVNameList->count ();
    }
 }
 
@@ -1912,6 +1910,9 @@ void QEStripChart::establishConnection (unsigned int /* variableIndex */ )
 //
 void QEStripChart::saveConfiguration (PersistanceManager* pm)
 {
+   if (!pm) return;   // sanity check
+   if (!predefinedPVNameList) return;   // sanity check
+
    const QString formName = this->getPersistantName();
 
    // Do common stuff first.
@@ -1949,6 +1950,9 @@ void QEStripChart::saveConfiguration (PersistanceManager* pm)
 //
 void QEStripChart::restoreConfiguration (PersistanceManager* pm, restorePhases restorePhase)
 {
+   if (!pm) return;   // sanity check
+   if (!predefinedPVNameList) return;   // sanity check
+
    if (restorePhase != FRAMEWORK) return;
 
    const QString formName = this->getPersistantName();
