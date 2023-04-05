@@ -208,7 +208,7 @@ void QECalcout::setCalc (const QString& calcIn)
 
    if (this->calc.length() > MAX_POSTFIX_SIZE) {
       this->calcExpressionIsValid = false;
-      this->calcExpressionStatus = "Expression too long";
+      this->calcExpressionStatus = tr("Expression too long");
       return;
    }
 
@@ -223,7 +223,7 @@ void QECalcout::setCalc (const QString& calcIn)
    this->calcExpressionIsValid = (status == 0);
 
    if (this->calcExpressionIsValid) {
-      this->calcExpressionStatus = "okay";
+      this->calcExpressionStatus = tr("okay");
    } else {
       this->calcExpressionStatus = QString (calcErrorStr (error));
    }
@@ -257,7 +257,7 @@ void QECalcout::setOcal (const QString& ocalIn)
 
    if (this->ocal.length() > MAX_POSTFIX_SIZE) {
       this->ocalExpressionIsValid = false;
-      this->ocalExpressionStatus = "Expression too long";
+      this->ocalExpressionStatus = tr("Expression too long");
       return;
    }
 
@@ -272,7 +272,7 @@ void QECalcout::setOcal (const QString& ocalIn)
    this->ocalExpressionIsValid = (status == 0);
 
    if (this->ocalExpressionIsValid) {
-      this->ocalExpressionStatus = "okay";
+      this->ocalExpressionStatus = tr("okay");
    } else {
       this->ocalExpressionStatus = QString (calcErrorStr (error));
    }

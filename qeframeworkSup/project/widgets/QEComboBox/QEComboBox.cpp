@@ -448,7 +448,7 @@ QMenu* QEComboBox::buildContextMenu ()
    QMenu* menu = QEWidget::buildContextMenu ();
 
    QAction* action;
-   action = new QAction ("Apply current selection", menu);
+   action = new QAction (tr("Apply current selection"), menu);
    action->setCheckable (false);
    action->setData (QECB_APPLY_CURRENT_SELECTION);
 

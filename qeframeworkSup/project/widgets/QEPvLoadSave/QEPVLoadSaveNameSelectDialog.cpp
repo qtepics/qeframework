@@ -227,7 +227,7 @@ void QEPVLoadSaveNameSelectDialog::helpClicked (bool /* checked */ )
 
    // And update button text.
    //
-   const QString helpButtonText = helpIsVis ? "Hide" : "Help";
+   const QString helpButtonText = helpIsVis ? tr("Hide") : tr("Help");
    this->ui->helpButton->setText (helpButtonText);
 }
 

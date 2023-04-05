@@ -35,13 +35,13 @@ QString QEStripChartNames::chartTimeModeStatus (const ChartTimeModes mode)
 
    switch (mode) {
       case tmRealTime:
-         result = "Real Time";
+         result = tr("Real Time");
          break;
       case tmPaused:
-         result = "Paused";
+         result = tr("Paused");
          break;
       case tmHistorical:
-         result = "Historical";
+         result = tr("Historical");
          break;
    }
    return result;
@@ -55,22 +55,22 @@ QString QEStripChartNames::chartYRangeStatus (const ChartYRanges yRange)
 
    switch (yRange) {
       case manual:
-         result = "manual scale";
+         result = tr("manual scale");
          break;
       case operatingRange:
-         result = "operating range scale";
+         result = tr("operating range scale");
          break;
       case plotted:
-         result = "plotted scale";
+         result = tr("plotted scale");
          break;
       case buffered:
-         result = "buffered scale";
+         result = tr("buffered scale");
          break;
       case dynamic:
-         result = "dynamic scale";
+         result = tr("dynamic scale");
          break;
       case normalised:
-         result = "normalised scale";
+         result = tr("normalised scale");
          break;
    }
    return result;

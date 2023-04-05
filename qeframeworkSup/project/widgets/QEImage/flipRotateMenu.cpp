@@ -42,14 +42,14 @@ flipRotateMenu::flipRotateMenu( QWidget *parent) : QMenu(parent)
     addAction( ACTION );
 
     // Create the buttons
-    NEW_FLIP_ROTATE_MENU_BUTTON( "Local Rotate 90 Clockwise",     ICM_ROTATE_RIGHT,    rotation90RAction )
-    NEW_FLIP_ROTATE_MENU_BUTTON( "Local Rotate 90 Anticlockwise", ICM_ROTATE_LEFT,     rotation90LAction )
-    NEW_FLIP_ROTATE_MENU_BUTTON( "Local Rotate 180",              ICM_ROTATE_180,      rotation180Action )
-    NEW_FLIP_ROTATE_MENU_BUTTON( "Local Flip Horizontal",         ICM_FLIP_HORIZONTAL, flipHAction )
-    NEW_FLIP_ROTATE_MENU_BUTTON( "Local Flip Vertical",           ICM_FLIP_VERTICAL,   flipVAction )
+    NEW_FLIP_ROTATE_MENU_BUTTON( tr("Local Rotate 90 Clockwise"),     ICM_ROTATE_RIGHT,    rotation90RAction )
+    NEW_FLIP_ROTATE_MENU_BUTTON( tr("Local Rotate 90 Anticlockwise"), ICM_ROTATE_LEFT,     rotation90LAction )
+    NEW_FLIP_ROTATE_MENU_BUTTON( tr("Local Rotate 180"),              ICM_ROTATE_180,      rotation180Action )
+    NEW_FLIP_ROTATE_MENU_BUTTON( tr("Local Flip Horizontal"),         ICM_FLIP_HORIZONTAL, flipHAction )
+    NEW_FLIP_ROTATE_MENU_BUTTON( tr("Local Flip Vertical"),           ICM_FLIP_VERTICAL,   flipVAction )
 
     // Set the title
-    setTitle( "Local Flip / Rotate" );
+    setTitle( tr("Local Flip / Rotate") );
 }
 
 // Get a flip/rotate option from the user.

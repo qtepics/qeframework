@@ -104,7 +104,7 @@ SingleItemContainer (const QString& actualArgIn,
    this->closeButton->setFont (font);
    this->closeButton->setStyleSheet (QLatin1String ("background-color: rgb(105, 155, 205);\n"
                                                     "color: rgb(255, 255, 255);"));
-   this->closeButton->setToolTip (QString (" Remove %1 from this display ").arg (this->actualArg));
+   this->closeButton->setToolTip (tr (" Remove %1 from this display ").arg (this->actualArg));
 
    this->verticalLayout->addWidget(closeButton);
    this->verticalSpacer = new QSpacerItem(20, 52, QSizePolicy::Minimum, QSizePolicy::Expanding);

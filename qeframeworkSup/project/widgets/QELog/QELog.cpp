@@ -183,13 +183,13 @@ QELog::QELog (QWidget* parent) : QEFrame (parent)
    this->qPushButtonSave = new QPushButton (this);
 
    this->qTableWidgetLog->setColumnCount (3);
-   this->qTableWidgetLog->setHorizontalHeaderItem (0, new QTableWidgetItem ("Time"));
-   this->qTableWidgetLog->setHorizontalHeaderItem (1, new QTableWidgetItem ("Type"));
-   this->qTableWidgetLog->setHorizontalHeaderItem (2, new QTableWidgetItem ("Message"));
+   this->qTableWidgetLog->setHorizontalHeaderItem (0, new QTableWidgetItem (tr("Time")));
+   this->qTableWidgetLog->setHorizontalHeaderItem (1, new QTableWidgetItem (tr("Type")));
+   this->qTableWidgetLog->setHorizontalHeaderItem (2, new QTableWidgetItem (tr("Message")));
    this->qTableWidgetLog->setColumnWidth (0, 156);
    this->qTableWidgetLog->setColumnWidth (1, 80);
    this->qTableWidgetLog->horizontalHeader()->setStretchLastSection (true);
-   this->qTableWidgetLog->setToolTip ("Current log messages");
+   this->qTableWidgetLog->setToolTip (tr("Current log messages"));
    this->qTableWidgetLog->setEditTriggers (QAbstractItemView::NoEditTriggers);
    this->qTableWidgetLog->setSelectionBehavior (QAbstractItemView::SelectRows);
    this->qTableWidgetLog->setSelectionMode (QAbstractItemView::SingleSelection);
@@ -198,31 +198,31 @@ QELog::QELog (QWidget* parent) : QEFrame (parent)
    qFont.setPointSize (9);
    this->qTableWidgetLog->setFont (qFont);
 
-   this->qCheckBoxInfoMessage->setText ("Info messages");
-   this->qCheckBoxInfoMessage->setToolTip ("Show/hide info messages");
+   this->qCheckBoxInfoMessage->setText (tr("Info messages"));
+   this->qCheckBoxInfoMessage->setToolTip (tr("Show/hide info messages"));
    this->qCheckBoxInfoMessage->setChecked (true);
    QObject::connect (this->qCheckBoxInfoMessage, SIGNAL (toggled (bool)),
                      this, SLOT (checkBoxInfoToggled (bool)));
 
-   this->qCheckBoxWarningMessage->setText ("Warning messages");
-   this->qCheckBoxWarningMessage->setToolTip ("Show/hide warning messages");
+   this->qCheckBoxWarningMessage->setText (tr("Warning messages"));
+   this->qCheckBoxWarningMessage->setToolTip (tr("Show/hide warning messages"));
    this->qCheckBoxWarningMessage->setChecked (true);
    QObject::connect (this->qCheckBoxWarningMessage, SIGNAL (toggled (bool)),
                      this, SLOT (checkBoxWarningToggled (bool)));
 
-   this->qCheckBoxErrorMessage->setText ("Error messages");
-   this->qCheckBoxErrorMessage->setToolTip ("Show/hide error messages");
+   this->qCheckBoxErrorMessage->setText (tr("Error messages"));
+   this->qCheckBoxErrorMessage->setToolTip (tr("Show/hide error messages"));
    this->qCheckBoxErrorMessage->setChecked (true);
    QObject::connect (this->qCheckBoxErrorMessage, SIGNAL (toggled (bool)),
                      this, SLOT (checkBoxErrorToggled (bool)));
 
-   this->qPushButtonClear->setText ("Clear");
-   this->qPushButtonClear->setToolTip ("Clear log messages");
+   this->qPushButtonClear->setText (tr("Clear"));
+   this->qPushButtonClear->setToolTip (tr("Clear log messages"));
    QObject::connect (this->qPushButtonClear, SIGNAL (clicked ()),
                      this, SLOT (buttonClearClicked ()));
 
-   this->qPushButtonSave->setText ("Save");
-   this->qPushButtonSave->setToolTip ("Save log messages");
+   this->qPushButtonSave->setText (tr("Save"));
+   this->qPushButtonSave->setToolTip (tr("Save log messages"));
 
    QObject::connect (this->qPushButtonSave, SIGNAL (clicked ()),
                      this, SLOT (buttonSaveClicked ()));
@@ -347,7 +347,7 @@ bool QELog::getShowClear () const
 void QELog::buttonClearClicked ()
 {
    int answer = QMessageBox::
-                question (this, "Info", "Do you want to clear the log messages?",
+                question (this, tr("Info"), tr("Do you want to clear the log messages?"),
                           QMessageBox::Yes, QMessageBox::No);
    if (answer == QMessageBox::Yes) {
       this->clearLog ();
@@ -570,7 +570,7 @@ void QELog::buttonSaveClicked ()
    QString line;
    int i;
 
-   qFileDialog = new QFileDialog (this, "Save log messages", QString ());
+   qFileDialog = new QFileDialog (this, tr("Save log messages"), QString ());
    qFileDialog->setAcceptMode (QFileDialog::AcceptSave);
 
    if (qFileDialog->exec ()) {
@@ -608,12 +608,11 @@ void QELog::buttonSaveClicked ()
             }
          }
          file->close ();
-         QMessageBox::information (this, "Info",
-                                   "The log messages were successfully saved in file '" +
-                                   filename + "'!");
+         QMessageBox::information (this, tr("Info"),
+                                   tr("The log messages were successfully saved in file '%1'!").arg(filename));
       } else {
-         QMessageBox::critical (this, "Error",
-                                "Unable to save log messages in file '" + filename + "'!");
+         QMessageBox::critical (this, tr("Error"),
+                                tr("Unable to save log messages in file '%1'!").arg(filename));
       }
 
    }

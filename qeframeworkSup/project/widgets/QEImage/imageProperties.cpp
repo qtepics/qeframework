@@ -121,19 +121,19 @@ QString imageProperties::getInfoText() const
     // Build the image information string
     QString about;
 
-    about.append( QString( "\nSize (bytes) of CA data array: %1" ).arg( imageData.count() ));
-    about.append( QString( "\nSize (bytes) of CA data elements: %1" ).arg( imageDataSize ));
-    about.append( QString( "\nWidth (pixels) taken from dimension variables or width variable: %1" ).arg( imageBuffWidth ));
-    about.append( QString( "\nHeight (pixels) taken from dimension variables or height variable: %1" ).arg( imageBuffHeight ));
-    about.append( QString( "\nPixel depth taken from data type variable, bit depth variable or bit depth property: %1" ).arg( bitDepth ));
+    about.append( QObject::tr( "\nSize (bytes) of CA data array: %1" ).arg( imageData.count() ));
+    about.append( QObject::tr( "\nSize (bytes) of CA data elements: %1" ).arg( imageDataSize ));
+    about.append( QObject::tr( "\nWidth (pixels) taken from dimension variables or width variable: %1" ).arg( imageBuffWidth ));
+    about.append( QObject::tr( "\nHeight (pixels) taken from dimension variables or height variable: %1" ).arg( imageBuffHeight ));
+    about.append( QObject::tr( "\nPixel depth taken from data type variable, bit depth variable or bit depth property: %1" ).arg( bitDepth ));
 
     QString name = imageDataFormats::getFormatInformation (formatOption);
-    about.append( QString( "\nExpected format: " ).append( name ));
+    about.append( QObject::tr( "\nExpected format: " ).append( name ));
 
-    about.append( "\n\nFirst bytes of raw image data:\n   ");
+    about.append( QObject::tr("\n\nFirst bytes of raw image data:\n   "));
     if( imageData.isEmpty() )
     {
-        about.append( "No data yet." );
+        about.append( QObject::tr("No data yet.") );
     }
     else
     {
@@ -148,10 +148,10 @@ QString imageProperties::getInfoText() const
         }
     }
 
-    about.append( "\n\nFirst pixels of first row of image (after flipping, rotating and clipping:");
+    about.append( QObject::tr("\n\nFirst pixels of first row of image (after flipping, rotating and clipping:"));
     if( image.isNull() )
     {
-        about.append( "\n   No image yet." );
+        about.append( QObject::tr("\n   No image yet.") );
     }
     else
     {

@@ -134,7 +134,7 @@ void profilePlot::showProfileContextMenu( const QPoint& pos )
     imageContextMenu menu;
 
     //                      Title                            checkable  checked                 option
-    menu.addMenuItem(       "Copy Plot Data",                false,     false,                  imageContextMenu::ICM_COPY_PLOT_DATA             );
+    menu.addMenuItem(   tr("Copy Plot Data"),                false,     false,                  imageContextMenu::ICM_COPY_PLOT_DATA             );
 
     // Present the menu
     imageContextMenu::imageContextMenuOptions option;
@@ -163,7 +163,7 @@ void profilePlot::copy()
 
     QClipboard *cb = QApplication::clipboard();
     QString text;
-    text.append( title ).append( QString( " - Start: %1,%2  End: %3,%4  Thickness: %5\n" ).arg( start.x() ).arg( start.y() ).arg( end.x() ).arg( end.y() ).arg( thickness ) );
+    text.append( title ).append( tr( " - Start: %1,%2  End: %3,%4  Thickness: %5\n" ).arg( start.x() ).arg( start.y() ).arg( end.x() ).arg( end.y() ).arg( thickness ) );
     int size = data->size();
     switch( plotDirection )
     {

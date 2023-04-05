@@ -42,12 +42,12 @@ QEScratchPadMenu::QEScratchPadMenu (const int slotIn, QWidget* parent) : QMenu (
       this->actionList [j] = 0;
    }
 
-   this->setTitle ("ScratchPad Item");
+   this->setTitle (tr("ScratchPad Item"));
 
-   this->make (this, "Add PV Name...",   false, SCRATCHPAD_ADD_PV_NAME);
-   this->make (this, "Paste PV Name",    false, SCRATCHPAD_PASTE_PV_NAME);
-   this->make (this, "Edit PV Name...",  false, SCRATCHPAD_EDIT_PV_NAME);
-   this->make (this, "Clear",            false, SCRATCHPAD_DATA_CLEAR);
+   this->make (this, tr("Add PV Name..."),   false, SCRATCHPAD_ADD_PV_NAME);
+   this->make (this, tr("Paste PV Name"),    false, SCRATCHPAD_PASTE_PV_NAME);
+   this->make (this, tr("Edit PV Name..."),  false, SCRATCHPAD_EDIT_PV_NAME);
+   this->make (this, tr("Clear"),            false, SCRATCHPAD_DATA_CLEAR);
 
    QObject::connect (this, SIGNAL (triggered             (QAction* ) ),
                      this, SLOT   (contextMenuTriggered  (QAction* )));

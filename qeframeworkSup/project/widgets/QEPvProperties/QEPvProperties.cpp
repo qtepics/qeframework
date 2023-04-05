@@ -196,7 +196,7 @@ void QEPvProperties::createInternalWidgets ()
       this->topFrameVlayout->addLayout (this->hlayouts [j], 1);
    }
 
-   this->pvNameButton = new QPushButton ("Name", this->topFrame);
+   this->pvNameButton = new QPushButton (tr("Name"), this->topFrame);
    this->pvNameButton->setFixedSize (QSize (label_width, label_height));
 
    this->box = new QComboBox (this->topFrame);
@@ -204,7 +204,7 @@ void QEPvProperties::createInternalWidgets ()
    this->hlayouts [1]->addWidget (this->pvNameButton, 0, Qt::AlignVCenter);
    this->hlayouts [1]->addWidget (this->box, 0, Qt::AlignVCenter);
 
-   this->label2 = new QLabel ("VAL", this->topFrame);
+   this->label2 = new QLabel (tr("VAL"), this->topFrame);
    this->label2->setFixedSize (QSize (label_width, label_height));
    this->valueLabel = new QLabel (this->topFrame);
    this->valueLabel->setFixedHeight (label_height);
@@ -214,26 +214,26 @@ void QEPvProperties::createInternalWidgets ()
    this->hlayouts [2]->addWidget (this->label2);
    this->hlayouts [2]->addWidget (this->valueLabel);
 
-   this->label3 = new QLabel ("Host", this->topFrame);
+   this->label3 = new QLabel (tr("Host"), this->topFrame);
    this->label3->setFixedSize (QSize (label_width, label_height));
    this->hostName = new QLabel (this->topFrame);
    this->hostName->setFixedHeight (label_height);
    this->hlayouts [3]->addWidget (this->label3);
    this->hlayouts [3]->addWidget (this->hostName);
 
-   this->label4 = new QLabel ("Time", this->topFrame);
+   this->label4 = new QLabel (tr("Time"), this->topFrame);
    this->label4->setFixedSize (QSize (label_width, label_height));
    this->timeStamp = new QLabel (this->topFrame);
    this->timeStamp->setFixedHeight (label_height);
    this->hlayouts [4]->addWidget (this->label4);
    this->hlayouts [4]->addWidget (this->timeStamp);
 
-   this->label5 = new QLabel ("DBF", this->topFrame);
+   this->label5 = new QLabel (tr("DBF"), this->topFrame);
    this->label5->setFixedSize (QSize (label_width, label_height));
    this->fieldType = new QLabel (this->topFrame);
    this->fieldType->setFixedHeight (label_height);
 
-   this->label6 = new QLabel ("  Element Count", this->topFrame);
+   this->label6 = new QLabel (tr("  Element Count"), this->topFrame);
    this->label6->setFixedSize (QSize (112, label_height));
    this->elementCount = new QLabel (this->topFrame);
    this->elementCount->setFixedHeight (label_height);
@@ -265,7 +265,7 @@ void QEPvProperties::createInternalWidgets ()
                                                     ENUMERATIONS_MAX_HEIGHT, this);
    this->enumerationResize->setFixedHeight (ENUMERATIONS_MIN_HEIGHT);
    this->enumerationResize->setFrameShape (QFrame::Panel);
-   this->enumerationResize->setGrabberToolTip ("Re size enuerations");
+   this->enumerationResize->setGrabberToolTip (tr("Re size enuerations"));
    this->enumerationResize->setWidget (this->enumerationScroll);
 
    // We create this with 40 rows initially - this will get expanded if/when necessary.
@@ -444,13 +444,13 @@ void QEPvProperties::common_setup ()
       enumLabel->setStyleSheet (lightGreyStyle);
    }
 
-   item = new QTableWidgetItem (" Field ");
+   item = new QTableWidgetItem (tr(" Field "));
    this->table->setHorizontalHeaderItem (FIELD_COL, item);
 
-   item = new QTableWidgetItem (" Description ");
+   item = new QTableWidgetItem (tr(" Description "));
    this->table->setHorizontalHeaderItem (DESC_COL, item);
 
-   item = new QTableWidgetItem (" Value ");
+   item = new QTableWidgetItem (tr(" Value "));
    this->table->setHorizontalHeaderItem (VALUE_COL, item);
 
    this->table->horizontalHeader()->setDefaultSectionSize (60);
@@ -1252,19 +1252,19 @@ QMenu* QEPvProperties::buildContextMenu ()
 
    menu->addSeparator ();
    QAction* action;
-   action = new QAction ("Sort By Field Name", menu);
+   action = new QAction (tr("Sort By Field Name"), menu);
    action->setCheckable (false);
    action->setEnabled ((number > 0) && !this->fieldsAreSorted);
    action->setData (QEPvProperties::PVPROP_SORT_FIELD_NAMES);
    menu->addAction (action);
 
-   action = new QAction ("Reset Field Order", menu);
+   action = new QAction (tr("Reset Field Order"), menu);
    action->setCheckable (false);
    action->setEnabled ((number > 0) && this->fieldsAreSorted);
    action->setData (QEPvProperties::PVPROP_RESET_FIELD_NAMES);
    menu->addAction (action);
 
-   action = new QAction ("Process Record", menu);
+   action = new QAction (tr("Process Record"), menu);
    action->setCheckable (false);
    action->setEnabled (true);
    action->setData (QEPvProperties::PVPROP_PROCESS_RECORD);

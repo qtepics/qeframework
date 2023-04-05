@@ -57,12 +57,12 @@ QELogin::QELogin(QWidget *pParent):QFrame(pParent), QEWidget( this )
     setCompactStyle( true );
     setStatusOnly( false );
 
-    qLabelUserType->setToolTip("Current user");
+    qLabelUserType->setToolTip(tr("Current user"));
 
     // Set up login button
     qPushButtonLogin->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    qPushButtonLogin->setText("Login");
-    qPushButtonLogin->setToolTip("Change current user");
+    qPushButtonLogin->setText(tr("Login"));
+    qPushButtonLogin->setToolTip(tr("Change current user"));
     QObject::connect(qPushButtonLogin, SIGNAL(clicked()), this, SLOT(buttonLoginClicked()));
 
     // Set initial state
@@ -78,7 +78,7 @@ void QELogin::userLevelChanged( userLevelTypes::userLevels )
 // Set up current level text
 void QELogin::setCurrentLevelText()
 {
-    qLabelUserType->setText(QString( "Current Level: " ).append( getUserTypeName( getUserLevel() ) ));
+    qLabelUserType->setText(tr( "Current Level: " ).append( getUserTypeName( getUserLevel() ) ));
 }
 
 // Compact mode property fuctions
@@ -146,10 +146,10 @@ QString QELogin::getUserTypeName(userLevelTypes::userLevels type)
 {
     switch( type )
     {
-        case userLevelTypes::USERLEVEL_USER:      return "User";
-        case userLevelTypes::USERLEVEL_SCIENTIST: return "Scientist";
-        case userLevelTypes::USERLEVEL_ENGINEER:  return "Engineer";
-        default:                                  return "Unknown";
+        case userLevelTypes::USERLEVEL_USER:      return tr("User");
+        case userLevelTypes::USERLEVEL_SCIENTIST: return tr("Scientist");
+        case userLevelTypes::USERLEVEL_ENGINEER:  return tr("Engineer");
+        default:                                  return tr("Unknown");
     }
 }
 
@@ -193,7 +193,7 @@ bool QELogin::login( userLevelTypes::userLevels level, QString password )
         // Change user level if required
         if( level != currentLevel )
         {
-            sendMessage("The user type was changed from '" + getUserTypeName( currentLevel ) + "' to '" + getUserTypeName( level ) + "'");
+            sendMessage( tr("The user type was changed from '%1' to '%2'").arg(getUserTypeName( currentLevel )).arg(getUserTypeName( level )) );
             setUserLevel( level);
             setCurrentLevelText();
         }
@@ -271,7 +271,7 @@ loginWidget::loginWidget( QELogin* ownerIn )
     qLineEditPassword = new QLineEdit(this);
 
     // Set up the widgets
-    qGroupBox->setTitle( "Login as:");
+    qGroupBox->setTitle( tr("Login as:"));
 
     qRadioButtonUser->setText(owner->getUserTypeName(userLevelTypes::USERLEVEL_USER));
     QObject::connect(qRadioButtonUser, SIGNAL(clicked()), this, SLOT(radioButtonClicked()));
@@ -283,7 +283,7 @@ loginWidget::loginWidget( QELogin* ownerIn )
     QObject::connect(qRadioButtonEngineer, SIGNAL(clicked()), this, SLOT(radioButtonClicked()));
 
     qLineEditPassword->setEchoMode(QLineEdit::Password);
-    qLineEditPassword->setToolTip("Password for the selected type");
+    qLineEditPassword->setToolTip(tr("Password for the selected type"));
 
     // Layout the form
     QVBoxLayout* qVBoxLayout = new QVBoxLayout();
@@ -385,14 +385,14 @@ QELoginDialog::QELoginDialog(QELogin* ownerIn)
     qPushButtonCancel = new QPushButton(this);
 
     // Set up the widgets
-    setWindowTitle("Login");
+    setWindowTitle(tr("Login"));
 
-    qPushButtonOk->setText("Ok");
-    qPushButtonOk->setToolTip("Perform login");
+    qPushButtonOk->setText(tr("Ok"));
+    qPushButtonOk->setToolTip(tr("Perform login"));
     QObject::connect(qPushButtonOk, SIGNAL(clicked()), this, SLOT(buttonOkClicked()));
 
-    qPushButtonCancel->setText("Cancel");
-    qPushButtonCancel->setToolTip("Cancel login");
+    qPushButtonCancel->setText(tr("Cancel"));
+    qPushButtonCancel->setToolTip(tr("Cancel login"));
     QObject::connect(qPushButtonCancel, SIGNAL(clicked()), this, SLOT(buttonCancelClicked()));
 
     // Layout the form

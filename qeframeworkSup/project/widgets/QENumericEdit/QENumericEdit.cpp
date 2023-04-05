@@ -272,8 +272,8 @@ bool QENumericEdit::isOkayToWrite (const WriteOptions writeOption)
             break;
          }
          this->messageDialogPresent = true;
-         confirm = QMessageBox::question (this, "Confirm write",
-                                          "Do you want to write this value?",
+         confirm = QMessageBox::question (this, tr("Confirm write"),
+                                          tr("Do you want to write this value?"),
                                           QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
                                           QMessageBox::Yes);
          this->messageDialogPresent = false;
@@ -282,9 +282,8 @@ bool QENumericEdit::isOkayToWrite (const WriteOptions writeOption)
 
       case woEditingFinished:
          this->messageDialogPresent = true;
-         confirm = QMessageBox::warning  (this, "Value changed",
-                                          "You altered a value but didn't write it.\n"
-                                          "Do you want to write this value?",
+         confirm = QMessageBox::warning  (this, tr("Value changed"),
+                                          tr("You altered a value but didn't write it.\nDo you want to write this value?"),
                                           QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
                                           QMessageBox::No);
          this->messageDialogPresent = false;

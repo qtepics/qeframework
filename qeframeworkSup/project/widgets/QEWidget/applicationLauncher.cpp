@@ -143,7 +143,7 @@ void applicationLauncher::launchImage( const VariableNameManager* variableNameMa
    if( !image.save( tempFile, "TIFF") )
    {
       QMessageBox msgBox;
-      msgBox.setText("Can't start application. There is no image available.");
+      msgBox.setText(QObject::tr("Can't start application. There is no image available."));
       msgBox.exec();
       return;
    }
@@ -246,7 +246,7 @@ void applicationLauncher::launchCommon( const VariableNameManager* variableNameM
    }
 
    // Run the program
-   message.sendMessage( QString( "Launching: " ).append( substitutedProgram ), "Application launcher" );
+   message.sendMessage( QObject::tr( "Launching: " ).append( substitutedProgram ), "Application launcher" );
    process->start( substitutedProgram );
 
    // Alternate (and cleaner) way to run the program without building a string containing the program and arguments.

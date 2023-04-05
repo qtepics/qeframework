@@ -159,13 +159,13 @@ bool QELineEdit::writeData (const QVariant& value, QString& message)
 
         case QEStringFormatting::APPEND:
         default:
-            message = "Invalid arrayAction property";
+            message = tr("Invalid arrayAction property");
             result = false;
             break;
         }
 
     } else {
-        message = "null qca object";
+        message = tr("null qca object");
         result =  false;
     }
 

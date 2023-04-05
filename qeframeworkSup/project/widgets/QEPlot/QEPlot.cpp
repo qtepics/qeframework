@@ -578,7 +578,7 @@ QMenu* QEPlot::buildContextMenu ()
 
    menu->addSeparator ();
 
-   action = new QAction ("Archive backfill", menu);
+   action = new QAction (tr("Archive backfill"), menu);
    action->setCheckable (false);
    action->setData (PLOTCM_ARCHIVE_BACKFILL);
    menu->addAction (action);
@@ -1366,10 +1366,10 @@ void QEPlot::setArchiveData (const QObject* userData, const bool okay,
       Trace* tr = this->traces[trace];
       tr->setArchiveData (archiveData);
    } else {
-      QString message = QString ("trace: %1, pv: %3, status: %2, info: %4")
+      QString message = tr ("trace: %1, pv: %3, status: %2, info: %4")
             .arg (trace)
             .arg (pvName)
-            .arg (okay ? "okay" : "fail")
+            .arg (okay ? tr("okay") : tr("fail"))
             .arg (supplementary);
       this->setReadOut (message);
    }

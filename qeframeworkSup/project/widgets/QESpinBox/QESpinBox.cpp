@@ -143,7 +143,7 @@ QMenu* QESpinBox::getDefaultContextMenu()
    edit = lineEdit();
    if( edit ){
       menu = edit->createStandardContextMenu();
-      menu->setTitle( "Edit..." );
+      menu->setTitle( tr("Edit...") );
    }
    return menu;
 }
