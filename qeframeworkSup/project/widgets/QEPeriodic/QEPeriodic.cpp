@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2022 Australian Synchrotron.
+ *  Copyright (c) 2011-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -91,7 +91,7 @@ const QEPeriodic::elementInfoStruct QEPeriodic::elementInfo[NUM_ELEMENTS] = {
    {  13,  26.9815, "Aluminum",      "Al",    660.0,  2467.0,  2.70,  13,  5.9858,  2, 13, QEPeriodic::PostTransitionMetal },
    {  14,  28.0855, "Silicon",       "Si",   1410.0,  2355.0,  2.33,  14,  8.1517,  2, 14, QEPeriodic::Metalloid },
    {  15,  30.9738, "Phosphorus",    "P",      44.0,   280.0,  1.82,  15, 10.4867,  2, 15, QEPeriodic::ReactiveNonMetal },
-   {  16,  32.0650, "Sulfur",        "S",     113.0,   445.0,  2.07,  16, 10.3600,  2, 16, QEPeriodic::ReactiveNonMetal },
+   {  16,  32.0650, "Sulphur",       "S",     113.0,   445.0,  2.07,  16, 10.3600,  2, 16, QEPeriodic::ReactiveNonMetal },
    {  17,  35.4530, "Chlorine",      "Cl",   -101.0,   -35.0,  3.21,  17, 12.9676,  2, 17, QEPeriodic::ReactiveNonMetal },
    {  18,  39.9480, "Argon",         "Ar",   -189.0,  -186.0,  1.78,  18, 15.7596,  2, 18, QEPeriodic::NobleGas },
 
