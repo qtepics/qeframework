@@ -113,6 +113,7 @@ public:
                     const QString id,
                     const UpdateKind kind,
                     const QVariant& pvData,
+                    const QString& pvType,
                     const bool isConnected);
    ~Update ();
 
@@ -127,6 +128,7 @@ public:
    // Only one of the following makes sense depending on the update kind.
    //
    inline QVariant getPvData () const           { return this->pvData; }
+   inline QString getPvType () const            { return this->pvType; }
    inline bool getIsConnected () const          { return this->isConnected; }
 
    QEPvaData::Enumerated enumeration;
@@ -140,8 +142,9 @@ private:
    const QEPvaClientReference clientReference;
    const QString id;
    const UpdateKind kind;
-   QVariant pvData;
-   bool isConnected;
+   const QVariant pvData;
+   const QString pvType;
+   const bool isConnected;
 };
 
 //------------------------------------------------------------------------------
@@ -150,14 +153,15 @@ QEPvaClient::Update::Update (const QEPvaClientReference& clientReferenceIn,
                              const QString idIn,
                              const UpdateKind kindIn,
                              const QVariant& pvDataIn,
+                             const QString& pvTypeIn,
                              const bool isConnectedIn) :
    clientReference (clientReferenceIn),
    id (idIn),
-   kind (kindIn)
-{
-   this->pvData = pvDataIn;
-   this->isConnected = isConnectedIn;
-}
+   kind (kindIn),
+   pvData (pvDataIn),
+   pvType (pvTypeIn),
+   isConnected (isConnectedIn)
+{ }
 
 //------------------------------------------------------------------------------
 //
@@ -328,7 +332,7 @@ void QEPvaChannelRequesterInterface::channelStateChange (pva::Channel::shared_po
       case pva::Channel::CONNECTED:
          item = new QEPvaClient::Update (this->clientReference, "",
                                          QEPvaClient::Update::ukConnection,
-                                         nullVariant,
+                                         nullVariant, "",
                                          true);
          pvaClientUpdateQueue->enqueue (item);
          break;
@@ -336,7 +340,7 @@ void QEPvaChannelRequesterInterface::channelStateChange (pva::Channel::shared_po
       case pva::Channel::DISCONNECTED:
          item = new QEPvaClient::Update (this->clientReference, "",
                                          QEPvaClient::Update::ukConnection,
-                                         nullVariant,
+                                         nullVariant, "",
                                          false);
          pvaClientUpdateQueue->enqueue (item);
          break;
@@ -447,7 +451,8 @@ void QEPvaMonitorRequesterInterface::processElement (pva::MonitorElement::const_
    // of the specialised variants: QENTTableData, QENTImageData.
    //
    QVariant value;
-   const bool status = QEPvaData::extractValue (pv, value);
+   QString type;
+   const bool status = QEPvaData::extractValue (pv, value, type);
    if(!status) {
       DEBUG << this->pvName << this->uniqueId() << "cannot extract value from" << pvIdentity;
       return;
@@ -457,7 +462,7 @@ void QEPvaMonitorRequesterInterface::processElement (pva::MonitorElement::const_
    //
    QEPvaClient::Update* item =
          new QEPvaClient::Update (this->clientReference, pvIdentity,
-                                  QEPvaClient::Update::ukData, value, false);
+                                  QEPvaClient::Update::ukData, value, type, false);
 
    // Extract associated meta data
    //
@@ -824,7 +829,11 @@ QString QEPvaClient::getEgu () const
 //
 QString QEPvaClient::getId () const
 {
-   return this->id;
+   QString suffix = "";
+   if (!this->pvType.isEmpty()) {
+      suffix = QString (" (%2)").arg(this->pvType);
+   }
+   return QString ("%1%2").arg (this->id).arg(suffix);
 }
 
 //------------------------------------------------------------------------------
@@ -998,6 +1007,7 @@ void QEPvaClient::processUpdate (QEPvaClient::Update* update)
       case QEPvaClient::Update::ukData:
          this->id = update->getId ();
          this->pvData = update->getPvData ();
+         this->pvType = update->getPvType ();
 
          // Assign other items.
          //

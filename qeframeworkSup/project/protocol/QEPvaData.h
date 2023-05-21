@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2019 Australian Synchrotron
+ *  Copyright (C) 2018-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -210,9 +210,10 @@ public:
 
    // Converts a PV Access PV value field to a QVariant.
    // This may include QE's own user defined QVariants.
+   // Type is used to qualify some normative types.
    //
    static bool
-   extractValue (PVStructureSharedPtr& pv, QVariant& value);
+   extractValue (PVStructureSharedPtr& pv, QVariant& value, QString& type);
 
    // The opposite of extractValue
    static bool
@@ -223,7 +224,8 @@ public:
    // If scalarType invalid, then returned QVariant type is Invalid
    //
    static bool
-   extractScalar (const epics::pvData::PVScalar::const_shared_pointer& pvScalar, QVariant& value);
+   extractScalar (const epics::pvData::PVScalar::const_shared_pointer& pvScalar,
+                  QVariant& value, QString& type);
 
    // The opposite of extractScalar
    static bool
@@ -234,7 +236,8 @@ public:
    // types for example: QEInt32Vector or QEDoubleVector.
    //
    static bool
-   extractScalarArray (const epics::pvData::PVScalarArray::const_shared_pointer& pvArray, QVariant& value);
+   extractScalarArray (const epics::pvData::PVScalarArray::const_shared_pointer& pvArray,
+                       QVariant& value, QString& type);
 
    // The opposite of extractScalarArray
    static bool

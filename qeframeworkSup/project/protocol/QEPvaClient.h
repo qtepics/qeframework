@@ -116,6 +116,7 @@ private:
    bool isConnected;       //
    bool firstUpdate;       //
    QString id;             // e.g.  "epics:nt/NTScalar:1.0"
+   QString pvType;         // e.g.  "double" when NTScalar or NTArray
    QVariant pvData;        // holds the value data
 
 #ifdef QE_INCLUDE_PV_ACCESS
