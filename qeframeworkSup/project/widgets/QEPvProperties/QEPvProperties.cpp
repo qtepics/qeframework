@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2022 Australian Synchrotron.
+ *  Copyright (c) 2012-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -82,7 +82,7 @@ static void initialiseRecordSpecs ()
 
    recordSpecList.clear ();
 
-   // Create a record spec to be used as default if we given an unknown record type.
+   // Create a record spec to be used as default if we are given an unknown record type.
    // All the common fields plus RTYP meta field plus VAL field.
    //
    pDefaultRecordSpec = new QERecordSpec ("_default_");
@@ -107,6 +107,7 @@ static void initialiseRecordSpecs ()
    pDefaultRecordSpec->append ("AMSG,  \"Alarm Message\"");
    pDefaultRecordSpec->append ("NSTA,  \"New Alarm Status\"");
    pDefaultRecordSpec->append ("NSEV,  \"New Alarm Severity\"");
+   pDefaultRecordSpec->append ("NAMSG, \"New Alarm Message\"");
    pDefaultRecordSpec->append ("ACKS,  \"Alarm Ack Severity\"");
    pDefaultRecordSpec->append ("ACKT,  \"Alarm Ack Transient\"");
    pDefaultRecordSpec->append ("DISS,  \"Disable Alarm Sevrty\"");
@@ -233,10 +234,10 @@ void QEPvProperties::createInternalWidgets ()
    this->fieldType = new QLabel (this->topFrame);
    this->fieldType->setFixedHeight (label_height);
 
-   this->label6 = new QLabel (tr("  Element Count"), this->topFrame);
-   this->label6->setFixedSize (QSize (112, label_height));
+   this->label6 = new QLabel (tr("  Elements"), this->topFrame);
+   this->label6->setFixedSize (QSize (76, label_height));
    this->elementCount = new QLabel (this->topFrame);
-   this->elementCount->setFixedHeight (label_height);
+   this->elementCount->setFixedSize (QSize (96, label_height));
 
    this->hlayouts [5]->addWidget (this->label5);
    this->hlayouts [5]->addWidget (this->fieldType);
@@ -431,10 +432,10 @@ void QEPvProperties::common_setup ()
    this->timeStamp->setIndent (4);
    this->timeStamp->setStyleSheet (lightGreyStyle);
 
-   this->fieldType->setAlignment(Qt::AlignHCenter);
+   this->fieldType->setAlignment (Qt::AlignHCenter);
    this->fieldType->setStyleSheet (lightGreyStyle);
 
-   this->elementCount->setAlignment(Qt::AlignRight);
+   this->elementCount->setAlignment (Qt::AlignRight);
    this->elementCount->setIndent (4);
    this->elementCount->setStyleSheet (lightGreyStyle);
 

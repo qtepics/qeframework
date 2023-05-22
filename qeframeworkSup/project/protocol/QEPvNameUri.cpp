@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2021 Australian Synchrotron
+ *  Copyright (C) 2018-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -25,24 +25,82 @@
  */
 
 #include "QEPvNameUri.h"
-
 #include <QDebug>
 #include <QECommon.h>
 #include <QEPvaCheck.h>
+#include <QEAdaptationParameters.h>
+
 
 #define DEBUG qDebug () << "QEPvNameUri" << __LINE__ << __FUNCTION__ << "  "
 
 //------------------------------------------------------------------------------
+// This must be consistant with the enum Protocol definition out of the header.
 //
 static const QString prefix[QEPvNameUri::NUMBER_OF_PROTOCOLS] = {
-   "__undefined__", "ca", "pva"
+   "__undefined__",    // undefined
+   "ca",               // ca
+   "pva"               // pva
 };
 
 static const QString cds = "://";    // colon double slash
 
+
 //==============================================================================
 // QEPvNameUri
 //==============================================================================
+// static
+QEPvNameUri::Protocol QEPvNameUri::getDefaultProtocol()
+{
+   // The default protocol is initialised to the default default.
+   //
+   static QEPvNameUri::Protocol theDefaultProtocol = QEPvNameUri::ca;
+   static bool theDefaultIsDefined = false;
+
+   // Has the default protocol been defined?
+   //
+   if (!theDefaultIsDefined) {
+      // No - attempt to figure out what the default is.
+      //
+      QEAdaptationParameters ap ("QE_");
+      const QString defProtoSpec = ap.getString ("default_provider", "ca").toLower();
+
+      for (int j = 0; j < NUMBER_OF_PROTOCOLS; j++) {
+         const Protocol protocol = Protocol (j);
+
+         // Don't allow the undefined protocol.
+         //
+         if (protocol == undefined)
+            continue;
+
+         // Don't allow the pv access protocol if not included.
+         //
+#ifndef QE_INCLUDE_PV_ACCESS
+         if (protocol == pva)
+            continue;
+#endif
+
+         if (defProtoSpec == prefix[j]) {
+            // Found it.
+            theDefaultProtocol = protocol;
+            theDefaultIsDefined = true;
+            break;
+         }
+      }
+
+      // Either no protocol specified or an invalid protocol specified.
+      //
+      if (!theDefaultIsDefined) {
+         DEBUG << "Undefined/invalid default protocol" << defProtoSpec
+               << ", going with Channel Access";
+         theDefaultProtocol = QEPvNameUri::ca;
+         theDefaultIsDefined = true;
+      }      
+   }
+
+   return theDefaultProtocol;
+}
+
+//------------------------------------------------------------------------------
 //
 QEPvNameUri::QEPvNameUri ()
 {
@@ -97,38 +155,39 @@ bool QEPvNameUri::decodeUri (const QString& uri, const bool strict)
 {
    QString work = uri.trimmed ();
 
-   Protocol pr = QEPvNameUri::undefined;
-   QString pv;
+   Protocol specifiedProtocol = QEPvNameUri::undefined;
+   QString pvName;
 
-   pr = QEPvNameUri::undefined;
+   specifiedProtocol = QEPvNameUri::undefined;
    for (int j = 0; j < NUMBER_OF_PROTOCOLS; j++) {
+      const Protocol protocol = Protocol (j);
 
       // Don't allow the undefined protocol.
       //
-      if (Protocol (j) == undefined)
+      if (protocol == undefined)
          continue;
 
-#ifndef QE_INCLUDE_PV_ACCESS
       // Don't allow the pv access protocol if not included.
       //
-      if (Protocol (j) == pva)
+#ifndef QE_INCLUDE_PV_ACCESS
+      if (protocol == pva)
          continue;
 #endif
 
       QString startCheck = prefix[j] + cds;
 
-      // Note use of toLower
+      // Note the use of toLower.
       //
-      if (work.toLower ().startsWith (startCheck)) {
-         // We found a valid protocol - remove it from work to from the PV name
+      if (work.toLower().startsWith (startCheck)) {
+         // We found a valid protocol - remove it from work to from the PV name.
          //
-         pr = Protocol (j);
-         pv = work.mid (startCheck.length ());
+         specifiedProtocol = protocol;
+         pvName = work.mid (startCheck.length ());
          break;
       }
    }
 
-   if (pr == QEPvNameUri::undefined) {
+   if (specifiedProtocol == QEPvNameUri::undefined) {
       // Either no protocol specified or an invalid protocol specified.
       //
       if (strict)
@@ -143,17 +202,17 @@ bool QEPvNameUri::decodeUri (const QString& uri, const bool strict)
       if (kp >= 0)
          return false;
 
-      pr = ca;                  // set default.
-      pv = work;
+      specifiedProtocol = this->getDefaultProtocol();   // use the default.
+      pvName = work;
    }
 
-   pv = pv.trimmed ();
-   if (pv.isEmpty ()) {
+   pvName = pvName.trimmed ();
+   if (pvName.isEmpty ()) {
       return false;
    }
 
-   this->protocol = pr;
-   this->pvName = pv;
+   this->protocol = specifiedProtocol;
+   this->pvName = pvName;
 
    return true;
 }
@@ -185,6 +244,7 @@ QString QEPvNameUri::getPvName () const
 {
    return this->pvName;
 }
+
 
 //==============================================================================
 // QEPvNameUriList

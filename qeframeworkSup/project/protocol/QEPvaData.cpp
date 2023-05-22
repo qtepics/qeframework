@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (C) 2018-2019 Australian Synchrotron
+ *  Copyright (C) 2018-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -258,7 +258,8 @@ static const QVariant nullVariant;
 // Extract the value part of the PV. The alarm info and timestamp info are
 // extracted elsewhere.
 //
-bool QEPvaData::extractValue (PVStructureSharedPtr& pv, QVariant& value)
+bool QEPvaData::extractValue (PVStructureSharedPtr& pv,
+                              QVariant& value, QString& type)
 {
    bool result = false;
    value = nullVariant;
@@ -270,14 +271,14 @@ bool QEPvaData::extractValue (PVStructureSharedPtr& pv, QVariant& value)
       ASSERT (item.get() != NULL, "NTScalar::wrapUnsafe yielded null");
 
       pvd::PVScalar::const_shared_pointer scalar = item->getValue<const pvd::PVScalar>();
-      result = QEPvaData::extractScalar (scalar, value);
+      result = QEPvaData::extractScalar (scalar, value, type);
 
 
    } else if (epics::nt::NTScalarArray::is_a (pv)) {
       epics::nt::NTScalarArray::const_shared_pointer item = epics::nt::NTScalarArray::wrapUnsafe (pv);
       ASSERT (item.get() != NULL, "NTScalarArray::wrapUnsafe yielded null");
       pvd::PVScalarArray::const_shared_pointer scalarArray = item->getValue<const pvd::PVScalarArray>();
-      result = QEPvaData::extractScalarArray (scalarArray, value);
+      result = QEPvaData::extractScalarArray (scalarArray, value, type);
 
 
    } else if (epics::nt::NTEnum::is_a (pv)) {
@@ -289,6 +290,7 @@ bool QEPvaData::extractValue (PVStructureSharedPtr& pv, QVariant& value)
       // Just grab the index value here
       if (result) {
          value = QVariant (enumeration.index);
+         type = "";
       } else {
          DEBUG << "epics::nt::NTEnum item not valid";
       }
@@ -302,6 +304,7 @@ bool QEPvaData::extractValue (PVStructureSharedPtr& pv, QVariant& value)
       result = table.assignFrom (item);
       if (result) {
          value = table.toVariant ();
+         type = "";
       } else {
          DEBUG << "epics::nt::NTTable item not valid";
       }
@@ -316,6 +319,7 @@ bool QEPvaData::extractValue (PVStructureSharedPtr& pv, QVariant& value)
       result = image.assignFrom (item);
       if (result) {
          value = image.toVariant ();
+         type = "";
       } else {
          DEBUG << "epics::nt::NTNDArray item not valid";
       }
@@ -331,6 +335,7 @@ bool QEPvaData::extractValue (PVStructureSharedPtr& pv, QVariant& value)
       result = opaque.assignFrom (ptr);
       if (result) {
          value = opaque.toVariant ();
+         type = "opaque";
       } else {
          DEBUG << "opaque to varient failed.";
       }
@@ -341,7 +346,8 @@ bool QEPvaData::extractValue (PVStructureSharedPtr& pv, QVariant& value)
 
 //------------------------------------------------------------------------------
 // static
-bool QEPvaData::extractScalar (const pvd::PVScalar::const_shared_pointer& scalar, QVariant& value)
+bool QEPvaData::extractScalar (const pvd::PVScalar::const_shared_pointer& scalar,
+                               QVariant& value, QString& type)
 {
    bool result = true;   // hypothesize all okay
 
@@ -353,48 +359,58 @@ bool QEPvaData::extractScalar (const pvd::PVScalar::const_shared_pointer& scalar
    switch (scalarType) {
       case pvd::pvString:
          value = QVariant (QString::fromStdString (scalar->getAs <std::string>()));
+         type = "string";
          break;
 
       case pvd::pvDouble:
          value = QVariant (double(scalar->getAs <double> ()));
+         type = "double";
          break;
 
       case pvd::pvFloat:
          value = QVariant (scalar->getAs <float> ());
+         type = "float";
          break;
 
       case pvd::pvBoolean:
          value = QVariant (bool (scalar->getAs <pvd::boolean> ()));
+         type = "boolean";
          break;
 
          // signed
          //
       case pvd::pvByte:
          value = QVariant (int (scalar->getAs <pvd::int8> ()));
+         type = "byte";
          break;
 
       case pvd::pvShort:
          // QVariant do not support short
          value = QVariant (int (scalar->getAs <pvd::int16> ()));
+         type = "short";
          break;
 
       case pvd::pvInt:
          value = QVariant (int (scalar->getAs <pvd::int32> ()));
+         type = "int";
          break;
 
       case pvd::pvLong:
          value = QVariant (qlonglong (scalar->getAs <pvd::int64> ()));
+         type = "long";
          break;
 
          // unsigned
          //
       case pvd::pvUByte:
          value = QVariant (uint (scalar->getAs <pvd::uint8> ()));
+         type = "ubyte";
          break;
 
       case pvd::pvUShort:
          // QVariant do not support unsigned short
          value = QVariant (uint (scalar->getAs <pvd::uint16> ()));
+         type = "ushort";
          break;
 
       case pvd::pvUInt:
@@ -403,10 +419,12 @@ bool QEPvaData::extractScalar (const pvd::PVScalar::const_shared_pointer& scalar
 
       case pvd::pvULong:
          value = QVariant (qulonglong (scalar->getAs <pvd::uint64> ()));
+         type = "ulong";
          break;
 
       default:
          value = nullVariant;
+         type = "unknown";
          result = false;
          DEBUG << scalarType << "unhandled";
          break;
@@ -421,7 +439,8 @@ bool QEPvaData::extractScalar (const pvd::PVScalar::const_shared_pointer& scalar
 //
 //static
 bool QEPvaData::extractScalarArray
-   (const pvd::PVScalarArray::const_shared_pointer& scalarArray, QVariant& value)
+   (const pvd::PVScalarArray::const_shared_pointer& scalarArray,
+    QVariant& value, QString& type)
 {
    const std::size_t number = scalarArray->getLength ();
 
@@ -449,58 +468,71 @@ bool QEPvaData::extractScalarArray
    switch (elementType) {
       case pvd::pvString:
          ATOV (std::string, QStringList, QString::fromStdString);
+         type = "string";
          break;
 
       case pvd::pvDouble:
          ATOV (double, QEDoubleVector, double);
+         type = "double";
          break;
 
       case pvd::pvFloat:
          ATOV (float, QEFloatVector, float);
+         type = "float";
          break;
 
       case pvd::pvBoolean:
          ATOV (pvd::boolean, QEBoolVector, bool);
+         type = "boolean";
          break;
 
          // signed integers
          //
       case pvd::pvByte:
          ATOV (pvd::int8, QEInt8Vector, int8_t);
+         type = "byte";
          break;
 
       case pvd::pvShort:
          ATOV (pvd::int16, QEInt16Vector, int16_t);
+         type = "short";
          break;
 
       case pvd::pvInt:
          ATOV (pvd::int32, QEInt32Vector, int32_t);
+         type = "int";
          break;
 
       case pvd::pvLong:
          ATOV (pvd::int64, QEInt64Vector, int64_t);
+         type = "long";
          break;
 
          // unsigned integers
          //
       case pvd::pvUByte:
          ATOV (pvd::uint8, QEUint8Vector,   uint8_t);
+         type = "ubyte";
          break;
 
       case pvd::pvUShort:
          ATOV (pvd::uint16, QEUint16Vector, uint16_t);
+         type = "ushort";
          break;
 
       case pvd::pvUInt:
          ATOV (pvd::uint32, QEUint32Vector, uint32_t);
+         type = "uint";
          break;
 
       case pvd::pvULong:
          ATOV (pvd::uint64, QEUint64Vector, uint64_t);
+         type = "ulong";
          break;
 
       default:
          value = nullVariant;
+         type = "unknown";
          result = false;
          DEBUG << elementType << "unhandled";
          break;
