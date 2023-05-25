@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron
+ *  Copyright (c) 2012-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,8 +31,11 @@
 
 #include "applicationLauncher.h"
 #include <iostream>
+#include <QDebug>
 #include <QTemporaryFile>
 #include <QMessageBox>
+
+#define DEBUG qDebug () << "applicationLauncher" << __LINE__ << __FUNCTION__ << "  "
 
 #define FILE_KEYWORD "<FILENAME>"
 
@@ -43,7 +46,7 @@
 //
 processManager::processManager( bool logOutput, bool useStandardIo, QTemporaryFile* tempFileIn )
 {
-   tempFile = tempFileIn;
+   this->tempFile = tempFileIn;
 
    // Catch when the process can be deleted
    //
@@ -76,9 +79,8 @@ processManager::processManager( bool logOutput, bool useStandardIo, QTemporaryFi
 processManager::~processManager()
 {
    // qDebug() << "processManager destructor called";
-   if( tempFile )
-   {
-      delete tempFile;
+   if( this->tempFile ) {
+      delete this->tempFile;
    }
 }
 
@@ -86,21 +88,21 @@ processManager::~processManager()
 //
 void processManager::doRead()
 {
-   message.sendMessage( readAll() );
+   this->message.sendMessage( readAll() );
 }
 
 //------------------------------------------------------------------------------
 //
 void processManager::doReadToStandardOutput()
 {
-   std::cout << readAllStandardOutput().data();
+   std::cout << this->readAllStandardOutput().data();
 }
 
 //------------------------------------------------------------------------------
 //
 void processManager::doReadToStandardError()
 {
-   std::cerr << readAllStandardError().data();
+   std::cerr << this->readAllStandardError().data();
 }
 
 //------------------------------------------------------------------------------
@@ -108,7 +110,7 @@ void processManager::doReadToStandardError()
 void processManager::doFinished( int /*exitCode*/, QProcess::ExitStatus /*exitStatus*/ )
 {
    emit processCompleted();
-   deleteLater();
+   this->deleteLater();
 }
 
 
@@ -118,30 +120,28 @@ void processManager::doFinished( int /*exitCode*/, QProcess::ExitStatus /*exitSt
 //
 applicationLauncher::applicationLauncher()
 {
-   programStartupOption = PSO_NONE;
+   this->programStartupOption = PSO_NONE;
 }
 
 //------------------------------------------------------------------------------
 // Destruction
-applicationLauncher::~applicationLauncher()
-{
-}
+applicationLauncher::~applicationLauncher(){ }
 
 //------------------------------------------------------------------------------
 //
 void applicationLauncher::launchImage( const VariableNameManager* variableNameManager, QImage image )
 {
    // Do nothing if no program to run
-   if( program.isEmpty() )
-   {
+   //
+   if( this->program.isEmpty() ) {
       return;
    }
 
    // Create a temporary file containing the image
+   //
    QTemporaryFile* tempFile = new QTemporaryFile;
    tempFile->open();
-   if( !image.save( tempFile, "TIFF") )
-   {
+   if( !image.save( tempFile, "TIFF") ) {
       QMessageBox msgBox;
       msgBox.setText("Can't start application. There is no image available.");
       msgBox.exec();
@@ -149,14 +149,15 @@ void applicationLauncher::launchImage( const VariableNameManager* variableNameMa
    }
 
    // Launch the program
-   launchCommon( variableNameManager, tempFile );
+   //
+   this->launchCommon( variableNameManager, tempFile );
 }
 
 //------------------------------------------------------------------------------
 //
 void applicationLauncher::launch( const VariableNameManager* variableNameManager, QObject* receiver )
 {
-   launchCommon( variableNameManager, NULL, receiver );
+   this->launchCommon( variableNameManager, NULL, receiver );
 }
 
 //------------------------------------------------------------------------------
@@ -165,94 +166,95 @@ void applicationLauncher::launchCommon( const VariableNameManager* variableNameM
                                         QTemporaryFile* tempFile, QObject* receiver )
 {
    // Do nothing if no program to run
-   if( program.isEmpty() )
-   {
+   //
+   if( this->program.isEmpty() ) {
       return;
    }
 
    // Create a new process to run the program
    // (It will be up to the processManager to delete the temporary file if present)
+   //
    processManager* process = new processManager( programStartupOption == PSO_LOGOUTPUT,
                                                  programStartupOption == PSO_STDOUTPUT,
                                                  tempFile );
 
    // Connect to caller if a recipient has been provided
-   if( receiver )
-   {
-      QObject::connect( process, SIGNAL( processCompleted() ), receiver, SLOT( programCompletedSlot() ) );
+   if( receiver ) {
+      QObject::connect( process, SIGNAL( processCompleted() ),
+                        receiver, SLOT( programCompletedSlot() ) );
    }
 
-   QStringList substitutedArguments;
    QString substitutedProgram;
+   QStringList substitutedArguments;
 
    // Apply substitutions if available
-   if( variableNameManager )
-   {
+   //
+   if( variableNameManager ) {
       // Apply substitutions to the arguments
-      substitutedArguments = arguments;
-      for( int i = 0; i < substitutedArguments.size(); i++ )
-      {
+      //
+      substitutedArguments = this->arguments;
+      for( int i = 0; i < substitutedArguments.size(); i++ ) {
          substitutedArguments[i] = variableNameManager->substituteThis( substitutedArguments[i] );
       }
 
       // Apply substitutions to the program name
-      substitutedProgram = variableNameManager->substituteThis( program );
+      substitutedProgram = variableNameManager->substituteThis( this->program );
+   } else {
+      // Use without substitutions
+      //
+      substitutedArguments = this->arguments;
+      substitutedProgram = this->program;
    }
 
-   // Use without substitutions
-   else
-   {
-      substitutedArguments = arguments;
-      substitutedProgram = program;
-   }
-
-   // Build up a single string with the command and arguments and run the program
+   // Apply file name keyword substitution - once only.
+   //
    bool foundFileKeyword = false;
-   for( int i = 0; i < substitutedArguments.size(); i++)
-   {
+   for( int i = 0; i < substitutedArguments.size(); i++) {
+
       // Get the next argument
+      //
       QString arg = substitutedArguments[i];
 
       // If the argument contains the filename keyword, and a temorary filename is
       // available, insert the filename into the argument
+      //
       if( !foundFileKeyword && tempFile && !tempFile->fileName().isEmpty() && arg.contains( FILE_KEYWORD ) )
       {
          arg.replace( FILE_KEYWORD, tempFile->fileName() );
+         substitutedArguments[i] = arg;
          foundFileKeyword = true;
       }
-
-      // Add the argument to the command line
-      substitutedProgram.append( " " );
-      substitutedProgram.append( arg );
    }
 
    // If the filename of the temporary file needs to be added, and has not been added
    // already (to replace a filename keyword in an existing argument), then add the
    // filename as a new argument
+   //
    if( !foundFileKeyword && tempFile && !tempFile->fileName().isEmpty() )
    {
-      substitutedProgram.append( " " );
-      substitutedProgram.append( tempFile->fileName() );
+      substitutedArguments.append( tempFile->fileName() );
    }
 
    // Add apropriate terminal command if starting up within a terminal
-   if( programStartupOption == PSO_TERMINAL )
-   {
+   //
+   if( this->programStartupOption == PSO_TERMINAL ) {
 #ifdef WIN32
-      substitutedProgram.prepend( "cmd.exe /C start " );
+      substitutedArguments.prepend( substitutedProgram );
+      substitutedArguments.prepend( "start" );
+      substitutedArguments.prepend( "/C" );
+      substitutedProgram = "cmd.exe";
 #else
-      substitutedProgram.prepend( "xterm -hold -e " );// use $TERM ??
+      substitutedArguments.prepend( substitutedProgram );
+      substitutedArguments.prepend( "-e" );
+      substitutedArguments.prepend( "-hold" );
+      substitutedProgram = "xterm"; // use $TERM
 #endif
    }
 
    // Run the program
-   message.sendMessage( QString( "Launching: " ).append( substitutedProgram ), "Application launcher" );
-   process->start( substitutedProgram );
-
-   // Alternate (and cleaner) way to run the program without building a string containing the program and arguments.
-   // (This didn't seem to work when starting EDM with the '-one' switch, perhaps due to the
-   //  way EDM checks all arguments are identical when the '-one' switch is present?)
-   //process->start( substituteThis( program ), substitutedArguments );
+   //
+   this->message.sendMessage( QString( "Launching: " ).append( substitutedProgram ), "Application launcher" );
+   process->start( substitutedProgram, substitutedArguments );
 }
 
 
@@ -260,42 +262,42 @@ void applicationLauncher::launchCommon( const VariableNameManager* variableNameM
 //
 void applicationLauncher::setProgram( const QString programIn )
 {
-   program = programIn;
+   this->program = programIn;
 }
 
 //------------------------------------------------------------------------------
 //
 QString applicationLauncher::getProgram() const
 {
-   return program;
+   return this->program;
 }
 
 //------------------------------------------------------------------------------
 //
 void applicationLauncher::setArguments( const QStringList argumentsIn )
 {
-   arguments = argumentsIn;
+   this->arguments = argumentsIn;
 }
 
 //------------------------------------------------------------------------------
 //
 QStringList applicationLauncher::getArguments() const
 {
-   return  arguments;
+   return this->arguments;
 }
 
 //------------------------------------------------------------------------------
 //
 void applicationLauncher::setProgramStartupOption( const programStartupOptions programStartupOptionIn )
 {
-   programStartupOption = programStartupOptionIn;
+   this->programStartupOption = programStartupOptionIn;
 }
 
 //------------------------------------------------------------------------------
 //
 applicationLauncher::programStartupOptions applicationLauncher::getProgramStartupOption() const
 {
-   return programStartupOption;
+   return this->programStartupOption;
 }
 
 // end
