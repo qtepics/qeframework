@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2021 Australian Synchrotron
+ *  Copyright (c) 2012-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -179,23 +179,24 @@ public:
 public:
     ///  \enum selectOptions.
     /// Internal use only. Selection options. What will happen when the user interacts with the image area
-    enum selectOptions{ SO_NONE,                                ///< Do nothing
-                        SO_PANNING,                             ///< User is panning
-                        SO_VSLICE1,                             ///< Select the vertical slice 1 point
-                        SO_VSLICE2,                             ///< Select the vertical slice 2 point
-                        SO_VSLICE3,                             ///< Select the vertical slice 3 point
-                        SO_VSLICE4,                             ///< Select the vertical slice 4 point
-                        SO_VSLICE5,                             ///< Select the vertical slice 5 point
-                        SO_HSLICE1,                             ///< Select the horizontal slice 1 point
-                        SO_HSLICE2,                             ///< Select the horizontal slice 2 point
-                        SO_HSLICE3,                             ///< Select the horizontal slice 3 point
-                        SO_HSLICE4,                             ///< Select the horizontal slice 4 point
-                        SO_HSLICE5,                             ///< Select the horizontal slice 5 point
-                        SO_AREA1, SO_AREA2, SO_AREA3, SO_AREA4, ///< User is selecting an area (for region of interest)
-                        SO_PROFILE,                             ///< Select an arbitrary line across the image (to determine a profile)
-                        SO_TARGET,                              ///< Mark the target point
-                        SO_BEAM                                 ///< Mark the current beam location
-                       };
+    enum selectOptions {
+       SO_NONE,                                ///< Do nothing
+       SO_PANNING,                             ///< User is panning
+       SO_VSLICE1,                             ///< Select the vertical slice 1 point
+       SO_VSLICE2,                             ///< Select the vertical slice 2 point
+       SO_VSLICE3,                             ///< Select the vertical slice 3 point
+       SO_VSLICE4,                             ///< Select the vertical slice 4 point
+       SO_VSLICE5,                             ///< Select the vertical slice 5 point
+       SO_HSLICE1,                             ///< Select the horizontal slice 1 point
+       SO_HSLICE2,                             ///< Select the horizontal slice 2 point
+       SO_HSLICE3,                             ///< Select the horizontal slice 3 point
+       SO_HSLICE4,                             ///< Select the horizontal slice 4 point
+       SO_HSLICE5,                             ///< Select the horizontal slice 5 point
+       SO_AREA1, SO_AREA2, SO_AREA3, SO_AREA4, ///< User is selecting an area (for region of interest)
+       SO_PROFILE,                             ///< Select an arbitrary line across the image (to determine a profile)
+       SO_TARGET,                              ///< Mark the target point
+       SO_BEAM                                 ///< Mark the current beam location
+    };
 
     selectOptions getSelectionOption();    // Get the current selection option
 
@@ -257,6 +258,9 @@ public slots:
     void setUseFalseColour(const bool pValue);                           ///< Access function for #useFalseColour property - refer to #useFalseColour property for details
 public:
     bool getUseFalseColour() const;                                      ///< Access function for #useFalseColour property - refer to #useFalseColour property for details
+
+    void setEnableProfileAxes (const bool value);                        ///< Access function for #enableProfileAxes property - refer to #enableProfileAxes property for details
+    bool getEnableProfileAxes() const;                                   ///< Access function for #enableProfileAxes property - refer to #enableProfileAxes property for details
 
     void setVertSlice1MarkupColor(QColor pValue);                        ///< Access function for #vertSliceColor property - refer to #vertSliceColor property for details
     QColor getVertSlice1MarkupColor();                                   ///< Access function for #vertSliceColor property - refer to #vertSliceColor property for details
@@ -1824,6 +1828,10 @@ public:
     /// If true, the apply false colour to the image.
     ///
     Q_PROPERTY(bool useFalseColour READ getUseFalseColour WRITE setUseFalseColour)
+
+    /// If true, the show axes on horizontal, vertical and arbitray line profiles.
+    ///
+    Q_PROPERTY(bool enableProfileAxes READ getEnableProfileAxes WRITE setEnableProfileAxes)
 
     // Deprecated. Used to select the color of the vertical slice markup.
     Q_PROPERTY(QColor vertSliceColor READ getVertSlice1MarkupColor WRITE setVertSlice1MarkupColor DESIGNABLE false)

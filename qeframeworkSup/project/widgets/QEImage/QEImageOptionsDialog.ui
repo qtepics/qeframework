@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>537</width>
-    <height>570</height>
+    <height>588</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -195,6 +195,13 @@
          <widget class="QCheckBox" name="checkBoxFalseColour">
           <property name="text">
            <string>Use false colour</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBoxProfileAxes">
+          <property name="text">
+           <string>Enable Profile Axes</string>
           </property>
          </widget>
         </item>

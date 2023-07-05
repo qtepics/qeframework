@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2022 Australian Synchrotron
+ *  Copyright (c) 2012-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -400,7 +400,7 @@ void QEImage::setup()
     // This is done after all items manipulated by the options dialog have been built - such as the brightness/contrast controls
     // Also pareneted by this so will scaled automatically.
     optionsDialog = new QEImageOptionsDialog( this );
-    QObject::connect( optionsDialog, SIGNAL( optionChange(  imageContextMenu::imageContextMenuOptions, bool )),
+    QObject::connect( optionsDialog, SIGNAL( optionChange( imageContextMenu::imageContextMenuOptions, bool )),
                       this,          SLOT  ( optionAction( imageContextMenu::imageContextMenuOptions, bool )) );
     optionsDialog->initialise();
 
@@ -3172,6 +3172,17 @@ bool QEImage::getUseFalseColour() const
    return optionsDialog->optionGet( imageContextMenu::ICM_ENABLE_FALSE_COLOUR );
 }
 
+// profiles show axes
+void QEImage::setEnableProfileAxes (const bool value)
+{
+    optionsDialog->optionSet( imageContextMenu::ICM_ENABLE_PROFILE_AXES, value );
+}
+
+bool QEImage::getEnableProfileAxes() const
+{
+   return optionsDialog->optionGet( imageContextMenu::ICM_ENABLE_PROFILE_AXES );
+}
+
 // Vertical slice 1 markup colour
 void QEImage::setVertSlice1MarkupColor(QColor markupColor )
 {
@@ -5204,10 +5215,14 @@ void QEImage::optionAction( imageContextMenu::imageContextMenuOptions option, bo
 
         case imageContextMenu::ICM_SAVE:                             saveClicked();                             break;
         case imageContextMenu::ICM_PAUSE:                            pauseClicked();                            break;
-        case imageContextMenu::ICM_ENABLE_CURSOR_PIXEL:              showInfo                  ( checked );     break;
+        case imageContextMenu::ICM_ENABLE_CURSOR_PIXEL:              showInfo                   ( checked );    break;
         case imageContextMenu::ICM_ABOUT_IMAGE:                      showImageAboutDialog();                    break;
         case imageContextMenu::ICM_ENABLE_TIME:                      videoWidget->setShowTime   ( checked );    break;
         case imageContextMenu::ICM_ENABLE_FALSE_COLOUR:              imageDisplayProps->setFalseColour( checked ); break;
+        case imageContextMenu::ICM_ENABLE_PROFILE_AXES:              // Note: applies to all three profiles
+                                                                     vSliceDisplay->enableProfileAxes( checked );
+                                                                     hSliceDisplay->enableProfileAxes( checked );
+                                                                     profileDisplay->enableProfileAxes( checked ); break;
         case imageContextMenu::ICM_ENABLE_VERT1:                     doEnableVertSlice1Selection( checked );    break;
         case imageContextMenu::ICM_ENABLE_VERT2:                     doEnableVertSlice2Selection( checked );    break;
         case imageContextMenu::ICM_ENABLE_VERT3:                     doEnableVertSlice3Selection( checked );    break;

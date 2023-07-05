@@ -1,5 +1,9 @@
-/*
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+/*  profilePlot.cpp
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -13,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -32,146 +34,185 @@
 #include <QClipboard>
 #include <QApplication>
 
+//------------------------------------------------------------------------------
 // Construction
-profilePlot::profilePlot( plotDirections plotDirectionIn ) : QwtPlot( 0 )
+profilePlot::profilePlot (plotDirections plotDirectionIn) :
+   QwtPlot (NULL)
 {
-    data = NULL;
+   this->data = NULL;
 
-    thickness = 1;
+   this->thickness = 1;
 
-    plotDirection = plotDirectionIn;
+   this->plotDirection = plotDirectionIn;
 
-    enableAxis( xBottom, false );
-    enableAxis( yLeft, false );
+   this->profileAxisEnabled = false;   // should be consistant with QEImageOptionsDialog initial check box state
+   this->enableAxis (xBottom, this->profileAxisEnabled);
+   this->enableAxis (yLeft, this->profileAxisEnabled);
 
-    curve = new QwtPlotCurve();
-    curve->setRenderHint( QwtPlotItem::RenderAntialiased );
-    curve->attach(this);
+   this->curve = new QwtPlotCurve();
+   this->curve->setRenderHint( QwtPlotItem::RenderAntialiased );
+   this->curve->attach(this);
 
-    // Set up context sensitive menu (right click menu)
-    setContextMenuPolicy( Qt::CustomContextMenu );
-    connect( this, SIGNAL( customContextMenuRequested( const QPoint& )), this, SLOT( showProfileContextMenu( const QPoint& )));
+   // Set up context sensitive menu (right click menu)
+   //
+   this->setContextMenuPolicy (Qt::CustomContextMenu);
+   QObject::connect( this, SIGNAL (customContextMenuRequested (const QPoint&)),
+                     this, SLOT   (showProfileContextMenu     (const QPoint&)));
 
-    int w = 200; // Initialised to avoid compiler warning
-    int h = 100; // Initialised to avoid compiler warning
-    switch( plotDirection )
-    {
-        case PROFILEPLOT_LR:
-        case PROFILEPLOT_RL:
-            w = 200;
-            h = 100;
-            break;
+   int w = 200; // Initialised to avoid compiler warning
+   int h = 100; // Initialised to avoid compiler warning
 
-        case PROFILEPLOT_TB:
-        case PROFILEPLOT_BT:
-            w = 100;
-            h = 200;
-            break;
-    }
+   switch (this->plotDirection)
+   {
+      case PROFILEPLOT_LR:
+      case PROFILEPLOT_RL:
+         w = 200;
+         h = 100;
+         break;
 
-    setGeometry( 0, 0, w, h );
-    setMinimumWidth( w );
-    setMinimumHeight( h );
+      case PROFILEPLOT_TB:
+      case PROFILEPLOT_BT:
+         w = 100;
+         h = 200;
+         break;
+   }
 
+   this->setGeometry( 0, 0, w, h );
+   this->setMinimumWidth( w );
+   this->setMinimumHeight( h );
 }
 
+//------------------------------------------------------------------------------
 // Desctuction
 profilePlot::~profilePlot()
 {
-    delete curve;
+   delete this->curve;
 }
 
-// Set the profile data
-void profilePlot::setProfile( QVector<QPointF>* profile, double minX, double maxX, double minY, double maxY, QString titleIn, QPoint startIn, QPoint endIn, unsigned int thicknessIn )
+//------------------------------------------------------------------------------
+//
+void profilePlot::enableProfileAxes (const bool enable)
 {
-    // Save a reference to the data for copying if required
-    data = profile;
-    title = titleIn;
-    start = startIn;
-    end = endIn;
-    thickness = thicknessIn;
-
-    // Update the plot
-    updateProfile( profile, minX, maxX, minY, maxY);
+   this->profileAxisEnabled = enable;
+   this->enableAxis (xBottom, this->profileAxisEnabled);
+   this->enableAxis (yLeft, this->profileAxisEnabled);
 }
 
+//------------------------------------------------------------------------------
+// Set the profile data
+void profilePlot::setProfile (QVector<QPointF>* profile,
+                              double minX, double maxX,
+                              double minY, double maxY, QString titleIn,
+                              QPoint startIn, QPoint endIn, unsigned int thicknessIn)
+{
+   // Save a reference to the data for copying if required
+   //
+   this->data = profile;
+   this->title = titleIn;
+   this->start = startIn;
+   this->end = endIn;
+   this->thickness = thicknessIn;
+
+   // Update the plot
+   //
+   this->updateProfile (profile, minX, maxX, minY, maxY);
+}
+
+//------------------------------------------------------------------------------
 // Clear the profile data
 void profilePlot::clearProfile()
 {
-    // Invalidate reference to the data (used for copying)
-    data = NULL;
+   // Invalidate reference to the data (used for copying)
+   this->data = NULL;
 
-    // Update the plot with 'nothing'
-    QVector<QPointF> empty;
-    updateProfile( &empty, 0.0, 1.0, 0.0, 1.0 );
+   // Update the plot with 'nothing'
+   QVector<QPointF> empty;
+   this->updateProfile (&empty, 0.0, 1.0, 0.0, 1.0);
 }
 
+//------------------------------------------------------------------------------
 // Update (set of clear) the profile data
-void profilePlot::updateProfile( QVector<QPointF>* profile, double minX, double maxX, double minY, double maxY )
+void profilePlot::updateProfile (QVector<QPointF>* profile,
+                                 double minX, double maxX,
+                                 double minY, double maxY)
 {
-    // Set the curve data
+   // Set the curve data
 #if QWT_VERSION >= 0x060000
-    curve->setSamples( *profile );
+   this->curve->setSamples( *profile );
 #else
-    curve->setData( *profile );
+   this->curve->setData( *profile );
 #endif
-    setAxisScale( xBottom, minX, maxX );
-    setAxisScale( yLeft, minY, maxY );
+   this->setAxisScale (xBottom, minX, maxX);
+   this->setAxisScale (yLeft,   minY, maxY);
 
-    // Update the plot
-    replot();
+   // Update the plot
+   this->replot();
 }
 
+//------------------------------------------------------------------------------
 // Show the profile plot context menu.
 //
 // This method currently populates a imageContextMenu with one 'copy plot data' option.
-// Refer to  QEImage::showImageContextMenu() to see how imageContextMenu can be populated with checkable, and non checkable items, and sub menus
+// Refer to  QEImage::showImageContextMenu() to see how imageContextMenu can be
+// populated with checkable, and non checkable items, and sub menus.
+//
 void profilePlot::showProfileContextMenu( const QPoint& pos )
 {
-    // Get the overall position on the display
-    QPoint globalPos = mapToGlobal( pos );
+   // Get the overall position on the display
+   QPoint globalPos = mapToGlobal( pos );
 
-    imageContextMenu menu;
+   imageContextMenu menu;
 
-    //                      Title                            checkable  checked                 option
-    menu.addMenuItem(       "Copy Plot Data",                false,     false,                  imageContextMenu::ICM_COPY_PLOT_DATA             );
+   //                      Title                            checkable  checked                 option
+   menu.addMenuItem(       "Copy Plot Data",                false,     false,                  imageContextMenu::ICM_COPY_PLOT_DATA             );
 
-    // Present the menu
-    imageContextMenu::imageContextMenuOptions option;
-    bool checked;
-    menu.getContextMenuOption( globalPos, &option, &checked );
+   // Present the menu
+   imageContextMenu::imageContextMenuOptions option;
+   bool checked;
+   menu.getContextMenuOption( globalPos, &option, &checked );
 
-    // Act on the menu selection
-    switch( option )
-    {
-        default:
-        case imageContextMenu::ICM_NONE:
-            break;
+   // Act on the menu selection
+   switch( option )
+   {
+      default:
+      case imageContextMenu::ICM_NONE:
+         break;
 
-        case imageContextMenu::ICM_COPY_PLOT_DATA:
-            copy();
-            break;
-    }
+      case imageContextMenu::ICM_COPY_PLOT_DATA:
+         this->copy();
+         break;
+   }
 }
 
+//------------------------------------------------------------------------------
 // Copy plot data to clipboard
 void profilePlot::copy()
 {
-    // If no data, do nothing
-    if( !data )
-        return;
+   // If no data, do nothing
+   if( !this->data )
+      return;
 
-    QClipboard *cb = QApplication::clipboard();
-    QString text;
-    text.append( title ).append( QString( " - Start: %1,%2  End: %3,%4  Thickness: %5\n" ).arg( start.x() ).arg( start.y() ).arg( end.x() ).arg( end.y() ).arg( thickness ) );
-    int size = data->size();
-    switch( plotDirection )
-    {
-        case PROFILEPLOT_LR: for( int i = 0; i < size; i++ )    text.append( QString( "%1\n" ).arg((*data)[i].y())); break;
-        case PROFILEPLOT_RL: for( int i = size-1; i >= 0; i-- ) text.append( QString( "%1\n" ).arg((*data)[i].y())); break;
-        case PROFILEPLOT_TB: for( int i = 0; i < size; i++ )    text.append( QString( "%1\n" ).arg((*data)[i].x())); break;
-        case PROFILEPLOT_BT: for( int i = size-1; i >= 0; i-- ) text.append( QString( "%1\n" ).arg((*data)[i].x())); break;
-    }
+   QClipboard *cb = QApplication::clipboard();
+   QString text;
+   text.append( title ).append( QString( " - Start: %1,%2  End: %3,%4  Thickness: %5\n" ).arg( start.x() ).arg( start.y() ).arg( end.x() ).arg( end.y() ).arg( thickness ) );
+   int size = this->data->size();
+   switch( this->plotDirection )
+   {
+      case PROFILEPLOT_LR:
+         for (int i = 0; i < size; i++)    text.append( QString( "%1\n" ).arg((*data)[i].y()));
+         break;
+      case PROFILEPLOT_RL:
+         for (int i = size-1; i >= 0; i--) text.append( QString( "%1\n" ).arg((*data)[i].y()));
+         break;
+      case PROFILEPLOT_TB:
+         for (int i = 0; i < size; i++)    text.append( QString( "%1\n" ).arg((*data)[i].x()));
+         break;
+      case PROFILEPLOT_BT:
+         for (int i = size-1; i >= 0; i--) text.append( QString( "%1\n" ).arg((*data)[i].x()));
+         break;
+   }
 
-    cb->setText( text );
+   cb->setText( text );
 }
+
+// end
