@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/qe/plugin/menu_button">
+        <file>menu_button_del_disabled.png</file>
+        <file>menu_button_del_enabled.png</file>
+        <file>menu_button_down_disabled.png</file>
+        <file>menu_button_down_enabled.png</file>
+        <file>menu_button_new_disabled.png</file>
+        <file>menu_button_new_enabled.png</file>
+        <file>menu_button_up_disabled.png</file>
+        <file>menu_button_up_enabled.png</file>
+    </qresource>
+</RCC>

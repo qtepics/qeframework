@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2022 Australian Synchrotron
+ *  Copyright (c) 2015-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -36,7 +36,7 @@
 #include <QAbstractItemModel>
 
 // The model is serialsed as a string so that is can be stored as a string
-// within the ui file containing the QEButton.
+// property within the ui file containing the QEMenuButton.
 // The string format is XML, specifically is consistant with that use
 // by the customisation file. Hopefully we can leverage off the comminality.
 //
@@ -46,8 +46,10 @@
 //
 //   <Item Name="Search" Separator="False">
 //       <Program>
-//          <Name>firefox</Name>
-//          <Arguments>www.google.com</Arguments>
+//          <Name>xmessage</Name>
+//          <Arguments>-nearmouse Hello World</Arguments>    -- deprecated
+//          <Argument>-nearmouse</Argument>                  -- prefered
+//          <Argument>Hello World</Argument>                 -- prefered
 //          <Start_Option>Terminal</Start_Option>
 //       </Program>
 //   </Item>

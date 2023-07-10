@@ -1,6 +1,9 @@
 /*  QEMenuButtonSetupDialog.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2015-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2015,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
@@ -33,7 +34,6 @@
 #include <QLineEdit>
 #include <QList>
 #include <QPoint>
-
 #include <QEPluginLibrary_global.h>
 
 // Differed declaration.
@@ -45,6 +45,7 @@ namespace Ui {
 class QEMenuButton;
 class QEMenuButtonModel;
 class QEMenuButtonItem;
+class QEMenuButtonArgumentsDialog;
 
 class QEPLUGINLIBRARYSHARED_EXPORT QEMenuButtonSetupDialog : public QDialog
 {
@@ -64,8 +65,9 @@ private:
    QList<QLineEdit*> lineEditList;
    QList<QComboBox*> comboBoxList;
    QList<QPushButton*> resetButtonList;
+   QEMenuButtonArgumentsDialog* argumentsDialog;
 
-   QEMenuButtonItem* selectedItem;    // saved on selection change
+   QEMenuButtonItem* selectedItem;       // saved on selection change
    QEMenuButtonItem* contextMenuItem;    // saved on treeMenuRequested
    bool acceptIsInhibited;
    bool returnIsMasked;
@@ -81,6 +83,7 @@ private slots:
    void textEdited (const QString& newText);
    void comboBoxActivated (int index);
    void resetButtonClicked (bool);
+   void onEditProgramArguments (bool);
 
    void editReturnPressed ();
    void on_buttonBox_accepted ();

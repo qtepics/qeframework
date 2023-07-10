@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (c) 2017 Australian Synchrotron
+# Copyright (c) 2017-2023 Australian Synchrotron
 #
 # Author:
 #   Andrew Starritt
@@ -25,13 +25,28 @@
 #   andrew.starritt@synchrotron.org.au
 #
 
-INCLUDEPATH += QEMenuButton
+INCLUDEPATH += $$PWD
 
-HEADERS +=     QEMenuButton/QEMenuButtonManager.h
-SOURCES +=     QEMenuButton/QEMenuButtonManager.cpp
+HEADERS += $$PWD/QEMenuButtonArgumentsDialog.h
+SOURCES += $$PWD/QEMenuButtonArgumentsDialog.cpp
+FORMS   += $$PWD/QEMenuButtonArgumentsDialog.ui
 
-HEADERS +=     QEMenuButton/QEMenuButtonSetupDialog.h
-SOURCES +=     QEMenuButton/QEMenuButtonSetupDialog.cpp
-FORMS   +=     QEMenuButton/QEMenuButtonSetupDialog.ui
+HEADERS += $$PWD/QEMenuButtonManager.h
+SOURCES += $$PWD/QEMenuButtonManager.cpp
+
+HEADERS += $$PWD/QEMenuButtonSetupDialog.h
+SOURCES += $$PWD/QEMenuButtonSetupDialog.cpp
+FORMS   += $$PWD/QEMenuButtonSetupDialog.ui
+
+OTHER_FILES += $$PWD/menu_button_del_disabled.png
+OTHER_FILES += $$PWD/menu_button_del_enabled.png
+OTHER_FILES += $$PWD/menu_button_down_disabled.png
+OTHER_FILES += $$PWD/menu_button_down_enabled.png
+OTHER_FILES += $$PWD/menu_button_new_disabled.png
+OTHER_FILES += $$PWD/menu_button_new_enabled.png
+OTHER_FILES += $$PWD/menu_button_up_disabled.png
+OTHER_FILES += $$PWD/menu_button_up_enabled.png
+
+RESOURCES   += $$PWD/QEMenuButton.qrc
 
 # end
