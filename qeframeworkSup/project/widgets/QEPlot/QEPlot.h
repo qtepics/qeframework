@@ -169,6 +169,8 @@ public:
    Q_PROPERTY (double yMax READ getYMax WRITE setYMax)
 
    Q_PROPERTY (bool autoScale READ getAutoScale WRITE setAutoScale)
+   Q_PROPERTY (bool logScale  READ getLogScale  WRITE setLogScale)
+
    Q_PROPERTY (bool archiveBackfill READ getArchiveBackfill WRITE setArchiveBackfill)
 
    Q_PROPERTY (bool axisEnableX READ getAxisEnableX WRITE setAxisEnableX)
@@ -262,6 +264,9 @@ public:
 
    void setAutoScale (const bool yAxisAutoScale);
    bool getAutoScale () const;
+
+   void setLogScale (const bool logScale);
+   bool getLogScale () const;
 
    void setArchiveBackfill (const bool archiveBackfill);
    bool getArchiveBackfill () const;
