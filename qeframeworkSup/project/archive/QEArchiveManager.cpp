@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2022 Australian Synchrotron
+ *  Copyright (c) 2012-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -41,6 +41,7 @@
 #include <QEAdaptationParameters.h>
 #include <QEArchiveInterfaceManager.h>
 #include <QEArchiveAccess.h>
+#include <QCaDataPoint.h>
 
 #define DEBUG  qDebug () << "QEArchiveManager" << __LINE__ <<  __FUNCTION__  << "  "
 
@@ -387,8 +388,9 @@ bool QEArchiveManager::getArchivePvInformation (
    QMutexLocker locker (archiveDataMutex);
 
    bool result = false;
+   QEArchiveAccess::MetaRequests meta;
 
-   bool isKnownPVName = this->containsPvName (pvName, effectivePvName);
+   bool isKnownPVName = this->containsPvName (pvName, effectivePvName, meta);
    if (isKnownPVName) {
       SourceSpec sourceSpec = this->pvNameToSourceLookUp->value (effectivePvName);
       QList<int> keys;
@@ -405,6 +407,10 @@ bool QEArchiveManager::getArchivePvInformation (
          item.path = keyTimeSpec.path;
          item.startTime = keyTimeSpec.startTime;
          item.endTime = keyTimeSpec.endTime;
+
+//         if (item.endTime < item.startTime) {
+//            DEBUG << pvName << item.startTime << item.endTime;
+//         }
 
          data.append (item);
          result = true;
@@ -443,7 +449,8 @@ void QEArchiveManager::resendStatus ()
 //------------------------------------------------------------------------------
 //
 bool QEArchiveManager::containsPvName (const QString& pvName,
-                                       QString& effectivePvName)
+                                       QString& effectivePvName,
+                                       QEArchiveAccess::MetaRequests& meta)
 {
    // NOTE: no lock here
 
@@ -461,7 +468,9 @@ bool QEArchiveManager::containsPvName (const QString& pvName,
       return false;
    }
 
-   // Extract the PV name sans protocol qualifier.
+   meta = QEArchiveAccess::mrNone;   // default
+
+   // Extract the PV name excluding protocol qualifier.
    //
    effectivePvName = uri.getPvName ();
 
@@ -479,15 +488,28 @@ bool QEArchiveManager::containsPvName (const QString& pvName,
    if (!result) {
       // No - the PV 'as is' is not archived.
       // If user has requested XXXXXX.VAL, check if XXXXXX is archived.
-      // Similarly, if user requested YYYYYY, check if YYYYYY.VAL is archived.
+      // Similarly, if user just requested YYYYYY, check if YYYYYY.VAL is archived.
       //
       if (effectivePvName.right (4) == ".VAL") {
          // Remove the .VAL field and try again.
          //
          effectivePvName.chop (4);
+
+      } else if (effectivePvName.right (5) == ".SEVR") {
+         // Remove the .VAL field and try again.
+         //
+         effectivePvName.chop (5);
+         meta = QEArchiveAccess::mrSeverity;
+
+      } else if (effectivePvName.right (5) == ".STAT") {
+         // Remove the .VAL field and try again.
+         //
+         effectivePvName.chop (5);
+         meta = QEArchiveAccess::mrStatus;
+
       } else {
          // Add .VAL and try again.
-         // This might now be name.FIELD.VAL but won't exist
+         // This might now be name.FIELD.VAL but it won't exist
          //
          effectivePvName.append (".VAL");
       }
@@ -562,6 +584,7 @@ void QEArchiveManager::readArchiveRequest (const QEArchiveAccess* archiveAccess,
    QMutexLocker locker (archiveDataMutex);
 
    QString effectivePvName;
+   QEArchiveAccess::MetaRequests meta;
    QString message;
 
    QEArchiveAccess::PVDataResponses response;
@@ -576,7 +599,7 @@ void QEArchiveManager::readArchiveRequest (const QEArchiveAccess* archiveAccess,
 
    // Is this PV currently being archived?
    //
-   bool isKnownPVName = this->containsPvName (request.pvName, effectivePvName);
+   bool isKnownPVName = this->containsPvName (request.pvName, effectivePvName, meta);
    if (isKnownPVName) {
 
       SourceSpec sourceSpec = this->pvNameToSourceLookUp->value (effectivePvName);
@@ -611,6 +634,7 @@ void QEArchiveManager::readArchiveRequest (const QEArchiveAccess* archiveAccess,
          QEArchiveAccess::PVDataRequests modifiedRequest;
          modifiedRequest = request;
          modifiedRequest.pvName = effectivePvName;
+         modifiedRequest.metaRequest = meta;
          sourceSpec.interfaceManager->dataRequest (archiveAccess, key, modifiedRequest);
          this->resendStatus ();
 
@@ -657,9 +681,10 @@ void QEArchiveManager::processPending ()
 
       PendingRequest pendingRequest = this->pendingRequests.value (j);
       QString effectivePvName;
+      QEArchiveAccess::MetaRequests meta;
 
       bool isKnownPVName = this->containsPvName (pendingRequest.userRequest.pvName,
-                                                 effectivePvName);
+                                                 effectivePvName, meta);
 
       if (isKnownPVName) {
          // readArchiveRequest will not add back to the list because containsPvName true.
@@ -797,8 +822,35 @@ void QEArchiveManager::aimDataResponse (
 {
    // We just take the response and pass it back to the requestor.
    //
-   if (archiveAccess)   // sanity check
-      archiveAccess->archiveResponse (response);
+   if (archiveAccess)  { // sanity check
+
+      const bool isSeverity = response.metaRequest == QEArchiveAccess::mrSeverity;
+      const bool isStatus   = response.metaRequest == QEArchiveAccess::mrStatus;
+
+      // Was this a meta data request?
+      //
+      if (isSeverity || isStatus) {
+         // In the data points lits, replace the VALue with the severity or status as requested.
+         //
+         QCaDataPointList metaPointsList;
+         const int n = response.pointsList.count();
+         metaPointsList.reserve (n);
+         for (int j = 0; j < n; j++) {
+            QCaDataPoint point = response.pointsList.value (j);
+            point.value = isSeverity ? point.alarm.getSeverity() : point.alarm.getStatus();
+            point.alarm = QCaAlarmInfo ();   // clear the alrm info so that always displayable.
+            metaPointsList.append (point);
+         }
+
+         QEArchiveAccess::PVDataResponses metaResponse;
+         metaResponse = response;
+         metaResponse.pointsList = metaPointsList;
+         archiveAccess->archiveResponse (metaResponse);
+      } else {
+         // Just return as is.
+         archiveAccess->archiveResponse (response);
+      }
+   }
 
    this->resendStatus ();
 }
