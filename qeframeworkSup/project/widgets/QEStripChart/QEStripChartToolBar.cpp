@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2019 Australian Synchrotron
+ *  Copyright (c) 2013-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -64,9 +64,7 @@
 #define STANDARD_TAB       0
 #define CONFIGURATION_TAB  1
 #define MARKERS_TAB        2
-#define LOCK_TAB           3
-#define PV_STATUS_TAB      4
-#define NUMBER_OF_TABS     5
+#define NUMBER_OF_TABS     3
 
 
 #define SELECT_FILE        "--- select configuration file ---"
@@ -175,11 +173,6 @@ public:
    QLabel* value4;
    QLabel* valueDelta2;
 
-   // Lock and PV Status tab
-   //
-   QLabel* placeHolder2;
-   QLabel* placeHolder3;
-
 private:
    QEStripChartToolBar* owner;
    int originalPointSize;
@@ -236,8 +229,6 @@ QEStripChartToolBar::OwnTabWidget::OwnTabWidget (QEStripChartToolBar* parent) : 
    this->addTab (new QWidget (this), " Standard ");
    this->addTab (new QWidget (this), " Configuration ");
    this->addTab (new QWidget (this), " Markers ");
-   this->addTab (new QWidget (this), " Lock ");
-   this->addTab (new QWidget (this), " PV Status ");
 
    // Create toolbar widgets
    //
@@ -368,18 +359,6 @@ QEStripChartToolBar::OwnTabWidget::OwnTabWidget (QEStripChartToolBar* parent) : 
    this->value3 =         createLabel ("", tabParent, left,  top, 140, labelHeight, true);
    this->value4 =         createLabel ("", tabParent, left,  top, 140, labelHeight, true);
    this->valueDelta2 =    createLabel ("", tabParent, left,  top, 140, labelHeight, true);
-
-   // Set up lock tab place holder
-   //
-   tabParent = this->widget (LOCK_TAB);
-   left = 4;
-   this->placeHolder2 = createLabel ("TBD", tabParent, left, 4, 40, labelHeight, true);
-
-   // Set up PV tab.
-   //
-   tabParent = this->widget (PV_STATUS_TAB);
-   left = 4;
-   this->placeHolder3 = createLabel ("TBD", tabParent, left, 4, 40, labelHeight, true);
 }
 
 //------------------------------------------------------------------------------
