@@ -46,6 +46,7 @@ OTHER_FILES += $$PWD/menu_button_new_disabled.png
 OTHER_FILES += $$PWD/menu_button_new_enabled.png
 OTHER_FILES += $$PWD/menu_button_up_disabled.png
 OTHER_FILES += $$PWD/menu_button_up_enabled.png
+OTHER_FILES += $$PWD/value_reset.png
 
 RESOURCES   += $$PWD/QEMenuButton.qrc
 

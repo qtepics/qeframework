@@ -151,7 +151,11 @@
             <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
-            <string>«</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
            </property>
           </widget>
          </item>
@@ -179,7 +183,11 @@
             <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
-            <string>«</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
            </property>
           </widget>
          </item>
@@ -207,7 +215,11 @@
             <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
-            <string>«</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
            </property>
           </widget>
          </item>
@@ -358,7 +370,11 @@
             <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
-            <string>«</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
            </property>
           </widget>
          </item>
@@ -481,7 +497,11 @@
             <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
-            <string>«</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
            </property>
           </widget>
          </item>
@@ -561,7 +581,11 @@
             <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
-            <string>«</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
            </property>
           </widget>
          </item>
@@ -627,7 +651,11 @@
             <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
-            <string>«</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
            </property>
           </widget>
          </item>
@@ -740,7 +768,11 @@
             <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
-            <string>«</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
            </property>
           </widget>
          </item>
@@ -793,7 +825,11 @@
             <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
-            <string>«</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
            </property>
           </widget>
          </item>
@@ -850,7 +886,11 @@
             <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
-            <string>«</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
            </property>
           </widget>
          </item>
@@ -910,7 +950,11 @@
             <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
-            <string>«</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
            </property>
           </widget>
          </item>
@@ -995,7 +1039,11 @@
             <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
-            <string>«</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
            </property>
           </widget>
          </item>

@@ -8,5 +8,6 @@
         <file>menu_button_new_enabled.png</file>
         <file>menu_button_up_disabled.png</file>
         <file>menu_button_up_enabled.png</file>
+        <file>value_reset.png</file>
     </qresource>
 </RCC>
