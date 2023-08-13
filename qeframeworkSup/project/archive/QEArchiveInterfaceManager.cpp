@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2021 Australian Synchrotron
+ *  Copyright (c) 2021-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -467,7 +467,7 @@ void QEArchiveInterfaceManager::valuesResponse (
 
    if (!context || (context->archiveInterfaceManager != this)) {
       DEBUG  << "instance" << this->instance << "userData mis-match";
-      // Should we delete userData in this situation
+      // Should we delete userData in this situation ?
       return;
    }
 
@@ -493,6 +493,7 @@ void QEArchiveInterfaceManager::valuesResponse (
       response.pointsList = valuesList.front().dataPoints;
    }
    response.pvName = requestInfo.request.pvName;
+   response.metaRequest = requestInfo.request.metaRequest;
    response.supplementary = response.isSuccess ? "okay" : "archiver response failure";
 
    // Hand off the the Archiver Manager.

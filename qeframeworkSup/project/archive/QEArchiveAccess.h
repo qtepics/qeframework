@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2017-2021 Australian Synchrotron
+ *  Copyright (c) 2017-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -154,8 +154,15 @@ public:
    // These are essentially a private type, but must be public for
    // meta data registration.
    //
+   enum MetaRequests {
+      mrNone = 0,      // VALue request
+      mrSeverity,      // SEVRity request
+      mrStatus         // STATUS request
+   };
+
    struct PVDataRequests {
       QObject* userData;
+      int metaRequest;        // defined by MetaRequests
       int key;
       QString pvName;
       QCaDateTime startTime;
@@ -167,6 +174,7 @@ public:
 
    struct PVDataResponses {
       QObject* userData;
+      int metaRequest;        // defined by MetaRequests
       bool isSuccess;
       QCaDataPointList pointsList;
       QString pvName;

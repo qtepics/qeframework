@@ -82,8 +82,8 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>500</width>
-          <height>412</height>
+          <width>498</width>
+          <height>416</height>
          </size>
         </property>
         <property name="frameShape">
@@ -108,159 +108,17 @@
          <property name="spacing">
           <number>4</number>
          </property>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_12">
-           <property name="minimumSize">
-            <size>
-             <width>142</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>name</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="menuItemName">
-           <property name="minimumSize">
-            <size>
-             <width>172</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>23</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QPushButton" name="pushButton_01">
-           <property name="minimumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string> Reset </string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: rgb(222, 222, 153);</string>
-           </property>
-           <property name="text">
-            <string>r</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_16">
-           <property name="minimumSize">
-            <size>
-             <width>142</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QCheckBox" name="useSeperator">
-           <property name="minimumSize">
-            <size>
-             <width>166</width>
-             <height>22</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Preceeding Separator</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QPushButton" name="pushButton_12">
-           <property name="minimumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string> Reset </string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: rgb(222, 222, 153);</string>
-           </property>
-           <property name="text">
-            <string>r</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0" colspan="3">
-          <widget class="QLabel" name="label_13">
-           <property name="minimumSize">
-            <size>
-             <width>400</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: rgb(240, 240, 240);</string>
-           </property>
-           <property name="text">
-            <string>Run Command</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
          <item row="3" column="0">
           <widget class="QLabel" name="label_7">
            <property name="minimumSize">
             <size>
-             <width>142</width>
+             <width>140</width>
              <height>17</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>16777215</width>
+             <width>140</width>
              <height>17</height>
             </size>
            </property>
@@ -269,83 +127,7 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="1">
-          <widget class="QLineEdit" name="programName">
-           <property name="minimumSize">
-            <size>
-             <width>172</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>23</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="2">
-          <widget class="QPushButton" name="pushButton_02">
-           <property name="minimumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string> Reset </string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: rgb(222, 222, 153);</string>
-           </property>
-           <property name="text">
-            <string>r</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_6">
-           <property name="minimumSize">
-            <size>
-             <width>142</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>arguments</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QLineEdit" name="programArguments">
-           <property name="minimumSize">
-            <size>
-             <width>172</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>23</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="2">
+         <item row="4" column="3">
           <widget class="QPushButton" name="pushButton_03">
            <property name="minimumSize">
             <size>
@@ -359,101 +141,8 @@
              <height>23</height>
             </size>
            </property>
-           <property name="toolTip">
-            <string> Reset </string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: rgb(222, 222, 153);</string>
-           </property>
-           <property name="text">
-            <string>r</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="label_5">
-           <property name="minimumSize">
-            <size>
-             <width>142</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>start options</string>
-           </property>
-          </widget>
-         </item>
-         <item row="13" column="1">
-          <widget class="QLineEdit" name="variableValue">
-           <property name="minimumSize">
-            <size>
-             <width>172</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>23</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
-          <widget class="QComboBox" name="programOptions">
-           <property name="minimumSize">
-            <size>
-             <width>172</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>23</height>
-            </size>
-           </property>
-           <item>
-            <property name="text">
-             <string>None</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Terminal</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>LogOutput</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>StdOutput</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item row="5" column="2">
-          <widget class="QPushButton" name="pushButton_04">
-           <property name="minimumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
            </property>
            <property name="toolTip">
             <string> Reset </string>
@@ -462,72 +151,16 @@
             <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
-            <string>r</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
            </property>
           </widget>
          </item>
-         <item row="6" column="0" colspan="3">
-          <widget class="QLabel" name="label_15">
-           <property name="minimumSize">
-            <size>
-             <width>400</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: rgb(240, 240, 240);</string>
-           </property>
-           <property name="text">
-            <string>Open Related Display</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="0">
-          <widget class="QLabel" name="label_8">
-           <property name="minimumSize">
-            <size>
-             <width>142</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>gui File</string>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="1">
-          <widget class="QLineEdit" name="openUiFilename">
-           <property name="minimumSize">
-            <size>
-             <width>172</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>23</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="2">
-          <widget class="QPushButton" name="pushButton_05">
+         <item row="0" column="3">
+          <widget class="QPushButton" name="pushButton_01">
            <property name="minimumSize">
             <size>
              <width>27</width>
@@ -539,6 +172,9 @@
              <width>27</width>
              <height>23</height>
             </size>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
            </property>
            <property name="toolTip">
             <string> Reset </string>
@@ -547,30 +183,47 @@
             <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
-            <string>r</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
            </property>
           </widget>
          </item>
-         <item row="8" column="0">
-          <widget class="QLabel" name="label_9">
+         <item row="13" column="3">
+          <widget class="QPushButton" name="pushButton_10">
            <property name="minimumSize">
             <size>
-             <width>142</width>
-             <height>17</height>
+             <width>27</width>
+             <height>23</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>16777215</width>
-             <height>17</height>
+             <width>27</width>
+             <height>23</height>
             </size>
            </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string> Reset </string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
+           </property>
            <property name="text">
-            <string>create option</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
            </property>
           </widget>
          </item>
-         <item row="8" column="1">
+         <item row="8" column="1" colspan="2">
           <widget class="QComboBox" name="openCreateOption">
            <property name="minimumSize">
             <size>
@@ -652,300 +305,7 @@
            </item>
           </widget>
          </item>
-         <item row="8" column="2">
-          <widget class="QPushButton" name="pushButton_06">
-           <property name="minimumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string> Reset </string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: rgb(222, 222, 153);</string>
-           </property>
-           <property name="text">
-            <string>r</string>
-           </property>
-          </widget>
-         </item>
-         <item row="9" column="0">
-          <widget class="QLabel" name="label_10">
-           <property name="minimumSize">
-            <size>
-             <width>142</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>priority substitutions</string>
-           </property>
-          </widget>
-         </item>
-         <item row="9" column="1">
-          <widget class="QLineEdit" name="openPrioritySubstitutions">
-           <property name="minimumSize">
-            <size>
-             <width>172</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>23</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="9" column="2">
-          <widget class="QPushButton" name="pushButton_07">
-           <property name="minimumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string> Reset </string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: rgb(222, 222, 153);</string>
-           </property>
-           <property name="text">
-            <string>r</string>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="0">
-          <widget class="QLabel" name="label_11">
-           <property name="minimumSize">
-            <size>
-             <width>142</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>custiomisation name</string>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="1">
-          <widget class="QLineEdit" name="openCustomisationName">
-           <property name="minimumSize">
-            <size>
-             <width>172</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>23</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="2">
-          <widget class="QPushButton" name="pushButton_08">
-           <property name="minimumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string> Reset </string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: rgb(222, 222, 153);</string>
-           </property>
-           <property name="text">
-            <string>r</string>
-           </property>
-          </widget>
-         </item>
-         <item row="11" column="0" colspan="3">
-          <widget class="QLabel" name="label_14">
-           <property name="minimumSize">
-            <size>
-             <width>400</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: rgb(240, 240, 240);</string>
-           </property>
-           <property name="text">
-            <string>Process Variable</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="12" column="0">
-          <widget class="QLabel" name="label_1">
-           <property name="minimumSize">
-            <size>
-             <width>142</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>variable</string>
-           </property>
-          </widget>
-         </item>
-         <item row="12" column="1">
-          <widget class="QLineEdit" name="variableName">
-           <property name="minimumSize">
-            <size>
-             <width>172</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>23</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="12" column="2">
-          <widget class="QPushButton" name="pushButton_09">
-           <property name="minimumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string> Reset </string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: rgb(222, 222, 153);</string>
-           </property>
-           <property name="text">
-            <string>r</string>
-           </property>
-          </widget>
-         </item>
-         <item row="13" column="0">
-          <widget class="QLabel" name="label_2">
-           <property name="minimumSize">
-            <size>
-             <width>142</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>click text</string>
-           </property>
-          </widget>
-         </item>
-         <item row="13" column="2">
-          <widget class="QPushButton" name="pushButton_10">
-           <property name="minimumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>27</width>
-             <height>23</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string> Reset </string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: rgb(222, 222, 153);</string>
-           </property>
-           <property name="text">
-            <string>r</string>
-           </property>
-          </widget>
-         </item>
-         <item row="14" column="0">
-          <widget class="QLabel" name="label_3">
-           <property name="minimumSize">
-            <size>
-             <width>142</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>17</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>format</string>
-           </property>
-          </widget>
-         </item>
-         <item row="14" column="1">
+         <item row="14" column="1" colspan="2">
           <widget class="QComboBox" name="variableFormat">
            <property name="minimumSize">
             <size>
@@ -986,7 +346,523 @@
            </item>
           </widget>
          </item>
-         <item row="14" column="2">
+         <item row="10" column="3">
+          <widget class="QPushButton" name="pushButton_08">
+           <property name="minimumSize">
+            <size>
+             <width>27</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>27</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string> Reset </string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1" colspan="2">
+          <widget class="QLineEdit" name="programName">
+           <property name="minimumSize">
+            <size>
+             <width>172</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>23</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="0">
+          <widget class="QLabel" name="label_11">
+           <property name="minimumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>custiomisation name</string>
+           </property>
+          </widget>
+         </item>
+         <item row="13" column="1" colspan="2">
+          <widget class="QLineEdit" name="variableValue">
+           <property name="minimumSize">
+            <size>
+             <width>172</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>23</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0" colspan="4">
+          <widget class="QLabel" name="label_15">
+           <property name="minimumSize">
+            <size>
+             <width>400</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(240, 240, 240);</string>
+           </property>
+           <property name="text">
+            <string>Open Related Display</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="0">
+          <widget class="QLabel" name="label_10">
+           <property name="minimumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>priority substitutions</string>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="3">
+          <widget class="QPushButton" name="pushButton_06">
+           <property name="minimumSize">
+            <size>
+             <width>27</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>27</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string> Reset </string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="0">
+          <widget class="QLabel" name="label_3">
+           <property name="minimumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>format</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="2">
+          <widget class="QPushButton" name="programArgumentsEdit">
+           <property name="minimumSize">
+            <size>
+             <width>25</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>25</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+            </font>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string> Edit program arguments </string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(152, 187, 222);</string>
+           </property>
+           <property name="text">
+            <string>E</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="3">
+          <widget class="QPushButton" name="pushButton_02">
+           <property name="minimumSize">
+            <size>
+             <width>27</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>27</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string> Reset </string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_16">
+           <property name="minimumSize">
+            <size>
+             <width>142</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="13" column="0">
+          <widget class="QLabel" name="label_2">
+           <property name="minimumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>click text</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="3">
+          <widget class="QPushButton" name="pushButton_04">
+           <property name="minimumSize">
+            <size>
+             <width>27</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>27</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string> Reset </string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0">
+          <widget class="QLabel" name="label_8">
+           <property name="minimumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>gui File</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLabel" name="programArgumentsLabel">
+           <property name="minimumSize">
+            <size>
+             <width>172</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(255, 255, 255);</string>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="0">
+          <widget class="QLabel" name="label_9">
+           <property name="minimumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>create option</string>
+           </property>
+          </widget>
+         </item>
+         <item row="11" column="0" colspan="4">
+          <widget class="QLabel" name="label_14">
+           <property name="minimumSize">
+            <size>
+             <width>400</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(240, 240, 240);</string>
+           </property>
+           <property name="text">
+            <string>Process Variable</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="3">
+          <widget class="QPushButton" name="pushButton_05">
+           <property name="minimumSize">
+            <size>
+             <width>27</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>27</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string> Reset </string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0" colspan="4">
+          <widget class="QLabel" name="label_13">
+           <property name="minimumSize">
+            <size>
+             <width>400</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(240, 240, 240);</string>
+           </property>
+           <property name="text">
+            <string>Run Command</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="12" column="3">
+          <widget class="QPushButton" name="pushButton_09">
+           <property name="minimumSize">
+            <size>
+             <width>27</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>27</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string> Reset </string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1" colspan="2">
+          <widget class="QCheckBox" name="useSeperator">
+           <property name="minimumSize">
+            <size>
+             <width>166</width>
+             <height>22</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Preceeding Separator</string>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="1" colspan="2">
+          <widget class="QLineEdit" name="openCustomisationName">
+           <property name="minimumSize">
+            <size>
+             <width>172</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>23</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="3">
           <widget class="QPushButton" name="pushButton_11">
            <property name="minimumSize">
             <size>
@@ -1000,6 +876,9 @@
              <height>23</height>
             </size>
            </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="toolTip">
             <string> Reset </string>
            </property>
@@ -1007,7 +886,251 @@
             <string notr="true">background-color: rgb(222, 222, 153);</string>
            </property>
            <property name="text">
-            <string>r</string>
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="1" colspan="2">
+          <widget class="QLineEdit" name="openPrioritySubstitutions">
+           <property name="minimumSize">
+            <size>
+             <width>172</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>23</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="1" colspan="2">
+          <widget class="QLineEdit" name="openUiFilename">
+           <property name="minimumSize">
+            <size>
+             <width>172</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>23</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="3">
+          <widget class="QPushButton" name="pushButton_07">
+           <property name="minimumSize">
+            <size>
+             <width>27</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>27</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string> Reset </string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_12">
+           <property name="minimumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>name</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_5">
+           <property name="minimumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>start options</string>
+           </property>
+          </widget>
+         </item>
+         <item row="12" column="0">
+          <widget class="QLabel" name="label_1">
+           <property name="minimumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>variable</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3">
+          <widget class="QPushButton" name="pushButton_12">
+           <property name="minimumSize">
+            <size>
+             <width>27</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>27</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string> Reset </string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 153);</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>:/qe/plugin/menu_button/value_reset.png</normaloff>:/qe/plugin/menu_button/value_reset.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_6">
+           <property name="minimumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>140</width>
+             <height>17</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>arguments</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1" colspan="2">
+          <widget class="QLineEdit" name="menuItemName">
+           <property name="minimumSize">
+            <size>
+             <width>172</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>23</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1" colspan="2">
+          <widget class="QComboBox" name="programOptions">
+           <property name="minimumSize">
+            <size>
+             <width>172</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>23</height>
+            </size>
+           </property>
+           <item>
+            <property name="text">
+             <string>None</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Terminal</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>LogOutput</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>StdOutput</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="12" column="1" colspan="2">
+          <widget class="QLineEdit" name="variableName">
+           <property name="minimumSize">
+            <size>
+             <width>172</width>
+             <height>23</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>23</height>
+            </size>
            </property>
           </widget>
          </item>

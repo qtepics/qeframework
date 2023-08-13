@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (c) 2014-2022  Australian Synchrotron.
+ *  Copyright (c) 2014-2023  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -51,7 +51,7 @@ static const double  NO_DATA_VALUE = -1073741824.0;
 static const QColor  NO_COLOUR_VALUE = QColor (3, 1, 4, 2);   // Pi colour ;-)
 
 static const double  MINIMUM_SPAN  = +1.0E-18;
-static const int     MAX_CAPACITY  = 10000;
+static const int     MAX_CAPACITY  = 100000;
 
 //------------------------------------------------------------------------------
 //

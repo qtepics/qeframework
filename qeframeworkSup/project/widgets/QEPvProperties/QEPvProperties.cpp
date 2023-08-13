@@ -1071,8 +1071,12 @@ void QEPvProperties::setValueValue (const QVariant& value,
       for (j = 0; j < this->enumerationLabelList.count (); j++) {
          enumLabel = this->enumerationLabelList.value (j);
          if (j < n) {
-            // Value is specified.
-            enumLabel->setText (enumerations.value (j));
+            // Form label text by prefixing with the numeric index value.
+            //
+            const QString enumText = QString ("%1:  %2")
+                  .arg (j, 2)
+                  .arg (enumerations.value (j));
+            enumLabel->setText (enumText);
             enumLast = enumLabel;
             enumLabel->setVisible (true);
          } else {

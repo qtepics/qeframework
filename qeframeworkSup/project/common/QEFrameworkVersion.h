@@ -46,7 +46,7 @@
 //
 #define QE_VERSION_MAJOR      3     // Public releases that include interface or paradigm changes that may require changes to the way the framework is used.
 #define QE_VERSION_MINOR      9     // Public releases containing significant new functionality (may include fixes as well)
-#define QE_VERSION_RELEASE    1     // Public releases containing backward compatible new functionality and/or fixes.
+#define QE_VERSION_RELEASE    2     // Public releases containing backward compatible new functionality and/or fixes.
 
 // The integer version is (major << 16) + (minor << 8) + release, and this macro
 // is used to constuct an integer version number.
@@ -83,10 +83,10 @@ public:
 
    static unsigned int getMajor ();         // e.g. 3
    static unsigned int getMinor ();         // e.g. 9
-   static unsigned int getRelease ();       // e.g. 1
+   static unsigned int getRelease ();       // e.g. 2
    static const QString getStage ();        // e.g. "Production"
-   static const QString getString ();       // e.g. "3.9.1 (Production)"
-   static const QString getDateTime ();     // e.g. "Feb 21 2023 16:16:27"
+   static const QString getString ();       // e.g. "3.9.2 (Production)"
+   static const QString getDateTime ();     // e.g. "Aug 8 2023 16:16:27"
 
    // Conditional compile attributes.
    //
@@ -94,10 +94,10 @@ public:
 
    // Other version info
    //
-   static const QString getQtVersionStr ();     // e.g. "QT 5.12.8"
-   static const QString getQwtVersionStr ();    // e.g. "QWT 6.1.3"
+   static const QString getQtVersionStr ();     // e.g. "QT 6.4.0"
+   static const QString getQwtVersionStr ();    // e.g. "QWT 6.3.0"
    static const QString getEpicsVersionStr ();  // e.g. "EPICS 7.0.7"
-   static const QString getAcaiVersionStr ();   // e.g. "ACAI 1.7.3"
+   static const QString getAcaiVersionStr ();   // e.g. "ACAI 1.7.5"
 };
 
 #endif // QE_FRAMEWORK_VERSION_H

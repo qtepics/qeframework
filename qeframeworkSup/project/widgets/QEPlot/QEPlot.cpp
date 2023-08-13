@@ -1521,6 +1521,21 @@ void QEPlot::setArchiveBackfill (const bool archiveBackfillIn)
 
 //------------------------------------------------------------------------------
 //
+void QEPlot::setLogScale (const bool logScale)
+{
+   this->plotArea->setYLogarithmic (logScale);
+   this->replotIsRequired = true;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEPlot::getLogScale () const
+{
+   return this->plotArea->getYLogarithmic ();
+}
+
+//------------------------------------------------------------------------------
+//
 bool QEPlot::getArchiveBackfill () const
 {
    return this->archiveBackfill;

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2021 Australian Synchrotron.
+ *  Copyright (c) 2014-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -106,7 +106,7 @@ QStringList QEPvNameSearch::getMatchingPvNames (const QRegularExpression& reIn,
    QRegularExpression re = reIn;
    if (exactMatch) {
       // Bracket the original expression with '^' and '$', and form a modified expression.
-      // Double '^^" and/or '$$' are okay and we don;t need to check for that.
+      // Double '^^" and/or '$$' are okay and we don't need to check for that.
       //
       QString pattern = QString ("^") + reIn.pattern() + QString ("$");
       re.setPattern (pattern);

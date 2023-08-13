@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron
+ *  Copyright (c) 2013-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -64,6 +64,7 @@ private slots:
     void on_checkBoxInfo_clicked(bool checked);
     void on_checkBoxTime_clicked(bool checked);
     void on_checkBoxFalseColour_clicked(bool checked);
+    void on_checkBoxProfileAxes_clicked(bool checked);
     void on_checkBoxBrightnessContrast_clicked(bool checked);
     void on_checkBoxRecorder_clicked(bool checked);
     void on_checkBoxButtonBar_clicked(bool checked);

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2022 Australian Synchrotron
+ *  Copyright (c) 2015-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -44,6 +44,7 @@
 #include <QEMenuButton.h>
 #include <QEMenuButtonItem.h>
 #include <QEMenuButtonModel.h>
+#include <QEMenuButtonArgumentsDialog.h>
 
 #include <ui_QEMenuButtonSetupDialog.h>
 
@@ -51,9 +52,11 @@
 
 // Used to qualify context menu actions.
 //
-enum Actions { ADD_MENU_ITEM_ACTION = 1,
-               DEL_MENU_ITEM_ACTION,
-               ADD_SUB_MENU_ACTION };
+enum Actions {
+   ADD_MENU_ITEM_ACTION = 1,
+   DEL_MENU_ITEM_ACTION,
+   ADD_SUB_MENU_ACTION
+};
 
 
 // Must be consistant with QEMenuButtonSetupDialog.ui
@@ -91,13 +94,13 @@ QEMenuButtonSetupDialog::QEMenuButtonSetupDialog (QEMenuButton* menuButtonIn,
    this->acceptIsInhibited = true;
 
    this->ui->setupUi (this);
+   this->argumentsDialog = new QEMenuButtonArgumentsDialog (this);
 
    // Create lists of widgets.
    //
    this->lineEditList.append (this->ui->menuItemName);
 
    this->lineEditList.append (this->ui->programName);
-   this->lineEditList.append (this->ui->programArguments);
    this->comboBoxList.append (this->ui->programOptions);
 
    this->lineEditList.append (this->ui->openUiFilename);
@@ -214,6 +217,12 @@ QEMenuButtonSetupDialog::QEMenuButtonSetupDialog (QEMenuButton* menuButtonIn,
       QObject::connect (btn,  SIGNAL (clicked            (bool)),
                         this, SLOT   (resetButtonClicked (bool)));
    }
+
+   // Edit program arguments
+   //
+   QObject::connect (this->ui->programArgumentsEdit,  SIGNAL (clicked                (bool)),
+                     this,                            SLOT   (onEditProgramArguments (bool)));
+
 }
 
 //-----------------------------------------------------------------------------
@@ -267,6 +276,8 @@ void QEMenuButtonSetupDialog::itemSelected (QEMenuButtonItem* item)
       w->setEnabled (enable);
    }
 
+   this->ui->programArgumentsEdit->setEnabled (enable);
+
    if (item) {
       this->ui->menuItemName->setEnabled (true);
       this->ui->menuItemName->setText (item->getName ());
@@ -278,7 +289,7 @@ void QEMenuButtonSetupDialog::itemSelected (QEMenuButtonItem* item)
          // This is not a sub menu item - set up all "properties".
          //
          this->ui->programName->setText (item->data.programName);
-         this->ui->programArguments->setText (QEMenuButtonData::join (item->data.programArguments));
+         this->ui->programArgumentsLabel->setText (item->data.programArguments.join("; "));
          this->ui->programOptions->setCurrentIndex ((int) item->data.programStartupOption);
 
          this->ui->openUiFilename->setText (item->data.uiFilename);
@@ -373,9 +384,10 @@ void QEMenuButtonSetupDialog::treeMenuRequested (const QPoint& pos)
 
 //-----------------------------------------------------------------------------
 //
-static int n = 100000;
 void QEMenuButtonSetupDialog::treeMenuSelected  (QAction* action)
 {
+   static int number = 100;
+
    bool okay;
    int intAction;
    QEMenuButtonItem* item = NULL;
@@ -402,7 +414,7 @@ void QEMenuButtonSetupDialog::treeMenuSelected  (QAction* action)
             attachTo = NULL;   // just add to top level.
          }
 
-         item = new QEMenuButtonItem (QString ("X%1").arg (n++),
+         item = new QEMenuButtonItem (QString ("MenuItem_%1").arg (++number),
                                       intAction == ADD_SUB_MENU_ACTION,
                                       NULL, NULL);
          this->model->addItemToModel (item, attachTo);
@@ -434,7 +446,7 @@ void QEMenuButtonSetupDialog::treeMenuSelected  (QAction* action)
 //
 void QEMenuButtonSetupDialog::stateChanged (int state)
 {
-   QEMenuButtonItem* item = selectedItem;
+   QEMenuButtonItem* item = this->selectedItem;
    if (!item) return;
 
    switch (state) {
@@ -457,7 +469,7 @@ void QEMenuButtonSetupDialog::stateChanged (int state)
 //
 void QEMenuButtonSetupDialog::textEdited (const QString& newText)
 {
-   QEMenuButtonItem* item = selectedItem;
+   QEMenuButtonItem* item = this->selectedItem;
    if (!item) return;
 
    QLineEdit* lineEdit = dynamic_cast <QLineEdit*> (sender ());
@@ -472,9 +484,6 @@ void QEMenuButtonSetupDialog::textEdited (const QString& newText)
        this->model->itemUpdated (item);
    } else
    APPLY (this->ui->programName, item->data.programName)
-   if (lineEdit == this->ui->programArguments) {
-      item->data.programArguments = QEMenuButtonData::split (newText);
-   } else
    APPLY (this->ui->openUiFilename, item->data.uiFilename)
    APPLY (this->ui->openPrioritySubstitutions, item->data.prioritySubstitutions)
    APPLY (this->ui->openCustomisationName, item->data.customisationName)
@@ -492,7 +501,7 @@ void QEMenuButtonSetupDialog::textEdited (const QString& newText)
 //
 void QEMenuButtonSetupDialog::comboBoxActivated (int index)
 {
-   QEMenuButtonItem* item = selectedItem;
+   QEMenuButtonItem* item = this->selectedItem;
    if (!item) return;
    QComboBox* comboBox = dynamic_cast <QComboBox*> (sender ());
 
@@ -514,7 +523,7 @@ void QEMenuButtonSetupDialog::comboBoxActivated (int index)
 //
 void QEMenuButtonSetupDialog::resetButtonClicked (bool)
 {
-   QEMenuButtonItem* item = selectedItem;
+   QEMenuButtonItem* item = this->selectedItem;
    if (!item) return;
    QPushButton* resetButton = dynamic_cast <QPushButton*> (sender ());
 
@@ -531,7 +540,7 @@ void QEMenuButtonSetupDialog::resetButtonClicked (bool)
 
    CHECKB (this->ui->pushButton_02, programName, item->data.programName, "")
    if (resetButton == this->ui->pushButton_03) {
-      this->ui->programArguments->setText ("");
+      this->ui->programArgumentsLabel->setText ("");
       item->data.programArguments.clear ();
    } else
    CHECKC (this->ui->pushButton_04, programOptions, item->data.programStartupOption, applicationLauncher::PSO_NONE)
@@ -551,6 +560,23 @@ void QEMenuButtonSetupDialog::resetButtonClicked (bool)
 
 #undef CHECKC
 #undef CHECKB
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEMenuButtonSetupDialog::onEditProgramArguments (bool)
+{
+   QEMenuButtonItem* item = this->selectedItem;
+   if (!item) return;
+
+   this->argumentsDialog->setArgumentList (item->data.programArguments);
+   const int status = this->argumentsDialog->exec (this->ui->programArgumentsEdit);
+   if (status == 1) {
+      const QStringList argList = this->argumentsDialog->getArgumentList();
+      const QString argText = argList.join ("; ");
+      item->data.programArguments = argList;
+      this->ui->programArgumentsLabel->setText (argText);
+   }
 }
 
 //-----------------------------------------------------------------------------

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2022 Australian Synchrotron
+ *  Copyright (c) 2015-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -119,7 +119,11 @@ QDomElement QEMenuButtonItem::createDomElement (QDomDocument& doc) const
          itemElement = doc.createElement ("Program");
 
          ADD_SUB_ELEMENT ("Name", this->data.programName);
-         ADD_SUB_ELEMENT ("Arguments", QEMenuButtonData::join (this->data.programArguments));
+
+         // Add each argument as its own dom element
+         for (int a = 0; a < this->data.programArguments.count(); a++) {
+             ADD_SUB_ELEMENT ("Argument", this->data.programArguments.value (a));
+         }
          ADD_SUB_ELEMENT ("Start_Option", QEMenuButtonData::psoToString (this->data.programStartupOption));
 
          result.appendChild (itemElement);
@@ -190,6 +194,7 @@ bool QEMenuButtonItem::extractFromDomElement (const QDomElement& element)
       // Leaf item.
       //
       this->isSubMenuContainer = false;
+      QDomElement itemElement;
 
 #define EXTRACT_FROM_ELEMENT(name, value, def)  {                             \
    QDomNode textElement = itemElement.namedItem (name);                       \
@@ -202,7 +207,6 @@ bool QEMenuButtonItem::extractFromDomElement (const QDomElement& element)
       // Parse XML using Qt's Document Object Model.
       // We look for required tags
       //
-      QDomElement itemElement;
       QString tagName;
       QString argText;
       QString enumText;
@@ -216,9 +220,27 @@ bool QEMenuButtonItem::extractFromDomElement (const QDomElement& element)
 
             EXTRACT_FROM_ELEMENT ("Name", this->data.programName, "");
 
-            EXTRACT_FROM_ELEMENT ("Arguments", argText, "");
-            this->data.programArguments = QEMenuButtonData::split (argText);
+            QDomElement argElement;
+            bool atLeastOne = false;
+            this->data.programArguments.clear();
+            argElement = itemElement.firstChildElement ("Argument");
+            while (!argElement.isNull ()) {
+               QDomNode argNode = argElement.firstChild ().toText ();
+               QDomText argText = argNode.toText();
+               QString value = argText.nodeValue();
+               this->data.programArguments.append(value);
+               atLeastOne = true;
+               argElement = argElement.nextSiblingElement ("Argument");
+            }
+
+            if (!atLeastOne) {
+               // Deprecated
+               EXTRACT_FROM_ELEMENT ("Arguments", argText, "");
+               this->data.programArguments = QEMenuButtonData::split (argText);
+            }
+
             EXTRACT_FROM_ELEMENT ("Start_Option", enumText, "0");
+
             this->data.programStartupOption = QEMenuButtonData::stringToPso (enumText);
 
          } else if (tagName == "Window") {
@@ -237,7 +259,7 @@ bool QEMenuButtonItem::extractFromDomElement (const QDomElement& element)
             this->data.format = QEMenuButtonData::stringToFormat (enumText);
 
          } else {
-            qWarning () << __FUNCTION__ << __LINE__ << " ignoring unexpected tag " << tagName;
+            DEBUG << "warning: ignoring unexpected tag " << tagName;
          }
 
          itemElement = itemElement.nextSiblingElement ("");
@@ -246,7 +268,7 @@ bool QEMenuButtonItem::extractFromDomElement (const QDomElement& element)
 #undef EXTRACT_FROM_ELEMENT
 
    } else {
-      qWarning () << __FUNCTION__ << __LINE__ << " unexpected element tag:" << itemTagName;
+      DEBUG << "warning: unexpected element tag:" << itemTagName;
       result = false;
    }
 

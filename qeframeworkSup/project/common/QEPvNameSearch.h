@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2022 Australian Synchrotron.
+ *  Copyright (c) 2014-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -34,8 +34,8 @@
 #include <QEFrameworkLibraryGlobal.h>
 
 /// Provides a basic name search capability. Extracted from archiver manager
-/// in ordger to provide a more flexibility, i.e. sets of PV names which can
-/// be source from any source.
+/// in ordger to provide a more flexibility, i.e. using sets of PV names which
+/// can be sourced from anywhere, not just the archiver.
 //
 // QEPvNameSearch is essentially just a contrainer/wrapper around a QStringList
 //
@@ -67,6 +67,8 @@ public:
    // sophisticated pattern matching. The second just returns a list of all the
    // PV names containing the substring str. The cs parameter determines whether
    // the string comparison is case sensitive or case insensitive.
+   //
+   // If exact match set true, the given expression is braketed with '^' and '$'.
    //
    QStringList getMatchingPvNames (const QRegularExpression& re, const bool exactMatch) const;
    QStringList getMatchingPvNames (const QString& str, const Qt::CaseSensitivity cs) const;
