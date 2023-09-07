@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2021-2022 Australian Synchrotron
+ *  Copyright (c) 2021-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -245,7 +245,7 @@ private slots:
                                     QString substitutions,
                                     unsigned int variableIndex);
 
-   void selected (const QString& value);
+   void selected (int index);
 };
 
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
