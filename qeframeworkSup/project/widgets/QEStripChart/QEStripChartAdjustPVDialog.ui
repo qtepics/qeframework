@@ -131,9 +131,6 @@
              <height>16</height>
             </size>
            </property>
-           <property name="font">
-            <font/>
-           </property>
            <property name="text">
             <string>Origin (d)   </string>
            </property>
@@ -208,9 +205,6 @@
              <height>16</height>
             </size>
            </property>
-           <property name="font">
-            <font/>
-           </property>
            <property name="text">
             <string>Slope (m)</string>
            </property>
@@ -284,9 +278,6 @@
              <width>76</width>
              <height>16</height>
             </size>
-           </property>
-           <property name="font">
-            <font/>
            </property>
            <property name="text">
             <string>Offset (c)</string>
