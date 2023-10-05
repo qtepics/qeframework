@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2022 Australian Synchrotron
+ *  Copyright (c) 2009-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -37,10 +37,11 @@
 #include <QEAdaptationParameters.h>
 #include <QEArchiveInterface.h>
 #include <QEPlatform.h>
+#include <QERecordFieldName.h>
 
 #define DEBUG  qDebug () << "QCaAlarmInfo" << __LINE__ << __FUNCTION__ << "  "
 
-// Quazi OOS severity (set to more more than 3, i.e. INVALID)
+// Quazi OOS severity (set to one more than 3, i.e. one more than INVALID)
 //
 static const QCaAlarmInfo::Severity OOS_ALARM = 4;
 static const int NUMBER_SEVERITIES = 5;
@@ -326,7 +327,8 @@ QCaAlarmInfo::Status QCaAlarmInfo::getStatus () const
 // QCaAlarmInfoColorNamesManager
 //==============================================================================
 //
-QStringList QCaAlarmInfoColorNamesManager::OosPvNameList;
+QStringList QCaAlarmInfoColorNamesManager::oosPvNameList;
+QCaAlarmInfoColorNamesManager::QRegularExpressionList QCaAlarmInfoColorNamesManager::oosRegExpList;
 
 //------------------------------------------------------------------------------
 //
@@ -436,14 +438,37 @@ QStringList QCaAlarmInfoColorNamesManager::getDefaultColorNames()
 // static
 void QCaAlarmInfoColorNamesManager::setOosPvNameList (const QStringList& pvNameListIn)
 {
-   QCaAlarmInfoColorNamesManager::OosPvNameList = pvNameListIn;
+   // We keep a copy for getOosPvNameList
+   //
+   QCaAlarmInfoColorNamesManager::oosPvNameList = pvNameListIn;
+
+   QCaAlarmInfoColorNamesManager::oosRegExpList.clear();
+
+   const int n = QCaAlarmInfoColorNamesManager::oosPvNameList.count();
+   for (int j = 0; j < n; j++) {
+      QString pattern = QCaAlarmInfoColorNamesManager::oosPvNameList.value (j).trimmed();
+
+      // Ignore empty value and comment values.
+      //
+      if (pattern.isEmpty()) continue;
+      if (pattern.startsWith ('#')) continue;
+
+      // Ensure we have an exact match (as per the name filter on the strip chart etc.).
+      // Bracket the pattern with '^' and '$', and form a modified pattern.
+      // Double '^^" and/or '$$' are okay and we don't need to check for that.
+      //
+      pattern = QString ("^") + pattern + QString ("$");
+
+      QRegularExpression re (pattern, QRegularExpression::NoPatternOption);
+      QCaAlarmInfoColorNamesManager::oosRegExpList.append(re);
+   }
 }
 
 //------------------------------------------------------------------------------
 // static
 QStringList QCaAlarmInfoColorNamesManager::getOosPvNameList ()
 {
-   return QCaAlarmInfoColorNamesManager::OosPvNameList;
+   return QCaAlarmInfoColorNamesManager::oosPvNameList;
 }
 
 //------------------------------------------------------------------------------
@@ -451,7 +476,61 @@ QStringList QCaAlarmInfoColorNamesManager::getOosPvNameList ()
 //
 void QCaAlarmInfoColorNamesManager::clearOosPvNameList ()
 {
-   QCaAlarmInfoColorNamesManager::OosPvNameList.clear();
+   QCaAlarmInfoColorNamesManager::oosPvNameList.clear();
+   QCaAlarmInfoColorNamesManager::oosRegExpList.clear();
+}
+
+//------------------------------------------------------------------------------
+// static
+bool QCaAlarmInfoColorNamesManager::isBasicNameMatch (const QString& pvName)
+{
+   const int n = QCaAlarmInfoColorNamesManager::oosRegExpList.count();
+   for (int j = 0; j < n; j++) {
+      const QRegularExpression re = QCaAlarmInfoColorNamesManager::oosRegExpList.value (j);
+      const QRegularExpressionMatch match = re.match(pvName);
+      if (match.hasMatch()) return true;
+   }
+
+   return false;
+}
+
+//------------------------------------------------------------------------------
+// Checks for <pvname> , <pvname>.VAL  or <pvname> without a trailing .VAL
+// static
+bool QCaAlarmInfoColorNamesManager::isSmartNameMatch (const QString& pvName)
+{
+   // Basic name check first
+   //
+   if (QCaAlarmInfoColorNamesManager::isBasicNameMatch (pvName))
+      return true;
+
+   // The PV 'as is' is not an OOS match.
+   // If user has specified XXXXXX.VAL, check if XXXXXX is specfied.
+   // Similarly, if user specfied YYYYYY, check if YYYYYY.VAL is specfied.
+   //
+   // Note: This is similar to what the archiver interface does.
+   //
+   if (QERecordFieldName::fieldName (pvName) == "VAL") {
+      // PV name is either   XXXXXX.VAL  or XXXXXX
+      // Note: We do not worry about names like XXXXXX.  or XXXXXX.VAL[0:15]
+
+      QString effectivePvName = pvName;
+      if (effectivePvName.right (4) == ".VAL") {
+         // Explicit .VAL - remove the .VAL field and try again.
+         //
+         effectivePvName.chop (4);
+      } else {
+         // Implicit .VAL - add .VAL and try again.
+         //
+         effectivePvName.append (".VAL");
+      }
+
+      if (QCaAlarmInfoColorNamesManager::isBasicNameMatch (effectivePvName)) {
+         return true;
+      }
+   }
+
+   return false;
 }
 
 //------------------------------------------------------------------------------
@@ -459,59 +538,24 @@ void QCaAlarmInfoColorNamesManager::clearOosPvNameList ()
 bool QCaAlarmInfoColorNamesManager::isPvNameDeclaredOos (const QEPvNameUri::Protocol protocol,
                                                          const QString& pvName)
 {
-   // TODO: What about allowing regular expressions.
-   //
    // Do simple cases first
    //
    if (pvName.isEmpty())
       return false;
 
-   if (OosPvNameList.contains (pvName))
-      return true;
-
-   QString effectivePvName = pvName;
-
-   // The PV 'as is' is not in the OosPvNameList
-   // If user has specified XXXXXX.VAL, check if XXXXXX is specfied.
-   // Similarly, if user specfied YYYYYY, check if YYYYYY.VAL is specfied.
-   //
-   // Note: This is similar to what the archiver interface does.
-   //
-   if (effectivePvName.right (4) == ".VAL") {
-      // Remove the .VAL field and try again.
-      //
-      effectivePvName.chop (4);
-   } else {
-      // Add .VAL and try again.
-      // This might now be name.FIELD.VAL but won't exist
-      //
-      effectivePvName.append (".VAL");
-   }
-
-   if (OosPvNameList.contains (effectivePvName))
+   if (QCaAlarmInfoColorNamesManager::isSmartNameMatch (pvName))
       return true;
 
    // Check if PV name with an explict protocol has been defined.
    //
    QEPvNameUri uri = QEPvNameUri (pvName, protocol);
-   effectivePvName = uri.encodeUri ();
+   QString effectivePvName = uri.encodeUri ();
 
-   if (effectivePvName.isEmpty())
-      return false;
-
-   if (OosPvNameList.contains (effectivePvName))
-      return true;
-
-   // And again add/remove .VAL and try again
+   // This just repeats the above.
    //
-   if (effectivePvName.right (4) == ".VAL") {
-      effectivePvName.chop (4);
-   } else {
-      effectivePvName.append (".VAL");
-   }
-
-   if (OosPvNameList.contains (effectivePvName))
+   if (QCaAlarmInfoColorNamesManager::isSmartNameMatch (effectivePvName)) {
       return true;
+   }
 
    return false;
 }
