@@ -236,6 +236,8 @@ void applicationLauncher::launchCommon( const VariableNameManager* variableNameM
    }
 
    // Add apropriate terminal command if starting up within a terminal
+   // Note: we use prepend in reverse order
+   // to get, e.g.  xterm  -hold -e  substitutedProgram
    //
    if( this->programStartupOption == PSO_TERMINAL ) {
 #ifdef WIN32
