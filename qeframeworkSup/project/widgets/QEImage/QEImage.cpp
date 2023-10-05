@@ -971,6 +971,9 @@ void QEImage::connectionChanged( QCaConnectionInfo& connectionInfo, const unsign
         sendMessage( messageText, "QEImage" );
     }
 
+    // Display the connected state
+    //
+    this->updateToolTipConnection (isConnected, variableIndex);
 }
 
 /*
@@ -1006,6 +1009,11 @@ void QEImage::setFormat( const QString& text, QCaAlarmInfo& alarmInfo, QCaDateTi
         //setImageInvalid()
         // !!! not done
     }
+
+    // Invoke tool tip handling directly. We don't want to interfere with the style
+    // as widget draws it's own stuff with own, possibly clear, colours.
+    //
+    this->updateToolTipAlarm (alarmInfo, variableIndex);
 }
 
 /*
@@ -1055,6 +1063,8 @@ void QEImage::setDimension( const long& value, QCaAlarmInfo& alarmInfo, QCaDateT
         //setImageInvalid()
         // !!! not done
     }
+
+    this->updateToolTipAlarm (alarmInfo, variableIndex);
 }
 
 /*
@@ -1084,6 +1094,8 @@ void QEImage::setBitDepth( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTi
         //setImageInvalid()
         // !!! not done
     }
+
+    this->updateToolTipAlarm (alarmInfo, variableIndex);
 }
 
 /*
@@ -1125,6 +1137,8 @@ void QEImage::setDataType( const QString& text, QCaAlarmInfo& alarmInfo, QCaDate
         //setImageInvalid()
         // !!! not done
     }
+
+    this->updateToolTipAlarm (alarmInfo, variableIndex);
 }
 
 /*
@@ -1147,6 +1161,8 @@ void QEImage::setClipping( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTi
         //setImageInvalid()
         // !!! not done
     }
+
+    this->updateToolTipAlarm (alarmInfo, variableIndex);
 }
 
 /*
@@ -1211,6 +1227,8 @@ void QEImage::setROI( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, 
             useROIData( variableIndex );
         }
     }
+
+    this->updateToolTipAlarm (alarmInfo, variableIndex);
 }
 
 // Apply the ROI data.
@@ -1337,6 +1355,8 @@ void QEImage::setProfile( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTim
             useProfileData( variableIndex );
         }
     }
+
+    this->updateToolTipAlarm (alarmInfo, variableIndex);
 }
 
 // Apply the profile data.
@@ -1468,6 +1488,8 @@ void QEImage::setEllipse( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTim
             useEllipseData();
         }
     }
+
+    this->updateToolTipAlarm (alarmInfo, variableIndex);
 }
 
 /*
@@ -1503,6 +1525,8 @@ void QEImage::setEllipseFloat( const double& value, QCaAlarmInfo& alarmInfo,
             useEllipseData();
         }
     }
+
+    this->updateToolTipAlarm (alarmInfo, variableIndex);
 }
 
 // Apply the ellipse data.
@@ -1577,6 +1601,8 @@ void QEImage::setTargeting( const long& value, QCaAlarmInfo& alarmInfo, QCaDateT
             useTargetingData();
         }
     }
+
+    this->updateToolTipAlarm (alarmInfo, variableIndex);
 }
 
 // Apply the targeting data.
@@ -1738,6 +1764,8 @@ void QEImage::setPvaImage( const QVariant& value,
     // Call the standard CA set image
     setImage( imageData.getData(), imageData.getBytesPerPixel(),
               alarmInfo, timeStamp, variableIndex );
+
+    this->updateToolTipAlarm (alarmInfo, variableIndex);
 }
 
 
@@ -1753,7 +1781,7 @@ void QEImage::setImage( const QByteArray& imageIn,
                         unsigned long dataSize,
                         QCaAlarmInfo& alarmInfo,
                         QCaDateTime& time,
-                        const unsigned int& )
+                        const unsigned int& variableIndex )
 {
     // Do nothing regarding the image until the width and height are available
     if( iProcessor.getImageBuffWidth() == 0 || iProcessor.getImageBuffHeight() == 0 )
@@ -1806,6 +1834,8 @@ void QEImage::setImage( const QByteArray& imageIn,
         //setImageInvalid()
         // !!! not done
     }
+
+    this->updateToolTipAlarm (alarmInfo, variableIndex);
 }
 
 // Display a new image.
