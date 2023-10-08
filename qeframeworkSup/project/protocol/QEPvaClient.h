@@ -30,7 +30,6 @@
 #include <stdint.h>
 #include <QObject>
 #include <QString>
-#include <QFlags>
 #include <QTimer>
 #include <QVariant>
 #include <QEPvaCheck.h>
@@ -57,17 +56,6 @@ public:
    explicit QEPvaClient (const QString& pvName,
                          QObject* parent);
    ~QEPvaClient ();
-
-   // Open channel mode selection enumeration values and associated flags.
-   //
-   enum ChannelModes {
-      None = 0x00,
-      Read = 0x01,
-      Monitor = 0x02,
-      Write = 0x04,
-   };
-
-   Q_DECLARE_FLAGS (ChannelModesFlags, ChannelModes)
 
    bool openChannel (const ChannelModesFlags modes);
    void closeChannel ();
@@ -142,8 +130,6 @@ private:
    friend class QEPvaClientReference;
    friend class QEPvaPutRequesterInterface;
 };
-
-Q_DECLARE_OPERATORS_FOR_FLAGS (QEPvaClient::ChannelModesFlags)
 
 //------------------------------------------------------------------------------
 // This is essentially a private class, but must be declared in the header
