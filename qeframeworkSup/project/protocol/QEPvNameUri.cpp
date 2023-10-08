@@ -45,6 +45,14 @@ static const QString prefix[QEPvNameUri::NUMBER_OF_PROTOCOLS] = {
 static const QString cds = "://";    // colon double slash
 
 
+//------------------------------------------------------------------------------
+// static
+QString QEPvNameUri::protocolImage (const Protocol protocol)
+{
+   return prefix [protocol];
+}
+
+
 //==============================================================================
 // QEPvNameUri
 //==============================================================================
