@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020-2022 Australian Synchrotron.
+ *  Copyright (c) 2020-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -133,6 +133,7 @@ void QEAbstract2DData::commonSetup ()
    this->mScaleMode = manual;
    this->mMinimum = 0.0;
    this->mMaximum = 255.0;
+   this->mLogScale = false;
    this->mDataFormat = array2D;
    this->mNumberOfSets = 40;
    this->mMouseMoveSignals = signalStatus;
@@ -1119,7 +1120,6 @@ QEAbstract2DData::DataBinning  QEAbstract2DData::getDataBinning () const
    return mDataBinning;
 }
 
-
 //------------------------------------------------------------------------------
 //
 void QEAbstract2DData::setScaleMode (const ScaleModes scaleMode)
@@ -1190,6 +1190,25 @@ void QEAbstract2DData::setMaximum (const int maximum)
 double QEAbstract2DData::getMaximum () const
 {
    return this->mMaximum;
+}
+
+
+//------------------------------------------------------------------------------
+//
+void QEAbstract2DData::setLogScale (const bool logScale)
+{
+   this->mLogScale = logScale;
+
+   // We don't need to recalulate yisulation values - only how it is displayed
+   //
+   this->updateDataVisulation ();
+ }
+
+//------------------------------------------------------------------------------
+//
+bool QEAbstract2DData::getLogScale () const
+{
+   return this->mLogScale;
 }
 
 //==============================================================================

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020-2022 Australian Synchrotron
+ *  Copyright (c) 2020-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -71,6 +71,7 @@ public:
    enum OwnContextMenuOptions {
       QESPEC_NONE = A2DDCM_SUB_CLASS_WIDGETS_START_HERE,
       QESPEC_USE_FALSE_COLOUR_FLIP,
+      QESPEC_USE_LOG_SCALE_FLIP,
       QESPEC_SUB_CLASS_WIDGETS_START_HERE
    };
 

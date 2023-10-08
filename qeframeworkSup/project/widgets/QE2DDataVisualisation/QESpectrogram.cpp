@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020-2022 Australian Synchrotron
+ *  Copyright (c) 2020-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -246,6 +246,14 @@ void QESpectrogram::updateDataVisulation ()
 
          index = index - (loops*wrapSpread);    // wrap index.
          index = LIMIT (index, 0, 255);         // belts 'n' braces limit
+
+         if (this->getLogScale()) {
+            // Compare with  QEImage/imageProcessor.cpp - approx line 1276
+            // Here is used a slightly larger constant so that 255 maps to 255, not 254.
+            //
+            index = int (LOG10 (index + 1.0) * 105.9903);
+         }
+
          rowOut [col] = (*pixelMap) [index];    // look up and assign to image pixel.
       }
    }
@@ -273,6 +281,12 @@ QMenu* QESpectrogram::buildContextMenu ()
    action->setData (QESPEC_USE_FALSE_COLOUR_FLIP);
    menu->addAction (action);
 
+   action = new QAction ("Use log scale", menu);
+   action->setCheckable (true);
+   action->setChecked (this->getLogScale ());
+   action->setData (QESPEC_USE_LOG_SCALE_FLIP);
+   menu->addAction (action);
+
    return menu;
 }
 
@@ -287,6 +301,12 @@ void QESpectrogram::contextMenuTriggered (int selectedItemNum)
          // flip the use false colour state.
          //
          this->setUseFalseColour (!this->getUseFalseColour ());
+         break;
+
+      case QESPEC_USE_LOG_SCALE_FLIP:
+         // flip the useof log/linear scale.
+         //
+         this->setLogScale (!this->getLogScale ());
          break;
 
       default:
