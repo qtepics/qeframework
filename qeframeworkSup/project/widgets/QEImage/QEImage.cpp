@@ -4049,8 +4049,35 @@ QString QEImage::getSubstitutedUrl()
     return url;
 }
 
+//------------------------------------------------------------------------------
+// Essentially a pass through to the video widget that does actually painting.
+//
+void QEImage::setCustomisePaintHandler (CustomisePaintHandlers paintExtraHandler,
+                                        QObject* context)
+{
+    if (this->videoWidget) {
+        this->videoWidget->setCustomisePaintHandler(paintExtraHandler, context);
+    }
+}
 
+QEImage::CustomisePaintHandlers QEImage::getCustomisePaintHandler () const
+{
+    if (this->videoWidget) {
+        return this->videoWidget->getCustomisePaintHandler();
+    }
+    return NULL;
+}
 
+//------------------------------------------------------------------------------
+//
+void QEImage::resetBrightnessContrast()
+{
+    if (this->imageDisplayProps) {
+        this->imageDisplayProps->resetBrightnessContrast();
+    }
+}
+
+//------------------------------------------------------------------------------
 // Full Screen property set/get
 bool QEImage::getFullScreen()
 {
