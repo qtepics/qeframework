@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron
+ *  Copyright (c) 2013-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -41,6 +41,7 @@
 
 #include <QEResizeableFrame.h>
 #include <QSimpleShape.h>
+#include <QEImage.h>
 #include <QEWidget.h>
 #include <QECommon.h>
 
@@ -233,7 +234,7 @@ void QEScaling::extractFromWidget (const QWidget* widget)
                                   &this->layoutMarginRight, &this->layoutMarginBottom);
       this->layoutSpacing = layout->spacing ();
 
-      QGridLayout* gridLayout = dynamic_cast <QGridLayout*> (layout);
+      QGridLayout* gridLayout = qobject_cast <QGridLayout*> (layout);
       if (gridLayout) {
          // Grid layout extras
          //
@@ -253,29 +254,29 @@ void QEScaling::extractFromWidget (const QWidget* widget)
    // Q? How expensive are dynamic castes? Use Qt's own caste?
    //    Leverage off some items being mutually exclusive.
    //
-   const QLabel* label = dynamic_cast <const QLabel*>(widget);
+   const QLabel* label = qobject_cast <const QLabel*>(widget);
    if (label) {
       this->indent = label->indent ();
    }
 
-   const QSimpleShape* shape = dynamic_cast <const QSimpleShape*>(widget);
+   const QSimpleShape* shape = qobject_cast <const QSimpleShape*>(widget);
    if (shape) {
       this->indent = shape->getIndent ();
    }
 
-   const QEResizeableFrame* resizeableFrame = dynamic_cast <const QEResizeableFrame*>(widget);
+   const QEResizeableFrame* resizeableFrame = qobject_cast <const QEResizeableFrame*>(widget);
    if (resizeableFrame) {
       this->resizeFrameAllowedMin = resizeableFrame->getAllowedMinimum ();
       this->resizeFrameAllowedMax = resizeableFrame->getAllowedMaximum ();
    }
 
-   const QTableWidget* tableWidget = dynamic_cast <const QTableWidget *>(widget);
+   const QTableWidget* tableWidget = qobject_cast <const QTableWidget *>(widget);
    if (tableWidget) {
       this->tableDefaultHorizontalSectionSize = tableWidget->horizontalHeader ()->defaultSectionSize ();
       this->tableDefaultVerticalSectionSize = tableWidget->verticalHeader ()->defaultSectionSize ();
    }
 
-   const QTreeView* treeView = dynamic_cast <const QTreeView *>(widget);
+   const QTreeView* treeView = qobject_cast <const QTreeView *>(widget);
    if (treeView) {
       this->indent = treeView->indentation ();
    }
@@ -459,7 +460,7 @@ void QEScaling::applyScalingToWidget (QWidget* widget)
                                    QEScaling::scale (baseline.layoutMarginRight),
                                    QEScaling::scale (baseline.layoutMarginBottom));
 
-       QGridLayout* gridLayout = dynamic_cast <QGridLayout*> (layout);
+       QGridLayout* gridLayout = qobject_cast <QGridLayout*> (layout);
 
        // Is this a grid layout??
        //
@@ -477,7 +478,7 @@ void QEScaling::applyScalingToWidget (QWidget* widget)
    // Q? How expensive are dynamic casts? Use Qt's own caste?
    //    Leverage off some items being mutually exclusive.
    //
-   QLabel* label = dynamic_cast <QLabel*>(widget);
+   QLabel* label = qobject_cast <QLabel*>(widget);
    if (label) {
       int indent = baseline.indent;
       if (indent > 0) {
@@ -486,7 +487,7 @@ void QEScaling::applyScalingToWidget (QWidget* widget)
       }
    }
 
-   QSimpleShape* shape = dynamic_cast <QSimpleShape*>(widget);
+   QSimpleShape* shape = qobject_cast <QSimpleShape*>(widget);
    if (shape) {
       int indent = baseline.indent;
       if (indent > 0) {
@@ -495,7 +496,7 @@ void QEScaling::applyScalingToWidget (QWidget* widget)
       }
    }
 
-   QEResizeableFrame* resizeableFrame = dynamic_cast <QEResizeableFrame*>(widget);
+   QEResizeableFrame* resizeableFrame = qobject_cast <QEResizeableFrame*>(widget);
    if (resizeableFrame) {
       int allowedMin = baseline.resizeFrameAllowedMin;
       int allowedMax = baseline.resizeFrameAllowedMax;
@@ -517,7 +518,7 @@ void QEScaling::applyScalingToWidget (QWidget* widget)
       }
    }
 
-   QTableWidget* tableWidget = dynamic_cast <QTableWidget *>(widget);
+   QTableWidget* tableWidget = qobject_cast <QTableWidget *>(widget);
    if (tableWidget) {
       int defaultSectionSize;
 
@@ -530,7 +531,7 @@ void QEScaling::applyScalingToWidget (QWidget* widget)
       tableWidget->verticalHeader ()->setDefaultSectionSize (defaultSectionSize);
    }
 
-   QTreeView* treeView = dynamic_cast <QTreeView *>(widget);
+   QTreeView* treeView = qobject_cast <QTreeView *>(widget);
    if (treeView) {
       int indentation = baseline.indent;
       if (indentation > 0) {
@@ -562,12 +563,7 @@ void QEScaling::applyScalingToWidget (QWidget* widget)
 //
 void QEScaling::widgetTreeWalk (QWidget* widget, ScalingFunction sf)
 {
-   int j, n;
-   QObjectList childList;
-   QObject* child = NULL;
-   QWidget* childWidget = NULL;
-
-   // sainity checks and avoid divide by zero.
+   // Sanity checks and avoid divide by zero.
    //
    if (!widget) return;
    if (!sf) return;
@@ -576,15 +572,22 @@ void QEScaling::widgetTreeWalk (QWidget* widget, ScalingFunction sf)
    //
    sf (widget);
 
+   // Don't tree-walk inside of a QEImage widget - it does more harm than good.
+   // Maybe QEimage can be made more scaling robust.
+   //
+   QEImage* image = qobject_cast <QEImage*> (widget);
+   if (image) return;
+
    // Apply scaling to any child widgets.
    //
-   childList = widget->children ();
-   n = childList.count();
-   for (j = 0; j < n; j++) {
-      child = childList.value (j);
+   QObjectList childList = widget->children ();
+   int n = childList.count();
+   for (int j = 0; j < n; j++) {
+      QObject* child = childList.value (j);
+
       // We need only tree walk widgets. All widget parents are themselves widgets.
       //
-      childWidget = dynamic_cast <QWidget *>(child);
+      QWidget* childWidget = qobject_cast <QWidget *>(child);
       if (childWidget) {
          // Recursive call.
          //
