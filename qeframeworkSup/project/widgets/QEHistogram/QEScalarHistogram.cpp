@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2021 Australian Synchrotron.
+ *  Copyright (c) 2014-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -30,6 +30,8 @@
 #include <QCaObject.h>
 
 #define DEBUG  qDebug () << "QEScalarHistogram" << __LINE__ << __FUNCTION__ << "  "
+
+static const QColor disconnectedColour = QColor (0xe8e8e8);
 
 //------------------------------------------------------------------------------
 // Constructor with no initialisation
@@ -134,11 +136,12 @@ void QEScalarHistogram::establishConnection (unsigned int variableIndex)
       QObject::connect (qca,  SIGNAL (connectionChanged (QCaConnectionInfo &, const unsigned int &)),
                         this, SLOT   (connectionChanged (QCaConnectionInfo &, const unsigned int &)));
 
-      // Also set/reset value.
+      // Also set/reset value. This mimics a disconnection.
       // Note: this also creates the underlying entry with the histogram widget.
       // Usefull for indexOfPosition calls before first PV update or missing PVs.
       //
-      this->histogram->setValue ((int) variableIndex, 0.0);
+      this->histogram->setColour ((int) variableIndex, disconnectedColour);
+      this->histogram->setValue ((int) variableIndex, this->getMaximum());
    }
 }
 
@@ -171,7 +174,8 @@ void QEScalarHistogram::connectionChanged (QCaConnectionInfo & connectionInfo,
    // If this is a disconnect - set gray.
    // If this is a connect, we will soon change from gray to required colour.
    //
-   this->histogram->setColour ((int) variableIndex, QColor (0xe8e8e8));
+   this->histogram->setColour ((int) variableIndex, disconnectedColour);
+   this->histogram->setValue ((int) variableIndex, this->getMaximum());
 
    // More trob. than it's worth to check if this is a connect or disconnect.
    //
@@ -240,6 +244,7 @@ void QEScalarHistogram::setChannelValue (const double& value,
                                          QCaDateTime&,
                                          const unsigned int &variableIndex)
 {
+   double displayValue = value;
    if (variableIndex >= ARRAY_LENGTH (this->vnpm)) {
       DEBUG << "unexpected variableIndex" << variableIndex;
       return;
@@ -249,12 +254,19 @@ void QEScalarHistogram::setChannelValue (const double& value,
 
    if (this->getUseAlarmState (alarmInfo)) {
       colour = this->getColor (alarmInfo, 255);
+      if (alarmInfo.isInvalid()) {
+         // When invalid, set the height (or width) of the bar to maximum,
+         // so that the user can actually see it. Invalid value are often zero
+         // and not readily visible to the user.
+         //
+         displayValue = this->getMaximum();
+      }
    } else {
       colour = this->histogram->getBarColour ();
    }
 
    this->histogram->setColour ((int) variableIndex, colour);
-   this->histogram->setValue ((int) variableIndex, value);
+   this->histogram->setValue ((int) variableIndex, displayValue);
 
    // First update (for this connection).
    //
