@@ -327,6 +327,9 @@ void QECorrelation::setup ()
 
    QObject::connect (this->uiForm->Time_Select_Button, SIGNAL (clicked (bool)),
                      this, SLOT (timeSelectButtonClick (bool)));
+   QObject::connect (this->uiForm->Show_Regression_CheckBox, SIGNAL (stateChanged (int)),
+                     this, SLOT (plotRegressionStateChanged (int)));
+
 
    QObject::connect (this->uiForm->Number_Samples_Edit, SIGNAL (valueChanged (const double)),
                      this, SLOT (numberSamplesEditChange (const double)));
@@ -693,10 +696,10 @@ void QECorrelation::setReadOut (const QString status)
 
 //------------------------------------------------------------------------------
 // Refer to http://en.wikipedia.org/wiki/Correlation_and_dependence
+// and to https://en.wikipedia.org/wiki/Simple_linear_regression
 //
-double QECorrelation::calculateCorrelationCoefficient ()
+void QECorrelation::calculateCorrelationAndRegression ()
 {
-   double result;
    int number;
    double sumX;
    double sumY ;
@@ -714,7 +717,12 @@ double QECorrelation::calculateCorrelationCoefficient ()
    double sdY;
 
    number = this->xData.count ();
-   if (number <= 0) return 0.0;
+   if (number <= 0){
+      this->correlationCoef = 0.0;
+      this->regressionSlope = std::nan("0");
+      this->regressionIntersept = std::nan("0");
+      return ;
+   }
 
    // Sum x, x^2, y, y^2 and xy.
    //
@@ -758,12 +766,19 @@ double QECorrelation::calculateCorrelationCoefficient ()
       sdX = sqrt (varX);
       sdY = sqrt (varY);
 
-      result = (meanXY - meanX * meanY) / (sdX * sdY);
+      this->correlationCoef = (meanXY - meanX * meanY) / (sdX * sdY);
    } else {
-      result = 0.0;
+      this->correlationCoef = 0.0;
    }
 
-   return result;
+   if (varX != 0.0){
+      this->regressionSlope = (meanXY - meanX * meanY) / varX;
+      this->regressionIntersept = meanY - regressionSlope*meanX;
+   }else{
+      this->regressionSlope = std::nan("0");
+      this->regressionIntersept = std::nan("0");
+   }
+   return;
 }
 
 //------------------------------------------------------------------------------
@@ -830,6 +845,16 @@ void QECorrelation::reDrawPlane ()
    pen.setStyle (Qt::DashLine);
    this->plotArea->setGridPen (pen);
 
+   if (this->uiForm->Show_Regression_CheckBox->checkState() == Qt::Checked){
+      if (this->regressionSlope!=this->regressionSlope){ // is nan
+      }else{
+         pen.setColor (QColor ("red"));
+         this->plotArea->setCurveStyle (QwtPlotCurve::Lines);
+         this->plotArea->setCurvePen (pen);
+         this->plotArea->plotCurveData ({TX_Min, TX_Max}, {this->regressionSlope*TX_Min+this->regressionIntersept, this->regressionSlope*TX_Max+this->regressionIntersept});
+      }
+   }
+
    pen.setColor (QColor ("blue"));
    pen.setStyle (Qt::SolidLine);
 
@@ -887,13 +912,19 @@ void QECorrelation::updateDataArrays ()
    maximumPeriod = samplePeriod * maximumPoints;
    currentPeriod = samplePeriod * number;
 
-   correlation = this->calculateCorrelationCoefficient ();
+   this->calculateCorrelationAndRegression ();
 
    this->uiForm->Number_Points_Label->setText (QString ("%1").arg (number));
    this->uiForm->Maximum_Sample_Label->setText (QEUtilities::intervalToString (maximumPeriod, 0, false));
    this->uiForm->Ongoing_Sample_Label->setText (QEUtilities::intervalToString (currentPeriod, 0, false));
-   this->uiForm->Correlation_Value_Label->setText (QString ("%1").arg (correlation, 0, 'f', 4));
-
+   this->uiForm->Correlation_Value_Label->setText (QString ("%1").arg (this->correlationCoef, 0, 'f', 4));
+   if (this->regressionSlope!=this->regressionSlope){ // is nan
+      this->uiForm->Regression_Slope_Value_Label->setText (QString ("---"));
+      this->uiForm->Regression_Intercept_Value_Label->setText (QString ("---"));
+   }else{
+      this->uiForm->Regression_Slope_Value_Label->setText (QString ("%1").arg (this->regressionSlope, 0, 'f', 4));
+      this->uiForm->Regression_Intercept_Value_Label->setText (QString ("%1").arg (this->regressionIntersept, 0, 'f', 4));
+   }
    this->replotIsRequired = true;
 }
 
@@ -1363,6 +1394,12 @@ void QECorrelation::timeSelectButtonClick (bool)
 
       this->setReadOut ("Archive data request issued");
    }
+}
+
+//------------------------------------------------------------------------------
+//
+void QECorrelation::plotRegressionStateChanged (bool){
+   this->replotIsRequired = true;
 }
 
 //------------------------------------------------------------------------------
