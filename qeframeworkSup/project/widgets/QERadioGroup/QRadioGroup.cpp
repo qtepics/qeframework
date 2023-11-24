@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2021 Australian Synchrotron
+ *  Copyright (c) 2014-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -245,7 +245,7 @@ void QRadioGroup::setButtonText ()
    // practice 40 is more than enough.
    //
    const QString suffix =
-      (this->buttonStyle == Radio) ?  "                                        " : "";
+         (this->buttonStyle == Radio) ?  "                                        " : "";
 
    QAbstractButton* button = NULL;
    int j;
@@ -324,44 +324,49 @@ void QRadioGroup::internalSetValue (const int indexIn)
    // is the behaviour of Qt's own widgets such as combo box, spin edit etc.
    // We try to be consistant.
    //
-   if (this->currentIndex != newIndex) {
-      this->currentIndex = newIndex;
+   const bool doEmit = (this->currentIndex != newIndex);
+   this->currentIndex = newIndex;
 
-      if (this->valueToButton.containsF (this->currentIndex)) {
+   if (this->valueToButton.containsF (this->currentIndex)) {
 
-         selectedButton = this->valueToButton.valueF (this->currentIndex, NULL);
-         if (selectedButton) {
-            selectedButton->setChecked (true); // this will uncheck all other (radio) buttons
-         }
-
-      } else {
-         // We haven't mapped this value - use hidden selection.
-         // This will uncheck all the "real" buttons.
-         // Only really applicable for radio buttons, but we do it anyway.
-         //
-         this->noSelectionButton->setChecked (true);
-         selectedButton = NULL;
+      selectedButton = this->valueToButton.valueF (this->currentIndex, NULL);
+      if (selectedButton) {
+         selectedButton->setChecked (true); // this will uncheck all other (radio) buttons
       }
 
-      // On some styles, a down push button looks very much like a non-down
-      // button. To help emphasize the selected button, we set the font of
-      // the selected button bold, and all the other buttons non-bold.
+   } else {
+      // We haven't mapped this value - use hidden selection.
+      // This will uncheck all the "real" buttons.
+      // Only really applicable for radio buttons, but we do it anyway.
       //
-      if (this->buttonStyle == Push) {
-         for (int j = 0; j < this->numberDisplayed; j++) {
-            QAbstractButton* otherButton = this->buttonList.value (j, NULL);
-            if (otherButton) {
-               QFont otherFont = otherButton->font ();
-               otherFont.setBold (otherButton == selectedButton);
-               otherButton->setFont (otherFont);
-            }
+      this->noSelectionButton->setChecked (true);
+      selectedButton = NULL;
+   }
+
+   // On some styles, a down push button looks very much like a non-down
+   // button. To help emphasize the selected button, we set the font of
+   // the selected button bold, and all the other buttons non-bold.
+   //
+   if (this->buttonStyle == Push) {
+      for (int j = 0; j < this->numberDisplayed; j++) {
+         QAbstractButton* otherButton = this->buttonList.value (j, NULL);
+         if (otherButton) {
+            QFont otherFont = otherButton->font ();
+            otherFont.setBold (otherButton == selectedButton);
+            otherButton->setFont (otherFont);
          }
       }
+   }
 
+   // Did the value change?
+   //
+   if (doEmit) {
       // This prevents infinite looping in the case of cyclic connections.
       //
       if (!this->emitValueChangeInhibited) {
+         this->emitValueChangeInhibited = true;
          emit valueChanged (this->currentIndex);
+         this->emitValueChangeInhibited = false;
       }
    }
 }
@@ -370,11 +375,9 @@ void QRadioGroup::internalSetValue (const int indexIn)
 //
 void QRadioGroup::setValue (const int indexIn)
 {
-   // This prevents infinite looping in the case of cyclic connections.
+   // Basically a wrapper.
    //
-   this->emitValueChangeInhibited = true;
    this->internalSetValue (indexIn);
-   this->emitValueChangeInhibited = false;
 }
 
 //------------------------------------------------------------------------------
@@ -456,7 +459,7 @@ void QRadioGroup::setSpacing (int spacingIn)
 //
 int QRadioGroup::getSpacing () const
 {
-    return this->space;
+   return this->space;
 }
 
 //------------------------------------------------------------------------------
