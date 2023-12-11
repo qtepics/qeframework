@@ -263,9 +263,10 @@ void QECalcout::setOcal (const QString& ocalIn)
    }
 
    // Convert to a POD string.
+   // Note: the intermediate std::string must stay in scope.
    //
-   const char* pinfix;
-   pinfix = this->ocal.toStdString().c_str();
+   const std::string keepInScope = this->ocal.toStdString();
+   const char* pinfix = keepInScope.c_str();
 
    short error = 0;
    long status = postfix (pinfix, this->ocalPostFix, &error);
