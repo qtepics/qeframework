@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2022 Australian Synchrotron.
+ *  Copyright (c) 2014-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -919,11 +919,14 @@ void QNumericEdit::internalSetValue (const double value)
    //
    if (this->mValue != constrainedValue) {
       this->mValue = constrainedValue;
+
       // This prevents infinite looping in the case of cyclic connections.
       //
       if (!this->emitValueChangeInhibited) {
+         this->emitValueChangeInhibited = true;
          emit valueChanged (this->mValue);
          emit valueChanged (int (this->mValue));   // range check?
+         this->emitValueChangeInhibited = false;
       }
       this->redisplayText ();
    }
@@ -933,12 +936,9 @@ void QNumericEdit::internalSetValue (const double value)
 //
 void QNumericEdit::setValue (const double value)
 {
-   // This prevents infinite looping in the case of cyclic connections.
-   // Also prevents signals when value set programatically.
+   // Essentially just a wrapper.
    //
-   this->emitValueChangeInhibited = true;
    this->internalSetValue (value);
-   this->emitValueChangeInhibited = false;
 }
 
 //------------------------------------------------------------------------------
@@ -950,7 +950,8 @@ double QNumericEdit::getValue () const
 
 //------------------------------------------------------------------------------
 //
-void QNumericEdit::setValue (const int value) {
+void QNumericEdit::setValue (const int value)
+{
    this->setValue (double (value));
 }
 

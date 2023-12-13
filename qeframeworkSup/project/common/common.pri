@@ -111,6 +111,8 @@ SOURCES += $$PWD/QEScaling.cpp
 HEADERS += $$PWD/QEScanTimers.h
 SOURCES += $$PWD/QEScanTimers.cpp
 
+HEADERS += $$PWD/QEThreadSafeQueue.h
+
 HEADERS += $$PWD/QETwinScaleSelectDialog.h
 SOURCES += $$PWD/QETwinScaleSelectDialog.cpp
 FORMS   += $$PWD/QETwinScaleSelectDialog.ui

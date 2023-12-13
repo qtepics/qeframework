@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron
+ *  Copyright (c) 2013-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -275,6 +275,16 @@ public:
 public:
     // END-STANDARD-PROPERTIES ========================================================
 
+    // QESimpleShape specific properties (part 2) =====================================
+    //
+    /// Use "style"/label-like alarm colours. The default is false.
+    /// Applies to the main alarm colour and the edge alarm colour
+    //
+    Q_PROPERTY(bool useStyleAlarmColours READ getUseStyleAlarmColours WRITE setUseStyleAlarmColours)
+
+    //
+    // End QESimpleShape specific properties ==========================================
+
 public:
    explicit QESimpleShape (QWidget* parent = 0);
    explicit QESimpleShape (const QString& variableName, QWidget* parent = 0);
@@ -294,7 +304,15 @@ public:
    int getEdgeArrayIndex () const;
 
    DisplayAlarmStateOptions getEdgeAlarmStateOptionProperty () const;       ///< Access function for #edgeAlarmStateOption property - refer to #edgeAlarmStateOption property for details
-   void setEdgeAlarmStateOptionProperty( DisplayAlarmStateOptions option);  ///< Access function for #edgeAlarmStateOption property - refer to #edgeAlarmStateOption property for details
+   void setEdgeAlarmStateOptionProperty (DisplayAlarmStateOptions option);  ///< Access function for #edgeAlarmStateOption property - refer to #edgeAlarmStateOption property for details
+
+   // Access with the need for that pesky type casting.
+   //
+   void setEdgeAlarmStateOption (standardProperties::displayAlarmStateOptions option);
+   standardProperties::displayAlarmStateOptions getEdgeAlarmStateOption () const;
+
+   void setUseStyleAlarmColours (const bool useStyleAlarmColours);
+   bool getUseStyleAlarmColours () const;
 
 signals:
    // Note, the following signals are common to many QE widgets,
@@ -350,6 +368,7 @@ private:
    QESingleVariableMethods* edge;
 
    standardProperties::displayAlarmStateOptions edgeAlarmState;
+   bool useStyleAlarmColours;
    bool isFirstUpdate;
    QColor fillColour;
 

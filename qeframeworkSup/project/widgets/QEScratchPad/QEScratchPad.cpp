@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron
+ *  Copyright (c) 2013-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -49,6 +49,7 @@ static const QColor clSelected  (0x7090FF);
 static const int NULL_SELECTION = -1;
 static const int margin = 2;
 static const int spacing = 2;
+static const int rtypWidth = 88;
 
 
 //=================================================================================
@@ -81,6 +82,10 @@ void QEScratchPad::createInternalWidgets ()
 
    this->titlePvName = new QLabel (tr("PV Name"), this->titleFrame);
    this->titlePvName->setIndent (indent);
+
+   this->titleDescription = new QLabel (tr("Description"), this->titleFrame);
+   this->titleRecordType->setFixedWidth (rtypWidth);
+   this->titleRecordType->setIndent (indent);
 
    this->titleDescription = new QLabel (tr("Description"), this->titleFrame);
    this->titleDescription->setIndent (indent);
@@ -148,6 +153,15 @@ void QEScratchPad::createInternalWidgets ()
       item->pvName->setSizePolicy (QSizePolicy::Ignored, QSizePolicy::Preferred);
       item->pvName->setStyleSheet (QEUtilities::colourToStyle (clNotInUse));
 
+      item->recordType = new QELabel (item->frame);
+      item->recordType->setFixedWidth (rtypWidth);
+      item->recordType->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_NEVER);
+      item->recordType->setText ("");
+      item->recordType->setIndent (indent);
+      item->recordType->setSizePolicy (QSizePolicy::Ignored, QSizePolicy::Preferred);
+      item->recordType->setStyleSheet (QEUtilities::colourToStyle (clNotInUse));
+      item->recordType->setEditPvUserLevel (level);
+
       item->description = new QELabel (item->frame);
       item->description->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_NEVER);
       item->description->setText ("");
@@ -179,6 +193,7 @@ void QEScratchPad::createInternalWidgets ()
       // Add to layouts
       //
       item->hLayout->addWidget (item->pvName);
+      item->hLayout->addWidget (item->recordType);
       item->hLayout->addWidget (item->description);
       item->hLayout->addWidget (item->value);
 
@@ -317,6 +332,10 @@ void QEScratchPad::resizeEvent (QResizeEvent*)
    geo = item->pvName->geometry ();
    geo.translate (horOffset, verOffset);
    this->titlePvName->setGeometry (geo);
+
+   geo = item->recordType->geometry ();
+   geo.translate (horOffset, verOffset);
+   this->titleRecordType->setGeometry (geo);
 
    geo = item->description->geometry ();
    geo.translate (horOffset, verOffset);
@@ -857,7 +876,6 @@ QStringList QEScratchPad::getPvNameSet () const
 void QEScratchPad::setPvName (const int slot, const QString& pvName)
 {
    SLOT_CHECK (slot,);
-   QString descPv;
 
    DataSets* item = this->items [slot];
 
@@ -868,27 +886,37 @@ void QEScratchPad::setPvName (const int slot, const QString& pvName)
    item->pvName->setText (item->thePvName);
 
    // New PV name or clear - clear current text values.
+   //
+   item->recordType->setText ("");
    item->description->setText ("");
    item->value->setText ("");
 
    if (item->isInUse()) {
-      descPv = QERecordFieldName::fieldPvName (item->thePvName, "DESC");
+      QString rtypPv = QERecordFieldName::fieldPvName (item->thePvName, "RTYP");
+      item->recordType->setVariableNameAndSubstitutions (rtypPv, "", 0);
+
+      QString descPv = QERecordFieldName::fieldPvName (item->thePvName, "DESC");
       item->description->setVariableNameAndSubstitutions (descPv, "", 0);
+
       item->value->setVariableNameAndSubstitutions (item->thePvName, "", 0);
 
       // Ensure we always active irrespective of the profile DontActivateYet state.
       //
+      item->recordType->activate ();
       item->description->activate ();
       item->value->activate ();
 
       item->pvName->setStyleSheet (QEUtilities::colourToStyle (clInUse));
+      item->recordType->setStyleSheet (QEUtilities::colourToStyle (clInUse));
       item->description->setStyleSheet (QEUtilities::colourToStyle (clInUse));
       item->value->setStyleSheet (QEUtilities::colourToStyle (clInUse));
    } else {
+      item->recordType->setVariableNameAndSubstitutions ("", "", 0);
       item->description->setVariableNameAndSubstitutions ("", "", 0);
       item->value->setVariableNameAndSubstitutions ("", "", 0);
 
       item->pvName->setStyleSheet (QEUtilities::colourToStyle (clNotInUse));
+      item->recordType->setStyleSheet (QEUtilities::colourToStyle (clNotInUse));
       item->description->setStyleSheet (QEUtilities::colourToStyle (clNotInUse));
       item->value->setStyleSheet (QEUtilities::colourToStyle (clNotInUse));
    }
@@ -1026,7 +1054,7 @@ void QEScratchPad::dragMoveEvent (QDragMoveEvent* event)
 
       // pos is relative this, the scratch pad, widget.
       //
-      QPoint globalPos = this->mapToGlobal (event->pos ());
+      QPoint globalPos = this->mapToGlobal (event->pos());
 
       // Convert drop position to global coordinates as well so that we
       // check if the would be drop location is own frame.
@@ -1039,7 +1067,7 @@ void QEScratchPad::dragMoveEvent (QDragMoveEvent* event)
 
    // Allow / re-allow drop. Allow dropping onto other slots.
    //
-   event->acceptProposedAction ();
+   if (event) event->acceptProposedAction ();
    return;
 }
 

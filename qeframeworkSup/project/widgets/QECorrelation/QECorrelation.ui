@@ -340,7 +340,6 @@
          </property>
          <property name="font">
           <font>
-           <family>Sans Serif</family>
            <pointsize>8</pointsize>
           </font>
          </property>
@@ -499,11 +498,6 @@
            <height>23</height>
           </rect>
          </property>
-         <property name="font">
-          <font>
-           <family>Sans Serif</family>
-          </font>
-         </property>
          <property name="toolTip">
           <string>Sample interval</string>
          </property>
@@ -534,11 +528,6 @@
            <width>56</width>
            <height>23</height>
           </rect>
-         </property>
-         <property name="font">
-          <font>
-           <family>Sans Serif</family>
-          </font>
          </property>
          <property name="styleSheet">
           <string>QNumericEdit { color: rgb(0,0,0); }</string>
@@ -577,12 +566,6 @@
             <height>16</height>
            </rect>
           </property>
-          <property name="font">
-           <font>
-            <family>Sans Serif</family>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
@@ -613,12 +596,6 @@
             <width>430</width>
             <height>16</height>
            </rect>
-          </property>
-          <property name="font">
-           <font>
-            <family>Sans Serif</family>
-            <pointsize>10</pointsize>
-           </font>
           </property>
           <property name="styleSheet">
            <string notr="true">QLabel { background-color: rgb(220,0,0); } QLabel { color: rgb(255,255,255); }</string>
@@ -673,12 +650,6 @@
             <height>16</height>
            </rect>
           </property>
-          <property name="font">
-           <font>
-            <family>Sans Serif</family>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
@@ -709,12 +680,6 @@
             <width>430</width>
             <height>16</height>
            </rect>
-          </property>
-          <property name="font">
-           <font>
-            <family>Sans Serif</family>
-            <pointsize>10</pointsize>
-           </font>
           </property>
           <property name="styleSheet">
            <string>QLabel { background-color: rgb(0,192,0); } QLabel { color: rgb(0,0,0); }</string>

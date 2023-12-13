@@ -39,6 +39,9 @@ SOURCES += $$PWD/QENTNDArrayData.cpp
 HEADERS += $$PWD/QENTTableData.h
 SOURCES += $$PWD/QENTTableData.cpp
 
+HEADERS += $$PWD/QENullClient.h
+SOURCES += $$PWD/QENullClient.cpp
+
 HEADERS += $$PWD/QEOpaqueData.h
 SOURCES += $$PWD/QEOpaqueData.cpp
 

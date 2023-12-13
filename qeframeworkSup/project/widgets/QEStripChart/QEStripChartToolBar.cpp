@@ -294,8 +294,13 @@ QEStripChartToolBar::OwnTabWidget::OwnTabWidget (QEStripChartToolBar* parent) : 
    font.setPointSize (this->originalPointSize);
    this->predefinedComboBox->setFont (font);
    this->predefinedComboBox->setToolTip (QObject::tr(" Select and load predefined chart configuration "));
-   QObject::connect (this->predefinedComboBox, SIGNAL (activated (QString)),
-                     this->owner,       SLOT (predefinedSelected (QString)));
+
+   // We use the activated signal (as opposed to currentIndexChanged) as it
+   // is only emmited on User change. We only need the signal, not the value
+   // per se.
+   //
+   QObject::connect (this->predefinedComboBox, SIGNAL(activated (int)),
+                     this->owner,              SLOT  (predefinedSelected (int)));
 
    QEAdaptationParameters ap ("QE_");
    QString predefinedFilename = ap.getString ("stripchart_configurations", "");
@@ -687,8 +692,9 @@ void  QEStripChartToolBar::utcTimeClicked (bool)
 
 //------------------------------------------------------------------------------
 //
-void QEStripChartToolBar::predefinedSelected (QString filename)
+void QEStripChartToolBar::predefinedSelected (int /* index */)
 {
+   QString filename = this->ownTabWidget->predefinedComboBox->currentText();
    if (filename != SELECT_FILE) {
       emit this->loadSelectedFile (filename);
    }

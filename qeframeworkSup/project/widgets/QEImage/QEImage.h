@@ -524,6 +524,20 @@ public:
     void setSubstitutedUrl( QString urlIn );            ///< Access function for #URL property - refer to #URL property for deta
     QString getSubstitutedUrl();                        ///< Access function for #URL property - refer to #URL property for deta
 
+
+    // Allows a third party program/plugin to custiomise what is painted
+    // on the QEImage widget, typically a synthetic overlay.
+    // This supplements rather than replaces the widget's paint functionality.
+    //
+    typedef VideoWidget::CustomisePaintHandlers CustomisePaintHandlers;
+    void setCustomisePaintHandler (CustomisePaintHandlers paintExtraHandler,
+                                   QObject* context = 0);
+    CustomisePaintHandlers getCustomisePaintHandler () const;
+
+    // Reset the brightness and contrast to normal.
+    //
+    void resetBrightnessContrast();
+
 protected:
     QEStringFormatting stringFormatting;     // String formatting options.
     QEIntegerFormatting integerFormatting;   // Integer formatting options.

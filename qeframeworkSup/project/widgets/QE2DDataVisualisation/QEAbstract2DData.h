@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020-2021 Australian Synchrotron
+ *  Copyright (c) 2020-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -171,6 +171,10 @@ public:
    Q_PROPERTY (double minimum            READ getMinimum               WRITE setMinimum)
    Q_PROPERTY (double maximum            READ getMaximum               WRITE setMaximum)
 
+   /// If true, use logarithmic scaling/brightness
+   ///
+   Q_PROPERTY (bool logScale             READ getLogScale              WRITE setLogScale)
+
    /// Mouse move signal selection options.
    ///
    enum MouseMoveSignals {
@@ -278,6 +282,7 @@ public slots:
    void setMinimum (const int minimum);    // overloaded form
    void setMaximum (const double maximum);
    void setMaximum (const int maximum);    // overloaded form
+   void setLogScale (const bool logScale);
 
 public:
    int getDataWidth () const;
@@ -296,6 +301,7 @@ public:
    ScaleModes getScaleMode () const;
    double getMinimum () const;
    double getMaximum () const;
+   bool getLogScale () const;
 
 signals:
    // This signal is emitted using the QEEmitter::emitDbConnectionChanged function.
@@ -428,6 +434,7 @@ private:
    ScaleModes mScaleMode;
    double mMinimum;
    double mMaximum;
+   bool mLogScale;
    DataFormats mDataFormat;
    int mNumberOfSets;
    MouseMoveSignalFlags mMouseMoveSignals;

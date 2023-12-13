@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2021-2022 Australian Synchrotron
+ *  Copyright (c) 2021-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -82,10 +82,11 @@ void QESelector::commonSetup()
    this->layout->addWidget (this->internalWidget);
 
    // We use the activated signal (as opposed to currentIndexChanged) as it
-   // is only emmited on User change.
+   // is only emmited on User change. We only need the signal, not the value
+   // per se.
    //
-   QObject::connect (this->internalWidget, SIGNAL (activated (const QString &)),
-                     this,                 SLOT   (selected  (const QString &)));
+   QObject::connect (this->internalWidget, SIGNAL (activated (int)),
+                     this,                 SLOT   (selected  (int)));
 
    // Set default property values
    //
@@ -481,7 +482,7 @@ void QESelector::writeNow()
 
 //------------------------------------------------------------------------------
 // slot
-void QESelector::selected (const QString&)
+void QESelector::selected (int /* index */)
 {
    if (this->writeOnChange) {
       this->writeNow();

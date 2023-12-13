@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2021 Australian Synchrotron
+ *  Copyright (c) 2009-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -24,12 +24,14 @@
  *    andrew.rhyder@synchrotron.org.au
  */
 
-// Manage CA alarm and severity information
+// Manage CA (and PVA) alarm and severity information
 
 #ifndef QE_ALARM_INFO_H
 #define QE_ALARM_INFO_H
 
 #include <QObject>
+#include <QList>
+#include <QRegularExpression>
 #include <QString>
 #include <QStringList>
 #include <QEPvNameUri.h>
@@ -38,11 +40,11 @@
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QCaAlarmInfo
 {
 public:
-   typedef unsigned short Status;  // Alarm onfo status type.
+   typedef unsigned short Status;    // Alarm onfo status type.
    typedef unsigned short Severity;  // Alarm onfo severity type.
 
    // For backward compatibility.
-#   define QCAALARMINFO_SEVERITY  QCaAlarmInfo::Severity
+#  define QCAALARMINFO_SEVERITY  QCaAlarmInfo::Severity
 
    explicit QCaAlarmInfo();
 
@@ -123,6 +125,11 @@ public:
    static QStringList getDefaultColorNames();
 
    // Set and get the out of service PV name list.
+   // The matching includes/excludes .VAL when checking for a match, e.g
+   // PV name SR11BCM01:CURRENT_MONITOR will match OOS name SR11BCM01:CURRENT_MONITOR.VAL
+   // and vice-versa.
+   //
+   // This PV name list may contain regular expressions.
    //
    static void setOosPvNameList (const QStringList& pvNameList);
    static QStringList getOosPvNameList ();
@@ -147,10 +154,18 @@ private:
 
    // Checks if the given name is flagged as out of service.
    //
+   static bool isBasicNameMatch (const QString& pvName);
+   static bool isSmartNameMatch (const QString& pvName);
+
+   // Checks if the given name is flagged as out of service.
+   //
    static bool isPvNameDeclaredOos (const QEPvNameUri::Protocol protocol,
                                     const QString& pvName);
 
-   static QStringList OosPvNameList;
+   typedef QList<QRegularExpression> QRegularExpressionList;
+
+   static QStringList oosPvNameList;             // textual regular expressions
+   static QRegularExpressionList oosRegExpList;  // compiled regular expressions
 
    static bool elaborate ();
    static const bool callElaborate;

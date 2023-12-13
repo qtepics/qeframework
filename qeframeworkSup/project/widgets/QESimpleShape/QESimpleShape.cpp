@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron
+ *  Copyright (c) 2013-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -87,6 +87,8 @@ void QESimpleShape::setup ()
 
    // Set up data
    //
+   this->useStyleAlarmColours = false;
+
    // This control uses two data sources
    //
    this->setNumVariables (2);
@@ -262,7 +264,7 @@ void QESimpleShape::establishConnection (unsigned int variableIndex)
 
 //------------------------------------------------------------------------------
 // Act on a connection change.
-// Change how the s looks and change the tool tip
+// Change how the shape looks and change the tool tip
 // This is the slot used to recieve connection updates from a QCaObject based class.
 //
 void QESimpleShape::connectionChanged (QCaConnectionInfo & connectionInfo,
@@ -293,6 +295,11 @@ void QESimpleShape::connectionChanged (QCaConnectionInfo & connectionInfo,
       // using signal dbConnectionChanged.
       //
       this->emitDbConnectionChanged (MAIN_PV_INDEX);
+   }
+
+   if (variableIndex == EDGE_PV_INDEX) {
+      // grayout edge on disconnetc and on connect until we get first value.
+      this->setEdgeColour (QColor (0xc8c8c8));
    }
 }
 
@@ -345,7 +352,13 @@ void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo& 
             // Save alarm colour.
             // Must do before we set value as getItemColour will get called.
             //
-            this->fillColour = this->getColor (alarmInfo, 255);
+            if (this->useStyleAlarmColours) {
+               // Use the style colour based on the current alarm state.
+               //
+               this->fillColour = QColor (alarmInfo.getStyleColorName());
+            } else {
+                this->fillColour = this->getColor (alarmInfo, 255);
+            }
 
          } else {
             // Save regular colour. This is essentally the same logic as in QSimpleShape
@@ -370,8 +383,16 @@ void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo& 
       case EDGE_PV_INDEX:
          // For now (at least) we treat everything not Never as Always.
          //
-         if (this->useAlarmColours (this->edgeAlarmState, alarmInfo)) {
-            selectedEdgeColour = this->getColor (alarmInfo, 255);
+         if (this->useAlarmColours (this->getEdgeAlarmStateOption(), alarmInfo)) {
+
+            if (this->useStyleAlarmColours) {
+               // Use the style colour based on the current alarm state.
+               //
+               selectedEdgeColour = QColor (alarmInfo.getStyleColorName());
+            } else {
+               selectedEdgeColour = this->getColor (alarmInfo, 255);
+            }
+
          } else {
             int ival = int (qca->getIntegerValue ());
             selectedEdgeColour = this->getColourProperty (ival & 15);
@@ -467,12 +488,51 @@ QESimpleShape::DisplayAlarmStateOptions QESimpleShape::getEdgeAlarmStateOptionPr
 //
 void QESimpleShape::setEdgeAlarmStateOptionProperty (DisplayAlarmStateOptions option)
 {
-   this->edgeAlarmState = standardProperties::displayAlarmStateOptions (option);
+   this->setEdgeAlarmStateOption (standardProperties::displayAlarmStateOptions (option));
+}
+
+//------------------------------------------------------------------------------
+//
+void QESimpleShape::setEdgeAlarmStateOption (standardProperties::displayAlarmStateOptions option)
+{
+   this->edgeAlarmState = option;
 
    // Force update (if we can).
    //
    qcaobject::QCaObject* qca = this->getQcaItem (EDGE_PV_INDEX);
    if (qca) qca->resendLastData ();
+}
+
+//------------------------------------------------------------------------------
+//
+standardProperties::displayAlarmStateOptions
+QESimpleShape::getEdgeAlarmStateOption () const
+{
+   return this->edgeAlarmState;
+}
+
+//------------------------------------------------------------------------------
+//
+void QESimpleShape::setUseStyleAlarmColours (const bool useStyleAlarmColoursIn)
+{
+   this->useStyleAlarmColours = useStyleAlarmColoursIn;
+
+   // Force update (if we can).
+   //
+   qcaobject::QCaObject* qca = nullptr;
+
+   qca = this->getQcaItem (MAIN_PV_INDEX);
+   if (qca) qca->resendLastData ();
+
+   qca = this->getQcaItem (EDGE_PV_INDEX);
+   if (qca) qca->resendLastData ();
+}
+
+//------------------------------------------------------------------------------
+//
+bool QESimpleShape::getUseStyleAlarmColours () const
+{
+   return this->useStyleAlarmColours;
 }
 
 //==============================================================================

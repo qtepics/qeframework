@@ -227,8 +227,10 @@ void QAnalogSlider::internalSetValue (const double value)
       // This prevents infinite looping in the case of cyclic connections.
       //
       if (!this->emitValueChangeInhibited) {
+         this->emitValueChangeInhibited = true;
          emit this->valueChanged (this->mValue);
          emit this->valueChanged (int (this->mValue));   // range check?
+         this->emitValueChangeInhibited = false;
       }
    }
 }
@@ -294,11 +296,9 @@ QEColourBandList QAnalogSlider::getColourBandList () const
 //
 void QAnalogSlider::setValue (const double value)
 {
-   // This prevents infinite looping in the case of cyclic connections.
+   // Essentially just a wrapper.
    //
-   this->emitValueChangeInhibited = true;
    this->internalSetValue (value);
-   this->emitValueChangeInhibited = false;
 }
 
 //------------------------------------------------------------------------------

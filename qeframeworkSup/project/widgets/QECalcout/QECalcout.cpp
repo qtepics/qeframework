@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2018-2022 Australian Synchrotron
+ *  Copyright (c) 2018-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -213,9 +213,10 @@ void QECalcout::setCalc (const QString& calcIn)
    }
 
    // Convert to a POD string.
+   // Note: the intermediate std::string must stay in scope.
    //
-   const char* pinfix;
-   pinfix = this->calc.toStdString().c_str();
+   const std::string keepInScope = this->calc.toStdString();
+   const char* pinfix = keepInScope.c_str();
 
    short error = 0;
    long status = postfix (pinfix, this->calcPostFix, &error);
@@ -262,9 +263,10 @@ void QECalcout::setOcal (const QString& ocalIn)
    }
 
    // Convert to a POD string.
+   // Note: the intermediate std::string must stay in scope.
    //
-   const char* pinfix;
-   pinfix = this->ocal.toStdString().c_str();
+   const std::string keepInScope = this->ocal.toStdString();
+   const char* pinfix = keepInScope.c_str();
 
    short error = 0;
    long status = postfix (pinfix, this->ocalPostFix, &error);

@@ -27,6 +27,7 @@
 #ifndef QE_BASE_CLIENT_H
 #define QE_BASE_CLIENT_H
 
+#include <QFlags>
 #include <QObject>
 #include <QString>
 #include <QStringList>
@@ -44,8 +45,22 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEBaseClient : public QObject
 {
    Q_OBJECT
 public:
-   enum Type { CAType,        // Channel Access
-               PVAType };     // PV Access
+   enum Type {
+      NullType,      // Unknown/Invalid
+      CAType,        // Channel Access
+      PVAType        // PV Access
+   };
+
+   // Open channel mode selection enumeration values and associated flags.
+   //
+   enum ChannelModes {
+      None = 0x00,
+      Read = 0x01,
+      Monitor = 0x02,
+      Write = 0x04,
+   };
+
+   Q_DECLARE_FLAGS (ChannelModesFlags, ChannelModes)
 
    explicit QEBaseClient (const Type type,
                           const QString& pvName,
@@ -83,5 +98,7 @@ private:
    const QString clientPvName;
    UserMessage* userMessage;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS (QEBaseClient::ChannelModesFlags)
 
 #endif // QE_BASE_CLIENT_H

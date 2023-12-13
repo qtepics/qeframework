@@ -67,6 +67,8 @@ public:
 
    Q_ENUMS (Protocol)
 
+   static QString protocolImage (const Protocol protocol);
+
    // Contruct an undefined uri
    //
    explicit QEPvNameUri ();
