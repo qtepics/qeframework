@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2022 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -228,13 +228,13 @@ public:
 
    Q_PROPERTY(bool showItemList READ getShowItemList WRITE setShowItemList)
 
-   Q_ENUMS(configurationTypesProperty)
-   Q_PROPERTY(configurationTypesProperty configurationType READ getConfigurationTypeProperty WRITE setConfigurationTypeProperty)
    enum configurationTypesProperty
    {
       File,
       Text
    };
+   Q_ENUM(configurationTypesProperty)
+   Q_PROPERTY(configurationTypesProperty configurationType READ getConfigurationTypeProperty WRITE setConfigurationTypeProperty)
 
    void setConfigurationTypeProperty(configurationTypesProperty pConfigurationType)
    {
@@ -250,8 +250,6 @@ public:
    Q_PROPERTY(QString configurationText READ getConfigurationText WRITE setConfigurationText)
 
    /// Change the order of the widgets. Valid orders are: TOP, BOTTOM, LEFT and RIG
-   Q_ENUMS(optionsLayoutProperty)
-   Q_PROPERTY(optionsLayoutProperty optionsLayout READ getOptionsLayoutProperty WRITE setOptionsLayoutProperty)
    enum optionsLayoutProperty
    {
       Top,
@@ -259,6 +257,8 @@ public:
       Left,
       Right
    };
+   Q_ENUM(optionsLayoutProperty)
+   Q_PROPERTY(optionsLayoutProperty optionsLayout READ getOptionsLayoutProperty WRITE setOptionsLayoutProperty)
 
    void setOptionsLayoutProperty(optionsLayoutProperty pOptionsLayout)
    {
@@ -327,11 +327,12 @@ public:
 
    /// \enum UserLevels
    /// User friendly enumerations for #userLevelVisibility and #userLevelEnabled properties - refer to #userLevelVisibility and #userLevelEnabled properties and userLevel enumeration for details.
-   enum UserLevels { User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
-                     Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
-                     Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
-                   };
-   Q_ENUMS(UserLevels)
+   enum UserLevels {
+       User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
+       Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
+       Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
+   };
+   Q_ENUM (UserLevels)
 
    /// Lowest user level at which the widget is visible. Default is 'User'.
    /// Used when designing GUIs that display more and more detail according to the user mode.

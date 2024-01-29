@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2021 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -67,7 +67,7 @@ public:
        archSevRepeat     = 0x0f10,
        archSevDisabled   = 0x0f08
    };
-   Q_ENUMS (archiveAlarmSeverity)
+   Q_ENUM (archiveAlarmSeverity)
 
    static QString alarmSeverityName (enum archiveAlarmSeverity severity);
 
@@ -78,7 +78,7 @@ public:
       PlotBinning,
       Linear
    };
-   Q_ENUMS (How)
+   Q_ENUM (How)
 
    // Available archives for given host/port/end_point - key is most important.
    //
@@ -119,7 +119,7 @@ public:
       Values,
       Count
    };
-   Q_ENUMS (Methods)
+   Q_ENUM (Methods)
 
    enum States {
       Unknown,
@@ -129,7 +129,7 @@ public:
       No_Response,
       Error
    };
-   Q_ENUMS (States)
+   Q_ENUM (States)
 
    struct Context {
       QEArchiveInterface::Methods method;

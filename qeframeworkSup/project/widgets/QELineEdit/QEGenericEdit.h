@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2020 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -106,7 +106,7 @@ public:
     /// Option: DropToTextAndWrite - write the text to the PV if the PV has been connected otherwise equivalent to DropToText
     ///
     enum DropOption { DropToVariable, DropToText, DropToTextAndWrite };
-    Q_ENUMS(DropOption)
+    Q_ENUM(DropOption)
     Q_PROPERTY(DropOption dropOption READ getDropOption WRITE setDropOption)
 
     void setDropOption(DropOption option){ dropOption = option; }
@@ -172,11 +172,12 @@ public:
 
     /// \enum UserLevels
     /// User friendly enumerations for #userLevelVisibility and #userLevelEnabled properties - refer to #userLevelVisibility and #userLevelEnabled properties and userLevel enumeration for details.
-    enum UserLevels { User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
-                      Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
-                      Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
-                    };
-    Q_ENUMS(UserLevels)
+    enum UserLevels {
+        User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
+        Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
+        Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
+    };
+    Q_ENUM (UserLevels)
 
     /// Lowest user level at which the widget is visible. Default is 'User'.
     /// Used when designing GUIs that display more and more detail according to the user mode.
@@ -208,7 +209,7 @@ public:
        WhenInvalid = standardProperties::DISPLAY_ALARM_STATE_WHEN_INVALID,        ///< Refer to DISPLAY_ALARM_STATE_WHEN_INVALID for details
        Never       = standardProperties::DISPLAY_ALARM_STATE_NEVER                ///< Refer to DISPLAY_ALARM_STATE_NEVER for details
     };
-    Q_ENUMS(DisplayAlarmStateOptions)
+    Q_ENUM (DisplayAlarmStateOptions)
     /// If 'Always' (default) widget will indicate the alarm state of any variable data it is displaying, including 'No Alarm'
     /// If 'WhenInAlarm' widget only indicate the alarm state of any variable data it is displaying if it is 'in alarm' or 'Out of Service'.
     /// If 'WhenInvalid' widget only indicate the alarm state of any variable data it is in the 'Invalid' alarm state or 'Out of Service'.

@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2012-2024 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2012 Australian Synchrotron
  *
  *  Author:
  *    Ricardo Fernandes
@@ -131,13 +131,13 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QERecipe:public QWidget, public QEWidge
         Q_PROPERTY(QString recipeFile READ getRecipeFile WRITE setRecipeFile)
 
 
-        Q_ENUMS(configurationTypesProperty)
-        Q_PROPERTY(configurationTypesProperty configurationType READ getConfigurationTypeProperty WRITE setConfigurationTypeProperty)
         enum configurationTypesProperty
         {
             File,
             Text
         };
+        Q_ENUM(configurationTypesProperty)
+        Q_PROPERTY(configurationTypesProperty configurationType READ getConfigurationTypeProperty WRITE setConfigurationTypeProperty)
 
         void setConfigurationTypeProperty(configurationTypesProperty pConfigurationType)
         {
@@ -152,8 +152,6 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QERecipe:public QWidget, public QEWidge
 
         Q_PROPERTY(QString configurationText READ getConfigurationText WRITE setConfigurationText)
 
-        Q_ENUMS(optionsLayoutProperty)
-        Q_PROPERTY(optionsLayoutProperty optionsLayout READ getOptionsLayoutProperty WRITE setOptionsLayoutProperty)
         enum optionsLayoutProperty
         {
             Top,
@@ -161,6 +159,8 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QERecipe:public QWidget, public QEWidge
             Left,
             Right
         };
+        Q_ENUM(optionsLayoutProperty)
+        Q_PROPERTY(optionsLayoutProperty optionsLayout READ getOptionsLayoutProperty WRITE setOptionsLayoutProperty)
 
         void setOptionsLayoutProperty(optionsLayoutProperty pOptionsLayout)
         {
@@ -172,14 +172,14 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QERecipe:public QWidget, public QEWidge
         }
 
 
-        Q_ENUMS(userTypesProperty)
-        Q_PROPERTY(userTypesProperty currentUserType READ getCurrentUserTypeProperty WRITE setCurrentUserTypeProperty)
         enum userTypesProperty
         {
             User      = userLevelTypes::USERLEVEL_USER,
             Scientist = userLevelTypes::USERLEVEL_SCIENTIST,
             Engineer  = userLevelTypes::USERLEVEL_ENGINEER
         };
+        Q_ENUM(userTypesProperty)
+        Q_PROPERTY(userTypesProperty currentUserType READ getCurrentUserTypeProperty WRITE setCurrentUserTypeProperty)
 
         void setCurrentUserTypeProperty(userTypesProperty pUserType)
         {

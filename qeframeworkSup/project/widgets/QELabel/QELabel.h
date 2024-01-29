@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2022 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -230,11 +230,12 @@ public:
 
     /// \enum UserLevels
     /// User friendly enumerations for #userLevelVisibility and #userLevelEnabled properties - refer to #userLevelVisibility and #userLevelEnabled properties and userLevel enumeration for details.
-    enum UserLevels { User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
-                      Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
-                      Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
-                    };
-    Q_ENUMS(UserLevels)
+    enum UserLevels {
+        User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
+        Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
+        Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
+    };
+    Q_ENUM (UserLevels)
 
     /// Lowest user level at which the widget is visible. Default is 'User'.
     /// Used when designing GUIs that display more and more detail according to the user mode.
@@ -266,7 +267,7 @@ public:
        WhenInvalid = standardProperties::DISPLAY_ALARM_STATE_WHEN_INVALID,        ///< Refer to DISPLAY_ALARM_STATE_WHEN_INVALID for details
        Never       = standardProperties::DISPLAY_ALARM_STATE_NEVER                ///< Refer to DISPLAY_ALARM_STATE_NEVER for details
     };
-    Q_ENUMS(DisplayAlarmStateOptions)
+    Q_ENUM (DisplayAlarmStateOptions)
     /// If 'Always' (default) widget will indicate the alarm state of any variable data it is displaying, including 'No Alarm'
     /// If 'WhenInAlarm' widget only indicate the alarm state of any variable data it is displaying if it is 'in alarm' or 'Out of Service'.
     /// If 'WhenInvalid' widget only indicate the alarm state of any variable data it is in the 'Invalid' alarm state or 'Out of Service'.
@@ -355,16 +356,17 @@ public:
 
     /// \enum    Formats
     /// User friendly enumerations for format property - refer to QEStringFormatting::formats for details.
-    enum Formats { Default          = QEStringFormatting::FORMAT_DEFAULT,            ///< Format as best appropriate for the data type
-                   Floating         = QEStringFormatting::FORMAT_FLOATING,           ///< Format as a floating point number
-                   Integer          = QEStringFormatting::FORMAT_INTEGER,            ///< Format as an integer
-                   UnsignedInteger  = QEStringFormatting::FORMAT_UNSIGNEDINTEGER,    ///< Format as an unsigned integer
-                   Time             = QEStringFormatting::FORMAT_TIME,               ///< Format as a time
-                   LocalEnumeration = QEStringFormatting::FORMAT_LOCAL_ENUMERATE     ///< Format as a selection from the #localEnumeration property
-                };
+    enum Formats {
+       Default          = QEStringFormatting::FORMAT_DEFAULT,            ///< Format as best appropriate for the data type
+       Floating         = QEStringFormatting::FORMAT_FLOATING,           ///< Format as a floating point number
+       Integer          = QEStringFormatting::FORMAT_INTEGER,            ///< Format as an integer
+       UnsignedInteger  = QEStringFormatting::FORMAT_UNSIGNEDINTEGER,    ///< Format as an unsigned integer
+       Time             = QEStringFormatting::FORMAT_TIME,               ///< Format as a time
+       LocalEnumeration = QEStringFormatting::FORMAT_LOCAL_ENUMERATE     ///< Format as a selection from the #localEnumeration property
+    };
+    Q_ENUM (Formats)
     void setFormatProperty( Formats format ){ setFormat( (QEStringFormatting::formats)format ); }  ///< Access function for #format property - refer to #format property for details
     Formats getFormatProperty(){ return (Formats)getFormat(); }                                    ///< Access function for #format property - refer to #format property for details
-    Q_ENUMS(Formats)
 
     /// Format to apply to data. Default is 'Default' in which case the data type supplied with the data determines how the data is formatted.
     /// For all other options, an attempt is made to format the data as requested (whatever its native form).
@@ -376,12 +378,13 @@ public:
 
     /// \enum Separators
     /// User friendly enumerations for seprator property - refer to QEStringFormatting::formats for details.
-    enum Separators { NoSeparator = QEStringFormatting::SEPARATOR_NONE,         ///< Use no separator
-                      Comma       = QEStringFormatting::SEPARATOR_COMMA,        ///< Use ',' as separator
-                      Underscore  = QEStringFormatting::SEPARATOR_UNDERSCORE,   ///< Use '_' as separator
-                      Space       = QEStringFormatting::SEPARATOR_SPACE         ///< Use ' ' as separator
-                    };
-    Q_ENUMS (Separators)
+    enum Separators {
+       NoSeparator = QEStringFormatting::SEPARATOR_NONE,         ///< Use no separator
+       Comma       = QEStringFormatting::SEPARATOR_COMMA,        ///< Use ',' as separator
+       Underscore  = QEStringFormatting::SEPARATOR_UNDERSCORE,   ///< Use '_' as separator
+       Space       = QEStringFormatting::SEPARATOR_SPACE         ///< Use ' ' as separator
+    };
+    Q_ENUM (Separators)
     void setSeparatorProperty( const Separators notation ){ setSeparator( (QEStringFormatting::separators)notation ); }  ///< Access function for #separator property - refer to #separator property for details
     Separators getSeparatorProperty() const { return (Separators)getSeparator(); }                                       ///< Access function for #separator property - refer to #separator property for details
 
@@ -391,26 +394,28 @@ public:
 
     /// \enum Notations
     /// User friendly enumerations for notation property - refer to QEStringFormatting::notations for details.
-    enum Notations { Fixed       = QEStringFormatting::NOTATION_FIXED,              ///< Refer to QEStringFormatting::NOTATION_FIXED for details
-                     Scientific  = QEStringFormatting::NOTATION_SCIENTIFIC,         ///< Refer to QEStringFormatting::NOTATION_SCIENTIFIC for details
-                     Automatic   = QEStringFormatting::NOTATION_AUTOMATIC           ///< Refer to QEStringFormatting::NOTATION_AUTOMATIC for details
-                };
+    enum Notations {
+       Fixed       = QEStringFormatting::NOTATION_FIXED,              ///< Refer to QEStringFormatting::NOTATION_FIXED for details
+       Scientific  = QEStringFormatting::NOTATION_SCIENTIFIC,         ///< Refer to QEStringFormatting::NOTATION_SCIENTIFIC for details
+       Automatic   = QEStringFormatting::NOTATION_AUTOMATIC           ///< Refer to QEStringFormatting::NOTATION_AUTOMATIC for details
+    };
+    Q_ENUM (Notations)
     void setNotationProperty( Notations notation ){ setNotation( (QEStringFormatting::notations)notation ); }  ///< Access function for #notation property - refer to #notation property for details
     Notations getNotationProperty(){ return (Notations)getNotation(); }                                        ///< Access function for #notation property - refer to #notation property for details
-    Q_ENUMS(Notations)
     /// Notation used for numerical formatting. Default is fixed.
     ///
     Q_PROPERTY(Notations notation READ getNotationProperty WRITE setNotationProperty)
 
     /// \enum ArrayActions
     /// User friendly enumerations for arrayAction property - refer to QEStringFormatting::arrayActions for details.
-    enum ArrayActions { Append = QEStringFormatting::APPEND,            ///< Refer to QEStringFormatting::APPEND for details
-                        Ascii  = QEStringFormatting::ASCII,             ///< Refer to QEStringFormatting::ASCII for details
-                        Index  = QEStringFormatting::INDEX              ///< Refer to QEStringFormatting::INDEX for details
-                    };
+    enum ArrayActions {
+       Append = QEStringFormatting::APPEND,            ///< Refer to QEStringFormatting::APPEND for details
+       Ascii  = QEStringFormatting::ASCII,             ///< Refer to QEStringFormatting::ASCII for details
+       Index  = QEStringFormatting::INDEX              ///< Refer to QEStringFormatting::INDEX for details
+    };
+    Q_ENUM (ArrayActions)
     void setArrayActionProperty( ArrayActions arrayAction ){ setArrayAction( (QEStringFormatting::arrayActions)arrayAction ); }    ///< Access function for #arrayAction property - refer to #arrayAction property for details
     ArrayActions getArrayActionProperty(){ return (ArrayActions)getArrayAction(); }                                                ///< Access function for #arrayAction property - refer to #arrayAction property for details
-    Q_ENUMS(ArrayActions)
 
     /// Text formatting option for array data. Default is ASCII. Options are:
     /// \li ASCII - treat array as a single text string. For example an array of three characters 'a' 'b' 'c' will be formatted as 'abc'.
@@ -428,16 +433,18 @@ public:
     Q_PROPERTY(QString text READ text WRITE setText DESIGNABLE false)
 
     // Update options (text, pixmap, or both)
-    Q_ENUMS(UpdateOptions)
     /// Determines if data updates the label text, or the label pixmap.
     /// For both options all normal string formatting is applied. If Text, the formatted text is simply presented as the label text.
     /// If Picture, the FORMATTED text is then interpreted as an integer and used to select one of the pixmaps specified by properties pixmap0 through to pixmap7.
     Q_PROPERTY(UpdateOptions updateOption READ getUpdateOptionProperty WRITE setUpdateOptionProperty)
 
     /// User friendly enumerations for updateOption property - refer to QELabel::updateOptions for details.
-    enum UpdateOptions { Text     = QELabel::UPDATE_TEXT,    ///< Data updates will update the label text
-                         Picture  = QELabel::UPDATE_PIXMAP   ///< Data updates will update the label icon
-                       };
+    enum UpdateOptions {
+       Text     = QELabel::UPDATE_TEXT,    ///< Data updates will update the label text
+       Picture  = QELabel::UPDATE_PIXMAP   ///< Data updates will update the label icon
+    };
+    Q_ENUM (UpdateOptions)
+
     void setUpdateOptionProperty( UpdateOptions updateOption ){ setUpdateOption( (QELabel::updateOptions)updateOption ); }  ///< Access function for #updateOption property - refer to #updateOption property for details
     UpdateOptions getUpdateOptionProperty(){ return (UpdateOptions)getUpdateOption(); }                                     ///< Access function for #updateOption property - refer to #updateOption property for details
 

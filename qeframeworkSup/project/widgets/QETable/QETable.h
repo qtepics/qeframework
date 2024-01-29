@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2023 Australian Synchrotron
+ *  Copyright (c) 2014-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -70,7 +70,7 @@ public:
    // Must be consistant with the number of variable name properties below and
    // calls to PROPERTY_ACCESS below.
    //
-   enum Constanys {
+   enum Constants {
       MAXIMUM_NUMBER_OF_VARIABLES = 20
    };
 
@@ -160,7 +160,7 @@ public:
       UnsignedInteger  = QEStringFormatting::FORMAT_UNSIGNEDINTEGER,    ///< Format as an unsigned integer
       Time             = QEStringFormatting::FORMAT_TIME                ///< Format as a time
    };
-   Q_ENUMS(Formats)
+   Q_ENUM (Formats)
 
    /// Format to apply to data. Default is 'Default' in which case the data type
    /// supplied with the data determines how the data is formatted.
@@ -178,7 +178,7 @@ public:
       Underscore  = QEStringFormatting::SEPARATOR_UNDERSCORE,   ///< Use '_' as separator
       Space       = QEStringFormatting::SEPARATOR_SPACE         ///< Use ' ' as separator
    };
-   Q_ENUMS (Separators)
+   Q_ENUM (Separators)
 
    /// Seperators used for interger and fixed point formatting. Default is None.
    ///
@@ -192,7 +192,7 @@ public:
       Scientific  = QEStringFormatting::NOTATION_SCIENTIFIC,    ///< Refer to QEStringFormatting::NOTATION_SCIENTIFIC for details
       Automatic   = QEStringFormatting::NOTATION_AUTOMATIC      ///< Refer to QEStringFormatting::NOTATION_AUTOMATIC for details
    };
-   Q_ENUMS(Notations)
+   Q_ENUM (Notations)
 
    /// Notation used for numerical formatting. Default is fixed.
    ///

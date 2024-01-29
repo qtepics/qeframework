@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2022 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -111,9 +111,6 @@ private:
 
 public:
     // Qt Designer Properties - condition
-    Q_ENUMS(ConditionNames)
-    Q_PROPERTY(ConditionNames condition READ getConditionProperty WRITE setConditionProperty)
-
     enum ConditionNames {
         Equal              = QELink::CONDITION_EQ,
         NotEqual           = QELink::CONDITION_NE,
@@ -122,6 +119,8 @@ public:
         LessThan           = QELink::CONDITION_LT,
         LessThanOrEqual    = QELink::CONDITION_LE
     };
+    Q_ENUM(ConditionNames)
+    Q_PROPERTY(ConditionNames condition READ getConditionProperty WRITE setConditionProperty)
 
     void setConditionProperty( ConditionNames condition ){ setCondition( (QELink::conditions)condition ); }
     ConditionNames getConditionProperty(){ return (ConditionNames)getCondition(); }
@@ -132,7 +131,6 @@ public:
     Q_PROPERTY(QString outTrueValue READ getOutTrueValue WRITE setOutTrueValue)
     Q_PROPERTY(QString outFalseValue READ getOutFalseValue WRITE setOutFalseValue)
     Q_PROPERTY(bool runVisible READ getRunVisible WRITE setRunVisible)
-
 };
 
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED

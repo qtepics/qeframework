@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2017-2023 Australian Synchrotron
+ *  Copyright (c) 2017-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -64,7 +64,7 @@ public:
       ARCHAPPL,    // Archive Appliance archiver
       Error        // Malformed archiver specification
    };
-   Q_ENUMS (ArchiverTypes)
+   Q_ENUM (ArchiverTypes)
 
    explicit QEArchiveAccess (QObject* parent = 0);
    virtual ~QEArchiveAccess ();
@@ -138,10 +138,11 @@ public:
    // Supports getArchivePvInformation
    //
    struct ArchiverPvInfo {
-     int key;
-     QString path;
-     QCaDateTime startTime;
-     QCaDateTime endTime;
+      QString hostName;                      //
+      int key;
+      QString path;
+      QCaDateTime startTime;
+      QCaDateTime endTime;
    };
    typedef QList<ArchiverPvInfo>  ArchiverPvInfoLists;
 

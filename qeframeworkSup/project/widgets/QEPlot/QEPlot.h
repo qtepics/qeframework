@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2023 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -76,21 +76,21 @@ public:
    // This are converted dynamically as opposed to having an
    // explicit dependency on QwtPlotCurve
    //
-   Q_ENUMS (TraceStyles)
    enum TraceStyles {
       Lines = 1,
       Sticks,
       Steps,
       Dots
    };
+   Q_ENUM (TraceStyles)
 
    // Consider adding a None value and removing the axisEnableY bool property.
    //
-   Q_ENUMS (SelectedYAxis)
    enum SelectedYAxis {
       Left = 1,
       Right
    };
+   Q_ENUM (SelectedYAxis)
 
    /// EPICS variable name (CA PV).
    /// These variables is used to read updating values or waveforms.
@@ -213,7 +213,7 @@ public:
       signalData           = 0x0002,  ///< signals row, col and value emited as binary data
       signalText           = 0x0004,  ///< signals row, col and value emited as as text
    };
-   Q_ENUMS (MouseMoveSignals)
+   Q_ENUM (MouseMoveSignals)
 
    Q_DECLARE_FLAGS (MouseMoveSignalFlags, MouseMoveSignals)
    Q_FLAG (MouseMoveSignalFlags)

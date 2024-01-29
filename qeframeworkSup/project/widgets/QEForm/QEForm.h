@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2022 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -189,7 +189,12 @@ public:
    ///
    Q_PROPERTY(unsigned int messageSourceId READ getMessageSourceId WRITE setMessageSourceId )
 
-   Q_ENUMS(MessageFilterOptions)
+   enum MessageFilterOptions {
+      /* Any = UserMessage::MESSAGE_FILTER_ANY, This would allow QEForm widgets to get in a message resend loop */
+      Match = UserMessage::MESSAGE_FILTER_MATCH,
+      None  = UserMessage::MESSAGE_FILTER_NONE
+   };
+   Q_ENUM (MessageFilterOptions)
 
    /// Message filter that attempts to match messages sent through the QE message logging system based on
    /// the automatically generated message form ID.
@@ -213,12 +218,6 @@ public:
    /// Matched messages will be resend with the messageSourceId of this QEForm.
    Q_PROPERTY(MessageFilterOptions messageSourceFilter READ getMessageSourceFilter
                                                        WRITE setMessageSourceFilter )
-
-   enum MessageFilterOptions {
-      /* Any = UserMessage::MESSAGE_FILTER_ANY, This would allow QEForm widgets to get in a message resend loop */
-      Match = UserMessage::MESSAGE_FILTER_MATCH,
-      None  = UserMessage::MESSAGE_FILTER_NONE
-   };
 
    MessageFilterOptions getMessageFormFilter() const;
    void setMessageFormFilter( MessageFilterOptions messageFormFilter );

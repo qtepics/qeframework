@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2023 Australian Synchrotron.
+ *  Copyright (c) 2011-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -46,10 +46,10 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QBitStatus : public QWidget {
 
 public:
    enum Orientations { LSB_On_Right, LSB_On_Bottom, LSB_On_Left, LSB_On_Top };
-   Q_ENUMS (Orientations)
+   Q_ENUM (Orientations)
 
    enum Shapes { Rectangle, Circle };
-   Q_ENUMS (Shapes)
+   Q_ENUM (Shapes)
 
    // Declare in type order.
    //

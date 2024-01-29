@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020-2023 Australian Synchrotron
+ *  Copyright (c) 2020-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -96,7 +96,7 @@ public:
       array1D,    ///<
       array2D     ///< default
    };
-   Q_ENUMS(DataFormats)
+   Q_ENUM (DataFormats)
 
    Q_PROPERTY (DataFormats dataFormat   READ getDataFormat  WRITE setDataFormat)
 
@@ -128,7 +128,7 @@ public:
       mean,        ///< take average of all values
       median       ///< take median of all values
    };
-   Q_ENUMS(DataBinning)
+   Q_ENUM (DataBinning)
 
    Q_PROPERTY (DataBinning dataBinning   READ getDataBinning           WRITE setDataBinning)
 
@@ -145,7 +145,7 @@ public:
       Rotate180,               ///< Rotate data 180 degrees
       Rotate90Left             ///< Rotate data 90 degrees anti-clockwise
    };
-   Q_ENUMS (RotationOptions)
+   Q_ENUM (RotationOptions)
 
    /// Data rotation option.
    ///
@@ -165,7 +165,7 @@ public:
       dynamic,         ///< range adhjuested dynamically (based on current values)
       displayed        ///< what is currently displayed - becomes current manual settings and scale mode becomes manual
    };
-   Q_ENUMS (ScaleModes)
+   Q_ENUM (ScaleModes)
 
    Q_PROPERTY (ScaleModes scaleMode      READ getScaleMode             WRITE setScaleMode)
    Q_PROPERTY (double minimum            READ getMinimum               WRITE setMinimum)
@@ -182,7 +182,7 @@ public:
       signalData           = 0x0002,  ///< signals row, col and value emited as binary data
       signalText           = 0x0004,  ///< signals row, col and value emited as as text
    };
-   Q_ENUMS (MouseMoveSignals)
+   Q_ENUM (MouseMoveSignals)
 
    Q_DECLARE_FLAGS (MouseMoveSignalFlags, MouseMoveSignals)
    Q_FLAG (MouseMoveSignalFlags)

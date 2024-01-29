@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2021 Australian Synchrotron.
+ *  Copyright (c) 2014-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -56,10 +56,11 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QNumericEdit : public QWidget {
 public:
    /// \enum Notations
    /// User friendly enumerations for notation property.
-   enum Notations { Fixed,        ///< Fixed point:   +ddd.ddd
-                    Scientific    ///< Scienctific:   +d.ddddde+nn
-               };
-   Q_ENUMS (Notations)
+   enum Notations {
+      Fixed,        ///< Fixed point:   +ddd.ddd
+      Scientific    ///< Scienctific:   +d.ddddde+nn
+   };
+   Q_ENUM (Notations)
 
 
    /// This property holds whether the numeric edit draws itself with a frame.

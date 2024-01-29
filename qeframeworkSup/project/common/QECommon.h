@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2023 Australian Synchrotron.
+ *  Copyright (c) 2013-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -164,7 +164,7 @@ public:
     ///
     /// Note: This functions rely on the meta object compiler (moc) generated code.
     /// To use this functions, the enumeration type must be declared within a Q_OBJECT QObject
-    /// and the enum type qualifier with the Q_ENUMS, e.g. Q_ENUMS (Shapes).
+    /// and the enum type qualifier with the Q_ENUM, e.g. Q_ENUM (Shapes).
     ///
     static QString enumToString (const QObject& object,
                                  const QString& enumTypeName,
@@ -175,7 +175,7 @@ public:
     ///
     /// Note: This functions rely on the meta object compiler (moc) generated code.
     /// To use this functions, the enumeration type must be declared within a Q_OBJECT QObject
-    /// and the enum type qualifier with the Q_ENUMS, e.g. Q_ENUMS (Shapes).
+    /// and the enum type qualifier with the Q_ENUM, e.g. Q_ENUM (Shapes).
     ///
     static QString enumToString (const QMetaObject& mo,
                                  const QString& enumTypeName,
@@ -190,7 +190,7 @@ public:
     ///
     /// Note: This functions rely on the meta object compiler (moc) generated code.
     /// To use this functions, the enumeration type must be declared within a Q_OBJECT QObject
-    /// and the enum type qualifier with the Q_ENUMS, e.g. Q_ENUMS (Shapes).
+    /// and the enum type qualifier with the Q_ENUM, e.g. Q_ENUM (Shapes).
     ///
     static int stringToEnum  (const QObject& object,
                               const QString& enumTypeName,
@@ -206,7 +206,7 @@ public:
     ///
     /// Note: This functions rely on the meta object compiler (moc) generated code.
     /// To use this functions, the enumeration type must be declared within a Q_OBJECT QObject
-    /// and the enum type qualifier with the Q_ENUMS, e.g. Q_ENUMS (Shapes).
+    /// and the enum type qualifier with the Q_ENUM, e.g. Q_ENUM (Shapes).
     ///
     static int stringToEnum  (const QMetaObject& mo,
                               const QString& enumTypeName,

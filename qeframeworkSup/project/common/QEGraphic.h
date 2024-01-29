@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron.
+ *  Copyright (c) 2013-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -365,7 +365,7 @@ public:
 
 
    // Embedded qwt plot manipulation functions.
-   //
+   // Use with care
    void enableAxis (int axisId, bool tf = true);
    void setAxisScale (int axisId, double min, double max, double step = 0);
    void installCanvasEventFilter (QObject* filter);

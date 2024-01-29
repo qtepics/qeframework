@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -50,7 +50,7 @@ public:
       tmHistorical     //
    };
 
-   Q_ENUMS (ChartTimeModes)
+   Q_ENUM (ChartTimeModes)
 
    // A more user friendly version than enumToString.
    static QString chartTimeModeStatus (const ChartTimeModes mode);
@@ -64,7 +64,7 @@ public:
       normalised       // chart range set to 0 .. 100, PVs scaled
    };
 
-   Q_ENUMS (ChartYRanges)
+   Q_ENUM (ChartYRanges)
 
    // A more user friendly version than enumToString.
    static QString chartYRangeStatus (const ChartYRanges yRange);
@@ -77,28 +77,28 @@ public:
       selectTimes      // set start/end time via dialog
    };
 
-   Q_ENUMS (PlayModes)
+   Q_ENUM (PlayModes)
 
    enum StateModes {
       previous,         // previous state
       next              // next state
    };
 
-   Q_ENUMS (StateModes)
+   Q_ENUM (StateModes)
 
    enum VideoModes {
       normal,          // white background
       reverse          // black backgound
    };
 
-   Q_ENUMS (VideoModes)
+   Q_ENUM (VideoModes)
 
    enum YScaleModes {
       linear,          // lineary Y scale
       log              // log Y scale - limited to -20
    };
 
-   Q_ENUMS (YScaleModes)
+   Q_ENUM (YScaleModes)
 
 
    enum LineDrawModes {
@@ -107,14 +107,14 @@ public:
       ldmBold          // bold draw
    };
 
-   Q_ENUMS (LineDrawModes)
+   Q_ENUM (LineDrawModes)
 
    enum LinePlotModes {
       lpmRectangular,  // plot current value until next value with step
       lpmSmooth        // plot linear interpolation from current to next value.
    };
 
-   Q_ENUMS (LinePlotModes)
+   Q_ENUM (LinePlotModes)
 
    // IDs for all menu options
    // Each menu option has a unique ID across all menus

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2018-2022 Australian Synchrotron
+ *  Copyright (c) 2018-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -67,7 +67,7 @@ public:
       Use_CALC,
       Use_OCAL
    };
-   Q_ENUMS (DataOptions)
+   Q_ENUM (DataOptions)
 
    enum OutputOptions {
       Every_Time,
@@ -78,7 +78,7 @@ public:
       Transition_To_Non_zero,
       Never   // not part of calcout, but is in swait and a useful addition.
    };
-   Q_ENUMS (OutputOptions)
+   Q_ENUM (OutputOptions)
 
    /// Specifies the calculation to be performed. The syntax is identical to that
    /// used by the calc/calcout records. However it is not limited to 80 characters.

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2019 Australian Synchrotron
+ *  Copyright (c) 2019-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -74,7 +74,7 @@ public:
       RowMajor = 0,
       ColMajor = 1
    };
-   Q_ENUMS (GridOrders)
+   Q_ENUM (GridOrders)
 
    /// The uiFile loaded into each QEForm element.
    /// Default value: "".

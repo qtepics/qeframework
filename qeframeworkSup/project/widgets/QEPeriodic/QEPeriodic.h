@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2022 Australian Synchrotron
+ *  Copyright (c) 2011-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -450,7 +450,7 @@ public:
         Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
         Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
     };
-    Q_ENUMS(UserLevels)
+    Q_ENUM (UserLevels)
 
     /// Lowest user level at which the widget is visible. Default is 'User'.
     /// Used when designing GUIs that display more and more detail according to the user mode.
@@ -480,7 +480,7 @@ public:
         Always      = standardProperties::DISPLAY_ALARM_STATE_ALWAYS,         ///< Refer to DISPLAY_ALARM_STATE_ALWAYS for details
         WhenInAlarm = standardProperties::DISPLAY_ALARM_STATE_WHEN_IN_ALARM   ///< Refer to DISPLAY_ALARM_STATE_WHEN_IN_ALARM for details
     };
-    Q_ENUMS(DisplayAlarmStateOptions)
+    Q_ENUM (DisplayAlarmStateOptions)
     /// If 'Always' (default) widget will indicate the alarm state of any variable data it is displaying, including 'No Alarm'
     /// If 'Never' widget will never indicate the alarm state of any variable data it is displaying.
     /// If 'WhenInAlarm' widget only indicate the alarm state of any variable data it is displaying if it is 'in alarm'.
@@ -498,22 +498,18 @@ public:
 
     // Widget specific properties
 
-    Q_ENUMS(PresentationOptions)
-    Q_PROPERTY(PresentationOptions presentationOption READ getPresentationOptionProperty WRITE setPresentationOptionProperty)
     enum PresentationOptions {
        buttonAndLabel = QEPeriodic::PRESENTATION_BUTTON_AND_LABEL,
        buttonOnly     = QEPeriodic::PRESENTATION_BUTTON_ONLY,
        labelOnly      = QEPeriodic::PRESENTATION_LABEL_ONLY
     };
+    Q_ENUM(PresentationOptions)
+    Q_PROPERTY(PresentationOptions presentationOption READ getPresentationOptionProperty WRITE setPresentationOptionProperty)
 
     void setPresentationOptionProperty( PresentationOptions presentationOption ){ setPresentationOption( (QEPeriodic::presentationOptions)presentationOption ); }
     PresentationOptions getPresentationOptionProperty(){ return (PresentationOptions)getPresentationOption(); }
 
 
-
-    Q_ENUMS(VariableTypes)
-    Q_PROPERTY(VariableTypes variableType1 READ getVariableType1Property WRITE setVariableType1Property)
-    Q_PROPERTY(VariableTypes variableType2 READ getVariableType2Property WRITE setVariableType2Property)
     enum VariableTypes {
        Number           = QEPeriodic::VARIABLE_TYPE_NUMBER,
        atomicWeight     = QEPeriodic::VARIABLE_TYPE_ATOMIC_WEIGHT,
@@ -525,6 +521,9 @@ public:
        userValue1       = QEPeriodic::VARIABLE_TYPE_USER_VALUE_1,
        userValue2       = QEPeriodic::VARIABLE_TYPE_USER_VALUE_2
     };
+    Q_ENUM(VariableTypes)
+    Q_PROPERTY(VariableTypes variableType1 READ getVariableType1Property WRITE setVariableType1Property)
+    Q_PROPERTY(VariableTypes variableType2 READ getVariableType2Property WRITE setVariableType2Property)
 
     void setVariableType1Property( VariableTypes variableType ){ setVariableType1( (QEPeriodic::variableTypes)variableType ); }
     void setVariableType2Property( VariableTypes variableType ){ setVariableType2( (QEPeriodic::variableTypes)variableType ); }
@@ -540,17 +539,19 @@ public:
 
     Q_PROPERTY(QString userInfoFile READ getUserInfoFile WRITE setUserInfoFile)
 
-    Q_ENUMS(UserInfoSourceOptions)
+    enum UserInfoSourceOptions {
+        userInfoSourceText = QEPeriodic::USER_INFO_SOURCE_TEXT,
+        userInfoSourceFile = QEPeriodic::USER_INFO_SOURCE_FILE
+    };
+    Q_ENUM(UserInfoSourceOptions)
     Q_PROPERTY(UserInfoSourceOptions userInfoSourceOption READ getUserInfoSourceOptionProperty WRITE setUserInfoSourceOptionProperty)
-    enum UserInfoSourceOptions { userInfoSourceText = QEPeriodic::USER_INFO_SOURCE_TEXT,
-                                 userInfoSourceFile = QEPeriodic::USER_INFO_SOURCE_FILE };
+
     void setUserInfoSourceOptionProperty( UserInfoSourceOptions userInfoSourceOption ){ setUserInfoSourceOption( (QEPeriodic::userInfoSourceOptions)userInfoSourceOption ); }
     UserInfoSourceOptions getUserInfoSourceOptionProperty(){ return (UserInfoSourceOptions)getUserInfoSourceOption(); }
 
     /// This property sets element colourised enable/disable on the PeridicDialog.
     ///
     Q_PROPERTY(bool colourised READ isColourised WRITE setColourised)
-
 };
 
 Q_DECLARE_METATYPE(QEPeriodic::userInfoStructArray)

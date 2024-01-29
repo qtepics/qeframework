@@ -1,7 +1,9 @@
 /*  QEFixedPointRadix.cpp
  *
  *  This file is part of the EPICS QT Framework, initially developed at the
- *   Australian Synchrotron.
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2014-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2014 Australian Synchrotron.
  *
  *  Author:
  *    Andrew Starritt
@@ -48,11 +48,11 @@ public:
 
    /// Defines allowed radix values.
    enum Radicies { Decimal = 0, Hexadecimal, Octal, Binary };
-   Q_ENUMS (Radicies)
+   Q_ENUM (Radicies)
 
    /// Defines the digit 'thousands' separator character.
    enum Separators { None = 0, Comma, Underscore, Space };
-   Q_ENUMS (Separators)
+   Q_ENUM (Separators)
 
    explicit QEFixedPointRadix (QObject* parent = 0);  // default is Decimal, None
    explicit QEFixedPointRadix (const Radicies radix, const Separators separator, QObject* parent = 0);
