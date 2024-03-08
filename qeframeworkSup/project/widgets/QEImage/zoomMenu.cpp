@@ -37,7 +37,7 @@ zoomMenu::zoomMenu( QWidget *parent) : QMenu(parent)
     addAction( areaSelectedAction );
 
     QAction* a;
-    a = new QAction( "Fit",  this ); a->setData( imageContextMenu::ICM_ZOOM_FIT   ); addAction( a );
+    a = new QAction(tr("Fit"),this); a->setData( imageContextMenu::ICM_ZOOM_FIT   ); addAction( a );
     a = new QAction( "+",    this ); a->setData( imageContextMenu::ICM_ZOOM_PLUS  ); addAction( a );
     a = new QAction( "-",    this ); a->setData( imageContextMenu::ICM_ZOOM_MINUS ); addAction( a );
     a = new QAction( "10%",  this ); a->setData( imageContextMenu::ICM_ZOOM_10    ); addAction( a );
@@ -50,7 +50,7 @@ zoomMenu::zoomMenu( QWidget *parent) : QMenu(parent)
     a = new QAction( "300%", this ); a->setData( imageContextMenu::ICM_ZOOM_300   ); addAction( a );
     a = new QAction( "400%", this ); a->setData( imageContextMenu::ICM_ZOOM_400   ); addAction( a );
 
-    setTitle( "Local Zoom" );
+    setTitle( tr("Local Zoom") );
 }
 
 // Get a zoom factor from the user.

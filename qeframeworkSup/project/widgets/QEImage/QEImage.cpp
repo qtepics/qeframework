@@ -274,19 +274,19 @@ void QEImage::setup()
                       this, SLOT( setImage( const QByteArray&, unsigned long, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
 
     // Create vertical, horizontal, and general profile plots
-    vSliceLabel = new QLabel( "Vertical Profile" );
+    vSliceLabel = new QLabel( tr("Vertical Profile") );
     vSliceLabel->setVisible( false );
     vSliceDisplay = new profilePlot( profilePlot::PROFILEPLOT_BT );
     QObject::connect(vSliceDisplay, SIGNAL(destroyed(QObject*)), this, SLOT(vSliceDisplayDestroyed(QObject*)));
     vSliceDisplay->setVisible( false );
 
-    hSliceLabel = new QLabel( "Horizontal Profile" );
+    hSliceLabel = new QLabel( tr("Horizontal Profile") );
     hSliceLabel->setVisible( false );
     hSliceDisplay = new profilePlot( profilePlot::PROFILEPLOT_LR );
     QObject::connect(hSliceDisplay, SIGNAL(destroyed(QObject*)), this, SLOT(hSliceDisplayDestroyed(QObject*)));
     hSliceDisplay->setVisible( false );
 
-    profileLabel = new QLabel( "Arbitrary Line Profile" );
+    profileLabel = new QLabel( tr("Arbitrary Line Profile") );
     profileLabel->setVisible( false );
     profileDisplay = new profilePlot( profilePlot::PROFILEPLOT_LR );
     QObject::connect(profileDisplay, SIGNAL(destroyed(QObject*)), this, SLOT(profileDisplayDestroyed(QObject*)));
@@ -313,49 +313,49 @@ void QEImage::setup()
     pauseButtonIcon = new QIcon( ":/qe/image/pause.png" );
     playButtonIcon = new QIcon( ":/qe/image/play.png" );
     pauseButton->setIcon( *pauseButtonIcon );
-    pauseButton->setToolTip("Pause image display");
+    pauseButton->setToolTip(tr("Pause image display"));
     QObject::connect(pauseButton, SIGNAL(clicked()), this, SLOT(pauseClicked()));
 
     saveButton = new QPushButton(buttonGroup);
     saveButton->setMinimumWidth( buttonWidth );
     QIcon saveButtonIcon( ":/qe/image/save.png" );
     saveButton->setIcon( saveButtonIcon );
-    saveButton->setToolTip("Save displayed image");
+    saveButton->setToolTip(tr("Save displayed image"));
     QObject::connect(saveButton, SIGNAL(clicked()), this, SLOT(saveClicked()));
 
     targetButton = new QPushButton(buttonGroup);
     targetButton->setMinimumWidth( buttonWidth );
     QIcon targetButtonIcon( ":/qe/image/target.png" );
     targetButton->setIcon( targetButtonIcon );
-    targetButton->setToolTip("Move target position into beam");
+    targetButton->setToolTip(tr("Move target position into beam"));
     QObject::connect(targetButton, SIGNAL(clicked()), this, SLOT(targetClicked()));
 
     selectModeButton = new QPushButton(buttonGroup);
     selectModeButton->setMinimumWidth( buttonMenuWidth );
     QIcon selectModeButtonIcon( ":/qe/image/select.png" );
     selectModeButton->setIcon( selectModeButtonIcon );
-    selectModeButton->setToolTip("Choose selection and pan modes");
+    selectModeButton->setToolTip(tr("Choose selection and pan modes"));
     selectModeButton->setMenu( sMenu );
 
     markupDisplayButton = new QPushButton(buttonGroup);
     markupDisplayButton->setMinimumWidth( buttonMenuWidth );
     QIcon markupDisplayButtonIcon( ":/qe/image/markupDisplay.png" );
     markupDisplayButton->setIcon( markupDisplayButtonIcon );
-    markupDisplayButton->setToolTip("Hide or reveal markups");
+    markupDisplayButton->setToolTip(tr("Hide or reveal markups"));
     markupDisplayButton->setMenu( mdMenu );
 
     zoomButton = new QPushButton(buttonGroup);
     zoomButton->setMinimumWidth( buttonMenuWidth );
     QIcon zoomButtonIcon( ":/qe/image/zoom.png" );
     zoomButton->setIcon( zoomButtonIcon );
-    zoomButton->setToolTip("Zoom options");
+    zoomButton->setToolTip(tr("Zoom options"));
     zoomButton->setMenu( zMenu );
 
     flipRotateButton = new QPushButton(buttonGroup);
     flipRotateButton->setMinimumWidth( buttonMenuWidth );
     QIcon flipRotateButtonIcon( ":/qe/image/flipRotate.png" );
     flipRotateButton->setIcon( flipRotateButtonIcon );
-    flipRotateButton->setToolTip("Local flip and rotate options");
+    flipRotateButton->setToolTip(tr("Local flip and rotate options"));
     flipRotateButton->setMenu( frMenu );
 
 

@@ -324,10 +324,10 @@ void PersistanceManager::saveEpilog( const QString fileName, const bool warnUser
    // Handle not writing configuration file
    else
    {
-      QString message = QString( "Could not save configuration. Could not open configuration file ").append( fileName );
+      QString message = QObject::tr( "Could not save configuration. Could not open configuration file %1").arg( fileName );
       if( warnUser )
       {
-         QMessageBox::warning( 0, "Configuration management", message );
+         QMessageBox::warning( 0, QObject::tr("Configuration management"), message );
       }
       else
       {
@@ -416,10 +416,10 @@ bool PersistanceManager::openRead( const QString fileName, const QString rootNam
    {
       if( fileExpected )
       {
-         QString message = QString( "Could not open configuration file for reading: ").append( fileName );
+         QString message = QObject::tr( "Could not open configuration file for reading: %1").arg( fileName );
          if( warnUser )
          {
-            QMessageBox::warning( 0, "Configuration management", message );
+            QMessageBox::warning( 0, QObject::tr("Configuration management"), message );
          }
          else
          {
@@ -431,10 +431,10 @@ bool PersistanceManager::openRead( const QString fileName, const QString rootNam
 
    if ( !doc.setContent( &file ) )
    {
-      QString message = QString( "Could not parse the XML in the config file: ").append( fileName );
+      QString message = QObject::tr( "Could not parse the XML in the config file: %1").arg( fileName );
       if( warnUser )
       {
-         QMessageBox::warning( 0, "Configuration management", message );
+         QMessageBox::warning( 0, QObject::tr("Configuration management"), message );
       }
       else
       {
@@ -449,10 +449,10 @@ bool PersistanceManager::openRead( const QString fileName, const QString rootNam
 
    if( docElem.nodeName().compare( rootName ) )
    {
-      QString message = QString( "XML did not contain the expected root element " ).append( rootName ).append( " in the config file: ").append( fileName );
+      QString message = QObject::tr( "XML did not contain the expected root element %1 in the config file: %2").arg(rootName).arg( fileName );
       if( warnUser )
       {
-         QMessageBox::warning( 0, "Configuration management", message );
+         QMessageBox::warning( 0, QObject::tr("Configuration management"), message );
       }
       else
       {
@@ -545,11 +545,11 @@ void PersistanceManager::deleteConfigs( const QString fileName, const QString ro
       QString message;
       if( names.count()==1 && names.at(0) == PersistanceManager::defaultName )
       {
-         message = QString( "The default configuration used at startup will be deleted. Do you want to continue?" );
+         message = QObject::tr( "The default configuration used at startup will be deleted. Do you want to continue?" );
       }
       else
       {
-         message = QString( "%1 configuration%2 will be deleted. Do you want to continue?" ).arg( names.count() ).arg( names.count()>1?QString("s"):QString("") );
+         message = QObject::tr( "%1 configuration%2 will be deleted. Do you want to continue?" ).arg( names.count() ).arg( names.count()>1?QString("s"):QString("") );
       }
 
       msgBox.setText( message );
@@ -597,10 +597,10 @@ void PersistanceManager::deleteConfigs( const QString fileName, const QString ro
    }
    else
    {
-      QString message = QString( "Could not save remaining configurations to configuration file ").append( fileName );
+      QString message = QObject::tr( "Could not save remaining configurations to configuration file %1").arg( fileName );
       if( warnUser )
       {
-         QMessageBox::warning( 0, "Configuration management", message );
+         QMessageBox::warning( 0, QObject::tr("Configuration management"), message );
       }
       else
       {

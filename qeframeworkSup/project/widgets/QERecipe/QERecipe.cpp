@@ -49,30 +49,30 @@ QERecipe::QERecipe(QWidget *pParent):QWidget(pParent), QEWidget(this)
 
 
     qComboBoxRecipeList->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    qComboBoxRecipeList->setToolTip("Select recipe");
+    qComboBoxRecipeList->setToolTip(tr("Select recipe"));
     QObject::connect(qComboBoxRecipeList, SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxRecipeSelected(int)));
 
-    qPushButtonNew->setText("New");
-    qPushButtonNew->setToolTip("Create new recipe");
+    qPushButtonNew->setText(tr("New"));
+    qPushButtonNew->setToolTip(tr("Create new recipe"));
     QObject::connect(qPushButtonNew, SIGNAL(clicked()), this, SLOT(buttonNewClicked()));
 
-    qPushButtonSave->setText("Save");
-    qPushButtonSave->setToolTip("Save values in the selected recipe");
+    qPushButtonSave->setText(tr("Save"));
+    qPushButtonSave->setToolTip(tr("Save values in the selected recipe"));
     qPushButtonSave->setEnabled(false);
     QObject::connect(qPushButtonSave, SIGNAL(clicked()), this, SLOT(buttonSaveClicked()));
 
-    qPushButtonDelete->setText("Delete");
-    qPushButtonDelete->setToolTip("Delete selected recipe");
+    qPushButtonDelete->setText(tr("Delete"));
+    qPushButtonDelete->setToolTip(tr("Delete selected recipe"));
     qPushButtonDelete->setEnabled(false);
     QObject::connect(qPushButtonDelete, SIGNAL(clicked()), this, SLOT(buttonDeleteClicked()));
 
-    qPushButtonApply->setText("Apply");
-    qPushButtonApply->setToolTip("Apply values to process variables");
+    qPushButtonApply->setText(tr("Apply"));
+    qPushButtonApply->setToolTip(tr("Apply values to process variables"));
     qPushButtonApply->setEnabled(false);
     QObject::connect(qPushButtonApply, SIGNAL(clicked()), this, SLOT(buttonApplyClicked()));
 
-    qPushButtonRead->setText("Read");
-    qPushButtonRead->setToolTip("Read values from process variables");
+    qPushButtonRead->setText(tr("Read"));
+    qPushButtonRead->setToolTip(tr("Read values from process variables"));
     QObject::connect(qPushButtonRead, SIGNAL(clicked()), this, SLOT(buttonReadClicked()));
 
     qEConfiguredLayoutRecipeFields->setShowItemList(false);
@@ -509,7 +509,7 @@ void QERecipe::buttonNewClicked()
 
     do
     {
-        name = QInputDialog::getText(this, "New Recipe", "Name:", QLineEdit::Normal , "", &flag);
+        name = QInputDialog::getText(this, tr("New Recipe"), tr("Name:"), QLineEdit::Normal , "", &flag);
     }
     while(flag && name.isEmpty());
 
@@ -569,7 +569,7 @@ void QERecipe::buttonNewClicked()
             }
             if (flag)
             {
-                flag = (QMessageBox::question(this, "Info", "Do you want to replace existing recipe '" + name + "'?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes);
+                flag = (QMessageBox::question(this, tr("Info"), tr("Do you want to replace existing recipe '%1'?").arg(name), QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes);
                 if (flag)
                 {
                     rootElement.removeChild(rootNode);
@@ -577,7 +577,7 @@ void QERecipe::buttonNewClicked()
             }
             else
             {
-                QMessageBox::warning(this, "Warning", "Unable to create recipe '" + name + "' since it already exists and belongs to another user type with more priviledges!");
+                QMessageBox::warning(this, tr("Warning"), tr("Unable to create recipe '%1' since it already exists and belongs to another user type with more priviledges!").arg(name));
             }
         }
         else
@@ -627,13 +627,13 @@ void QERecipe::buttonNewClicked()
             rootElement.appendChild(recipeElement);
             if (saveRecipeList())
             {
-                QMessageBox::information(this, "Info", "The recipe '" + name + "' was successfully created!");
+                QMessageBox::information(this, tr("Info"), tr("The recipe '%1' was successfully created!").arg(name));
             }
             else
             {
                 // TODO: restore original document if there is an error
                 //rootElement.removeChild(recipeElement);
-                QMessageBox::critical(this, "Error", "Unable to create recipe '" + name + "' in file '" + filename + "'!");
+                QMessageBox::critical(this, tr("Error"), tr("Unable to create recipe '%1' in file '%2'!").arg(name).arg(filename));
             }
         }
     }
@@ -659,7 +659,7 @@ void QERecipe::buttonSaveClicked()
 
     currentName = qComboBoxRecipeList->currentText();
 
-    if (QMessageBox::question(this, "Info", "Do you want to save the values in recipe '" + currentName + "'?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+    if (QMessageBox::question(this, tr("Info"), tr("Do you want to save the values in recipe '%1'?").arg(currentName), QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
     {
         count = 0;
         rootElement = document.documentElement();
@@ -722,12 +722,12 @@ void QERecipe::buttonSaveClicked()
 
         if (saveRecipeList())
         {
-            QMessageBox::information(this, "Info", "The recipe '" + currentName + "' was successfully saved!");
+            QMessageBox::information(this, tr("Info"), tr("The recipe '%1' was successfully saved!").arg(currentName));
         }
         else
         {
             // TODO: restore original document if there is an error
-            QMessageBox::critical(this, "Error", "Unable to save recipe '" + currentName + "' in file '" + filename + "'!");
+            QMessageBox::critical(this, tr("Error"), tr("Unable to save recipe '%1' in file '%2'!").arg(currentName).arg(filename));
         }
     }
 
@@ -749,7 +749,7 @@ void QERecipe::buttonDeleteClicked()
 
     currentName = qComboBoxRecipeList->currentText();
 
-    if (QMessageBox::question(this, "Info", "Do you want to delete recipe '" + currentName + "'?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+    if (QMessageBox::question(this, tr("Info"), tr("Do you want to delete recipe '%1'?").arg(currentName), QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
     {
         count = 0;
         rootElement = document.documentElement();
@@ -781,12 +781,12 @@ void QERecipe::buttonDeleteClicked()
         }
         if (saveRecipeList())
         {
-            QMessageBox::information(this, "Info", "The recipe '" + currentName + "' was successfully delete!");
+            QMessageBox::information(this, tr("Info"), tr("The recipe '%1' was successfully delete!").arg(currentName));
         }
         else
         {
             // TODO: restore original document if there is an error
-            QMessageBox::critical(this, "Error", "Unable to delete recipe '" + currentName + "' in file '" + filename + "'!");
+            QMessageBox::critical(this, tr("Error"), tr("Unable to delete recipe '%1' in file %2'!").arg(currentName).arg(filename));
         }
     }
 
@@ -802,7 +802,7 @@ void QERecipe::buttonApplyClicked()
     int i;
 
 
-    if (QMessageBox::question(this, "Info", "Do you want to apply recipe '" + qComboBoxRecipeList->currentText() + "' to process variables?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+    if (QMessageBox::question(this, tr("Info"), tr("Do you want to apply recipe '%1' to process variables?").arg(qComboBoxRecipeList->currentText()), QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
     {
         for(i = 0; i < qEConfiguredLayoutRecipeFields->currentFieldList.size(); i++)
         {
@@ -812,7 +812,7 @@ void QERecipe::buttonApplyClicked()
                 fieldInfo->qeWidget->writeNow();
             }
         }
-        QMessageBox::information(this, "Info", "The recipe '" + qComboBoxRecipeList->currentText() + "' was successfully applied to process variables!");
+        QMessageBox::information(this, tr("Info"), tr("The recipe '%1' was successfully applied to process variables!").arg(qComboBoxRecipeList->currentText()));
     }
 
 }
@@ -827,7 +827,7 @@ void QERecipe::buttonReadClicked()
     int i;
 
 
-    if (QMessageBox::question(this, "Info", "Do you want to read the values from process variables?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+    if (QMessageBox::question(this, tr("Info"), tr("Do you want to read the values from process variables?"), QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
     {
         for(i = 0; i < qEConfiguredLayoutRecipeFields->currentFieldList.size(); i++)
         {
@@ -837,7 +837,7 @@ void QERecipe::buttonReadClicked()
                 fieldInfo->qeWidget->readNow();
             }
         }
-        QMessageBox::information(this, "Info", "The values were successfully read from the process variables!");
+        QMessageBox::information(this, tr("Info"), tr("The values were successfully read from the process variables!"));
     }
 
 }

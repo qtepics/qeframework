@@ -143,7 +143,7 @@ void applicationLauncher::launchImage( const VariableNameManager* variableNameMa
    tempFile->open();
    if( !image.save( tempFile, "TIFF") ) {
       QMessageBox msgBox;
-      msgBox.setText("Can't start application. There is no image available.");
+      msgBox.setText(QObject::tr("Can't start application. There is no image available."));
       msgBox.exec();
       return;
    }
@@ -255,7 +255,7 @@ void applicationLauncher::launchCommon( const VariableNameManager* variableNameM
 
    // Run the program
    //
-   this->message.sendMessage( QString( "Launching: " ).append( substitutedProgram ), "Application launcher" );
+   this->message.sendMessage( QObject::tr( "Launching: " ).append( substitutedProgram ), "Application launcher" );
    process->start( substitutedProgram, substitutedArguments );
 }
 

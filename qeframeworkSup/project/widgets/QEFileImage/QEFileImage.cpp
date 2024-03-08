@@ -219,7 +219,7 @@ void QEFileImage::setImageFileName(const QString& text)
       QPixmap emptyPixmap;
       this->setPixmap(emptyPixmap);
       this->fileName = text;
-      this->setText(QString("File not found: ").append(text));
+      this->setText(tr("File not found: ").append(text));
       return;
    }
 

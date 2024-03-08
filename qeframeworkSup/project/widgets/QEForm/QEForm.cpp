@@ -294,11 +294,10 @@ bool QEForm::readUiFile()
       // If the file was not found and opened, notify as appropriate
       if( !uiFile )
       {
-         displayPlaceholder( QString( "Could not open " ).append( substitutedFileName ) );
+         displayPlaceholder( tr( "Could not open " ).append( substitutedFileName ) );
          if( alertIfUINoFound )
          {
-            QString msg;
-            QTextStream(&msg) << "User interface file '" << substitutedFileName << "' could not be opened";
+            QString msg = tr("User interface file '%1' could not be opened").arg(substitutedFileName);
             sendMessage( msg, "QEForm::readUiFile", message_types ( MESSAGE_TYPE_WARNING) );
          }
       }
@@ -400,7 +399,7 @@ bool QEForm::readUiFile()
          if( !ui )
          {
             // Load a placeholder as the ui file could not be loaded
-            this->displayPlaceholder( QString( "Could not load " ).append( fullUiFileName ) );
+            this->displayPlaceholder( tr( "Could not load " ).append( fullUiFileName ) );
          }
 
          // Apply scaling. This may be re-applied if this is an embedded QEForm, but
