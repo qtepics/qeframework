@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2020 Australian Synchrotron
+ *  Copyright (c) 2015-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -58,13 +58,13 @@ public:
        Right_To_Left,      ///< Right to left
        Bottom_To_Top       ///< Bottom to top
    };
-   Q_ENUMS (Orientations)
+   Q_ENUM (Orientations)
 
    enum TextPositions {
        BelowLeft,  ///< Below when Orientation is horizontal, Left when Orientation is vertical
        AboveRight  ///< Above when Orientation is horizontal, Right when Orientation is vertical
    };
-   Q_ENUMS (TextPositions)
+   Q_ENUM (TextPositions)
 
    enum Constants {
       NUMBER_OF_MARKERS = 4

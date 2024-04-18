@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2021-2023 Australian Synchrotron
+ *  Copyright (c) 2021-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -98,7 +98,7 @@ public:
       stringListSource,     // use the string list - default
       textFileSource        // use a configuration text file
    };
-   Q_ENUMS(SourceOptions)
+   Q_ENUM (SourceOptions)
 
    Q_PROPERTY (SourceOptions source    READ getSource          WRITE setSource)
 
@@ -113,7 +113,7 @@ public:
       SpaceDelimiter,
       CommaDelimiter
    };
-   Q_ENUMS(Delimiters)
+   Q_ENUM (Delimiters)
 
    Q_PROPERTY (int maxVisibleItems   READ maxVisibleItems  WRITE setMaxVisibleItems)
 

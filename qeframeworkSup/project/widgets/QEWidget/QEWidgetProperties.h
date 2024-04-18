@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2016-2020 Australian Synchrotron
+ *  Copyright (c) 2016-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -47,7 +47,7 @@ public:
       grayout,        ///< Grayed out apperance, i.e. same as when the widgest PV is disconnected
       disable         ///< Widget is disabled.
    };
-   Q_ENUMS (DisabledRecordPolicy)
+   Q_ENUM (DisabledRecordPolicy)
 
    // TODO relocate other common property types here.
    // We can't without breaking exisitng ui files.

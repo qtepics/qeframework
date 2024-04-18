@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2020 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -64,9 +64,12 @@ public:
     /// Options for the type of shape.
     ///
     enum shapeOptions { Line, Points, Polyline, Polygon, Rect, RoundedRect, Ellipse, Arc, Chord, Pie, Path };
+    Q_ENUM (shapeOptions)
+
     /// Options for how a variable will animate the shape.
     ///
     enum animationOptions {Width, Height, X, Y, Transperency, Rotation, ColourHue, ColourSaturation, ColourValue, ColourIndex, Penwidth};
+    Q_ENUM (animationOptions)
 
     /// Scale the widgets my m/d.
     void scaleBy (const int m, const int d);
@@ -400,11 +403,12 @@ public:
 
     /// \enum UserLevels
     /// User friendly enumerations for #userLevelVisibility and #userLevelEnabled properties - refer to #userLevelVisibility and #userLevelEnabled properties and userLevel enumeration for details.
-    enum UserLevels { User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
-                      Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
-                      Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
-                    };
-    Q_ENUMS(UserLevels)
+    enum UserLevels {
+        User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
+        Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
+        Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
+    };
+    Q_ENUM (UserLevels)
 
     /// Lowest user level at which the widget is visible. Default is 'User'.
     /// Used when designing GUIs that display more and more detail according to the user mode.
@@ -436,7 +440,7 @@ public:
        WhenInvalid = standardProperties::DISPLAY_ALARM_STATE_WHEN_INVALID,        ///< Refer to DISPLAY_ALARM_STATE_WHEN_INVALID for details
        Never       = standardProperties::DISPLAY_ALARM_STATE_NEVER                ///< Refer to DISPLAY_ALARM_STATE_NEVER for details
     };
-    Q_ENUMS(DisplayAlarmStateOptions)
+    Q_ENUM (DisplayAlarmStateOptions)
     /// If 'Always' (default) widget will indicate the alarm state of any variable data it is displaying, including 'No Alarm'
     /// If 'WhenInAlarm' widget only indicate the alarm state of any variable data it is displaying if it is 'in alarm' or 'Out of Service'.
     /// If 'WhenInvalid' widget only indicate the alarm state of any variable data it is in the 'Invalid' alarm state or 'Out of Service'.
@@ -458,7 +462,6 @@ public:
 
     // Widget specific properties
 
-    Q_ENUMS(animationOptions)
     /// Animation to be effected by the 1st variable.
     /// This is used to select what the effect changing data for the 1st variable will have on the shape.
     Q_PROPERTY(animationOptions animation1 READ getAnimation1Property WRITE setAnimation1Property)
@@ -514,8 +517,6 @@ public:
     /// Offset applied to data from the 6th variable before it is used to animate the shape
     ///
     Q_PROPERTY(double offset6 READ getOffset6Property WRITE setOffset6Property)
-
-    Q_ENUMS(shapeOptions)
 
     /// Particular shape implemented by this widget.
     /// For example: line, rectangle, elipse. The coordinates used to draw the shape are taken from properties 'point1' to 'point10' as appropriate.

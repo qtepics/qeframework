@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #33 $
-# $DateTime: 2023/02/15 12:39:43 $
+# $Revision: #34 $
+# $DateTime: 2023/12/22 11:18:07 $
 # Last checked in by: $Author: starritt $
 #
 # Copyright (c) 2009-2023 Australian Synchrotron
@@ -98,6 +98,13 @@ isEmpty( _ACAI ) {
     message ( "ACAI must be defined. Ensure ACAI is installed and the ACAI environment variable is defined," )
     error ( "  typically in your configure/RELEASE file. It is available from: https://github.com/andrewstarritt/acai.git" )
 }
+
+# Add a bit usefull diag/config information.
+#
+message ("BASE = "$$(EPICS_BASE)", "$$(EPICS_HOST_ARCH) )
+message ("PVA  = "$$(QE_ARCHAPPL_SUPPORT) )
+message ("ACAI = "$$(ACAI) )
+message ("QWT  = "$$(QWT_ROOT) )
 
 # Define _MINGW if using a MinGW compiler
 #

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2023 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -1441,11 +1441,12 @@ public:
 
     /// \enum UserLevels
     /// User friendly enumerations for #userLevelVisibility and #userLevelEnabled properties - refer to #userLevelVisibility and #userLevelEnabled properties and userLevel enumeration for details.
-    enum UserLevels { User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
-                      Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
-                      Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
-                    };
-    Q_ENUMS(UserLevels)
+    enum UserLevels {
+       User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
+       Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
+       Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
+    };
+    Q_ENUM (UserLevels)
 
     /// Lowest user level at which the widget is visible. Default is 'User'.
     /// Used when designing GUIs that display more and more detail according to the user mode.
@@ -1477,7 +1478,7 @@ public:
        WhenInvalid = standardProperties::DISPLAY_ALARM_STATE_WHEN_INVALID,        ///< Refer to DISPLAY_ALARM_STATE_WHEN_INVALID for details
        Never       = standardProperties::DISPLAY_ALARM_STATE_NEVER                ///< Refer to DISPLAY_ALARM_STATE_NEVER for details
     };
-    Q_ENUMS(DisplayAlarmStateOptions)
+    Q_ENUM (DisplayAlarmStateOptions)
     /// If 'Always' (default) widget will indicate the alarm state of any variable data it is displaying, including 'No Alarm'
     /// If 'WhenInAlarm' widget only indicate the alarm state of any variable data it is displaying if it is 'in alarm' or 'Out of Service'.
     /// If 'WhenInvalid' widget only indicate the alarm state of any variable data it is in the 'Invalid' alarm state or 'Out of Service'.
@@ -1502,25 +1503,27 @@ public:
 public:
 
     // Format options (Mono, RGB, etc)
-    Q_ENUMS(FormatOptions)
     /// Video format.
     /// EPICS data type size will typically be adequate for the number of bits required (one byte for 8 bits, 2 bytes for 12 and 16 bits), but can be larger (4 bytes for 24 bits.)
     Q_PROPERTY(FormatOptions formatOption READ getFormatOptionProperty WRITE setFormatOptionProperty)
 
     /// \enum FormatOptions
     /// User friendly enumerations for #formatOption property - refer to #formatOption property and #formatOptions enumeration for details.
-    enum FormatOptions { Mono     = imageDataFormats::MONO,      ///< Grey scale
-                         Bayer    = imageDataFormats::BAYERRG,     ///< Colour (Bayer Red Green)
-                         BayerGB  = imageDataFormats::BAYERGB,     ///< Colour (Bayer Green Blue)
-                         BayerBG  = imageDataFormats::BAYERBG,     ///< Colour (Bayer Blue Green)
-                         BayerGR  = imageDataFormats::BAYERGR,     ///< Colour (Bayer Green Red)
-                         BayerRG  = imageDataFormats::BAYERRG,     ///< Colour (Bayer Red Green)
-                         rgb1     = imageDataFormats::RGB1,      ///< Colour (24 bit RGB)
-                         rgb2     = imageDataFormats::RGB2,      ///< Colour (??? bit RGB)
-                         rgb3     = imageDataFormats::RGB3,      ///< Colour (??? bit RGB)
-                         yuv444   = imageDataFormats::YUV444,    ///< Colour (???)
-                         yuv422   = imageDataFormats::YUV422,    ///< Colour (???)
-                         yuv421   = imageDataFormats::YUV421 };  ///< Colour (???)
+    enum FormatOptions {
+       Mono     = imageDataFormats::MONO,       ///< Grey scale
+       Bayer    = imageDataFormats::BAYERRG,     ///< Colour (Bayer Red Green)
+       BayerGB  = imageDataFormats::BAYERGB,     ///< Colour (Bayer Green Blue)
+       BayerBG  = imageDataFormats::BAYERBG,     ///< Colour (Bayer Blue Green)
+       BayerGR  = imageDataFormats::BAYERGR,     ///< Colour (Bayer Green Red)
+       BayerRG  = imageDataFormats::BAYERRG,     ///< Colour (Bayer Red Green)
+       rgb1     = imageDataFormats::RGB1,        ///< Colour (24 bit RGB)
+       rgb2     = imageDataFormats::RGB2,        ///< Colour (??? bit RGB)
+       rgb3     = imageDataFormats::RGB3,        ///< Colour (??? bit RGB)
+       yuv444   = imageDataFormats::YUV444,      ///< Colour (???)
+       yuv422   = imageDataFormats::YUV422,      ///< Colour (???)
+       yuv421   = imageDataFormats::YUV421       ///< Colour (???)
+    };
+    Q_ENUM (FormatOptions)
 
     void setFormatOptionProperty( FormatOptions formatOption ){ setFormatOption( (imageDataFormats::formatOptions)formatOption ); }  ///< Access function for #formatOption property - refer to #formatOption property for details
     FormatOptions getFormatOptionProperty(){ return (FormatOptions)getFormatOption(); }                                     ///< Access function for #formatOption property - refer to #formatOption property for details
@@ -1787,37 +1790,40 @@ public:
     ///
     Q_PROPERTY(bool displayEllipse READ getDisplayEllipse WRITE setDisplayEllipse)
 
-    Q_ENUMS(EllipseVariableDefinitions)
     /// \enum EllipseVariableDefinitions
     /// User friendly enumerations for #ellipseVariableDefinition property - refer to #ellipseVariableDefinition property for details.
-    enum EllipseVariableDefinitions { BoundingRectangle = BOUNDING_RECTANGLE,       ///< Refer to BOUNDING_RECTANGLE for details
-                                      CenterAndSize     = CENTRE_AND_SIZE           ///< Refer to CENTRE_AND_SIZE for details
-                                    };
+    enum EllipseVariableDefinitions {
+       BoundingRectangle = BOUNDING_RECTANGLE,       ///< Refer to BOUNDING_RECTANGLE for details
+       CenterAndSize     = CENTRE_AND_SIZE           ///< Refer to CENTRE_AND_SIZE for details
+    };
+    Q_ENUM (EllipseVariableDefinitions)
 
     /// Definition of how ellipse variables are to be used.
     Q_PROPERTY(EllipseVariableDefinitions ellipseVariableDefinition READ getEllipseVariableDefinitionProperty WRITE setEllipseVariableDefinitionProperty)
-            EllipseVariableDefinitions getEllipseVariableDefinitionProperty() { return (EllipseVariableDefinitions)getEllipseVariableDefinition(); }            ///< Access function for #EllipseVariableDefinition property - refer to #EllipseVariableDefinition property for details
-            void setEllipseVariableDefinitionProperty( EllipseVariableDefinitions variableUsage ) { setEllipseVariableDefinition( (ellipseVariableDefinitions)variableUsage ); }///< Access function for #EllipseVariableDefinitions property - refer to #EllipseVariableDefinitions property for details
+
+    EllipseVariableDefinitions getEllipseVariableDefinitionProperty() { return (EllipseVariableDefinitions)getEllipseVariableDefinition(); }            ///< Access function for #EllipseVariableDefinition property - refer to #EllipseVariableDefinition property for details
+    void setEllipseVariableDefinitionProperty( EllipseVariableDefinitions variableUsage ) { setEllipseVariableDefinition( (ellipseVariableDefinitions)variableUsage ); }///< Access function for #EllipseVariableDefinitions property - refer to #EllipseVariableDefinitions property for details
 
 
-    Q_ENUMS(TargetOptions)
     /// \enum TargetOptions
     /// User friendly enumerations for #targetOptions property - refer to #targetOptions property for details.
-            enum TargetOptions { DottedFullCrosshair = VideoWidget::CROSSHAIR1,       ///< Refer to CROSSHAIR1 for details
-                                 SolidSmallCrosshair = VideoWidget::CROSSHAIR2        ///< Refer to CROSSHAIR2 for details
-                                    };
+    enum TargetOptions {
+       DottedFullCrosshair = VideoWidget::CROSSHAIR1,       ///< Refer to CROSSHAIR1 for details
+       SolidSmallCrosshair = VideoWidget::CROSSHAIR2        ///< Refer to CROSSHAIR2 for details
+    };
+    Q_ENUM (TargetOptions)
 
     /// Definition of target markup options.
     Q_PROPERTY(TargetOptions targetOption READ getTargetOptionProperty WRITE setTargetOptionProperty)
-            TargetOptions getTargetOptionProperty() { return (TargetOptions)videoWidget->getTargetOption(); }            ///< Access function for #targetOption property - refer to #targetOption property for details
-            void setTargetOptionProperty( TargetOptions option ) { videoWidget->setTargetOption( (VideoWidget::beamAndTargetOptions)option ); }///< Access function for #targetOption property - refer to #targetOption property for details
+    TargetOptions getTargetOptionProperty() { return (TargetOptions)videoWidget->getTargetOption(); }            ///< Access function for #targetOption property - refer to #targetOption property for details
+    void setTargetOptionProperty( TargetOptions option ) { videoWidget->setTargetOption( (VideoWidget::beamAndTargetOptions)option ); }///< Access function for #targetOption property - refer to #targetOption property for details
 
     /// Definition of beam markup options.
     Q_PROPERTY(TargetOptions beamOption READ getBeamOptionProperty WRITE setBeamOptionProperty)
-            TargetOptions getBeamOptionProperty() { return (TargetOptions)videoWidget->getBeamOption(); }            ///< Access function for #beamOption property - refer to #beamOption property for details
-            void setBeamOptionProperty( TargetOptions option ) { videoWidget->setBeamOption( (VideoWidget::beamAndTargetOptions)option ); }///< Access function for #beamOption property - refer to #beamOption property for details
+    TargetOptions getBeamOptionProperty() { return (TargetOptions)videoWidget->getBeamOption(); }            ///< Access function for #beamOption property - refer to #beamOption property for details
+    void setBeamOptionProperty( TargetOptions option ) { videoWidget->setBeamOption( (VideoWidget::beamAndTargetOptions)option ); }///< Access function for #beamOption property - refer to #beamOption property for details
 
-            //=========
+    //=========
 
     /// If true, an area will be presented under the image with textual information about the pixel under
     /// the cursor, and for other selections such as selected areas.
@@ -1917,16 +1923,17 @@ public:
     ///
     Q_PROPERTY(QColor ellipseColor READ getEllipseMarkupColor WRITE setEllipseMarkupColor)
 
-
-    Q_ENUMS(ResizeOptions)
     /// Resize option. Zoom to zoom to the percentage given by the #zoom property, or fit to the window size.
     ///
     Q_PROPERTY(ResizeOptions resizeOption READ getResizeOptionProperty WRITE setResizeOptionProperty)
     /// \enum ResizeOptions
     /// User friendly enumerations for #resizeOption property
-    enum ResizeOptions { Zoom   = QEImage::RESIZE_OPTION_ZOOM,  ///< Zoom to selected percentage
-                         Fit    = QEImage::RESIZE_OPTION_FIT    ///< Zoom to fit the current window size
-                              };
+    enum ResizeOptions {
+       Zoom   = QEImage::RESIZE_OPTION_ZOOM,  ///< Zoom to selected percentage
+       Fit    = QEImage::RESIZE_OPTION_FIT    ///< Zoom to fit the current window size
+    };
+    Q_ENUM (ResizeOptions)
+
     void setResizeOptionProperty( ResizeOptions resizeOption ){ setResizeOption( (QEImage::resizeOptions)resizeOption ); }  ///< Access function for #resizeOption property - refer to #resizeOption property for details
     ResizeOptions getResizeOptionProperty(){ return (ResizeOptions)getResizeOption(); }                                     ///< Access function for #resizeOption property - refer to #resizeOption property for details
 
@@ -1939,18 +1946,19 @@ public:
     /// Stretch Y factor. Used when generating canvas in which fully processed image is presented.
     Q_PROPERTY(double YStretch READ getYStretch WRITE setYStretch)
 
-    Q_ENUMS(RotationOptions)
-
     /// Image rotation option.
     ///
     Q_PROPERTY(RotationOptions rotation READ getRotationProperty WRITE setRotationProperty)
     /// \enum RotationOptions
     /// User friendly enumerations for #rotation property
-    enum RotationOptions { NoRotation    = imageProperties::ROTATION_0,         ///< No image rotation
-                           Rotate90Right = imageProperties::ROTATION_90_RIGHT,  ///< Rotate image 90 degrees clockwise
-                           Rotate90Left  = imageProperties::ROTATION_90_LEFT,   ///< Rotate image 90 degrees anticlockwise
-                           Rotate180     = imageProperties::ROTATION_180        ///< Rotate image 180 degrees
-                          };
+    enum RotationOptions {
+       NoRotation    = imageProperties::ROTATION_0,         ///< No image rotation
+       Rotate90Right = imageProperties::ROTATION_90_RIGHT,  ///< Rotate image 90 degrees clockwise
+       Rotate90Left  = imageProperties::ROTATION_90_LEFT,   ///< Rotate image 90 degrees anticlockwise
+       Rotate180     = imageProperties::ROTATION_180        ///< Rotate image 180 degrees
+    };
+    Q_ENUM (RotationOptions)
+
     void setRotationProperty( RotationOptions rotation ){ setRotation( (imageProperties::rotationOptions)rotation ); }          ///< Access function for #rotation property - refer to #rotation property for details
     RotationOptions getRotationProperty(){ return (RotationOptions)getRotation(); }                                     ///< Access function for #rotation property - refer to #rotation property for details
 
@@ -2045,7 +2053,6 @@ public:
     Q_PROPERTY(ProgramStartupOptionNames programStartupOption2 READ getProgramStartupOptionProperty2 WRITE setProgramStartupOptionProperty2)
 
     // Program startup options
-    Q_ENUMS(ProgramStartupOptionNames)
 
     /// Startup options. Just run the command, run the command within a terminal, or display the output in QE message system.
     ///
@@ -2055,6 +2062,7 @@ public:
         LogOutput = applicationLauncher::PSO_LOGOUTPUT,  ///< Run the program, and log the output in the QE message system
         StdOutput = applicationLauncher::PSO_STDOUTPUT   ///< Run the program, and send doutput to standard output and standard error
     };
+    Q_ENUM (ProgramStartupOptionNames)
 
     void setProgramStartupOptionProperty1( ProgramStartupOptionNames programStartupOption ){ setProgramStartupOption1( (applicationLauncher::programStartupOptions)programStartupOption ); }  ///< Access function for #ProgramStartupOptionNames1 property - refer to #ProgramStartupOptionNames1 property for details
     ProgramStartupOptionNames getProgramStartupOptionProperty1(){ return (ProgramStartupOptionNames)getProgramStartupOption1(); }                                                             ///< Access function for #ProgramStartupOptionNames1 property - refer to #ProgramStartupOptionNames1 property for details

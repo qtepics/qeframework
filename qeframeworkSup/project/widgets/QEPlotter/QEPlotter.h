@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2023 Australian Synchrotron.
+ *  Copyright (c) 2013-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -84,8 +84,7 @@ public:
       normal,          // white background
       reverse          // black backgound
    };
-
-   Q_ENUMS (VideoModes)
+   Q_ENUM (VideoModes)
 
    Q_PROPERTY (VideoModes videoMode    READ getVideoMode         WRITE setVideoMode)
 

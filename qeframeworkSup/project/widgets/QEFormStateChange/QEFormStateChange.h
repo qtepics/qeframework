@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2019 Australian Synchrotron.
+ *  Copyright (c) 2019-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -71,13 +71,14 @@ public:
    /// User friendly enumerations for format property - refer to QEStringFormatting::formats for details.
    /// Not all formats are available.
    ///
-   enum Formats { Default          = QEStringFormatting::FORMAT_DEFAULT,            ///< Format as best appropriate for the data type
-                  Floating         = QEStringFormatting::FORMAT_FLOATING,           ///< Format as a floating point number
-                  Integer          = QEStringFormatting::FORMAT_INTEGER,            ///< Format as an integer
-                  UnsignedInteger  = QEStringFormatting::FORMAT_UNSIGNEDINTEGER,    ///< Format as an unsigned integer
-                  String           = QEStringFormatting::FORMAT_STRING              ///< Format as a string
-               };
-   Q_ENUMS(Formats)
+   enum Formats {
+      Default          = QEStringFormatting::FORMAT_DEFAULT,            ///< Format as best appropriate for the data type
+      Floating         = QEStringFormatting::FORMAT_FLOATING,           ///< Format as a floating point number
+      Integer          = QEStringFormatting::FORMAT_INTEGER,            ///< Format as an integer
+      UnsignedInteger  = QEStringFormatting::FORMAT_UNSIGNEDINTEGER,    ///< Format as an unsigned integer
+      String           = QEStringFormatting::FORMAT_STRING              ///< Format as a string
+   };
+   Q_ENUM (Formats)
 
    /// Format to apply to data. Default is 'Default' in which case the data type
    /// supplied with the data determines how the data is formatted.

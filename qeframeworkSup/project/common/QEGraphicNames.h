@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2023 Australian Synchrotron.
+ *  Copyright (c) 2013-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -68,8 +68,6 @@ public:
 
    // Markup selection enumeration values and associated flags.
    //
-   Q_ENUMS (Markups)
-
    enum Markups {
       None               = 0x000000,
       Area               = 0x000001,   // Draws rectangle from origin to current mouse position.
@@ -89,7 +87,7 @@ public:
       VerticalMarker_1   = 0x008000,   // Draws vertical line - no mouse control.
       VerticalMarker_2   = 0x010000    // Ditto
    };
-
+   Q_ENUM (Markups)
    Q_DECLARE_FLAGS (MarkupFlags, Markups)
    //
    // If number of builtin markups ever exceeds 32 we can change this to a list

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2019 Australian Synchrotron
+ *  Copyright (c) 2011-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -50,20 +50,22 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAnalogIndicator : public QWidget {
 public:
     /// \enum    Orientations
     /// The orientation of Bar and Scale indicators
-    enum Orientations { Left_To_Right,      ///< Left to right
-                        Top_To_Bottom,      ///< Top to bottom
-                        Right_To_Left,      ///< Right to left
-                        Bottom_To_Top       ///< Bottom to top
-                    };
-    Q_ENUMS (Orientations)
+    enum Orientations {
+        Left_To_Right,      ///< Left to right
+        Top_To_Bottom,      ///< Top to bottom
+        Right_To_Left,      ///< Right to left
+        Bottom_To_Top       ///< Bottom to top
+    };
+    Q_ENUM (Orientations)
 
     /// \enum    Modes
     /// The type of analog indicator used to represent the value
-    enum Modes { Bar,       ///< Bar (solid bar from minimum up to current value)
-                 Scale,     ///< Scale (diamond marker tracks current value)
-                 Meter      ///< Meter (Needle moving across an arc scale)
-             };
-    Q_ENUMS (Modes)
+    enum Modes {
+        Bar,       ///< Bar (solid bar from minimum up to current value)
+        Scale,     ///< Scale (diamond marker tracks current value)
+        Meter      ///< Meter (Needle moving across an arc scale)
+    };
+    Q_ENUM (Modes)
 
     /// Current indicated value.
     ///

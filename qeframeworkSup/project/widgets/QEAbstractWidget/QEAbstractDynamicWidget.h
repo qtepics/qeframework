@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2016-2022 Australian Synchrotron
+ *  Copyright (c) 2016-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -72,7 +72,7 @@ public:
       useAliasName,      ///< display alias if defined otherwise display the PV name
       useDescription     ///< display description if defined otherwise display the PV name
    };
-   Q_ENUMS(PVLabelMode)
+   Q_ENUM (PVLabelMode)
 
    Q_PROPERTY (PVLabelMode pvLabelMode  READ getPVLabelMode  WRITE setPVLabelMode)
 

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2019 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -60,7 +60,7 @@ public:
       Left,
       Right
    };
-   Q_ENUMS (optionsLayoutProperty)
+   Q_ENUM (optionsLayoutProperty)
    Q_PROPERTY (optionsLayoutProperty optionsLayout READ getOptionsLayout
                WRITE setOptionsLayout)
    Q_PROPERTY (int    margin          READ getMargin            WRITE setMargin)
@@ -73,18 +73,18 @@ public:
    /// Not all QE widgets need these properties (only those that do something with
    /// messages - like the logging widget)
    ///
-   Q_ENUMS (MessageFilterOptions)
-   Q_PROPERTY (MessageFilterOptions messageFormFilter READ getMessageFormFilter
-               WRITE setMessageFormFilter)
-
-   Q_PROPERTY (MessageFilterOptions messageSourceFilter READ getMessageSourceFilter
-               WRITE setMessageSourceFilter)
-
    enum MessageFilterOptions {
       Any = UserMessage::MESSAGE_FILTER_ANY,
       Match = UserMessage::MESSAGE_FILTER_MATCH,
       None = UserMessage::MESSAGE_FILTER_NONE
    };
+   Q_ENUM (MessageFilterOptions)
+
+   Q_PROPERTY (MessageFilterOptions messageFormFilter READ getMessageFormFilter
+               WRITE setMessageFormFilter)
+
+   Q_PROPERTY (MessageFilterOptions messageSourceFilter READ getMessageSourceFilter
+               WRITE setMessageSourceFilter)
 
 public:
    class UserMessageReceiver;  // differed - private

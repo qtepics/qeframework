@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2020 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -270,13 +270,13 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEScript:public QWidget, public QEWidge
         Q_PROPERTY(bool showColumnLog READ getShowColumnLog WRITE setShowColumnLog)
 
         /// Select if the scripts are to be loaded/saved from an XML file or from an XML text
-        Q_ENUMS(scriptTypesProperty)
-        Q_PROPERTY(scriptTypesProperty scriptType READ getScriptTypeProperty WRITE setScriptTypeProperty)
         enum scriptTypesProperty
         {
             File,
             Text
         };
+        Q_ENUM(scriptTypesProperty)
+        Q_PROPERTY(scriptTypesProperty scriptType READ getScriptTypeProperty WRITE setScriptTypeProperty)
 
         void setScriptTypeProperty(scriptTypesProperty pScriptType)
         {
@@ -300,8 +300,6 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEScript:public QWidget, public QEWidge
         Q_PROPERTY(QString executeText READ getExecuteText WRITE setExecuteText)
 
         /// Change the order of the widgets. Valid orders are: TOP, BOTTOM, LEFT and RIG
-        Q_ENUMS(optionsLayoutProperty)
-        Q_PROPERTY(optionsLayoutProperty optionsLayout READ getOptionsLayoutProperty WRITE setOptionsLayoutProperty)
         enum optionsLayoutProperty
         {
             Top,
@@ -309,6 +307,8 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEScript:public QWidget, public QEWidge
             Left,
             Right
         };
+        Q_ENUM(optionsLayoutProperty)
+        Q_PROPERTY(optionsLayoutProperty optionsLayout READ getOptionsLayoutProperty WRITE setOptionsLayoutProperty)
 
         void setOptionsLayoutProperty(optionsLayoutProperty pOptionsLayout)
         {
@@ -377,11 +377,12 @@ public:
 
    /// \enum UserLevels
    /// User friendly enumerations for #userLevelVisibility and #userLevelEnabled properties - refer to #userLevelVisibility and #userLevelEnabled properties and userLevel enumeration for details.
-   enum UserLevels { User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
-                     Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
-                     Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
-                             };
-   Q_ENUMS(UserLevels)
+   enum UserLevels {
+      User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
+      Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
+      Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
+   };
+   Q_ENUM (UserLevels)
 
    /// Lowest user level at which the widget is visible. Default is 'User'.
    /// Used when designing GUIs that display more and more detail according to the user mode.

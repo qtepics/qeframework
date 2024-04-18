@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2019  Australian Synchrotron.
+ *  Copyright (c) 2014-2024  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -48,17 +48,19 @@ public:
    /// boxes are not assoicated with the radio button, i.e. one and only one
    /// selected, paradigm.
    //
-   enum ButtonStyles { Radio,      ///< Use radio buttons - the default
-                       Push };     ///< Use push buttons.
-
-   Q_ENUMS (ButtonStyles)
+   enum ButtonStyles {
+      Radio,      ///< Use radio buttons - the default
+      Push        ///< Use push buttons.
+   };
+   Q_ENUM (ButtonStyles)
 
    /// Enumrations values used to select the button order.
    //
-   enum ButtonOrders { rowMajor,    ///< row by row button order - the default
-                       colMajor };  ///< col by col button order
-
-   Q_ENUMS (ButtonOrders)
+   enum ButtonOrders {
+       rowMajor,    ///< row by row button order - the default
+       colMajor     ///< col by col button order
+   };
+   Q_ENUM (ButtonOrders)
 
    // Hide parent title property.
    Q_PROPERTY (QString title                         READ getOwnTitle     WRITE setOwnTitle)

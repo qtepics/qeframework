@@ -766,7 +766,7 @@ void QSimpleShape::paintEvent (QPaintEvent*)
       // Set the default position to the centre of the widget.
       //
       xpos = (this->width () - textWidth) / 2;
-      ypos = (this->height() + textHeight) / 2 - baseLineOffset;
+      ypos = (this->height() + textHeight - 1) / 2 - baseLineOffset;
 
       // Calculate the indents - we do this whether required or not.
       //

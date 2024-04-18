@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2023 Australian Synchrotron.
+ *  Copyright (c) 2014-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -51,7 +51,7 @@ public:
                  crossHorizontal, crossVertical, hexagon, octogon,
                  snakeHorizontal, snakeVertical, pentagon, star, plus, tick, cross,
                  roundpie, pie, heart };
-   Q_ENUMS (Shapes)
+   Q_ENUM (Shapes)
 
    /// Nominated shape
    ///
@@ -98,7 +98,7 @@ public:
       PvText,           ///< Use EPICS value agumented with units if selected.
       LocalEnumeration  ///< Use specied enumeration values, PV value used to select item
    };
-   Q_ENUMS (TextFormats)
+   Q_ENUM (TextFormats)
 
    /// Nominated text format
    ///

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2023 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -395,6 +395,12 @@ bool QEArchiveManager::getArchivePvInformation (
       SourceSpec sourceSpec = this->pvNameToSourceLookUp->value (effectivePvName);
       QList<int> keys;
 
+      QString hostName = "";
+      if (sourceSpec.interfaceManager) {
+        QUrl url = sourceSpec.interfaceManager->getUrl();
+        hostName = url.host();
+      }
+
       keys = sourceSpec.keyToTimeSpecLookUp.keys ();
       for (int j = 0; j < keys.count (); j++) {
          int key = keys.value (j, -1);
@@ -403,6 +409,7 @@ bool QEArchiveManager::getArchivePvInformation (
 
          QEArchiveAccess::ArchiverPvInfo item;
 
+         item.hostName = hostName;
          item.key = key;
          item.path = keyTimeSpec.path;
          item.startTime = keyTimeSpec.startTime;
