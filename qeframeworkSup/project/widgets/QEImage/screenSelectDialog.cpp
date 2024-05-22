@@ -110,12 +110,12 @@ screenSelectDialog::screenSelectDialog( int numScreens, QWidget *parent ) :
     ui(new Ui::screenSelectDialog)
 {
     ui->setupUi(this);
-    ui->comboBox->addItem( "Primary screen" );
-    ui->comboBox->addItem( "This screen" );
-    ui->comboBox->addItem( "All screens" );
+    ui->comboBox->addItem( tr("Primary screen") );
+    ui->comboBox->addItem( tr("This screen") );
+    ui->comboBox->addItem( tr("All screens") );
     for( int i = 0; i < numScreens; i++ )
     {
-        ui->comboBox->addItem( QString( "Screen %1" ).arg( i+1 ) );
+        ui->comboBox->addItem( tr( "Screen %1" ).arg( i+1 ) );
     }
 }
 

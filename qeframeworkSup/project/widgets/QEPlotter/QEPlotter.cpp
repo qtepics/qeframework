@@ -295,15 +295,15 @@ void QEPlotter::createInternalWidgets ()
    this->statusLayout->setSpacing (8);
 
    this->slotIndicator = new QLabel ("", this->statusFrame);
-   this->minLabel   = new QLabel ("Min:", this->statusFrame);
+   this->minLabel   = new QLabel (tr("Min:"), this->statusFrame);
    this->minValue   = new QLabel ("-", this->statusFrame);
-   this->maxLabel   = new QLabel ("Max:", this->statusFrame);
+   this->maxLabel   = new QLabel (tr("Max:"), this->statusFrame);
    this->maxValue   = new QLabel ("-", this->statusFrame);
-   this->maxAtLabel = new QLabel ("Max At:", this->statusFrame);
+   this->maxAtLabel = new QLabel (tr("Max At:"), this->statusFrame);
    this->maxAtValue = new QLabel ("-", this->statusFrame);
-   this->fwhmLabel  = new QLabel ("FWHM:", this->statusFrame);
+   this->fwhmLabel  = new QLabel (tr("FWHM:"), this->statusFrame);
    this->fwhmValue  = new QLabel ("-", this->statusFrame);
-   this->comLabel   = new QLabel ("CoM:", this->statusFrame);
+   this->comLabel   = new QLabel (tr("CoM:"), this->statusFrame);
    this->comValue   = new QLabel ("-", this->statusFrame);
 
    this->slotIndicator->setFixedWidth (40);
@@ -324,11 +324,11 @@ void QEPlotter::createInternalWidgets ()
    this->nameValue->setToolTip (tip);                   \
 }
 
-   SET_VALUE_LABEL (minValue, "Minimum Value");
-   SET_VALUE_LABEL (maxValue, "Maximum Value");
-   SET_VALUE_LABEL (maxAtValue, "Maximum Value X co-ordinate");
-   SET_VALUE_LABEL (fwhmValue, "Full Width at Half Maximum");
-   SET_VALUE_LABEL (comValue, "Centre of Mass (median position)");
+   SET_VALUE_LABEL (minValue, tr("Minimum Value"));
+   SET_VALUE_LABEL (maxValue, tr("Maximum Value"));
+   SET_VALUE_LABEL (maxAtValue, tr("Maximum Value X co-ordinate"));
+   SET_VALUE_LABEL (fwhmValue, tr("Full Width at Half Maximum"));
+   SET_VALUE_LABEL (comValue, tr("Centre of Mass (median position)"));
 
 #undef SET_VALUE_LABEL
 
@@ -349,8 +349,8 @@ void QEPlotter::createInternalWidgets ()
 
    this->dataDialog = new QEPlotterItemDialog (this);
    this->rangeDialog = new QEStripChartRangeDialog (this);
-   this->rangeDialog->setWindowTitle ("Plotter Y Range");
-   this->twinRangeDialog = new QETwinScaleSelectDialog ("Plotter XY Range", "X", "Y", this);
+   this->rangeDialog->setWindowTitle (tr("Plotter Y Range"));
+   this->twinRangeDialog = new QETwinScaleSelectDialog (tr("Plotter XY Range"), "X", "Y", this);
 }
 
 
@@ -586,7 +586,7 @@ QEPlotter::QEPlotter (QWidget* parent) : QEAbstractDynamicWidget (parent)
 
    this->contextMenuIsOverGraphic = false;
    this->contextMenuRequestPosition = QPointF (0.0, 0.0);
-   this->contextMenuEmitLegend = "Emit Coordinates";
+   this->contextMenuEmitLegend = tr("Emit Coordinates");
    this->enableConextMenu = true;
    this->toolBarIsVisible = true;
    this->pvItemsIsVisible = true;
@@ -750,7 +750,7 @@ void QEPlotter::updateLabel (const int slot)
             caption.append (":= ");
             caption.append (ds->expression);
          } else {
-            caption.append ("invalid expr.");
+            caption.append (tr("invalid expr."));
          }
          break;
 
@@ -1297,7 +1297,7 @@ void QEPlotter::menuSelected (const QEPlotterNames::MenuActions action, const in
          break;
 
       case QEPlotterNames::PLOTTER_MANUAL_Y_RANGE:
-         this->rangeDialog->setWindowTitle ("Plotter Y Range");
+         this->rangeDialog->setWindowTitle (tr("Plotter Y Range"));
          this->rangeDialog->setRange (this->fixedMinY, this->fixedMaxY);
          n = this->rangeDialog->exec (wsender ? wsender : this);
          if (n == 1) {
@@ -1333,7 +1333,7 @@ void QEPlotter::menuSelected (const QEPlotterNames::MenuActions action, const in
          break;
 
       case QEPlotterNames::PLOTTER_MANUAL_X_RANGE:
-         this->rangeDialog->setWindowTitle ("Plotter X Range");
+         this->rangeDialog->setWindowTitle (tr("Plotter X Range"));
          this->rangeDialog->setRange (this->fixedMinX, this->fixedMaxX);
          n = this->rangeDialog->exec (wsender ? wsender : this);
          if (n == 1) {

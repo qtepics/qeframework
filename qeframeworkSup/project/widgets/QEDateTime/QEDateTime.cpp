@@ -80,7 +80,7 @@ QEDateTime::QEDateTime (QWidget* parent) : QLabel (parent)
    // Build the context menu - note unlike QEWidget paradigm, we do this only once.
    //
    this->contextMenu = new QMenu (this);
-   QAction* action = new QAction ("Copy time text ", this->contextMenu);
+   QAction* action = new QAction (tr("Copy time text "), this->contextMenu);
    this->contextMenu->addAction (action);
 
    QObject::connect (this->contextMenu, SIGNAL (triggered (QAction*)),

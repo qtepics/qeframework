@@ -49,7 +49,7 @@ QEConfiguredLayout::QEConfiguredLayout(QWidget *pParent, bool pSubscription) :
 
    qComboBoxItemList = new QComboBox(this);
    qComboBoxItemList->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-   qComboBoxItemList->setToolTip("Select item to be viewed/controlled");
+   qComboBoxItemList->setToolTip(tr("Select item to be viewed/controlled"));
    QObject::connect(qComboBoxItemList, SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxItemSelected(int)));
 
    qScrollArea->setWidgetResizable(true);
@@ -588,7 +588,7 @@ void QEConfiguredLayout::refreshFields()
                   qHBoxLayout = new QHBoxLayout();
                   qPushButtonGroup = new _QPushButtonGroup(this, item->getName(), fieldInfo->getGroup(), &currentFieldList);
                   qPushButtonGroup->setText(fieldInfo->getGroup());
-                  qPushButtonGroup->setToolTip("Show fields of group '" + fieldInfo->getGroup() + "'");
+                  qPushButtonGroup->setToolTip(tr("Show fields of group '%1'").arg(fieldInfo->getGroup()));
 
                   if (fieldInfo->getJoin())
                   {
@@ -644,7 +644,7 @@ void QEConfiguredLayout::valueWritten(const QString &pNewValue, const QString &p
    {
       //        if (pFieldName.isEmpty())
       //        {
-      sendMessage("The field was changed from '" + pOldValue + "' to '" + pNewValue + "'.");
+      sendMessage(tr("The field was changed from '%1' to '%2'").arg(pOldValue).arg(pNewValue));
       //        }
       //        else
       //        {
@@ -963,8 +963,8 @@ _QDialogItem::_QDialogItem(QWidget *pParent, QString pItemName, QString pGroupNa
       }
    }
 
-   qPushButtonClose->setText("Close");
-   qPushButtonClose->setToolTip("Close window");
+   qPushButtonClose->setText(tr("Close"));
+   qPushButtonClose->setToolTip(tr("Close window"));
    QObject::connect(qPushButtonClose, SIGNAL(clicked()),
                     this, SLOT(buttonCloseClicked()));
    qVBoxLayout->addWidget(qPushButtonClose);

@@ -226,9 +226,9 @@ QEStripChartToolBar::OwnTabWidget::OwnTabWidget (QEStripChartToolBar* parent) : 
 
    // Create required tabs.
    //
-   this->addTab (new QWidget (this), " Standard ");
-   this->addTab (new QWidget (this), " Configuration ");
-   this->addTab (new QWidget (this), " Markers ");
+   this->addTab (new QWidget (this), QObject::tr(" Standard "));
+   this->addTab (new QWidget (this), QObject::tr(" Configuration "));
+   this->addTab (new QWidget (this), QObject::tr(" Markers "));
 
    // Create toolbar widgets
    //
@@ -245,12 +245,12 @@ QEStripChartToolBar::OwnTabWidget::OwnTabWidget (QEStripChartToolBar* parent) : 
          iconPathName.append (buttonSpecs[j].captionOrIcon);
          button->setIcon (QIcon (iconPathName));
       } else {
-         button->setText (buttonSpecs[j].captionOrIcon);
+         button->setText (QObject::tr(buttonSpecs[j].captionOrIcon.toStdString().c_str()));
       }
 
       button->setFocusPolicy (Qt::NoFocus);
       button->setProperty (VALUE_PROPERTY, buttonSpecs[j].value);
-      button->setToolTip (QString (" %1 ").arg (buttonSpecs[j].toolTip));
+      button->setToolTip (QObject::tr(buttonSpecs[j].toolTip.toStdString().c_str()));
       gap = buttonSpecs[j].gap;
       button->setGeometry (left + gap, buttonTop, buttonSpecs[j].width, ICH);  // left top width height
       left += gap + buttonSpecs[j].width;
@@ -276,7 +276,7 @@ QEStripChartToolBar::OwnTabWidget::OwnTabWidget (QEStripChartToolBar* parent) : 
    left = this->pushButtons [ARCHIVE_SLOT]->geometry().x ();
    this->numberOfOutandingRequests = createLabel("0", tabParent, left, labelTop, ICW, labelHeight);
    this->numberOfOutandingRequests->setAlignment (Qt::AlignHCenter);
-   this->numberOfOutandingRequests->setToolTip (" Number of outstanding archive requests ");
+   this->numberOfOutandingRequests->setToolTip (QObject::tr(" Number of outstanding archive requests "));
 
    left = this->pushButtons [PLAY_SLOT]->geometry().x ();
    this->timeModeStatus = createLabel ("", tabParent, left, labelTop, 3*ICW, labelHeight);
@@ -293,7 +293,7 @@ QEStripChartToolBar::OwnTabWidget::OwnTabWidget (QEStripChartToolBar* parent) : 
    font = this->predefinedComboBox->font ();
    font.setPointSize (this->originalPointSize);
    this->predefinedComboBox->setFont (font);
-   this->predefinedComboBox->setToolTip (" Select and load predefined chart configuration ");
+   this->predefinedComboBox->setToolTip (QObject::tr(" Select and load predefined chart configuration "));
 
    // We use the activated signal (as opposed to currentIndexChanged) as it
    // is only emmited on User change. We only need the signal, not the value
@@ -326,7 +326,7 @@ QEStripChartToolBar::OwnTabWidget::OwnTabWidget (QEStripChartToolBar* parent) : 
    this->loadButton = new QPushButton (tabParent);
    this->loadButton->setIcon (QIcon (":/qe/stripchart/open_file.png"));
    this->loadButton->setFocusPolicy (Qt::NoFocus);
-   this->loadButton->setToolTip (" Load chart configuration ");
+   this->loadButton->setToolTip (QObject::tr(" Load chart configuration "));
    this->loadButton->setGeometry (left, buttonTop, ICW, ICH);  // left top width height
    QObject::connect (this->loadButton, SIGNAL (clicked (bool)),
                      this->owner, SLOT (loadClicked (bool)));
@@ -335,7 +335,7 @@ QEStripChartToolBar::OwnTabWidget::OwnTabWidget (QEStripChartToolBar* parent) : 
    this->saveAsButton = new QPushButton (tabParent);
    this->saveAsButton->setIcon (QIcon (":/qe/stripchart/save_file.png"));
    this->saveAsButton->setFocusPolicy (Qt::NoFocus);
-   this->saveAsButton->setToolTip (" Save chart configuration ");
+   this->saveAsButton->setToolTip (QObject::tr(" Save chart configuration "));
    this->saveAsButton->setGeometry (left, buttonTop, ICW, ICH);  // left top width height
    QObject::connect (this->saveAsButton, SIGNAL (clicked (bool)),
                      this->owner, SLOT (saveAsClicked (bool)));
@@ -347,16 +347,16 @@ QEStripChartToolBar::OwnTabWidget::OwnTabWidget (QEStripChartToolBar* parent) : 
 
    top = 4;   // first row
    left = 4;
-   this->timeRefLabel =   createLabel ("Time References", tabParent, left, top, 108, labelHeight);   // left top width height
+   this->timeRefLabel =   createLabel (QObject::tr("Time References"), tabParent, left, top, 108, labelHeight);   // left top width height
    this->time1 =          createLabel ("", tabParent, left, top, 224, labelHeight, true);
    this->time2 =          createLabel ("", tabParent, left, top, 224, labelHeight, true);
    left += 12;
-   this->timeDeltaLabel = createLabel ("Delta Time", tabParent, left, top, 72, labelHeight);
+   this->timeDeltaLabel = createLabel (QObject::tr("Delta Time"), tabParent, left, top, 72, labelHeight);
    this->timeDelta =      createLabel ("", tabParent, left, top, 160, labelHeight, true);
 
    top = 24;   // second row
    left = 4;
-   this->valueRefLabel =  createLabel ("Value References", tabParent, left, top, 108, labelHeight);
+   this->valueRefLabel =  createLabel (QObject::tr("Value References"), tabParent, left, top, 108, labelHeight);
    this->value1 =         createLabel ("", tabParent, left,  top, 140, labelHeight, true);
    this->value2 =         createLabel ("", tabParent, left,  top, 140, labelHeight, true);
    this->valueDelta1 =    createLabel ("", tabParent, left,  top, 140, labelHeight, true);

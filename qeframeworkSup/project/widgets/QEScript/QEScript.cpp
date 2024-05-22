@@ -74,75 +74,75 @@ QEScript::QEScript(QWidget *pParent):QWidget(pParent), QEWidget( this )
 
 
    qComboBoxScriptList->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-   qComboBoxScriptList->setToolTip("Select script");
+   qComboBoxScriptList->setToolTip(tr("Select script"));
    QObject::connect(qComboBoxScriptList, SIGNAL(currentIndexChanged(int)),
                     this, SLOT(comboBoxScriptSelected(int)));
 
-   qPushButtonNew->setText("New");
-   qPushButtonNew->setToolTip("Create new script (reset table)");
+   qPushButtonNew->setText(tr("New"));
+   qPushButtonNew->setToolTip(tr("Create new script (reset table)"));
    QObject::connect(qPushButtonNew, SIGNAL(clicked()),
                     this, SLOT(buttonNewClicked()));
 
-   qPushButtonSave->setText("Save");
-   qPushButtonSave->setToolTip("Save script");
+   qPushButtonSave->setText(tr("Save"));
+   qPushButtonSave->setToolTip(tr("Save script"));
    QObject::connect(qPushButtonSave, SIGNAL(clicked()),
                     this, SLOT(buttonSaveClicked()));
 
-   qPushButtonDelete->setText("Delete");
-   qPushButtonDelete->setToolTip("Delete selected script");
+   qPushButtonDelete->setText(tr("Delete"));
+   qPushButtonDelete->setToolTip(tr("Delete selected script"));
    QObject::connect(qPushButtonDelete, SIGNAL(clicked()),
                     this, SLOT(buttonDeleteClicked()));
 
-   qPushButtonExecute->setText("Execute");
-   qPushButtonExecute->setToolTip("Execute");
+   qPushButtonExecute->setText(tr("Execute"));
+   qPushButtonExecute->setToolTip(tr("Execute"));
    QObject::connect(qPushButtonExecute, SIGNAL(clicked()),
                     this, SLOT(buttonExecuteClicked()));
 
-   qPushButtonAbort->setText("Abort");
-   qPushButtonAbort->setToolTip("Abort execution of program(s)");
+   qPushButtonAbort->setText(tr("Abort"));
+   qPushButtonAbort->setToolTip(tr("Abort execution of program(s)"));
    QObject::connect(qPushButtonAbort, SIGNAL(clicked()),
                     this, SLOT(buttonAbortClicked()));
 
-   qPushButtonAdd->setText("Add");
-   qPushButtonAdd->setToolTip("Add row");
+   qPushButtonAdd->setText(tr("Add"));
+   qPushButtonAdd->setToolTip(tr("Add row"));
    QObject::connect(qPushButtonAdd, SIGNAL(clicked()),
                     this, SLOT(buttonAddClicked()));
 
-   qPushButtonRemove->setText("Remove");
-   qPushButtonRemove->setToolTip("Remove selected row(s)");
+   qPushButtonRemove->setText(tr("Remove"));
+   qPushButtonRemove->setToolTip(tr("Remove selected row(s)"));
    QObject::connect(qPushButtonRemove, SIGNAL(clicked()),
                     this, SLOT(buttonRemoveClicked()));
 
-   qPushButtonUp->setText("Up");
-   qPushButtonUp->setToolTip("Move selected row up");
+   qPushButtonUp->setText(tr("Up"));
+   qPushButtonUp->setToolTip(tr("Move selected row up"));
    QObject::connect(qPushButtonUp, SIGNAL(clicked()),
                     this, SLOT(buttonUpClicked()));
 
-   qPushButtonDown->setText("Down");
-   qPushButtonDown->setToolTip("Move selected row down");
+   qPushButtonDown->setText(tr("Down"));
+   qPushButtonDown->setToolTip(tr("Move selected row down"));
    QObject::connect(qPushButtonDown, SIGNAL(clicked()),
                     this, SLOT(buttonDownClicked()));
 
-   qPushButtonCopy->setText("Copy");
-   qPushButtonCopy->setToolTip("Copy selected row(s)");
+   qPushButtonCopy->setText(tr("Copy"));
+   qPushButtonCopy->setToolTip(tr("Copy selected row(s)"));
    QObject::connect(qPushButtonCopy, SIGNAL(clicked()),
                     this, SLOT(buttonCopyClicked()));
 
-   qPushButtonPaste->setText("Paste");
-   qPushButtonPaste->setToolTip("Paste row(s)");
+   qPushButtonPaste->setText(tr("Paste"));
+   qPushButtonPaste->setToolTip(tr("Paste row(s)"));
    QObject::connect(qPushButtonPaste, SIGNAL(clicked()),
                     this, SLOT(buttonPasteClicked()));
 
    qTableWidgetScript->setColumnCount(8);
    qTableWidgetScript->setHorizontalHeaderItem(0, new QTableWidgetItem("#"));
-   qTableWidgetScript->setHorizontalHeaderItem(1, new QTableWidgetItem("Enable"));
-   qTableWidgetScript->setHorizontalHeaderItem(2, new QTableWidgetItem("Program"));
-   qTableWidgetScript->setHorizontalHeaderItem(3, new QTableWidgetItem("Parameters"));
-   qTableWidgetScript->setHorizontalHeaderItem(4, new QTableWidgetItem("Directory"));
-   qTableWidgetScript->setHorizontalHeaderItem(5, new QTableWidgetItem("Timeout"));
-   qTableWidgetScript->setHorizontalHeaderItem(6, new QTableWidgetItem("Stop"));
-   qTableWidgetScript->setHorizontalHeaderItem(7, new QTableWidgetItem("Log"));
-   qTableWidgetScript->setToolTip("List of programs to execute");
+   qTableWidgetScript->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("Enable")));
+   qTableWidgetScript->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Program")));
+   qTableWidgetScript->setHorizontalHeaderItem(3, new QTableWidgetItem(tr("Parameters")));
+   qTableWidgetScript->setHorizontalHeaderItem(4, new QTableWidgetItem(tr("Directory")));
+   qTableWidgetScript->setHorizontalHeaderItem(5, new QTableWidgetItem(tr("Timeout")));
+   qTableWidgetScript->setHorizontalHeaderItem(6, new QTableWidgetItem(tr("Stop")));
+   qTableWidgetScript->setHorizontalHeaderItem(7, new QTableWidgetItem(tr("Log")));
+   qTableWidgetScript->setToolTip(tr("List of programs to execute"));
    qTableWidgetScript->setSelectionBehavior(QAbstractItemView::SelectRows);
    qTableWidgetScript->verticalHeader()->hide();
    qFont.setPointSize(9);
@@ -709,7 +709,7 @@ void QEScript::comboBoxScriptSelected(int)
 //
 void QEScript::buttonNewClicked()
 {
-   if (QMessageBox::question(this, "Info", "Do you want to create a new script (reset table)?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+   if (QMessageBox::question(this, tr("Info"), tr("Do you want to create a new script (reset table)?"), QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
    {
       while (qTableWidgetScript->rowCount() > 0)
       {
@@ -736,7 +736,7 @@ void QEScript::buttonSaveClicked()
    currentName = qComboBoxScriptList->currentText();
    do
    {
-      name = QInputDialog::getText(this, "Script name", "Name:", QLineEdit::Normal , currentName, &flag);
+      name = QInputDialog::getText(this, tr("Script name"), tr("Name:"), QLineEdit::Normal , currentName, &flag);
    }
    while(flag && name.isEmpty());
 
@@ -762,7 +762,7 @@ void QEScript::buttonSaveClicked()
       }
       if (flag == false)
       {
-         if (QMessageBox::question(this, "Info", "Do you want to overwrite existing script '" + name + "'?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+         if (QMessageBox::question(this, tr("Info"), tr("Do you want to overwrite existing script '%1'?").arg(name), QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
          {
             rootElement.removeChild(rootNode);
             flag = true;
@@ -789,12 +789,12 @@ void QEScript::buttonSaveClicked()
          {
             i = qComboBoxScriptList->findText(name);
             qComboBoxScriptList->setCurrentIndex(i);
-            QMessageBox::information(this, "Info", "The script '" + name + "' was successfully saved!");
+            QMessageBox::information(this, tr("Info"), tr("The script '%1' was successfully saved!").arg(name));
          }
          else
          {
             // TODO: restore original document if there is an error
-            QMessageBox::critical(this, "Error", "Unable to save script '" + name + "' in file '" + filename + "'!");
+            QMessageBox::critical(this, tr("Error"), tr("Unable to save script '%1' in file '%2'!").arg(name).arg(filename));
          }
       }
    }
@@ -811,7 +811,7 @@ void QEScript::buttonDeleteClicked()
 
 
    currentName = qComboBoxScriptList->currentText();
-   if (QMessageBox::question(this, "Info", "Do you want to delete script '" + currentName + "'?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+   if (QMessageBox::question(this, tr("Info"), tr("Do you want to delete script '%1'?").arg(currentName), QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
    {
       rootElement = document.documentElement();
       if (rootElement.tagName() == "epicsqt")
@@ -838,12 +838,12 @@ void QEScript::buttonDeleteClicked()
             qTableWidgetScript->removeRow(0);
          }
          qComboBoxScriptList->setCurrentIndex(-1);
-         QMessageBox::information(this, "Info", "The script '" + currentName + "' was successfully delete!");
+         QMessageBox::information(this, tr("Info"), tr("The script '%1' was successfully delete!").arg(currentName));
       }
       else
       {
          // TODO: restore original document if there is an error
-         QMessageBox::critical(this, "Error", "Unable to delete script '" + currentName + "' in file '" + filename + "'!");
+         QMessageBox::critical(this, tr("Error"), tr("Unable to delete script '%1' in file '%2'!").arg(currentName).arg(filename));
       }
    }
 }
@@ -873,7 +873,7 @@ void QEScript::buttonExecuteClicked()
       qTableWidgetScript->selectRow(i);
       if (((QCheckBox *) qTableWidgetScript->cellWidget(i, 1))->isChecked() == false)
       {
-         sendMessage("Skipping execution of program #" + QString::number(i + 1) + " since it is disabled");
+         sendMessage(tr("Skipping execution of program #%1 since it is disabled").arg(i + 1));
       }
       else
       {
@@ -883,7 +883,7 @@ void QEScript::buttonExecuteClicked()
          {
             if (log)
             {
-               sendMessage("Skipping execution of program #" + QString::number(i + 1) + " since it is undefined", message_types(MESSAGE_TYPE_WARNING));
+               sendMessage(tr("Skipping execution of program #%1 since it is undefined").arg(i + 1), message_types(MESSAGE_TYPE_WARNING));
             }
          }
          else
@@ -893,7 +893,7 @@ void QEScript::buttonExecuteClicked()
             {
                if (log)
                {
-                  sendMessage("Executing program #" + QString::number(i + 1) + " until it finishes");
+                  sendMessage(tr("Executing program #%1 until it finishes").arg(i + 1));
                }
                j = -1;
             }
@@ -901,7 +901,7 @@ void QEScript::buttonExecuteClicked()
             {
                if (log)
                {
-                  sendMessage("Executing program #" + QString::number(i + 1) + " for " + QString::number(timeOut) + " seconds");
+                  sendMessage(tr("Executing program #%1 for %2 seconds").arg(i + 1).arg(timeOut));
                }
                j = timeOut * 50;
             }
@@ -933,13 +933,13 @@ void QEScript::buttonExecuteClicked()
                      {
                         if (exitCode == 0)
                         {
-                           sendMessage("Finished executing program #" + QString::number(i + 1) + " with exit code '" + QString::number(exitCode) + "'");
+                           sendMessage(tr("Finished executing program #%1 with exit code '%2'").arg(i + 1).arg(exitCode));
                         }
                         else
                         {
                            if (((QCheckBox *) qTableWidgetScript->cellWidget(i, 6))->isChecked())
                            {
-                              sendMessage("Stop execution since program #" + QString::number(i + 1) + " has finished with exit code '" + QString::number(exitCode) + "'", message_types(MESSAGE_TYPE_WARNING));
+                              sendMessage(tr("Stop execution since program #%1 has finished with exit code '%2'").arg(i + 1).arg(exitCode), message_types(MESSAGE_TYPE_WARNING));
                               isExecuting = false;
                            }
                         }
@@ -952,7 +952,7 @@ void QEScript::buttonExecuteClicked()
                      {
                         if (log)
                         {
-                           sendMessage("Aborting execution of program #" + QString::number(i + 1) + " since " + QString::number(timeOut) + " seconds have passed", message_types(MESSAGE_TYPE_WARNING));
+                           sendMessage(tr("Aborting execution of program #%1 since %2 seconds have passed").arg(i + 1).arg(timeOut), message_types(MESSAGE_TYPE_WARNING));
                         }
                         qProcess->kill();
                         break;
@@ -965,7 +965,7 @@ void QEScript::buttonExecuteClicked()
                }
                else
                {
-                  sendMessage("Abort execution of program(s)", message_types(MESSAGE_TYPE_WARNING));
+                  sendMessage(tr("Abort execution of program(s)"), message_types(MESSAGE_TYPE_WARNING));
                   qProcess->kill();
                   break;
                }

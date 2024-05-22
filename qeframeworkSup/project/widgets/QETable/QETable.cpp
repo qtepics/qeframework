@@ -501,13 +501,13 @@ QMenu* QETable::buildContextMenu ()
 
    menu->addSeparator ();
 
-   action = new QAction ("Vertical table", menu);
+   action = new QAction (tr("Vertical table"), menu);
    action->setCheckable (true);
    action->setChecked (this->isVertical ());
    action->setData (CM_VERTICAL_TABLE);
    menu->addAction (action);
 
-   action = new QAction ("Horizontal table", menu);
+   action = new QAction (tr("Horizontal table"), menu);
    action->setCheckable (true);
    action->setChecked (!this->isVertical ());
    action->setData (CM_HORIZONTAL_TABLE);

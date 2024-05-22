@@ -45,28 +45,28 @@ markupDisplayMenu::markupDisplayMenu( QWidget *parent) : QMenu(parent)
     addAction( ACTION );
 
     // Create the buttons (with default titles - these will be overridden by changes to the markup legend properties)
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Horizontal Line 1", ICM_DISPLAY_HSLICE1,    hSlice1Action    )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Horizontal Line 2", ICM_DISPLAY_HSLICE2,    hSlice2Action    )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Horizontal Line 3", ICM_DISPLAY_HSLICE3,    hSlice3Action    )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Horizontal Line 4", ICM_DISPLAY_HSLICE4,    hSlice4Action    )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Horizontal Line 5", ICM_DISPLAY_HSLICE5,    hSlice5Action    )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Vertical Line 1",   ICM_DISPLAY_VSLICE1,    vSlice1Action    )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Vertical Line 2",   ICM_DISPLAY_VSLICE2,    vSlice2Action    )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Vertical Line 3",   ICM_DISPLAY_VSLICE3,    vSlice3Action    )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Vertical Line 4",   ICM_DISPLAY_VSLICE4,    vSlice4Action    )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Vertical Line 5",   ICM_DISPLAY_VSLICE5,    vSlice5Action    )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Area 1",          ICM_DISPLAY_AREA1,     area1Action     )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Area 2",          ICM_DISPLAY_AREA2,     area2Action     )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Area 3",          ICM_DISPLAY_AREA3,     area3Action     )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Area 4",          ICM_DISPLAY_AREA4,     area4Action     )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Arbitrary Line",  ICM_DISPLAY_PROFILE,   profileAction   )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Target",          ICM_DISPLAY_TARGET,    targetAction    )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Beam",            ICM_DISPLAY_BEAM,      beamAction      )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Timestamp",       ICM_DISPLAY_TIMESTAMP, timestampAction )
-    NEW_MARKUP_DISPLAY_MENU_BUTTON( "Ellipse",         ICM_DISPLAY_ELLIPSE,   ellipseAction   )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Horizontal Line 1"), ICM_DISPLAY_HSLICE1,    hSlice1Action    )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Horizontal Line 2"), ICM_DISPLAY_HSLICE2,    hSlice2Action    )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Horizontal Line 3"), ICM_DISPLAY_HSLICE3,    hSlice3Action    )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Horizontal Line 4"), ICM_DISPLAY_HSLICE4,    hSlice4Action    )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Horizontal Line 5"), ICM_DISPLAY_HSLICE5,    hSlice5Action    )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Vertical Line 1"),   ICM_DISPLAY_VSLICE1,    vSlice1Action    )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Vertical Line 2"),   ICM_DISPLAY_VSLICE2,    vSlice2Action    )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Vertical Line 3"),   ICM_DISPLAY_VSLICE3,    vSlice3Action    )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Vertical Line 4"),   ICM_DISPLAY_VSLICE4,    vSlice4Action    )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Vertical Line 5"),   ICM_DISPLAY_VSLICE5,    vSlice5Action    )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Area 1"),          ICM_DISPLAY_AREA1,     area1Action     )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Area 2"),          ICM_DISPLAY_AREA2,     area2Action     )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Area 3"),          ICM_DISPLAY_AREA3,     area3Action     )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Area 4"),          ICM_DISPLAY_AREA4,     area4Action     )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Arbitrary Line"),  ICM_DISPLAY_PROFILE,   profileAction   )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Target"),          ICM_DISPLAY_TARGET,    targetAction    )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Beam"),            ICM_DISPLAY_BEAM,      beamAction      )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Timestamp"),       ICM_DISPLAY_TIMESTAMP, timestampAction )
+    NEW_MARKUP_DISPLAY_MENU_BUTTON( tr("Ellipse"),         ICM_DISPLAY_ELLIPSE,   ellipseAction   )
 
     // Set the title
-    setTitle( "Markup display" );
+    setTitle( tr("Markup display") );
 
 }
 

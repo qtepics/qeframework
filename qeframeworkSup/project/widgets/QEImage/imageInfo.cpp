@@ -280,7 +280,7 @@ void imageInfo::infoUpdatePixel( const QPoint pos, int value )
 // Update the paused information
 void imageInfo::infoUpdatePaused( bool paused )
 {
-    currentPausedLabel->setText( paused?QString( "Paused" ):QString( "Waiting for an image" ));
+    currentPausedLabel->setText( paused?QObject::tr( "Paused" ):QObject::tr( "Waiting for an image" ));
 }
 
 // Update the zoom information
@@ -289,7 +289,7 @@ void imageInfo::infoUpdateZoom( const int zoom, const double XStretch, const dou
     QString zoomText;
 
     // Format the zoom
-    zoomText = QString( "Zoom: %1%" ).arg( zoom );
+    zoomText = QObject::tr( "Zoom: %1%" ).arg( zoom );
 
     // Add X or Y stretch factors of present
     if( XStretch != 1.0 &&  YStretch != 1.0)

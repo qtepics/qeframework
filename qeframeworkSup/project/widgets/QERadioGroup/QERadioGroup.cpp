@@ -592,7 +592,7 @@ QMenu* QERadioGroup::buildContextMenu ()
    QMenu* menu = QEWidget::buildContextMenu ();
 
    QAction* action;
-   action = new QAction ("Apply current selection", menu);
+   action = new QAction (tr("Apply current selection"), menu);
    action->setCheckable (false);
    action->setData (QERG_APPLY_CURRENT_SELECTION);
 

@@ -83,7 +83,7 @@ void QEGenericButton::dataSetup()
     writeOnClick = true;
     setAllowDrop( false );
     confirmRequired = false;
-    confirmText = "Do you want to perform this action?";
+    confirmText = QObject::tr("Do you want to perform this action?");
 
     // Set text alignment to the default for a push button
     // This will make no visual difference unless the style has been changed from the default
@@ -401,7 +401,7 @@ void QEGenericButton::setGenericButtonText( const QString& text, QCaAlarmInfo& a
 
             } else {
                 QString message;
-                message = QString( "%1: '%2' (%3) is not one of: '%4' or '%5'" )
+                message = QString( QObject::tr("%1: '%2' (%3) is not one of: '%4' or '%5'") )
                       .arg( getQWidget()->metaObject()->className() )
                       .arg( text )
                       .arg( state )
@@ -451,7 +451,7 @@ bool QEGenericButton::confirmAction()
 
     // Get confirmation from the user as to what to do
     int confirm = QMessageBox::Yes;
-    confirm = QMessageBox::warning( (QWidget*)getButtonQObject(), "Confirm write", confirmText,
+    confirm = QMessageBox::warning( (QWidget*)getButtonQObject(), QObject::tr("Confirm write"), confirmText,
                                     QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes );
 
     // Return yes/no
@@ -518,7 +518,7 @@ void QEGenericButton::userReleased()
         QString error;
         if( !qca->writeStringElement( writeText, error ) )
         {
-            QMessageBox::warning( (QWidget*)getButtonQObject(), QString( "Write failed" ), error, QMessageBox::Cancel );
+            QMessageBox::warning( (QWidget*)getButtonQObject(), QString( QObject::tr("Write failed") ), error, QMessageBox::Cancel );
         }
     }
 }
@@ -578,7 +578,7 @@ void QEGenericButton::userClicked( bool checked )
             QString error;
             if( !qca->writeStringElement( writeText, error ) )
             {
-                QMessageBox::warning( (QWidget*)getButtonQObject(), QString( "Write failed" ), error, QMessageBox::Cancel );
+                QMessageBox::warning( (QWidget*)getButtonQObject(), QString( QObject::tr("Write failed") ), error, QMessageBox::Cancel );
             }
         }
     }
@@ -689,7 +689,7 @@ bool QEGenericButton::checkPassword()
 
     // Ask the user what the password is
     bool ok;
-    QString text = QInputDialog::getText( (QWidget*)getButtonQObject(), "Password", "Password:", QLineEdit::Password, "", &ok );
+    QString text = QInputDialog::getText( (QWidget*)getButtonQObject(), QObject::tr("Password"), QObject::tr("Password:"), QLineEdit::Password, "", &ok );
 
     // If the user canceled, silently return password failure
     if( !ok )
@@ -698,7 +698,7 @@ bool QEGenericButton::checkPassword()
     // If the user entered the wrong password, show a warning, then return password failure
     if ( text.compare( password ) )
     {
-        QMessageBox::warning( (QWidget*)getButtonQObject(), "Incorrect Password", "You entered the wrong password. No action will be taken" );
+        QMessageBox::warning( (QWidget*)getButtonQObject(), QObject::tr("Incorrect Password"), QObject::tr("You entered the wrong password. No action will be taken") );
         return false;
     }
 

@@ -106,7 +106,7 @@ void QEGenericEdit::setup()
 QMenu* QEGenericEdit::getDefaultContextMenu()
 {
     QMenu* menu = createStandardContextMenu();
-    menu->setTitle( "Edit..." );
+    menu->setTitle( tr("Edit...") );
     return menu;
 }
 
@@ -255,7 +255,7 @@ void QEGenericEdit::userEditingFinished()
     else
     {
         messageDialogPresent = true;
-        int confirm = QMessageBox::warning( this, "Value changed", "You altered a value but didn't write it.\nDo you want to write this value?",
+        int confirm = QMessageBox::warning( this, tr("Value changed"), tr("You altered a value but didn't write it.\nDo you want to write this value?"),
                                             QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::No );
         messageDialogPresent = false;
 
@@ -321,7 +321,7 @@ void QEGenericEdit::writeValue( qcaobject::QCaObject *, QVariant newValue )
     if( confirmWrite )
     {
         messageDialogPresent = true;
-        confirm = QMessageBox::warning( this, "Confirm write", "Do you want to write this value?",
+        confirm = QMessageBox::warning( this, tr("Confirm write"), tr("Do you want to write this value?"),
                                         QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes );
         messageDialogPresent = false;
     }
@@ -342,7 +342,7 @@ void QEGenericEdit::writeValue( qcaobject::QCaObject *, QVariant newValue )
                     messageDialogPresent = true;
                     writeFailMessageDialogPresent = true;
                     // warn user
-                    QMessageBox::warning( this, QString( "Write failed" ), error, QMessageBox::Cancel );
+                    QMessageBox::warning( this, tr( "Write failed" ), error, QMessageBox::Cancel );
                     setFocus();
                     // Clear flag indicating 'editing finished' signals are due to message dialog
                     messageDialogPresent = false;

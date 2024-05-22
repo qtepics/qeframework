@@ -47,27 +47,27 @@ selectMenu::selectMenu( QWidget *parent) : QMenu(parent)
     addAction( ACTION );
 
     // Create the buttons
-    NEW_SELECT_MENU_BUTTON( "Pan",                      ICM_SELECT_PAN,     actionPan     )
-    NEW_SELECT_MENU_BUTTON( "Horizontal Slice 1",       ICM_SELECT_HSLICE1, actionHSlice1 )
-    NEW_SELECT_MENU_BUTTON( "Horizontal Slice 2",       ICM_SELECT_HSLICE2, actionHSlice2 )
-    NEW_SELECT_MENU_BUTTON( "Horizontal Slice 3",       ICM_SELECT_HSLICE3, actionHSlice3 )
-    NEW_SELECT_MENU_BUTTON( "Horizontal Slice 4",       ICM_SELECT_HSLICE4, actionHSlice4 )
-    NEW_SELECT_MENU_BUTTON( "Horizontal Slice 5",       ICM_SELECT_HSLICE5, actionHSlice5 )
-    NEW_SELECT_MENU_BUTTON( "Vertical Slice 1",         ICM_SELECT_VSLICE1, actionVSlice1 )
-    NEW_SELECT_MENU_BUTTON( "Vertical Slice 2",         ICM_SELECT_VSLICE2, actionVSlice2 )
-    NEW_SELECT_MENU_BUTTON( "Vertical Slice 3",         ICM_SELECT_VSLICE3, actionVSlice3 )
-    NEW_SELECT_MENU_BUTTON( "Vertical Slice 4",         ICM_SELECT_VSLICE4, actionVSlice4 )
-    NEW_SELECT_MENU_BUTTON( "Vertical Slice 5",         ICM_SELECT_VSLICE5, actionVSlice5 )
-    NEW_SELECT_MENU_BUTTON( "Line Profile",             ICM_SELECT_PROFILE, actionProfile )
-    NEW_SELECT_MENU_BUTTON( "Select Area 1",            ICM_SELECT_AREA1,   actionArea1   )
-    NEW_SELECT_MENU_BUTTON( "Select Area 2",            ICM_SELECT_AREA2,   actionArea2   )
-    NEW_SELECT_MENU_BUTTON( "Select Area 3",            ICM_SELECT_AREA3,   actionArea3   )
-    NEW_SELECT_MENU_BUTTON( "Select Area 4",            ICM_SELECT_AREA4,   actionArea4   )
-    NEW_SELECT_MENU_BUTTON( "Mark Target",              ICM_SELECT_TARGET,  actionTarget  )
-    NEW_SELECT_MENU_BUTTON( "Mark Beam",                ICM_SELECT_BEAM,    actionBeam    )
+    NEW_SELECT_MENU_BUTTON( tr("Pan"),                      ICM_SELECT_PAN,     actionPan     )
+    NEW_SELECT_MENU_BUTTON( tr("Horizontal Slice 1"),       ICM_SELECT_HSLICE1, actionHSlice1 )
+    NEW_SELECT_MENU_BUTTON( tr("Horizontal Slice 2"),       ICM_SELECT_HSLICE2, actionHSlice2 )
+    NEW_SELECT_MENU_BUTTON( tr("Horizontal Slice 3"),       ICM_SELECT_HSLICE3, actionHSlice3 )
+    NEW_SELECT_MENU_BUTTON( tr("Horizontal Slice 4"),       ICM_SELECT_HSLICE4, actionHSlice4 )
+    NEW_SELECT_MENU_BUTTON( tr("Horizontal Slice 5"),       ICM_SELECT_HSLICE5, actionHSlice5 )
+    NEW_SELECT_MENU_BUTTON( tr("Vertical Slice 1"),         ICM_SELECT_VSLICE1, actionVSlice1 )
+    NEW_SELECT_MENU_BUTTON( tr("Vertical Slice 2"),         ICM_SELECT_VSLICE2, actionVSlice2 )
+    NEW_SELECT_MENU_BUTTON( tr("Vertical Slice 3"),         ICM_SELECT_VSLICE3, actionVSlice3 )
+    NEW_SELECT_MENU_BUTTON( tr("Vertical Slice 4"),         ICM_SELECT_VSLICE4, actionVSlice4 )
+    NEW_SELECT_MENU_BUTTON( tr("Vertical Slice 5"),         ICM_SELECT_VSLICE5, actionVSlice5 )
+    NEW_SELECT_MENU_BUTTON( tr("Line Profile"),             ICM_SELECT_PROFILE, actionProfile )
+    NEW_SELECT_MENU_BUTTON( tr("Select Area 1"),            ICM_SELECT_AREA1,   actionArea1   )
+    NEW_SELECT_MENU_BUTTON( tr("Select Area 2"),            ICM_SELECT_AREA2,   actionArea2   )
+    NEW_SELECT_MENU_BUTTON( tr("Select Area 3"),            ICM_SELECT_AREA3,   actionArea3   )
+    NEW_SELECT_MENU_BUTTON( tr("Select Area 4"),            ICM_SELECT_AREA4,   actionArea4   )
+    NEW_SELECT_MENU_BUTTON( tr("Mark Target"),              ICM_SELECT_TARGET,  actionTarget  )
+    NEW_SELECT_MENU_BUTTON( tr("Mark Beam"),                ICM_SELECT_BEAM,    actionBeam    )
 
     // Set the title
-    setTitle( "Mode" );
+    setTitle( tr("Mode") );
 }
 
 // Get a selection option from the user.
