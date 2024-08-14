@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2023 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -118,7 +118,7 @@ protected:
    // Drag and Drop - no drop to self.
    //
    void mousePressEvent (QMouseEvent *event)    { qcaMousePressEvent (event); }
-   void dragEnterEvent (QDragEnterEvent *event) { qcaDragEnterEvent (event, false); }
+   void dragEnterEvent (QDragEnterEvent *event) { qcaDragEnterEvent (event);  }
    void dragMoveEvent (QDragMoveEvent *event);  // we do a special to avoid self drop.
    void dropEvent (QDropEvent *event)           { qcaDropEvent (event, true); }
    // This widget uses the setDrop/getDrop defined in QEWidget.

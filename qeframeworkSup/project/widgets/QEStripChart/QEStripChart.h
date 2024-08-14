@@ -252,7 +252,7 @@ protected:
    // Override QWidget functions - call up standard handlers defined in QEDragDrop.
    // Drag and Drop
    void mousePressEvent (QMouseEvent *event)    { this->qcaMousePressEvent (event); }
-   void dragEnterEvent (QDragEnterEvent *event) { this->qcaDragEnterEvent (event, false); }
+   void dragEnterEvent (QDragEnterEvent *event) { this->qcaDragEnterEvent (event);  }
    void dropEvent (QDropEvent *event)           { this->qcaDropEvent (event, true); }
    //
    // This widget uses the default setDrop/getDrop defined in QEWidget.

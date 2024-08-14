@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2018-2022 Australian Synchrotron
+ *  Copyright (c) 2018-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -23,7 +23,6 @@
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
-
 
 // In this context, we are a user of the QEFramework library as we are using
 // the moc generated ui_QECorrelation.h file that needs access the meta
@@ -46,9 +45,9 @@
 #define DEBUG qDebug() << "QECorrelation" << __LINE__ << __FUNCTION__ << "  "
 
 enum PVIndices {
-   QELabelPVIndex = 0,    // We "know" this
-   xPvIndex = 1,
-   yPvIndex = 2
+   QELabelPVIndex = 0,    // We "know" this is 0.
+   xPvIndex = 0,
+   yPvIndex = 1
 };
 
 //---------------------------------------------------------------------------------
@@ -61,11 +60,6 @@ enum PVIndices {
       return defaultValue;                                                  \
    }                                                                        \
 }
-
-// These assume the index has already be validated.
-//
-#define NAME_LABEL(index) ( (index == xPvIndex) ? this->uiForm->PV_Label1     : this->uiForm->PV_Label2 )
-#define DATA_LABEL(index) ( (index == xPvIndex) ? this->uiForm->CA_DataLabel1 : this->uiForm->CA_DataLabel2 )
 
 static const int numberOfCorrelationPoints = 5000;
 static const double minSpan = 1.0e-12;
@@ -84,7 +78,8 @@ static const QString scaleTwoName = "Y";
 
 //--------------------------------------------------------------------------------------
 //
-QECorrelation::QECorrelation (QWidget *parent) : QEAbstractDynamicWidget (parent)
+QECorrelation::QECorrelation (QWidget *parent) :
+   QEAbstractDynamicWidget (parent)
 {
    this->setup ();
 }
@@ -92,7 +87,8 @@ QECorrelation::QECorrelation (QWidget *parent) : QEAbstractDynamicWidget (parent
 //------------------------------------------------------------------------------
 //
 QECorrelation::QECorrelation (const QString& xVariableName,
-                              QWidget *parent) : QEAbstractDynamicWidget (parent)
+                              QWidget *parent) :
+   QEAbstractDynamicWidget (parent)
 {
    this->setup ();
    this->setPvName (xPvIndex, xVariableName);
@@ -102,7 +98,8 @@ QECorrelation::QECorrelation (const QString& xVariableName,
 //
 QECorrelation::QECorrelation (const QString& xVariableName,
                               const QString& yVariableName,
-                              QWidget *parent) : QEAbstractDynamicWidget (parent)
+                              QWidget *parent) :
+   QEAbstractDynamicWidget (parent)
 {
    this->setup ();
    this->setPvName (xPvIndex, xVariableName);
@@ -131,7 +128,8 @@ void QECorrelation::setup ()
    //
    this->setEnableEditPv (false);
 
-   // No variables managed directly by this widget - left to the embedded QELabels
+   // No variables managed directly by this widget,
+   // this is left to the embedded QELabels.
    //
    this->setNumVariables (0);
 
@@ -200,17 +198,27 @@ void QECorrelation::setup ()
    QECorrelation::tagWidget (this->uiForm->ColourSpeedButton1, pmDots);
    QECorrelation::tagWidget (this->uiForm->ColourSpeedButton2, pmLines);
 
+   // Setup item array
+   //
+   this->items [xPvIndex].frame = this->uiForm->Panel_1;
+   this->items [xPvIndex].letterButton = this->uiForm->X_Letter_Button;
+   this->items [xPvIndex].pvName = this->uiForm->PV_Label1;
+   this->items [xPvIndex].value = this->uiForm->CA_DataLabel1;
+
+   this->items [yPvIndex].frame = this->uiForm->Panel_2;
+   this->items [yPvIndex].letterButton = this->uiForm->Y_Letter_Button;
+   this->items [yPvIndex].pvName = this->uiForm->PV_Label2;
+   this->items [yPvIndex].value = this->uiForm->CA_DataLabel2;
+
    // Tag X PV and Y PV items
    //
-   QECorrelation::tagWidget (this->uiForm->Panel_1,         xPvIndex);
-   QECorrelation::tagWidget (this->uiForm->CA_DataLabel1,   xPvIndex);
-   QECorrelation::tagWidget (this->uiForm->PV_Label1,       xPvIndex);
-   QECorrelation::tagWidget (this->uiForm->X_Letter_Button, xPvIndex);
-
-   QECorrelation::tagWidget (this->uiForm->Panel_2,         yPvIndex);
-   QECorrelation::tagWidget (this->uiForm->CA_DataLabel2,   yPvIndex);
-   QECorrelation::tagWidget (this->uiForm->PV_Label2,       yPvIndex);
-   QECorrelation::tagWidget (this->uiForm->Y_Letter_Button, yPvIndex);
+   for (int j = 0; j < NUMBER_OF_ITEMS; j++) {
+      DataSets* dset = &this->items[j];
+      QECorrelation::tagWidget (dset->frame, j);
+      QECorrelation::tagWidget (dset->letterButton, j);
+      QECorrelation::tagWidget (dset->pvName, j);
+      QECorrelation::tagWidget (dset->value, j);
+   }
 
    // Keep consistant with On_Plot_Mode_Select
    //
@@ -247,13 +255,12 @@ void QECorrelation::setup ()
 
    // Set up drap/drop.
    //
-   pVLabel = this->uiForm->PV_Label1;
-   pVLabel->setAcceptDrops (true);
-   pVLabel->installEventFilter (this);
-
-   pVLabel = this->uiForm->PV_Label2;
-   pVLabel->setAcceptDrops (true);
-   pVLabel->installEventFilter (this);
+   this->disllowOneEnter = false;
+   for (int j = 0; j < NUMBER_OF_ITEMS; j++) {
+      DataSets* dset = &this->items[j];
+      dset->frame->setAcceptDrops (true);
+      dset->frame->installEventFilter (this);
+   }
 
    // Setup standary display formating.
    //
@@ -346,17 +353,17 @@ QECorrelation::~QECorrelation ()
 
 //------------------------------------------------------------------------------
 //
-void QECorrelation::setNewVariableName (QString variableName,
-                                        QString variableNameSubstitutions,
-                                        unsigned int variableIndex)
+void QECorrelation::setNewVariableName (QString pvName,
+                                        QString substitutions,
+                                        unsigned int vi)
 {
-   INDEX_CHECK (variableIndex,);
+   INDEX_CHECK (vi,);
 
-   QELabel* caLabel = DATA_LABEL (variableIndex);
-   QLabel* pvNameLabel = NAME_LABEL (variableIndex);
+   QELabel* caLabel = this->items[vi].value;
+   QLabel* pvNameLabel = this->items[vi].pvName;
    QString substitutedPvName;
 
-   caLabel->setVariableNameAndSubstitutions (variableName, variableNameSubstitutions, QELabelPVIndex);
+   caLabel->setVariableNameAndSubstitutions (pvName, substitutions, QELabelPVIndex);
    caLabel->setText ("");
 
    substitutedPvName = caLabel->getSubstitutedVariableName (QELabelPVIndex);
@@ -367,18 +374,11 @@ void QECorrelation::setNewVariableName (QString variableName,
 //
 int QECorrelation::addPvName (const QString& pvName)
 {
-   QString check;
-
-   check = this->getPvName (xPvIndex);
-   if (check.isEmpty()) {
-      this->setPvName (xPvIndex, pvName);
-      return xPvIndex;
-   }
-
-   check = this->getPvName (yPvIndex);
-   if (check.isEmpty()) {
-      this->setPvName (yPvIndex, pvName);
-      return yPvIndex;
+   for (int slot = 0; slot < NUMBER_OF_ITEMS; slot++) {
+      if (!this->isInUse(slot)) {
+         this->setPvName (slot, pvName);
+         return slot;
+      }
    }
 
    return -1;
@@ -388,8 +388,9 @@ int QECorrelation::addPvName (const QString& pvName)
 //
 void QECorrelation::clearAllPvNames ()
 {
-   this->setPvName (xPvIndex, "");
-   this->setPvName (yPvIndex, "");
+   for (int slot = 0; slot < NUMBER_OF_ITEMS; slot++) {
+      this->setPvName (slot, "");
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -403,55 +404,11 @@ qcaobject::QCaObject* QECorrelation::createQcaItem (unsigned int variableIndex)
 
 //------------------------------------------------------------------------------
 //
-void QECorrelation::establishConnection (unsigned int variableIndex )
+void QECorrelation::establishConnection (unsigned int variableIndex)
 {
    // A framework feature is that there is always at least one variable.
    if (variableIndex > 0)
       DEBUG << "unexpected call, variableIndex = " << variableIndex;
-}
-
-//------------------------------------------------------------------------------
-// Drag and Drop - no drop to self.
-//
-void QECorrelation::dragMoveEvent (QDragMoveEvent *event)
-{
-   QFrame* sourceFrame = NULL;
-
-   // When dropping from anither application, the event source does not exist.
-   //
-   if (event && event->source()) {
-      sourceFrame = dynamic_cast <QFrame*> (event->source()->parent());
-   }
-
-   if (sourceFrame) {
-      // Parent is of the correct type.
-
-      // Extract frame geometry and convert to global coordinates.
-      // Map to glabl requires the sourceFrame parant.
-      //
-      QWidget* gp = dynamic_cast <QWidget*> (sourceFrame->parent ());
-
-      QRect fg = sourceFrame->geometry ();
-      QPoint gtl = gp->mapToGlobal (fg.topLeft());
-      QPoint gbr = gp->mapToGlobal (fg.bottomRight());
-      QRect globalFrameRect = QRect (gtl, gbr);
-
-      // pos is relative this, the QECorrelation widget.
-      //
-      QPoint globalPos = this->mapToGlobal (event->pos ());
-
-      // Convert drop position to global coordinates as well so that we
-      // check if the would be drop location is own frame.
-      //
-      if (globalFrameRect.contains (globalPos)) {
-         event->ignore ();
-         return;
-      }
-   }
-
-   // Allow / re-allow drop. Allow dropping onto other slots.
-   //
-   event->acceptProposedAction ();
 }
 
 //------------------------------------------------------------------------------
@@ -461,7 +418,7 @@ QString QECorrelation::copyVariable ()
 {
    QString result;
 
-   // Create a space seperated list of PV names.
+   // Create a space separated list of PV names.
    //
    QString xPvName = this->getPvName (xPvIndex);
    QString yPvName = this->getPvName (yPvIndex);
@@ -1055,8 +1012,8 @@ void QECorrelation::contextMenuSelected (QAction* selectedItem)
    const int tag = this->actionTag;
    INDEX_CHECK (tag, );
 
-   QLabel* pvNameLabel  = NAME_LABEL (tag);
-   QELabel* caDataLabel = DATA_LABEL (tag);
+   QLabel* pvNameLabel = this->items[tag].pvName;
+   QELabel* caDataLabel = this->items[tag].value;
 
    QClipboard *cb = NULL;
    QString pasteText;
@@ -1103,8 +1060,8 @@ void QECorrelation::runSelectNameDialog (const int instance)
 {
    INDEX_CHECK (instance, );
 
-   QLabel* pvNameLabel  = NAME_LABEL (instance);
-   QELabel* caDataLabel = DATA_LABEL (instance);
+   QLabel* pvNameLabel = this->items[instance].pvName;
+   QELabel* caDataLabel = this->items[instance].value;
 
    QString currentName = caDataLabel->getSubstitutedVariableName (QELabelPVIndex);
    this->pvNameSelectDialog->setPvName (currentName);
@@ -1127,8 +1084,8 @@ void QECorrelation::setPvName (const int instance, const QString& rawPvName)
 
    INDEX_CHECK (instance, );
 
-   QLabel* pvNameLabel  = NAME_LABEL (instance);
-   QELabel* caDataLabel = DATA_LABEL (instance);
+   QLabel* pvNameLabel = this->items[instance].pvName;
+   QELabel* caDataLabel = this->items[instance].value;
 
    caDataLabel->deactivate ();
    this->xData.clear ();
@@ -1153,8 +1110,41 @@ QString QECorrelation::getPvName (const int instance) const
 {
    static const QString nullString = "";
    INDEX_CHECK (instance, nullString);
-   QELabel* caDataLabel = DATA_LABEL (instance);
+   QELabel* caDataLabel = this->items[instance].value;
    return caDataLabel->getSubstitutedVariableName (QELabelPVIndex);
+}
+
+//------------------------------------------------------------------------------
+//
+bool QECorrelation::isInUse (const int instance) const
+{
+   INDEX_CHECK (instance, false);
+   const QString pvName = this->getPvName (instance).trimmed();
+   return !pvName.isEmpty();
+}
+
+//------------------------------------------------------------------------------
+// Determine if user allowed to drop new PVs into this widget.
+//
+bool QECorrelation::isDropAllowed () const
+{
+   bool allowDrop = false;
+   for (int slot = 0; slot < NUMBER_OF_ITEMS; slot++) {
+      const bool isEmpty = !this->isInUse (slot);
+      allowDrop = allowDrop || isEmpty;
+   }
+   return allowDrop;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QECorrelation::isEventOk (QDropEvent* event) const
+{
+   const QMimeData* md = event->mimeData();
+   if (event->source() == this) return false;
+   if (!md->hasText ()) return false;
+   if (md->text ().isEmpty()) return false;
+   return true;
 }
 
 //------------------------------------------------------------------------------
@@ -1165,86 +1155,124 @@ bool QECorrelation::processDropEvent (const int tag, QDropEvent* event)
 
    // If no text available, do nothing
    //
-   if (!event->mimeData()->hasText ()) {
+   if (!this->isEventOk (event)) {
       event->ignore ();
       return false;
    }
 
-   // Get the drop data
+   // Get the drop data text
    //
-   const QMimeData *mime = event->mimeData ();
+   QString dropText = event->mimeData ()->text ();
 
-   // If there is any text, drop the text
+   // Carry out the drop action
    //
-   QString dropText = mime->text ();
-   if (!dropText.isEmpty ()) {
-      // Carry out the drop action
-      //
-      this->setPvName (tag, dropText);
-   }
+   this->setPvName (tag, dropText);
 
    // Tell the dropee that the drop has been acted on
    //
    event->accept ();
-   // event->acceptProposedAction ();
 
    return true;
 }
 
 //------------------------------------------------------------------------------
 //
-bool QECorrelation::eventFilter (QObject *obj, QEvent* event)
+void QECorrelation::mousePressEvent (QMouseEvent* event)
 {
+   this->qcaMousePressEvent (event);
+}
+
+//------------------------------------------------------------------------------
+//
+void QECorrelation::dragEnterEvent (QDragEnterEvent* event)
+{
+   // NOTE: For the PV frames, on drag enter we set event->ignore() whe already in use.
+   // We then immediately get a call to this function which will usually accept
+   // the event if a slot is free. However we would like to still disallow the event.
+   // Once we leave the PV frame, this function is called again.  For the first call we
+   // check disllowOneEnter which can be set in the eventFilter method (~line 1250).
+   //
+   bool allowed = !this->disllowOneEnter;
+   this->disllowOneEnter = false;
+
+   if (allowed && this->isDropAllowed() && this->isEventOk (event)) {
+      event->setDropAction (Qt::CopyAction);
+      event->accept ();  // only if not in use.
+   } else {
+      event->ignore ();
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+void QECorrelation::dropEvent (QDropEvent* event)
+{
+   this->qcaDropEvent (event, true);
+}
+
+//------------------------------------------------------------------------------
+//
+bool QECorrelation::eventFilter (QObject* obj, QEvent* event)
+{
+   QWidget* watched = qobject_cast <QWidget*>(obj);
+   const int tag = QECorrelation::getTag (watched);
+
    const QEvent::Type type = event->type ();
 
+   bool result = false;   // assume not handled
    switch (type) {
 
+      case QEvent::MouseButtonPress:
+         // handle the event - this inhibits drop on single click
+         result = true;
+         break;
+
+      case QEvent::MouseButtonDblClick:
+         // check main button??
+         this->runSelectNameDialog (tag);
+         result = true;   // the event has been handle.
+         break;
+
       case QEvent::DragEnter:
-         if ((obj == this->uiForm->PV_Label1) ||
-             (obj == this->uiForm->PV_Label2)) {
-            QDragEnterEvent* dragEnterEvent = static_cast<QDragEnterEvent*> (event);
-            dragEnterEvent->setDropAction (Qt::CopyAction);
-            dragEnterEvent->accept ();  // only if not in use.
-            return true;
+         {
+            QDragEnterEvent* dragEvent = reinterpret_cast<QDragEnterEvent*> (event);
+
+            const bool c1 = (tag >= 0) && (tag < NUMBER_OF_ITEMS);
+            const bool c2 = !this->isInUse (tag);
+            const bool c3 = this->isEventOk (dragEvent);
+
+            if (c1 && c2 && c3) {
+               dragEvent->setDropAction (Qt::CopyAction);
+               dragEvent->accept ();  // only if not in use.
+            } else {
+               dragEvent->ignore ();
+               this->disllowOneEnter = true;  // see dragEnterEvent()
+            }
          }
+         result = true;
          break;
-
-
-      case QEvent::DragMove:
-         if ((obj == this->uiForm->PV_Label1) ||
-             (obj == this->uiForm->PV_Label2)) {
-            QDragMoveEvent* dragMoveEvent = static_cast<QDragMoveEvent*> (event);
-            dragMoveEvent->accept ();  // only if not in use. ELSE  dragMoveEvent->ignore ();
-            return true;
-         }
-         break;
-
-
-      case QEvent::DragLeave:
-         // no action
-         break;
-
 
       case QEvent::Drop:
-         if (obj == this->uiForm->PV_Label1) {
-            QDropEvent* dragDropEvent = static_cast<QDropEvent*> (event);
-            return this->processDropEvent (1, dragDropEvent);
+         {
+            QDropEvent* dropEvent = reinterpret_cast<QDropEvent*> (event);
 
-         } else if (obj == this->uiForm->PV_Label2) {
-            QDropEvent* dragDropEvent = static_cast<QDropEvent*> (event);
-            return this->processDropEvent (2, dragDropEvent);
+            const bool c1 = (tag >= 0) && (tag < NUMBER_OF_ITEMS);
+            const bool c2 = !this->isInUse (tag);
+            const bool c3 = this->isEventOk (dropEvent);
 
+            if (c1 && c2 && c3) {
+               result = this->processDropEvent (tag, dropEvent);
+            } // else will be handled by parent class
          }
          break;
 
       default:
-         // Just fall through
+         result = false;   // we did not handle this event
          break;
    }
 
-   return false; // we did not handle this event
+   return result;
 }
-
 
 //------------------------------------------------------------------------------
 //
@@ -1312,7 +1340,7 @@ void QECorrelation::plotModeSelect (bool)
    QPushButton* theSender = dynamic_cast <QPushButton*> (this->sender ());
    const int tag = QECorrelation::getTag (theSender, -1);
 
-   if ((tag == pmDots) || (tag == pmLines)) {   // sainity check
+   if ((tag == pmDots) || (tag == pmLines)) {   // sanity check
       this->plotMode = PlotModes (tag);
       this->replotIsRequired = true;
    }
@@ -1444,7 +1472,7 @@ void QECorrelation::sampleIntervalEditChange (const double value)
 void QECorrelation::tagWidget (QWidget* widget, const int tag)
 {
    if (!widget) return;     // sanity check
-   widget->setProperty (TAG_NAME, tag);
+   widget->setProperty (TAG_NAME, QVariant(int(tag)));
 }
 
 //------------------------------------------------------------------------------

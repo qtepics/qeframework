@@ -1,9 +1,9 @@
 /*  QEDragDrop.cpp
  *
- *  Copyright (c) 2012-2022 Australian Synchrotron
- *
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -41,7 +41,7 @@
 
   To make use of the common QE drag drop support provided by this class, the above functions can be
   defined to simply call the equivelent drag/drop functions defined in this class as follows:
-        void dragEnterEvent(QDragEnterEvent *event) { qcaDragEnterEvent( event [,allowSelfDrop] ); }
+        void dragEnterEvent(QDragEnterEvent *event) { qcaDragEnterEvent( event ); }
         void dropEvent(QDropEvent *event)           { qcaDropEvent( event [,allText] ); }
         void mousePressEvent(QMouseEvent *event)    { qcaMousePressEvent( event ); }
 
@@ -118,21 +118,15 @@ void QEDragDrop::setDragDropConsumer( QObject* consumer )
 }
 
 // Start a 'drag'
-void QEDragDrop::qcaDragEnterEvent(QDragEnterEvent *event, const bool allowSelfDrop)
+void QEDragDrop::qcaDragEnterEvent(QDragEnterEvent *event)
 {
-
     // Flag a move is starting (never a copy)
-    if (event->mimeData()->hasText())
+    // Must have non-empty text
+    if (event->mimeData()->hasText() && (!event->mimeData()->text().isEmpty()))
     {
         if ( event->source() == owner )
         {
-            if( allowSelfDrop )
-            {
-                event->setDropAction( Qt::MoveAction );
-                event->accept();
-            } else {
-                event->ignore();
-            }
+            event->ignore();
         } else {
             event->acceptProposedAction();
         }

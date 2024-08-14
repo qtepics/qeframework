@@ -1,6 +1,9 @@
 /*  QEDragDrop.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2009,2010,2014,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -61,12 +62,15 @@ protected:
     // Drag and Drop
 
     // Called by the QE widgets in the QE widgets's drag/drop implementation.
-    // Set allowSelfDrop to allow dropping onto source.
-    void qcaDragEnterEvent(QDragEnterEvent *event, const bool allowSelfDrop = false);
+    // Note: the allowSelfDrop parameter to allow dropping onto source
+    //       has been removed as never used.
+    //
+    void qcaDragEnterEvent(QDragEnterEvent *event);
 
     // Handles drop event. When the drop data is textual, only the first part of the text
     // is dropped unless allText parameter is set true in which case all the available
     // text is dropped.
+    //
     void qcaDropEvent(QDropEvent *event, const bool allText = false);
 
     // left button: initiates drag-drop
@@ -78,6 +82,7 @@ protected:
 
     // Virtual functions to allow this class to get and set the QE widgets drag/drop text
     // They are not defined as pure virtual as the QE widgets does not have to use this class's drag drop.
+    //
     virtual void setDrop( QVariant ) {}
     virtual QVariant getDrop() { return QVariant(); }
 
