@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/Makefile $
-# $Revision: #13 $
-# $DateTime: 2024/02/09 15:18:38 $
+# $Revision: #14 $
+# $DateTime: 2024/03/14 17:37:40 $
 # Last checked in by: $Author: starritt $
 #
 # This make file is the bridge beween the EPICS build system and the Qt project qmake/make paradigm.
@@ -28,14 +28,24 @@ include $(TOP)/configure/CONFIG
 export EPICS_BASE := $(EPICS_BASE)
 export ACAI := $(ACAI)
 
-# Are we running EPICS 7.0 or later. If yes - then define support required environment variable.
-# This needs to be defined for qmake make phase. It is also checked during the make phase.
-#
-ifdef BASE_7_0
-export QE_PVACCESS_SUPPORT := YES
+ifdef QE_PVACCESS_SUPPORT
+    # Assume user knows what he/she are doing.
+    #
+    export QE_PVACCESS_SUPPORT := $(QE_PVACCESS_SUPPORT)
+
 else
-export QE_PVACCESS_SUPPORT := NO
+    # Automatic selection
+    # Are we running EPICS 7.0 or later. If yes - then define support required environment variable.
+    # This needs to be defined for qmake make phase. It is also checked during the make phase.
+    #
+    ifdef BASE_7_0
+        export QE_PVACCESS_SUPPORT := YES
+    else
+        export QE_PVACCESS_SUPPORT := NO
+    endif
+
 endif
+
 
 # If ADSUPPORT is defined, then re-export for qmake processing of project file.
 #
