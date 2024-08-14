@@ -143,6 +143,11 @@ public:
    ///
    Q_PROPERTY (bool forceSign        READ getForceSign      WRITE setForceSign)
 
+   /// When set true (default is false) the numeric edit widget will wrap around
+   /// from the max/min to min/max value.
+   ///
+   Q_PROPERTY (bool wrapValue        READ getWrapValue      WRITE setWrapValue)
+
    /// Speficies the mimimum allowed value.
    /// This is only used if autoScale is false.
    ///
@@ -277,11 +282,13 @@ public:
    // Expose access to the internal widget's set/get functions.
    //
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, bool, hasFrame, setFrame)
+   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, bool, getWrapValue, setWrapValue)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, bool, getForceSign, setForceSign)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, Qt::Alignment, alignment, setAlignment)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, QE::Notations, getNotation, setNotation)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, QE::Radicies, getRadix, setRadix)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, QE::Separators, getSeparator, setSeparator)
+
    QString getCleanText () const { return this->internalWidget->getCleanText (); }
 
 signals:

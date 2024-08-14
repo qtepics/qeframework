@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2023 Australian Synchrotron.
+ *  Copyright (c) 2014-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -30,7 +30,6 @@
 #include <QEPlatform.h>
 
 #define DEBUG  qDebug () << "QNumericEdit" << __LINE__ << __FUNCTION__ << "  "
-
 
 //==============================================================================
 // For decimal, this is about 48.9 bits, for the other radix values this is 48 bits exactly.
@@ -80,6 +79,7 @@ void QNumericEdit::commonConstructor ()
    this->mLeadingZeros = 3;
    this->mPrecision = 4;
    this->mForceSign = false;
+   this->mWrapValue = false;
    this->mNotation = QE::Fixed;
    this->minimumMin = this->calcLower ();
    this->maximumMax = this->calcUpper ();
@@ -791,6 +791,20 @@ bool QNumericEdit::getForceSign () const
 
 //------------------------------------------------------------------------------
 //
+void QNumericEdit::setWrapValue (const bool wrapValueIn)
+{
+   this->mWrapValue = wrapValueIn;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QNumericEdit::getWrapValue () const
+{
+   return this->mWrapValue;
+}
+
+//------------------------------------------------------------------------------
+//
 void QNumericEdit::setNotation (const QE::Notations notationIn )
 {
    // We don't allow Automatic, go with Fixed.
@@ -914,11 +928,41 @@ void QNumericEdit::internalSetValue (const double value)
          // int caste truncates towards zero - select signed half.
          //
          const double round = value >= 0.0 ? + 0.5 : -0.5;
-         const qint64 n = (value + (modelSmall * round)) / modelSmall;
+         const qint64 n = static_cast<qint64>((value + (modelSmall * round)) / modelSmall);
          constrainedValue = n * modelSmall;
       }
 
-      constrainedValue = LIMIT (constrainedValue, this->mMinimum, this->mMaximum);
+      if (!this->mWrapValue) {
+         // Simple range constraint.
+         //
+         constrainedValue = LIMIT (constrainedValue, this->mMinimum, this->mMaximum);
+      } else {
+        // The Wrap value property is set.
+        // NOTE: the <  and the >= asymetry - allow for proper modulo working
+        //
+        if ((constrainedValue <  this->mMinimum) ||
+            (constrainedValue >= this->mMaximum)) {
+
+           const double spread = this->mMaximum - this->mMinimum;
+           const double centre = (this->mMaximum + this->mMinimum) / 2.0;
+
+           // Do a potentially large number of spread increments in one go.
+           //
+           const double fwraps = (constrainedValue - centre) / spread;
+
+           // Note: casting truncated towards zero
+           //
+           const qint64 nwraps = static_cast<qint64>(fwraps);
+           constrainedValue = constrainedValue - nwraps * spread;
+
+           // Fine tune for any rounding errors.
+           //
+           if (constrainedValue >= this->mMaximum) constrainedValue -= spread;
+           if (constrainedValue <  this->mMinimum) constrainedValue += spread;
+        } else {
+           // pass - already within constraints.
+        }
+      }
 
       // Exponent limited to two digits.
       // If really really near to zero, then set to zero.

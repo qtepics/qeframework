@@ -111,6 +111,11 @@ public:
    ///
    Q_PROPERTY (bool forceSign        READ getForceSign      WRITE setForceSign)
 
+   /// When set true (default is false) the numeric edit widget will wrap around
+   /// from the max/min to min/max value.
+   ///
+   Q_PROPERTY (bool wrapValue        READ getWrapValue      WRITE setWrapValue)
+
    /// Specify the mimimum allowed value.
    ///
    Q_PROPERTY (double minimum        READ getMinimum        WRITE setMinimum)
@@ -157,6 +162,9 @@ public:
    void setForceSign (const bool value);
    bool getForceSign () const;
 
+   void setWrapValue (const bool value);
+   bool getWrapValue () const;
+
    void setNotation (const QE::Notations notation);
    QE::Notations getNotation () const;
 
@@ -200,6 +208,7 @@ private:
    int mLeadingZeros;
    int mPrecision;
    bool mForceSign;
+   bool mWrapValue;
    QE::Notations mNotation;
    double mValue;         // the actual value
 
@@ -213,7 +222,7 @@ private:
    bool emitValueChangeInhibited;
 
    void commonConstructor ();
-   void internalSetValue (const double value);  // used from withn the widget.
+   void internalSetValue (const double value);  // used from within the widget.
 
    bool lineEditKeyPressEvent (QKeyEvent *event);
    bool lineEditFocusInEvent (QFocusEvent *event);
