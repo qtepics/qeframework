@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -539,8 +539,6 @@ private:
    QList<menuItemToBeActivated> toBeActivatedList;     // Transient list of menus and customisation menu items
    QMainWindow* toBeActivatedMW;                       // Main Window being customised. Used to connect to to receive signals relating to newly created docks
    QMenu*       toBeActivatedMenu;                     // Menu currently currently waiting on a dock to be created (at which point the dock's 'toggle view' action will be added)
-
-   QString      lastAppliedCustomisation;              // Last customisation applied by applyCustomisation() - successfully, or unsuccessfully
 
    void userLevelChangedGeneral( QE::UserLevels );     // Respond to a user level change (this is an implementation for the base ContainerProfile class
 

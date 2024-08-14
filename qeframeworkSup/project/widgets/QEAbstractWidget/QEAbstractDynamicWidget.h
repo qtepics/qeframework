@@ -50,6 +50,20 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAbstractDynamicWidget : public QEFram
    typedef QEFrame ParentWidgetClass;
 
 public:
+   // Some QEFrame properties are really not applicable to this widget hierarchy.
+   // These are re-declared as DESIGNABLE false.
+   // Consider spliting QEFrame into QEFrame (basic) and QEPixmapFrame.
+   //
+   Q_PROPERTY (bool scaledContents READ getScaledContents  WRITE setScaledContents  DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap0     READ getPixmap0Property WRITE setPixmap0Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap1     READ getPixmap1Property WRITE setPixmap1Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap2     READ getPixmap2Property WRITE setPixmap2Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap3     READ getPixmap3Property WRITE setPixmap3Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap4     READ getPixmap4Property WRITE setPixmap4Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap5     READ getPixmap5Property WRITE setPixmap5Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap6     READ getPixmap6Property WRITE setPixmap6Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap7     READ getPixmap7Property WRITE setPixmap7Property DESIGNABLE false)
+
    /// Default directory used for loading/saving files. Default to null string
    /// which is interpreted as the current directory.
    ///

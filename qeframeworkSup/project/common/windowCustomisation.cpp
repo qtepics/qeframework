@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -1398,19 +1398,16 @@ void windowCustomisationList::userLevelChangedGeneral( QE::UserLevels currentUse
 
 // Add the named customisation to a main window.
 // Return true if named customisation found and loaded.
-void windowCustomisationList::applyCustomisation( QMainWindow* mw,                              // Main window to apply customisations to
-                                                  QString customisationName,                    // Customisation name used to identify set of customisations
-                                                  windowCustomisationInfo* customisationInfo,   // Customisations loaded from customisation file
-                                                  dockMap dockedComponents )                    // Map of existing docks
+void windowCustomisationList::applyCustomisation(
+      QMainWindow* mw,                              // Main window to apply customisations to
+      QString customisationName,                    // Customisation name used to identify set of customisations
+      windowCustomisationInfo* customisationInfo,   // Customisations loaded from customisation file
+      dockMap dockedComponents )                    // Map of existing docks
 {
 
-   // If this customisation has been applied, do nothing
-   // This is a bit more than for efficiency - if docks are present, and have been manipulated (scrolled, etc), we don't want to re-create them
-   if( lastAppliedCustomisation == customisationName )
-   {
-      return;
-   }
-   lastAppliedCustomisation = customisationName;
+   // Note: The check for current customisationName vs. lastAppliedCustomisation
+   // for efficiency reasons never actually kiicked in (= vs. ==) and after
+   // being "fixed" has some unintentional consequences, so has been removed.
 
 
    // Clear the existing customisation (but only if we have a customisation name to replace it with)
