@@ -71,8 +71,11 @@ Q_OBJECT
     // resources directory.
 public slots:
     /// Slot to set the visibility of a QE widget, taking into account the user level.
-    /// Widget will be hidden if hidden by a call this slot, by will only be made visible by a calll to this slot if the user level allows.
-    void setManagedVisible( bool v ){ setRunVisible( v ); }
+    /// Widget will be hidden if hidden by a call this slot, by will only be made
+    /// visible by a calll to this slot if the user level allows.
+    ///
+    void setManagedVisible (bool v) { this->setRunVisible(v); }
+
 public:
     /// variableAsToolTip not applicale to V2 options.
     /// Class should ensure this option is initialised to false.
