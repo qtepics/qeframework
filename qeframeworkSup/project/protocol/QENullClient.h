@@ -1,9 +1,9 @@
-/* QENullClient.h
+/*  QENullClient.h
  *
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2023 Australian Synchrotron
+ *  Copyright (C) 2023-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -62,6 +62,7 @@ public:
 
    QString getEgu () const;
    int getPrecision() const;
+   unsigned int hostElementCount () const;
    unsigned int dataElementCount () const;
    double getDisplayLimitHigh () const;
    double getDisplayLimitLow () const;

@@ -1,9 +1,9 @@
-/* QENullClient.cpp
+/*  QENullClient.cpp
  *
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2023 Australian Synchrotron
+ *  Copyright (C) 2023-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -29,13 +29,19 @@
 
 #define DEBUG qDebug () << "QEPvaClient" << __LINE__ << __FUNCTION__ << "  "
 
+//------------------------------------------------------------------------------
+//
 QENullClient::QENullClient (const QString& pvNameIn,
                             QObject* parent) :
    QEBaseClient (QEBaseClient::NullType, pvNameIn, parent)
 { }
 
+//------------------------------------------------------------------------------
+//
 QENullClient::~QENullClient  ()  { }
 
+//------------------------------------------------------------------------------
+//
 bool QENullClient::openChannel (const ChannelModesFlags) { return false; }
 void QENullClient::closeChannel ()  { }
 QVariant QENullClient::getPvData () const { QVariant d; return d; }
@@ -46,6 +52,7 @@ QString QENullClient::getId () const { return ""; }
 QString QENullClient::getRemoteAddress() const { return ""; }
 QString QENullClient::getEgu () const { return ""; }
 int QENullClient::getPrecision() const { return 0; }
+unsigned int QENullClient::hostElementCount () const { return 0; }
 unsigned int QENullClient::dataElementCount () const { return 0; }
 double QENullClient::getDisplayLimitHigh () const { return 0.0; }
 double QENullClient::getDisplayLimitLow () const { return 0.0; }

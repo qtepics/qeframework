@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (C) 2018-2023 Australian Synchrotron
+ *  Copyright (C) 2018-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -795,6 +795,15 @@ int QEPvaClient::getPrecision () const
 
 //------------------------------------------------------------------------------
 //
+unsigned int QEPvaClient::hostElementCount () const
+{
+   // These are treated the same for PV Acccess.
+   //
+   return this->dataElementCount();
+}
+
+//------------------------------------------------------------------------------
+//
 unsigned int QEPvaClient::dataElementCount () const
 {
    const int type = this->pvData.type();
@@ -1057,6 +1066,7 @@ QString QEPvaClient::getId () const { return ""; }
 QString QEPvaClient::getRemoteAddress() const { return ""; }
 QString QEPvaClient::getEgu() const { return ""; }
 int QEPvaClient::getPrecision() const { return 0; }
+unsigned int QEPvaClient::hostElementCount () const { return 0; }
 unsigned int QEPvaClient::dataElementCount () const { return 0; }
 double QEPvaClient::getDisplayLimitHigh() const { return 0.0; }
 double QEPvaClient::getDisplayLimitLow() const { return 0.0; }

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2023 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -30,11 +30,13 @@
 #include <QObject>
 #include <QString>
 #include <QFlags>
+#include <QVariant>
 
 #include <UserMessage.h>
 #include <QCaAlarmInfo.h>
 #include <QCaDateTime.h>
 #include <QCaConnectionInfo.h>
+#include <QEBaseClient.h>
 #include <QEFrameworkLibraryGlobal.h>
 
 // differed, so we don't need to include headers
@@ -130,7 +132,12 @@ public:
    double getControlLimitLower() const;
    QString getHostName() const;
    QString getFieldType() const;
-   unsigned long getElementCount() const;  // num elements available on server as oppsoed to num elements actually subscribed for.
+   unsigned long getHostElementCount() const;  // num elements available on server
+   unsigned long getDataElementCount() const;  // num elements actually subscribed for.
+
+   Q_DECL_DEPRECATED    // use getHostElementCount
+   unsigned long getElementCount() const;
+
    bool getReadAccess() const;
    bool getWriteAccess() const;
 
@@ -201,6 +208,11 @@ private:
                     SignalsToSendFlags signalsToSend,
                     priorities priority );
 
+   // qobject cast to required types or return null_ptr
+   //
+   QECaClient* asCaClient () const;
+   QEPvaClient* asPvaClient () const;
+
    // Clear the connection state - and signal
    //
    void clearConnectionState();
@@ -212,9 +224,9 @@ private:
    int arrayIndex;
    bool firstUpdate;
 
-   // TODO: Consider using QEBaseClient* client;
-   QECaClient* caClient;     // CA Interface class.
-   QEPvaClient* pvaClient;   // PVA Interface class.
+   // This can be one of QECaClient, QEPvaClient or QENullClient.
+   //
+   QEBaseClient* client;
 
    QVariant getVariant () const;
    QByteArray getByteArray () const;
