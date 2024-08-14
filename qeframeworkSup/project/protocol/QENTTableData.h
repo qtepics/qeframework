@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018 Australian Synchrotron
+ *  Copyright (C) 2018-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -60,6 +60,8 @@ public:
    QENTTableData ();
    QENTTableData (const QENTTableData& other);
    ~QENTTableData ();
+
+   QENTTableData& operator=(const QENTTableData& other);
 
 #ifdef QE_INCLUDE_PV_ACCESS
    // Note: we can only read NTTable types for now.
