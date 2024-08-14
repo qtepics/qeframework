@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -43,12 +43,24 @@
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QCaDataPoint {
 public:
    explicit QCaDataPoint ();
+   QCaDataPoint (const QCaDataPoint& other);
+   virtual ~QCaDataPoint ();
+
+   QCaDataPoint& operator=(const QCaDataPoint& other);
+
    bool isDisplayable () const;     // i.e. is okay, not invalid and not disconnected.
 
    // Generate image of point.
    //
    QString toString () const;                                   // basic
    QString toString (const QCaDateTime& originDateTime) const;  // ... plus a relative time
+
+
+   // Register these meta types.
+   // Note: This function is public for conveniance only, and is invoked by the
+   // module itself during program elaboration.
+   //
+   static bool registerMetaTypes ();
 
    // We don't bother with a variant but just use a double.  A double can be
    // used to hold all CA data types except strings (which is are not plotable).
@@ -66,7 +78,7 @@ public:
 /// It has now been modified to include a QList<QCaDataPoint> member. The
 /// downside of this is that we must now provide list member access functions.
 ///
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QCaDataPointList  {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QCaDataPointList {
 public:
    explicit QCaDataPointList ();
    ~QCaDataPointList ();

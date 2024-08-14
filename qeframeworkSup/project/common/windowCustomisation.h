@@ -189,9 +189,12 @@ class itemCheckInfo
 {
 public:
    explicit itemCheckInfo();
-   ~itemCheckInfo();
-   itemCheckInfo( QDomElement itemElement );
-   itemCheckInfo( const itemCheckInfo &other );
+   itemCheckInfo( const itemCheckInfo& other );
+   itemCheckInfo( const QDomElement& itemElement );
+   virtual ~itemCheckInfo();
+
+   itemCheckInfo& operator=(const itemCheckInfo& other);
+
    QString getKey() const { return key; }
    QString getValue() const { return value; }
    bool getCheckable() const { return checkable; }

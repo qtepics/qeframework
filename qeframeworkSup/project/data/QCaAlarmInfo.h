@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2023 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -47,20 +47,22 @@ public:
 #  define QCAALARMINFO_SEVERITY  QCaAlarmInfo::Severity
 
    explicit QCaAlarmInfo();
+   QCaAlarmInfo( const QCaAlarmInfo& other );
 
    // General status and severity
-   explicit QCaAlarmInfo( const Status status,
-                          const Severity severity );
+   QCaAlarmInfo( const Status status,
+                 const Severity severity );
 
    // PV update status and severity
-   explicit QCaAlarmInfo( const QEPvNameUri::Protocol protocol,
-                          const QString& pvName,
-                          const Status status,
-                          const Severity severity,
-                          const QString& message );
+   QCaAlarmInfo( const QEPvNameUri::Protocol protocol,
+                 const QString& pvName,
+                 const Status status,
+                 const Severity severity,
+                 const QString& message );
 
    virtual ~QCaAlarmInfo();
 
+   QCaAlarmInfo& operator=(const QCaAlarmInfo& other);
    bool operator==(const QCaAlarmInfo& other) const;   // Return true if equal
    bool operator!=(const QCaAlarmInfo& other) const;   // Return true if not equal
 

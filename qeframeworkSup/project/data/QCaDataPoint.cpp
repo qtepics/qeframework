@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2021 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -42,10 +42,29 @@ static const QString stdFormat = "dd/MMM/yyyy HH:mm:ss";
 QCaDataPoint::QCaDataPoint ()
 {
    this->value = 0.0;
+}
 
-   // Register type.
-   //
-   qRegisterMetaType<QCaDataPoint> ("QCaDataPoint");
+//------------------------------------------------------------------------------
+//
+QCaDataPoint::QCaDataPoint (const QCaDataPoint& other)
+{
+   this->value = other.value;
+   this->datetime = other.datetime;
+   this->alarm = other.alarm;
+}
+
+//------------------------------------------------------------------------------
+//
+QCaDataPoint::~QCaDataPoint () {}
+
+//------------------------------------------------------------------------------
+//
+QCaDataPoint& QCaDataPoint::operator=(const QCaDataPoint& other)
+{
+   this->value = other.value;
+   this->datetime = other.datetime;
+   this->alarm = other.alarm;
+   return *this;
 }
 
 //------------------------------------------------------------------------------
@@ -167,9 +186,6 @@ QString QCaDataPoint::toString (const QCaDateTime& originDateTime) const
 //
 QCaDataPointList::QCaDataPointList ()
 {
-   // Register type.
-   //
-   qRegisterMetaType<QCaDataPointList> ("QCaDataPointList");
 }
 
 //------------------------------------------------------------------------------
@@ -594,5 +610,19 @@ void QCaDataPointList::distribute (double distribution [], const int size,
       }
    }
 }
+
+//------------------------------------------------------------------------------
+// Register own meta types.
+// static
+bool QCaDataPoint::registerMetaTypes ()
+{
+   qRegisterMetaType<QCaDataPoint> ("QCaDataPoint");
+   qRegisterMetaType<QCaDataPointList> ("QCaDataPointList");
+   return true;
+}
+
+// Elaborate on start up.
+//
+static const bool _elaborate = QCaDataPoint::registerMetaTypes ();
 
 // end

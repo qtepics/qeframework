@@ -1,8 +1,9 @@
 /*  QCaDateTime.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2022 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -42,9 +43,18 @@ QCaDateTime::QCaDateTime()
 }
 
 /*
+  Construct a QCa date time set to the same date/time as another QCa date time .
+ */
+QCaDateTime::QCaDateTime( const QCaDateTime& other ) : QDateTime( other )
+{
+    this->nSec = other.nSec;
+    this->userTag = other.userTag;
+}
+
+/*
   Construct a QCa date time set to the same date/time as a conventional QDateTime
  */
-QCaDateTime::QCaDateTime( QDateTime dt ) : QDateTime( dt )
+QCaDateTime::QCaDateTime( const QDateTime& dt ) : QDateTime( dt )
 {
     this->nSec = 0;
     this->userTag = 0;
@@ -76,6 +86,11 @@ QCaDateTime::QCaDateTime( const unsigned long seconds,
     
     this->userTag = userTagIn;
 }
+
+// Place holder
+//
+QCaDateTime::~QCaDateTime() {}
+
 
 /*
   Copy a QCaDateTime from another and return value to allow t1 = t2 = t3 = etc.

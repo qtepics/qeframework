@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2021 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,7 @@
  *    andrew.rhyder@synchrotron.org.au
  */
 
-// CA Date Time manager
+// QE Date Time manager
 
 #ifndef QE_DATE_TIME_H
 #define QE_DATE_TIME_H
@@ -32,17 +32,22 @@
 #include <QDateTime>
 #include <QEFrameworkLibraryGlobal.h>
 
+/// Extends the Qt datatime object in irder to provide nSec precision
+///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QCaDateTime : public QDateTime
 {
 public:
-    QCaDateTime();
-    QCaDateTime( QDateTime dt );
-    // void operator=( const QCaDateTime& other );
-    QCaDateTime& operator=(const QCaDateTime& other);
+    explicit QCaDateTime();
+    QCaDateTime( const QCaDateTime& other );
+
+    QCaDateTime( const QDateTime& dt );
 
     QCaDateTime( const unsigned long seconds,
                  const unsigned long nanoseconds,
                  const int userTag = 0 );
+    ~QCaDateTime();
+
+    QCaDateTime& operator=(const QCaDateTime& other);
 
     QString text() const;
     QString ISOText() const;
@@ -52,7 +57,7 @@ public:
     /// second (i.e. mSec but not nano sec).
     ///
     QCaDateTime addSeconds( const double seconds ) const;
-    double secondsTo( const QDateTime & target ) const;
+    double secondsTo( const QDateTime& target ) const;
 
     /// Recover original EPICS time constructor parameters.
     //

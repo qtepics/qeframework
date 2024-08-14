@@ -1773,13 +1773,21 @@ itemCheckInfo::itemCheckInfo()
    checkable = false;
 }
 
+// Copy constructor
+itemCheckInfo::itemCheckInfo( const itemCheckInfo& other )
+{
+   this->key = other.key;
+   this->value = other.value;
+   this->checkable = other.checkable;
+}
+
 // Destructor
 itemCheckInfo::~itemCheckInfo() {}
 
 // itemCheckInfo constructor.
 // Parses xml to determine if an item is checkable (check box or radio button)
 // and if it is exclusive (a radio button)
-itemCheckInfo::itemCheckInfo( QDomElement itemElement )
+itemCheckInfo::itemCheckInfo( const QDomElement& itemElement )
 {
    // Assume not checkable
    checkable = false;
@@ -1802,12 +1810,14 @@ itemCheckInfo::itemCheckInfo( QDomElement itemElement )
    }
 }
 
-// Copy constructor
-itemCheckInfo::itemCheckInfo( const itemCheckInfo &other )
+// Assignment
+itemCheckInfo& itemCheckInfo::operator=(const itemCheckInfo& other)
 {
-   key = other.key;
-   value = other.value;
-   checkable = other.checkable;
+   this->key = other.key;
+   this->value = other.value;
+   this->checkable = other.checkable;
+
+   return *this;
 }
 
 //==============================================================================

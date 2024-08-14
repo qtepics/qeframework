@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2023 Australian Synchrotron
+ *  Copyright (c) 2011-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -116,7 +116,7 @@ bool contextMenu::isArrayVariable () const
    bool result = false;
    qcaobject::QCaObject* qca = qew->getQcaItem( 0 );
    if( qca ){
-      result = (qca->getElementCount() >= 2);
+      result = (qca->getDataElementCount() >= 2);
    }
    return result;
 }

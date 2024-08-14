@@ -79,6 +79,7 @@ QENTNDArrayData::QENTNDArrayData (const QENTNDArrayData & other)
 {
    // needed for types to be registrered as meta type.
    //
+   this->assignOther (other);
    *this = other;
 }
 
@@ -87,6 +88,46 @@ QENTNDArrayData::QENTNDArrayData (const QENTNDArrayData & other)
 QENTNDArrayData::~QENTNDArrayData ()
 {
    // needed for types to be registrered as meta type.
+}
+
+//------------------------------------------------------------------------------
+//
+QENTNDArrayData& QENTNDArrayData::operator=(const QENTNDArrayData& other)
+{
+   this->assignOther (other);
+   return *this;
+}
+
+//------------------------------------------------------------------------------
+//
+void QENTNDArrayData::assignOther (const QENTNDArrayData& other)
+{
+   this->numberDimensions = other.numberDimensions;
+
+   for (int dsi = 0; dsi < ARRAY_LENGTH (dimensionSizes); dsi++)
+      this->dimensionSizes [dsi] = other.dimensionSizes[dsi];
+
+   this->bytesPerPixel = other.bytesPerPixel;
+   this->numberElements = other.numberElements;
+   this->totalBytes = other.totalBytes;
+
+   this->compressedDataSize = other.compressedDataSize;
+   this->uncompressedDataSize = other.uncompressedDataSize;
+
+   this->dtsSecondsPastEpoch = other.dtsSecondsPastEpoch;
+   this->dtsNanoseconds = other.dtsNanoseconds;
+   this->dtsUserTag = other.dtsUserTag;
+
+   this->uniqueId = other.uniqueId;
+   this->descriptor = other.descriptor;
+
+   this->attributeMap = other.attributeMap;
+
+   this->data = other.data;
+   this->codecName = other.codecName;
+   this->format = other.format;
+   this->bitDepth = other.bitDepth;
+   this->isDecompressed = other.isDecompressed;
 }
 
 //------------------------------------------------------------------------------
