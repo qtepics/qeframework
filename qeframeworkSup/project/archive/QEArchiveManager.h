@@ -121,7 +121,7 @@ private:
    const QEArchiveAccess::ArchiverTypes archiverType;
    QString pattern;
    bool allowPendingRequests;
-   QDateTime lastReadTime;
+   uint32_t lastReadTime;    // only need seconds past epoch here
    QTimer* timer;
 
    typedef QList <QEArchiveInterfaceManager*> ArchiveInterfaceManagerLists;

@@ -164,7 +164,9 @@ void QEArchiveManager::started ()
    // Normally a 5 minute wait to re-interogaye the archives, but allow first
    // re-request to be done after 3 minutes.
    //
-   this->lastReadTime = QDateTime::currentDateTime ().toUTC ().addSecs (-120);
+   const QCaDateTime caDateTimeNow = QCaDateTime::currentDateTime ();
+   const uint32_t timeNow = caDateTimeNow.getSeconds();
+   this->lastReadTime = timeNow - 120;
    this->archiveInterfaceManagerList.clear ();
    this->clear();
 
@@ -598,9 +600,9 @@ void QEArchiveManager::reInterogateTimeout ()
 // slot
 void QEArchiveManager::reInterogateArchives ()
 {
-   QDateTime timeNow = QDateTime::currentDateTime ().toUTC ();
-
-   int timeSinceLastRead = this->lastReadTime.secsTo (timeNow);
+   const QCaDateTime caDateTimeNow = QCaDateTime::currentDateTime ();
+   const uint32_t timeNow = caDateTimeNow.getSeconds();
+   const uint32_t timeSinceLastRead = timeNow - this->lastReadTime;
    if (timeSinceLastRead >= 300) {
       this->lastReadTime = timeNow;
 
@@ -663,14 +665,14 @@ void QEArchiveManager::readArchiveRequest (const QEArchiveAccess* archiveAccess,
    bool isKnownPVName = this->containsPvName (request.pvName, effectivePvName, meta);
    if (isKnownPVName) {
 
-      SourceSpec sourceSpec = this->pvNameToSourceLookUp->value (effectivePvName);
+      const SourceSpec sourceSpec = this->pvNameToSourceLookUp->value (effectivePvName);
 
       int key = -1;
-      int bestOverlap = -864000;
+      int bestOverlap = -864000;  // we allow 10 days grace.
 
       // Check times here - really only applicable to the EPICS CA archiver
       // which supported both a long term and a short term sub-archives
-      // for various catagoroes of data types.
+      // for various catagories of data types.
       //
       QList <int> keys = sourceSpec.keyToTimeSpecLookUp.keys ();
       for (int j = 0; j < keys.count (); j++) {
@@ -688,7 +690,7 @@ void QEArchiveManager::readArchiveRequest (const QEArchiveAccess* archiveAccess,
          // of any more one than one second.
          //
          int overlap = useStart.secsTo (useEnd);
-         if (bestOverlap < overlap) {
+         if (overlap > bestOverlap) {
             bestOverlap = overlap;
             key = keyTimeSpec.key;
          }
@@ -814,6 +816,20 @@ void QEArchiveManager::processPvChannel (QEArchiveInterfaceManager* interfaceMan
    keyTimeSpec.pathIndex = archive.pathIndex;
    keyTimeSpec.startTime = pvChannel.startTime.getSeconds();
    keyTimeSpec.endTime = pvChannel.endTime.getSeconds();
+
+   // Is the end time invalid?
+   //
+   if (keyTimeSpec.endTime < keyTimeSpec.startTime) {
+//    DEBUG << pvChannel.pvName
+//          << "  start: " << keyTimeSpec.startTime
+//          << "  end: " << keyTimeSpec.endTime
+//          << "  => " << this->lastReadTime;
+
+      // The end time cannot sensibly be less that start time, so
+      // set to last read time (which is essentially the current time).
+      //
+      keyTimeSpec.endTime = this->lastReadTime;
+   }
 
    if (!this->pvNameToSourceLookUp->contains (pvChannel.pvName)) {
       // First instance of this PV Name
