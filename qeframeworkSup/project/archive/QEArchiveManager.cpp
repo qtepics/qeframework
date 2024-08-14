@@ -55,8 +55,8 @@
 //
 class KeyTimeSpec : public QEArchiveInterface::Archive {
 public:
-   QCaDateTime startTime;
-   QCaDateTime endTime;
+   uint32_t startTime;  // only need seconds past epoch here
+   uint32_t endTime;
 };
 
 //------------------------------------------------------------------------------
@@ -114,6 +114,12 @@ static QThread* singletonThread = NULL;
 //
 static QMutex* archiveDataMutex = new QMutex ();
 
+// This list holds archive names and paths - essentially only applicable to 
+// the traditional Channel Access archiver. We hold an indices (2 bytes each)
+// as opposed to a QStrings (24 bytes each) in the SourceSpec type.
+//
+static QStringList archiveNameList;
+static QStringList pathNameList;
 
 //==============================================================================
 // QEArchiveManager
@@ -168,7 +174,7 @@ void QEArchiveManager::started ()
    // Split input string using space as delimiter.
    // Could extend to use regular expression and split on any white space character.
    //
-   QStringList archiveList =  QEUtilities::split (archives);
+   QStringList archiveList = QEUtilities::split (archives);
 
    int count = 0;
    for (int j = 0; j < archiveList.count (); j++) {
@@ -190,14 +196,14 @@ void QEArchiveManager::started ()
          url.setPort (80);
       }
 
-      // Create and save a reference to each interface manager.
+      // Create and save a reference to each archive interface manager.
       //
       QEArchiveInterfaceManager* aim;
       aim = QEArchiveInterfaceManager::createInterfaceManager
                (count, this->archiverType, url, this);
 
       if (aim == NULL) {
-         // Could not create this interface manager - skip and continue.
+         // Could not create this archive interface manager - skip and continue.
          continue;
       }
 
@@ -337,6 +343,54 @@ QEArchiveManager* QEArchiveManager::getInstance (QString& statusMessage)
 }
 
 //------------------------------------------------------------------------------
+// static
+int QEArchiveManager::getArchiveNameIndex (const QString& archiveName)
+{
+   // Locker?
+   int result;
+
+   if (archiveNameList.contains (archiveName)) {
+      result = archiveNameList.indexOf (archiveName);
+
+   } else {
+      result = archiveNameList.count();
+      archiveNameList.append (archiveName);
+   }
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// static
+QString QEArchiveManager::getArchiveNameFromIndex (const int index)
+{
+   return archiveNameList.value (index, "");
+}
+
+//------------------------------------------------------------------------------
+// static
+int QEArchiveManager::getPathIndex (const QString& pathName)
+{
+   // Locker?
+   int result;
+
+   if (pathNameList.contains (pathName)) {
+      result = pathNameList.indexOf (pathName);
+
+   } else {
+      result = pathNameList.count();
+      pathNameList.append (pathName);
+   }
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// static
+QString QEArchiveManager::getPathFromIndex (const int index)
+{
+   return pathNameList.value (index, "");
+}
+
+//------------------------------------------------------------------------------
 //
 QEArchiveAccess::ArchiverTypes
 QEArchiveManager::getArchiverType () const
@@ -411,9 +465,9 @@ bool QEArchiveManager::getArchivePvInformation (
 
          item.hostName = hostName;
          item.key = key;
-         item.path = keyTimeSpec.path;
-         item.startTime = keyTimeSpec.startTime;
-         item.endTime = keyTimeSpec.endTime;
+         item.path = QEArchiveManager::getPathFromIndex (keyTimeSpec.pathIndex);
+         item.startTime = QCaDateTime (keyTimeSpec.startTime, 0, 0);
+         item.endTime = QCaDateTime (keyTimeSpec.endTime, 0, 0);
 
 //         if (item.endTime < item.startTime) {
 //            DEBUG << pvName << item.startTime << item.endTime;
@@ -621,9 +675,14 @@ void QEArchiveManager::readArchiveRequest (const QEArchiveAccess* archiveAccess,
       QList <int> keys = sourceSpec.keyToTimeSpecLookUp.keys ();
       for (int j = 0; j < keys.count (); j++) {
 
-         KeyTimeSpec keyTimeSpec = sourceSpec.keyToTimeSpecLookUp.value (keys.value (j));
-         QCaDateTime useStart = MAX (request.startTime.toUTC (), keyTimeSpec.startTime);
-         QCaDateTime useEnd = MIN (request.endTime.toUTC (), keyTimeSpec.endTime);
+         const KeyTimeSpec keyTimeSpec = sourceSpec.keyToTimeSpecLookUp.value (keys.value (j));
+
+         // Can't use const here
+         QCaDateTime startTime = QCaDateTime (keyTimeSpec.startTime, 0, 0);
+         QCaDateTime endTime = QCaDateTime (keyTimeSpec.endTime, 0, 0);
+
+         const QCaDateTime useStart = MAX (request.startTime.toUTC (), startTime);
+         const QCaDateTime useEnd = MIN (request.endTime.toUTC (), endTime);
 
          // We don't worry about calculating the overlap to an accuracy
          // of any more one than one second.
@@ -751,10 +810,10 @@ void QEArchiveManager::processPvChannel (QEArchiveInterfaceManager* interfaceMan
    SourceSpec sourceSpec;
 
    keyTimeSpec.key = archive.key;
-   keyTimeSpec.name = archive.name;
-   keyTimeSpec.path = archive.path;
-   keyTimeSpec.startTime = pvChannel.startTime;
-   keyTimeSpec.endTime = pvChannel.endTime;
+   keyTimeSpec.nameIndex = archive.nameIndex;
+   keyTimeSpec.pathIndex = archive.pathIndex;
+   keyTimeSpec.startTime = pvChannel.startTime.getSeconds();
+   keyTimeSpec.endTime = pvChannel.endTime.getSeconds();
 
    if (!this->pvNameToSourceLookUp->contains (pvChannel.pvName)) {
       // First instance of this PV Name

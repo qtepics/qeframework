@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2021 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -37,6 +37,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <QEArchiveManager.h>
 
 #define DEBUG qDebug () << "QEArchiveInterfaceCA" << __LINE__ << __FUNCTION__  << "  "
 
@@ -237,8 +238,8 @@ void QEChannelArchiveInterface::processArchives (const QObject *userData, const 
          map = element.toMap ();
 
          item.key  = map ["key"].toInt (&okay);
-         item.name = map ["name"].toString ();
-         item.path = map ["path"].toString ();
+         item.nameIndex = QEArchiveManager::getArchiveNameIndex (map ["name"].toString ());
+         item.pathIndex = QEArchiveManager::getPathIndex (map ["path"].toString ());
          PvArchives.append (item);
 
       } else {

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2023 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -59,6 +59,18 @@ class QEArchiveManager :
 
    friend class QEArchiveAccess;
    friend class QEArchiveInterfaceManager;
+
+public:
+   // Utility functions
+   //
+   // In the data structures, we store shared index as opposed to a shared QString
+   // which still uses 24 bytes.
+   //
+   static int getArchiveNameIndex (const QString& archiveName);
+   static QString getArchiveNameFromIndex (const int index);
+
+   static int getPathIndex (const QString& pathName);
+   static QString getPathFromIndex (const int index);
 
 private:
    explicit QEArchiveManager (const QEArchiveAccess::ArchiverTypes archiverType);

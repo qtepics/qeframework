@@ -83,9 +83,9 @@ public:
    // Available archives for given host/port/end_point - key is most important.
    //
    struct Archive {
-      int key;
-      QString name;
-      QString path;
+      int32_t key;         //
+      int16_t nameIndex;   // actual names are held in QEArchiveManager
+      int16_t pathIndex;   // actual paths are held in QEArchiveManager
    };
 
    // Available PV names (matching regular expression pattern) for
