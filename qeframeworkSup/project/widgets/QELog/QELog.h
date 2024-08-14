@@ -31,6 +31,7 @@
 #include <QCheckBox>
 #include <QTableWidget>
 #include <QPushButton>
+#include <QEEnums.h>
 #include <QEFrame.h>
 #include <QEWidget.h>
 #include <QEFrameworkLibraryGlobal.h>
@@ -54,14 +55,7 @@ public:
 
    /// Provides the location of filter check boxes and save/clear buttons.
    ///
-   enum optionsLayoutProperty {
-      Top,
-      Bottom,
-      Left,
-      Right
-   };
-   Q_ENUM (optionsLayoutProperty)
-   Q_PROPERTY (optionsLayoutProperty optionsLayout READ getOptionsLayout
+   Q_PROPERTY (QE::LayoutOptions optionsLayout READ getOptionsLayout
                WRITE setOptionsLayout)
    Q_PROPERTY (int    margin          READ getMargin            WRITE setMargin)
 
@@ -69,21 +63,14 @@ public:
    Q_PROPERTY (QColor warningColor    READ getWarningColor      WRITE setWarningColor)
    Q_PROPERTY (QColor errorColor      READ getErrorColor        WRITE setErrorColor)
 
-   /// Message properties !!!Include these by a common definition (QCA_MESSAGE_PROPERTIES for example)
+   /// Message properties
    /// Not all QE widgets need these properties (only those that do something with
    /// messages - like the logging widget)
    ///
-   enum MessageFilterOptions {
-      Any = UserMessage::MESSAGE_FILTER_ANY,
-      Match = UserMessage::MESSAGE_FILTER_MATCH,
-      None = UserMessage::MESSAGE_FILTER_NONE
-   };
-   Q_ENUM (MessageFilterOptions)
-
-   Q_PROPERTY (MessageFilterOptions messageFormFilter READ getMessageFormFilter
+   Q_PROPERTY (QE::MessageFilterOptions messageFormFilter READ getMessageFormFilter
                WRITE setMessageFormFilter)
 
-   Q_PROPERTY (MessageFilterOptions messageSourceFilter READ getMessageSourceFilter
+   Q_PROPERTY (QE::MessageFilterOptions messageSourceFilter READ getMessageSourceFilter
                WRITE setMessageSourceFilter)
 
 public:
@@ -115,8 +102,8 @@ public:
    void setShowSave (bool pValue);
    bool getShowSave () const;
 
-   void setOptionsLayout (optionsLayoutProperty pValue);
-   optionsLayoutProperty getOptionsLayout () const;
+   void setOptionsLayout (QE::LayoutOptions pValue);
+   QE::LayoutOptions getOptionsLayout () const;
 
    void setScrollToBottom (bool pValue);
    bool getScrollToBottom () const;
@@ -136,11 +123,11 @@ public:
    void setMargin (int margin);
    int getMargin () const;
 
-   void setMessageFormFilter (MessageFilterOptions messageFormFilter);
-   MessageFilterOptions getMessageFormFilter () const;
+   void setMessageFormFilter (QE::MessageFilterOptions messageFormFilter);
+   QE::MessageFilterOptions getMessageFormFilter () const;
 
-   void setMessageSourceFilter (MessageFilterOptions messageSourceFilter);
-   MessageFilterOptions getMessageSourceFilter () const;
+   void setMessageSourceFilter (QE::MessageFilterOptions messageSourceFilter);
+   QE::MessageFilterOptions getMessageSourceFilter () const;
 
    void clearLog ();
 
@@ -165,7 +152,7 @@ private:
    QColor qColorError;
    bool isScrollToBottom;
    bool isMaster;
-   optionsLayoutProperty optionsLayout;
+   QE::LayoutOptions optionsLayout;
    int mainLayoutMargin;
 
    void processMessage (const QString& msg,
@@ -179,10 +166,5 @@ private slots:
    void buttonClearClicked ();
    void buttonSaveClicked ();
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QELog::optionsLayoutProperty)
-Q_DECLARE_METATYPE (QELog::MessageFilterOptions)
-#endif
 
 #endif   // QE_LOG_H

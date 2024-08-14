@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2019 Australian Synchrotron
+ *  Copyright (c) 2019-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -310,16 +310,16 @@ QStringList QEFormStateChange::getCloseArguments () const
 
 //------------------------------------------------------------------------------
 //
-void QEFormStateChange::setFormatProperty (const Formats format)
+void QEFormStateChange::setFormatProperty (const QE::Formats format)
 {
-   this->setFormat (QEStringFormatting::formats (format) );
+   this->setFormat (format);
 }
 
 //------------------------------------------------------------------------------
 //
-QEFormStateChange::Formats QEFormStateChange::getFormatProperty () const
+QE::Formats QEFormStateChange::getFormatProperty () const
 {
-   return Formats (this->getFormat ());
+   return this->getFormat ();
 }
 
 //------------------------------------------------------------------------------

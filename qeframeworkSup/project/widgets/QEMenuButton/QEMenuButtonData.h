@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2023 Australian Synchrotron
+ *  Copyright (c) 2015-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -33,6 +33,7 @@
 #include <QString>
 #include <QStringList>
 
+#include <QEEnums.h>
 #include <QEFrameworkLibraryGlobal.h>
 #include <applicationLauncher.h>
 #include <QEActionRequests.h>
@@ -52,16 +53,16 @@ public:
 
    QString programName;
    QStringList programArguments;
-   applicationLauncher::programStartupOptions programStartupOption; // default is PSO_NONE
+   QE::ProgramStartupOptions programStartupOption;  // default is QE::NoOutput
 
    QString uiFilename;
    QString prioritySubstitutions;
-   QEActionRequests::Options creationOption;   // default is OptionOpen
+   QE::CreationOptions creationOption;  // default is QE::Open
    QString customisationName;
 
    QString variable;
-   QString variableValue;                      // walue to wite to the variable
-   QEStringFormatting::formats format;         // default is FORMAT_DEFAULT
+   QString variableValue;               // value to write to the variable
+   QE::Formats format;                  // default is QE::Default
 
    // Utility functions to convert enum to String and vice versa.
    //
@@ -72,14 +73,14 @@ public:
    // a separate QObject name class to define these enums, or use rebadged types
    // declared in QEPushButton.
    //
-   static QString psoToString (const applicationLauncher::programStartupOptions  value);
-   static applicationLauncher::programStartupOptions stringToPso (const QString& image);
+   static QString psoToString (const QE::ProgramStartupOptions  value);
+   static QE::ProgramStartupOptions stringToPso (const QString& image);
 
-   static QString optionToString (const QEActionRequests::Options  value);
-   static QEActionRequests::Options stringToOption (const QString& image);
+   static QString optionToString (const QE::CreationOptions  value);
+   static QE::CreationOptions stringToOption (const QString& image);
 
-   static QString formatToString (const QEStringFormatting::formats  value);
-   static QEStringFormatting::formats stringToFormat (const QString& image);
+   static QString formatToString (const QE::Formats  value);
+   static QE::Formats stringToFormat (const QString& image);
 
    // Utility functions for dealying with arguments, essentially because the
    // dialog currently uses a QLineEdit as opposed to a string list edit.

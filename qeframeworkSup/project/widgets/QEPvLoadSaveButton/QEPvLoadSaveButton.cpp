@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020 Australian Synchrotron
+ *  Copyright (c) 2020-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -36,7 +36,6 @@
 #include "QEPvLoadSaveItem.h"
 #include "QEPvLoadSaveModel.h"
 #include "QEPvLoadSaveUtilities.h"
-#include "QEWidgetProperties.h"
 
 #define DEBUG  qDebug () << "QEPvLoadSaveButton.cpp" << __LINE__ << __FUNCTION__ << "  "
 
@@ -49,11 +48,11 @@ QEPvLoadSaveButton::QEPvLoadSaveButton (QWidget* parent) : QPushButton (parent),
    this->showProgressDialog = true;
    this->setVariableAsToolTip(false);
    this->setAllowDrop(false);
-   this->setDisplayAlarmStateOption(standardProperties::DISPLAY_ALARM_STATE_NEVER);
+   this->setDisplayAlarmStateOption(QE::Never);
 
 
    // Identify the type of button
-   setText( "QEPvLoadSaveButton" );
+   this->setText( "QEPvLoadSaveButton" );
    confirmText = "Do you want to perform this action?";
 
    // Create an essentially empty model.

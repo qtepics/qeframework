@@ -147,6 +147,7 @@
 #include <QMenu>
 #include <QEActionRequests.h>
 #include <QMap>
+#include <QEEnums.h>
 #include <ContainerProfile.h>
 #include <applicationLauncher.h>
 #include <QEStringFormatting.h>
@@ -182,7 +183,8 @@ private:
 };
 
 // Class to determine if an item is checkable (check box or radio button) and
-// if it is exclusive (a radio button)
+// if it is exclusive (a radio button).
+//
 class itemCheckInfo
 {
 public:
@@ -207,13 +209,13 @@ public:
    explicit QEPvInfo() {
       pvName = "";
       value = "";
-      format = QEStringFormatting::FORMAT_DEFAULT;
+      format = QE::Default;
    }
    ~QEPvInfo() {}
 
    QString pvName;
-   QString value;                      // value to write to the variable
-   QEStringFormatting::formats format; // default is FORMAT_DEFAULT
+   QString value;             // value to write to the variable
+   QE::Formats format;        // default is Default
 };
 
 // Class defining an individual item (base class for button or menu item)
@@ -254,7 +256,7 @@ public:
    void initialise();
    void logItem( customisationLog& log );
    void addUserLevelAccess( QDomElement element, customisationLog& log  ); // Note the user levels at which the item is enabled and visible
-   void setUserLevelState( userLevelTypes::userLevels currentUserLevel );  // Set the visibility and enabled state of the item according to the user level
+   void setUserLevelState( QE::UserLevels currentUserLevel );              // Set the visibility and enabled state of the item according to the user level
    QAction* getAction() const { return iAction; }                          // Return embedded QAction
 
 private:
@@ -271,8 +273,8 @@ private:
 
    QEPvInfo pvInfo;                                // Manage any variable to be written to
 
-   userLevelTypes::userLevels userLevelVisible;    // User level at which the item will be visible
-   userLevelTypes::userLevels userLevelEnabled;    // User level at which the item will be enabled
+   QE::UserLevels userLevelVisible;                // User level at which the item will be visible
+   QE::UserLevels userLevelEnabled;                // User level at which the item will be enabled
 protected:
    ContainerProfile profile;                       // Profile to use while creating customisations.
    QAction* iAction;
@@ -436,7 +438,7 @@ public:
    QList<windowCustomisationButtonItem*> getButtons() const {return buttons;}    // get Buttons list
    QString getName(){ return name; }
 
-   static QEActionRequests::Options translateCreationOption( QString creationOption );
+   static QE::CreationOptions translateCreationOption( QString creationOption );
 
 private:
    QString name;                                  // Customisation name
@@ -451,7 +453,7 @@ public:
    windowCustomisationInfo ();
    ~windowCustomisationInfo ();
 
-   void userLevelChangedGeneral( userLevelTypes::userLevels ); // Repond to a user level change (this is an implementation for the base ContainerProfile class
+   void userLevelChangedGeneral( QE::UserLevels );  // Respond to a user level change (this is an implementation for the base ContainerProfile class
 
    QMap<QString, QMenu*> placeholderMenus;    // Menus where application may insert items
    QMap<QString, QMenu*> menus;               // All menus added by customisation system
@@ -540,7 +542,7 @@ private:
 
    QString      lastAppliedCustomisation;              // Last customisation applied by applyCustomisation() - successfully, or unsuccessfully
 
-   void userLevelChangedGeneral( userLevelTypes::userLevels ); // Repond to a user level change (this is an implementation for the base ContainerProfile class
+   void userLevelChangedGeneral( QE::UserLevels );     // Respond to a user level change (this is an implementation for the base ContainerProfile class
 
 private slots:
    void activateDocks();                               // Slot to create any docks required to support dock menu items. Docked GUIs are created at the time customisation is applied.

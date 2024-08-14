@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2022 Australian Synchrotron
+ *  Copyright (c) 2009-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -26,10 +26,11 @@
 
 /*
   This class is a CA aware label widget based on the Qt label widget.
-  It is tighly integrated with the base class QEWidget. Refer to QEWidget.cpp for details
+  It is tighly integrated with the base class QEWidget.
+  Refer to QEWidget.cpp for details
  */
 
-#include <QELabel.h>
+#include "QELabel.h"
 #include <QDebug>
 #include <QECommon.h>
 
@@ -41,55 +42,59 @@
     Constructor with no initialisation
 */
 QELabel::QELabel( QWidget *parent ) :
-    QLabel( parent ),
-    QEWidget( this ),
-    QESingleVariableMethods ( this, PV_VARIABLE_INDEX )
+   QLabel( parent ),
+   QEWidget( this ),
+   QESingleVariableMethods ( this, PV_VARIABLE_INDEX )
 {
-    setup();
+   setup();
 }
 
 /*
     Constructor with known variable
 */
 QELabel::QELabel( const QString &variableNameIn, QWidget *parent ) :
-    QLabel( parent ),
-    QEWidget( this ),
-    QESingleVariableMethods ( this, PV_VARIABLE_INDEX )
+   QLabel( parent ),
+   QEWidget( this ),
+   QESingleVariableMethods ( this, PV_VARIABLE_INDEX )
 {
-    setup();
-    setVariableName( variableNameIn, PV_VARIABLE_INDEX );
-    activate();
+   setup();
+   setVariableName( variableNameIn, PV_VARIABLE_INDEX );
+   activate();
 }
+
+// Destructor
+//
+QELabel::~QELabel() {} // place holder
 
 /*
     Setup common to all constructors
 */
 void QELabel::setup()
 {
-    // Set up data
-    // This control used a single data source
-    setNumVariables( 1 );
+   // Set up data
+   // This control used a single data source
+   setNumVariables( 1 );
 
-    // Set up default properties
-    setAllowDrop( false );
+   // Set up default properties
+   setAllowDrop( false );
 
-    // Set the initial state
-    setText( "----" );
-    setIndent( 6 );
-    isConnected = false;
-    processConnectionInfo( isConnected, 0 );
-    updateOption = UPDATE_TEXT;
+   // Set the initial state
+   setText( "----" );
+   setIndent( 6 );
+   isConnected = false;
+   processConnectionInfo( isConnected, 0 );
+   updateOption = Text;
 
-    // Use standard context menu
-    setupContextMenu();
+   // Use standard context menu
+   setupContextMenu();
 
-    setStyleSheet( QEUtilities::offBackgroundStyle() );    // By pass the normal designer check
-    setDefaultStyle( QEUtilities::offBackgroundStyle() );  // This will kick in at runtime
+   setStyleSheet( QEUtilities::offBackgroundStyle() );    // By pass the normal designer check
+   setDefaultStyle( QEUtilities::offBackgroundStyle() );  // This will kick in at runtime
 
-    // Set up a connection to recieve variable name property changes
-    // The variable name property manager class only delivers an updated
-    // variable name after the user has stopped typing.
-    connectNewVariableNameProperty( SLOT ( useNewVariableNameProperty( QString, QString, unsigned int ) ) );
+   // Set up a connection to recieve variable name property changes
+   // The variable name property manager class only delivers an updated
+   // variable name after the user has stopped typing.
+   connectNewVariableNameProperty( SLOT ( useNewVariableNameProperty( QString, QString, unsigned int ) ) );
 }
 
 /*
@@ -97,7 +102,7 @@ void QELabel::setup()
  */
 void QELabel::setDefaultStyle( const QString& style )
 {
-    setStyleDefault( style );
+   setStyleDefault( style );
 }
 
 /*
@@ -106,16 +111,16 @@ void QELabel::setDefaultStyle( const QString& style )
 */
 qcaobject::QCaObject* QELabel::createQcaItem( unsigned int variableIndex )
 {
-    qcaobject::QCaObject* result = NULL;
+   qcaobject::QCaObject* result = NULL;
 
-    // Create the item as a QEString
-    QString pvName = getSubstitutedVariableName( variableIndex );
-    result = new QEString( pvName, this, &stringFormatting, variableIndex );
+   // Create the item as a QEString
+   QString pvName = getSubstitutedVariableName( variableIndex );
+   result = new QEString( pvName, this, &stringFormatting, variableIndex );
 
-    // Apply currently defined array index/elements request values.
-    setSingleVariableQCaProperties( result );
+   // Apply currently defined array index/elements request values.
+   setSingleVariableQCaProperties( result );
 
-    return result;
+   return result;
 }
 
 /*
@@ -125,21 +130,21 @@ qcaobject::QCaObject* QELabel::createQcaItem( unsigned int variableIndex )
 */
 void QELabel::establishConnection( unsigned int variableIndex ) {
 
-    // Create a connection.
-    // If successfull, the QCaObject object that will supply data update signals will be returned
-    qcaobject::QCaObject* qca = createConnection( variableIndex );
+   // Create a connection.
+   // If successfull, the QCaObject object that will supply data update signals will be returned
+   qcaobject::QCaObject* qca = createConnection( variableIndex );
 
-    // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots
-    if(  qca ) {
-        QObject::connect( qca,  SIGNAL( stringChanged( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
-                          this, SLOT( setLabelText( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-        qca->setRequestedElementCount( 10000 );
+   // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots
+   if(  qca ) {
+      QObject::connect( qca,  SIGNAL( stringChanged( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
+                        this, SLOT( setLabelText( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
+      qca->setRequestedElementCount( 10000 );
 
-        QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
-                          this, SLOT( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
-        QObject::connect( this, SIGNAL( requestResend() ),
-                          qca, SLOT( resendLastData() ) );
-    }
+      QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
+                        this, SLOT( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
+      QObject::connect( this, SIGNAL( requestResend() ),
+                        qca, SLOT( resendLastData() ) );
+   }
 }
 
 
@@ -150,16 +155,16 @@ void QELabel::establishConnection( unsigned int variableIndex ) {
  */
 void QELabel::connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex)
 {
-    // Note the connected state
-    isConnected = connectionInfo.isChannelConnected();
+   // Note the connected state
+   isConnected = connectionInfo.isChannelConnected();
 
-    // Display the connected state
-    updateToolTipConnection( isConnected, variableIndex );
-    processConnectionInfo( isConnected, variableIndex );
+   // Display the connected state
+   updateToolTipConnection( isConnected, variableIndex );
+   processConnectionInfo( isConnected, variableIndex );
 
-    // Signal channel connection change to any Link widgets,
-    // using signal dbConnectionChanged.
-    emitDbConnectionChanged( PV_VARIABLE_INDEX );
+   // Signal channel connection change to any Link widgets,
+   // using signal dbConnectionChanged.
+   emitDbConnectionChanged( PV_VARIABLE_INDEX );
 }
 
 /*
@@ -169,104 +174,112 @@ void QELabel::connectionChanged( QCaConnectionInfo& connectionInfo, const unsign
 void QELabel::setLabelText( const QString& textIn, QCaAlarmInfo& alarmInfo,
                             QCaDateTime&, const unsigned int& )
 {
-    // Extract any formatting info from the text
-    // For example "<background-color: red>Engineering Mode" or "<color: red>not selected"
-    currentText = textIn;
-    QString textStyle;
-    int textStyleStart = currentText.indexOf( '<' );
-    if( textStyleStart >= 0 )
-    {
-        int textStyleEnd = currentText.indexOf( '>', textStyleStart );
-        if( textStyleEnd >= 1 )
-        {
-            textStyle = currentText.mid( textStyleStart+1, textStyleEnd-textStyleStart-1 );
-            currentText = currentText.left( textStyleStart ).append( currentText.right( currentText.length()-textStyleEnd-1 ));
-        }
-    }
+   // Extract any formatting info from the text
+   // For example "<background-color: red>Engineering Mode" or "<color: red>not selected"
+   currentText = textIn;
+   QString textStyle;
+   int textStyleStart = currentText.indexOf( '<' );
+   if( textStyleStart >= 0 )
+   {
+      int textStyleEnd = currentText.indexOf( '>', textStyleStart );
+      if( textStyleEnd >= 1 )
+      {
+         textStyle = currentText.mid( textStyleStart+1, textStyleEnd-textStyleStart-1 );
+         currentText = currentText.left( textStyleStart ).append( currentText.right( currentText.length()-textStyleEnd-1 ));
+      }
+   }
 
-    // Update the color
-    if( textStyle.compare( lastTextStyle ) )
-    {
-        if( !textStyle.isEmpty() )
-        {
-            updateDataStyle( QString( "QWidget { " ).append( textStyle ).append( "; }") );
-        }
-        else
-        {
-            updateDataStyle( "" );
-        }
-        lastTextStyle = textStyle;
-    }
+   // Update the color
+   if( textStyle.compare( lastTextStyle ) )
+   {
+      if( !textStyle.isEmpty() )
+      {
+         updateDataStyle( QString( "QWidget { " ).append( textStyle ).append( "; }") );
+      }
+      else
+      {
+         updateDataStyle( "" );
+      }
+      lastTextStyle = textStyle;
+   }
 
-    switch( updateOption )
-    {
-        // Update the text if required
-        case UPDATE_TEXT:
-            setText( currentText );
-            break;
+   switch( updateOption )
+   {
+      // Update the text if required
+      case Text:
+         setText( currentText );
+         break;
 
-        // Update the pixmap if required
-        case UPDATE_PIXMAP:
-            setPixmap( getDataPixmap( currentText ).scaled( size() ) );
-            break;
-    }
+         // Update the pixmap if required
+      case Picture:
+         setPixmap( getDataPixmap( currentText ).scaled( size() ) );
+         break;
+   }
 
-    // Invoke common alarm handling processing.
-    processAlarmInfo( alarmInfo );
+   // Invoke common alarm handling processing.
+   processAlarmInfo( alarmInfo );
 
-    // Signal a database value change to any Link (or other) widgets using one
-    // of the dbValueChanged.
-    emitDbValueChanged( currentText, 0 );
+   // Signal a database value change to any Link (or other) widgets using one
+   // of the dbValueChanged.
+   emitDbValueChanged( currentText, 0 );
 }
+
+//------------------------------------------------------------------------------
+//
+void QELabel::useNewVariableNameProperty( QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex )// !! move into Standard Properties section??
+{
+   setVariableNameAndSubstitutions(variableNameIn, variableNameSubstitutionsIn, variableIndex);
+}
+
 
 //==============================================================================
 // Drag drop
 void QELabel::setDrop( QVariant drop )
 {
-    setVariableName( drop.toString(), PV_VARIABLE_INDEX );
-    establishConnection( PV_VARIABLE_INDEX );
+   setVariableName( drop.toString(), PV_VARIABLE_INDEX );
+   establishConnection( PV_VARIABLE_INDEX );
 }
 
 QVariant QELabel::getDrop()
 {
-    if( isDraggingVariable() )
-        return QVariant( copyVariable() );
-    else
-        return copyData();
+   if( isDraggingVariable() )
+      return QVariant( copyVariable() );
+   else
+      return copyData();
 }
 
 //==============================================================================
 // Copy / Paste
 QString QELabel::copyVariable()
 {
-    return getSubstitutedVariableName( PV_VARIABLE_INDEX );
+   return getSubstitutedVariableName( PV_VARIABLE_INDEX );
 }
 
 QVariant QELabel::copyData()
 {
-    return QVariant( currentText );
+   return QVariant( currentText );
 }
 
 void QELabel::paste( QVariant v )
 {
-    if( getAllowDrop() )
-    {
-        setDrop( v );
-    }
+   if( getAllowDrop() )
+   {
+      setDrop( v );
+   }
 }
 
 //==============================================================================
 // Property convenience functions
 
 // Update option Property convenience function
-void QELabel::setUpdateOption( updateOptions updateOptionIn )
+void QELabel::setUpdateOption( UpdateOptions updateOptionIn )
 {
-    updateOption = updateOptionIn;
+   updateOption = updateOptionIn;
 }
 
-QELabel::updateOptions QELabel::getUpdateOption()
+QELabel::UpdateOptions QELabel::getUpdateOption()
 {
-    return updateOption;
+   return updateOption;
 }
 
 // end

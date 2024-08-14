@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2018 Australian Synchrotron
+ *  Copyright (c) 2013-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -34,7 +34,7 @@
 QEActionRequests::QEActionRequests ()
 {
    this->kind = KindNone;
-   this->option = OptionNewWindow;
+   this->option = QE::NewWindow;
    this->initialise = false;
    this->originator = NULL;
 }
@@ -47,7 +47,7 @@ QEActionRequests::QEActionRequests( const QString& actionIn,
    this->kind = KindAction;
    this->action = actionIn;
    this->arguments << pvName;
-   this->option = OptionNewWindow;
+   this->option = QE::NewWindow;
    this->initialise = false;
    this->originator = NULL;
    this->formHandle = QEFormMapper::nullHandle();
@@ -65,7 +65,7 @@ QEActionRequests::QEActionRequests( const QString& actionIn,
    this->action = actionIn;
    this->widgetName = widgetNameIn;
    this->arguments = argumentsIn;
-   this->option = OptionNewWindow; // not required, but keep things neat
+   this->option = QE::NewWindow; // not required, but keep things neat
    this->initialise = initialiseIn;
    this->originator = originatorIn;
    this->formHandle = QEFormMapper::nullHandle();
@@ -75,7 +75,7 @@ QEActionRequests::QEActionRequests( const QString& actionIn,
 //
 QEActionRequests::QEActionRequests (const QString & filename,
                                     const QString & customisationIn,
-                                    const Options optionIn,
+                                    const QE::CreationOptions optionIn,
                                     const QEFormMapper::FormHandles& formHandleIn)
 {
    this->kind = KindOpenFile;
@@ -92,7 +92,7 @@ QEActionRequests::QEActionRequests (const QString & filename,
 QEActionRequests::QEActionRequests( const QList<windowCreationListItem> windowsIn )
 {
    this->kind = KindOpenFiles;
-   this->option = OptionNewWindow; // not required, but keep things neat
+   this->option = QE::NewWindow; // not required, but keep things neat
    this->initialise = false;
    this->originator = NULL;
    this->formHandle = QEFormMapper::nullHandle();
@@ -108,7 +108,7 @@ QEActionRequests::QEActionRequests( const QList<windowCreationListItem> windowsI
 QEActionRequests::QEActionRequests( const componentHostListItem& componentIn )
 {
    this->kind = KindHostComponents;
-   this->option = OptionFloatingDockWindow; // not required, but keep things neat
+   this->option = QE::DockFloating; // not required, but keep things neat
    this->initialise = false;
    this->originator = NULL;
    this->formHandle = QEFormMapper::nullHandle();
@@ -120,7 +120,7 @@ QEActionRequests::QEActionRequests( const componentHostListItem& componentIn )
 QEActionRequests::QEActionRequests( const QList<componentHostListItem>& componentsIn )
 {
    this->kind = KindHostComponents;
-   this->option = OptionFloatingDockWindow; // not required, but keep things neat
+   this->option = QE::DockFloating; // not required, but keep things neat
    this->initialise = false;
    this->originator = NULL;
    this->formHandle = QEFormMapper::nullHandle();
@@ -158,12 +158,12 @@ QStringList QEActionRequests::getArguments () const
 
 //------------------------------------------------------------------------------
 //
-void QEActionRequests::setOption (const Options optionIn)
+void QEActionRequests::setOption (const QE::CreationOptions optionIn)
 {
    this->option = optionIn;
 }
 
-QEActionRequests::Options QEActionRequests::getOption () const
+QE::CreationOptions QEActionRequests::getOption () const
 {
    return this->option;
 }
@@ -237,27 +237,27 @@ QString QEActionRequests::getCustomisation() const
 
 //------------------------------------------------------------------------------
 // Return true if creation option creates a dock
-bool QEActionRequests::isDockCreationOption( const Options createOption )
+bool QEActionRequests::isDockCreationOption( const QE::CreationOptions createOption )
 {
     // Use a switch so compiler can complain if all cases are not considered
     bool result = false;
     switch( createOption )
     {
-        case OptionOpen:
-        case OptionNewTab:
-        case OptionNewWindow:
+        case QE::Open:
+        case QE::NewTab:
+        case QE::NewWindow:
             result = false;
             break;
 
-        case OptionTopDockWindow:
-        case OptionBottomDockWindow:
-        case OptionLeftDockWindow:
-        case OptionRightDockWindow:
-        case OptionTopDockWindowTabbed:
-        case OptionBottomDockWindowTabbed:
-        case OptionLeftDockWindowTabbed:
-        case OptionRightDockWindowTabbed:
-        case OptionFloatingDockWindow:
+        case QE::DockTop:
+        case QE::DockBottom:
+        case QE::DockLeft:
+        case QE::DockRight:
+        case QE::DockTopTabbed:
+        case QE::DockBottomTabbed:
+        case QE::DockLeftTabbed:
+        case QE::DockRightTabbed:
+        case QE::DockFloating:
             result = true;
             break;
     }
@@ -266,27 +266,27 @@ bool QEActionRequests::isDockCreationOption( const Options createOption )
 
 //------------------------------------------------------------------------------
 // Creation option creates a tabbed dock
-bool QEActionRequests::isTabbedDockCreationOption( const Options createOption )
+bool QEActionRequests::isTabbedDockCreationOption( const QE::CreationOptions createOption )
 {
     // Use a switch so compiler can complain if all cases are not considered
     bool result = false;
     switch( createOption )
     {
-        case OptionOpen:
-        case OptionNewTab:
-        case OptionNewWindow:
-        case OptionTopDockWindow:
-        case OptionBottomDockWindow:
-        case OptionLeftDockWindow:
-        case OptionRightDockWindow:
-        case OptionFloatingDockWindow:
+        case QE::Open:
+        case QE::NewTab:
+        case QE::NewWindow:
+        case QE::DockTop:
+        case QE::DockBottom:
+        case QE::DockLeft:
+        case QE::DockRight:
+        case QE::DockFloating:
             result = false;
             break;
 
-        case OptionTopDockWindowTabbed:
-        case OptionBottomDockWindowTabbed:
-        case OptionLeftDockWindowTabbed:
-        case OptionRightDockWindowTabbed:
+        case QE::DockTopTabbed:
+        case QE::DockBottomTabbed:
+        case QE::DockLeftTabbed:
+        case QE::DockRightTabbed:
             result = true;
             break;
     }
@@ -315,7 +315,7 @@ QList<componentHostListItem> QEActionRequests::getComponents() const
 windowCreationListItem::windowCreationListItem()
 {
    this->hidden = false;
-   this->creationOption = QEActionRequests::OptionNewWindow;
+   this->creationOption = QE::NewWindow;
    this->formHandle = QEFormMapper::nullHandle ();
 }
 
@@ -345,13 +345,13 @@ componentHostListItem::componentHostListItem()
 {
    this->widget = NULL;
    this->hidden = false;
-   this->creationOption = QEActionRequests::OptionFloatingDockWindow;
+   this->creationOption = QE::DockFloating;
 }
 
 //------------------------------------------------------------------------------
 //
 componentHostListItem::componentHostListItem (QWidget* widgetIn,
-                                              QEActionRequests::Options creationOptionIn,
+                                              QE::CreationOptions creationOptionIn,
                                               bool hiddenIn,
                                               QString titleIn)
 {

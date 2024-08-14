@@ -36,6 +36,7 @@
 #include <QWidget>
 
 #include <QECommon.h>
+#include <QEEnums.h>
 #include <QEAbstractWidget.h>
 #include <QRadioGroup.h>
 
@@ -123,7 +124,7 @@ public:
 
    /// Allows selection of buttom order (rowMajor (default) or colMajor)
    ///
-   Q_PROPERTY (QRadioGroup::ButtonOrders buttonOrder READ getButtonOrder WRITE setButtonOrder)
+   Q_PROPERTY (QE::GridOrders buttonOrder READ getButtonOrder WRITE setButtonOrder)
    //
    // End of QERadioGroup specific properties =========================================
 
@@ -179,7 +180,7 @@ public:
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, int, getColumns, setColumns)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, int, getSpacing, setSpacing)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, QRadioGroup::ButtonStyles, getButtonStyle, setButtonStyle)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, QRadioGroup::ButtonOrders, getButtonOrder, setButtonOrder)
+   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, QE::GridOrders, getButtonOrder, setButtonOrder)
 
 signals:
    // Note, the following signals are common to many QE widgets,

@@ -39,6 +39,7 @@
 #include <pv/pvAccess.h>
 #include <pv/pvData.h>
 #include <pv/clientFactory.h>
+#include <QEThreadSafeQueue.h>
 #include <QEVectorVariants.h>
 
 #define DEBUG qDebug () << "QEPvaClient" << __LINE__ << __FUNCTION__ << "  "
@@ -182,66 +183,9 @@ void QEPvaClient::Update::process()
 }
 
 //==============================================================================
-// Wrapper around a QQueue with mutex.
-//==============================================================================
 //
-class QEPvaClient::UpdateQueue {
-public:
-   explicit UpdateQueue();
-   ~UpdateQueue();
+static QEThreadSafeQueue<QEPvaClient::Update*> pvaClientUpdateQueue;
 
-   // Thread safe enqueue
-   void enqueue (QEPvaClient::Update* update);
-
-   // Thread safe dequeue - returns NULL if/when the queue is empty.
-   QEPvaClient::Update* dequeue();
-
-private:
-   mutable QMutex mutex;
-
-   typedef QQueue <QEPvaClient::Update*> PvaLoadQueue;
-   PvaLoadQueue actualQueue;
-};
-
-//------------------------------------------------------------------------------
-//
-static QEPvaClient::UpdateQueue* pvaClientUpdateQueue = NULL;
-
-//------------------------------------------------------------------------------
-//
-QEPvaClient::UpdateQueue::UpdateQueue () { }
-
-//------------------------------------------------------------------------------
-//
-QEPvaClient::UpdateQueue::~UpdateQueue ()
-{
-   QMutexLocker locker (&this->mutex);
-   while (!this->actualQueue.isEmpty()) {
-      QEPvaClient::Update* item = this->actualQueue.dequeue();
-      delete item;
-   }
-}
-
-//------------------------------------------------------------------------------
-//
-void QEPvaClient::UpdateQueue::enqueue (QEPvaClient::Update* update)
-{
-   QMutexLocker locker (&this->mutex);
-   this->actualQueue.enqueue (update);
-}
-
-//------------------------------------------------------------------------------
-//
-QEPvaClient::Update* QEPvaClient::UpdateQueue::dequeue()
-{
-   QMutexLocker locker (&this->mutex);
-   QEPvaClient::Update* result = NULL;
-
-   if (!this->actualQueue.isEmpty()) {
-      result = this->actualQueue.dequeue();
-   }
-   return result;
-}
 
 //==============================================================================
 // Channel Requester Get, Monitor and Put implementation interface classes
@@ -334,7 +278,7 @@ void QEPvaChannelRequesterInterface::channelStateChange (pva::Channel::shared_po
                                          QEPvaClient::Update::ukConnection,
                                          nullVariant, "",
                                          true);
-         pvaClientUpdateQueue->enqueue (item);
+         pvaClientUpdateQueue.enqueue (item);
          break;
 
       case pva::Channel::DISCONNECTED:
@@ -342,7 +286,7 @@ void QEPvaChannelRequesterInterface::channelStateChange (pva::Channel::shared_po
                                          QEPvaClient::Update::ukConnection,
                                          nullVariant, "",
                                          false);
-         pvaClientUpdateQueue->enqueue (item);
+         pvaClientUpdateQueue.enqueue (item);
          break;
 
       case pva::Channel::DESTROYED:
@@ -475,14 +419,13 @@ void QEPvaMonitorRequesterInterface::processElement (pva::MonitorElement::const_
 
    // We have copied all the element data.
    //
-   pvaClientUpdateQueue->enqueue (item);
+   pvaClientUpdateQueue.enqueue (item);
 }
 
 //------------------------------------------------------------------------------
 //
 void QEPvaMonitorRequesterInterface::unlisten (pva::MonitorPtr const & monitor)
 {
-   DEBUG << this->pvName;
    monitor->stop ();
 }
 
@@ -1048,10 +991,6 @@ void QEPvaClientManager::initialise ()
 //
 QEPvaClientManager::QEPvaClientManager () : QTimer (NULL)
 {
-   // Create the update queue.
-   //
-   pvaClientUpdateQueue = new QEPvaClient::UpdateQueue ();
-
    // Connect to the about to quit signal.
    // Note: qApp is defined in QApplication.
    //
@@ -1076,8 +1015,7 @@ QEPvaClientManager::QEPvaClientManager () : QTimer (NULL)
 QEPvaClientManager::~QEPvaClientManager ()
 {
    pva::ClientFactory::stop();
-   delete pvaClientUpdateQueue;
-   pvaClientUpdateQueue = NULL;
+   pvaClientUpdateQueue.clear();
 }
 
 //------------------------------------------------------------------------------
@@ -1085,12 +1023,14 @@ QEPvaClientManager::~QEPvaClientManager ()
 //slots
 void QEPvaClientManager::timeoutHandler ()
 {
-   while (pvaClientUpdateQueue) {
-      QEPvaClient::Update* item;
-      item = pvaClientUpdateQueue->dequeue ();
-      if (!item) break;  // all done
-      item->process();
-      delete item;
+   while (true) {
+      QEPvaClient::Update* item = nullptr;
+      bool ok = pvaClientUpdateQueue.dequeue (item);
+      if (!ok) break;  // all done
+      if (item) {
+         item->process();
+         delete item;
+      }
    }
 }
 

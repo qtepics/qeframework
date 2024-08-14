@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2022 Australian Synchrotron
+ *  Copyright (c) 2015-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -69,7 +69,8 @@ QEAxisPainter::QEAxisPainter (QWidget* parent) : QWidget (parent)
    this->mRightBottomIndent = 20;
    this->mGap = 2;
    this->mAutoFixedSize = false;
-   this->mOrientation = Left_To_Right;
+   this->mOrientation = Qt::Horizontal;
+   this->mInvertedAppearance = false;
    this->mTextPosition = BelowLeft;
 
    // Ensure at least semi-sensible values.
@@ -278,7 +279,7 @@ bool QEAxisPainter::getLogScale () const
 
 //------------------------------------------------------------------------------
 //
-void QEAxisPainter::setOrientation (const Orientations orientation)
+void QEAxisPainter::setOrientation (const Qt::Orientations orientation)
 {
    this->mOrientation = orientation;
    this->update ();
@@ -286,9 +287,24 @@ void QEAxisPainter::setOrientation (const Orientations orientation)
 
 //------------------------------------------------------------------------------
 //
-QEAxisPainter::Orientations QEAxisPainter::getOrientation () const
+Qt::Orientations QEAxisPainter::getOrientation () const
 {
    return this->mOrientation;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAxisPainter::setInvertedAppearance (const bool invertedAppearance)
+{
+   this->mInvertedAppearance = invertedAppearance;
+   this->update ();
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEAxisPainter::getInvertedAppearance () const
+{
+   return this->mInvertedAppearance;
 }
 
 //------------------------------------------------------------------------------
@@ -468,8 +484,7 @@ QEColourBandList QEAxisPainter::getColourBandList () const
 //
 bool QEAxisPainter::isLeftRight () const
 {
-   return (this->mOrientation == QEAxisPainter::Left_To_Right) ||
-          (this->mOrientation == QEAxisPainter::Right_To_Left);
+   return (this->mOrientation == Qt::Horizontal);
 }
 
 static const int markerTick = 14;
@@ -511,45 +526,56 @@ void QEAxisPainter::paint (QPainter& painter,
 
    switch (this->mOrientation) {
 
-      case Left_To_Right:
-         sign = (this->mTextPosition == BelowLeft) ? +1 : -1;
-         x_first = x0 + this->mTopLeftIndent;
-         x_last  = x0 + width - this->mRightBottomIndent;
-         temp = (this->mTextPosition == BelowLeft) ? this->mGap : height - this->mGap;
-         y_first = y0 + temp;
-         y_last  = y_first;
+      case Qt::Horizontal:
+         if (!this->mInvertedAppearance) {
+            // Axis values increase left to right.
+            //
+            sign = (this->mTextPosition == BelowLeft) ? +1 : -1;
+            x_first = x0 + this->mTopLeftIndent;
+            x_last  = x0 + width - this->mRightBottomIndent;
+            temp = (this->mTextPosition == BelowLeft) ? this->mGap : height - this->mGap;
+            y_first = y0 + temp;
+            y_last  = y_first;
+
+         } else {
+            // Axis values increase right to left.
+            //
+            sign = (this->mTextPosition == BelowLeft) ? +1 : -1;
+            x_first = x0 + width - this->mRightBottomIndent;
+            x_last  = x0 + this->mTopLeftIndent;
+            temp = (this->mTextPosition == BelowLeft) ? this->mGap : height - this->mGap;
+            y_first = y0 + temp;
+            y_last  = y_first;
+         }
          break;
 
-      case Right_To_Left:
-         sign = (this->mTextPosition == BelowLeft) ? +1 : -1;
-         x_first = x0 + width - this->mRightBottomIndent;
-         x_last  = x0 + this->mTopLeftIndent;
-         temp = (this->mTextPosition == BelowLeft) ? this->mGap : height - this->mGap;
-         y_first = y0 + temp;
-         y_last  = y_first;
-         break;
+      case Qt::Vertical:
+         if (!this->mInvertedAppearance) {
+            // Axis values increase bottom to top.
+            //
+            sign = (this->mTextPosition == BelowLeft) ? -1 : +1;
+            temp = (this->mTextPosition == BelowLeft) ? width - this->mGap : this->mGap;
+            x_first = x0 + temp;
+            x_last  = x_first;
+            y_first = y0 + height - this->mRightBottomIndent;
+            y_last  = y0 + this->mTopLeftIndent;
 
-      case Top_To_Bottom:
-         sign = (this->mTextPosition == BelowLeft) ? -1 : +1;
-         temp = (this->mTextPosition == BelowLeft) ? width - this->mGap : this->mGap;
-         x_first = x0 + temp;
-         x_last  = x_first;
-         y_first = y0 + this->mTopLeftIndent;
-         y_last  = y0 + height - this->mRightBottomIndent;
-         break;
-
-      case Bottom_To_Top:
-         sign = (this->mTextPosition == BelowLeft) ? -1 : +1;
-         temp = (this->mTextPosition == BelowLeft) ? width - this->mGap : this->mGap;
-         x_first = x0 + temp;
-         x_last  = x_first;
-         y_first = y0 + height - this->mRightBottomIndent;
-         y_last  = y0 + this->mTopLeftIndent;
+         } else {
+            // Axis values increase top to bottom.
+            //
+            sign = (this->mTextPosition == BelowLeft) ? -1 : +1;
+            temp = (this->mTextPosition == BelowLeft) ? width - this->mGap : this->mGap;
+            x_first = x0 + temp;
+            x_last  = x_first;
+            y_first = y0 + this->mTopLeftIndent;
+            y_last  = y0 + height - this->mRightBottomIndent;
+         }
          break;
 
       default:
-         // report an error??
+         // report an error
          //
+         DEBUG << "unexpected orientation" << int (this->mOrientation);
          return;
    }
 

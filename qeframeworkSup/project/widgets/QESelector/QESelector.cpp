@@ -92,7 +92,7 @@ void QESelector::commonSetup()
    //
    this->userInfoList.clear();
    this->fileInfoList.clear();
-   this->infoSource = stringListSource;
+   this->infoSource = QE::SourceText;
    this->infoList = &this->userInfoList;
    this->delimiter = SpaceDelimiter;
    this->internalWidget->addItem (EMPTY_TEXT);
@@ -114,7 +114,7 @@ void QESelector::commonSetup()
    //
    this->setVariableAsToolTip (true);
    this->setAllowDrop (true);
-   this->setDisplayAlarmStateOption (standardProperties::DISPLAY_ALARM_STATE_ALWAYS);
+   this->setDisplayAlarmStateOption (QE::Always);
 
    // Use default context menu.
    // Note: Turn off the menu for the internal QComboBox widget.
@@ -147,13 +147,13 @@ void QESelector::updateDropDownList ()
 // Properties
 //------------------------------------------------------------------------------
 //
-void QESelector::setSource (const SourceOptions infoSourceIn)
+void QESelector::setSource (const QE::SourceOptions infoSourceIn)
 {
    this->infoSource = infoSourceIn;
 
    // Update the reference.
    //
-   this->infoList = (this->infoSource == stringListSource) ?
+   this->infoList = (this->infoSource == QE::SourceText) ?
             &this->userInfoList :
             &this->fileInfoList;
 
@@ -162,7 +162,7 @@ void QESelector::setSource (const SourceOptions infoSourceIn)
 
 //------------------------------------------------------------------------------
 //
-QESelector::SourceOptions QESelector::getSource () const
+QE::SourceOptions QESelector::getSource () const
 {
    return this->infoSource;
 }
@@ -172,7 +172,7 @@ QESelector::SourceOptions QESelector::getSource () const
 void QESelector::setStringList (const QStringList& valueListIn)
 {
    this->userInfoList = valueListIn;
-   if (this->infoSource == stringListSource) {
+   if (this->infoSource == QE::SourceText) {
       this->updateDropDownList();
    }
 }
@@ -193,7 +193,7 @@ void QESelector::setSourceFilename (const QString& userInfoFileIn)
    // Read file.
    this->fileInfoList = QESelector::readList (userInfoFileIn);
 
-   if (this->infoSource == textFileSource) {
+   if (this->infoSource == QE::SourceText) {
       this->updateDropDownList();
    }
 }

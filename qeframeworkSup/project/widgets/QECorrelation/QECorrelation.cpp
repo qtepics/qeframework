@@ -24,13 +24,15 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
-#include <QECorrelation.h>
 
 // In this context, we are a user of the QEFramework library as we are using
 // the moc generated ui_QECorrelation.h file that needs access the meta
 // types to be declared for the QE widgets called up by ui_QECorrelation.ui
 //
+#include <QEFrameworkLibraryGlobal.h>
+
 #define QE_DECLARE_METATYPE_IS_REQUIRED
+#include "QECorrelation.h"
 
 #include <math.h>
 #include <QClipboard>
@@ -139,7 +141,7 @@ void QECorrelation::setup ()
    this->setFrameShadow (QFrame::Sunken);
 
    this->setAllowDrop (true);
-   this->setDisplayAlarmStateOption (standardProperties::DISPLAY_ALARM_STATE_NEVER);
+   this->setDisplayAlarmStateOption (QE::Never);
 
    // Use default context menu.
    //

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020-2022 Australian Synchrotron
+ *  Copyright (c) 2020-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -105,14 +105,16 @@ void QEWaterfall::commonSetup ()
    this->xAxis->setPrecision (0);
    this->xAxis->setMinorInterval (4.0);
    this->xAxis->setHasAxisLine (true);
-   this->xAxis->setOrientation (QEAxisPainter::Left_To_Right);
+   this->xAxis->setOrientation (Qt::Horizontal);
+   this->xAxis->setInvertedAppearance (false);
    this->xAxis->setIndent (axisIndents, axisIndents);
    this->xAxis->setGap (0);
 
    this->yAxis->setPrecision (1);
    this->yAxis->setMinorInterval (1.0);
    this->yAxis->setHasAxisLine (true);
-   this->yAxis->setOrientation (QEAxisPainter::Bottom_To_Top);
+   this->yAxis->setOrientation (Qt::Vertical);
+   this->yAxis->setInvertedAppearance (false);
    this->yAxis->setIndent (axisIndents, axisIndents);
    this->yAxis->setGap (0);
 }

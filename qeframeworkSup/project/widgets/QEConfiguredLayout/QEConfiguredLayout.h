@@ -30,6 +30,7 @@
 #include <QDialog>
 #include <QDomDocument>
 #include <QVBoxLayout>
+#include <QEEnums.h>
 #include <QELabel.h>
 #include <QEBitStatus.h>
 #include <QEPushButton.h>
@@ -168,6 +169,7 @@ private slots:
 // =============================================================================
 //  QECONFIGUREDLAYOUT CLASS
 // =============================================================================
+//
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEConfiguredLayout :
       public QWidget, public QEWidget
 {
@@ -183,8 +185,8 @@ protected:
    QScrollArea *qScrollArea;
    QString configurationFile;
    QString configurationText;
-   int configurationType;
-   int optionsLayout;
+   QE::SourceOptions configurationType;
+   QE::LayoutOptions optionsLayout;
    int currentUserType;
    bool subscription;
 
@@ -200,8 +202,8 @@ public:
    void setShowItemList(bool pValue);
    bool getShowItemList();
 
-   void setConfigurationType(int pValue);
-   int getConfigurationType();
+   void setConfigurationType(QE::SourceOptions pValue);
+   QE::SourceOptions getConfigurationType();
 
    void setConfigurationFile(QString pValue);
    QString getConfigurationFile();
@@ -209,8 +211,8 @@ public:
    void setConfigurationText(QString pValue);
    QString getConfigurationText();
 
-   void setOptionsLayout(int pValue);
-   int getOptionsLayout();
+   void setOptionsLayout(QE::LayoutOptions pValue);
+   QE::LayoutOptions getOptionsLayout();
 
    void setCurrentUserType(int pValue);
    int getCurrentUserType();
@@ -218,7 +220,7 @@ public:
 
    void refreshFields();
 
-   void userLevelChanged( userLevelTypes::userLevels pValue );
+   void userLevelChanged( QE::UserLevels pValue );
 
    QList <_Item *> itemList;    // TODO: this attribute shoule be private
 
@@ -228,47 +230,14 @@ public:
 
    Q_PROPERTY(bool showItemList READ getShowItemList WRITE setShowItemList)
 
-   enum configurationTypesProperty
-   {
-      File,
-      Text
-   };
-   Q_ENUM(configurationTypesProperty)
-   Q_PROPERTY(configurationTypesProperty configurationType READ getConfigurationTypeProperty WRITE setConfigurationTypeProperty)
-
-   void setConfigurationTypeProperty(configurationTypesProperty pConfigurationType)
-   {
-      setConfigurationType((configurationTypesProperty) pConfigurationType);
-   }
-   configurationTypesProperty getConfigurationTypeProperty()
-   {
-      return (configurationTypesProperty) getConfigurationType();
-   }
+   Q_PROPERTY(QE::SourceOptions configurationType READ getConfigurationType WRITE setConfigurationType)
 
    Q_PROPERTY(QString configurationFile READ getConfigurationFile WRITE setConfigurationFile)
 
    Q_PROPERTY(QString configurationText READ getConfigurationText WRITE setConfigurationText)
 
    /// Change the order of the widgets. Valid orders are: TOP, BOTTOM, LEFT and RIG
-   enum optionsLayoutProperty
-   {
-      Top,
-      Bottom,
-      Left,
-      Right
-   };
-   Q_ENUM(optionsLayoutProperty)
-   Q_PROPERTY(optionsLayoutProperty optionsLayout READ getOptionsLayoutProperty WRITE setOptionsLayoutProperty)
-
-   void setOptionsLayoutProperty(optionsLayoutProperty pOptionsLayout)
-   {
-      setOptionsLayout((optionsLayoutProperty) pOptionsLayout);
-   }
-   optionsLayoutProperty getOptionsLayoutProperty()
-   {
-      return (optionsLayoutProperty) getOptionsLayout();
-   }
-
+   Q_PROPERTY(QE::LayoutOptions optionsLayout READ getOptionsLayout WRITE setOptionsLayout)
 
    // BEGIN-STANDARD-V2-PROPERTIES ===================================================
    // Standard properties
@@ -325,22 +294,14 @@ public:
    /// and any Style Sheet strings generated during the display of data.
    Q_PROPERTY(QString userLevelEngineerStyle READ getStyleEngineer WRITE setStyleEngineer)
 
-   /// \enum UserLevels
-   /// User friendly enumerations for #userLevelVisibility and #userLevelEnabled properties - refer to #userLevelVisibility and #userLevelEnabled properties and userLevel enumeration for details.
-   enum UserLevels {
-       User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
-       Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
-       Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
-   };
-   Q_ENUM (UserLevels)
-
    /// Lowest user level at which the widget is visible. Default is 'User'.
    /// Used when designing GUIs that display more and more detail according to the user mode.
    /// The user mode is set application wide through the QELogin widget, or programatically through setUserLevel()
    /// Widgets that are always visible should be visible at 'User'.
    /// Widgets that are only used by scientists managing the facility should be visible at 'Scientist'.
    /// Widgets that are only used by engineers maintaining the facility should be visible at 'Engineer'.
-   Q_PROPERTY(UserLevels userLevelVisibility READ getUserLevelVisibilityProperty WRITE setUserLevelVisibilityProperty)
+   ///
+   Q_PROPERTY(QE::UserLevels userLevelVisibility READ getUserLevelVisibility WRITE setUserLevelVisibility)
 
    /// Lowest user level at which the widget is enabled. Default is 'User'.
    /// Used when designing GUIs that allow access to more and more detail according to the user mode.
@@ -348,12 +309,8 @@ public:
    /// Widgets that are always accessable should be visible at 'User'.
    /// Widgets that are only accessable to scientists managing the facility should be visible at 'Scientist'.
    /// Widgets that are only accessable to engineers maintaining the facility should be visible at 'Engineer'.
-   Q_PROPERTY(UserLevels userLevelEnabled READ getUserLevelEnabledProperty WRITE setUserLevelEnabledProperty)
-
-   UserLevels getUserLevelVisibilityProperty() { return (UserLevels)getUserLevelVisibility(); }            ///< Access function for #userLevelVisibility property - refer to #userLevelVisibility property for details
-   void setUserLevelVisibilityProperty( UserLevels level ) { setUserLevelVisibility( (userLevelTypes::userLevels)level ); }///< Access function for #userLevelVisibility property - refer to #userLevelVisibility property for details
-   UserLevels getUserLevelEnabledProperty() { return (UserLevels)getUserLevelEnabled(); }                  ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
-   void setUserLevelEnabledProperty( UserLevels level ) { setUserLevelEnabled( (userLevelTypes::userLevels)level ); }      ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
+   ///
+   Q_PROPERTY(QE::UserLevels userLevelEnabled READ getUserLevelEnabled WRITE setUserLevelEnabled)
 
    /// displayAlarmStateOption not applicale to V2 options.
    /// Class should ensure this option is initialised to DISPLAY_ALARM_STATE_NEVER.
@@ -367,11 +324,5 @@ private slots:
    void valueWritten(const QString &pNewValue, const QString &pOldValue, const QString&);
 
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QEConfiguredLayout::configurationTypesProperty)
-Q_DECLARE_METATYPE (QEConfiguredLayout::optionsLayoutProperty)
-Q_DECLARE_METATYPE (QEConfiguredLayout::UserLevels)
-#endif
 
 #endif // QE_CONFIGURED_LAYOUT_H

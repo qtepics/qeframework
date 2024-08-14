@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (c) 2012-2020 Australian Synchrotron
+ *  Copyright (c) 2012-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -25,23 +25,25 @@
  */
 
 #include "QEConfiguredLayout.h"
+#include <QDebug>
 
+#define DEBUG qDebug () << "QEConfiguredLayout" << __LINE__ << __FUNCTION__ << "  "
 
 // =============================================================================
 //  QECONFIGUREDLAYOUT METHODS
 // =============================================================================
+//
 QEConfiguredLayout::QEConfiguredLayout(QWidget *pParent, bool pSubscription) :
    QWidget(pParent),
    QEWidget(this)
 {
-
    subscription = pSubscription;
 
    // Set default non-property values.
    //
    setVariableAsToolTip(false);
    setAllowDrop(false);
-   setDisplayAlarmStateOption(standardProperties::DISPLAY_ALARM_STATE_NEVER);
+   setDisplayAlarmStateOption(QE::Never);
 
    qScrollArea = new QScrollArea(this);
    qLabelItemDescription = new QLabel(this);
@@ -50,7 +52,8 @@ QEConfiguredLayout::QEConfiguredLayout(QWidget *pParent, bool pSubscription) :
    qComboBoxItemList = new QComboBox(this);
    qComboBoxItemList->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
    qComboBoxItemList->setToolTip("Select item to be viewed/controlled");
-   QObject::connect(qComboBoxItemList, SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxItemSelected(int)));
+   QObject::connect(qComboBoxItemList, SIGNAL(currentIndexChanged(int)),
+                    this,              SLOT( comboBoxItemSelected(int)));
 
    qScrollArea->setWidgetResizable(true);
    qScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -59,16 +62,15 @@ QEConfiguredLayout::QEConfiguredLayout(QWidget *pParent, bool pSubscription) :
    setItemDescription("");
    setConfigurationFile("");
    setConfigurationText("");
-   setConfigurationType(File);
+   setConfigurationType(QE::SourceFile);
    setShowItemList(true);
-   setOptionsLayout(Top);
+   setOptionsLayout(QE::Top);
    setCurrentUserType(getUserLevel());
-
 }
 
 //------------------------------------------------------------------------------
 //
-void QEConfiguredLayout::setConfigurationType(int pValue)
+void QEConfiguredLayout::setConfigurationType(QE::SourceOptions pValue)
 {
    configurationType = pValue;
    setConfigurationFile(configurationFile);
@@ -77,7 +79,7 @@ void QEConfiguredLayout::setConfigurationType(int pValue)
 
 //------------------------------------------------------------------------------
 //
-int QEConfiguredLayout::getConfigurationType()
+QE::SourceOptions QEConfiguredLayout::getConfigurationType()
 {
    return configurationType;
 }
@@ -120,7 +122,7 @@ void QEConfiguredLayout::setConfigurationFile(QString pValue)
    QString data;
 
    configurationFile = pValue;
-   if (configurationType == File)
+   if (configurationType == QE::SourceFile)
    {
       file = new QFile(configurationFile);
       if (file->open(QFile::ReadOnly | QFile::Text))
@@ -144,7 +146,7 @@ QString QEConfiguredLayout::getConfigurationFile()
 void QEConfiguredLayout::setConfigurationText(QString pValue)
 {
    configurationText = pValue;
-   if (configurationType == Text)
+   if (configurationType == QE::SourceText)
    {
       setConfiguration(configurationText);
    }
@@ -246,11 +248,10 @@ void QEConfiguredLayout::setConfiguration(QString pValue)
 
 //------------------------------------------------------------------------------
 //
-void QEConfiguredLayout::setOptionsLayout(int pValue)
+void QEConfiguredLayout::setOptionsLayout(QE::LayoutOptions pValue)
 {
    QLayout *qLayoutMain;
    QLayout *qLayoutChild;
-
 
    //TODO: fix issue of buttons not being centered when using LEFT and RIGHT layout
 
@@ -258,8 +259,8 @@ void QEConfiguredLayout::setOptionsLayout(int pValue)
 
    switch(pValue)
    {
-      case Top:
-         optionsLayout = Top;
+      case QE::Top:
+         optionsLayout = QE::Top;
          qLayoutMain = new QVBoxLayout(this);
          qLayoutChild = new QHBoxLayout();
          qLayoutChild->addWidget(qLabelItemDescription);
@@ -268,8 +269,8 @@ void QEConfiguredLayout::setOptionsLayout(int pValue)
          qLayoutMain->addWidget(qScrollArea);
          break;
 
-      case Bottom:
-         optionsLayout = Bottom;
+      case QE::Bottom:
+         optionsLayout = QE::Bottom;
          qLayoutMain = new QVBoxLayout(this);
          qLayoutChild = new QHBoxLayout();
          qLayoutMain->addWidget(qScrollArea);
@@ -278,8 +279,8 @@ void QEConfiguredLayout::setOptionsLayout(int pValue)
          qLayoutMain->addItem(qLayoutChild);
          break;
 
-      case Left:
-         optionsLayout = Left;
+      case QE::Left:
+         optionsLayout = QE::Left;
          qLayoutMain = new QHBoxLayout(this);
          qLayoutChild = new QVBoxLayout();
          qLayoutChild->addWidget(qLabelItemDescription);
@@ -289,8 +290,8 @@ void QEConfiguredLayout::setOptionsLayout(int pValue)
          qLayoutMain->addWidget(qScrollArea);
          break;
 
-      case Right:
-         optionsLayout = Right;
+      case QE::Right:
+         optionsLayout = QE::Right;
          qLayoutMain = new QHBoxLayout(this);
          qLayoutChild = new QVBoxLayout();
          qLayoutMain->addWidget(qScrollArea);
@@ -302,17 +303,16 @@ void QEConfiguredLayout::setOptionsLayout(int pValue)
 
 //------------------------------------------------------------------------------
 //
-int QEConfiguredLayout::getOptionsLayout()
+QE::LayoutOptions QEConfiguredLayout::getOptionsLayout()
 {
    return optionsLayout;
 }
 
 //------------------------------------------------------------------------------
 //
-void QEConfiguredLayout::userLevelChanged(userLevelTypes::userLevels pValue)
+void QEConfiguredLayout::userLevelChanged (QE::UserLevels pValue)
 {
-   if (subscription)
-   {
+   if (subscription) {
       setCurrentUserType(pValue);
    }
 }
@@ -325,22 +325,21 @@ void QEConfiguredLayout::setCurrentUserType(int pValue)
    QString userType;
    int i;
 
-   if (pValue == userLevelTypes::USERLEVEL_USER ||
-       pValue == userLevelTypes::USERLEVEL_SCIENTIST ||
-       pValue == userLevelTypes::USERLEVEL_ENGINEER)
+   if (pValue == QE::User || pValue == QE::Scientist || pValue == QE::Engineer)
    {
       currentUserType = pValue;
       switch (currentUserType)
       {
-         case userLevelTypes::USERLEVEL_USER:
+         case QE::User:
             userType = "USER";
             break;
-         case userLevelTypes::USERLEVEL_SCIENTIST:
+         case QE::Scientist:
             userType = "SCIENTIST";
             break;
          default:
             userType = "ENGINEER";
       }
+
       qComboBoxItemList->blockSignals(true);
       tmp = qComboBoxItemList->currentText();
       qComboBoxItemList->clear();
@@ -417,10 +416,10 @@ void QEConfiguredLayout::refreshFields()
    {
       switch (currentUserType)
       {
-         case userLevelTypes::USERLEVEL_USER:
+         case QE::User:
             userType = "USER";
             break;
-         case userLevelTypes::USERLEVEL_SCIENTIST:
+         case QE::Scientist:
             userType = "SCIENTIST";
             break;
          default:
@@ -447,7 +446,7 @@ void QEConfiguredLayout::refreshFields()
                qeWidget = new QELineEdit();
                ((QELineEdit *) qeWidget)->setVariableNameAndSubstitutions(field->getProcessVariable(), item->getSubstitution(), 0);
                //((QELineEdit *) qeWidget)->setSubscribe(subscription);
-               ((QELineEdit *) qeWidget)->setNotation(QEStringFormatting::NOTATION_AUTOMATIC);
+               ((QELineEdit *) qeWidget)->setNotation(QE::Automatic);
                ((QELineEdit *) qeWidget)->setEnabled(field->getEditable().isEmpty() || field->getEditable().split(",").contains(userType, Qt::CaseInsensitive));
                ((QELineEdit *) qeWidget)->setWriteOnFinish(false);
                ((QELineEdit *) qeWidget)->setConfirmWrite(false);

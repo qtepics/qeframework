@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2021 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,6 +31,7 @@
 
 #include "flipRotateMenu.h"
 #include "QEImage.h"
+#include <QEEnums.h>
 
 flipRotateMenu::flipRotateMenu( QWidget *parent) : QMenu(parent)
 {
@@ -73,9 +74,9 @@ imageContextMenu::imageContextMenuOptions flipRotateMenu::getFlipRotate( const Q
 void flipRotateMenu::setChecked( const int rotation, const bool flipH, const bool flipV )
 {
     // Check the appropriate rotation option
-    rotation90RAction ->setChecked( rotation == imageProperties::ROTATION_90_RIGHT );
-    rotation90LAction ->setChecked( rotation == imageProperties::ROTATION_90_LEFT );
-    rotation180Action ->setChecked( rotation == imageProperties::ROTATION_180 );
+    rotation90RAction->setChecked( rotation == QE::Rotate90Right );
+    rotation90LAction->setChecked( rotation == QE::Rotate90Left );
+    rotation180Action->setChecked( rotation == QE::Rotate180 );
 
     // Check the appropriate flip options
     flipHAction->setChecked( flipH );

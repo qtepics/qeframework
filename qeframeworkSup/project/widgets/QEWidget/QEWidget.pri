@@ -55,9 +55,6 @@ SOURCES += $$PWD/QEToolTip.cpp
 HEADERS += $$PWD/QEWidget.h
 SOURCES += $$PWD/QEWidget.cpp
 
-HEADERS += $$PWD/QEWidgetProperties.h
-SOURCES += $$PWD/QEWidgetProperties.cpp
-
 HEADERS += $$PWD/UserMessage.h
 SOURCES += $$PWD/UserMessage.cpp
 

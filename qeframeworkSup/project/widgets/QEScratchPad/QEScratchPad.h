@@ -37,6 +37,7 @@
 #include <QHBoxLayout>
 #include <QScrollArea>
 
+#include <QEEnums.h>
 #include <QEArchiveAccess.h>
 #include <QEQuickSort.h>
 #include <QEAbstractDynamicWidget.h>

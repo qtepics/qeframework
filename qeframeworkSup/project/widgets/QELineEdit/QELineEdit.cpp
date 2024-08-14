@@ -145,19 +145,19 @@ bool QELineEdit::writeData (const QVariant& value, QString& message)
         //
         switch( getArrayAction() ){
 
-        case QEStringFormatting::ASCII:
+        case QE::Ascii:
             // convert string to zero terninates int array.
             //
             result = qca->writeString( value.toString (), message );
             break;
 
-        case QEStringFormatting::INDEX:
+        case QE::Index:
             // Update specifiec element and write.
             //
             result = qca->writeStringElement( value.toString (), message );
             break;
 
-        case QEStringFormatting::APPEND:
+        case QE::Append:
         default:
             message = "Invalid arrayAction property";
             result = false;

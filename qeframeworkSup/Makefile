@@ -1,6 +1,6 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/Makefile $
-# $Revision: #12 $
-# $DateTime: 2020/02/12 17:45:00 $
+# $Revision: #13 $
+# $DateTime: 2024/02/09 15:18:38 $
 # Last checked in by: $Author: starritt $
 #
 # This make file is the bridge beween the EPICS build system and the Qt project qmake/make paradigm.
@@ -112,7 +112,7 @@ $(SOURCE_DIR)/$(MAKEFILE) : $(SOURCE_DIR)/$(PROJECT)
 #
 clean:
 	cd $(SOURCE_DIR) && $(MAKE) -f $(MAKEFILE) clean || $(NOOP)
-	cd $(SOURCE_DIR) && $(RM) $(MAKEFILE)
+	cd $(SOURCE_DIR) && $(RM) $(MAKEFILE) .qmake.stash
 
 
 uninstall:

@@ -79,7 +79,7 @@ QEWidget::QEWidget( QWidget *ownerIn ) :
 
     // Initialise 'current' severity and alarm states
     lastSeverity = QCaAlarmInfo::getInvalidSeverity();
-    lastDisplayAlarmState = standardProperties::DISPLAY_ALARM_STATE_NEVER;
+    lastDisplayAlarmState = QE::Never;
 
     // Default properties
     subscribe = true;
@@ -171,7 +171,7 @@ void QEWidget::processConnectionInfo (bool isConnected, const unsigned int )
 
     // Re-initialise 'current' severity and alarm states
     lastSeverity = QCaAlarmInfo::getInvalidSeverity();
-    lastDisplayAlarmState = standardProperties::DISPLAY_ALARM_STATE_NEVER;
+    lastDisplayAlarmState = QE::Never;
 }
 
 
@@ -181,7 +181,7 @@ void QEWidget::processAlarmInfo( QCaAlarmInfo& alarmInfo, const unsigned int var
 {
     // Gather the current info
     QCaAlarmInfo::Severity severity = alarmInfo.getSeverity();
-    standardProperties::displayAlarmStateOptions displayAlarmState = getDisplayAlarmStateOption();
+    QE::DisplayAlarmStateOptions displayAlarmState = getDisplayAlarmStateOption();
 
     // If anything has changed (either the alarm state itself, or if we have just started
     // or stopped displaying the alarm state), update the alarm style as appropriate.
@@ -225,7 +225,7 @@ void QEWidget::setToolTipFromVariableNames()
 // Returns true if running within the Qt Designer application.
 // used when the behaviour needs to be different in designer.
 // For example, a run-time-visible property - always visible in designer, visible at run time dependant on the property.
-//
+// [static]
 bool QEWidget::inDesigner()
 {
     // check if the current executable has 'designer' in the name
@@ -238,7 +238,7 @@ bool QEWidget::inDesigner()
 // The user level has changed
 // Modify the widget visibility and style accordingly
 //
-void QEWidget::userLevelChangedGeneral( userLevelTypes::userLevels level )
+void QEWidget::userLevelChangedGeneral( QE::UserLevels level )
 {
     // Manage general QE widget aspects of the user level chagning
     styleUserLevelChanged( level );

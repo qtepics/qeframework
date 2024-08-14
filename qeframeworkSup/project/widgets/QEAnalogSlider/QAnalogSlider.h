@@ -221,7 +221,7 @@ private:
    double mMaximum;
    int mPrecision;
    bool mIsActive;
-   bool mInvertedAppearnce;
+   bool mInvertedAppearance;
    bool mShowSaveRevert;
    bool mShowApply;
    QColor mFontColour;

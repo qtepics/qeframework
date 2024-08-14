@@ -174,7 +174,7 @@ void QEImage::setup()
 
     // With so many variables involved, don't bother alterning the presentation
     // of the widget when any one variable goes into alarm
-    setDisplayAlarmStateOption( DISPLAY_ALARM_STATE_NEVER );
+    setDisplayAlarmStateOption( QE::Never );
 
     // Prepare to interact with whatever application is hosting this widget.
     // For example, the QEGui application can host docks and toolbars for QE widgets
@@ -503,13 +503,13 @@ void QEImage::presentControls()
         if( imageDisplayProps )
         {
             mainLayout->removeWidget( imageDisplayProps );
-            components.append( componentHostListItem( imageDisplayProps, QEActionRequests::OptionFloatingDockWindow, true, name + "Image Display Properties" ) );
+            components.append( componentHostListItem( imageDisplayProps, QE::DockFloating, true, name + "Image Display Properties" ) );
         }
 
         if( recorder )
         {
             mainLayout->removeWidget( recorder );
-            components.append( componentHostListItem( recorder, QEActionRequests::OptionFloatingDockWindow, true, name + "Recorder" ) );
+            components.append( componentHostListItem( recorder, QE::DockFloating, true, name + "Recorder" ) );
         }
 
         vSliceLabel->setVisible( false );
@@ -519,19 +519,19 @@ void QEImage::presentControls()
         if( vSliceDisplay && enableVertSlicePresentation )
         {
             graphicsLayout->removeWidget( vSliceDisplay );
-            components.append( componentHostListItem( vSliceDisplay,  QEActionRequests::OptionLeftDockWindow, true, name + "Vertical Slice Profile" ) );
+            components.append( componentHostListItem( vSliceDisplay,  QE::DockLeft, true, name + "Vertical Slice Profile" ) );
         }
 
         if( hSliceDisplay && enableHozSlicePresentation )
         {
             graphicsLayout->removeWidget( hSliceDisplay );
-            components.append( componentHostListItem( hSliceDisplay,  QEActionRequests::OptionTopDockWindow, true, name + "Horizontal Slice Profile" ) );
+            components.append( componentHostListItem( hSliceDisplay,  QE::DockTop, true, name + "Horizontal Slice Profile" ) );
         }
 
         if( profileDisplay && enableProfilePresentation )
         {
             graphicsLayout->removeWidget( profileDisplay );
-            components.append( componentHostListItem( profileDisplay, QEActionRequests::OptionTopDockWindow, true, name + "Arbitrary Profile" ) );
+            components.append( componentHostListItem( profileDisplay, QE::DockTop, true, name + "Arbitrary Profile" ) );
         }
 
         buttonGroup->hide();
@@ -1685,7 +1685,7 @@ void QEImage::setDataImage( const QByteArray& imageIn,
                             unsigned long elements,
                             unsigned long width,
                             unsigned long height,
-                            imageDataFormats::formatOptions format,
+                            QE::ImageFormatOptions format,
                             unsigned int depth )
 {
     //!!! Should the format, bit depth, width and height be clobered like this? (especially where we are altering properties, like bitDepth)
@@ -1962,11 +1962,7 @@ void QEImage::setImageFile( QString name )
     // Generate an array of image data so the mechanisms that normally work
     // on the raw image waveform data have data to work on
     QImage stdImage = image.convertToFormat( QImage::Format_RGB32 );
-#if QT_VERSION >= 0x040700
     const uchar* iDataPtr = stdImage.constBits();
-#else
-    const uchar* iDataPtr = stdImage.bits();
-#endif
     int iDataSize = stdImage.sizeInBytes();
 
     QByteArray baData;
@@ -1990,7 +1986,7 @@ void QEImage::setImageFile( QString name )
     scrollArea->setEnabled( true );
     iProcessor.setImageBuffWidth( stdImage.width() );
     iProcessor.setImageBuffHeight( stdImage.height() );
-    iProcessor.setFormat( imageDataFormats::RGB1 );
+    iProcessor.setFormat( QE::rgb1 );
     iProcessor.setBitDepth( 8 );
 
 
@@ -2936,12 +2932,12 @@ void QEImage::paste( QVariant v )
 
 
 // Allow user to set the video format
-void QEImage::setFormatOption( imageDataFormats::formatOptions formatOptionIn )
+void QEImage::setFormatOption( QE::ImageFormatOptions formatOptionIn )
 {
     iProcessor.setFormat( formatOptionIn );
 }
 
-imageDataFormats::formatOptions QEImage::getFormatOption()
+QE::ImageFormatOptions QEImage::getFormatOption()
 {
     return iProcessor.getFormat();
 }
@@ -3058,7 +3054,7 @@ double QEImage::getYStretch()
 }
 
 // Rotation
-void QEImage::setRotation( imageProperties::rotationOptions rotationIn )
+void QEImage::setRotation( QE::RotationOptions rotationIn )
 {
     // Save the rotation requested
     iProcessor.setRotation( rotationIn );
@@ -3071,7 +3067,7 @@ void QEImage::setRotation( imageProperties::rotationOptions rotationIn )
     redisplayAllMarkups();
 }
 
-imageProperties::rotationOptions QEImage::getRotation()
+QE::RotationOptions QEImage::getRotation()
 {
     return iProcessor.getRotation();
 }
@@ -3958,10 +3954,25 @@ void QEImage::setArguments2( QStringList arguments ){ programLauncher2.setArgume
 QStringList QEImage::getArguments2(){ return  programLauncher2.getArguments(); }
 
 // Startup option
-void QEImage::setProgramStartupOption1( applicationLauncher::programStartupOptions programStartupOption ){ programLauncher1.setProgramStartupOption( programStartupOption ); }
-applicationLauncher::programStartupOptions QEImage::getProgramStartupOption1(){ return programLauncher1.getProgramStartupOption(); }
-void QEImage::setProgramStartupOption2( applicationLauncher::programStartupOptions programStartupOption ){ programLauncher2.setProgramStartupOption( programStartupOption ); }
-applicationLauncher::programStartupOptions QEImage::getProgramStartupOption2(){ return programLauncher2.getProgramStartupOption(); }
+void QEImage::setProgramStartupOption1( QE::ProgramStartupOptions programStartupOption )
+{
+   programLauncher1.setProgramStartupOption( programStartupOption );
+}
+
+QE::ProgramStartupOptions QEImage::getProgramStartupOption1()
+{
+   return programLauncher1.getProgramStartupOption();
+}
+
+void QEImage::setProgramStartupOption2( QE::ProgramStartupOptions programStartupOption )
+{
+   programLauncher2.setProgramStartupOption( programStartupOption );
+}
+
+QE::ProgramStartupOptions QEImage::getProgramStartupOption2()
+{
+   return programLauncher2.getProgramStartupOption();
+}
 
 // Legends
 QString QEImage::getHozSlice1Legend()                      { return videoWidget->getMarkupLegend( imageMarkup::MARKUP_ID_H1_SLICE );        }
@@ -5340,12 +5351,17 @@ void QEImage::flipRotateMenuTriggered( QAction* selectedItem )
         default:
         case imageContextMenu::ICM_NONE: break;
 
-        case imageContextMenu::ICM_ROTATE_RIGHT:        setRotation( selectedItem->isChecked()?imageProperties::ROTATION_90_RIGHT:imageProperties::ROTATION_0 ); break;
-        case imageContextMenu::ICM_ROTATE_LEFT:         setRotation( selectedItem->isChecked()?imageProperties::ROTATION_90_LEFT :imageProperties::ROTATION_0 ); break;
-        case imageContextMenu::ICM_ROTATE_180:          setRotation( selectedItem->isChecked()?imageProperties::ROTATION_180     :imageProperties::ROTATION_0 ); break;
+        case imageContextMenu::ICM_ROTATE_RIGHT:
+          setRotation( selectedItem->isChecked() ? QE::Rotate90Right : QE::NoRotation ); break;
+        case imageContextMenu::ICM_ROTATE_LEFT:
+          setRotation( selectedItem->isChecked() ? QE::Rotate90Left  : QE::NoRotation ); break;
+        case imageContextMenu::ICM_ROTATE_180:
+          setRotation( selectedItem->isChecked() ? QE::Rotate180     : QE::NoRotation ); break;
 
-        case imageContextMenu::ICM_FLIP_HORIZONTAL:     setHorizontalFlip( selectedItem->isChecked() ); break;
-        case imageContextMenu::ICM_FLIP_VERTICAL:       setVerticalFlip  ( selectedItem->isChecked() ); break;
+        case imageContextMenu::ICM_FLIP_HORIZONTAL:
+          setHorizontalFlip( selectedItem->isChecked() ); break;
+        case imageContextMenu::ICM_FLIP_VERTICAL:
+          setVerticalFlip  ( selectedItem->isChecked() ); break;
     }
 
     // Update the checked state of the buttons now the user has selected an option.

@@ -33,6 +33,7 @@
 #include <QString>
 #include <QLabel>
 #include <QSize>
+#include <QEEnums.h>
 #include <QEFileMonitor.h>
 #include <QEFrameworkLibraryGlobal.h>
 #include <QCaVariableNamePropertyManager.h>
@@ -172,7 +173,8 @@ public:
    QString getVariableNameSubstitutionsProperty() const;
 
    /// If true, the QEForm widget publishes its own slot for launching new GUIs so all QE widgets within it will use
-   /// the QEForm's mechanism for launching new GUIs, rather than any mechanism the application may provide (through the ContainerProfile mechanism)
+   /// the QEForm's mechanism for launching new GUIs, rather than any mechanism the application may provide
+   /// (through the ContainerProfile mechanism)
    Q_PROPERTY(bool handleGuiLaunchRequests READ getHandleGuiLaunchRequests WRITE setHandleGuiLaunchRequests)
 
    /// If set, the QEForm will resize the top level widget of the .ui file it opens (and set other size and border
@@ -182,6 +184,7 @@ public:
    /// level widget of the .ui file it opens. This is useful if the QEForm is used as a sub form within a main form
    /// (possible another QEForm) and you want to the main form to resize to match the size of the QEForm being used
    /// as a sub form, or you want the sub form border decorations (such as frame shape and shadow) to be displayed.
+   ///
    Q_PROPERTY(bool resizeContents READ getResizeContents WRITE setResizeContents)
 
    /// Widgets or applications that use messages from the framework have the option of filtering on this ID
@@ -189,41 +192,39 @@ public:
    ///
    Q_PROPERTY(unsigned int messageSourceId READ getMessageSourceId WRITE setMessageSourceId )
 
-   enum MessageFilterOptions {
-      /* Any = UserMessage::MESSAGE_FILTER_ANY, This would allow QEForm widgets to get in a message resend loop */
-      Match = UserMessage::MESSAGE_FILTER_MATCH,
-      None  = UserMessage::MESSAGE_FILTER_NONE
-   };
-   Q_ENUM (MessageFilterOptions)
-
    /// Message filter that attempts to match messages sent through the QE message logging system based on
    /// the automatically generated message form ID.
    /// This filter will match form ID of the message to the form ID of this QEform as follows:
    ///
-   /// Any - A message will always be accepted.
+   /// Note: Any - A message will always be accepted - is not allowed here.
+   ///       If any is selected it will be set to the default which is Match.
    /// Match - A message will be accepted if it comes from a QE widget within this form.
    /// None	- The message will not be matched based on the form the message comes from. (It may still be accepted based on the message source ID.)
    /// Matched messages will be resend with the messageSourceId of this QEForm
-   Q_PROPERTY(MessageFilterOptions messageFormFilter READ getMessageFormFilter
-                                                     WRITE setMessageFormFilter )
+   ///
+   Q_PROPERTY(QE::MessageFilterOptions messageFormFilter
+              READ getMessageFormFilter WRITE setMessageFormFilter )
 
    //!!!??? is this a valid property. Resending messages based on the source ID is unnessesary as they will be sent on with the same source ID?
    /// Message filter that attempts to match messages sent through the QE message logging system based on
    /// the messageSourceId of the widget that generatedd the messge.
    /// This filter will match message message source ID of the message to the message source ID of this QEform as follows:
    ///
-   /// Any - A message will always be accepted.
+   /// Note: Any - A message will always be accepted - is not allowed here.
+   ///       If any is selected it will be set to the default which is None.
    /// Match - A message will be accepted if the message source ID matches this QEForm.
    /// None	- The message will not be matched based of message source ID (It may still be accepted based on the message form ID.)
    /// Matched messages will be resend with the messageSourceId of this QEForm.
-   Q_PROPERTY(MessageFilterOptions messageSourceFilter READ getMessageSourceFilter
-                                                       WRITE setMessageSourceFilter )
+   ///
+   Q_PROPERTY(QE::MessageFilterOptions messageSourceFilter
+              READ getMessageSourceFilter WRITE setMessageSourceFilter)
 
-   MessageFilterOptions getMessageFormFilter() const;
-   void setMessageFormFilter( MessageFilterOptions messageFormFilter );
+   QE::MessageFilterOptions getMessageFormFilter() const;
+   void setMessageFormFilter(const QE::MessageFilterOptions messageFormFilter);
 
-   MessageFilterOptions getMessageSourceFilter() const;
-   void setMessageSourceFilter( MessageFilterOptions messageSourceFilter );
+
+   QE::MessageFilterOptions getMessageSourceFilter() const;
+   void setMessageSourceFilter(const QE::MessageFilterOptions messageSourceFilter );
 
    /// variableAsToolTip is added as a non-designable property here only to hide the implementation present in QEAbstractWidget
    ///
@@ -233,7 +234,8 @@ public:
    Q_PROPERTY(bool allowDrop READ getAllowDrop WRITE setAllowDrop  DESIGNABLE false)
    /// displayAlarmStateOption is added as a non-designable property here only to hide the implementation present in QEAbstractWidget
    ///
-   Q_PROPERTY(DisplayAlarmStateOptions displayAlarmStateOption READ getDisplayAlarmStateOptionProperty WRITE setDisplayAlarmStateOptionProperty DESIGNABLE false)
+   Q_PROPERTY(QE::DisplayAlarmStateOptions displayAlarmStateOption
+              READ getDisplayAlarmStateOption WRITE setDisplayAlarmStateOption DESIGNABLE false)
 
 private:
    // Note, this is only used to manage the macro substitutions that will be
@@ -241,9 +243,5 @@ private:
    //
    QCaVariableNamePropertyManager variableNamePropertyManager;
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QEForm::MessageFilterOptions)
-#endif
 
 #endif // QE_FORM_H

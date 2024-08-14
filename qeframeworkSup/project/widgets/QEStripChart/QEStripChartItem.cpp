@@ -419,7 +419,7 @@ QString QEStripChartItem::getDescription () const
 QString QEStripChartItem::getCaptionLabel () const
 {
    QString result;
-   QEAbstractDynamicWidget::PVLabelMode labelMode;
+   QE::PVLabelMode labelMode;
    QString substitutedPVName;
 
    switch (this->dataKind) {
@@ -431,7 +431,7 @@ QString QEStripChartItem::getCaptionLabel () const
          substitutedPVName = this->caLabel->getSubstitutedVariableName (0);
 
          switch (labelMode) {
-            case QEAbstractDynamicWidget::useAliasName:
+            case QE::useAliasName:
                if (!this->aliasName.isEmpty() && this->aliasName != "<>") {
                   result = this->aliasName;
                } else {
@@ -439,7 +439,7 @@ QString QEStripChartItem::getCaptionLabel () const
                }
                break;
 
-            case QEAbstractDynamicWidget::useDescription:
+            case QE::useDescription:
                if (!this->description.isEmpty()) {
                   result = this->description;
                } else {
@@ -447,7 +447,7 @@ QString QEStripChartItem::getCaptionLabel () const
                }
                break;
 
-            case QEAbstractDynamicWidget::usePvName:
+            case QE::usePvName:
             default:
                result = substitutedPVName;
                break;
@@ -1688,7 +1688,7 @@ void QEStripChartItem::generateStatistics ()
    if (this->hostSlotAvailable) {
       // Create component item and associated request.
       //
-      componentHostListItem item (pvStatistics, QEActionRequests::OptionFloatingDockWindow , false, this->getPvName () + " Statistics");
+      componentHostListItem item (pvStatistics, QE::DockFloating , false, this->getPvName () + " Statistics");
 
       // ... and request this hosted by the support application.
       //

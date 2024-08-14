@@ -256,8 +256,8 @@ void QEStripChart::createInternalWidgets ()
    QObject::connect (this->toolBar, SIGNAL (stateSelected  (const QEStripChartNames::StateModes)),
                      this,          SLOT   (stateSelected  (const QEStripChartNames::StateModes)));
 
-   QObject::connect (this->toolBar, SIGNAL (videoModeSelected  (const QEStripChartNames::VideoModes)),
-                     this,          SLOT   (videoModeSelected  (const QEStripChartNames::VideoModes)));
+   QObject::connect (this->toolBar, SIGNAL (videoModeSelected  (const QE::VideoModes)),
+                     this,          SLOT   (videoModeSelected  (const QE::VideoModes)));
 
    QObject::connect (this->toolBar, SIGNAL (yScaleModeSelected  (const QEStripChartNames::YScaleModes)),
                      this,          SLOT   (yScaleModeSelected  (const QEStripChartNames::YScaleModes)));
@@ -1427,17 +1427,17 @@ void QEStripChart::stateSelected (const QEStripChartNames::StateModes mode)
 
 //------------------------------------------------------------------------------
 //
-void QEStripChart::videoModeSelected (const QEStripChartNames::VideoModes mode)
+void QEStripChart::videoModeSelected (const QE::VideoModes mode)
 {
-   this->setNormalBackground (mode == QEStripChartNames::normal);
+   this->setNormalBackground (mode == QE::normal);
    this->pushState ();
 }
 
 //------------------------------------------------------------------------------
 //
-QEStripChartNames::VideoModes QEStripChart::getVideoMode () const
+QE::VideoModes QEStripChart::getVideoMode () const
 {
-   return this->isNormalVideo ? QEStripChartNames::normal : QEStripChartNames::reverse;
+   return this->isNormalVideo ? QE::normal : QE::reverse;
 }
 
 //------------------------------------------------------------------------------

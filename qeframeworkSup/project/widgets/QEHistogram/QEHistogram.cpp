@@ -1039,8 +1039,10 @@ void QEHistogram::setOrientation (const Qt::Orientation orientation)
       this->layoutB->setContentsMargins (0, 0, 0, 0);
       this->layoutB->setSpacing (0);
 
-      this->axisPainter->setOrientation (SELECT (QEAxisPainter::Bottom_To_Top,
-                                                 QEAxisPainter::Left_To_Right));
+      // The axis orientation is opposite to the histogram orientation.
+      //
+      this->axisPainter->setOrientation (this->mOrientation == Qt::Horizontal
+                                         ? Qt::Vertical : Qt::Horizontal);
 
       if (HORIZONTAL) {
          this->axisPainter->setFixedWidth (60);

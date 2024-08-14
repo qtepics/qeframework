@@ -33,6 +33,7 @@
 #include <QLCDNumber>
 
 #include <QECommon.h>
+#include <QEEnums.h>
 #include <QEFrame.h>
 #include <QEWidget.h>
 #include <QEFloating.h>
@@ -101,18 +102,9 @@ public:
     /// If false, the precision property is used.
     Q_PROPERTY (bool useDbPrecision READ getUseDbPrecision WRITE setUseDbPrecision)
 
-    /// \enum Notations
-    /// User friendly enumerations for notation property - refer to QEStringFormatting::notations for details.
-    enum Notations {
-        Fixed       = QEStringFormatting::NOTATION_FIXED,              ///< Refer to QEStringFormatting::NOTATION_FIXED for details
-        Scientific  = QEStringFormatting::NOTATION_SCIENTIFIC,         ///< Refer to QEStringFormatting::NOTATION_SCIENTIFIC for details
-        Automatic   = QEStringFormatting::NOTATION_AUTOMATIC           ///< Refer to QEStringFormatting::NOTATION_AUTOMATIC for details
-    };
-    Q_ENUM (Notations)
-
     /// Notation used for numerical formatting. Default is fixed.
     ///
-    Q_PROPERTY (Notations notation READ getNotationProperty WRITE setNotationProperty)
+    Q_PROPERTY (QE::Notations notation READ getNotationProperty WRITE setNotationProperty)
     //
     // End of QE LCD Number specific properties ==========================================
 
@@ -135,8 +127,8 @@ public:
 
     QSize sizeHint () const;                             ///< Size hint for designer.
 
-    void setNotationProperty (Notations notation);       ///< Access function for #notation property - refer to #notation property for details
-    Notations getNotationProperty() const;               ///< Access function for #notation property - refer to #notation property for details
+    void setNotationProperty (QE::Notations notation);   ///< Access function for #notation property - refer to #notation property for details
+    QE::Notations getNotationProperty() const;           ///< Access function for #notation property - refer to #notation property for details
 
     // Expose access to the internal widget's set/get functions.
     //
@@ -209,9 +201,5 @@ private slots:
                                      QString variableNameSubstitutionsIn,
                                      unsigned int variableIndex);
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QELCDNumber::Notations)
-#endif
 
 #endif // QE_LCD_NUMBER_H

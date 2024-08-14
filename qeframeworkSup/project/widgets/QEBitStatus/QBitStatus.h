@@ -33,31 +33,36 @@
 #include <QBrush>
 #include <QPen>
 #include <QWidget>
+#include <QEEnums.h>
 #include <QEFrameworkLibraryGlobal.h>
 
-/// Bit wise display of integer values.
-///
 /// This class is a BitStatus widget based on directly QWidget.
-/// It provides similar functionality to that provided by the edm/medm/dephi
-/// widgets of the same name.
+/// It provides a non-EPICS aware bit status widget.
 ///
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QBitStatus : public QWidget {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QBitStatus : public QWidget
+{
    Q_OBJECT
 
 public:
-   enum Orientations { LSB_On_Right, LSB_On_Bottom, LSB_On_Left, LSB_On_Top };
-   Q_ENUM (Orientations)
-
-   enum Shapes { Rectangle, Circle };
+   /// \enum    Shapes
+   /// Specified the displayed bit shape
+   enum Shapes {
+      Rectangle,
+      Circle
+   };
    Q_ENUM (Shapes)
 
-   // Declare in type order.
-   //
    Q_PROPERTY (int     value               READ getValue                WRITE setValue)
    Q_PROPERTY (int     numberOfBits        READ getNumberOfBits         WRITE setNumberOfBits)
    Q_PROPERTY (int     shift               READ getShift                WRITE setShift)
 
-   Q_PROPERTY (Orientations Orientation    READ getOrientation          WRITE setOrientation)
+   /// For orientations/invertedAppearance
+   /// Default: Horizontal
+   /// Default: false, i.e. LSB on right if Horizontal, LSB in top if Vertical.
+   ///
+   Q_PROPERTY (Qt::Orientation orientation READ getOrientation          WRITE setOrientation)
+   Q_PROPERTY (bool invertedAppearance     READ getInvertedAppearance   WRITE setInvertedAppearance)
+
    Q_PROPERTY (Shapes  shape               READ getShape                WRITE setShape)
 
    // If draw borders are off, a gap of zero means right and left pixel positions of
@@ -85,60 +90,13 @@ public:
    Q_PROPERTY (bool    isValid             READ getIsValid              WRITE setIsValid)
    Q_PROPERTY (bool    isActive            READ getIsActive             WRITE setIsActive)
 
-private:
-   // class member variable names start with m so as not to clash with
-   // the propery names.
-   // NOTE: Where possible I spell colour properly.
-   //
-   QColor mBorderColour;
-   QColor mOnColour;
-   QColor mOffColour;
-   QColor mInvalidColour;
-   QColor mClearColour;
-
-   bool mDrawBorder;
-   int  mGap;
-   int  mNumberOfBits;      // 1 .. 32
-   int  mShift;             // 0 .. 31
-   int  mReversePolarityMask;
-   int  mOnClearMask;
-   int  mOffClearMask;
-   bool mIsActive;          // i.e. is connected in CA speak
-   bool mIsValid;
-   int mValue;
-   enum Orientations mOrientation;
-   enum Shapes mShape;
-
-
-   // Note: the getXxxxColour functions (line 125-ish) gets the Xxxx property colour.
-   // The getXxxxPaintColour functions return actual colour to for drawing the widget.
-   //
-   QColor getBorderPaintColour () const;
-   QColor getOffPaintColour () const;
-   QColor getOnPaintColour () const;
-   QColor getInvalidPaintColour () const;
-
-   // Like painter drawRect or drawEllipse, but bounded by rect, i.e.sensible.
-   //
-   void drawItem  (QPainter & painter, const QRect & rect);
-
-   void paintEvent (QPaintEvent *event);
-
-   static QString intToMask (const int n);
-   static int maskToInt (const QString mask);
-
-protected:
-   void setIsActive (const bool value);
-   bool getIsActive () const;
-
 public:
-   // Constructor
+   // Constructor/destructor
    //
    explicit QBitStatus (QWidget *parent = 0);
-   virtual ~QBitStatus () {}
+   virtual ~QBitStatus ();
 
    virtual QSize sizeHint () const;
-
 
    // Property functions
    //
@@ -181,11 +139,14 @@ public:
    void setIsValid (const bool value);
    bool getIsValid () const;
 
-   void setOrientation (const enum Orientations value);
-   enum Orientations getOrientation () const;
+   void setOrientation (const Qt::Orientation value);
+   Qt::Orientation getOrientation () const;
 
-   void setShape (const enum Shapes value);
-   enum Shapes getShape () const;
+   void setInvertedAppearance (const bool invertedAppearance);
+   bool getInvertedAppearance () const;
+
+   void setShape (const Shapes value);
+   Shapes getShape () const;
 
 public slots:
    void setValue (const int value);
@@ -193,10 +154,53 @@ public slots:
 public:
    int getValue () const;
 
+protected:
+   void paintEvent (QPaintEvent *event);
+   void setIsActive (const bool value);
+   bool getIsActive () const;
+
+private:
+   // Note: the getXxxxColour functions (line 105-ish) gets the Xxxx property colour.
+   // The getXxxxPaintColour functions return actual colour to for drawing the widget.
+   //
+   QColor getBorderPaintColour () const;
+   QColor getOffPaintColour () const;
+   QColor getOnPaintColour () const;
+   QColor getInvalidPaintColour () const;
+
+   // Like painter drawRect or drawEllipse, but bounded by rect, i.e.sensible.
+   //
+   void drawItem  (QPainter & painter, const QRect& rect);
+
+   static QString intToMask (const int n);
+   static int maskToInt (const QString mask);
+
+   // Class member variable names start with m so as not to clash with
+   // the property names - thats a qtcreator thing - not a c++ thing.
+   // NOTE: Where possible I spell colour properly.
+   //
+   QColor mBorderColour;
+   QColor mOnColour;
+   QColor mOffColour;
+   QColor mInvalidColour;
+   QColor mClearColour;
+
+   bool mDrawBorder;
+   int  mGap;
+   int  mNumberOfBits;      // 1 .. 32
+   int  mShift;             // 0 .. 31
+   int  mReversePolarityMask;
+   int  mOnClearMask;
+   int  mOffClearMask;
+   bool mIsActive;          // i.e. is connected in CA/PVA speak
+   bool mIsValid;
+   int  mValue;
+   Qt::Orientation mOrientation;
+   bool mInvertedAppearance;
+   Shapes mShape;
 };
 
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QBitStatus::Orientations)
 Q_DECLARE_METATYPE (QBitStatus::Shapes)
 #endif
 

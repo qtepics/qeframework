@@ -27,6 +27,7 @@
 #ifndef QE_RECIPE_H
 #define QE_RECIPE_H
 
+#include <QEEnums.h>
 #include <QEConfiguredLayout.h>
 #include <QDomDocument>
 
@@ -34,181 +35,137 @@
 // ============================================================
 //  QERECIPE METHODS
 // ============================================================
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QERecipe:public QWidget, public QEWidget
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QERecipe:
+      public QWidget, public QEWidget
 {
 
-    Q_OBJECT
+   Q_OBJECT
 
-    private:
+private:
 
-    protected:
-        QLabel *qLabelRecipeDescription;
-        QComboBox *qComboBoxRecipeList;
-        QPushButton *qPushButtonNew;
-        QPushButton *qPushButtonSave;
-        QPushButton *qPushButtonDelete;
-        QPushButton *qPushButtonApply;
-        QPushButton *qPushButtonRead;
-        QEConfiguredLayout *qEConfiguredLayoutRecipeFields;
-        QDomDocument document;
-        QString recipeFile;
-        QString filename;
-        int optionsLayout;
-        int currentUserType;
+protected:
+   QLabel *qLabelRecipeDescription;
+   QComboBox *qComboBoxRecipeList;
+   QPushButton *qPushButtonNew;
+   QPushButton *qPushButtonSave;
+   QPushButton *qPushButtonDelete;
+   QPushButton *qPushButtonApply;
+   QPushButton *qPushButtonRead;
+   QEConfiguredLayout *qEConfiguredLayoutRecipeFields;
+   QDomDocument document;
+   QString recipeFile;
+   QString filename;
+   QE::LayoutOptions optionsLayout;
+   QE::UserLevels currentUserType;
 
-    public:
+public:
 
-        QERecipe(QWidget *pParent = 0);
-        virtual ~QERecipe(){}
+   QERecipe(QWidget *pParent = 0);
+   virtual ~QERecipe(){}
 
-        void setRecipeDescription(QString pValue);
-        QString getRecipeDescription();
+   void setRecipeDescription(QString pValue);
+   QString getRecipeDescription();
 
-        void setShowRecipeList(bool pValue);
-        bool getShowRecipeList();
+   void setShowRecipeList(bool pValue);
+   bool getShowRecipeList();
 
-        void setShowNew(bool pValue);
-        bool getShowNew();
+   void setShowNew(bool pValue);
+   bool getShowNew();
 
-        void setShowSave(bool pValue);
-        bool getShowSave();
+   void setShowSave(bool pValue);
+   bool getShowSave();
 
-        void setShowDelete(bool pValue);
-        bool getShowDelete();
+   void setShowDelete(bool pValue);
+   bool getShowDelete();
 
-        void setShowApply(bool pValue);
-        bool getShowApply();
+   void setShowApply(bool pValue);
+   bool getShowApply();
 
-        void setShowRead(bool pValue);
-        bool getShowRead();
+   void setShowRead(bool pValue);
+   bool getShowRead();
 
-        void setShowFields(bool pValue);
-        bool getShowFields();
+   void setShowFields(bool pValue);
+   bool getShowFields();
 
-        void setConfigurationType(int pValue);
-        int getConfigurationType();
+   void setConfigurationType(QE::SourceOptions pValue);
+   QE::SourceOptions getConfigurationType();
 
-        void setConfigurationFile(QString pValue);
-        QString getConfigurationFile();
+   void setConfigurationFile(QString pValue);
+   QString getConfigurationFile();
 
-        void setRecipeFile(QString pValue);
-        QString getRecipeFile();
+   void setRecipeFile(QString pValue);
+   QString getRecipeFile();
 
-        void setConfigurationText(QString pValue);
-        QString getConfigurationText();
+   void setConfigurationText(QString pValue);
+   QString getConfigurationText();
 
-        void setOptionsLayout(int pValue);
-        int getOptionsLayout();
+   void setOptionsLayout(QE::LayoutOptions pValue);
+   QE::LayoutOptions getOptionsLayout();
 
-        void setCurrentUserType(int pValue);
-        int getCurrentUserType();
+   void setCurrentUserType(QE::UserLevels pValue);
+   QE::UserLevels getCurrentUserType();
 
-        bool saveRecipeList();
+   bool saveRecipeList();
 
-        void refreshRecipeList();
+   void refreshRecipeList();
 
-        void refreshButton();
+   void refreshButton();
 
-        void userLevelChanged(userLevelTypes::userLevels pValue);
-
-
-        Q_PROPERTY(QString recipeDescription READ getRecipeDescription WRITE setRecipeDescription)
-
-        Q_PROPERTY(bool showRecipeList READ getShowRecipeList WRITE setShowRecipeList)
-
-        Q_PROPERTY(bool showNew READ getShowNew WRITE setShowNew)
-
-        Q_PROPERTY(bool showSave READ getShowSave WRITE setShowSave)
-
-        Q_PROPERTY(bool showDelete READ getShowDelete WRITE setShowDelete)
-
-        Q_PROPERTY(bool showApply READ getShowApply WRITE setShowApply)
-
-        Q_PROPERTY(bool showRead READ getShowRead WRITE setShowRead)
-
-        Q_PROPERTY(bool showFields READ getShowFields WRITE setShowFields)
-
-        Q_PROPERTY(QString recipeFile READ getRecipeFile WRITE setRecipeFile)
+   void userLevelChanged(QE::UserLevels pValue);
 
 
-        enum configurationTypesProperty
-        {
-            File,
-            Text
-        };
-        Q_ENUM(configurationTypesProperty)
-        Q_PROPERTY(configurationTypesProperty configurationType READ getConfigurationTypeProperty WRITE setConfigurationTypeProperty)
+   Q_PROPERTY(QString recipeDescription READ getRecipeDescription WRITE setRecipeDescription)
 
-        void setConfigurationTypeProperty(configurationTypesProperty pConfigurationType)
-        {
-            setConfigurationType((configurationTypesProperty) pConfigurationType);
-        }
-        configurationTypesProperty getConfigurationTypeProperty()
-        {
-            return (configurationTypesProperty) getConfigurationType();
-        }
+   Q_PROPERTY(bool showRecipeList READ getShowRecipeList WRITE setShowRecipeList)
 
-        Q_PROPERTY(QString configurationFile READ getConfigurationFile WRITE setConfigurationFile)
+   Q_PROPERTY(bool showNew READ getShowNew WRITE setShowNew)
 
-        Q_PROPERTY(QString configurationText READ getConfigurationText WRITE setConfigurationText)
+   Q_PROPERTY(bool showSave READ getShowSave WRITE setShowSave)
 
-        enum optionsLayoutProperty
-        {
-            Top,
-            Bottom,
-            Left,
-            Right
-        };
-        Q_ENUM(optionsLayoutProperty)
-        Q_PROPERTY(optionsLayoutProperty optionsLayout READ getOptionsLayoutProperty WRITE setOptionsLayoutProperty)
+   Q_PROPERTY(bool showDelete READ getShowDelete WRITE setShowDelete)
 
-        void setOptionsLayoutProperty(optionsLayoutProperty pOptionsLayout)
-        {
-            setOptionsLayout((optionsLayoutProperty) pOptionsLayout);
-        }
-        optionsLayoutProperty getOptionsLayoutProperty()
-        {
-            return (optionsLayoutProperty) getOptionsLayout();
-        }
+   Q_PROPERTY(bool showApply READ getShowApply WRITE setShowApply)
+
+   Q_PROPERTY(bool showRead READ getShowRead WRITE setShowRead)
+
+   Q_PROPERTY(bool showFields READ getShowFields WRITE setShowFields)
+
+   Q_PROPERTY(QString recipeFile READ getRecipeFile WRITE setRecipeFile)
 
 
-        enum userTypesProperty
-        {
-            User      = userLevelTypes::USERLEVEL_USER,
-            Scientist = userLevelTypes::USERLEVEL_SCIENTIST,
-            Engineer  = userLevelTypes::USERLEVEL_ENGINEER
-        };
-        Q_ENUM(userTypesProperty)
-        Q_PROPERTY(userTypesProperty currentUserType READ getCurrentUserTypeProperty WRITE setCurrentUserTypeProperty)
+   Q_PROPERTY(QE::SourceOptions configurationType READ getConfigurationType WRITE setConfigurationType)
 
-        void setCurrentUserTypeProperty(userTypesProperty pUserType)
-        {
-            setCurrentUserType((userTypesProperty) pUserType);
-        }
-        userTypesProperty getCurrentUserTypeProperty()
-        {
-            return (userTypesProperty) getCurrentUserType();
-        }
+   Q_PROPERTY(QString configurationFile READ getConfigurationFile WRITE setConfigurationFile)
+
+   Q_PROPERTY(QString configurationText READ getConfigurationText WRITE setConfigurationText)
+
+   Q_PROPERTY(QE::LayoutOptions optionsLayout READ getOptionsLayout WRITE setOptionsLayout)
+
+   Q_PROPERTY(QE::UserLevels currentUserType READ getCurrentUserTypeProperty WRITE setCurrentUserTypeProperty)
+
+   void setCurrentUserTypeProperty(QE::UserLevels pUserType)
+   {
+      this->setCurrentUserType(pUserType);
+   }
+
+   QE::UserLevels getCurrentUserTypeProperty()
+   {
+      return this->getCurrentUserType();
+   }
 
 
-    private slots:
-        void comboBoxRecipeSelected(int);
+private slots:
+   void comboBoxRecipeSelected(int);
 
-        void buttonNewClicked();
+   void buttonNewClicked();
 
-        void buttonSaveClicked();
+   void buttonSaveClicked();
 
-        void buttonDeleteClicked();
+   void buttonDeleteClicked();
 
-        void buttonApplyClicked();
+   void buttonApplyClicked();
 
-        void buttonReadClicked();
+   void buttonReadClicked();
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QERecipe::configurationTypesProperty)
-Q_DECLARE_METATYPE (QERecipe::optionsLayoutProperty)
-Q_DECLARE_METATYPE (QERecipe::userTypesProperty)
-#endif
 
 #endif // QE_RECIPE_H

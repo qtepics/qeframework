@@ -39,8 +39,7 @@
 #include <QStringList>
 #include <QModelIndex>
 #include <QModelIndexList>
-#include <QEStringFormatting.h>
-
+#include <QEEnums.h>
 #include <QEMenuButton.h>
 #include <QEMenuButtonItem.h>
 #include <QEMenuButtonModel.h>
@@ -60,17 +59,17 @@ enum Actions {
 
 
 // Must be consistant with QEMenuButtonSetupDialog.ui
-// We need a map as FORMAT_TIME and FORMAT_LOCAL_ENUMERATE
+// We need a map as QE::Time and QE::Local_Enumeration
 // are not applicable here.
 //
 #define NUMBER_FORMATS   5
 
-static const QEStringFormatting::formats formatMap [NUMBER_FORMATS] = {
-   QEStringFormatting::FORMAT_DEFAULT,
-   QEStringFormatting::FORMAT_FLOATING,
-   QEStringFormatting::FORMAT_INTEGER,
-   QEStringFormatting::FORMAT_UNSIGNEDINTEGER,
-   QEStringFormatting::FORMAT_STRING
+static const QE::Formats formatMap [NUMBER_FORMATS] = {
+   QE::Default,
+   QE::Floating,
+   QE::Integer,
+   QE::UnsignedInteger,
+   QE::String
 };
 
 //-----------------------------------------------------------------------------
@@ -506,10 +505,10 @@ void QEMenuButtonSetupDialog::comboBoxActivated (int index)
    QComboBox* comboBox = dynamic_cast <QComboBox*> (sender ());
 
    if (comboBox == this->ui->programOptions) {
-      item->data.programStartupOption = applicationLauncher::programStartupOptions (index);
+      item->data.programStartupOption = QE::ProgramStartupOptions (index);
 
    } else if (comboBox == this->ui->openCreateOption) {
-      item->data.creationOption = QEActionRequests::Options (index);
+      item->data.creationOption = QE::CreationOptions (index);
 
    } else if (comboBox == this->ui->variableFormat) {
       item->data.format = formatMap [index];
@@ -532,6 +531,7 @@ void QEMenuButtonSetupDialog::resetButtonClicked (bool)
    itm = def;                                                        \
 } else
 
+
 #define CHECKC(btn, cbx, itm, def) if (resetButton == btn) {         \
    this->ui->cbx->setCurrentIndex (def);                             \
    itm = def;                                                        \
@@ -543,14 +543,14 @@ void QEMenuButtonSetupDialog::resetButtonClicked (bool)
       this->ui->programArgumentsLabel->setText ("");
       item->data.programArguments.clear ();
    } else
-   CHECKC (this->ui->pushButton_04, programOptions, item->data.programStartupOption, applicationLauncher::PSO_NONE)
+   CHECKC (this->ui->pushButton_04, programOptions, item->data.programStartupOption, QE::NoOutput)
    CHECKB (this->ui->pushButton_05, openUiFilename, item->data.uiFilename, "")
-   CHECKC (this->ui->pushButton_06, openCreateOption, item->data.creationOption, QEActionRequests::OptionOpen)
+   CHECKC (this->ui->pushButton_06, openCreateOption, item->data.creationOption, QE::Open)
    CHECKB (this->ui->pushButton_07, openPrioritySubstitutions, item->data.prioritySubstitutions, "")
    CHECKB (this->ui->pushButton_08, openCustomisationName, item->data.customisationName, "")
    CHECKB (this->ui->pushButton_09, variableName, item->data.variable, "")
    CHECKB (this->ui->pushButton_10, variableValue, item->data.variableValue, "0")
-   CHECKC (this->ui->pushButton_11, variableFormat, item->data.format, QEStringFormatting::FORMAT_DEFAULT)
+   CHECKC (this->ui->pushButton_11, variableFormat, item->data.format, QE::Default)
    if (resetButton == this->ui->pushButton_12) {
       this->ui->useSeperator->setChecked (false);
       item->data.separator = false;

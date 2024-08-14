@@ -24,48 +24,55 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
+//  Bit wise display of integer values.
+
 #include "QBitStatus.h"
 #include <QDebug>
 #include <QECommon.h>
 
-#define DEBUG  qDebug () << "QBitStatus"  << __LINE__<< __FUNCTION__ << "  "
+#define DEBUG qDebug () << "QBitStatus" << __LINE__ << __FUNCTION__ << "  "
 
 //------------------------------------------------------------------------------
 //
-QBitStatus::QBitStatus (QWidget *parent) : QWidget (parent)
+QBitStatus::QBitStatus( QWidget *parent ) : QWidget (parent)
 {
    // Set up data
    //
-   mBorderColour  = QColor (  0,   0,  32);   // dark dark blue
-   mOffColour     = QColor (255,   0,   0);   // red
-   mOnColour      = QColor (0,   255,   0);   // green
-   mInvalidColour = QColor (255, 182, 128);   // orange
-   mClearColour   = QColor (192, 192, 192, 0);   // gray, but clear
+   this->mBorderColour  = QColor (  0,   0,  32);   // dark dark blue
+   this->mOffColour     = QColor (255,   0,   0);   // red
+   this->mOnColour      = QColor (0,   255,   0);   // green
+   this->mInvalidColour = QColor (255, 182, 128);   // orange
+   this->mClearColour   = QColor (192, 192, 192, 0);   // gray, but clear
 
-   mDrawBorder = true;
-   mNumberOfBits = 8;      // 1 .. 32
-   mGap = 0;               // 0 .. 80
-   mShift = 0;             // 0 .. 32
-   mIsValid = true;
-   mIsActive = true;
-   mValue = 0;
-   mOrientation = LSB_On_Right;
-   mShape = Rectangle;
-   mOnClearMask = 0x00000000;
-   mOffClearMask = 0x00000000;
-   mReversePolarityMask = 0x00000000;
+   this->mDrawBorder = true;
+   this->mNumberOfBits = 8;      // 1 .. 32
+   this->mGap = 0;               // 0 .. 80
+   this->mShift = 0;             // 0 .. 32
+   this->mIsValid = true;
+   this->mIsActive = true;
+   this->mValue = 0;
+   this->mOrientation = Qt::Horizontal;
+   this->mInvertedAppearance = false;
+   this->mShape = Rectangle;
+   this->mOnClearMask = 0x00000000;
+   this->mOffClearMask = 0x00000000;
+   this->mReversePolarityMask = 0x00000000;
 
    // Do this only once, not in paintEvent as it causes another paint event.
    //
-   setAutoFillBackground (false);
-   setBackgroundRole (QPalette::NoRole);
+   this->setAutoFillBackground (false);
+   this->setBackgroundRole (QPalette::NoRole);
 }
 
+//------------------------------------------------------------------------------
+// place holder
+QBitStatus::~QBitStatus () { }
 
 //------------------------------------------------------------------------------
 //  Define default size for this widget class.
 //
-QSize QBitStatus::sizeHint () const {
+QSize QBitStatus::sizeHint () const
+{
    return QSize (48, 16);
 }
 
@@ -183,43 +190,48 @@ void QBitStatus::paintEvent (QPaintEvent *)
    painter.setRenderHint (QPainter::Antialiasing, false);
 
    // Set right and bottom; and also apply translation and rotation
-   // dependent upon widget orientation.
+   // dependent upon widget orientation and/or inverted appearance.
    //
-   switch (mOrientation) {
+   switch (this->mOrientation) {
 
-      case LSB_On_Right:
-         // Note: Pixels are  in range (0 .. size - 1).
-         //
-         right = this->width () - 1;
-         bottom = this->height () - 1;
-         painter.translate (0.0, 0.0);
-         painter.rotate (0.0);
+      case Qt::Horizontal:
+         if (!this->mInvertedAppearance) {
+            // LSB On Right
+            // Note: Pixels are  in range (0 .. size - 1).
+            //
+            right = this->width () - 1;
+            bottom = this->height () - 1;
+            painter.translate (0.0, 0.0);
+            painter.rotate (0.0);
+         } else {
+            // LSB On Left
+            right = this->width () - 1;
+            bottom = this->height () - 1;
+            painter.translate (this->width () - 1, this->height () - 1);
+            painter.rotate (180.0);    // clock-wise (degrees)
+         }
          break;
 
-      case LSB_On_Bottom:
-         right = this->height () - 1;
-         bottom = this->width () - 1;
-         painter.translate (this->width () - 1, 0.0);
-         painter.rotate (90.0);    // clock wise (degrees)
-         break;
-
-      case LSB_On_Left:
-         right = this->width () - 1;
-         bottom = this->height () - 1;
-         painter.translate (this->width () - 1, this->height () - 1);
-         painter.rotate (180.0);    // clock wise (degrees)
-         break;
-
-      case LSB_On_Top:
-         right = this->height () - 1;
-         bottom = this->width () - 1;
-         painter.translate (0.0, this->height () - 1);
-         painter.rotate (270.0);    // clock wise (degrees)
+      case Qt::Vertical:
+         if (!this->mInvertedAppearance) {
+            // LSB On Bottom
+            right = this->height () - 1;
+            bottom = this->width () - 1;
+            painter.translate (this->width () - 1, 0.0);
+            painter.rotate (90.0);    // clock wise (degrees)
+         } else {
+            // LSB On Top
+            right = this->height () - 1;
+            bottom = this->width () - 1;
+            painter.translate (0.0, this->height () - 1);
+            painter.rotate (270.0);    // clock wise (degrees)
+         }
          break;
 
       default:
-         // report an error??
+         // report an error.
          //
+         DEBUG << "Unexpected orientation: " << int (this->mOrientation);
          right = this->width () - 1;
          bottom = this->height () - 1;
          break;
@@ -349,7 +361,9 @@ type QBitStatus::get##name () const {                        \
 
 // NOTE: we have to qualify function return type here.
 //
-PROPERTY_ACCESS (QBitStatus::Orientations, Orientation, value)
+PROPERTY_ACCESS (Qt::Orientation, Orientation, value)
+
+PROPERTY_ACCESS (bool, InvertedAppearance, value)
 
 PROPERTY_ACCESS (QBitStatus::Shapes, Shape, value)
 
@@ -429,6 +443,7 @@ QString QBitStatus::getOffClearMask () const
 void QBitStatus::setReversePolarityMask (const QString value)
 {
    const int temp = this->maskToInt (value);
+
    if (this->mReversePolarityMask != temp) {
       this->mReversePolarityMask = temp;
       this->update ();

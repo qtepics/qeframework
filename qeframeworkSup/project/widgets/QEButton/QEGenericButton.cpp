@@ -54,15 +54,17 @@ QEGenericButton::QEGenericButton( QAbstractButton *owner ) :
 /*
     Setup common to all button constructors
 */
-void QEGenericButton::setup() {
+void QEGenericButton::setup()
+{
     dataSetup();
 //  commandSetup();
     guiSetup();
 
+    QAbstractButton* button = getButtonQObject();
     // Use push button signals
-    QObject::connect( getButtonQObject(), SIGNAL( pressed() ), getButtonQObject(), SLOT( userPressed() ) );
-    QObject::connect( getButtonQObject(), SIGNAL( released() ), getButtonQObject(), SLOT( userReleased() ) );
-    QObject::connect( getButtonQObject(), SIGNAL( clicked( bool ) ), getButtonQObject(), SLOT( userClicked( bool ) ) );
+    QObject::connect( button, SIGNAL( pressed() ),       button, SLOT( userPressed() ) );
+    QObject::connect( button, SIGNAL( released() ),      button, SLOT( userReleased() ) );
+    QObject::connect( button, SIGNAL( clicked( bool ) ), button, SLOT( userClicked( bool ) ) );
 }
 
 /*
@@ -77,7 +79,7 @@ void QEGenericButton::dataSetup()
     setNumVariables( NUMBER_OF_VARIABLES );
 
     // Set up default properties
-    disabledRecordPolicy = QEWidgetProperties::ignore;
+    disabledRecordPolicy = QE::ignore;
     writeOnPress = false;
     writeOnRelease = false;
     writeOnClick = true;
@@ -124,7 +126,7 @@ void QEGenericButton::guiSetup()
 {
 
     // Set default properties
-    creationOption = QEActionRequests::OptionOpen;
+    creationOption = QE::Open;
 
     // Use standard context menu
     setupContextMenu();
@@ -218,7 +220,7 @@ void QEGenericButton::establishConnection( unsigned int variableIndex ) {
     case VAR_PRIMARY:     // Primary readback variable
         // Get updates if subscribing and  there is no alternate read back.
         if( subscribe && getSubstitutedVariableName( VAR_READBACK ).isEmpty() ){
-            if( (updateOption & UPDATE_TEXT) == UPDATE_TEXT )
+            if( (updateOption & QE::Text) == QE::Text )
             {
                 setButtonText( "" );
             }
@@ -237,7 +239,7 @@ void QEGenericButton::establishConnection( unsigned int variableIndex ) {
     case VAR_READBACK:     // Alternate readback variable
         // Get updates if subscribing.
         if( subscribe ){
-            if( (updateOption & UPDATE_TEXT) == UPDATE_TEXT )
+            if( (updateOption & QE::Text) == QE::Text )
             {
                 setButtonText( "" );
             }
@@ -257,12 +259,12 @@ void QEGenericButton::establishConnection( unsigned int variableIndex ) {
 /*
  Set/get disabledRecordPolicy state.
  */
-void QEGenericButton::setDisabledRecordPolicy( const QEWidgetProperties::DisabledRecordPolicy policyIn )
+void QEGenericButton::setDisabledRecordPolicy( const QE::DisabledRecordPolicy policyIn )
 {
    disabledRecordPolicy = policyIn;
 }
 
-QEWidgetProperties::DisabledRecordPolicy QEGenericButton::getDisabledRecordPolicy() const
+QE::DisabledRecordPolicy QEGenericButton::getDisabledRecordPolicy() const
 {
    return disabledRecordPolicy;
 }
@@ -298,16 +300,16 @@ void QEGenericButton::processRecordDisableState()
     const bool isDisabled = alarmInfo.getStatus() == epicsAlarmDisable;
 
     switch( disabledRecordPolicy ) {
-    case QEWidgetProperties::ignore:
+    case QE::ignore:
         // Do nothing
         break;
 
-    case QEWidgetProperties::grayout:
+    case QE::grayout:
         // Treat disabled like not connected wrt style.
         updateConnectionStyle( !isDisabled );
         break;
 
-    case QEWidgetProperties::disable:
+    case QE::disable:
         button->setEnabled ( !isDisabled );
         break;
     }
@@ -376,7 +378,7 @@ void QEGenericButton::setGenericButtonText( const QString& text, QCaAlarmInfo& a
     // Display checked if text matches what is written when checked
     // See GUI-323
     //
-    if( (updateOption & UPDATE_STATE) == UPDATE_STATE )
+    if( (updateOption & QE::State) == QE::State )
     {
         if( text.compare( clickCheckedText ) == 0){
             setButtonState( true );
@@ -416,13 +418,13 @@ void QEGenericButton::setGenericButtonText( const QString& text, QCaAlarmInfo& a
     }
 
     // Update the text if required
-    if( (updateOption & UPDATE_TEXT) == UPDATE_TEXT )
+    if( (updateOption & QE::Text) == QE::Text )
     {
         setButtonText( text );
     }
 
     // Update the icon if required
-    if( (updateOption & UPDATE_ICON) == UPDATE_ICON )
+    if( (updateOption & QE::Icon) == QE::Icon )
     {
         QIcon icon;
         icon.addPixmap( getDataPixmap( text ) );
@@ -722,11 +724,11 @@ void QEGenericButton::paste( QVariant v )
 //==============================================================================
 
 // Update option Property convenience function
-void QEGenericButton::setUpdateOption( updateOptions updateOptionIn )
+void QEGenericButton::setUpdateOption( QE::UpdateOptions updateOptionIn )
 {
     updateOption = updateOptionIn;
 }
-QEGenericButton::updateOptions QEGenericButton::getUpdateOption()
+QE::UpdateOptions QEGenericButton::getUpdateOption()
 {
     return updateOption;
 }
@@ -893,8 +895,15 @@ void QEGenericButton::setArguments( QStringList arguments ){ programLauncher.set
 QStringList QEGenericButton::getArguments(){ return  programLauncher.getArguments(); }
 
 // Startup option
-void QEGenericButton::setProgramStartupOption( applicationLauncher::programStartupOptions programStartupOption ){ programLauncher.setProgramStartupOption( programStartupOption ); }
-applicationLauncher::programStartupOptions QEGenericButton::getProgramStartupOption(){ return programLauncher.getProgramStartupOption(); }
+void QEGenericButton::setProgramStartupOption( QE::ProgramStartupOptions programStartupOption )
+{
+   programLauncher.setProgramStartupOption( programStartupOption );
+}
+
+QE::ProgramStartupOptions QEGenericButton::getProgramStartupOption()
+{
+   return programLauncher.getProgramStartupOption();
+}
 
 //==============================================================================
 // 'Start new GUI' Property convenience functions
@@ -912,11 +921,12 @@ QString QEGenericButton::getGuiName()
 }
 
 // Qt Designer Properties Creation options
-void QEGenericButton::setCreationOption( QEActionRequests::Options creationOptionIn )
+void QEGenericButton::setCreationOption( QE::CreationOptions creationOptionIn )
 {
     creationOption = creationOptionIn;
 }
-QEActionRequests::Options QEGenericButton::getCreationOption()
+
+QE::CreationOptions QEGenericButton::getCreationOption()
 {
     return creationOption;
 }

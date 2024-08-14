@@ -336,7 +336,7 @@ void QEPlot::setup ()
    this->setFrameShape (QFrame::NoFrame);
    this->setFrameShadow (QFrame::Plain);
    this->setVariableAsToolTip (true);
-   this->setDisplayAlarmStateOption (standardProperties::DISPLAY_ALARM_STATE_ALWAYS);
+   this->setDisplayAlarmStateOption (QE::Always);
    this->setAllowDrop (false);
 
    // General plot properties
@@ -350,7 +350,7 @@ void QEPlot::setup ()
    this->selectedYAxis = Left;
    this->useFullLengthArraySubscriptions = false;  // go with modern behaviour by default.
 
-   this->mMouseMoveSignals = signalData;
+   this->mMouseMoveSignals = QE::signalData;
 
    // Default to one minute span
    //
@@ -458,7 +458,7 @@ void QEPlot::plotMouseMove (const QPointF& posn)
 {
    QString message;
 
-   if (this->mMouseMoveSignals & (signalStatus|signalText)) {
+   if (this->mMouseMoveSignals & (QE::signalStatus|QE::signalText)) {
       // Prepare the text
       //
       QString f;   // temp
@@ -513,21 +513,21 @@ void QEPlot::plotMouseMove (const QPointF& posn)
       // Do we send a status message?
       // Appears on the status bar of containing form.
       //
-      if (this->mMouseMoveSignals & signalStatus) {
+      if (this->mMouseMoveSignals & QE::signalStatus) {
          this->setReadOut (message);
       }
 
       // Do we emit time/value as string signal ?
       // Can go to QLabel or any other widget that accepts a string.
       //
-      if (this->mMouseMoveSignals & signalText) {
+      if (this->mMouseMoveSignals & QE::signalText) {
          emit mouseMove (message);
       }
    }
 
    // Do we send a data signal message ?
    //
-   if (this->mMouseMoveSignals & signalData) {
+   if (this->mMouseMoveSignals & QE::signalData) {
       emit mouseMove (posn);
    }
 }
@@ -1985,14 +1985,14 @@ int QEPlot::getMargin () const
 
 //------------------------------------------------------------------------------
 //
-void QEPlot::setMouseMoveSignals (const MouseMoveSignalFlags flags)
+void QEPlot::setMouseMoveSignals (const QE::MouseMoveSignalFlags flags)
 {
    this->mMouseMoveSignals = flags;
 }
 
 //------------------------------------------------------------------------------
 //
-QEPlot::MouseMoveSignalFlags QEPlot::getMouseMoveSignals () const
+QE::MouseMoveSignalFlags QEPlot::getMouseMoveSignals () const
 {
    return this->mMouseMoveSignals;
 }

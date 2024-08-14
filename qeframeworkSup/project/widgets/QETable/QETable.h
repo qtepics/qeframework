@@ -37,6 +37,7 @@
 #include <QTimer>
 #include <QVector>
 
+#include <QEEnums.h>
 #include <QECommon.h>
 #include <QEAbstractDynamicWidget.h>
 #include <QEStringFormatting.h>
@@ -150,54 +151,20 @@ public:
    ///
    Q_PROPERTY (bool forceSign READ getForceSign WRITE setForceSign)
 
-   /// \enum  Formats
-   /// User friendly enumerations for format property - refer to QEStringFormatting::formats for details.
-   /// Note: no LocalEnumeration option
-   enum Formats {
-      Default          = QEStringFormatting::FORMAT_DEFAULT,            ///< Format as best appropriate for the data type
-      Floating         = QEStringFormatting::FORMAT_FLOATING,           ///< Format as a floating point number
-      Integer          = QEStringFormatting::FORMAT_INTEGER,            ///< Format as an integer
-      UnsignedInteger  = QEStringFormatting::FORMAT_UNSIGNEDINTEGER,    ///< Format as an unsigned integer
-      Time             = QEStringFormatting::FORMAT_TIME                ///< Format as a time
-   };
-   Q_ENUM (Formats)
-
    /// Format to apply to data. Default is 'Default' in which case the data type
    /// supplied with the data determines how the data is formatted.
    /// For all other options, an attempt is made to format the data as requested
    /// (whatever its native form).
    ///
-   Q_PROPERTY (Formats format READ getFormatProperty WRITE setFormatProperty)
-
-   /// \enum Separators
-   /// User friendly enumerations for seprator property - refer to QEStringFormatting::formats for details.
-   ///
-   enum Separators {
-      NoSeparator = QEStringFormatting::SEPARATOR_NONE,         ///< Use no separator
-      Comma       = QEStringFormatting::SEPARATOR_COMMA,        ///< Use ',' as separator
-      Underscore  = QEStringFormatting::SEPARATOR_UNDERSCORE,   ///< Use '_' as separator
-      Space       = QEStringFormatting::SEPARATOR_SPACE         ///< Use ' ' as separator
-   };
-   Q_ENUM (Separators)
+   Q_PROPERTY (QE::Formats format READ getFormatProperty WRITE setFormatProperty)
 
    /// Seperators used for interger and fixed point formatting. Default is None.
    ///
-   Q_PROPERTY(Separators separator READ getSeparatorProperty WRITE setSeparatorProperty)
-
-   /// \enum Notations
-   /// User friendly enumerations for notation property - refer to QEStringFormatting::notations for details.
-   ///
-   enum Notations {
-      Fixed       = QEStringFormatting::NOTATION_FIXED,         ///< Refer to QEStringFormatting::NOTATION_FIXED for details
-      Scientific  = QEStringFormatting::NOTATION_SCIENTIFIC,    ///< Refer to QEStringFormatting::NOTATION_SCIENTIFIC for details
-      Automatic   = QEStringFormatting::NOTATION_AUTOMATIC      ///< Refer to QEStringFormatting::NOTATION_AUTOMATIC for details
-   };
-   Q_ENUM (Notations)
+   Q_PROPERTY(QE::Separators separator READ getSeparatorProperty WRITE setSeparatorProperty)
 
    /// Notation used for numerical formatting. Default is fixed.
    ///
-   Q_PROPERTY(Notations notation READ getNotationProperty WRITE setNotationProperty)
-
+   Q_PROPERTY(QE::Notations notation READ getNotationProperty WRITE setNotationProperty)
 
    // End of QETable specific properties =========================================
 
@@ -229,14 +196,14 @@ public:
    void setOrientation (const Qt::Orientation orientation);
    Qt::Orientation getOrientation () const;
 
-   void setFormatProperty (const Formats format);
-   Formats getFormatProperty () const;
+   void setFormatProperty (const QE::Formats format);
+   QE::Formats getFormatProperty () const;
 
-   void setSeparatorProperty (const Separators separator);
-   Separators getSeparatorProperty () const;
+   void setSeparatorProperty (const QE::Separators separator);
+   QE::Separators getSeparatorProperty () const;
 
-   void setNotationProperty (const Notations notation);
-   Notations getNotationProperty () const;
+   void setNotationProperty (const QE::Notations notation);
+   QE::Notations getNotationProperty () const;
 
    int addPvName (const QString& pvName);
    void clearAllPvNames ();
@@ -307,9 +274,9 @@ public:
    //
    void setSlotAddUnits  (const int slot, const bool addUnits);
    void setSlotForceSign (const int slot, const bool forceSign);
-   void setSlotFormat    (const int slot, const QEStringFormatting::formats format);
-   void setSlotSeparator (const int slot, const QEStringFormatting::separators separator);
-   void setSlotNotation  (const int slot, const QEStringFormatting::notations notation);
+   void setSlotFormat    (const int slot, const QE::Formats format);
+   void setSlotSeparator (const int slot, const QE::Separators separator);
+   void setSlotNotation  (const int slot, const QE::Notations notation);
 
 signals:
    void selectionChanged (int value);
@@ -439,12 +406,5 @@ private slots:
 
    void timeout ();
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QETable::Formats)
-Q_DECLARE_METATYPE (QETable::Separators)
-Q_DECLARE_METATYPE (QETable::Notations)
-#endif
-
 
 #endif // QE_TABLE_H

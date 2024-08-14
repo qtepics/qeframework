@@ -25,6 +25,7 @@
  */
 
 #include "QEScript.h"
+#include <QDebug>
 #include <QLineEdit>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -40,8 +41,11 @@
 #include <QCoreApplication>
 #include <UserMessage.h>
 
+#define DEBUG qDebug () << "QEScript" << __LINE__ << __FUNCTION__ << "  "
+
 enum tableColName { INDEX, ENABLE, PROG, ARG, DIR, TIME, STOP, LOG, NUM_OF_COL };
 #define SMALL_COL_SIZE 60
+
 
 // =============================================================================
 //  QESCRIPT METHODS
@@ -55,7 +59,7 @@ QEScript::QEScript(QWidget *pParent):QWidget(pParent), QEWidget( this )
    //
    setVariableAsToolTip(false);
    setAllowDrop(false);
-   setDisplayAlarmStateOption(standardProperties::DISPLAY_ALARM_STATE_NEVER);
+   setDisplayAlarmStateOption(QE::Never);
 
    qComboBoxScriptList = new QComboBox(this);
 
@@ -150,15 +154,20 @@ QEScript::QEScript(QWidget *pParent):QWidget(pParent), QEWidget( this )
    QObject::connect(qTableWidgetScript->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
                     this, SLOT(selectionChanged(const QItemSelection &, const QItemSelection &)));
 
-   setScriptType(File);
+   setScriptType(QE::SourceFile);
    setScriptFile("");
    setScriptText("");
    setScriptDefault("");
-   setOptionsLayout(Top);
+   setOptionsLayout(QE::Top);
    isExecuting = false;
    refreshWidgets();
    editableTable = true;
 }
+
+//------------------------------------------------------------------------------
+// place holder
+QEScript::~QEScript(){}
+
 
 //------------------------------------------------------------------------------
 //
@@ -413,7 +422,7 @@ bool QEScript::getShowColumnLog()
 
 //------------------------------------------------------------------------------
 //
-void QEScript::setScriptType(int pValue)
+void QEScript::setScriptType(QE::SourceOptions pValue)
 {
    scriptType = pValue;
    setScriptFile(scriptFile);
@@ -422,7 +431,7 @@ void QEScript::setScriptType(int pValue)
 
 //------------------------------------------------------------------------------
 //
-int QEScript::getScriptType()
+QE::SourceOptions QEScript::getScriptType()
 {
    return scriptType;
 }
@@ -438,7 +447,7 @@ void QEScript::setScriptFile(QString pValue)
 
 
    scriptFile = pValue;
-   if (scriptType == File)
+   if (scriptType == QE::SourceFile)
    {
       document.clear();
       if (scriptFile.isEmpty())
@@ -486,7 +495,7 @@ void QEScript::setScriptText(QString pValue)
    QDomElement rootElement;
 
    scriptText = pValue;
-   if (scriptType == Text)
+   if (scriptType == QE::SourceText)
    {
       document.clear();
       if (document.setContent(scriptText) == false)
@@ -557,7 +566,7 @@ QString QEScript::getExecuteText()
 
 //------------------------------------------------------------------------------
 //
-void QEScript::setOptionsLayout(int pValue)
+void QEScript::setOptionsLayout(QE::LayoutOptions pValue)
 {
    QLayout *qLayoutMain;
    QLayout *qLayoutChild;
@@ -566,8 +575,8 @@ void QEScript::setOptionsLayout(int pValue)
 
    switch(pValue)
    {
-      case Top:
-         optionsLayout = Top;
+      case QE::Top:
+         optionsLayout = QE::Top;
          qLayoutMain = new QVBoxLayout(this);
          qLayoutChild = new QHBoxLayout();
          qLayoutChild->addWidget(qComboBoxScriptList);
@@ -588,8 +597,8 @@ void QEScript::setOptionsLayout(int pValue)
          qLayoutMain->addWidget(qTableWidgetScript);
          break;
 
-      case Bottom:
-         optionsLayout = Bottom;
+      case QE::Bottom:
+         optionsLayout = QE::Bottom;
          qLayoutMain = new QVBoxLayout(this);
          qLayoutMain->addWidget(qTableWidgetScript);
          qLayoutChild = new QHBoxLayout();
@@ -610,8 +619,8 @@ void QEScript::setOptionsLayout(int pValue)
          qLayoutMain->addItem(qLayoutChild);
          break;
 
-      case Left:
-         optionsLayout = Left;
+      case QE::Left:
+         optionsLayout = QE::Left;
          qLayoutMain = new QHBoxLayout(this);
          qLayoutChild = new QVBoxLayout();
          qLayoutChild->addWidget(qComboBoxScriptList);
@@ -630,8 +639,8 @@ void QEScript::setOptionsLayout(int pValue)
          qLayoutMain->addWidget(qTableWidgetScript);
          break;
 
-      case Right:
-         optionsLayout = Right;
+      case QE::Right:
+         optionsLayout = QE::Right;
          qLayoutMain = new QHBoxLayout(this);
          qLayoutChild = new QVBoxLayout();
          qLayoutChild->addWidget(qComboBoxScriptList);
@@ -653,7 +662,7 @@ void QEScript::setOptionsLayout(int pValue)
 
 //------------------------------------------------------------------------------
 //
-int QEScript::getOptionsLayout()
+QE::LayoutOptions QEScript::getOptionsLayout()
 {
    return optionsLayout;
 }
@@ -1371,9 +1380,9 @@ void QEScript::refreshWidgets()
    rowSelectedCount = qTableWidgetScript->selectionModel()->selectedRows().count();
 
    qComboBoxScriptList->setEnabled(isExecuting == false);
-   qPushButtonNew->setEnabled(scriptType == File && isExecuting == false);
-   qPushButtonSave->setEnabled(scriptType == File && isExecuting == false && qTableWidgetScript->rowCount() > 0);
-   qPushButtonDelete->setEnabled(scriptType == File && isExecuting == false && qComboBoxScriptList->currentText().isEmpty() == false);
+   qPushButtonNew->setEnabled(scriptType == QE::SourceFile && isExecuting == false);
+   qPushButtonSave->setEnabled(scriptType == QE::SourceFile && isExecuting == false && qTableWidgetScript->rowCount() > 0);
+   qPushButtonDelete->setEnabled(scriptType == QE::SourceFile && isExecuting == false && qComboBoxScriptList->currentText().isEmpty() == false);
    qPushButtonExecute->setEnabled(isExecuting == false && rowCount > 0);
    qPushButtonAbort->setEnabled(isExecuting == true);
 

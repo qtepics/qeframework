@@ -30,6 +30,7 @@
 #include <QTableWidgetItem>
 #include <QPushButton>
 #include <QComboBox>
+#include <QEEnums.h>
 #include <QEWidget.h>
 
 // ============================================================
@@ -38,20 +39,20 @@
 class _QTableWidgetScript:public QTableWidget
 {
 
-    Q_OBJECT
+   Q_OBJECT
 
-    private:
-        bool initialized;
+private:
+   bool initialized;
 
-    protected:
+protected:
 
-    public:
-        _QTableWidgetScript(QWidget * pParent = 0);
-        void refreshSize();
-        void resizeEvent(QResizeEvent *);
-        void resize(int w, int h);
+public:
+   _QTableWidgetScript(QWidget * pParent = 0);
+   void refreshSize();
+   void resizeEvent(QResizeEvent *);
+   void resize(int w, int h);
 
-    private slots:
+private slots:
 
 };
 
@@ -61,40 +62,40 @@ class _QTableWidgetScript:public QTableWidget
 // ============================================================
 class _CopyPaste
 {
-    private:
-        bool enable;
-        QString program;
-        QString parameters;
-        QString workingDirectory;
-        int timeOut;
-        bool stop;
-        bool log;
+private:
+   bool enable;
+   QString program;
+   QString parameters;
+   QString workingDirectory;
+   int timeOut;
+   bool stop;
+   bool log;
 
-    public:
-        _CopyPaste();
+public:
+   _CopyPaste();
 
-        _CopyPaste(bool pEnable, QString pProgram, QString pParameters, QString pWorkingDirectory, int pTimeOut, bool pStop, bool pLog);
+   _CopyPaste(bool pEnable, QString pProgram, QString pParameters, QString pWorkingDirectory, int pTimeOut, bool pStop, bool pLog);
 
-        void setEnable(bool pEnable);
-        bool getEnable();
+   void setEnable(bool pEnable);
+   bool getEnable();
 
-        void setProgram(QString pProgram);
-        QString getProgram();
+   void setProgram(QString pProgram);
+   QString getProgram();
 
-        void setParameters(QString pParameters);
-        QString getParameters();
+   void setParameters(QString pParameters);
+   QString getParameters();
 
-        void setWorkingDirectory(QString pWorkingDirectory);
-        QString getWorkingDirectory();
+   void setWorkingDirectory(QString pWorkingDirectory);
+   QString getWorkingDirectory();
 
-        void setTimeOut(int pTimeOut);
-        int getTimeOut();
+   void setTimeOut(int pTimeOut);
+   int getTimeOut();
 
-        void setStop(bool pStop);
-        bool getStop();
+   void setStop(bool pStop);
+   bool getStop();
 
-        void setLog(bool pLog);
-        bool getLog();
+   void setLog(bool pLog);
+   bool getLog();
 };
 
 
@@ -103,222 +104,190 @@ class _CopyPaste
 // ============================================================
 /*!
   This class is a EPICS aware widget.
-  The QEScript widget allows the user to define a certain sequence of external programs to be executed. This sequence may be saved, modified or loaded for future usage.
+  The QEScript widget allows the user to define a certain sequence of external
+  programs to be executed. This sequence may be saved, modified or loaded for
+  future usage.
 */
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEScript:public QWidget, public QEWidget
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEScript : public QWidget, public QEWidget
 {
+   Q_OBJECT
 
-    Q_OBJECT
+private:
 
-    private:
+protected:
+   QComboBox *qComboBoxScriptList;
+   QPushButton *qPushButtonNew;
+   QPushButton *qPushButtonSave;
+   QPushButton *qPushButtonDelete;
+   QPushButton *qPushButtonExecute;
+   QPushButton *qPushButtonAbort;
+   QPushButton *qPushButtonAdd;
+   QPushButton *qPushButtonRemove;
+   QPushButton *qPushButtonUp;
+   QPushButton *qPushButtonDown;
+   QPushButton *qPushButtonCopy;
+   QPushButton *qPushButtonPaste;
+   _QTableWidgetScript *qTableWidgetScript;
+   QString scriptFile;
+   QString scriptText;
+   QString scriptDefault;
+   QE::SourceOptions scriptType;
+   QE::LayoutOptions optionsLayout;
+   QDomDocument document;
+   QString filename;
+   QList<_CopyPaste *> copyPasteList;
+   bool editableTable;
+   bool isExecuting;
 
-    protected:
-        QComboBox *qComboBoxScriptList;
-        QPushButton *qPushButtonNew;
-        QPushButton *qPushButtonSave;
-        QPushButton *qPushButtonDelete;
-        QPushButton *qPushButtonExecute;
-        QPushButton *qPushButtonAbort;
-        QPushButton *qPushButtonAdd;
-        QPushButton *qPushButtonRemove;
-        QPushButton *qPushButtonUp;
-        QPushButton *qPushButtonDown;
-        QPushButton *qPushButtonCopy;
-        QPushButton *qPushButtonPaste;
-        _QTableWidgetScript *qTableWidgetScript;
-        QString scriptFile;
-        QString scriptText;
-        QString scriptDefault;
-        int scriptType;
-        int optionsLayout;
-        QDomDocument document;
-        QString filename;
-        QList<_CopyPaste *> copyPasteList;
-        bool editableTable;
-        bool isExecuting;
+public:
+   explicit QEScript(QWidget *pParent = 0);
+   virtual ~QEScript();
 
-    public:
-        QEScript(QWidget *pParent = 0);
-        virtual ~QEScript(){}
+   void setShowScriptList(bool pValue);
+   bool getShowScriptList();
 
-        void setShowScriptList(bool pValue);
-        bool getShowScriptList();
+   void setShowNew(bool pValue);
+   bool getShowNew();
 
-        void setShowNew(bool pValue);
-        bool getShowNew();
+   void setShowSave(bool pValue);
+   bool getShowSave();
 
-        void setShowSave(bool pValue);
-        bool getShowSave();
+   void setShowDelete(bool pValue);
+   bool getShowDelete();
 
-        void setShowDelete(bool pValue);
-        bool getShowDelete();
+   void setShowExecute(bool pValue);
+   bool getShowExecute();
 
-        void setShowExecute(bool pValue);
-        bool getShowExecute();
+   void setShowAbort(bool pValue);
+   bool getShowAbort();
 
-        void setShowAbort(bool pValue);
-        bool getShowAbort();
+   void setEditableTable(bool pValue);
+   bool getEditableTable();
 
-        void setEditableTable(bool pValue);
-        bool getEditableTable();
+   void setShowTable(bool pValue);
+   bool getShowTable();
 
-        void setShowTable(bool pValue);
-        bool getShowTable();
+   void setShowTableControl(bool pValue);
+   bool getShowTableControl();
 
-        void setShowTableControl(bool pValue);
-        bool getShowTableControl();
+   void setShowColumnNumber(bool pValue);
+   bool getShowColumnNumber();
 
-        void setShowColumnNumber(bool pValue);
-        bool getShowColumnNumber();
+   void setShowColumnEnable(bool pValue);
+   bool getShowColumnEnable();
 
-        void setShowColumnEnable(bool pValue);
-        bool getShowColumnEnable();
+   void setShowColumnProgram(bool pValue);
+   bool getShowColumnProgram();
 
-        void setShowColumnProgram(bool pValue);
-        bool getShowColumnProgram();
+   void setShowColumnParameters(bool pValue);
+   bool getShowColumnParameters();
 
-        void setShowColumnParameters(bool pValue);
-        bool getShowColumnParameters();
+   void setShowColumnWorkingDirectory(bool pValue);
+   bool getShowColumnWorkingDirectory();
 
-        void setShowColumnWorkingDirectory(bool pValue);
-        bool getShowColumnWorkingDirectory();
+   void setShowColumnTimeout(bool pValue);
+   bool getShowColumnTimeout();
 
-        void setShowColumnTimeout(bool pValue);
-        bool getShowColumnTimeout();
+   void setShowColumnStop(bool pValue);
+   bool getShowColumnStop();
 
-        void setShowColumnStop(bool pValue);
-        bool getShowColumnStop();
+   void setShowColumnLog(bool pValue);
+   bool getShowColumnLog();
 
-        void setShowColumnLog(bool pValue);
-        bool getShowColumnLog();
+   void setScriptType(QE::SourceOptions pValue);
+   QE::SourceOptions getScriptType();
 
-        void setScriptType(int pValue);
-        int getScriptType();
+   void setScriptFile(QString pValue);
+   QString getScriptFile();
 
-        void setScriptFile(QString pValue);
-        QString getScriptFile();
+   void setScriptText(QString pValue);
+   QString getScriptText();
 
-        void setScriptText(QString pValue);
-        QString getScriptText();
+   void setScriptDefault(QString pValue);
+   QString getScriptDefault();
 
-        void setScriptDefault(QString pValue);
-        QString getScriptDefault();
+   void setExecuteText(QString pValue);
+   QString getExecuteText();
 
-        void setExecuteText(QString pValue);
-        QString getExecuteText();
+   void setOptionsLayout(QE::LayoutOptions pValue);
+   QE::LayoutOptions getOptionsLayout();
 
-        void setOptionsLayout(int pValue);
-        int getOptionsLayout();
+   void insertRow(bool pEnable, QString pProgram, QString pParameter, QString pWorkingDirectory, int pTimeOut, bool pStop, bool pLog);
 
-        void insertRow(bool pEnable, QString pProgram, QString pParameter, QString pWorkingDirectory, int pTimeOut, bool pStop, bool pLog);
+   bool saveScriptList();
 
-        bool saveScriptList();
+   void refreshScriptList();
 
-        void refreshScriptList();
+   void refreshWidgets();
 
-        void refreshWidgets();
+   /// Show/hide combobox that contains the list of existing scripts created by the user
+   Q_PROPERTY(bool showScriptList READ getShowScriptList WRITE setShowScriptList)
 
-        /// Show/hide combobox that contains the list of existing scripts created by the user
-        Q_PROPERTY(bool showScriptList READ getShowScriptList WRITE setShowScriptList)
+   /// Show/hide button to reset (initialize) the table that contains the sequence of programs to be executed
+   Q_PROPERTY(bool showNew READ getShowNew WRITE setShowNew)
 
-        /// Show/hide button to reset (initialize) the table that contains the sequence of programs to be executed
-        Q_PROPERTY(bool showNew READ getShowNew WRITE setShowNew)
+   /// Show/hide button to save/overwrite a new/existing script
+   Q_PROPERTY(bool showSave READ getShowSave WRITE setShowSave)
 
-        /// Show/hide button to save/overwrite a new/existing script
-        Q_PROPERTY(bool showSave READ getShowSave WRITE setShowSave)
+   /// Show/hide button to delete an existing script
+   Q_PROPERTY(bool showDelete READ getShowDelete WRITE setShowDelete)
 
-        /// Show/hide button to delete an existing script
-        Q_PROPERTY(bool showDelete READ getShowDelete WRITE setShowDelete)
+   /// Show/hide button to execute a sequence of programs
+   Q_PROPERTY(bool showExecute READ getShowExecute WRITE setShowExecute)
 
-        /// Show/hide button to execute a sequence of programs
-        Q_PROPERTY(bool showExecute READ getShowExecute WRITE setShowExecute)
+   /// Show/hide button to abort the execution of a sequence of programs
+   Q_PROPERTY(bool showAbort READ getShowAbort WRITE setShowAbort)
 
-        /// Show/hide button to abort the execution of a sequence of programs
-        Q_PROPERTY(bool showAbort READ getShowAbort WRITE setShowAbort)
+   /// Show/hide table that contains a sequence of programs to be executed
+   Q_PROPERTY(bool showTable READ getShowTable WRITE setShowTable)
 
-        /// Show/hide table that contains a sequence of programs to be executed
-        Q_PROPERTY(bool showTable READ getShowTable WRITE setShowTable)
+   /// Enable/disable table edition
+   Q_PROPERTY(bool editableTable READ getEditableTable WRITE setEditableTable)
 
-        /// Enable/disable table edition
-        Q_PROPERTY(bool editableTable READ getEditableTable WRITE setEditableTable)
+   /// Show/hide the controls of the table that contains a sequence of programs to be executed
+   Q_PROPERTY(bool showTableControl READ getShowTableControl WRITE setShowTableControl)
 
-        /// Show/hide the controls of the table that contains a sequence of programs to be executed
-        Q_PROPERTY(bool showTableControl READ getShowTableControl WRITE setShowTableControl)
+   /// Show/hide the column '#' that displays the sequential number of programs
+   Q_PROPERTY(bool showColumnNumber READ getShowColumnNumber WRITE setShowColumnNumber)
 
-        /// Show/hide the column '#' that displays the sequential number of programs
-        Q_PROPERTY(bool showColumnNumber READ getShowColumnNumber WRITE setShowColumnNumber)
+   /// Show/hide the column 'Enable' that enables the execution of programs
+   Q_PROPERTY(bool showColumnEnable READ getShowColumnEnable WRITE setShowColumnEnable)
 
-        /// Show/hide the column 'Enable' that enables the execution of programs
-        Q_PROPERTY(bool showColumnEnable READ getShowColumnEnable WRITE setShowColumnEnable)
+   /// Show/hide the column 'Program' that contains the external programs to be executed
+   Q_PROPERTY(bool showColumnProgram READ getShowColumnProgram WRITE setShowColumnProgram)
 
-        /// Show/hide the column 'Program' that contains the external programs to be executed
-        Q_PROPERTY(bool showColumnProgram READ getShowColumnProgram WRITE setShowColumnProgram)
+   /// Show/hide the column 'Parameters' that contains the parameters that are passed to external programs to be executed
+   Q_PROPERTY(bool showColumnParameters READ getShowColumnParameters WRITE setShowColumnParameters)
 
-        /// Show/hide the column 'Parameters' that contains the parameters that are passed to external programs to be executed
-        Q_PROPERTY(bool showColumnParameters READ getShowColumnParameters WRITE setShowColumnParameters)
+   /// Show/hide the column 'Directory' that defines the working directory to be used when external programs are executed
+   Q_PROPERTY(bool showColumnWorkingDirectory READ getShowColumnWorkingDirectory WRITE setShowColumnWorkingDirectory)
 
-        /// Show/hide the column 'Directory' that defines the working directory to be used when external programs are executed
-        Q_PROPERTY(bool showColumnWorkingDirectory READ getShowColumnWorkingDirectory WRITE setShowColumnWorkingDirectory)
+   /// Show/hide the column 'Timeout' that defines a time out period in seconds (if equal to 0 then the program runs until it finishes; otherwise if greater than 0 then the program will only run during this amount of seconds and will be aborted beyond this time)
+   Q_PROPERTY(bool showColumnTimeout READ getShowColumnTimeout WRITE setShowColumnTimeout)
 
-        /// Show/hide the column 'Timeout' that defines a time out period in seconds (if equal to 0 then the program runs until it finishes; otherwise if greater than 0 then the program will only run during this amount of seconds and will be aborted beyond this time)
-        Q_PROPERTY(bool showColumnTimeout READ getShowColumnTimeout WRITE setShowColumnTimeout)
+   /// Show/hide the column 'Stop' that enables stopping the execution of subsequent programs when the current one exited with an error code different from 0
+   Q_PROPERTY(bool showColumnStop READ getShowColumnStop WRITE setShowColumnStop)
 
-        /// Show/hide the column 'Stop' that enables stopping the execution of subsequent programs when the current one exited with an error code different from 0
-        Q_PROPERTY(bool showColumnStop READ getShowColumnStop WRITE setShowColumnStop)
+   /// Show/hide the column 'Log' that enables the generation of log messages (these messages may be displayed using the QELog widget)
+   Q_PROPERTY(bool showColumnLog READ getShowColumnLog WRITE setShowColumnLog)
 
-        /// Show/hide the column 'Log' that enables the generation of log messages (these messages may be displayed using the QELog widget)
-        Q_PROPERTY(bool showColumnLog READ getShowColumnLog WRITE setShowColumnLog)
+   /// Select if the scripts are to be loaded/saved from an XML file or from an XML text
+   Q_PROPERTY(QE::SourceOptions scriptType READ getScriptType WRITE setScriptType)
 
-        /// Select if the scripts are to be loaded/saved from an XML file or from an XML text
-        enum scriptTypesProperty
-        {
-            File,
-            Text
-        };
-        Q_ENUM(scriptTypesProperty)
-        Q_PROPERTY(scriptTypesProperty scriptType READ getScriptTypeProperty WRITE setScriptTypeProperty)
+   /// Define the file where to save the scripts (if not defined then the scripts will be saved in a file named "QEScript.xml")
+   Q_PROPERTY(QString scriptFile READ getScriptFile WRITE setScriptFile)
 
-        void setScriptTypeProperty(scriptTypesProperty pScriptType)
-        {
-            setScriptType((scriptTypesProperty) pScriptType);
-        }
-        scriptTypesProperty getScriptTypeProperty()
-        {
-            return (scriptTypesProperty) getScriptType();
-        }
+   /// Define the XML text that contains the scripts
+   Q_PROPERTY(QString scriptText READ getScriptText WRITE setScriptText)
 
-        /// Define the file where to save the scripts (if not defined then the scripts will be saved in a file named "QEScript.xml")
-        Q_PROPERTY(QString scriptFile READ getScriptFile WRITE setScriptFile)
+   /// Define the script (previously saved by the user) that will be load as the default script when the widget starts
+   Q_PROPERTY(QString scriptDefault READ getScriptDefault WRITE setScriptDefault)
 
-        /// Define the XML text that contains the scripts
-        Q_PROPERTY(QString scriptText READ getScriptText WRITE setScriptText)
+   /// Define the caption of the button responsible for starting the execution of external programs (if not defined then the caption will be "Execute")
+   Q_PROPERTY(QString executeText READ getExecuteText WRITE setExecuteText)
 
-        /// Define the script (previously saved by the user) that will be load as the default script when the widget starts
-        Q_PROPERTY(QString scriptDefault READ getScriptDefault WRITE setScriptDefault)
-
-        /// Define the caption of the button responsible for starting the execution of external programs (if not defined then the caption will be "Execute")
-        Q_PROPERTY(QString executeText READ getExecuteText WRITE setExecuteText)
-
-        /// Change the order of the widgets. Valid orders are: TOP, BOTTOM, LEFT and RIG
-        enum optionsLayoutProperty
-        {
-            Top,
-            Bottom,
-            Left,
-            Right
-        };
-        Q_ENUM(optionsLayoutProperty)
-        Q_PROPERTY(optionsLayoutProperty optionsLayout READ getOptionsLayoutProperty WRITE setOptionsLayoutProperty)
-
-        void setOptionsLayoutProperty(optionsLayoutProperty pOptionsLayout)
-        {
-            setOptionsLayout((optionsLayoutProperty) pOptionsLayout);
-        }
-        optionsLayoutProperty getOptionsLayoutProperty()
-        {
-            return (optionsLayoutProperty) getOptionsLayout();
-        }
-
+   /// Change the order of the widgets. Valid orders are: TOP, BOTTOM, LEFT and RIG
+   Q_PROPERTY(QE::LayoutOptions optionsLayout READ getOptionsLayout WRITE setOptionsLayout)
 
    // BEGIN-STANDARD-V2-PROPERTIES ===================================================
    // Standard properties
@@ -330,10 +299,10 @@ public slots:
    /// Widget will be hidden if hidden by a call this slot, by will only be made visible by a calll to this slot if the user level allows.
    void setManagedVisible( bool v ){ setRunVisible( v ); }
 public:
-   /// variableAsToolTip not applicale to V2 options. 
+   /// variableAsToolTip not applicale to V2 options.
    /// Class should ensure this option is initialised to false.
 
-   /// allowDrop not applicale to V2 options. 
+   /// allowDrop not applicale to V2 options.
    /// Class should ensure this option is initialised to false.
 
    /// Display the widget. Default is true.
@@ -375,22 +344,14 @@ public:
    /// and any Style Sheet strings generated during the display of data.
    Q_PROPERTY(QString userLevelEngineerStyle READ getStyleEngineer WRITE setStyleEngineer)
 
-   /// \enum UserLevels
-   /// User friendly enumerations for #userLevelVisibility and #userLevelEnabled properties - refer to #userLevelVisibility and #userLevelEnabled properties and userLevel enumeration for details.
-   enum UserLevels {
-      User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
-      Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
-      Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
-   };
-   Q_ENUM (UserLevels)
-
    /// Lowest user level at which the widget is visible. Default is 'User'.
    /// Used when designing GUIs that display more and more detail according to the user mode.
    /// The user mode is set application wide through the QELogin widget, or programatically through setUserLevel()
    /// Widgets that are always visible should be visible at 'User'.
    /// Widgets that are only used by scientists managing the facility should be visible at 'Scientist'.
    /// Widgets that are only used by engineers maintaining the facility should be visible at 'Engineer'.
-   Q_PROPERTY(UserLevels userLevelVisibility READ getUserLevelVisibilityProperty WRITE setUserLevelVisibilityProperty)
+   ///
+   Q_PROPERTY(QE::UserLevels userLevelVisibility READ getUserLevelVisibility WRITE setUserLevelVisibility)
 
    /// Lowest user level at which the widget is enabled. Default is 'User'.
    /// Used when designing GUIs that allow access to more and more detail according to the user mode.
@@ -398,54 +359,44 @@ public:
    /// Widgets that are always accessable should be visible at 'User'.
    /// Widgets that are only accessable to scientists managing the facility should be visible at 'Scientist'.
    /// Widgets that are only accessable to engineers maintaining the facility should be visible at 'Engineer'.
-   Q_PROPERTY(UserLevels userLevelEnabled READ getUserLevelEnabledProperty WRITE setUserLevelEnabledProperty)
+   ///
+   Q_PROPERTY(QE::UserLevels userLevelEnabled READ getUserLevelEnabled WRITE setUserLevelEnabled)
 
-   UserLevels getUserLevelVisibilityProperty() { return (UserLevels)getUserLevelVisibility(); }            ///< Access function for #userLevelVisibility property - refer to #userLevelVisibility property for details
-   void setUserLevelVisibilityProperty( UserLevels level ) { setUserLevelVisibility( (userLevelTypes::userLevels)level ); }///< Access function for #userLevelVisibility property - refer to #userLevelVisibility property for details
-   UserLevels getUserLevelEnabledProperty() { return (UserLevels)getUserLevelEnabled(); }                  ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
-   void setUserLevelEnabledProperty( UserLevels level ) { setUserLevelEnabled( (userLevelTypes::userLevels)level ); }      ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
-
-   /// displayAlarmStateOption not applicale to V2 options. 
+   /// displayAlarmStateOption not applicale to V2 options.
    /// Class should ensure this option is initialised to DISPLAY_ALARM_STATE_NEVER.
 
 public:
-    // END-STANDARD-V2-PROPERTIES =====================================================
+   // END-STANDARD-V2-PROPERTIES =====================================================
 
-    private slots:
-        void comboBoxScriptSelected(int);
+private slots:
+   void comboBoxScriptSelected(int);
 
-        void buttonNewClicked();
+   void buttonNewClicked();
 
-        void buttonSaveClicked();
+   void buttonSaveClicked();
 
-        void buttonDeleteClicked();
+   void buttonDeleteClicked();
 
-        void buttonExecuteClicked();
+   void buttonExecuteClicked();
 
-        void buttonAbortClicked();
+   void buttonAbortClicked();
 
-        void buttonAddClicked();
+   void buttonAddClicked();
 
-        void buttonRemoveClicked();
+   void buttonRemoveClicked();
 
-        void buttonUpClicked();
+   void buttonUpClicked();
 
-        void buttonDownClicked();
+   void buttonDownClicked();
 
-        void buttonCopyClicked();
+   void buttonCopyClicked();
 
-        void buttonPasteClicked();
+   void buttonPasteClicked();
 
-        void selectionChanged(const QItemSelection &, const QItemSelection &);
+   void selectionChanged(const QItemSelection &, const QItemSelection &);
 
-    signals:
-        void selected(QString pFilename);
+signals:
+   void selected(QString pFilename);
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QEScript::scriptTypesProperty)
-Q_DECLARE_METATYPE (QEScript::optionsLayoutProperty)
-Q_DECLARE_METATYPE (QEScript::UserLevels)
-#endif
 
 #endif // QE_SCRIPT_H

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2019 Australian Synchrotron.
+ *  Copyright (c) 2014-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -24,19 +24,21 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
-#include "QEGeneralEdit.h"
-
 // In this context, we are a user of the QEFramework library as we are using
 // the moc generated ui_QEGeneralEdit.h file that needs access the meta
 // types to be declared.
 //
+#include <QEFrameworkLibraryGlobal.h>
 #define QE_DECLARE_METATYPE_IS_REQUIRED
+
+#include "QEGeneralEdit.h"
 
 #include <QDebug>
 #include <QECommon.h>
 #include <QEScaling.h>
 
 #include <QELabel.h>
+#include <QERadioGroup.h>
 #include <QELineEdit.h>
 #include <QENumericEdit.h>
 #include <ui_QEGeneralEdit.h>
@@ -44,6 +46,7 @@
 #define DEBUG qDebug () << "QEGeneralEdit" << __LINE__ << __FUNCTION__ << "  "
 
 #define PV_VARIABLE_INDEX      0
+
 
 //-----------------------------------------------------------------------------
 // Constructor with no initialisation
@@ -116,7 +119,7 @@ void QEGeneralEdit::commonSetup ()
    // Set up default properties
    //
    this->setAllowDrop (true);
-   this->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_NEVER);
+   this->setDisplayAlarmStateOption (QE::Never);
 
    this->setMinimumWidth (400);
    this->setMinimumHeight (50);
@@ -465,14 +468,14 @@ QRadioGroup::ButtonStyles QEGeneralEdit::getButtonStyle () const
 
 //------------------------------------------------------------------------------
 //
-void QEGeneralEdit::setButtonOrder (const QRadioGroup::ButtonOrders order)
+void QEGeneralEdit::setButtonOrder (const QE::GridOrders order)
 {
    this->ui->radioGroupWidget->setButtonOrder (order);
 }
 
 //------------------------------------------------------------------------------
 //
-QRadioGroup::ButtonOrders QEGeneralEdit::getButtonOrder () const
+QE::GridOrders QEGeneralEdit::getButtonOrder () const
 {
    return this->ui->radioGroupWidget->getButtonOrder ();
 }

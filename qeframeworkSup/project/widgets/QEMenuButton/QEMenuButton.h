@@ -38,6 +38,7 @@
 #include <QString>
 
 #include <QECommon.h>
+#include <QEEnums.h>
 #include <QEActionRequests.h>
 #include <QEAbstractWidget.h>
 #include <QEFrameworkLibraryGlobal.h>
@@ -57,9 +58,9 @@ public:
    //
    Q_PROPERTY (bool allowDrop         READ getAllowDrop         WRITE setAllowDrop         DESIGNABLE false)
    Q_PROPERTY (bool variableAsToolTip READ getVariableAsToolTip WRITE setVariableAsToolTip DESIGNABLE false)
-   Q_PROPERTY (DisplayAlarmStateOptions displayAlarmStateOption
-               READ getDisplayAlarmStateOptionProperty
-               WRITE setDisplayAlarmStateOptionProperty DESIGNABLE false)
+   Q_PROPERTY (QE::DisplayAlarmStateOptions displayAlarmStateOption
+               READ getDisplayAlarmStateOption
+               WRITE setDisplayAlarmStateOption DESIGNABLE false)
 
    // start of QEMenuButton specific properties.
    //

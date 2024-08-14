@@ -1,9 +1,9 @@
 /*  imageDataFormats.cpp
- * 
+ *
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2018 Australian Synchrotron
+ *  Copyright (c) 2018-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -25,62 +25,69 @@
  */
 
 #include "imageDataFormats.h"
+#include <QECommon.h>
 
-static const char* images [imageDataFormats::NUMBER_OF_FORMATS] [2] = {
-    { "Mono",     "Monochrome" },           // MONO
-    { "BayerGB",  "Bayer (Green/Blue)" },   // BAYERGB;
-    { "BayerBG",  "Bayer (Blue/Green)" },   // BAYERBG;
-    { "BayerGR",  "Bayer (Green/Red)" },    // BAYERGR;
-    { "BayerRG",  "Bayer (Red/Green)" },    // BAYERRG;
-    { "RGB1",     "8 bit RGB" },            // RGB1;
-    { "RGB2",     "RGB2???" },              // RGB2;
-    { "RGB3",     "RGB3???" },              // RGB3;
-    { "YUV444",   "???bit YUV444" },        // YUV444;
-    { "YUV422",   "???bit YUV422" },        // YUV422;
-    { "YUV421"    "???bit YUV421" }         // YUV421;
+// NOTE: The fore of this table must remain consistant with
+// the QE::ImageFormatOptions definition out of QEEnums.h
+//
+static const char* images [] [2] = {
+   { "Mono",     "Monochrome" },           // Mono
+   { "XXXX",     "Bayer (Red/Green" },     // Bayer
+   { "BayerGB",  "Bayer (Green/Blue)" },   // BayerGB
+   { "BayerBG",  "Bayer (Blue/Green)" },   // BayerBG
+   { "BayerGR",  "Bayer (Green/Red)" },    // BayerGR
+   { "BayerRG",  "Bayer (Red/Green)" },    // BayerRG
+   { "RGB1",     "8 bit RGB" },            // rgb1
+   { "RGB2",     "RGB2???" },              // rgb2
+   { "RGB3",     "RGB3???" },              // rgb3
+   { "YUV444",   "???bit YUV444" },        // yuv444
+   { "YUV422",   "???bit YUV422" },        // yuv422
+   { "YUV421"    "???bit YUV421" }         // yuv421
 };
+
+#define NUMBER_OF_FORMATS  ARRAY_LENGTH(images)
 
 //------------------------------------------------------------------------------
 // static
 bool imageDataFormats::convertToFormatOption (const QString& text,
-                                              formatOptions& format)
+                                              QE::ImageFormatOptions& format)
 {
-    bool result = false;   // hypothesize no match
+   bool result = false;   // hypothesize no match
 
-    // Interpret Area detector formats
-    //
-    for (int j = 0 ; j < NUMBER_OF_FORMATS; j++) {
-        if (!text.compare (images [j][0])) {
-            format = formatOptions (j);
-            result = true;
-        }
-    }
+   // Interpret Area detector formats
+   //
+   for (int j = 0 ; j < NUMBER_OF_FORMATS; j++) {
+      if (!text.compare (images [j][0])) {
+         format = QE::ImageFormatOptions (j);
+         result = true;
+      }
+   }
 
-    if (!result) {
-        // Do a Bayer special
-        //
-        if (!text.compare ("Bayer")) {
-            format = imageDataFormats::BAYERRG;
-            result = true;
-        }
-    }
+   if (!result) {
+      // Do a Bayer special
+      //
+      if (!text.compare ("Bayer")) {
+         format = QE::BayerRG;
+         result = true;
+      }
+   }
 
-    return result;
+   return result;
 }
 
 //------------------------------------------------------------------------------
 // static
-QString imageDataFormats::getFormatInformation (const formatOptions format)
+QString imageDataFormats::getFormatInformation (const QE::ImageFormatOptions format)
 {
-    QString result;
+   QString result;
 
-    if ((format >= 0) && (format < NUMBER_OF_FORMATS)) {
-        result = QString (images [format][1]);
-    } else {
-        result = QString ("Unknown format (%1)").arg (format);
-    }
+   if ((format >= 0) && (format < NUMBER_OF_FORMATS)) {
+      result = QString (images [format][1]);
+   } else {
+      result = QString ("Unknown format (%1)").arg (format);
+   }
 
-    return result;
+   return result;
 }
 
 // end

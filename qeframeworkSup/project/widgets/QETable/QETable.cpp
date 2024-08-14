@@ -310,9 +310,9 @@ QETable::QETable (QWidget* parent) : QEAbstractDynamicWidget (parent)
    //
    this->setAddUnits (false);
    this->setForceSign (false);
-   this->setFormat (QEStringFormatting::FORMAT_DEFAULT);
-   this->setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
-   this->setSeparator (QEStringFormatting::SEPARATOR_NONE);
+   this->setFormat (QE::Default);
+   this->setNotation (QE::Automatic);
+   this->setSeparator (QE::NoSeparator);
 
    this->columnWidthMinimum = 80;
    this->orientation = Qt::Vertical;
@@ -831,7 +831,7 @@ void QETable::setSlotForceSign (const int slot, const bool forceSign)
 //------------------------------------------------------------------------------
 //
 void QETable::setSlotFormat (const int slot,
-                             const QEStringFormatting::formats format)
+                             const QE::Formats format)
 {
    SLOT_CHECK (slot,);
    this->dataSet [slot].stringFormatting.setFormat (format);
@@ -840,7 +840,7 @@ void QETable::setSlotFormat (const int slot,
 //------------------------------------------------------------------------------
 //
 void QETable::setSlotSeparator (const int slot,
-                                const QEStringFormatting::separators separator)
+                                const QE::Separators separator)
 {
    SLOT_CHECK (slot,);
    this->dataSet [slot].stringFormatting.setSeparator (separator);
@@ -849,7 +849,7 @@ void QETable::setSlotSeparator (const int slot,
 //------------------------------------------------------------------------------
 //
 void QETable::setSlotNotation  (const int slot,
-                                const QEStringFormatting::notations notation)
+                                const QE::Notations notation)
 {
    SLOT_CHECK (slot,);
    this->dataSet [slot].stringFormatting.setNotation (notation);
@@ -1022,44 +1022,44 @@ Qt::Orientation QETable::getOrientation () const
 
 //------------------------------------------------------------------------------
 //
-void QETable::setFormatProperty (const Formats format )
+void QETable::setFormatProperty (const QE::Formats format )
 {
-   this->setFormat (static_cast<QEStringFormatting::formats> (format));
+   this->setFormat (format);
 }
 
 //------------------------------------------------------------------------------
 //
-QETable::Formats QETable::getFormatProperty() const
+QE::Formats QETable::getFormatProperty() const
 {
-   return static_cast<Formats> (this->getFormat());
+   return this->getFormat();
 }
 
 //------------------------------------------------------------------------------
 //
-void QETable::setSeparatorProperty (const Separators separator)
+void QETable::setSeparatorProperty (const QE::Separators separator)
 {
-   this->setSeparator (static_cast<QEStringFormatting::separators>(separator));
+   this->setSeparator (separator);
 }
 
 //------------------------------------------------------------------------------
 //
-QETable::Separators QETable::getSeparatorProperty() const
+QE::Separators QETable::getSeparatorProperty() const
 {
-   return static_cast<Separators>(this->getSeparator());
+   return this->getSeparator();
 }
 
 //------------------------------------------------------------------------------
 //
-void QETable::setNotationProperty (const Notations notation )
+void QETable::setNotationProperty (const QE::Notations notation )
 {
-   this->setNotation (static_cast<QEStringFormatting::notations>(notation));
+   this->setNotation (notation);
 }
 
 //------------------------------------------------------------------------------
 //
-QETable::Notations QETable::getNotationProperty() const
+QE::Notations QETable::getNotationProperty() const
 {
-   return static_cast<Notations>(this->getNotation());
+   return this->getNotation();
 }
 
 //==============================================================================

@@ -35,11 +35,11 @@
 /// Construction. Set all image attributes to sensible defaults
 imageProperties::imageProperties()
 {
-    rotation = ROTATION_0;
+    rotation = QE::NoRotation;
     flipVert = false;
     flipHoz = false;
 
-    formatOption = imageDataFormats::MONO;
+    formatOption = QE::Mono;
     bitDepth = 8;
 
     imageDataSize = 0;
@@ -169,13 +169,13 @@ QString imageProperties::getInfoText() const
 }
 
 // Return the current image format
-imageDataFormats::formatOptions imageProperties::getFormat() const
+QE::ImageFormatOptions imageProperties::getFormat() const
 {
     return formatOption;
 }
 
 // Set the current image format
-void imageProperties::setFormat( imageDataFormats::formatOptions formatIn )
+void imageProperties::setFormat( QE::ImageFormatOptions formatIn )
 {
     // Invalidate any pixel lookup information held
     if( formatOption != formatIn )
@@ -191,7 +191,7 @@ void imageProperties::setFormat( imageDataFormats::formatOptions formatIn )
 // Return true if identified (and the format is set) or false if the text is not recognised.
 bool imageProperties::setFormat( const QString& text )
 {
-    imageDataFormats::formatOptions newFormatOption;
+    QE::ImageFormatOptions newFormatOption;
     const bool result = imageDataFormats::convertToFormatOption (text, newFormatOption);
 
     if( result ) {

@@ -37,6 +37,7 @@
 #include <QSpacerItem>
 #include <QVBoxLayout>
 
+#include <QEEnums.h>
 #include <QEForm.h>
 #include <QEFrame.h>
 #include <QCaVariableNamePropertyManager.h>
@@ -44,7 +45,7 @@
 #include <persistanceManager.h>
 
 namespace Ui {
-    class QEDynamicFormGrid;
+   class QEDynamicFormGrid;
 }
 
 
@@ -70,11 +71,6 @@ public:
    ///    2  6  -
    ///    3  7  -
    ///
-   enum GridOrders {
-      RowMajor = 0,
-      ColMajor = 1
-   };
-   Q_ENUM (GridOrders)
 
    /// The uiFile loaded into each QEForm element.
    /// Default value: "".
@@ -116,7 +112,7 @@ public:
    /// Specifies the gridOrder: RowMajor or ColMajor.
    /// Default value: RowMajor.
    ///
-   Q_PROPERTY (GridOrders gridOrder
+   Q_PROPERTY (QE::GridOrders gridOrder
                READ getGridOrder              WRITE setGridOrder)
 
    /// Margin applied to/extracted from the internal QGridLayout object.
@@ -143,11 +139,12 @@ public:
                READ getAllowDrop              WRITE setAllowDrop
                DESIGNABLE false)
 
-   /// displayAlarmStateOption is added as a non-designable property here only to hide the implementation present in QEFrame
+   /// displayAlarmStateOption is added as a non-designable property here only
+   /// to hide the implementation present in QEFrame
    ///
-   Q_PROPERTY (DisplayAlarmStateOptions displayAlarmStateOption
-               READ getDisplayAlarmStateOptionProperty
-               WRITE setDisplayAlarmStateOptionProperty
+   Q_PROPERTY (QE::DisplayAlarmStateOptions displayAlarmStateOption
+               READ getDisplayAlarmStateOption
+               WRITE setDisplayAlarmStateOption
                DESIGNABLE false)
    //
    // End of QEDynamicFormGrid specific properties =============================
@@ -181,8 +178,8 @@ public:
    void setColumns (const int n);
    int getColumns () const;
 
-   void setGridOrder (const GridOrders go);
-   GridOrders getGridOrder () const;
+   void setGridOrder (const QE::GridOrders go);
+   QE::GridOrders getGridOrder () const;
 
    void setMargin (const int n);
    int getMargin () const;
@@ -252,7 +249,7 @@ private:
    //
    QCaVariableNamePropertyManager vnpm [NUMBER_OF_VARIABLES];
    int columns;
-   GridOrders gridOrder;
+   QE::GridOrders gridOrder;
    QString formalArg;
    QStringList actualArgList;
    int margin;
@@ -264,9 +261,5 @@ private slots:
    void onCloseButtonClick (bool);
    void resetScrollFrameSize ();
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QEDynamicFormGrid::GridOrders)
-#endif
 
 #endif // QE_DYNAMIC_FORM_GRID_H

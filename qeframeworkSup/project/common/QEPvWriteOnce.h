@@ -29,7 +29,7 @@
 
 #include <QObject>
 #include <QCaObject.h>
-#include <QEStringFormatting.h>
+#include <QEEnums.h>
 #include <QEFrameworkLibraryGlobal.h>
 
 /// This classs provides a basic write and forget class.
@@ -42,7 +42,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvWriteOnce : public QObject {
 public:
    explicit QEPvWriteOnce (const QString& pvName,
                            const QString& value,
-                           const QEStringFormatting::formats format = QEStringFormatting::FORMAT_DEFAULT,
+                           const QE::Formats format = QE::Default,
                            QObject* parent = 0);
    ~QEPvWriteOnce();
 
@@ -54,7 +54,7 @@ public:
 
    QString pvName;
    QString value;                       // value to write to the variable
-   QEStringFormatting::formats format;  //
+   QE::Formats format;                  //
 
 private:
    QString substitutedValue;            // value post substitution

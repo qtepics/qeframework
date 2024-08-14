@@ -105,7 +105,8 @@ void QAnalogSlider::commonSetup ()
    apf.setPointSize ((3*apf.pointSize())/4);
    this->axisPainter->setFont (apf);
 
-   this->axisPainter->setOrientation (QEAxisPainter::Left_To_Right);
+   this->axisPainter->setOrientation (Qt::Horizontal);
+   this->axisPainter->setInvertedAppearance (false);
    this->axisPainter->setMinimum (this->mMinimum);
    this->axisPainter->setMaximum (this->mMaximum);
    this->axisPainter->setMinorInterval (0.2);
@@ -415,26 +416,22 @@ double QAnalogSlider::getMajorInterval () const
 //
 void QAnalogSlider::setInvertedAppearance (const bool invertedAppearance)
 {
-   this->mInvertedAppearnce = invertedAppearance;
+   this->mInvertedAppearance = invertedAppearance;
 
    // Apply to the slider widget.
    //
-   this->intSlider->setInvertedAppearance (this->mInvertedAppearnce);
+   this->intSlider->setInvertedAppearance (this->mInvertedAppearance);
 
    // Apply to the axis painter widget.
    //
-   QEAxisPainter::Orientations orientation;
-   orientation = this->mInvertedAppearnce
-         ? QEAxisPainter::Right_To_Left
-         : QEAxisPainter::Left_To_Right;
-   this->axisPainter->setOrientation (orientation);
+   this->axisPainter->setInvertedAppearance (this->mInvertedAppearance);
 }
 
 //------------------------------------------------------------------------------
 //
 bool QAnalogSlider::getInvertedAppearance () const
 {
-   return this->mInvertedAppearnce;
+   return this->mInvertedAppearance;
 }
 
 //------------------------------------------------------------------------------

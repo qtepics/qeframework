@@ -45,7 +45,7 @@ styleManager::styleManager( QWidget* ownerIn )
     // Keep a handle on the underlying QWidget of the QE widgets
     owner = ownerIn;
     defaultStyleSheet = "";
-    level = userLevelTypes::USERLEVEL_USER;
+    level = QE::User;
 
     // Note the current style sheet.
     // This will be kept up to date as this manager manages changes to the component
@@ -201,15 +201,15 @@ void styleManager::updateStyleSheet()
     QString userLevelStyle;
     switch( level )
     {
-        case userLevelTypes::USERLEVEL_USER:
+        case QE::User:
             userLevelStyle = userUserStyle;
             break;
 
-        case userLevelTypes::USERLEVEL_SCIENTIST:
+        case QE::Scientist:
             userLevelStyle = userScientistStyle;
             break;
 
-        case userLevelTypes::USERLEVEL_ENGINEER:
+        case QE::Engineer:
             userLevelStyle = userEngineerStyle;
             break;
     }
@@ -258,7 +258,7 @@ void styleManager::updateStyleSheet()
 //------------------------------------------------------------------------------
 // Set the current user level.
 //
-void styleManager::styleUserLevelChanged( userLevelTypes::userLevels levelIn )
+void styleManager::styleUserLevelChanged( QE::UserLevels levelIn )
 {
     // Note the new style and update the style string if changed
     bool newLevel = level != levelIn;

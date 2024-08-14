@@ -40,6 +40,7 @@
 #include <QLabel>
 #include <QProgressBar>
 
+#include <QEEnums.h>
 #include <QCaObject.h>
 #include <QEArchiveAccess.h>
 #include <QEFrame.h>

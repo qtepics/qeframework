@@ -38,6 +38,7 @@
 #include <QTemporaryFile>
 #include <VariableNameManager.h>
 #include <UserMessage.h>
+#include <QEEnums.h>
 #include <QEFrameworkLibraryGlobal.h>
 
 
@@ -57,7 +58,7 @@ public slots:
    void doRead();
    void doReadToStandardOutput();
    void doReadToStandardError();
-   void doFinished( int exitCode, QProcess::ExitStatus exitStatusb );
+   void doFinished( int exitCode, QProcess::ExitStatus exitStatus );
 
 private:
    UserMessage message;
@@ -86,22 +87,14 @@ public:
    void setArguments( const QStringList argumentsIn );
    QStringList getArguments() const;
 
-   // Startup option
-   enum programStartupOptions {
-      PSO_NONE,         // Just run the program
-      PSO_TERMINAL,     // Run the program in a termainal
-      PSO_LOGOUTPUT,    // Run the program, and log the output in the QE message system
-      PSO_STDOUTPUT     // Run the program, and send output to standard output and standard error
-   };
-
-   void setProgramStartupOption( const programStartupOptions programStartupOptionIn );
-   programStartupOptions getProgramStartupOption() const;
+   void setProgramStartupOption( const QE::ProgramStartupOptions programStartupOptionIn );
+   QE::ProgramStartupOptions getProgramStartupOption() const;
 
 private:
    QString program;        // Program to run
    QStringList arguments;  // Program arguments
-   programStartupOptions programStartupOption; // Startup option (in a terminal, log output,
-                                               // or just start it and forget it)
+   QE::ProgramStartupOptions programStartupOption; // Startup option (in a terminal, log output,
+                                                   // or just start it and forget it)
    UserMessage message;
 };
 

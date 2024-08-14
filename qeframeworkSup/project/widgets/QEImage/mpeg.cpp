@@ -1,6 +1,9 @@
 /*  mpeg.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2014-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2014,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -36,6 +37,7 @@
 #include <QDebug>
 #include <QMutex>
 #include <colourConversion.h>
+#include <QEEnums.h>
 
 // Note: the QE_USE_MPEG macro defintion determinted from the QE_FFMPEG environment
 // variable when qmake is run.
@@ -472,7 +474,7 @@ void MpegSource::updateImage(FFBuffer *newbuf)
    unsigned long dataSize = 1;
    unsigned long depth = 8;
    unsigned long elementsPerPixel = 1;
-   imageDataFormats::formatOptions format = imageDataFormats::MONO;
+   QE::ImageFormatOptions format = QE::Mono;
 
    // older version does not have 'format'
    //widgets/QEImage/mpeg.cpp: In member function 'void mpegSource::updateImage(FFBuffer*)':
@@ -496,7 +498,7 @@ void MpegSource::updateImage(FFBuffer *newbuf)
             dataSize = 1;
             depth = 8;
             elementsPerPixel = 3;
-            format = imageDataFormats::RGB1;
+            format = QE::rgb1;
 
             const unsigned char* linePtrY = (const unsigned char*)(newbuf->pFrame->data[0]);
             const unsigned char* linePtrU = (const unsigned char*)(newbuf->pFrame->data[1]);
@@ -552,7 +554,7 @@ void MpegSource::updateImage(FFBuffer *newbuf)
             dataSize = 1;
             depth = 8;
             elementsPerPixel = 1;
-            format = imageDataFormats::MONO;
+            format = QE::Mono;
 
             // Package the data in a CA like QByteArray
             const char* linePtr = (const char*)(newbuf->pFrame->data[0]);

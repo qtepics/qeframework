@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2022 Australian Synchrotron.
+ *  Copyright (c) 2014-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -49,14 +49,14 @@ const static char separatorChars [] = " ,_ ";
 //
 QEFixedPointRadix::QEFixedPointRadix (QObject* parent) : QObject (parent)
 {
-   this->radix = Decimal;
-   this->separator = None;
+   this->radix = QE::Decimal;
+   this->separator = QE::NoSeparator;
 }
 
 //-----------------------------------------------------------------------------
 //
-QEFixedPointRadix::QEFixedPointRadix (const Radicies radixIn,
-                                      const Separators separatorIn,
+QEFixedPointRadix::QEFixedPointRadix (const QE::Radicies radixIn,
+                                      const QE::Separators separatorIn,
                                       QObject* parent) : QObject (parent)
 {
    this->radix = radixIn;
@@ -72,28 +72,28 @@ QEFixedPointRadix::~QEFixedPointRadix ()
 
 //-----------------------------------------------------------------------------
 //
-void QEFixedPointRadix::setRadix (const Radicies radixIn)
+void QEFixedPointRadix::setRadix (const QE::Radicies radixIn)
 {
    this->radix = radixIn;
 }
 
 //-----------------------------------------------------------------------------
 //
-QEFixedPointRadix::Radicies QEFixedPointRadix::getRadix () const
+QE::Radicies QEFixedPointRadix::getRadix () const
 {
    return this->radix;
 }
 
 //-----------------------------------------------------------------------------
 //
-void QEFixedPointRadix::setSeparator (const Separators separatorIn)
+void QEFixedPointRadix::setSeparator (const QE::Separators separatorIn)
 {
    this->separator = separatorIn;
 }
 
 //-----------------------------------------------------------------------------
 //
-QEFixedPointRadix::Separators QEFixedPointRadix::getSeparator () const
+QE::Separators QEFixedPointRadix::getSeparator () const
 {
    return this->separator;
 }
@@ -113,21 +113,21 @@ bool QEFixedPointRadix::isRadixDigit (const QChar qc) const
    char c = qc.toLatin1 ();
 
    switch (this->getRadix()) {
-      case Decimal:
+      case QE::Decimal:
          result = ((c >= '0') && (c <= '9'));
          break;
 
-      case Hexadecimal:
+      case QE::Hexadecimal:
          result = ((c >= '0') && (c <= '9')) ||
                   ((c >= 'A') && (c <= 'F')) ||
                   ((c >= 'a') && (c <= 'f'));
          break;
 
-      case Octal:
+      case QE::Octal:
          result = ((c >= '0') && (c <= '7'));
          break;
 
-      case Binary:
+      case QE::Binary:
          result = ((c >= '0') && (c <= '1'));
          break;
 
@@ -213,7 +213,7 @@ QString QEFixedPointRadix::toString (const double value,
       if (s == 0) {
          result.append ('.');
       } else if (ABS (s) % separatorSizes [this->radix] == 0) {
-         if (separator != None) {
+         if (separator != QE::NoSeparator) {
             result.append (separatorChars [this->separator]);
          }
       }

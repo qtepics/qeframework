@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2018 Australian Synchrotron
+ *  Copyright (c) 2015-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +28,7 @@
 #define QE_IMAGE_PROPERTIES_H
 
 #include "QCaDateTime.h"
+#include <QEEnums.h>
 #include "imageDataFormats.h"
 #include <brightnessContrast.h> // Remove this, or extract the general definitions used (eg rgbPixel) into another include file
 
@@ -60,7 +61,7 @@ public:
                          int pixelHighIn,
                          unsigned int bitDepthIn,
                          imageDisplayProperties::rgbPixel* pixelLookupIn,
-                         imageDataFormats::formatOptions formatOptionIn,
+                         QE::ImageFormatOptions formatOptionIn,
                          unsigned long imageDataSizeIn,
                          imageDisplayProperties* imageDisplayPropsIn,
                          unsigned int rotatedImageBuffWidthIn,
@@ -77,7 +78,7 @@ private:
     int pixelHigh;
     unsigned int bitDepth;
     imageDisplayProperties::rgbPixel* pixelLookup;
-    imageDataFormats::formatOptions formatOption;
+    QE::ImageFormatOptions formatOption;
     unsigned long imageDataSize;      // Size of elements in image data (originating from CA data type)
     imageDisplayProperties* imageDisplayProps;
     unsigned int rotatedImageBuffWidth;
@@ -95,18 +96,9 @@ class imageProperties
 public:
     imageProperties(); ///< Constructor
 
-    // Rotation
-    /// \enum rotationOptions
-    /// Image rotation options
-    enum rotationOptions { ROTATION_0,          ///< No image rotation
-                           ROTATION_90_RIGHT,   ///< Rotate image 90 degrees clockwise
-                           ROTATION_90_LEFT,    ///< Rotate image 90 degrees anticlockwise
-                           ROTATION_180         ///< Rotate image 180 degrees
-                         };
-
     // Image attribut set and get functions
-    void setRotation( rotationOptions rotationIn ){ rotation = rotationIn; }
-    rotationOptions getRotation() const { return rotation; }
+    void setRotation( QE::RotationOptions rotationIn ){ rotation = rotationIn; }
+    QE::RotationOptions getRotation() const { return rotation; }
 
     void setFlipVert( bool flipVertIn ){ flipVert = flipVertIn; }
     bool getFlipVert() const { return flipVert; }
@@ -120,8 +112,8 @@ public:
     unsigned long getImageBuffWidth() const { return imageBuffWidth; }
     unsigned long getImageBuffHeight() const { return imageBuffHeight; }
 
-    imageDataFormats::formatOptions getFormat() const;
-    void setFormat( imageDataFormats::formatOptions formatIn );
+    QE::ImageFormatOptions getFormat() const;
+    void setFormat( QE::ImageFormatOptions formatIn );
     bool setFormat( const QString& text );
 
     void setBitDepth( unsigned int bitDepth );
@@ -142,7 +134,7 @@ protected:
     imageDisplayProperties* imageDisplayProps;  // Dialog for user manuipulation (and storage of) brightness and contrast and related info
 
     // Options
-    imageDataFormats::formatOptions formatOption;
+    QE::ImageFormatOptions formatOption;
     unsigned int bitDepth;
 
     // Image and related information
@@ -175,7 +167,7 @@ protected:
     unsigned int clippingHigh;
 
     // Flip rotate options
-    rotationOptions rotation;   // Rotation option
+    QE::RotationOptions rotation;   // Rotation option
     bool flipVert;              // True if vertical flip option set
     bool flipHoz;               // True if horizontal flip option set
 };

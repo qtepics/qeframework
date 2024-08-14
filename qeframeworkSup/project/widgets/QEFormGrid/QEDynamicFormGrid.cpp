@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2019-2022 Australian Synchrotron
+ *  Copyright (c) 2019-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -185,7 +185,7 @@ void QEDynamicFormGrid::commonSetup (const QString& uiFile)
 
    this->setAllowDrop (false);
    this->setVariableAsToolTip (false);
-   this->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_NEVER);
+   this->setDisplayAlarmStateOption (QE::Never);
 
    // There are no variables.
    //
@@ -195,7 +195,7 @@ void QEDynamicFormGrid::commonSetup (const QString& uiFile)
    this->formalArg = "DEVICE";
    this->actualArgList.clear();
    this->columns = 1;
-   this->gridOrder = RowMajor;
+   this->gridOrder = QE::rowMajor;
    this->margin = 2;
    this->spacing = 2;
 
@@ -303,7 +303,7 @@ void QEDynamicFormGrid::reorderItems ()
    for (int j = 0; j < m; j++) {
       int r;
       int c;
-      if (this->gridOrder == RowMajor) {
+      if (this->gridOrder == QE::rowMajor) {
          r = j / nc;
          c = j % nc;
       } else { // must be col major order
@@ -544,7 +544,7 @@ int QEDynamicFormGrid::getColumns () const
 
 //------------------------------------------------------------------------------
 //
-void QEDynamicFormGrid::setGridOrder (const GridOrders gridOrderIn)
+void QEDynamicFormGrid::setGridOrder (const QE::GridOrders gridOrderIn)
 {
    if (this->gridOrder != gridOrderIn) {
       this->gridOrder = gridOrderIn;
@@ -553,7 +553,7 @@ void QEDynamicFormGrid::setGridOrder (const GridOrders gridOrderIn)
 
 //------------------------------------------------------------------------------
 //
-QEDynamicFormGrid::GridOrders QEDynamicFormGrid::getGridOrder () const
+QE::GridOrders QEDynamicFormGrid::getGridOrder () const
 {
    return this->gridOrder;
 }

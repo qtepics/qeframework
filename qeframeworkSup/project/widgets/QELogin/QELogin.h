@@ -1,5 +1,9 @@
-/*  This file is part of the EPICS QT Framework, initially developed at the
+/*  QELogin.h
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -14,16 +18,14 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
- *
  *  Author:
  *    Ricardo Fernandes
  *  Contact details:
  *    ricardo.fernandes@synchrotron.org.au
  */
 
-#ifndef QELOGIN_H
-#define QELOGIN_H
+#ifndef QE_LOGIN_H
+#define QE_LOGIN_H
 
 #include <QFrame>
 #include <QRadioButton>
@@ -32,7 +34,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QStack>
-
+#include <QEEnums.h>
 #include <QEWidget.h>
 
 // Forward delarations
@@ -56,7 +58,7 @@ class loginWidget:public QFrame
 
     public:
         loginWidget(QELogin* ownerIn );             // Construction
-        userLevelTypes::userLevels getUserType();   // Return the selected user type
+        QE::UserLevels getUserType();               // Return the selected user type
         QString getPassword();                      // Return the entered password
         void    clearPassword();                    // Clear any entered password
 
@@ -108,13 +110,13 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QELogin:public QFrame, public QEWidget
         bool statusOnly;                                    // True if displaying status only
 
         void setCurrentLevelText();                         // Set the user level information text
-        void userLevelChanged( userLevelTypes::userLevels );// Virtual function implementation called when the user level changes
+        void userLevelChanged( QE::UserLevels );            // Virtual function implementation called when the user level changes
 
     public:
         QELogin(QWidget *pParent = 0);                      // Construction
         virtual ~QELogin(){}                                // Destruction
 
-        bool login( userLevelTypes::userLevels level, QString password );
+        bool login( QE::UserLevels level, QString password );
 
         QString getPriorityUserPassword();                  // Get the user password. (application wide if present, otherwise local to this widget)
         QString getPriorityScientistPassword();             // Get the scientist password. (application wide if present, otherwise local to this widget)
@@ -135,7 +137,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QELogin:public QFrame, public QEWidget
         void setStatusOnly( bool statusOnlyIn );            // Status only property function
         bool getStatusOnly();
 
-        QString getUserTypeName( userLevelTypes::userLevels type ); // Get a string to name each user level type
+        QString getUserTypeName( QE::UserLevels type );     // Get a string to name each user level type
 
         // Properties
         Q_PROPERTY( bool statusOnly READ getStatusOnly WRITE setStatusOnly )
@@ -151,4 +153,4 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QELogin:public QFrame, public QEWidget
         void login();                                       // A successfull login has occured. (good for closing a dialog)
 };
 
-#endif // QELOGIN_H
+#endif // QE_LOGIN_H

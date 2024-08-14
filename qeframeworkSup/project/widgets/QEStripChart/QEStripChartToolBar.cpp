@@ -591,12 +591,12 @@ void QEStripChartToolBar::nextStateClicked (bool)
 //
 void QEStripChartToolBar::normalVideoClicked (bool)
 {
-   emit this->videoModeSelected (QEStripChartNames::normal);
+   emit this->videoModeSelected (QE::normal);
 }
 
 void QEStripChartToolBar::reverseVideoClicked (bool)
 {
-   emit this->videoModeSelected (QEStripChartNames::reverse);
+   emit this->videoModeSelected (QE::reverse);
 }
 
 //------------------------------------------------------------------------------

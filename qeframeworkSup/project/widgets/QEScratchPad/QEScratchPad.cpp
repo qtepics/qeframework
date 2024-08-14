@@ -133,7 +133,7 @@ void QEScratchPad::createInternalWidgets ()
    this->scrollLayout->setSpacing (spacing);
    this->scrollLayout->setContentsMargins (margin, margin, margin, margin);
 
-   const userLevelTypes::userLevels level = this->minimumEditPvUserLevel ();
+   const QE::UserLevels level = this->minimumEditPvUserLevel ();
 
    for (int slot = 0; slot < ARRAY_LENGTH (this->items); slot++) {
 
@@ -155,7 +155,7 @@ void QEScratchPad::createInternalWidgets ()
 
       item->recordType = new QELabel (item->frame);
       item->recordType->setFixedWidth (rtypWidth);
-      item->recordType->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_NEVER);
+      item->recordType->setDisplayAlarmStateOption (QE::Never);
       item->recordType->setText ("");
       item->recordType->setIndent (indent);
       item->recordType->setSizePolicy (QSizePolicy::Ignored, QSizePolicy::Preferred);
@@ -163,7 +163,7 @@ void QEScratchPad::createInternalWidgets ()
       item->recordType->setEditPvUserLevel (level);
 
       item->description = new QELabel (item->frame);
-      item->description->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_NEVER);
+      item->description->setDisplayAlarmStateOption (QE::Never);
       item->description->setText ("");
       item->description->setIndent (indent);
       item->description->setSizePolicy (QSizePolicy::Ignored, QSizePolicy::Preferred);
@@ -171,16 +171,16 @@ void QEScratchPad::createInternalWidgets ()
       item->description->setEditPvUserLevel (level);
 
       item->value = new QELabel (item->frame);
-      item->value->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_ALWAYS);
+      item->value->setDisplayAlarmStateOption (QE::Always);
       item->value->setText ("");
       item->value->setIndent (indent);
       item->value->setSizePolicy (QSizePolicy::Ignored, QSizePolicy::Preferred);
       item->value->setStyleSheet (QEUtilities::colourToStyle (clNotInUse));
       item->value->setPrecision (12);
       item->value->setUseDbPrecision (false);
-      item->value->setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
-      item->value->setSeparator (QEStringFormatting::SEPARATOR_COMMA);
-      item->value->setArrayAction (QEStringFormatting::INDEX);
+      item->value->setNotation (QE::Automatic);
+      item->value->setSeparator (QE::Comma);
+      item->value->setArrayAction (QE::Index);
       item->value->setArrayIndex (0);
       item->value->setEditPvUserLevel (level);
 
@@ -219,15 +219,15 @@ void QEScratchPad::createInternalWidgets ()
 // DataSets
 //=================================================================================
 //
-QEScratchPad::DataSets::DataSets () {
+QEScratchPad::DataSets::DataSets ()
+{
    this->thePvName = "";
    this->isHighLighted = false;
 }
 
 //---------------------------------------------------------------------------------
 //
-QEScratchPad::DataSets::~DataSets () {
-}
+QEScratchPad::DataSets::~DataSets ()  { }
 
 //---------------------------------------------------------------------------------
 //
@@ -285,7 +285,7 @@ QEScratchPad::QEScratchPad (QWidget* parent) : QEAbstractDynamicWidget (parent),
    this->emitPvNameSetChangeInhibited = false;
 
    this->setAllowDrop (true);
-   this->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_NEVER);
+   this->setDisplayAlarmStateOption (QE::Never);
 
    // Use default context menu.
    //
@@ -1008,7 +1008,7 @@ void QEScratchPad::enableEditPvChanged ()
 {
    // Determine min user level in order to all Edit PV menu entry.
    //
-   const userLevelTypes::userLevels level = this->minimumEditPvUserLevel ();
+   const QE::UserLevels level = this->minimumEditPvUserLevel ();
 
    // Now applies to embedded widgets (if they exists yet).
    for (int slot = 0; slot < ARRAY_LENGTH (this->items); slot++) {

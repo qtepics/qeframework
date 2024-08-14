@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2023 Australian Synchrotron
+ *  Copyright (c) 2014-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -64,7 +64,7 @@ void QRadioGroup::commonSetup (const QString& title)
    this->cols = 2;
    this->space = 4;
    this->buttonStyle = Radio;
-   this->buttonOrder = rowMajor;
+   this->buttonOrder = QE::rowMajor;
    this->strings.clear ();
 
    // Set the initial state
@@ -294,7 +294,7 @@ void QRadioGroup::setButtonLayout ()
       QAbstractButton *button = this->buttonList.value (j, NULL);
       if (button) {
 
-         if (this->buttonOrder == colMajor) {
+         if (this->buttonOrder == QE::colMajor) {
             // Find row and col - col major.
             //
             row = j % MAX (this->rows, 1);
@@ -483,7 +483,7 @@ QRadioGroup::ButtonStyles QRadioGroup::getButtonStyle () const
 
 //------------------------------------------------------------------------------
 //
-void QRadioGroup::setButtonOrder (const ButtonOrders buttonOrderIn)
+void QRadioGroup::setButtonOrder (const QE::GridOrders buttonOrderIn)
 {
    if (this->buttonOrder != buttonOrderIn) {
       this->buttonOrder = buttonOrderIn;
@@ -493,7 +493,7 @@ void QRadioGroup::setButtonOrder (const ButtonOrders buttonOrderIn)
 
 //------------------------------------------------------------------------------
 //
-QRadioGroup::ButtonOrders QRadioGroup::getButtonOrder () const
+QE::GridOrders QRadioGroup::getButtonOrder () const
 {
    return this->buttonOrder;
 }

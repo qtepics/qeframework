@@ -29,6 +29,7 @@
 
 #include <QWidget>
 #include <QMainWindow>
+#include <QEEnums.h>
 #include <QEWidget.h>
 #include <QCaVariableNamePropertyManager.h>
 #include <QEStringFormatting.h>
@@ -67,26 +68,13 @@ public:
                READ getVariableNameSubstitutionsProperty
                WRITE setVariableNameSubstitutionsProperty)
 
-   /// \enum  Formats
-   /// User friendly enumerations for format property - refer to QEStringFormatting::formats for details.
-   /// Not all formats are available.
-   ///
-   enum Formats {
-      Default          = QEStringFormatting::FORMAT_DEFAULT,            ///< Format as best appropriate for the data type
-      Floating         = QEStringFormatting::FORMAT_FLOATING,           ///< Format as a floating point number
-      Integer          = QEStringFormatting::FORMAT_INTEGER,            ///< Format as an integer
-      UnsignedInteger  = QEStringFormatting::FORMAT_UNSIGNEDINTEGER,    ///< Format as an unsigned integer
-      String           = QEStringFormatting::FORMAT_STRING              ///< Format as a string
-   };
-   Q_ENUM (Formats)
-
    /// Format to apply to data. Default is 'Default' in which case the data type
    /// supplied with the data determines how the data is formatted.
    /// For all other options, an attempt is made to format the data as requested
    /// (whatever its native form).
    /// NOTE: The same format value applies to both the open and close PV formatting
    ///
-   Q_PROPERTY (Formats format             READ getFormatProperty WRITE setFormatProperty)
+   Q_PROPERTY (QE::Formats format         READ getFormatProperty WRITE setFormatProperty)
 
    Q_PROPERTY (QString openText           READ getOpenText       WRITE setOpenText)       /// value to write on open
    Q_PROPERTY (QString openProgram        READ getOpenProgram    WRITE setOpenProgram)    /// program to run
@@ -144,8 +132,8 @@ public:
    void setVariableNameSubstitutionsProperty(const QString value);
    QString getVariableNameSubstitutionsProperty() const;
 
-   void setFormatProperty (const Formats format);
-   Formats getFormatProperty () const;
+   void setFormatProperty (const QE::Formats format);
+   QE::Formats getFormatProperty () const;
 
 protected:
    QSize sizeHint ();
@@ -168,9 +156,5 @@ private slots:
                                  QString variableNameSubstitutionsIn,
                                  unsigned int variableIndex);
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QEFormStateChange::Formats)
-#endif
 
 #endif // QE_FORM_STATE_CHANGE_H

@@ -30,8 +30,8 @@
 #include <QAction>
 #include <QMenu>
 #include <QSet>
+#include <QEEnums.h>
 #include <QEActionRequests.h>
-#include <ContainerProfile.h>
 
 class contextMenu;
 class QEWidget;
@@ -93,7 +93,7 @@ public:
 
    // Default user level is USERLEVEL_ENGINEER
    //
-   void setEditPvUserLevel (const userLevelTypes::userLevels level);
+   void setEditPvUserLevel (const QE::UserLevels level);
    bool getEditPvUserLevel () const;
 
    void clearContextMenuRequestHandling();             // Clears internal signal connection to contextMenuObject
@@ -147,7 +147,7 @@ private:
    bool hasConsumer;                                   // A launch consumer has been set (it is ok to present menu options that require application support to receive signals to, for example, start a strip chart
    ContextMenuOptionSets menuSet;                      // Defines required set of menu items.
    int numberOfItems;                                  // Number PV names to be copied/dragged
-   userLevelTypes::userLevels editPvUserLevel;         // Minimum user level for this context menu entry
+   QE::UserLevels editPvUserLevel;                     // Minimum user level for this context menu entry
 };
 
 #endif // QE_CONTEXT_MENU_H

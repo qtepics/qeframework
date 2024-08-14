@@ -30,6 +30,7 @@
 #include <QWidget>
 #include <QString>
 #include <QStringList>
+#include <QEEnums.h>
 #include <QEFrameworkLibraryGlobal.h>
 #include <ContainerProfile.h>
 #include <QEFrame.h>
@@ -67,14 +68,7 @@ public:
    /// The default is useAliasName, however the default aliasName are undefined,
    /// so the effective default is usePvName.
    ///
-   enum PVLabelMode {
-      usePvName,         ///< display the PV name
-      useAliasName,      ///< display alias if defined otherwise display the PV name
-      useDescription     ///< display description if defined otherwise display the PV name
-   };
-   Q_ENUM (PVLabelMode)
-
-   Q_PROPERTY (PVLabelMode pvLabelMode  READ getPVLabelMode  WRITE setPVLabelMode)
+   Q_PROPERTY (QE::PVLabelMode pvLabelMode READ getPVLabelMode  WRITE setPVLabelMode)
 
 public:
    // Abstract Dynamic Widget Context Menu values
@@ -104,8 +98,8 @@ public:
 
    // Set/Get pvLabelMode.
    //
-   void setPVLabelMode (const PVLabelMode pvLabelMode);
-   PVLabelMode getPVLabelMode () const;
+   void setPVLabelMode (const QE::PVLabelMode pvLabelMode);
+   QE::PVLabelMode getPVLabelMode () const;
 
    // Override paste. This functions adds PVs names to the next
    // available slot(s) if any.
@@ -147,7 +141,7 @@ protected:
 
    // Sub-class convienence utility functions.
    //
-   userLevelTypes::userLevels minimumEditPvUserLevel () const;
+   QE::UserLevels minimumEditPvUserLevel () const;
    void setStandardFormat (QELabel* dataLabel);
 
 protected slots:
@@ -168,11 +162,7 @@ private:
    bool useOwnPersistantName;
    QString defaultDir;
    bool enableEditPv;
-   PVLabelMode pvLabelMode;
+   QE::PVLabelMode pvLabelMode;
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QEAbstractDynamicWidget::PVLabelMode)
-#endif
 
 #endif // QE_ABSTRACT_DYNAMIC_WIDGET_H

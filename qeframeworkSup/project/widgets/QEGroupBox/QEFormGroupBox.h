@@ -32,6 +32,7 @@
 #include <QWidget>
 #include <QFrame>
 #include <QECommon.h>
+#include <QEEnums.h>
 #include <persistanceManager.h>
 #include <UserMessage.h>
 #include <QEGroupBox.h>
@@ -72,9 +73,9 @@ public:
                READ getResizeContents             WRITE setResizeContents)
    Q_PROPERTY (unsigned int formMessageSourceId
                READ getMessageSourceId            WRITE setMessageSourceId)
-   Q_PROPERTY (QEForm::MessageFilterOptions messageFormFilter
+   Q_PROPERTY (QE::MessageFilterOptions messageFormFilter
                READ getMessageFormFilter          WRITE setMessageFormFilter)
-   Q_PROPERTY (QEForm::MessageFilterOptions messageSourceFilter
+   Q_PROPERTY (QE::MessageFilterOptions messageSourceFilter
                READ getMessageSourceFilter        WRITE setMessageSourceFilter)
 
    // QEFormGroupBox specific properties.
@@ -105,8 +106,8 @@ public:
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (form, bool, getHandleGuiLaunchRequests, setHandleGuiLaunchRequests);
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (form, bool, getResizeContents ,  setResizeContents);
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (form, unsigned int, getMessageSourceId,  setMessageSourceId);
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (form, QEForm::MessageFilterOptions, getMessageFormFilter,  setMessageFormFilter);
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (form, QEForm::MessageFilterOptions, getMessageSourceFilter, setMessageSourceFilter);
+   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (form, QE::MessageFilterOptions, getMessageFormFilter,  setMessageFormFilter);
+   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (form, QE::MessageFilterOptions, getMessageSourceFilter, setMessageSourceFilter);
 
    void setHideInnerFrameShape (const bool useFormTitle);
    bool getHideInnerFrameShape () const;

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2018-2022 Australian Synchrotron
+ *  Copyright (c) 2018-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -339,21 +339,20 @@ void QENTNDArrayData::toValue (pvd::PVUnionPtr value)
 
 //------------------------------------------------------------------------------
 //
-imageDataFormats::formatOptions QENTNDArrayData::getImageFormat
+QE::ImageFormatOptions QENTNDArrayData::getImageFormat
    (pvd::PVStructureArray::const_svector attrs) const
 {
-   static const int numberOfFormats = int (imageDataFormats::NUMBER_OF_FORMATS);
-   imageDataFormats::formatOptions result = imageDataFormats::MONO;
+   QE::ImageFormatOptions result = QE::Mono;
 
    for (VectorIter it (attrs.cbegin()); it != attrs.cend (); ++it) {
        const std::string name = (*it)->getSubField<pvd::PVString>("name")->get();
        if (name == "ColorMode") {
            pvd::PVUnionPtr field ((*it)->getSubField<pvd::PVUnion>("value"));
            int cm = TR1::static_pointer_cast<pvd::PVInt> (field->get())->get();
-           if ((cm >= 0) && (cm < numberOfFormats)) {
+           if ((cm >= 0) && (cm < QE::numberOfImageFormats)) {
               // Is casting ok - maybe we need a look up table.
               //
-              result = imageDataFormats::formatOptions (cm);
+              result = QE::ImageFormatOptions (cm);
            }
            break;
        }
@@ -371,7 +370,7 @@ void QENTNDArrayData::clear ()
    this->data.clear();
    this->attributeMap.clear();
    this->codecName = "";
-   this->format = imageDataFormats::MONO;
+   this->format = QE::Mono;
    this->bitDepth = 8;
 
    this->compressedDataSize = 0;
@@ -421,7 +420,7 @@ int QENTNDArrayData::getDimensionSize (const int d) const
 
 //------------------------------------------------------------------------------
 //
-imageDataFormats::formatOptions QENTNDArrayData::getFormat() const
+QE::ImageFormatOptions QENTNDArrayData::getFormat() const
 {
    return this->format;
 }

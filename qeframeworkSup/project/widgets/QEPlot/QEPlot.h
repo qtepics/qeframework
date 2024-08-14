@@ -26,6 +26,7 @@
 #ifndef QE_PLOT_H
 #define QE_PLOT_H
 
+#include <QEEnums.h>
 #include <QEWidget.h>
 #include <QEFrame.h>
 #include <QEFloating.h>
@@ -206,20 +207,8 @@ public:
 
    Q_PROPERTY (int margin READ getMargin WRITE setMargin)
 
-   /// Mouse move signal selection options.
-   ///
-   enum MouseMoveSignals {
-      signalStatus         = 0x0001,  ///< signals row, col and value as status text via sendMessage
-      signalData           = 0x0002,  ///< signals row, col and value emited as binary data
-      signalText           = 0x0004,  ///< signals row, col and value emited as as text
-   };
-   Q_ENUM (MouseMoveSignals)
-
-   Q_DECLARE_FLAGS (MouseMoveSignalFlags, MouseMoveSignals)
-   Q_FLAG (MouseMoveSignalFlags)
-
-   Q_PROPERTY (MouseMoveSignalFlags mouseMoveSignals READ getMouseMoveSignals
-                                                     WRITE setMouseMoveSignals)
+   Q_PROPERTY (QE::MouseMoveSignalFlags mouseMoveSignals
+               READ getMouseMoveSignals WRITE setMouseMoveSignals)
 
    /// Older servers (3.14 era as I recall) do not support zero length subscriptions.
    /// Enable this property to work with ancient IOCs.
@@ -415,8 +404,8 @@ public:
    void setMargin (const int margin);
    int getMargin () const;
 
-   void setMouseMoveSignals (const MouseMoveSignalFlags flags);
-   MouseMoveSignalFlags getMouseMoveSignals () const;
+   void setMouseMoveSignals (const QE::MouseMoveSignalFlags flags);
+   QE::MouseMoveSignalFlags getMouseMoveSignals () const;
 
    void setFullLengthArraySubscriptions (const bool useFullLengthArraySubscriptions);
    bool getFullLengthArraySubscriptions() const;
@@ -524,7 +513,7 @@ private:
 
    // Mouse move signal options
    //
-   MouseMoveSignalFlags mMouseMoveSignals;
+   QE::MouseMoveSignalFlags mMouseMoveSignals;
 
 private slots:
    void connectionChanged (QCaConnectionInfo& connectionInfo, const unsigned int&);
@@ -549,13 +538,9 @@ private slots:
    void plotMouseMove (const QPointF& posn);
 };
 
-Q_DECLARE_OPERATORS_FOR_FLAGS (QEPlot::MouseMoveSignalFlags)
-
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
 Q_DECLARE_METATYPE (QEPlot::TraceStyles)
 Q_DECLARE_METATYPE (QEPlot::SelectedYAxis)
-Q_DECLARE_METATYPE (QEPlot::MouseMoveSignals)
-Q_DECLARE_METATYPE (QEPlot::MouseMoveSignalFlags)
 #endif
 
 #endif                          // QE_PLOT_H

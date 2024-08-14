@@ -30,10 +30,11 @@
 #include <QEFrameworkLibraryGlobal.h>
 #include <QEStringFormatting.h>
 
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStringFormattingMethods {
-
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStringFormattingMethods
+{
 public:
-    virtual ~QEStringFormattingMethods(){}
+   explicit QEStringFormattingMethods();
+   virtual ~QEStringFormattingMethods();
 
     // Must be overriden by concrete sub-classes.
     //
@@ -78,24 +79,24 @@ public:
     QString getLocalEnumeration() const;
 
     // format
-    void setFormat( QEStringFormatting::formats format );
-    QEStringFormatting::formats getFormat() const;
+    void setFormat( QE::Formats format );
+    QE::Formats getFormat() const;
 
     // separator
-    void setSeparator( const QEStringFormatting::separators separator );
-    QEStringFormatting::separators getSeparator() const;
+    void setSeparator( const QE::Separators separator );
+    QE::Separators getSeparator() const;
 
     // radix
     void setRadix( const int radix );
     unsigned int getRadix() const;
 
     // notation
-    void setNotation( QEStringFormatting::notations notation );
-    QEStringFormatting::notations getNotation() const;
+    void setNotation( QE::Notations notation );
+    QE::Notations getNotation() const;
 
     // arrayAction
-    void setArrayAction( QEStringFormatting::arrayActions arrayAction );
-    QEStringFormatting::arrayActions getArrayAction() const;
+    void setArrayAction( QE::ArrayActions arrayAction );
+    QE::ArrayActions getArrayAction() const;
 
     // Access underlying local enumerations object (as opposed to property string)
     QELocalEnumeration getLocalEnumerationObject() const;

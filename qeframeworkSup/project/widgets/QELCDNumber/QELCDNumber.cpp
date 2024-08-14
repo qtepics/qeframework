@@ -111,7 +111,7 @@ void QELCDNumber::setup ()
 
    // Set up default properties
    //
-   this->setArrayAction (QEStringFormatting::INDEX);
+   this->setArrayAction (QE::Index);
    this->setAllowDrop (false);
 
    this->lastValue = QVariant (QVariant::Invalid);
@@ -305,16 +305,16 @@ void QELCDNumber::paste (QVariant drop)
 
 //------------------------------------------------------------------------------
 //
-void QELCDNumber::setNotationProperty (Notations notationIn)
+void QELCDNumber::setNotationProperty (QE::Notations notationIn)
 {
-   this->setNotation (QEStringFormatting::notations (notationIn));
+   this->setNotation (notationIn);
 }
 
 //------------------------------------------------------------------------------
 //
-QELCDNumber::Notations QELCDNumber::getNotationProperty() const
+QE::Notations QELCDNumber::getNotationProperty() const
 {
-   return Notations (this->getNotation());
+   return this->getNotation();
 }
 
 // end

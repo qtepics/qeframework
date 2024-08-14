@@ -44,9 +44,9 @@
 // be marked with a higher version than the current release.
 // (Also, after tagging QE_VERSION_STAGE should be set to QE_VERSION_STAGE_DEVELOPMENT)
 //
-#define QE_VERSION_MAJOR      3     // Public releases that include interface or paradigm changes that may require changes to the way the framework is used.
-#define QE_VERSION_MINOR      9     // Public releases containing significant new functionality (may include fixes as well)
-#define QE_VERSION_RELEASE    3     // Public releases containing backward compatible new functionality and/or fixes.
+#define QE_VERSION_MAJOR      4     // Public releases that include interface or paradigm changes that may require changes to the way the framework is used.
+#define QE_VERSION_MINOR      0     // Public releases containing significant new functionality (may include fixes as well)
+#define QE_VERSION_RELEASE    1     // Public releases containing backward compatible new functionality and/or fixes.
 
 // The integer version is (major << 16) + (minor << 8) + release, and this macro
 // is used to constuct an integer version number.
@@ -81,12 +81,12 @@ public:
    explicit QEFrameworkVersion();
    virtual ~QEFrameworkVersion();
 
-   static unsigned int getMajor ();         // e.g. 3
-   static unsigned int getMinor ();         // e.g. 9
-   static unsigned int getRelease ();       // e.g. 2
+   static unsigned int getMajor ();         // e.g. 4
+   static unsigned int getMinor ();         // e.g. 0
+   static unsigned int getRelease ();       // e.g. 1
    static const QString getStage ();        // e.g. "Production"
-   static const QString getString ();       // e.g. "3.9.2 (Production)"
-   static const QString getDateTime ();     // e.g. "Aug 8 2023 16:16:27"
+   static const QString getString ();       // e.g. "4.0.1 (Production)"
+   static const QString getDateTime ();     // e.g. "Feb 2 2024 16:23:07"
 
    // Conditional compile attributes.
    //

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2022 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -37,6 +37,7 @@
 #include <QEToolTip.h>
 #include <QEFrameworkLibraryGlobal.h>
 #include <QEDragDrop.h>
+#include <QEEnums.h>
 #include <styleManager.h>
 #include <contextMenu.h>
 #include <standardProperties.h>
@@ -352,8 +353,8 @@ protected:
     void startGui( const QEActionRequests & request );                    /// Support function for slot for launching a new gui. Used by QE buttons and QEForm as the default action for launching a gui.
 
 private:
-    void userLevelChangedGeneral( userLevelTypes::userLevels level );     // Manage general aspects of user level change, then call optional QE widget specific virtual functions
-    virtual void userLevelChanged( userLevelTypes::userLevels ){}         // Virtual function implemented by QE widgets when the user level changes
+    void userLevelChangedGeneral( QE::UserLevels level );                 // Manage general aspects of user level change, then call optional QE widget specific virtual functions
+    virtual void userLevelChanged( QE::UserLevels ){}                     // Virtual function implemented by QE widgets when the user level changes
 
     void setToolTipFromVariableNames();                                   // Update the variable name list used in tool tips if requried
 
@@ -362,10 +363,10 @@ private:
     void buildPersistantName( QWidget* w, QString& name ) const;          // make a function??
 
     QCAALARMINFO_SEVERITY lastSeverity;                                   // Used as low pass tool tip filter.
-    standardProperties::displayAlarmStateOptions lastDisplayAlarmState;   // Last alarm state. Kept to identify when the alarm state (included in a data update signal) changes
+    QE::DisplayAlarmStateOptions lastDisplayAlarmState;                   // Last alarm state. Kept to identify when the alarm state (included in a data update signal) changes
 
-    static void addPathToSearchList( QString path, QString name, QStringList& searchList ); // Add a path and filename to a search list. (add sub dirs if path ends with '...')
-
+    static void addPathToSearchList( QString path, QString name,          // Add a path and filename to a search list. (add sub dirs if path ends with '...')
+                                     QStringList& searchList );
     QWidget* owner;                                                       // QE Widget using this base class. for example, QELabel
 
     //

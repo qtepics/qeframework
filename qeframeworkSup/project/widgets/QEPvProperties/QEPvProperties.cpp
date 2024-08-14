@@ -417,13 +417,13 @@ void QEPvProperties::common_setup ()
 
    // We want to be general here - plenty of precision.
    //
-   this->valueStringFormatting.setFormat (QEStringFormatting::FORMAT_DEFAULT);
+   this->valueStringFormatting.setFormat (QE::Default);
    this->valueStringFormatting.setPrecision (9);
    this->valueStringFormatting.setUseDbPrecision (false);
-   this->valueStringFormatting.setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
-   this->valueStringFormatting.setArrayAction (QEStringFormatting::INDEX);
+   this->valueStringFormatting.setNotation (QE::Automatic);
+   this->valueStringFormatting.setArrayAction (QE::Index);
 
-   this->rtypStringFormatting.setArrayAction (QEStringFormatting::ASCII);
+   this->rtypStringFormatting.setArrayAction (QE::Ascii);
    this->rtypStringFormatting.setAddUnits (false);
 
    this->hostName->setIndent (4);
@@ -473,8 +473,8 @@ void QEPvProperties::common_setup ()
    this->fieldStringFormatting.setAddUnits (false);
    this->fieldStringFormatting.setUseDbPrecision (false);
    this->fieldStringFormatting.setPrecision (12);
-   this->fieldStringFormatting.setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
-   this->fieldStringFormatting.setArrayAction (QEStringFormatting::ASCII);
+   this->fieldStringFormatting.setNotation (QE::Automatic);
+   this->fieldStringFormatting.setArrayAction (QE::Ascii);
 
    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    // Framework boiler-plate stuff.
@@ -490,7 +490,7 @@ void QEPvProperties::common_setup ()
    // By default, the PV properties widget does not display the alarm state.
    // The internal VALue widget does this on our behalf.
    //
-   this->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_NEVER);
+   this->setDisplayAlarmStateOption (QE::Never);
 
    // Use standard context menu for overall widget.
    //
@@ -1047,9 +1047,9 @@ void QEPvProperties::setValueValue (const QVariant& value,
 
       const bool longString = isDbfChar && requestedCharArray;
       if (longString) {
-         this->valueStringFormatting.setArrayAction (QEStringFormatting::ASCII);
+         this->valueStringFormatting.setArrayAction (QE::Ascii);
       } else {
-         this->valueStringFormatting.setArrayAction (QEStringFormatting::INDEX);
+         this->valueStringFormatting.setArrayAction (QE::Index);
       }
 
       // Set up variable details used by some formatting options
@@ -1512,7 +1512,7 @@ QVariant QEPvProperties::copyData ()
 //
 void QEPvProperties::enableEditPvChanged ()
 {
-   const userLevelTypes::userLevels level = this->minimumEditPvUserLevel ();
+   const QE::UserLevels level = this->minimumEditPvUserLevel ();
    this->setEditPvUserLevel (level);
 }
 

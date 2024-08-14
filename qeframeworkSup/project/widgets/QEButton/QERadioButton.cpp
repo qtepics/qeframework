@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2021 Australian Synchrotron
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -38,7 +38,10 @@
 /*
     Constructor with no initialisation
 */
-QERadioButton::QERadioButton( QWidget *parent ) : QRadioButton( parent ), QEGenericButton( this ) {
+QERadioButton::QERadioButton( QWidget *parent ) :
+   QRadioButton( parent ),
+   QEGenericButton( this )
+{
     QEGenericButton::setup();
     setup();
 }
@@ -46,7 +49,10 @@ QERadioButton::QERadioButton( QWidget *parent ) : QRadioButton( parent ), QEGene
 /*
     Constructor with known variable
 */
-QERadioButton::QERadioButton( const QString &variableNameIn, QWidget *parent ) : QRadioButton( parent ), QEGenericButton( this ) {
+QERadioButton::QERadioButton( const QString &variableNameIn, QWidget *parent ) :
+   QRadioButton( parent ),
+   QEGenericButton( this )
+{
     setVariableName( variableNameIn, 0 );
 
     QEGenericButton::setup();
@@ -79,9 +85,9 @@ QERadioButton::~QERadioButton() { }
 
 // Setup default updateOption.
 //
-QEGenericButton::updateOptions QERadioButton::getDefaultUpdateOption()
+QE::UpdateOptions QERadioButton::getDefaultUpdateOption()
 {
-   return QEGenericButton::UPDATE_STATE;
+   return QE::State;
 }
 
 // Slot to receiver a 'process completed' signal from the application launcher

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2023 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -35,6 +35,7 @@
 #include <QObject>
 #include <QWidget>
 #include <QEFrameworkLibraryGlobal.h>
+#include <QEEnums.h>
 #include <QEStripChartNames.h>
 
 /// This class holds all the StripChart tool bar widgets.
@@ -60,7 +61,7 @@ public:
 
 signals:
    void stateSelected (const QEStripChartNames::StateModes mode);
-   void videoModeSelected (const QEStripChartNames::VideoModes mode);
+   void videoModeSelected (const QE::VideoModes mode);
    void yScaleModeSelected (const QEStripChartNames::YScaleModes mode);
    void yRangeSelected (const QEStripChartNames::ChartYRanges scale);
    void durationSelected (const int seconds);

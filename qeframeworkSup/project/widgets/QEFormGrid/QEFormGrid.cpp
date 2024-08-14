@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -211,7 +211,7 @@ void QEFormGrid::commonSetup (const QString& uiFileIn,
    this->setFrameStyle (QFrame::Sunken);
    this->setFrameShape (QFrame::Box);
 
-   this->gridOrder = RowMajor;
+   this->gridOrder = QE::rowMajor;
 
    // Set up default macro formal name prefixes.
    //
@@ -379,11 +379,11 @@ int QEFormGrid::slotOf (const int row, const int col)
    int slot = 0;
 
    switch (this->gridOrder) {
-      case RowMajor:
+      case QE::rowMajor:
          slot = (row * this->getColumns ()) + col;
          break;
 
-      case ColMajor:
+      case QE::colMajor:
          slot = (col * this->getRows ()) + row;
          break;
 
@@ -400,11 +400,11 @@ int QEFormGrid::slotOf (const int row, const int col)
 void QEFormGrid::splitSlot (const int slot, int& row, int& col)
 {
    switch (this->gridOrder) {
-      case RowMajor:
+      case QE::rowMajor:
          row = slot / this->getColumns ();
          col = slot % this->getColumns ();
          break;
-      case ColMajor:
+      case QE::colMajor:
          row = slot % this->getRows ();
          col = slot / this->getRows ();
          break;
@@ -462,7 +462,7 @@ void QEFormGrid::setNumber (int number)
 
    this->number = LIMIT (number, 1, MaximumForms);
 
-   if (this->gridOrder == RowMajor) {
+   if (this->gridOrder == QE::rowMajor) {
       // Existing row and col numbers remain unchanged.
       //
       if (this->number > currentNumber) {
@@ -528,7 +528,7 @@ int QEFormGrid::getRows ()
 
 //------------------------------------------------------------------------------
 //
-void QEFormGrid::setGridOrder (GridOrders gridOrderIn)
+void QEFormGrid::setGridOrder (QE::GridOrders gridOrderIn)
 {
    if (this->gridOrder != gridOrderIn) {
       this->gridOrder = gridOrderIn;
@@ -538,7 +538,7 @@ void QEFormGrid::setGridOrder (GridOrders gridOrderIn)
 
 //------------------------------------------------------------------------------
 //
-QEFormGrid::GridOrders QEFormGrid::getGridOrder ()
+QE::GridOrders QEFormGrid::getGridOrder ()
 {
    return this->gridOrder;
 }

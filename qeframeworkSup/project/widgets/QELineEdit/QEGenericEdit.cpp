@@ -1,6 +1,9 @@
 /*  QEGenericEdit.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009-2020 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -27,18 +28,21 @@
 // This class is a generic CA aware line edit widget based on the Qt line edit widget.
 // It is tighly integrated with the base class QEWidget. Refer to QEWidget.cpp for details
 //
-#include <QEGenericEdit.h>
+#include "QEGenericEdit.h"
+#include <QDebug>
 #include <QMessageBox>
+
+#define DEBUG  qDebug () << "QEGenericEdit" << __LINE__ << __FUNCTION__ << " "
 
 //------------------------------------------------------------------------------
 // Constructor with no initialisation
 //
 QEGenericEdit::QEGenericEdit( QWidget *parent ) :
-    QLineEdit( parent ),
-    QESingleVariableMethods( this, 0 ),
-    QEWidget( this )
+   QLineEdit( parent ),
+   QESingleVariableMethods( this, 0 ),
+   QEWidget( this )
 {
-    setup ();
+   setup ();
 }
 
 
@@ -46,13 +50,13 @@ QEGenericEdit::QEGenericEdit( QWidget *parent ) :
 // Constructor with known variable
 //
 QEGenericEdit::QEGenericEdit( const QString &variableNameIn, QWidget *parent) :
-    QLineEdit( parent ),
-    QESingleVariableMethods( this, 0 ),
-    QEWidget( this )
+   QLineEdit( parent ),
+   QESingleVariableMethods( this, 0 ),
+   QEWidget( this )
 {
-    setup ();
-    setVariableName( variableNameIn, 0 );
-    activate();
+   setup ();
+   setVariableName( variableNameIn, 0 );
+   activate();
 }
 
 //------------------------------------------------------------------------------
@@ -61,43 +65,43 @@ QEGenericEdit::QEGenericEdit( const QString &variableNameIn, QWidget *parent) :
 void QEGenericEdit::setup()
 {
 
-    // Set up data
-    // This control used a single data source
-    setNumVariables( 1 );
+   // Set up data
+   // This control used a single data source
+   setNumVariables( 1 );
 
-    // Set variable index used to select write access cursor style.
-    setControlPV( 0 );
+   // Set variable index used to select write access cursor style.
+   setControlPV( 0 );
 
-    // Set up default properties
-    writeOnLoseFocus = false;
-    writeOnEnter = true;
-    writeOnFinish = true;
-    confirmWrite = false;
-    isAllowFocusUpdate = false;
-    isFirstUpdate = false;
+   // Set up default properties
+   writeOnLoseFocus = false;
+   writeOnEnter = true;
+   writeOnFinish = true;
+   confirmWrite = false;
+   isAllowFocusUpdate = false;
+   isFirstUpdate = false;
 
-    setAllowDrop( false );
-    setDropOption(DropToVariable);
+   setAllowDrop( false );
+   setDropOption( QE::DropToVariable );
 
-    // Set the initial state
-    isConnected = false;
-    messageDialogPresent = false;
-    writeFailMessageDialogPresent = false;
+   // Set the initial state
+   isConnected = false;
+   messageDialogPresent = false;
+   writeFailMessageDialogPresent = false;
 
-    // Use standard context menu
-    setupContextMenu();
+   // Use standard context menu
+   setupContextMenu();
 
-    // Use line edit signals
-    QObject::connect( this, SIGNAL( returnPressed     () ),
-                      this, SLOT  ( userReturnPressed () ) );
-    QObject::connect( this, SIGNAL( editingFinished     () ),
-                      this, SLOT  ( userEditingFinished () ) );
+   // Use line edit signals
+   QObject::connect( this, SIGNAL( returnPressed     () ),
+                     this, SLOT  ( userReturnPressed () ) );
+   QObject::connect( this, SIGNAL( editingFinished     () ),
+                     this, SLOT  ( userEditingFinished () ) );
 
-    // Set up a connection to recieve variable name property changes
-    // The variable name property manager class only delivers an updated
-    // variable name after the user has stopped typing.
-    //
-    connectNewVariableNameProperty( SLOT( useNewVariableNameProperty( QString, QString, unsigned int ) ) );
+   // Set up a connection to recieve variable name property changes
+   // The variable name property manager class only delivers an updated
+   // variable name after the user has stopped typing.
+   //
+   connectNewVariableNameProperty( SLOT( useNewVariableNameProperty( QString, QString, unsigned int ) ) );
 
 }
 
@@ -105,9 +109,9 @@ void QEGenericEdit::setup()
 // This is added to the QE context menu
 QMenu* QEGenericEdit::getDefaultContextMenu()
 {
-    QMenu* menu = createStandardContextMenu();
-    menu->setTitle( "Edit..." );
-    return menu;
+   QMenu* menu = createStandardContextMenu();
+   menu->setTitle( "Edit..." );
+   return menu;
 }
 
 //------------------------------------------------------------------------------
@@ -118,26 +122,26 @@ QMenu* QEGenericEdit::getDefaultContextMenu()
 void QEGenericEdit::connectionChanged( QCaConnectionInfo& connectionInfo,
                                        const unsigned int& variableIndex )
 {
-    // Note the connected state
-    isConnected = connectionInfo.isChannelConnected();
+   // Note the connected state
+   isConnected = connectionInfo.isChannelConnected();
 
-    // Note if first update has arrived (ok to set repeatedly)
-    if( isConnected )
-    {
-        isFirstUpdate = true;
-    }
+   // Note if first update has arrived (ok to set repeatedly)
+   if( isConnected )
+   {
+      isFirstUpdate = true;
+   }
 
-    // Display the connected state
-    updateToolTipConnection( isConnected );
-    processConnectionInfo( isConnected );
+   // Display the connected state
+   updateToolTipConnection( isConnected );
+   processConnectionInfo( isConnected );
 
-    // Set cursor to indicate access mode.
-    setAccessCursorStyle();
+   // Set cursor to indicate access mode.
+   setAccessCursorStyle();
 
-    // Signal channel connection change to any (Link) widgets.
-    // using signal dbConnectionChanged.
-    //
-    emitDbConnectionChanged( variableIndex );
+   // Signal channel connection change to any (Link) widgets.
+   // using signal dbConnectionChanged.
+   //
+   emitDbConnectionChanged( variableIndex );
 }
 
 //------------------------------------------------------------------------------
@@ -145,30 +149,30 @@ void QEGenericEdit::connectionChanged( QCaConnectionInfo& connectionInfo,
 //
 void QEGenericEdit::setDataIfNoFocus( const QVariant& value, QCaAlarmInfo& alarmInfo, QCaDateTime& ) {
 
-    // Save the most recent value.
-    // If the user is editing the value updates are not applied. If the user cancels the write, the value the widget
-    // should revert to the latest value.
-    // This last value is also used to manage notifying user changes (save what the user will be changing from)
-    lastValue = value;
+   // Save the most recent value.
+   // If the user is editing the value updates are not applied. If the user cancels the write, the value the widget
+   // should revert to the latest value.
+   // This last value is also used to manage notifying user changes (save what the user will be changing from)
+   lastValue = value;
 
-    // Update the text if appropriate.
-    // If the user is editing the object then updates will be
-    // inapropriate, unless it is the first update and the
-    // user has not started changing the text.
-    // Update alays allowed iff isAllowFocusUpdate has been set true.
-    if(( isAllowFocusUpdate ) ||
-       ( !hasFocus() && !messageDialogPresent ) ||
-       (  hasFocus() && !isModified() && isFirstUpdate ))
-    {
-        setValue( value );
-        lastUserValue = value;
-    }
+   // Update the text if appropriate.
+   // If the user is editing the object then updates will be
+   // inapropriate, unless it is the first update and the
+   // user has not started changing the text.
+   // Update alays allowed iff isAllowFocusUpdate has been set true.
+   if(( isAllowFocusUpdate ) ||
+         ( !hasFocus() && !messageDialogPresent ) ||
+         (  hasFocus() && !isModified() && isFirstUpdate ))
+   {
+      setValue( value );
+      lastUserValue = value;
+   }
 
-    // Invoke common alarm handling processing.
-    processAlarmInfo( alarmInfo );
+   // Invoke common alarm handling processing.
+   processAlarmInfo( alarmInfo );
 
-    // First (and subsequent) update is now over
-    isFirstUpdate = false;
+   // First (and subsequent) update is now over
+   isFirstUpdate = false;
 }
 
 //------------------------------------------------------------------------------
@@ -180,25 +184,25 @@ void QEGenericEdit::setDataIfNoFocus( const QVariant& value, QCaAlarmInfo& alarm
 //
 void QEGenericEdit::userReturnPressed()
 {
-    // If not connected, do nothing
-    if( !isConnected )
-    {
-        return;
-    }
+   // If not connected, do nothing
+   if( !isConnected )
+   {
+      return;
+   }
 
-    // Get the variable to write to
-    qcaobject::QCaObject *qca = getQcaItem(0);
+   // Get the variable to write to
+   qcaobject::QCaObject *qca = getQcaItem(0);
 
-    // If a QCa object is present (if there is a variable to write to)
-    // and the object is set up to write when the user presses return
-    // then write the value.
-    // Note, write even if the value has not changed (isModified() is not checked)
+   // If a QCa object is present (if there is a variable to write to)
+   // and the object is set up to write when the user presses return
+   // then write the value.
+   // Note, write even if the value has not changed (isModified() is not checked)
 
-    if( qca && writeOnEnter )
-    {
-       // Note: getValue is a dispatching hook procedure.
-       writeValue( qca, getValue () );
-    }
+   if( qca && writeOnEnter )
+   {
+      // Note: getValue is a dispatching hook procedure.
+      writeValue( qca, getValue () );
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -211,76 +215,76 @@ void QEGenericEdit::userReturnPressed()
 //
 void QEGenericEdit::userEditingFinished()
 {
-    // If not connected, do nothing
-    if( !isConnected )
-    {
-        return;
-    }
+   // If not connected, do nothing
+   if( !isConnected )
+   {
+      return;
+   }
 
-    // Do nothing if the user is still effectivly working with the widget (just moved to a dialog box)
-    // Any signals received while messageDialogPresent is true should be ignored.
-    // A signal occurs after the 'write failed' dialog closes, so a it sets
-    // writeFailMessageDialogPresent to allow this code to ignore the signal.
-    if( messageDialogPresent || writeFailMessageDialogPresent )
-    {
-        if( !messageDialogPresent )
-        {
-            writeFailMessageDialogPresent = false;
-            setFocus();
-        }
-        return;
-    }
+   // Do nothing if the user is still effectivly working with the widget (just moved to a dialog box)
+   // Any signals received while messageDialogPresent is true should be ignored.
+   // A signal occurs after the 'write failed' dialog closes, so a it sets
+   // writeFailMessageDialogPresent to allow this code to ignore the signal.
+   if( messageDialogPresent || writeFailMessageDialogPresent )
+   {
+      if( !messageDialogPresent )
+      {
+         writeFailMessageDialogPresent = false;
+         setFocus();
+      }
+      return;
+   }
 
-    // If no changes were made by the user, do nothing
-    if( !isModified() || !writeOnFinish )
-    {
-        return;
-    }
+   // If no changes were made by the user, do nothing
+   if( !isModified() || !writeOnFinish )
+   {
+      return;
+   }
 
-    // Get the variable to write to
-    qcaobject::QCaObject *qca = getQcaItem(0);
+   // Get the variable to write to
+   qcaobject::QCaObject *qca = getQcaItem(0);
 
-    // If a QCa object is present (if there is a variable to write to)
-    // and the object is set up to write when the user changes focus away from the object
-    // and the text has actually changed
-    // then write the value
-    if( qca && writeOnLoseFocus )
-    {
-       // Note: getValue is a dispatching hook procedure.
-       writeValue( qca, getValue () );
-    }
+   // If a QCa object is present (if there is a variable to write to)
+   // and the object is set up to write when the user changes focus away from the object
+   // and the text has actually changed
+   // then write the value
+   if( qca && writeOnLoseFocus )
+   {
+      // Note: getValue is a dispatching hook procedure.
+      writeValue( qca, getValue () );
+   }
 
-    // If, for what ever reason, the value has been changed by the user but not but not written
-    // check with the user what to do about it.
-    else
-    {
-        messageDialogPresent = true;
-        int confirm = QMessageBox::warning( this, "Value changed", "You altered a value but didn't write it.\nDo you want to write this value?",
-                                            QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::No );
-        messageDialogPresent = false;
+   // If, for what ever reason, the value has been changed by the user but not but not written
+   // check with the user what to do about it.
+   else
+   {
+      messageDialogPresent = true;
+      int confirm = QMessageBox::warning( this, "Value changed", "You altered a value but didn't write it.\nDo you want to write this value?",
+                                          QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::No );
+      messageDialogPresent = false;
 
-        switch( confirm )
-        {
-            // Write the value
-            case QMessageBox::Yes:
-                if( qca ) {
-                   // Note: getValue is a dispatching hook procedure.
-                   writeValue( qca, getValue () );
-                }
-                break;
+      switch( confirm )
+      {
+         // Write the value
+         case QMessageBox::Yes:
+            if( qca ) {
+               // Note: getValue is a dispatching hook procedure.
+               writeValue( qca, getValue () );
+            }
+            break;
 
             // Abort the write, revert to latest value
-            case QMessageBox::No:
-                setValue( lastValue );       // Note, also clears 'isModified' flag
-                                             // setValue  is dispatching hook function
-                break;
+         case QMessageBox::No:
+            setValue( lastValue );       // Note, also clears 'isModified' flag
+            // setValue  is dispatching hook function
+            break;
 
             // Don't write the value, move back to the field being edited
-            case QMessageBox::Cancel:
-                setFocus();
-                break;
-        }
-    }
+         case QMessageBox::Cancel:
+            setFocus();
+            break;
+      }
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -290,13 +294,13 @@ void QEGenericEdit::userEditingFinished()
 //
 void QEGenericEdit::writeNow ()
 {
-    // If not connected, do nothing
-    if( !isConnected )
-    {
-        return;
-    }
+   // If not connected, do nothing
+   if( !isConnected )
+   {
+      return;
+   }
 
-    // Get the variable to write to
+   // Get the variable to write to
    qcaobject::QCaObject *qca = getQcaItem(0);
 
    // If a QCa object is present (if there is a variable to write to)
@@ -316,63 +320,63 @@ void QEGenericEdit::writeNow ()
 //
 void QEGenericEdit::writeValue( qcaobject::QCaObject *, QVariant newValue )
 {
-    // If required, get confirmation from the user as to what to do
-    int confirm = QMessageBox::Yes;
-    if( confirmWrite )
-    {
-        messageDialogPresent = true;
-        confirm = QMessageBox::warning( this, "Confirm write", "Do you want to write this value?",
-                                        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes );
-        messageDialogPresent = false;
-    }
+   // If required, get confirmation from the user as to what to do
+   int confirm = QMessageBox::Yes;
+   if( confirmWrite )
+   {
+      messageDialogPresent = true;
+      confirm = QMessageBox::warning( this, "Confirm write", "Do you want to write this value?",
+                                      QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes );
+      messageDialogPresent = false;
+   }
 
-    // Perform the required action. Either write the value (the default) or what ever the user requested
-    switch( confirm )
-    {
-        // Write the value and inform any derived class
-        case QMessageBox::Yes:
-            // Write the value
+   // Perform the required action. Either write the value (the default) or what ever the user requested
+   switch( confirm )
+   {
+      // Write the value and inform any derived class
+      case QMessageBox::Yes:
+         // Write the value
+         {
+            QString error;
+            // Write the value - writeData is dispatching hook function
+            if( !writeData( newValue, error ) )
             {
-                QString error;
-                // Write the value - writeData is dispatching hook function
-                if( !writeData( newValue, error ) )
-                {
-                    // write failed
-                    // Flag what dialog activity is going on so spurious 'editing finished' signals can be ignored
-                    messageDialogPresent = true;
-                    writeFailMessageDialogPresent = true;
-                    // warn user
-                    QMessageBox::warning( this, QString( "Write failed" ), error, QMessageBox::Cancel );
-                    setFocus();
-                    // Clear flag indicating 'editing finished' signals are due to message dialog
-                    messageDialogPresent = false;
-                }
-
-                // Write ok
-                else
-                {
-                    // Manage notifying user changes
-                    emit userChange( newValue, lastUserValue, lastValue );
-
-                    // Clear 'isModified' flag
-                    setText( text() );
-                }
+               // write failed
+               // Flag what dialog activity is going on so spurious 'editing finished' signals can be ignored
+               messageDialogPresent = true;
+               writeFailMessageDialogPresent = true;
+               // warn user
+               QMessageBox::warning( this, QString( "Write failed" ), error, QMessageBox::Cancel );
+               setFocus();
+               // Clear flag indicating 'editing finished' signals are due to message dialog
+               messageDialogPresent = false;
             }
-            break;
 
-        // Abort the write, revert to latest value
-        case QMessageBox::No:
-            // Revert the text. Note, also clears 'isModified' flag
-            // setValue  is dispatching hook function
-            //
-            setValue( lastValue );
-            break;
+            // Write ok
+            else
+            {
+               // Manage notifying user changes
+               emit userChange( newValue, lastUserValue, lastValue );
 
-        // Don't write the value, keep editing the field
-        case QMessageBox::Cancel:
-            // Do nothing
-            break;
-    }
+               // Clear 'isModified' flag
+               setText( text() );
+            }
+         }
+         break;
+
+         // Abort the write, revert to latest value
+      case QMessageBox::No:
+         // Revert the text. Note, also clears 'isModified' flag
+         // setValue  is dispatching hook function
+         //
+         setValue( lastValue );
+         break;
+
+         // Don't write the value, keep editing the field
+      case QMessageBox::Cancel:
+         // Do nothing
+         break;
+   }
 }
 
 
@@ -383,7 +387,7 @@ void QEGenericEdit::useNewVariableNameProperty( QString variableNameIn,
                                                 QString variableNameSubstitutionsIn,
                                                 unsigned int variableIndex )
 {
-    setVariableNameAndSubstitutions(variableNameIn, variableNameSubstitutionsIn, variableIndex);
+   setVariableNameAndSubstitutions(variableNameIn, variableNameSubstitutionsIn, variableIndex);
 }
 
 
@@ -400,7 +404,7 @@ bool QEGenericEdit::getIsConnected () const
 //
 bool QEGenericEdit::getIsFirstUpdate () const
 {
-    return isFirstUpdate;
+   return isFirstUpdate;
 }
 
 //==============================================================================
@@ -408,24 +412,31 @@ bool QEGenericEdit::getIsFirstUpdate () const
 //
 void QEGenericEdit::setDrop( QVariant drop )
 {
-    if (getDropOption() == DropToVariable){
-        setVariableName( drop.toString(), 0 );
-        establishConnection( 0 );
-    }
-    else if (getDropOption() == DropToText){
-        setText(drop.toString());
-    }
-    else{
-        setText(drop.toString());
-        writeNow();
-    }
+   switch (getDropOption()) {
+      case QE::DropToVariable:
+         setVariableName( drop.toString(), 0 );
+         establishConnection( 0 );
+         break;
+
+      case QE::DropToText:
+         setText(drop.toString());
+         break;
+
+      case QE::DropToTextAndWrite:
+         setText(drop.toString());
+         break;
+
+      default:
+         DEBUG << "bad drop option " << int (getDropOption() );
+         break;
+   }
 }
 
 //------------------------------------------------------------------------------
 //
 QVariant QEGenericEdit::getDrop()
 {
-    return QVariant( getSubstitutedVariableName(0) );
+   return QVariant( getSubstitutedVariableName(0) );
 }
 
 
@@ -433,20 +444,20 @@ QVariant QEGenericEdit::getDrop()
 // Copy / Paste
 QString QEGenericEdit::copyVariable()
 {
-    return getSubstitutedVariableName(0);
+   return getSubstitutedVariableName(0);
 }
 
 QVariant QEGenericEdit::copyData()
 {
-    return QVariant( text() );
+   return QVariant( text() );
 }
 
 void QEGenericEdit::paste( QVariant v )
 {
-    if( getAllowDrop() )
-    {
-        setDrop( v );
-    }
+   if( getAllowDrop() )
+   {
+      setDrop( v );
+   }
 }
 
 //==============================================================================
@@ -455,67 +466,67 @@ void QEGenericEdit::paste( QVariant v )
 // write on lose focus
 void QEGenericEdit::setWriteOnLoseFocus( bool writeOnLoseFocusIn )
 {
-    writeOnLoseFocus = writeOnLoseFocusIn;
+   writeOnLoseFocus = writeOnLoseFocusIn;
 }
 bool QEGenericEdit::getWriteOnLoseFocus()
 {
-    return writeOnLoseFocus;
+   return writeOnLoseFocus;
 }
 
 //------------------------------------------------------------------------------
 // write on enter
 void QEGenericEdit::setWriteOnEnter( bool writeOnEnterIn )
 {
-    writeOnEnter = writeOnEnterIn;
+   writeOnEnter = writeOnEnterIn;
 }
 bool QEGenericEdit::getWriteOnEnter()
 {
-    return writeOnEnter;
+   return writeOnEnter;
 }
 
 //------------------------------------------------------------------------------
 // write on finish
 void QEGenericEdit::setWriteOnFinish( bool writeOnFinishIn )
 {
-    writeOnFinish = writeOnFinishIn;
+   writeOnFinish = writeOnFinishIn;
 }
 bool QEGenericEdit::getWriteOnFinish()
 {
-    return writeOnFinish;
+   return writeOnFinish;
 }
 
 //------------------------------------------------------------------------------
 // subscribe
 void QEGenericEdit::setSubscribe( bool subscribeIn )
 {
-    subscribe = subscribeIn;
+   subscribe = subscribeIn;
 }
 bool QEGenericEdit::getSubscribe()
 {
-    return subscribe;
+   return subscribe;
 }
 
 //------------------------------------------------------------------------------
 // confirm write
 void QEGenericEdit::setConfirmWrite( bool confirmWriteIn )
 {
-    confirmWrite = confirmWriteIn;
+   confirmWrite = confirmWriteIn;
 }
 bool QEGenericEdit::getConfirmWrite()
 {
-    return confirmWrite;
+   return confirmWrite;
 }
 
 //------------------------------------------------------------------------------
 // set allow updatws while widget has focus.
 void QEGenericEdit::setAllowFocusUpdate( bool allowFocusUpdateIn )
 {
-    isAllowFocusUpdate = allowFocusUpdateIn;
+   isAllowFocusUpdate = allowFocusUpdateIn;
 }
 
 bool QEGenericEdit::getAllowFocusUpdate() const
 {
-    return isAllowFocusUpdate;
+   return isAllowFocusUpdate;
 }
 
 // end

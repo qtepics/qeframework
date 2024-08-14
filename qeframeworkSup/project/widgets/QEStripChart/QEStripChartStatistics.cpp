@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron.
+ *  Copyright (c) 2013-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -60,12 +60,14 @@ QEStripChartStatistics::QEStripChartStatistics (const QString& pvNameIn,
    // Note: the axis objects are NOT parented.
    //
    this->xAxis = new QEAxisPainter (NULL);
-   this->xAxis->setOrientation (QEAxisPainter::Left_To_Right);
+   this->xAxis->setOrientation (Qt::Horizontal);
+   this->xAxis->setInvertedAppearance (false);
    this->xAxis->setHasAxisLine (true);
    this->xAxis->setMajorMinorRatio (MAJOR_MINOR_RATIO);
 
    this->yAxis = new QEAxisPainter (NULL);
-   this->yAxis->setOrientation (QEAxisPainter::Bottom_To_Top);
+   this->yAxis->setOrientation (Qt::Vertical);
+   this->yAxis->setInvertedAppearance (false);
    this->yAxis->setHasAxisLine (true);
    this->yAxis->setMajorMinorRatio (MAJOR_MINOR_RATIO);
    this->yAxis->setPrecision (2);

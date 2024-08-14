@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2023 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +28,7 @@
 #define QE_GENERIC_BUTTON_H
 
 #include <QAbstractButton>
+#include <QEEnums.h>
 #include <QEWidget.h>
 #include <QEForm.h>
 #include <QEString.h>
@@ -38,7 +39,6 @@
 #include <QEStringFormattingMethods.h>
 #include <QEIntegerFormatting.h>
 #include <applicationLauncher.h>
-#include <QEWidgetProperties.h>
 
 /// Class common to all QE buttons
 ///
@@ -48,29 +48,14 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGenericButton :
         public QESingleVariableMethods,
         public QEStringFormattingMethods
 {
-
-  public:
-    QEGenericButton( QAbstractButton *owner );
+public:
+    explicit QEGenericButton( QAbstractButton *owner );
     virtual ~QEGenericButton(){}
 
     enum VariableAllocation {
-       VAR_PRIMARY = 0,      // Primary Control PV
-       VAR_READBACK,         // Alternative readback PV - QEPushButton only
-       NUMBER_OF_VARIABLES   // Maximum number of variables - must be last
-    };
-
-    // Applicable when subscribe is set true.
-    // Would have liked to use a flag, but want to maintain backward compatibility.
-    //
-    enum updateOptions {
-       UPDATE_NONE                = 0x00,  // For completeness
-       UPDATE_TEXT                = 0x01,  // Update text
-       UPDATE_ICON                = 0x02,  // Update icon
-       UPDATE_TEXT_AND_ICON       = 0x03,
-       UPDATE_STATE               = 0x04,  // Update state - inc. alarm state
-       UPDATE_TEXT_AND_STATE      = 0x05,
-       UPDATE_ICON_AND_STATE      = 0x06,
-       UPDATE_TEXT_ICON_AND_STATE = 0x07
+       VAR_PRIMARY = 0,     // Primary Control PV
+       VAR_READBACK,        // Alternative readback PV - QEPushButton only
+       NUMBER_OF_VARIABLES  // Maximum number of variables - must be last.
     };
 
     // subscribe
@@ -80,8 +65,8 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGenericButton :
     // Properties
 
     // Update option (icon, text, or both)
-    void setUpdateOption( updateOptions updateOptionIn );
-    updateOptions getUpdateOption();
+    void setUpdateOption( QE::UpdateOptions updateOptionIn );
+    QE::UpdateOptions getUpdateOption();
 
     // text alignment
     void setTextAlignment( Qt::Alignment alignment );
@@ -139,8 +124,8 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGenericButton :
     QStringList getArguments();
 
     // Qt Designer Properties program startup options
-    void setProgramStartupOption( applicationLauncher::programStartupOptions programStartupOptionIn );
-    applicationLauncher::programStartupOptions getProgramStartupOption();
+    void setProgramStartupOption( QE::ProgramStartupOptions programStartupOptionIn );
+    QE::ProgramStartupOptions getProgramStartupOption();
 
     // Property convenience functions
 
@@ -157,16 +142,16 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGenericButton :
     QString getCustomisationName();
 
     // Qt Designer Properties Creation options
-    void setCreationOption( QEActionRequests::Options creationOption );
-    QEActionRequests::Options getCreationOption();
+    void setCreationOption( QE::CreationOptions creationOption );
+    QE::CreationOptions getCreationOption();
 
     // Label text (prior to substitution)
     void setLabelTextProperty( QString labelTextIn );
     QString getLabelTextProperty();
 
     // disabledRecordPolicy
-    void setDisabledRecordPolicy( const QEWidgetProperties::DisabledRecordPolicy disabledRecordPolicy );
-    QEWidgetProperties::DisabledRecordPolicy getDisabledRecordPolicy() const;
+    void setDisabledRecordPolicy( const QE::DisabledRecordPolicy disabledRecordPolicy );
+    QE::DisabledRecordPolicy getDisabledRecordPolicy() const;
 
     // Write the click value now irrespective of whether writeOnClick property true or false.
     // This allows programatic "clicks" even when property is false.
@@ -185,7 +170,7 @@ protected:
     // performs no other action such as run command, open ui file.
     void processWriteNow( const bool checked );
 
-    virtual updateOptions getDefaultUpdateOption() = 0;
+    virtual QE::UpdateOptions getDefaultUpdateOption() = 0;
 
     applicationLauncher programLauncher;
 
@@ -198,7 +183,7 @@ private:
     bool writeOnRelease;
     bool writeOnClick;
     bool confirmRequired;     // Request confirmation before acting on a button event
-    QEWidgetProperties::DisabledRecordPolicy disabledRecordPolicy;    //
+    QE::DisabledRecordPolicy disabledRecordPolicy;    //
     QString confirmText;      // Text presented when confirming action
     QString releaseText;      // Text to write on a button release
     QString pressText;        // Text to write on a button press
@@ -210,13 +195,13 @@ private:
 //    programStartupOptions programStartupOption; // Startup option (in a terminal, log output, or just start it and forget it)
 
     QString guiName;      // GUI file name to launch
-    QEActionRequests::Options creationOption;  // Indicate how the new gui should be created ( examples: in a new window, or a top dock)
+    QE::CreationOptions creationOption;  // Indicate how the new gui should be created ( examples: in a new window, or a top dock)
     QString prioritySubstitutions;  // Macro substitutions that take precedence over existing substitutions when creating new guis
     QString customisationName;      // Name of set of Window customisations such as additional menu items or tool bar push buttons
 
     bool localEnabled;
 
-    updateOptions updateOption;
+    QE::UpdateOptions updateOption;
 
     QString labelText;                                                 // Fixed label text to which substitutions will be applied
 
