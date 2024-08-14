@@ -217,17 +217,11 @@ public:
    // End QEScalarHistogram specific properties ======================================
 
 
-   // BEGIN-STANDARD-PROPERTIES ======================================================
+    // BEGIN-STANDARD-PROPERTIES ======================================================
     // Standard properties
     // These properties should be identical for every widget using them.
     // WHEN MAKING CHANGES: Use the update_widget_properties script in the
     // resources directory.
-public slots:
-    /// Slot to set the visibility of a QE widget, taking into account the user level.
-    /// Widget will be hidden if hidden by a call this slot, by will only be made
-    /// visible by a calll to this slot if the user level allows.
-    ///
-    void setManagedVisible( bool v ){ setRunVisible( v ); }
 public:
     /// Use the variable as the tool tip. Default is true. Tool tip property
     /// will be overwritten by the variable name.
@@ -344,6 +338,13 @@ public:
 
    void setReadoutNotation (const QE::Notations notation);
    QE::Notations getReadoutNotation () const;
+
+public slots:
+   /// Slot to set the visibility of a QE widget, taking into account the user level.
+   /// Widget will be hidden if hidden by a call this slot, by will only be made
+   /// visible by a calll to this slot if the user level allows.
+   ///
+   void setManagedVisible (bool v) { this->setRunVisible(v); }
 
 protected:
    qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);

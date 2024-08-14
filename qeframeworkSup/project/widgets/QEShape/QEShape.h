@@ -219,26 +219,38 @@ signals:
     /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
     /// For example a QList widget could log updates from this widget.
     void dbValueChanged1( const qlonglong& out );
+
     /// Sent when the widget is updated following a data change for the second variable
     /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
     /// For example a QList widget could log updates from this widget.
     void dbValueChanged2( const qlonglong& out );
+
     /// Sent when the widget is updated following a data change for the third variable
     /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
     /// For example a QList widget could log updates from this widget.
     void dbValueChanged3( const qlonglong& out );
+
     /// Sent when the widget is updated following a data change for the fourth variable
     /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
     /// For example a QList widget could log updates from this widget.
     void dbValueChanged4( const qlonglong& out );
+
     /// Sent when the widget is updated following a data change for the fifth variable
     /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
     /// For example a QList widget could log updates from this widget.
     void dbValueChanged5( const qlonglong& out );
+
     /// Sent when the widget is updated following a data change for the sixth variable
     /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
     /// For example a QList widget could log updates from this widget.
     void dbValueChanged6( const qlonglong& out );
+
+public slots:
+    /// Slot to set the visibility of a QE widget, taking into account the user level.
+    /// Widget will be hidden if hidden by a call this slot, by will only be made
+    /// visible by a calll to this slot if the user level allows.
+    ///
+    void setManagedVisible( bool v ){ setRunVisible( v ); }
 
 private:
     void setup();                                               // Initialisation common to all constructors
@@ -350,12 +362,6 @@ public:
     // These properties should be identical for every widget using them.
     // WHEN MAKING CHANGES: Use the update_widget_properties script in the
     // resources directory.
-public slots:
-    /// Slot to set the visibility of a QE widget, taking into account the user level.
-    /// Widget will be hidden if hidden by a call this slot, by will only be made
-    /// visible by a calll to this slot if the user level allows.
-    ///
-    void setManagedVisible( bool v ){ setRunVisible( v ); }
 public:
     /// Use the variable as the tool tip. Default is true. Tool tip property
     /// will be overwritten by the variable name.

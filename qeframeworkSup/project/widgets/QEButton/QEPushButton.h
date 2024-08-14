@@ -283,12 +283,6 @@ public:
     // These properties should be identical for every widget using them.
     // WHEN MAKING CHANGES: Use the update_widget_properties script in the
     // resources directory.
-public slots:
-    /// Slot to set the visibility of a QE widget, taking into account the user level.
-    /// Widget will be hidden if hidden by a call this slot, by will only be made
-    /// visible by a calll to this slot if the user level allows.
-    ///
-    void setManagedVisible( bool v ){ setRunVisible( v ); }
 public:
     /// Use the variable as the tool tip. Default is true. Tool tip property
     /// will be overwritten by the variable name.
@@ -472,26 +466,21 @@ public:
 
     /// Seperators used for interger and fixed point formatting. Default is None.
     ///
-    Q_PROPERTY(QE::Separators separator READ getSeparatorProperty WRITE setSeparatorProperty)
-
-    void setSeparatorProperty (const QE::Separators notation) { this->setSeparator(notation); }  ///< Access function for #separator property - refer to #separator property for details
-    QE::Separators getSeparatorProperty() const { return this->getSeparator(); }                 ///< Access function for #separator property - refer to #separator property for details
+    Q_PROPERTY(QE::Separators separator READ getSeparator WRITE setSeparator)
 
     /// Notation used for numerical formatting. Default is fixed.
     ///
-    Q_PROPERTY(QE::Notations notation READ getNotationProperty WRITE setNotationProperty)
-
-    void setNotationProperty (QE::Notations notation) { this->setNotation (notation); }  ///< Access function for #notation property - refer to #notation property for details
-    QE::Notations getNotationProperty() const { return this->getNotation(); }            ///< Access function for #notation property - refer to #notation property for details
+    Q_PROPERTY(QE::Notations notation READ getNotation WRITE setNotation)
 
     /// Text formatting option for array data. Default is ASCII. Options are:
     /// \li ASCII - treat array as a single text string. For example an array of three characters 'a' 'b' 'c' will be formatted as 'abc'.
-    /// \li APPEND - treat array as an array of numbers and format a string containing them all with a space between each. For example, an array of three numbers 10, 11 and 12 will be formatted as '10 11 12'.
-    /// \li INDEX - Extract a single item from the array. The item is then formatted as any other non array data would be. The item selected is determined by the arrayIndex property. For example, if arrayIndex property is 1, an array of three numbers 10, 11 and 12 will be formatted as '11'.
-    Q_PROPERTY(QE::ArrayActions arrayAction READ getArrayActionProperty WRITE setArrayActionProperty)
-
-    void setArrayActionProperty (QE::ArrayActions arrayAction) { this->setArrayAction (arrayAction); }  ///< Access function for #arrayAction property - refer to #arrayAction property for details
-    QE::ArrayActions getArrayActionProperty() const { return this->getArrayAction(); }                  ///< Access function for #arrayAction property - refer to #arrayAction property for details
+    /// \li APPEND - treat array as an array of numbers and format a string containing them all with a space between each.
+    ///              For example, an array of three numbers 10, 11 and 12 will be formatted as '10 11 12'.
+    /// \li INDEX - Extract a single item from the array. The item is then formatted as any other non array data would be.
+    ///             The item selected is determined by the arrayIndex property. For example, if arrayIndex property is 1,
+    ///             an array of three numbers 10, 11 and 12 will be formatted as '11'.
+    ///
+    Q_PROPERTY(QE::ArrayActions arrayAction READ getArrayAction WRITE setArrayAction)
 
 public:
     // END-STRING-FORMATTING-PROPERTIES ===============================================
@@ -535,6 +524,12 @@ public slots:
     /// Update the default style applied to this widget.
     ///
     void setDefaultStyle( const QString& style ) { setStyleDefault( style ); }
+
+   /// Slot to set the visibility of a QE widget, taking into account the user level.
+   /// Widget will be hidden if hidden by a call this slot, by will only be made
+   /// visible by a calll to this slot if the user level allows.
+   ///
+   void setManagedVisible( bool v ){ setRunVisible( v ); }
 
 signals:
     // Note, the following signals are common to many QE widgets,
