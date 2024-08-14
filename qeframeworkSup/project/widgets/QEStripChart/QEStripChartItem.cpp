@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2023 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -785,8 +785,7 @@ QCaDataPointList QEStripChartItem::extractPlotPoints (const bool doBuffered) con
 
    for (int i = 0; i < 2; i++) {
       const QCaDataPointList* list = listArray [i];
-      bool isFirst = true;
-      int count = list->count ();
+      const int count = list->count ();
       for (int j = 0; j < count; j++) {
          QCaDataPoint point = list->value (j);
 
@@ -799,17 +798,10 @@ QCaDataPointList QEStripChartItem::extractPlotPoints (const bool doBuffered) con
          if ((t >= -duration) && (t <= 0.0)) {
             // Point time is within current time range of the chart.
             //
-            if (isFirst && (j > 0)) {
-               // do the previous point iff it exists.
-               //
-               result.append (list->value (j - 1));
-            }
-            isFirst = false;
             result.append (point);
          } else if (t > 0.0) {
-            // do one following point, then  skip the rest.
+            // skip the rest.
             //
-            result.append (point);
             break;
          }
       }
