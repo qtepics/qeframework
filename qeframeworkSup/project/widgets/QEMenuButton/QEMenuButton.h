@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2022 Australian Synchrotron
+ *  Copyright (c) 2015-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -83,7 +83,7 @@ public:
 
    // This property stores the user info.
    // The "Edit User Info..." context menu item must be used to edit this.
-   /// Specifies the menu entry values, encoded and an XML string.
+   /// Specifies the menu entry values, encoded as an XML string.
    //
    Q_PROPERTY (QString menuEntries READ getMenuString WRITE setMenuString)
    //

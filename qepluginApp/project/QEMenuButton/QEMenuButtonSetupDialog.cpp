@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2023 Australian Synchrotron
+ *  Copyright (c) 2015-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -191,7 +191,7 @@ QEMenuButtonSetupDialog::QEMenuButtonSetupDialog (QEMenuButton* menuButtonIn,
                      this,                     SLOT   (selectionChanged (const QItemSelection&, const QItemSelection&)));
 
 
-   // Connect variable widget sigbals into this dialog.
+   // Connect variable widget signals into this dialog.
    //
    QCheckBox* cbox = this->ui->useSeperator;
    QObject::connect (cbox, SIGNAL (stateChanged (int)),
