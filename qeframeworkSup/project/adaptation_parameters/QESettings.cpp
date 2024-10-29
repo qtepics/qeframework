@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron.
+ *  Copyright (c) 2013-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -238,11 +238,16 @@ QString QESettings::getFilename (const QString &key, const QString &defaultValue
 {
    QString result = this->getString (key, defaultValue);
 
+   if (result.startsWith ("~/")) {
+      result = QDir::homePath() + QDir::separator () + result.mid(1);
+   }
+
    if (!result.isEmpty ()) {
       if (QDir::isRelativePath (result)) {
-         result = this->directoryName + initialDir.separator () + result;
+         result = this->directoryName + QDir::separator () + result;
       }
    }
+
    return result;
 }
 

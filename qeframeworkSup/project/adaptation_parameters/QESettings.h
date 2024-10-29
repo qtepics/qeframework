@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -90,9 +90,10 @@ public:
    double   getFloat  (const QString& key, const double    defaultValue);
 
 
-   // Essentially the same as getString except that the returned file name
-   // is converted from a relative path name to a full path name relative
+   // Essentially the same as getString except that the if specified file name is
+   // a relative path name, it is converted to a full path name with respect to
    // to the directory containing the this adaptation parameter file.
+   // Filenames starting with "~/", e.g. "~/xxxx" are mapped to "<homedir><separator>xxxx".
    //
    QString getFilename (const QString& key, const QString& defaultValue);
 

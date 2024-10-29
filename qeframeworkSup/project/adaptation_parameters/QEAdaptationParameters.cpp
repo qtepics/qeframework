@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron.
+ *  Copyright (c) 2013-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +25,9 @@
  */
 
 #include "QEAdaptationParameters.h"
+
 #include <QDebug>
+#include <QDir>
 
 #define DEBUG qDebug () << "QEAdaptationParameters" << __LINE__ << __FUNCTION__ << "  "
 
@@ -34,7 +36,7 @@
 //
 static const QString prefix = "Adaptation/";
 
-static const QChar nullLetter = QChar ((ushort) 0xDEAD);    // A bit arbitary
+static const QChar nullLetter = QChar ((ushort) 0xDEAD);   // A bit arbitary but does the job
 
 
 //------------------------------------------------------------------------------
@@ -59,6 +61,7 @@ QEAdaptationParameters::QEAdaptationParameters (const QString& envPrefix)
 //
 QEAdaptationParameters::~QEAdaptationParameters ()
 {
+   // Not QObjects - we must explicitly delete these.
    delete this->environment;
    delete this->settings;
    delete this->options;
@@ -150,6 +153,36 @@ double QEAdaptationParameters::getFloat (const QString &name,
    result = this->environment->getFloat (name, result);
    result = this->settings->getFloat (prefix + name, result);
    result = this->options->getFloat (name, letter, result);
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+QString  QEAdaptationParameters::getFilename (const QString& name,
+                                              const QString& defaultValue)
+{
+   return QEAdaptationParameters::getFilename (name, nullLetter, defaultValue);
+}
+
+//------------------------------------------------------------------------------
+//
+QString  QEAdaptationParameters::getFilename (const QString& name,
+                                              const QChar letter,
+                                              const QString& defaultValue)
+{
+   QString result = defaultValue;
+
+   result = this->environment->getString (name, result);
+   
+   // getFilename understands filenames relavtive to the settings file directory.
+   //
+   result = this->settings->getFilename (prefix + name, result);
+   result = this->options->getString (name, letter, result);
+
+   if (result.startsWith ("~/")) {
+      result = QDir::homePath() + QDir::separator () + result.mid(1);
+   }
+
    return result;
 }
 
