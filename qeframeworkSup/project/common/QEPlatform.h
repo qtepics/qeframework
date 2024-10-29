@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2022 Australian Synchrotron.
+ *  Copyright (c) 2015-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -30,7 +30,9 @@
 
 #include <Qt>
 #include <QtGlobal>
+#include <QMetaType>
 #include <QString>
+#include <QVariant>
 #include <QEFrameworkLibraryGlobal.h>
 
 /// Geneal purpose platform specific functions used to hide compiler, environment
@@ -41,6 +43,10 @@
 ///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlatform {
 public:
+   /// Returns the meta type type of a variant, e.g. QMetaType::QStringList,
+   /// as opposed to returning an int.
+   static QMetaType::Type metaType (const QVariant& v);
+
    /// This function test if the specified double floating point number is 'Not a Number'.
    static bool isNaN (const double x);
 
@@ -57,8 +63,8 @@ public:
 #endif
 
 protected:
-   explicit QEPlatform () { }
-   ~QEPlatform () { }
+   explicit QEPlatform ();
+   ~QEPlatform ();
 };
 
 # endif // QE_PLATFORM_H
