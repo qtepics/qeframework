@@ -29,11 +29,11 @@
 #include <QDebug>
 #include <QEArchiveInterface.h>
 #include <QECommon.h>
+#include <QEPlatform.h>
 
 #define DEBUG  qDebug () << "QCaDataPoint" << __LINE__ <<  __FUNCTION__  << "  "
 
-
-static const QString stdFormat = "dd/MMM/yyyy HH:mm:ss";
+static const char* stdFormat = "dd/MMM/yyyy HH:mm:ss";
 
 //==============================================================================
 // QCaDataPoint methods
@@ -83,7 +83,10 @@ bool QCaDataPoint::isDisplayable () const
       case QEArchiveInterface::archSevMajor:
       case QEArchiveInterface::archSevEstRepeat:
       case QEArchiveInterface::archSevRepeat:
-         result = true;
+         // Infinites and NaNs are not displayable.
+         //
+         result = !(QEPlatform::isNaN (this->value) ||
+                    QEPlatform::isInf (this->value));
          break;
 
       case QEArchiveInterface::archSevInvalid:
