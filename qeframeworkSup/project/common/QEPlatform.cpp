@@ -44,7 +44,7 @@ QEPlatform::~QEPlatform () { }
 
 //------------------------------------------------------------------------------
 //
-QMetaType::Type metaType (const QVariant& v)
+QMetaType::Type QEPlatform::metaType (const QVariant& v)
 {
 #if QT_VERSION < 0x060000
    // type() returns QVariant::Type
