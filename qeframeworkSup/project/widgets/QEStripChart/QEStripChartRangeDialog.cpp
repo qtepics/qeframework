@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2022 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -29,6 +29,8 @@
 #include <QVariant>
 #include <ui_QEStripChartRangeDialog.h>
 #include <QDebug>
+
+#define DEBUG  qDebug () << "QEStripChartRangeDialog" << __LINE__ <<  __FUNCTION__  << "  "
 
 //------------------------------------------------------------------------------
 //
@@ -111,11 +113,6 @@ void QEStripChartRangeDialog::maxReturnPressed ()
 //
 void QEStripChartRangeDialog::on_buttonBox_accepted ()
 {
-   QVariant varMin (QVariant::String);
-   QVariant varMax (QVariant::String);
-   double valMin, valMax;
-   bool ok1, ok2;
-
    if (this->returnIsMasked) {
       this->returnIsMasked = false;
       return;
@@ -123,11 +120,9 @@ void QEStripChartRangeDialog::on_buttonBox_accepted ()
 
    // Extract and validate user entry.
    //
-   varMin = this->ui->minimumEdit->text ();
-   valMin = varMin.toDouble (&ok1);
-
-   varMax = this->ui->maximumEdit->text ();
-   valMax = varMax.toDouble (&ok2);
+   bool ok1, ok2;
+   double valMin = this->ui->minimumEdit->text ().toDouble(&ok1);
+   double valMax = this->ui->maximumEdit->text ().toDouble(&ok2);
 
    if (ok1 && ok2 && (valMax > valMin)) {
       // All okay - assign values to object.

@@ -1,6 +1,9 @@
 /*  QELocalEnumeration.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,18 +18,18 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010, 2013 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
  *    andrew.rhyder@synchrotron.org.au
  */
 
-#include <QDebug>
-#include <QTextStream>
+#include "QELocalEnumeration.h"
 
-#include <QELocalEnumeration.h>
+#include <QDebug>
+#include <QMetaType>
+#include <QTextStream>
+#include <QEPlatform.h>
 
 //-----------------------------------------------------------------------------
 //
@@ -52,25 +55,27 @@ void QELocalEnumeration::setLocalEnumeration( const QString &  localEnumerationI
 
     localEnumerationItem item;
 
-    enum states { STATE_START,
+    enum states {
+        STATE_START,
 
-                  STATE_OPERATOR,
+        STATE_OPERATOR,
 
-                  STATE_START_VALUE_QUOTE,
-                  STATE_UNQUOTED_VALUE,
-                  STATE_QUOTED_VALUE,
-                  STATE_END_VALUE_QUOTE,
+        STATE_START_VALUE_QUOTE,
+        STATE_UNQUOTED_VALUE,
+        STATE_QUOTED_VALUE,
+        STATE_END_VALUE_QUOTE,
 
-                  STATE_DELIMITER,
+        STATE_DELIMITER,
 
-                  STATE_START_TEXT_QUOTE,
-                  STATE_UNQUOTED_TEXT,
-                  STATE_QUOTED_TEXT,
-                  STATE_END_TEXT_QUOTE,
+        STATE_START_TEXT_QUOTE,
+        STATE_UNQUOTED_TEXT,
+        STATE_QUOTED_TEXT,
+        STATE_END_TEXT_QUOTE,
 
-                  STATE_COMMA,
+        STATE_COMMA,
 
-                  STATE_END };
+        STATE_END
+    };
 
     int start = 0;                          // Index into enumeration text of current item of interest.
     int len = 0;                            // Length of current item of interest
@@ -508,14 +513,16 @@ QString QELocalEnumeration::valueToText( const QVariant & value , bool& match ) 
     // If it is a double, use it as a double.
     // If it is a string, use it as a string.
     // If it is anything else, try to convert it to a double, else a string.
-    switch( value.type() )
+
+    const QMetaType::Type vtype = QEPlatform::metaType (value);
+    switch( vtype )
     {
-        case QVariant::Double:
+        case QMetaType::Double:
             dValue = value.toDouble();
             isDouble = true;
             break;
 
-        case QVariant::String:
+        case QMetaType::QString:
             sValue = value.toString();
             isDouble = false;
             break;
@@ -589,7 +596,7 @@ QString QELocalEnumeration::valueToText( const QVariant & value , bool& match ) 
 //
 QVariant QELocalEnumeration::textToValue( const QString & text, bool &ok ) const
 {
-    QVariant value (QVariant::Invalid);
+    QVariant value = QVariant();
 
     // Init
     ok = false;

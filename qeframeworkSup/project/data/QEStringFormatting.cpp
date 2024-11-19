@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2022 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -29,6 +29,8 @@
 #include <math.h>
 #include <limits>
 #include <QDebug>
+#include <QMetaType>
+#include <QEPlatform.h>
 #include <QECommon.h>
 #include <QEPlatform.h>
 #include <QEVectorVariants.h>
@@ -38,11 +40,14 @@
 
 #define DEBUG qDebug () << "QEStringFormatting" << __LINE__ << __FUNCTION__ << "  "
 
-enum SpecialFormats {
-   // Specials for specific PVA varient types
-   FORMAT_NT_TABLE = 7,      ///< Format as a NTTable
-   FORMAT_NT_IMAGE,          ///< Format as a NTNDArray
-   FORMAT_OPAQUE             ///< Format as opaque, i.e. unknown/unhandled type.
+// InternalFormats are an extention of Formats used in QEStringFormatting
+// and are specials for specific PVA varient types.
+// These "formats" are not selectable from within designer.
+//
+enum InternalFormats {
+   NTTable = QE::String + 1,   ///< Format as a NTTable
+   NTNDImage,                  ///< Format as a NTNDArray
+   PVAOpaque                   ///< Format as opaque, i.e. unknown/unhandled type.
 };
 
 
@@ -127,9 +132,9 @@ QVariant QEStringFormatting::formatValue (const QString& text, bool& ok) const
    // Use the requested format, unless the requested format is 'default' in
    // which case use the format determined from any value read.
    //
-   QE::Formats f = this->format;
-   if (f == QE::Default) {
-      f = this->dbFormat;
+   QE::Formats fmt = this->format;
+   if (fmt == QE::Default) {
+      fmt = this->dbFormat;
    }
 
    // Format the value if an enumerated list
@@ -177,7 +182,7 @@ QVariant QEStringFormatting::formatValue (const QString& text, bool& ok) const
    //
    if (!this->dbFormatArray) {
       // Format the value if not enumerated
-      switch (f) {
+      switch (fmt) {
          case QE::Default:
             {
                value = QVariant (unitlessText);
@@ -229,9 +234,6 @@ QVariant QEStringFormatting::formatValue (const QString& text, bool& ok) const
             ok = true;
             break;
 
-//       case FORMAT_NT_TABLE:
-//       case FORMAT_NT_IMAGE:
-//       case FORMAT_OPAQUE:
          default:
             ok = false;
             break;
@@ -247,7 +249,7 @@ QVariant QEStringFormatting::formatValue (const QString& text, bool& ok) const
       QVariantList list;
       int len = unitlessText.size ();
 
-      switch (f) {
+      switch (fmt) {
          case QE::Default:
             {
                for (int i = 0; i < len; i++) {
@@ -319,9 +321,6 @@ QVariant QEStringFormatting::formatValue (const QString& text, bool& ok) const
             ok = true;
             break;
 
-//       case FORMAT_NT_TABLE:
-//       case FORMAT_NT_IMAGE:
-//       case FORMAT_OPAQUE:
          default:
             ok = false;
             break;
@@ -365,19 +364,22 @@ void QEStringFormatting::determineDbFormat (const QVariant& value) const
    this->dbFormatArray = false;
 
    // Get the value type
-   QVariant::Type t = value.type ();
+
+   QMetaType::Type vtype = QEPlatform::metaType (value);
 
    // If the value is a list, get the type of the first element in the list
-   if (t == QVariant::List) {
+   //
+   if (vtype == QMetaType::QVariantList) {
       // Note that whatever the format, we have an array of them
       this->dbFormatArray = true;
 
       // Get the list
       const QVariantList valueArray = value.toList ();
 
-      // If the list has anything in it, get the type of the first
-      if (valueArray.count ()) {
-         t = valueArray[0].type ();
+      // If the list has anything in it, get the type of the first.
+      //
+      if (valueArray.count() > 0) {
+         vtype = QEPlatform::metaType (valueArray[0]);
       } else {
          formatFailure (QString ("determineDefaultFormatting(). Empty array"));
          return;
@@ -386,45 +388,46 @@ void QEStringFormatting::determineDbFormat (const QVariant& value) const
 
    // Determine the formatting type from the variant type
    //
-   switch (t) {
-      case QVariant::Double:
+   switch (vtype) {
+      case QMetaType::Double:
          this->dbFormat = QE::Floating;
          break;
 
-      case QVariant::LongLong:
-      case QVariant::Int:
+      case QMetaType::LongLong:
+      case QMetaType::Int:
          // Could be an ENUM
          this->dbFormat = QE::Integer;
          break;
 
-      case QVariant::ULongLong:
-      case QVariant::UInt:
+      case QMetaType::ULongLong:
+      case QMetaType::UInt:
          this->dbFormat = QE::UnsignedInteger;
          break;
 
-      case QVariant::String:
+      case QMetaType::QString:
          dbFormat = QE::String;
          break;
 
-      case QVariant::UserType:
-         if (QENTTableData::isAssignableVariant (value)) {
-            this->dbFormat = QE::Formats (FORMAT_NT_TABLE);  /// Fix this
-            break;
-         }
-         if (QENTNDArrayData::isAssignableVariant (value)) {
-            this->dbFormat = QE::Formats (FORMAT_NT_IMAGE);  /// Fix this
-            break;
-         }
-         if (QEOpaqueData::isAssignableVariant (value)) {
-            this->dbFormat = QE::Formats (FORMAT_OPAQUE);    /// Fix this
-            break;
-         }
-         ///  ****** else fall through  ******
       default:
-         formatFailure (QString
-                        ("%1:%2 - unexpected QVariant type '%3' %4.")
-                        .arg (__LINE__).arg (__FUNCTION__)
-                        .arg (value.typeName ()).arg (t));
+         if (vtype >= QMetaType::User) {
+            if (QENTTableData::isAssignableVariant (value)) {
+               this->dbFormat = static_cast<QE::Formats>(NTTable);
+               break;
+            }
+            if (QENTNDArrayData::isAssignableVariant (value)) {
+               this->dbFormat = static_cast<QE::Formats>(NTNDImage);
+               break;
+            }
+            if (QEOpaqueData::isAssignableVariant (value)) {
+               this->dbFormat = static_cast<QE::Formats>(PVAOpaque);
+               break;
+            }
+         } else {
+            this->formatFailure (QString
+                                 ("%1:%2 - unexpected QVariant type '%3' %4.")
+                                 .arg (__LINE__).arg (__FUNCTION__)
+                                 .arg (value.typeName ()).arg (vtype));
+         }
          break;
    }
 }
@@ -437,9 +440,9 @@ QString QEStringFormatting::formatString (const QVariant& value, int arrayIndex)
    QString result;
    bool isNumeric = false;
 
-   const int valueType = value.type ();
-   if ((valueType != QVariant::List) &&
-       (valueType != QVariant::StringList) &&
+   const QMetaType::Type valueType = QEPlatform::metaType (value);
+   if ((valueType != QMetaType::QVariantList) &&
+       (valueType != QMetaType::QStringList) &&
        !QEVectorVariants::isVectorVariant (value)) {
       // "Simple" scalar
       result = this->formatElementString (value, isNumeric);
@@ -450,11 +453,11 @@ QString QEStringFormatting::formatString (const QVariant& value, int arrayIndex)
       QVariantList valueArray;
       bool okay = false;
 
-      if (valueType == QVariant::List) {
+      if (valueType == QMetaType::QVariantList) {
          valueArray = value.toList ();
          okay = true;
 
-      } else if (valueType == QVariant::StringList) {
+      } else if (valueType == QMetaType::QStringList) {
          // Convert QVariant::StringList to QVariantList of QString
          // To much conversion - refactor and tidy up.
          //
@@ -481,6 +484,7 @@ QString QEStringFormatting::formatString (const QVariant& value, int arrayIndex)
             // Interpret each element in the array as an unsigned integer and append
             // string representations of each element from the array with a space in
             // between each.
+            //
             for (int j = 0; j < number; j++) {
                QVariant element = valueArray.value (j);
                QString elementString;
@@ -496,6 +500,7 @@ QString QEStringFormatting::formatString (const QVariant& value, int arrayIndex)
             // Interpret each element from the array as a character in a string.
             // Translate all non printing characters to '?' except for trailing
             // zeros (ignore them)
+            //
             for (int j = 0; j < number; j++) {
                QVariant element = valueArray.value (j);
                bool okay;
@@ -511,7 +516,7 @@ QString QEStringFormatting::formatString (const QVariant& value, int arrayIndex)
                if (c == '\r') {
                }
                // Translate all non printing characters (except for space and line feed) to a '?'
-               else if ((c != '\n') && (c < ' ' || c > '~')) {
+               else if ((c != '\n') && ((c < ' ') || (c > '~'))) {
                   result.append ("?");
                }
                // Use everything else as is.
@@ -595,7 +600,10 @@ QString QEStringFormatting::formatElementString (const QVariant& value,
             // could not be selected, convert the value based on it's type.
             //
             if (!haveEnumeratedString) {
-               switch (this->dbFormat) {
+               // avoid the warning related to mixed enums usage
+               //
+               const int iFormat = int (this->dbFormat);
+               switch (iFormat) {
                   case QE::Floating:
                      d = value.toDouble(&okay);
                      result = this->toString (d);
@@ -618,25 +626,28 @@ QString QEStringFormatting::formatElementString (const QVariant& value,
                      result = value.toString ();
                      break;
 
-///               case QE::Formats (FORMAT_NT_TABLE):
+                 case NTTable:
                      // Can't display an NT Table as a string.
+                     //
                      result = "{{NTTable}}";
                      break;
 
-///               case QE::Formats (FORMAT_NT_IMAGE):
+                 case NTNDImage:
                      // Can't display an NT NDArray (image) as a string.
+                     //
                      result = "{{NTNDArray}}";
                      break;
 
-///               case QE::Formats (FORMAT_OPAQUE):
+                  case PVAOpaque:
                      // Can't display an opaque (unknown) as a string.
+                     //
                      result = "{{opaque}}";
                      break;
 
                   default:
                      okay = false;
                      result = formatFailure (QString ("%1 - unexpected dbFormat %2.")
-                                            .arg (__FUNCTION__).arg (dbFormat));
+                                            .arg (__FUNCTION__).arg (iFormat));
                      break;
                }
             }
@@ -675,12 +686,14 @@ QString QEStringFormatting::formatElementString (const QVariant& value,
          // formatFromString (value);
          break;
 
-         // Don't know how to format.
-         // This is a code error. All cases in QEStringFormatting::formats should be catered for
       default:
+         // Don't know how to format.  This is a code error.
+         // All cases in QEStringFormatting::formats should be catered for.
+         //
          okay = false;
          result = this->formatFailure (QString ("Bug in formatElementString."
-                                                " The format type was not expected"));
+                                                " The format type %1 was not expected")
+                                       .arg(this->format));
          break;
    }
 
@@ -697,9 +710,8 @@ QString QEStringFormatting::timeToString (const QVariant& value) const
 {
    QString result;
    bool okay;
-   double seconds;
 
-   seconds = value.toDouble (&okay);
+   double seconds = value.toDouble (&okay);
    if (okay) {
       // Select data base or user precision as appropriate, nand ensure sensible.
       //
@@ -1013,8 +1025,11 @@ const static char separatorChars[] = "?,_ ";
 // entry [0] and [1] are place holders.
 //
 static const int separatorGaps[17] = {
-   -1, -1, /* 2 => */ 8, 5, 5, 5, 5, 5, /* 8 => */ 5,
-   5, /* 10 => */ 3, 5, 5, 5, 5, 5, /* 16 => */ 4
+   -1, -1,
+   /* 2  => */ 8, 5, 5, 5, 5, 5,
+   /* 8  => */ 5, 5,
+   /* 10 => */ 3, 5, 5, 5, 5, 5,
+   /* 16 => */ 4
 };
 
 //------------------------------------------------------------------------------
@@ -1489,6 +1504,13 @@ QString QEStringFormatting::toString (const long value) const
 QString QEStringFormatting::toString (const unsigned long value) const
 {
    return this->toIntegerStringGeneric <unsigned long> (value);
+}
+
+//------------------------------------------------------------------------------
+//
+long QEStringFormatting::toInt (const QString& image, bool& okay) const
+{
+   return this->toIntegerValueGeneric<int>(image, okay);
 }
 
 //------------------------------------------------------------------------------

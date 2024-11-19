@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2018 Australian Synchrotron
+ *  Copyright (c) 2015-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -121,7 +121,7 @@ QString imageProperties::getInfoText() const
     // Build the image information string
     QString about;
 
-    about.append( QString( "\nSize (bytes) of CA data array: %1" ).arg( imageData.count() ));
+    about.append( QString( "\nSize (bytes) of CA data array: %1" ).arg( imageData.size() ));
     about.append( QString( "\nSize (bytes) of CA data elements: %1" ).arg( imageDataSize ));
     about.append( QString( "\nWidth (pixels) taken from dimension variables or width variable: %1" ).arg( imageBuffWidth ));
     about.append( QString( "\nHeight (pixels) taken from dimension variables or height variable: %1" ).arg( imageBuffHeight ));
@@ -138,9 +138,9 @@ QString imageProperties::getInfoText() const
     else
     {
         int count = 20;
-        if( imageData.count() < count )
+        if( count > imageData.size() )
         {
-            count = imageData.count() ;
+            count = imageData.size() ;
         }
         for( int i = 0; i < count; i++ )
         {

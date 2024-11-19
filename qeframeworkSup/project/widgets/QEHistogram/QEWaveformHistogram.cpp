@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2022 Australian Synchrotron.
+ *  Copyright (c) 2014-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -502,7 +502,7 @@ QString QEWaveformHistogram::copyVariable ()
 //
 QVariant QEWaveformHistogram::copyData ()
 {
-   QVariant result (QVariant::Invalid);
+   QVariant result;
    qcaobject::QCaObject* qca = NULL;
 
    qca = this->getQcaItem (0);

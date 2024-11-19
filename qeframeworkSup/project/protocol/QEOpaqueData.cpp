@@ -54,9 +54,10 @@ QEOpaqueData::~QEOpaqueData ()
 
 //------------------------------------------------------------------------------
 //
-QEOpaqueData& QEOpaqueData::operator=(const QEOpaqueData& other)
+QEOpaqueData& QEOpaqueData::operator=(const QEOpaqueData& )
 {
-   *this = other;
+   // nothing to copy per se.
+   return *this;
 }
 
 //------------------------------------------------------------------------------
