@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020-2023 Australian Synchrotron.
+ *  Copyright (c) 2020-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -369,12 +369,12 @@ double QEAbstract2DData::getValue (const int displayRow, const int displayCol,
       return defaultValue;
    }
 
-   OneDVectorData row = this->cachedData [displayRow];
+   OneDVectorData row = this->cachedData.value (displayRow);
    if (displayCol >= row.count()) {
       return defaultValue;
    }
 
-   double result = row [displayCol];
+   double result = row.value (displayCol, noValue);
    if (result == noValue) {
       return defaultValue;
    }
