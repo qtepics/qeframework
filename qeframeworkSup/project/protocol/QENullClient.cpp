@@ -67,5 +67,7 @@ QStringList QENullClient::getEnumerations() const { QStringList d; return d; }
 QCaAlarmInfo QENullClient::getAlarmInfo () const { QCaAlarmInfo d; return d; }
 QCaDateTime QENullClient::getTimeStamp () const { QCaDateTime d; return d; }
 QString QENullClient::getDescription () const { return ""; }
+bool QENullClient::getReadAccess() const { return false; }
+bool QENullClient::getWriteAccess() const { return false; }
 
 // end

@@ -30,7 +30,9 @@
 #include <QApplication>
 #include <QDebug>
 #include <QByteArray>
+#include <QMetaType>
 #include <QECommon.h>
+#include <QEPlatform.h>
 #include <QEPvNameUri.h>
 #include <QENullClient.h>
 #include <QECaClient.h>
@@ -552,10 +554,7 @@ QString  QCaObject::getHostName() const
 //
 bool QCaObject::getReadAccess() const
 {
-   QECaClient* caClient = this->asCaClient();
-   if (caClient)
-      return caClient->getReadAccess();
-   return false;
+   return this->client->getReadAccess();
 }
 
 //------------------------------------------------------------------------------
@@ -563,10 +562,7 @@ bool QCaObject::getReadAccess() const
 //
 bool QCaObject::getWriteAccess() const
 {
-   QECaClient* caClient = this->asCaClient();
-   if (caClient)
-      return caClient->getWriteAccess();
-   return false;
+   return this->client->getWriteAccess();
 }
 
 //------------------------------------------------------------------------------
@@ -891,7 +887,8 @@ bool QCaObject::writeDataElement( const QVariant& elementValue )
 
    bool result;
 
-   if( lastVariantValue.type() == QVariant::List ) {
+   const QMetaType::Type ltype = QEPlatform::metaType (lastVariantValue);
+   if( ltype ==  QMetaType::QVariantList ) {
       QVariantList valueList = lastVariantValue.toList ();
       if( ( this->arrayIndex >= 0 ) && ( this->arrayIndex < valueList.size() ) )
       {

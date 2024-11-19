@@ -82,13 +82,13 @@ public:
    QCaAlarmInfo getAlarmInfo () const;
    QCaDateTime  getTimeStamp () const;
    QString getDescription () const;
+   bool getReadAccess() const;
+   bool getWriteAccess() const;
 
    // CA client specific methods
    //
    void setPriority (const unsigned int priority);
    void setRequestCount (const unsigned int number);
-   bool getReadAccess() const;
-   bool getWriteAccess() const;
    void setUsePutCallback (const bool enable);
    bool getUsePutCallback() const;
    unsigned getDataElementSize() const;

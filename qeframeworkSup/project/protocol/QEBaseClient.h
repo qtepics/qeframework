@@ -108,6 +108,8 @@ public:
    virtual QCaAlarmInfo getAlarmInfo () const = 0;
    virtual QCaDateTime  getTimeStamp () const = 0;
    virtual QString getDescription () const = 0;
+   virtual bool getReadAccess() const = 0;    // true indicates readable
+   virtual bool getWriteAccess() const = 0;   // true indicates writeable
 
 signals:
    // Sub classes may emit these signals.

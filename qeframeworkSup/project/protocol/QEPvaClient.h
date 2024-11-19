@@ -93,6 +93,8 @@ public:
    QCaAlarmInfo getAlarmInfo () const;
    QCaDateTime  getTimeStamp () const;
    QString getDescription () const;
+   bool getReadAccess() const;
+   bool getWriteAccess() const;
 
 private:
    void processUpdate (QEPvaClient::Update* update);

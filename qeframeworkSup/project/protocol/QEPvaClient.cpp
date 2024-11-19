@@ -936,6 +936,20 @@ QString QEPvaClient::getDescription () const
 
 //------------------------------------------------------------------------------
 //
+bool QEPvaClient::getReadAccess() const
+{
+   return true;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEPvaClient::getWriteAccess() const
+{
+   return true;
+}
+
+//------------------------------------------------------------------------------
+//
 void QEPvaClient::processUpdate (QEPvaClient::Update* update)
 {
    if (!update) return;  // sanity check
@@ -1086,6 +1100,8 @@ QStringList QEPvaClient::getEnumerations () const { QStringList d; return d; }
 QCaAlarmInfo QEPvaClient::getAlarmInfo () const { QCaAlarmInfo d; return d; }
 QCaDateTime  QEPvaClient::getTimeStamp () const { QCaDateTime d; return d; }
 QString QEPvaClient::getDescription () const { return ""; }
+bool QEPvaClient::getReadAccess() const { return false; }
+bool QEPvaClient::getWriteAccess() const { return false; }
 void QEPvaClient::processUpdate (QEPvaClient::Update*) { }
 
 QEPvaClientManager::QEPvaClientManager () { }
