@@ -29,6 +29,7 @@
 #include <QDebug>
 #include <QByteArray>
 #include <QtGlobal>
+#include <QEStringFormatting.h>
 
 #define DEBUG qDebug () << "QEEnvironmentVariables" << __LINE__ << __FUNCTION__ << "  "
 
@@ -119,7 +120,8 @@ int QEEnvironmentVariables::getInt (const QString& name, const int defaultValue)
 
    sval = this->getString (name, NOT_A_NUMBER);
    if (sval != NOT_A_NUMBER) {
-      result = sval.toInt (&okay);
+      QEStringFormatting fmt;  // go with defaults
+      result = fmt.toInt (sval, okay);
       if (!okay) result = defaultValue;
    }
    return result;

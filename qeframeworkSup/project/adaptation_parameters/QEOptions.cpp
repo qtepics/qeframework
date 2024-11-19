@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron.
+ *  Copyright (c) 2013-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +27,7 @@
 #include "QEOptions.h"
 #include <QCoreApplication>
 #include <QDebug>
+#include <QEStringFormatting.h>
 
 static const QChar nullLetter = QChar ((ushort) 0xDEAD);    // A bit arbitary
 
@@ -257,7 +258,8 @@ int QEOptions::getInt (const QString& option, const QChar letter, const int defa
 
    sval = this->getString (option, letter, NOT_A_NUMBER);
    if (sval != NOT_A_NUMBER) {
-      result = sval.toInt (&okay);
+      QEStringFormatting fmt;  // go with defaults
+      result = fmt.toInt (sval, okay);
       if (!okay) result = defaultValue;
    }
    return result;

@@ -30,6 +30,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QEOptions.h>
+#include <QEStringFormatting.h>
 
 #define DEBUG qDebug () << "QESettings" << __LINE__ << __FUNCTION__ << "  "
 
@@ -211,7 +212,8 @@ int QESettings::getInt (const QString &key, const int defaultValue)
    QVariant var = this->getValue (key, QVariant (defaultValue));
    bool okay;
 
-   result = var.toInt (&okay);
+   QEStringFormatting fmt;  // go with defaults
+   result = fmt.toInt (var.toString(), okay);
    if (!okay) result = defaultValue;
 
    return result;

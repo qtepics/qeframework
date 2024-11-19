@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2022 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -113,9 +113,10 @@ public:
    // The returned value only meaningful/valid if the okay argument is set true.
    // Note: the base/radix value of the formatting object is used unless the
    // input string overrides this with a radix base identification prefix.
-   // E.g. "8#dddd" for octal, "16#dddd" ot "0xdddd" for hex.
+   // E.g. "8#dddd" for octal, "16#dddd" or "0xdddd" for hexadecimal numbers.
    // Note: 10# may be used for decimal.
    //
+   long toInt (const QString& image, bool& okay) const;
    long toLong (const QString& image, bool& okay) const;
    unsigned long toULong (const QString& image, bool& okay) const;
    double toDouble (const QString& image, bool& okay) const;
