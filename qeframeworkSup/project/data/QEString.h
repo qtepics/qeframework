@@ -1,5 +1,9 @@
-/*
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+/*  QEString.h
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -24,8 +26,8 @@
 
 // String wrapper for QCaObject variant data.
 
-#ifndef QESTRING_H
-#define QESTRING_H
+#ifndef QE_STRING_H
+#define QE_STRING_H
 
 #include <QtDebug>
 #include <QVariant>
@@ -35,32 +37,40 @@
 #include <QEFrameworkLibraryGlobal.h>
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEString : public qcaobject::QCaObject {
-    Q_OBJECT
+   Q_OBJECT
 
-  public:
-    QEString( QString recordName, QObject *eventObject, QEStringFormatting *stringFormattingIn, unsigned int variableIndexIn );
-    QEString( QString recordName, QObject *eventObject, QEStringFormatting *stringFormattingIn, unsigned int variableIndexIn, UserMessage* userMessageIn );
-    bool writeString( const QString &data, QString& message );
-    bool writeStringElement( const QString &data, QString& message );
-    bool writeString( const QVector<QString> &data, QString& message );
+public:
+   QEString (QString pvName, QObject* eventObject,
+             QEStringFormatting* stringFormattingIn,
+             unsigned int variableIndexIn);
 
-  signals:
-    void stringConnectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int &variableIndex );
-    void stringChanged( const QString& value, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex );
-    void stringArrayChanged( const QVector<QString>& values, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex );
+   QEString (QString pvName, QObject* eventObject,
+             QEStringFormatting* stringFormattingIn,
+             unsigned int variableIndexIn,
+             UserMessage* userMessageIn);
 
-  public slots:
-    void writeString( const QString& data );
-    void writeStringElement( const QString& data );
-    void writeString( const QVector<QString>& data );
+   bool writeString (const QString &data, QString& message);
+   bool writeStringElement (const QString &data, QString& message);
+   bool writeString (const QVector<QString> &data, QString& message);
 
-  private:
-    void initialise( QEStringFormatting* newStringFormat );
-    QEStringFormatting *stringFormat;
+signals:
+   void stringChanged (const QString& value, QCaAlarmInfo& alarmInfo,
+                       QCaDateTime& timeStamp, const unsigned int& variableIndex);
+   void stringArrayChanged (const QVector<QString>& values,  QCaAlarmInfo& alarmInfo,
+                            QCaDateTime& timeStamp, const unsigned int& variableIndex);
 
-  private slots:
-    void convertVariant( const QVariant& value, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex );
-    void forwardConnectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex);
+public slots:
+   void writeString (const QString& data);
+   void writeStringElement (const QString& data);
+   void writeString (const QVector<QString>& data);
+
+private:
+   void initialise (QEStringFormatting* newStringFormat);
+   QEStringFormatting* stringFormat;
+
+private slots:
+   void convertVariant (const QVariant& value, QCaAlarmInfo& alarmInfo,
+                        QCaDateTime& timeStamp, const unsigned int& variableIndex);
 };
 
-#endif // QESTRING_H
+#endif // QE_STRING_H

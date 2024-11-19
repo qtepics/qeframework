@@ -1,6 +1,9 @@
 /*  QEFloating.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010, 2016 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
@@ -25,8 +26,8 @@
 
 // Floating specific wrapper for QCaObject.
 
-#ifndef QEFLOATING_H
-#define QEFLOATING_H
+#ifndef QE_FLOATING_H
+#define QE_FLOATING_H
 
 #include <QtDebug>
 #include <QVariant>
@@ -35,29 +36,36 @@
 #include <QEFrameworkLibraryGlobal.h>
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFloating : public qcaobject::QCaObject {
-    Q_OBJECT
+   Q_OBJECT
 
-  public:
-    QEFloating( QString recordName, QObject *eventObject, QEFloatingFormatting *floatingFormattingIn, unsigned int variableIndexIn );
-    QEFloating( QString recordName, QObject *eventObject, QEFloatingFormatting *floatingFormattingIn, unsigned int variableIndexIn, UserMessage* userMessageIn );
+public:
+   QEFloating (QString pvName, QObject* eventObject,
+               QEFloatingFormatting* floatingFormattingIn,
+               unsigned int variableIndexIn);
 
-  signals:
-    void floatingConnectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex );
-    void floatingChanged( const double& value, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex );
-    void floatingArrayChanged( const QVector<double>& values, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex );
+   QEFloating (QString pvName, QObject* eventObject,
+               QEFloatingFormatting* floatingFormattingIn,
+               unsigned int variableIndexIn,
+               UserMessage* userMessageIn);
 
-  public slots:
-    void writeFloating( const double &data );
-    void writeFloatingElement( const double &data );
-    void writeFloating( const QVector<double> &data );
+signals:
+   void floatingChanged (const double& value, QCaAlarmInfo& alarmInfo,
+                         QCaDateTime& timeStamp, const unsigned int& variableIndex);
+   void floatingArrayChanged (const QVector<double>& values, QCaAlarmInfo& alarmInfo,
+                              QCaDateTime& timeStamp, const unsigned int& variableIndex);
 
-  private:
-    void initialise( QEFloatingFormatting *floatingFormattingIn );
-    QEFloatingFormatting *floatingFormat;
+public slots:
+   void writeFloating (const double &data);
+   void writeFloatingElement (const double &data);
+   void writeFloating (const QVector<double> &data);
 
-  private slots:
-    void convertVariant( const QVariant &value, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex );
-    void forwardConnectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex );
+private:
+   void initialise (QEFloatingFormatting* floatingFormattingIn);
+   QEFloatingFormatting* floatingFormat;
+
+private slots:
+   void convertVariant (const QVariant &value, QCaAlarmInfo& alarmInfo,
+                        QCaDateTime& timeStamp, const unsigned int& variableIndex);
 };
 
-#endif // QEFLOATING_H
+#endif // QE_FLOATING_H
