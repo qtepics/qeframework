@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2021 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -89,7 +89,7 @@ private:
 
    typedef QMap<QString, QVariant> StringToVariantMaps;
 
-   enum MetaType {
+   enum MetaKind {   // avoid Qt's own MetaType
       mtEnumeration = 0,
       mtNumeric = 1
    };
