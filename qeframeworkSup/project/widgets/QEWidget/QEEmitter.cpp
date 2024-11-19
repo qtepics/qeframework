@@ -27,9 +27,11 @@
 #include <QDebug>
 #include <QObject>
 #include <QMetaObject>
+#include <QMetaType>
 #include <QVariant>
 
 #include <QECommon.h>
+#include <QEPlatform.h>
 #include <QCaObject.h>
 #include <QEWidget.h>
 
@@ -155,7 +157,8 @@ void QEEmitter::emitDbValueChangedPrivate (const bool useFormmattedText,
 
    // Is this a list?
    //
-   if (value.type () == QVariant::List) {
+   const QMetaType::Type mtype = QEPlatform::metaType (value);
+   if (mtype == QMetaType::QVariantList) {
       // Extract appropriate value.
       //
       int ai = qca->getArrayIndex ();

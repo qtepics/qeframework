@@ -46,10 +46,12 @@
 #include <QString>
 #include <QDir>
 #include <QFileInfo>
+#include <QMetaType>
 #include <QVBoxLayout>
 #include <QPainter>
 #include <QEScaling.h>
 #include <ContainerProfile.h>
+#include <QEPlatform.h>
 #include <QEWidget.h>
 #include <macroSubstitution.h>
 
@@ -649,7 +651,8 @@ void QEForm::setupWindowTitle( QString filename )
    {
       QVariant windowTitleV = ui->property( "windowTitle" );
 
-      if( windowTitleV.isValid() && windowTitleV.type() == QVariant::String )
+      const QMetaType::Type mtype = QEPlatform::metaType( windowTitleV );
+      if( windowTitleV.isValid() && mtype == QMetaType::QString )
       {
          QString windowTitle = windowTitleV.toString();
          if( !windowTitle.isEmpty() )

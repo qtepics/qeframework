@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -35,6 +35,8 @@
 #include "QEPvLoadSaveUtilities.h"
 
 #define DEBUG  qDebug () << "QEPvLoadSaveModel" << __LINE__ << __FUNCTION__ << "  "
+
+static const QVariant nilValue = QVariant();
 
 //-----------------------------------------------------------------------------
 //
@@ -242,8 +244,6 @@ bool QEPvLoadSaveModel::mergeItemInToItem (QEPvLoadSaveItem* item, QEPvLoadSaveI
 //
 bool QEPvLoadSaveModel::mergeItemInToModel (QEPvLoadSaveItem* item)
 {
-   QVariant nilValue (QVariant::Invalid);
-
    if (!item) return false;
 
    QStringList location = item->getNodePath ();  // Starts from ROOT, excludes core  and item itself.
@@ -463,7 +463,6 @@ bool QEPvLoadSaveModel::processDropEvent (QEPvLoadSaveItem* parentItem, QDropEve
    dropText = mime->text ();
    if (!dropText.isEmpty ()) {
       QEPvLoadSaveItem* item;
-      QVariant nilValue (QVariant::Invalid);
 
       // Carry out the drop action
       // Parse dialog text e.g. of the form "ID3:MOTOR01{w:.VAL;ra:.RBV;}"

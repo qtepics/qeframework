@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (c) 2018 Australian Synchrotron
+ *  Copyright (c) 2018-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -26,10 +26,12 @@
 
 #include "QEVectorVariants.h"
 #include <QDebug>
+#include <QMetaType>
+#include <QEPlatform.h>
 
 #define DEBUG qDebug() << "QEArrayVariants" << __LINE__ << __FUNCTION__ << "  "
 
-
+// static
 QHash<int, QEVectorVariants::OwnTypes> QEVectorVariants::typeMap;
 
 //-----------------------------------------------------------------------------
@@ -48,7 +50,9 @@ QEVectorVariants::OwnTypes QEVectorVariants::getOwnType (const QVariant& item)
    OwnTypes result = QEVectorVariants::Invalid;
 
    // Is it a user type, i.e. could it be one of ours ?
-   if (item.type() == QVariant::UserType) {
+   //
+   const QMetaType::Type mtype = QEPlatform::metaType (item);
+   if (mtype >= QMetaType::User) {
       const int userType = item.userType ();
       result = QEVectorVariants::typeMap.value (userType, QEVectorVariants::Invalid);
    }
@@ -59,7 +63,8 @@ QEVectorVariants::OwnTypes QEVectorVariants::getOwnType (const QVariant& item)
 // static
 bool QEVectorVariants::isVectorVariant (const QVariant& item)
 {
-   if (item.type() != QVariant::UserType) return false;
+   const QMetaType::Type mtype = QEPlatform::metaType (item);
+   if (mtype < QMetaType::User) return false;
 
    const int userType = item.userType ();
 
@@ -67,7 +72,6 @@ bool QEVectorVariants::isVectorVariant (const QVariant& item)
    //
    return QEVectorVariants::typeMap.contains (userType);
 }
-
 
 //------------------------------------------------------------------------------
 //

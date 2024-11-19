@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (C) 2018-2023 Australian Synchrotron
+ *  Copyright (C) 2018-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -30,6 +30,7 @@
 #ifdef QE_INCLUDE_PV_ACCESS
 
 #include <QDebug>
+#include <QMetaType>
 #include <pv/nt.h>
 
 #include <pv/ntscalar.h>
@@ -40,6 +41,7 @@
 
 #include <pv/pvType.h>
 #include <pv/pvIntrospect.h>
+#include <QEPlatform.h>
 #include <QEVectorVariants.h>
 #include <QENTTableData.h>
 #include <QENTNDArrayData.h>
@@ -668,7 +670,8 @@ bool QEPvaData::infuseScalarArray (pvd::PVScalarArray::shared_pointer& pvArray,
 {
    bool result;
 
-   if (value.type() == QVariant::List) {
+   const QMetaType::Type mtype = QEPlatform::metaType (value);
+   if (mtype == QMetaType::QVariantList) {
       QVariantList vl = value.toList();
       result = QEPvaData::infuseScalarArrayList (pvArray, vl);
 
@@ -785,7 +788,8 @@ bool QEPvaData::infuseScalarArrayVector (epics::pvData::PVScalarArray::shared_po
                                          const QVariant& vector)
 {
    if (!QEVectorVariants::isVectorVariant (vector)) {
-      DEBUG << " called with variant type" << vector.type ();
+      const QMetaType::Type mtype = QEPlatform::metaType (vector);
+      DEBUG << " called with variant type" << mtype;
       return false;
    }
 

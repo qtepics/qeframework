@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -35,8 +35,10 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QMessageBox>
+#include <QMetaType>
 
 #include <QECommon.h>
+#include <QEPlatform.h>
 #include <QEScaling.h>
 #include "QEPvLoadSaveAccessFail.h"
 #include "QEPvLoadSaveCompare.h"
@@ -45,6 +47,8 @@
 #include "QEPvLoadSaveUtilities.h"
 
 #define DEBUG  qDebug () << "QEPvLoadSave.cpp" << __LINE__ << __FUNCTION__ << "  "
+
+static const QVariant nilValue = QVariant();
 
 // Compare with QEStripChartToolBar
 //
@@ -753,7 +757,6 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
    bool okay;
    int intAction;
    TreeContextMenuActions menuAction;
-   QVariant nilValue (QVariant::Invalid);
    QEPvLoadSaveItem* item = NULL;
    QEPvLoadSaveLeaf* leaf = NULL;
    QString nodeName = "";
@@ -849,8 +852,9 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
       case TCM_COPY_DATA:
          nodeValue = this->contextMenuItem->getNodeValue ();
 
-         // Need be aware of lists.
-         if (nodeValue.type() == QVariant::List) {
+         // Need to be aware of lists.
+         //
+         if (QEPlatform::metaType (nodeValue) == QMetaType::QVariantList) {
             QStringList sl = nodeValue.toStringList ();
             QString text = "( ";
 

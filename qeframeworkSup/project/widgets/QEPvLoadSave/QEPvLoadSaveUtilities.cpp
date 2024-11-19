@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -41,12 +41,11 @@
 #include "QEPvLoadSaveItem.h"
 #include "QEPvLoadSaveModel.h"
 
-
 #define DEBUG qDebug() << "QEPvLoadSaveUtilities" << __LINE__ << __FUNCTION__ << "  "
 
 // Special none values.
 //
-static const QVariant nilValue (QVariant::Invalid);
+static const QVariant nilValue = QVariant();
 
 // XML tag/attribute names
 //
@@ -70,21 +69,21 @@ QVariant QEPvLoadSaveUtilities::convert (const QString& valueImage)
 {
    QVariant result = nilValue;
 
-   int iv;
-   double dv;
+   int intValue;
+   double doubleValue;
    bool okay;
 
-   iv = valueImage.toInt (&okay);
+   intValue = valueImage.toInt (&okay);
    if (okay) {
       // The image can be represented as an integer - use integer variant.
       //
-      result = QVariant (iv);
+      result = QVariant (intValue);
    } else {
-      dv = valueImage.toDouble (&okay);
+      doubleValue = valueImage.toDouble (&okay);
       if (okay) {
          // The image can be represented as a double - use double variant.
          //
-         result = QVariant (dv);
+         result = QVariant (doubleValue);
       } else {
          // Default - store as is i.e. string.
          //
@@ -105,7 +104,6 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readXmlScalerPv (const QDomElement pvEl
                                                           QEPvLoadSaveGroup* parent)
 {
    QEPvLoadSaveItem* result = NULL;
-   QVariant value (QVariant::Invalid);
 
    QString setPointPvName = macroList.substitute (pvElement.attribute (nameAttribute, ""));
    QString readBackPvName = macroList.substitute (pvElement.attribute (readBackNameAttribute, ""));
@@ -118,7 +116,7 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readXmlScalerPv (const QDomElement pvEl
       return result;
    }
 
-   value = QEPvLoadSaveUtilities::convert (valueImage);
+   QVariant value = QEPvLoadSaveUtilities::convert (valueImage);
    result = new QEPvLoadSaveLeaf (setPointPvName, readBackPvName, archiverPvName, value, parent);
 
    return result;

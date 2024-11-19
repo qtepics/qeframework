@@ -38,10 +38,11 @@
  */
 
 #include "contextMenu.h"
-#include <QDebug>
-#include <QClipboard>
 #include <QApplication>
 #include <QDebug>
+#include <QClipboard>
+#include <QMetaType>
+#include <QEPlatform.h>
 #include <QEWidget.h>
 #include <QEScaling.h>
 #include <QAction>
@@ -53,34 +54,46 @@
 // false if dragging the data
 bool contextMenu::draggingVariable = true;
 
-//======================================================
+//==============================================================================
 // Methods for QObject based contextMenuObject class
-QEContextMenuObject::QEContextMenuObject( contextMenu* menuIn,  QObject* parent ) : QObject (parent)
+//==============================================================================
+//
+QEContextMenuObject::QEContextMenuObject( contextMenu* menuIn,  QObject* parent ) :
+   QObject (parent)
 {
    menu = menuIn;
 }
 
+//------------------------------------------------------------------------------
 // place holder
 QEContextMenuObject::~QEContextMenuObject() { }
 
+//------------------------------------------------------------------------------
+//
 void QEContextMenuObject::sendRequestAction( const QEActionRequests& request)
 {
    emit requestAction( request );
 }
 
+//------------------------------------------------------------------------------
+//
 void QEContextMenuObject::contextMenuTriggeredSlot( QAction* selectedItem )
 {
    menu->contextMenuTriggered( selectedItem->data().toInt() );
 }
 
+//------------------------------------------------------------------------------
+//
 void QEContextMenuObject::showContextMenuSlot( const QPoint& pos )
 {
    menu->showContextMenu( pos );
 }
 
-//======================================================
-
+//==============================================================================
+// Methods for contextMenu class
+//==============================================================================
 // Create the default menu set, i.e. the lot.
+//
 contextMenu::ContextMenuOptionSets  contextMenu::defaultMenuSet ()
 {
    ContextMenuOptionSets result;
@@ -95,7 +108,9 @@ contextMenu::ContextMenuOptionSets  contextMenu::defaultMenuSet ()
    return result;
 }
 
+//------------------------------------------------------------------------------
 // Create a class to manage the QE context menu
+//
 contextMenu::contextMenu( QEWidget* qewIn, QWidget* ownerIn )
 {
    hasConsumer = false;
@@ -108,9 +123,13 @@ contextMenu::contextMenu( QEWidget* qewIn, QWidget* ownerIn )
    object = new QEContextMenuObject( this, ownerIn );
 }
 
+//------------------------------------------------------------------------------
+//
 contextMenu::~contextMenu() { }   // place holder
 
+//------------------------------------------------------------------------------
 // Tests is primary PV is an array variable
+//
 bool contextMenu::isArrayVariable () const
 {
    bool result = false;
@@ -186,6 +205,7 @@ bool contextMenu::insertAfter(  QMenu* menu, QAction* action, const int option )
 
 //------------------------------------------------------------------------------
 // Build the QE generic context menu
+//
 QMenu* contextMenu::buildContextMenu()
 {
    bool addSeparator;
@@ -324,7 +344,9 @@ QMenu* contextMenu::buildContextMenu()
    return menu;
 }
 
+//------------------------------------------------------------------------------
 // Create and present a context menu given a global co-ordinate
+//
 QAction* contextMenu::showContextMenuGlobal( const QPoint& globalPos )
 {
    QMenu* menu = buildContextMenu();
@@ -333,7 +355,9 @@ QAction* contextMenu::showContextMenuGlobal( const QPoint& globalPos )
    return action;
 }
 
+//------------------------------------------------------------------------------
 // Create and present a context menu given a co-ordinate relative to the QE widget
+//
 QAction* contextMenu::showContextMenu( const QPoint& pos )
 {
    QMenu* menu = buildContextMenu();
@@ -342,29 +366,37 @@ QAction* contextMenu::showContextMenu( const QPoint& pos )
    return action;
 }
 
+//------------------------------------------------------------------------------
 // Present an existing context menu given a global co-ordinate
+//
 QAction* contextMenu::showContextMenuGlobal( QMenu* menu, const QPoint& globalPos )
 {
    return menu->exec( globalPos );
 }
 
+//------------------------------------------------------------------------------
 // Present an existing context menu given a co-ordinate relative to the QE widget
+//
 QAction* contextMenu::showContextMenu( QMenu* menu, const QPoint& pos )
 {
    QPoint globalPos = qew->getQWidget()->mapToGlobal( pos );
    return menu->exec( globalPos );
 }
 
+//------------------------------------------------------------------------------
 // Return the global 'is dragging variable' flag.
 // (Dragging variable is true, draging data if false)
+//
 bool contextMenu::isDraggingVariable()
 {
    return draggingVariable;
 }
 
+//------------------------------------------------------------------------------
 // Set the consumer of the signal generated by this object
 // (send via the associated contextMenuObject object).
 // Only one consumer allowed - last set is the consumer.
+//
 void contextMenu::setConsumer (QObject* consumer)
 {
    if (consumer)
@@ -375,7 +407,9 @@ void contextMenu::setConsumer (QObject* consumer)
    }
 }
 
+//------------------------------------------------------------------------------
 // Connect the supplied QE widget to a slot that will present out own context menu when requested
+//
 void contextMenu::setupContextMenu( const ContextMenuOptionSets& menuSetIn )
 {
    menuSet = menuSetIn;   // save required menu items.
@@ -385,21 +419,27 @@ void contextMenu::setupContextMenu( const ContextMenuOptionSets& menuSetIn )
                      object, SLOT( showContextMenuSlot( const QPoint& )));
 }
 
+//------------------------------------------------------------------------------
 // Set minimum user level required for EditPV context menu entry available.
+//
 void contextMenu::setEditPvUserLevel( const QE::UserLevels level )
 {
    editPvUserLevel = level;
 }
 
+//------------------------------------------------------------------------------
 // Get minimum user level required for EditPV context menu entry available.
+//
 bool contextMenu::getEditPvUserLevel() const
 {
    return editPvUserLevel;
 }
 
+//------------------------------------------------------------------------------
 // Disconnect the supplied QE widget to a slot that will present the context menu.
 // This allows a "complex" widget that contains this widget to capture the custom
 // context menu request signal.
+//
 void contextMenu::clearContextMenuRequestHandling()
 {
    QWidget* qw = qew->getQWidget();
@@ -407,20 +447,25 @@ void contextMenu::clearContextMenuRequestHandling()
                         object, SLOT( showContextMenuSlot( const QPoint& )));
 }
 
+//------------------------------------------------------------------------------
 // Update  the conext menu items that will be presented.
+//
 void contextMenu::setContextMenuOptions( const ContextMenuOptionSets& menuSetIn )
 {
    menuSet = menuSetIn;   // save required menu items.
 }
 
+//------------------------------------------------------------------------------
 // Update the number of items that will be copied/dragged etc.
+//
 void contextMenu::setNumberOfContextMenuItems ( const int numberOfItemsIn )
 {
    numberOfItems = numberOfItemsIn;
 }
 
-
+//------------------------------------------------------------------------------
 // An action was selected from the context menu
+//
 void contextMenu::contextMenuTriggered( int optionNum )
 {
    switch( (contextMenuOptions)(optionNum) )
@@ -479,7 +524,9 @@ void contextMenu::contextMenuTriggered( int optionNum )
    }
 }
 
+//------------------------------------------------------------------------------
 // 'Copy Variable' was selected from the menu
+//
 void contextMenu::doCopyVariable()
 {
    QString s = copyVariable();
@@ -487,25 +534,30 @@ void contextMenu::doCopyVariable()
    cb->setText( s );
 }
 
+//------------------------------------------------------------------------------
 // 'Copy Data' was selected from the menu
+//
 void contextMenu::doCopyData()
 {
-   QClipboard *cb = QApplication::clipboard();
-   QVariant v = copyData();
-   switch( v.type() )
+   QClipboard* cb = QApplication::clipboard();
+   QVariant v = this->copyData();
+   const QMetaType::Type mtype = QEPlatform::metaType (v);
+   switch( mtype )
    {
       default:
-      case QVariant::String:
+      case QMetaType::QString:
          cb->setText( v.toString() );
          break;
 
-      case QVariant::Image:
+      case QMetaType::QImage:
          cb->setImage( v.value<QImage>() );
          break;
    }
 }
 
+//------------------------------------------------------------------------------
 // 'Paste' was selected from the menu
+//
 void contextMenu::doPaste()
 {
    QVariant v;
@@ -521,7 +573,9 @@ void contextMenu::doPaste()
    paste( v );
 }
 
+//------------------------------------------------------------------------------
 // 'Show Properties' was selected from the menu
+//
 void contextMenu::doShowPvProperties ()
 {
    QString pvName = copyVariable().trimmed();
@@ -529,7 +583,9 @@ void contextMenu::doShowPvProperties ()
    if( !pvName.isEmpty() ) object->sendRequestAction( request );
 }
 
+//------------------------------------------------------------------------------
 // 'Add to strip chart' wasselected from the menu
+//
 void contextMenu::doAddToStripChart ()
 {
    QString pvName = copyVariable().trimmed();
@@ -537,7 +593,9 @@ void contextMenu::doAddToStripChart ()
    if( !pvName.isEmpty() ) object->sendRequestAction( request );
 }
 
+//------------------------------------------------------------------------------
 // 'Add to scratch pad' was selected from the menu
+//
 void contextMenu::doAddToScratchPad()
 {
    QString pvName = copyVariable().trimmed();
@@ -545,7 +603,9 @@ void contextMenu::doAddToScratchPad()
    if( !pvName.isEmpty() ) object->sendRequestAction( request );
 }
 
+//------------------------------------------------------------------------------
 // 'Show in Plotter' was selected from the menu
+//
 void contextMenu::doAddToPlotter()
 {
    QString pvName = copyVariable().trimmed();
@@ -553,7 +613,9 @@ void contextMenu::doAddToPlotter()
    if( !pvName.isEmpty() ) object->sendRequestAction( request );
 }
 
+//------------------------------------------------------------------------------
 // 'Show in Table' was selected from the menu
+//
 void contextMenu::doAddToTable()
 {
    QString pvName = copyVariable().trimmed();
@@ -561,7 +623,9 @@ void contextMenu::doAddToTable()
    if( !pvName.isEmpty() ) object->sendRequestAction( request );
 }
 
+//------------------------------------------------------------------------------
 // 'Show as Histogram' was selected from the menu
+//
 void contextMenu::doShowAsHistogram()
 {
    QString pvName = copyVariable().trimmed();
@@ -569,7 +633,9 @@ void contextMenu::doShowAsHistogram()
    if( !pvName.isEmpty() ) object->sendRequestAction( request );
 }
 
+//------------------------------------------------------------------------------
 // Request mini general PV edit form.
+//
 void contextMenu::doGeneralPVEdit()
 {
    QString pvName = copyVariable().trimmed();
@@ -577,8 +643,12 @@ void contextMenu::doGeneralPVEdit()
    if( !pvName.isEmpty() ) object->sendRequestAction( request );
 }
 
+//------------------------------------------------------------------------------
 // Add a menu item to the either the context menu, or one of its sub menus
-void contextMenu::addMenuItem( QMenu* menu, const QString& title, const bool checkable, const bool checked, const int option )
+//
+void contextMenu::addMenuItem( QMenu* menu, const QString& title,
+                               const bool checkable, const bool checked,
+                               const int option )
 {
    QAction* a = new QAction( title, menu );
    a->setCheckable( checkable );

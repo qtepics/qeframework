@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -30,10 +30,12 @@
 
 #include <QDebug>
 #include <QFrame>
+#include <QMetaType>
 #include <QModelIndex>
 #include <QPushButton>
 #include <QWidget>
 #include <QECommon.h>
+#include <QEPlatform.h>
 #include <QEVectorVariants.h>
 
 #define DEBUG  qDebug () << "QEPvLoadSaveItem" << __LINE__ << __FUNCTION__ << "  "
@@ -45,7 +47,7 @@
    << " did not overide " << __FUNCTION__ << "() function"
 
 
-static const QVariant nilValue (QVariant::Invalid);
+static const QVariant nilValue = QVariant();
 
 // static protected
 int QEPvLoadSaveItem::readArchiveCount = 0;
@@ -256,7 +258,8 @@ int QEPvLoadSaveItem::getElementCount () const
 {
    int result;
 
-   if (this->value.type() == QVariant::List) {
+   const QMetaType::Type mtype = QEPlatform::metaType (this->value);
+   if (mtype == QMetaType::QVariantList) {
       QVariantList vl = this->value.toList ();
       result = vl.size ();
    } else {
@@ -606,6 +609,10 @@ QEPvLoadSaveItem* QEPvLoadSaveLeaf::clone (QEPvLoadSaveItem* parent)
 QVariant QEPvLoadSaveLeaf::getData (int column) const
 {
    const QEPvLoadSaveCommon::ColumnKinds kind = QEPvLoadSaveCommon::ColumnKinds (column);
+
+   const QMetaType::Type selfMetaType = QEPlatform::metaType (this->value);
+   const QMetaType::Type liveMetaType = QEPlatform::metaType (this->liveValue);
+
    QVariant result;
    QString valueImage;
 
@@ -615,7 +622,7 @@ QVariant QEPvLoadSaveLeaf::getData (int column) const
          break;
 
       case QEPvLoadSaveCommon::LoadSave:
-         if (this->value.type() == QVariant::List) {
+         if (selfMetaType == QMetaType::QVariantList) {
             QVariantList vl = this->value.toList ();
             valueImage = QString (" << %1 element array >>").arg (vl.size ());
 
@@ -631,7 +638,7 @@ QVariant QEPvLoadSaveLeaf::getData (int column) const
          break;
 
       case QEPvLoadSaveCommon::Live:
-         if (this->liveValue.type() == QVariant::List) {
+         if (liveMetaType == QMetaType::QVariantList) {
             QVariantList vl = this->value.toList ();
             valueImage = QString (" << %1 element array >>").arg (vl.size ());
 
@@ -647,8 +654,8 @@ QVariant QEPvLoadSaveLeaf::getData (int column) const
          break;
 
       case QEPvLoadSaveCommon::Delta:
-         if ((this->liveValue.type() != QVariant::Invalid) &&
-             (this->value.type() != QVariant::Invalid))
+         if ((liveMetaType != QMetaType::UnknownType) &&
+             (selfMetaType != QMetaType::UnknownType))
          {
             // Both values are defined.
             //
@@ -843,11 +850,14 @@ int QEPvLoadSaveLeaf::leafCount () const
 //
 QEPvLoadSaveCommon::StatusSummary QEPvLoadSaveLeaf::getStatusSummary () const
 {
+   const QMetaType::Type selfMetaType = QEPlatform::metaType (this->value);
+   const QMetaType::Type liveMetaType = QEPlatform::metaType (this->liveValue);
+
    QEPvLoadSaveCommon::StatusSummary result;
    QEPvLoadSaveCommon::clear (result);    // set all zero
 
-   if ((this->liveValue.type() != QVariant::Invalid) &&
-       (this->value.type() != QVariant::Invalid))
+   if ((liveMetaType != QMetaType::UnknownType) &&
+       (selfMetaType != QMetaType::UnknownType))
    {
       // Both values are defined.
       //

@@ -32,6 +32,7 @@
 #include <QColor>
 #include <QColorDialog>
 #include <QFileDialog>
+#include <QMetaType>
 #include <QMimeData>
 #include <QVariantList>
 
@@ -1025,7 +1026,8 @@ void QEStripChartItem::setDataValue (const QVariant& value, QCaAlarmInfo& alarm,
 
    // Do something sensible with array PVs.
    //
-   if (value.type () == QVariant::List) {
+   const QMetaType::Type mtype = QEPlatform::metaType (value);
+   if (mtype == QMetaType::QVariantList) {
       QVariantList list = value.toList ();
       // Use first element. Consdider some mechanism to all the element to
       // be selected buy the user.

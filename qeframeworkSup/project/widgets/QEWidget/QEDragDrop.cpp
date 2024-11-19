@@ -59,6 +59,7 @@
 
 #include <QEDragDrop.h>
 #include <QDebug>
+#include <QMetaType>
 #include <QWidget>
 #include <QEWidget.h>
 #include <QMimeData>
@@ -66,6 +67,7 @@
 #include <QClipboard>
 #include <QApplication>
 #include <QECommon.h>
+#include <QEPlatform.h>
 #include <QGraphicsOpacityEffect>
 #include <QLinearGradient>
 
@@ -117,7 +119,9 @@ void QEDragDrop::setDragDropConsumer( QObject* consumer )
     }
 }
 
+//------------------------------------------------------------------------------
 // Start a 'drag'
+//
 void QEDragDrop::qcaDragEnterEvent(QDragEnterEvent *event)
 {
     // Flag a move is starting (never a copy)
@@ -135,7 +139,9 @@ void QEDragDrop::qcaDragEnterEvent(QDragEnterEvent *event)
     }
 }
 
+//------------------------------------------------------------------------------
 // Perform a 'drop'
+//
 void QEDragDrop::qcaDropEvent(QDropEvent *event, const bool allText)
 {
     // If no text available, do nothing
@@ -187,6 +193,7 @@ void QEDragDrop::qcaDropEvent(QDropEvent *event, const bool allText)
 }
 
 
+//------------------------------------------------------------------------------
 // Prepare to drag and/or intercept other mouse press events.
 //
 void QEDragDrop::qcaMousePressEvent(QMouseEvent* event)
@@ -246,6 +253,7 @@ void QEDragDrop::qcaMousePressEvent(QMouseEvent* event)
     }
 }
 
+//------------------------------------------------------------------------------
 // Prepare to drag.
 //
 void QEDragDrop::initiateDragDrop (QMouseEvent* event)
@@ -254,16 +262,18 @@ void QEDragDrop::initiateDragDrop (QMouseEvent* event)
     QPoint hotSpot = event->pos();
 
     // Set up the transfer data
+
     QMimeData *mimeData = new QMimeData;
     QVariant dropData = getDrop();
-    switch( dropData.type() )
+    const QMetaType::Type mtype = QEPlatform::metaType (dropData);
+    switch( mtype )
     {
         default:
-        case QVariant::String:
+        case QMetaType::QString:
             mimeData->setText( dropData.toString() );
             break;
 
-        case QVariant::Image:
+        case QMetaType::QImage:
             mimeData->setImageData( dropData );
             break;
     }
@@ -273,7 +283,9 @@ void QEDragDrop::initiateDragDrop (QMouseEvent* event)
                        + " " + QByteArray::number( hotSpot.y()) );
 
     // Determine the size of the copy of the object that is dragged
-    // It will be the full size unless it exceeds a maximum height or width, in which case it is scaled
+    // It will be the full size unless it exceeds a maximum height or width,
+    // in which case it is scaled.
+    //
     QSize pixSize = owner->size();
     double widthScale = (double)(pixSize.width())/100.0;
     double heightScale = (double)(pixSize.height())/50.0;
@@ -298,6 +310,8 @@ void QEDragDrop::initiateDragDrop (QMouseEvent* event)
     drag->exec( Qt::CopyAction, Qt::CopyAction );
 }
 
+//------------------------------------------------------------------------------
+//
 void QEDragDrop::postPvInformation()
 {
     if( !qew ) return;
@@ -311,6 +325,8 @@ void QEDragDrop::postPvInformation()
     qew->sendMessage( pvName, mt );
 }
 
+//------------------------------------------------------------------------------
+//
 void QEDragDrop::examinePVProperties()
 {
     if( !qew ) return;
@@ -321,6 +337,8 @@ void QEDragDrop::examinePVProperties()
     if( !pvName.isEmpty() ) object->sendRequestAction( request );
 }
 
+//------------------------------------------------------------------------------
+//
 void QEDragDrop::plotInStripChart()
 {
     if( !qew ) return;
@@ -331,13 +349,17 @@ void QEDragDrop::plotInStripChart()
     if( !pvName.isEmpty() ) object->sendRequestAction( request );
 }
 
+//------------------------------------------------------------------------------
 // allow drop (Enable/disable as a drop site for drag and drop)
+//
 void QEDragDrop::setAllowDrop( bool allowDropIn )
 {
     allowDrop = allowDropIn;
     owner->setAcceptDrops( allowDrop );
 }
 
+//------------------------------------------------------------------------------
+//
 bool QEDragDrop::getAllowDrop() const
 {
     return allowDrop;
