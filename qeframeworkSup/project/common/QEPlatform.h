@@ -30,7 +30,10 @@
 
 #include <Qt>
 #include <QtGlobal>
+#include <QDropEvent>
 #include <QMetaType>
+#include <QMouseEvent>
+#include <QPoint>
 #include <QString>
 #include <QVariant>
 #include <QEFrameworkLibraryGlobal.h>
@@ -46,6 +49,11 @@ public:
    /// Returns the meta type type of a variant, e.g. QMetaType::QStringList,
    /// as opposed to returning an int.
    static QMetaType::Type metaType (const QVariant& v);
+
+   /// Returns the position associated with various types of event.
+   ///
+   static QPoint positionOf (QDropEvent* event);
+   static QPoint positionOf (QMouseEvent* event);
 
    /// This function test if the specified double floating point number is 'Not a Number'.
    static bool isNaN (const double x);

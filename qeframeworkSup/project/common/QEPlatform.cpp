@@ -46,13 +46,45 @@ QEPlatform::~QEPlatform () { }
 //
 QMetaType::Type QEPlatform::metaType (const QVariant& v)
 {
+   QMetaType::Type result;
 #if QT_VERSION < 0x060000
    // type() returns QVariant::Type
-   return static_cast<QMetaType::Type>(v.type());
+   result = static_cast<QMetaType::Type>(v.type());
 #else
    // typeId() [ same as metaType().id() ] returns an int
-   return static_cast<QMetaType::Type>(v.typeId());
+   result = static_cast<QMetaType::Type>(v.typeId());
 #endif
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+QPoint QEPlatform::positionOf (QDropEvent* event)
+{
+   QPoint result;
+   if (event) {
+#if QT_VERSION < 0x060000
+      result = event->pos();
+#else
+      result = event->position().toPoint();
+#endif
+   }
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+QPoint QEPlatform::positionOf (QMouseEvent* event)
+{
+   QPoint result;
+   if (event) {
+#if QT_VERSION < 0x060000
+      result = event->pos();
+#else
+      result = event->position().toPoint();
+#endif
+   }
+   return result;
 }
 
 //------------------------------------------------------------------------------

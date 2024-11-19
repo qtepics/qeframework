@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  * 
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -30,6 +30,7 @@
 #include <QString>
 
 #include <QECommon.h>
+#include <QEPlatform.h>
 #include "QEResizeableFrame.h"
 
 #define DEBUG qDebug () << "QEResizeableFrame" << __FUNCTION__ << __LINE__
@@ -388,7 +389,8 @@ bool QEResizeableFrame::eventFilter (QObject *obj, QEvent *event)
          if (obj == this->grabber) {
             // if Actived then stay Activated otherwise ...
             if (this->isActive) {
-               this->processMouseMove (mouseEvent->x (), mouseEvent->y ());
+               QPoint pos = QEPlatform::positionOf (mouseEvent);
+               this->processMouseMove (pos.x(), pos.y());
             }
             return true;
          }

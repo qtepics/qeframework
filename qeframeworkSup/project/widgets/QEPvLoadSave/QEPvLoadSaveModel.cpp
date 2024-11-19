@@ -29,6 +29,7 @@
 #include <QList>
 #include <QMimeData>
 #include <QVariant>
+#include <QEPlatform.h>
 #include <QEScaling.h>
 #include "QEPvLoadSave.h"
 #include "QEPvLoadSaveItem.h"
@@ -512,7 +513,7 @@ bool QEPvLoadSaveModel::eventFilter (QObject *obj, QEvent* event)
       case QEvent::DragEnter:
          if (obj == this->treeView) {
             QDragEnterEvent* dragEnterEvent = static_cast<QDragEnterEvent*> (event);
-            pos = dragEnterEvent->pos ();
+            pos = QEPlatform::positionOf (dragEnterEvent);
             pos.setY (pos.y () - dragOffset);
             item = this->itemAtPos (pos);
             nodeName = item ? item->getNodeName () : "nil";
@@ -527,7 +528,7 @@ bool QEPvLoadSaveModel::eventFilter (QObject *obj, QEvent* event)
       case QEvent::DragMove:
          if (obj == this->treeView) {
             QDragMoveEvent* dragMoveEvent = static_cast<QDragMoveEvent*> (event);
-            pos = dragMoveEvent->pos ();
+            pos = QEPlatform::positionOf (dragMoveEvent);
             pos.setY (pos.y () - dragOffset);
             item = this->itemAtPos (pos);
             nodeName = item ? item->getNodeName () : "nil";
@@ -558,7 +559,7 @@ bool QEPvLoadSaveModel::eventFilter (QObject *obj, QEvent* event)
       case QEvent::Drop:
          if (obj == this->treeView) {
             QDropEvent* dragDropEvent = static_cast<QDropEvent*> (event);
-            pos = dragDropEvent->pos ();
+            pos = QEPlatform::positionOf (dragDropEvent);
             pos.setY (pos.y () - dragOffset);
             item = this->itemAtPos (pos);
             if (item) {

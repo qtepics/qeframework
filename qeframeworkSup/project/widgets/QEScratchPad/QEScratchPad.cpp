@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2023 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -34,6 +34,7 @@
 #include <QMimeData>
 
 #include <QECommon.h>
+#include <QEPlatform.h>
 #include <QEScaling.h>
 #include <QERecordFieldName.h>
 #include <ContainerProfile.h>
@@ -1054,7 +1055,7 @@ void QEScratchPad::dragMoveEvent (QDragMoveEvent* event)
 
       // pos is relative this, the scratch pad, widget.
       //
-      QPoint globalPos = this->mapToGlobal (event->pos());
+      QPoint globalPos =  QEPlatform::positionOf (event);
 
       // Convert drop position to global coordinates as well so that we
       // check if the would be drop location is own frame.
