@@ -45,7 +45,6 @@ QENTTableData::QENTTableData (const QENTTableData & other)
    // needed for types to be registrered as meta type.
    this->labels = other.labels;
    this->data = other.data;
-   *this = other;
 }
 
 //------------------------------------------------------------------------------
