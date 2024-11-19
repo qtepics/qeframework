@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2023 Australian Synchrotron.
+ *  Copyright (c) 2023-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -35,7 +35,7 @@
 /// QEThreadSafeQueue is a wrapper around a QQueue with a mutex to make thread safe.
 /// If a queue of references, these may become un-referenced orphans when the queue
 /// cleared or deleted.
-/// Note: the dequeue API is differnt from the embedded queue's dequeue method.
+/// Note: the dequeue API is different from the embedded queue's dequeue method.
 //
 template <typename Type>
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEThreadSafeQueue {
