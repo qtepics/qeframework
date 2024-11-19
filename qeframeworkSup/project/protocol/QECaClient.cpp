@@ -29,6 +29,7 @@
 #include <QDebug>
 #include <QMetaType>
 #include <QTimer>
+#include <QtGlobal>
 #include <acai_version.h>
 #include <QEPlatform.h>
 #include <QEPvNameUri.h>
@@ -228,6 +229,8 @@ QVariant QECaClient::getPvData () const
    const ACAI::ClientFieldType fieldType = this->mainClient->dataFieldType ();
    const unsigned int number = this->dataElementCount ();
 
+   if (number == 0) return result;  // can we eve get 0?
+
    // Specials.
    //
    if (this->mainClient->processingAsLongString()) {
@@ -268,43 +271,77 @@ QVariant QECaClient::getPvData () const
 
    } else {
       // Treat as an array
-      // Consider using own QEVectorVariants
       //
-      QVariantList list;
+      size_t byteCount;
+      const void* rawData = this->mainClient->rawDataPointer (byteCount);
 
       switch (fieldType) {
 
+// Use macro function to assign CA data to the QE varaint arrays.
+// This not only ensure consistancy, it more easily enables use to
+// be Qt version specfic.
+//
+#if QT_VERSION < 0x060000
+#define ASSIGN_ARRAY(arrayType, elementType) {                                \
+   const elementType* data = reinterpret_cast<const elementType*> (rawData);  \
+   arrayType array;                                                           \
+   array.reserve (number);                                                    \
+   for (unsigned int j = 0; j < number; j++) {                                \
+       array.append (data[j]);                                                \
+   }                                                                          \
+   result.setValue (array);                                                   \
+}
+
+#else
+#define ASSIGN_ARRAY(arrayType, elementType) {                                \
+   const elementType* data = reinterpret_cast<const elementType*> (rawData);  \
+   arrayType array (data, data + number);                                     \
+   result.setValue (array);                                                   \
+}
+
+#endif
+
          case ACAI::ClientFieldSTRING:
-            for (unsigned int j = 0; j < number; j++) {
-               list.append (QVariant (QString::fromStdString (this->mainClient->getString (j))));
+            {
+               QStringList stringList;
+               for (unsigned int j = 0; j < number; j++) {
+                  QString element = QString::fromStdString (this->mainClient->getString (j));
+                  stringList.append (element);
+               }
+               result = QVariant (stringList);
             }
             break;
 
          case ACAI::ClientFieldCHAR:
-            for (unsigned int j = 0; j < number; j++) {
-               list.append (QVariant (qlonglong (this->mainClient->getInteger (j))));
-            }
+            ASSIGN_ARRAY (QEUint8Vector, uint8_t);
             break;
 
          case ACAI::ClientFieldENUM:
+            // For completeness.
+            ASSIGN_ARRAY (QEUint16Vector, uint16_t);
+            break;
+
          case ACAI::ClientFieldSHORT:
+            ASSIGN_ARRAY (QEInt16Vector, int16_t);
+            break;
+
          case ACAI::ClientFieldLONG:
-            for (unsigned int j = 0; j < number; j++) {
-               list.append (QVariant (qlonglong (this->mainClient->getInteger (j))));
-            }
+            ASSIGN_ARRAY (QEInt32Vector, int32_t);
             break;
 
          case ACAI::ClientFieldFLOAT:
+            ASSIGN_ARRAY (QEFloatVector, float);
+            break;
+
          case ACAI::ClientFieldDOUBLE:
-            for (unsigned int j = 0; j < number; j++) {
-               list.append (QVariant (this->mainClient->getFloating (j)));
-            }
+            ASSIGN_ARRAY (QEDoubleVector, double);
             break;
 
          default:
             break;
+
+#undef ASSIGN_ARRAY
       }
-      result = list;
    }
 
    return result;

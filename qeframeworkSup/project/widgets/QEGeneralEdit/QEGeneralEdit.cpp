@@ -38,6 +38,7 @@
 #include <QECommon.h>
 #include <QEPlatform.h>
 #include <QEScaling.h>
+#include <QEVectorVariants.h>
 
 #include <QELabel.h>
 #include <QERadioGroup.h>
@@ -295,6 +296,18 @@ void QEGeneralEdit::dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
             // Convert this array element as a scalar update.
             //
             workingValue = value.toList().value(ai);
+            mtype = QEPlatform::metaType (workingValue);
+         } else {
+            DEBUG << " Array index out of bounds:" << ai;
+            return; // do nothing
+         }
+      } else if (QEVectorVariants::isVectorVariant (value)) {
+
+         int ai = this->getArrayIndex();
+         if (ai >= 0 && ai < QEVectorVariants::vectorCount (value) ) {
+            // Convert this array element as a scalar update.
+            //
+            workingValue = QEVectorVariants::getDoubleValue (value, ai, 0.0);
             mtype = QEPlatform::metaType (workingValue);
          } else {
             DEBUG << " Array index out of bounds:" << ai;
