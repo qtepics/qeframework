@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2023 Australian Synchrotron.
+ *  Copyright (c) 2013-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -1244,7 +1244,7 @@ void QEPlotter::menuSelected (const QEPlotterNames::MenuActions action, const in
             this->plotArea->setMarkupVisible (QEGraphicNames::CrossHair, this->crosshairsAreRequired);
             this->plotArea->setMarkupPosition (QEGraphicNames::CrossHair, this->contextMenuRequestPosition);
          } else {
-            // Mouse not over the graphic - use previos location.
+            // Mouse not over the graphic - use previous location.
             this->plotArea->setMarkupVisible (QEGraphicNames::CrossHair, this->crosshairsAreRequired);
          }
          this->replotIsRequired = true;
@@ -1266,6 +1266,11 @@ void QEPlotter::menuSelected (const QEPlotterNames::MenuActions action, const in
          emit this->coordinateSelected  (this->contextMenuRequestPosition);
          emit this->xCoordinateSelected (this->contextMenuRequestPosition.x ());
          emit this->yCoordinateSelected (this->contextMenuRequestPosition.y ());
+         break;
+
+      case QEPlotterNames::PLOTTER_SAVE:
+         // Does not change state - just saves a copy
+         this->pushState ();
          break;
 
       case QEPlotterNames::PLOTTER_PREV:

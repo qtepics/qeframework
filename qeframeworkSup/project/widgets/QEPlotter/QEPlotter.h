@@ -402,6 +402,10 @@ public slots:
    //
    void setPlotterEntry (const int slot, const QString& pvName, const QString& alias);
 
+   // Handles all context menu and tool bar actions.
+   //
+   void menuSelected (const QEPlotterNames::MenuActions action, const int slot);
+
 public:
    QStringList getDataPvNameSet () const;
    QStringList getAliasNameSet () const;
@@ -704,10 +708,6 @@ private slots:
 
    void generalContextMenuRequested (const QPoint& pos);
    void itemContextMenuRequested (const QPoint& pos);
-
-   // Handles all context menu and tool bar actions.
-   //
-   void menuSelected (const QEPlotterNames::MenuActions action, const int slot);
 
    // Handles signals from the plot object.
    //
