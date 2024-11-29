@@ -392,6 +392,7 @@ void QCaAlarmInfoColorNamesManager::determineColorNames ()
       if (!v3.isEmpty()) cn = v3;
       if (!cn.isEmpty()) workList.replace (j, cn);
    }
+
    styleColorNames = workList;
 
    // Ditto the color names
@@ -457,6 +458,20 @@ QStringList QCaAlarmInfoColorNamesManager::getDefaultStyleColorNames()
 QStringList QCaAlarmInfoColorNamesManager::getDefaultColorNames()
 {
    return defaultColorNames;
+}
+
+//------------------------------------------------------------------------------
+// static
+QStringList QCaAlarmInfoColorNamesManager::getInUseStyleColorNames()
+{
+   return styleColorNames;
+}
+
+//------------------------------------------------------------------------------
+// static
+QStringList QCaAlarmInfoColorNamesManager::getInUseColorNames()
+{
+   return colorNames;
 }
 
 //------------------------------------------------------------------------------

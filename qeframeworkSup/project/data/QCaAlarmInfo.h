@@ -109,7 +109,7 @@ public:
    // Modes for programatically set color names.
    //
    enum ColorNameKinds {
-      cnkPrimary,   // These color names can be userped by adaptation parameter.
+      cnkPrimary,   // These color names can be over-ridden by adaptation parameter.
       cnkOverride   // These color names supersede all other color name definitions.
    };
 
@@ -125,6 +125,11 @@ public:
    //
    static QStringList getDefaultStyleColorNames();
    static QStringList getDefaultColorNames();
+
+   // Return currently style colour names and color names.
+   //
+   static QStringList getInUseStyleColorNames();
+   static QStringList getInUseColorNames();
 
    // Set and get the out of service PV name list.
    // The matching includes/excludes .VAL when checking for a match, e.g
