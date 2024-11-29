@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2021 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -96,6 +96,7 @@ QEWidgets::QEWidgets(QObject *parent) : QObject(parent) {
 
     // Non-EPICS aware framework widgets.
     //
+    widgets.append(new QEAlarmColourSelectionManager(this));
     widgets.append(new QEAnalogIndicatorManager(this));
     widgets.append(new QAnalogSliderManager(this));
     widgets.append(new QEArchiveNameSearchManager(this));

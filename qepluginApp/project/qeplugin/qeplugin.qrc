@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/qe/plugin">
+        <file>QEAlarmColourSelection.png</file>
         <file>QAnalogSlider.png</file>
         <file>QBitStatus.png</file>
         <file>QEAnalogIndicator.png</file>

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2017-2021 Australian Synchrotron
+ *  Copyright (c) 2017-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +27,7 @@
 #include "QEPluginWidgetManagers.h"
 
 #include <QEDesignerPluginGroupNames.h>
+#include <QEAlarmColourSelection.h>
 #include <QEAnalogIndicator.h>
 #include <QEAnalogProgressBar.h>
 #include <QAnalogSlider.h>
@@ -99,6 +100,7 @@
 // Note : QEMenuButton and QEPeriodic provide designer extentions and
 //        are provided elsewhere.
 
+QE_IMPLEMENT_PLUGIN_MANAGER (QEAlarmColourSelection, QETOOL,  ":/qe/plugin/QEAlarmColourSelection.png", false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEAnalogIndicator,   QETOOL,     ":/qe/plugin/QEAnalogIndicator.png",   false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEAnalogProgressBar, QEMONITOR,  ":/qe/plugin/QEAnalogProgressBar.png", false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QAnalogSlider,       QETOOL,     ":/qe/plugin/QAnalogSlider.png",       false)

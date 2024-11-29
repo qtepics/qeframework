@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2017-2021 Australian Synchrotron
+ *  Copyright (c) 2017-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -50,6 +50,16 @@
 //------------------------------------------------------------------------------
 // While the bulk of the class defintion can be provided by the declare
 // manager macro, Qt artefacts need to be explicit to keep moc happy.
+//------------------------------------------------------------------------------
+//
+class QEPLUGINLIBRARYSHARED_EXPORT QEAlarmColourSelectionManager :
+      public QObject, public QDesignerCustomWidgetInterface
+{
+   Q_OBJECT
+   Q_INTERFACES (QDesignerCustomWidgetInterface)
+   QE_DECLARE_PLUGIN_MANAGER (QEAlarmColourSelection)
+};
+
 //------------------------------------------------------------------------------
 //
 class QEPLUGINLIBRARYSHARED_EXPORT QEAnalogIndicatorManager :
