@@ -59,9 +59,6 @@ void QEAlarmColourSelection::postConstruction ()
    this->setAllButtonStyles ();
 
    for (int s = 0; s < ARRAY_LENGTH (this->buttons); s++) {
-      QStringList names = (s == 0) ?  cnm::getInUseStyleColorNames() :
-                                      cnm::getInUseColorNames();
-
       for (int a = 0; a < ARRAY_LENGTH (this->buttons[s]); a++) {
          QPushButton* button = this->buttons[s][a];
          if (!button) continue;

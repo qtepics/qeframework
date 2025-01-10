@@ -172,7 +172,7 @@ long QEIntegerFormatting::varToLong (const QVariant& item ) const
       return formatFailure (name + " to long conversion failure" );
    }
 
-   if (temp < LONG_MIN || temp > LONG_MAX) {
+   if ((temp < LONG_MIN) || (temp > LONG_MAX)) {
       return formatFailure (name + " out of range" );
    }
 
