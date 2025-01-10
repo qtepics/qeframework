@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2022 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -24,218 +24,294 @@
  *    andrew.rhyder@synchrotron.org.au
  */
 
-#include <QELink.h>
-#include <ContainerProfile.h>
-#include <QVariant>
-#include <QString>
+#include "QELink.h"
 #include <QDebug>
+#include <QString>
+#include <QVariant>
 #include <QECommon.h>
 
-/*
-    Constructor with no initialisation
-*/
-QELink::QELink( QWidget *parent ) : QLabel( parent ), QEWidget( this )
+#define DEBUG  qDebug () << "QELink" << __LINE__ << __FUNCTION__ << " "
+
+//------------------------------------------------------------------------------
+// Constructor with no initialisation
+//
+ QELink::QELink (QWidget * parent):QLabel (parent), QEWidget (this)
 {
-    // Don't display this widget, by default (will always display in 'Designer'
-    setRunVisible( false );
+   // Don't display this widget, by default (will always display in 'Designer'
+   this->setRunVisible (false);
 
-    // Set default properties
-    setAlignment( Qt::AlignHCenter | Qt::AlignVCenter );
-    setText( "Link" );
-    setIndent( 6 );
+   // Set default properties
+   this->setAlignment (Qt::AlignHCenter | Qt::AlignVCenter);
+   this->setText ("Link");
+   this->setIndent (6);
 
-    setStyleSheet ( QEUtilities::offBackgroundStyle() );
+   this->setStyleSheet (QEUtilities::offBackgroundStyle ());
 
-    signalFalse = true;
-    signalTrue = true;
-    isProcessing = false;
+   this->signalFalse = true;
+   this->signalTrue = true;
+   this->isProcessing = false;
+   this->lookupValues.clear();
 
-    condition = CONDITION_EQ;
+   this->condition = Equal;
 }
 
+//------------------------------------------------------------------------------
+// Place holder
+QELink::~QELink () { }
+
+
+//------------------------------------------------------------------------------
+//
+void QELink::sendLookup(const qlonglong index)
+{
+   if (this->condition != Lookup) return;  // check
+   if ((index < 0) || (index >= this->lookupValues.size())) return;  // out of range
+
+   const QVariant value = QVariant (this->lookupValues.value (index));
+   this->emitValue (value);
+}
+
+//------------------------------------------------------------------------------
 // Common comparison. Macro to evaluate the 'in' signal value.
 // Determine if the 'in' signal value matches the condition
 // If match and signaling on a match, then send a signal
 // If not a match and signaling on no match, then send a signal
-#define EVAL_CONDITION                                              \
-                                                                    \
-    bool match = false;                                             \
-    switch( condition )                                             \
-    {                                                               \
-        case CONDITION_EQ: if( inVal == val ) match = true; break;  \
-        case CONDITION_NE: if( inVal != val ) match = true; break;  \
-        case CONDITION_GT: if( inVal >  val ) match = true; break;  \
-        case CONDITION_GE: if( inVal >= val ) match = true; break;  \
-        case CONDITION_LT: if( inVal <  val ) match = true; break;  \
-        case CONDITION_LE: if( inVal <= val ) match = true; break;  \
-    }                                                               \
-                                                                    \
-    sendValue( match );
+//
+#define EVAL_CONDITION if (okay) {                              \
+   bool match = false;                                          \
+   switch (this->condition)                                     \
+   {                                                            \
+      case Equal:              match = (inVal == val); break;   \
+      case NotEqual:           match = (inVal != val); break;   \
+      case GreaterThan:        match = (inVal >  val); break;   \
+      case GreaterThanOrEqual: match = (inVal >= val); break;   \
+      case LessThan:           match = (inVal <  val); break;   \
+      case LessThanOrEqual:    match = (inVal <= val); break;   \
+      case Lookup: return;                                      \
+   }                                                            \
+   this->sendValue (match);                                     \
+}
 
+
+//------------------------------------------------------------------------------
 // Slot to perform a comparison on a bool
-void QELink::in( const bool& inVal )
+void QELink::in (const bool& inVal)
 {
-    bool val = comparisonValue.toBool();
-    EVAL_CONDITION;
+   this->sendLookup (inVal);
+   bool okay = true;
+   const bool val = this->comparisonValue.toBool ();
+   EVAL_CONDITION;
 }
 
+//------------------------------------------------------------------------------
 // Slot to perform a comparison on an integer (int)
-void QELink::in( const int& inVal )
+void QELink::in (const int &inVal)
 {
-    qlonglong val = comparisonValue.toLongLong();
-    EVAL_CONDITION;
+   this->sendLookup (inVal);
+   bool okay;
+   const qlonglong val = this->comparisonValue.toLongLong (&okay);
+   EVAL_CONDITION;
 }
 
+//------------------------------------------------------------------------------
 // Slot to perform a comparison on an integer (long)
-void QELink::in( const long& inVal )
+void QELink::in (const long& inVal)
 {
-    qlonglong val = comparisonValue.toLongLong();
-    EVAL_CONDITION;
+   this->sendLookup (inVal);
+   bool okay;
+   const qlonglong val = this->comparisonValue.toLongLong (&okay);
+   EVAL_CONDITION;
 }
 
+//------------------------------------------------------------------------------
 // Slot to perform a comparison on an integer (qLongLong)
-void QELink::in( const qlonglong& inVal )
+void QELink::in (const qlonglong& inVal)
 {
-    qlonglong val = comparisonValue.toLongLong();
-    EVAL_CONDITION;
+   this->sendLookup (inVal);
+   bool okay;
+   const qlonglong val = this->comparisonValue.toLongLong (&okay);
+   EVAL_CONDITION;
 }
 
+//------------------------------------------------------------------------------
 // Slot to perform a comparison on a floating point number
-void QELink::in( const double& inVal )
+void QELink::in (const double& inVal)
 {
-    double val = comparisonValue.toDouble();
-    EVAL_CONDITION;
+   this->sendLookup (inVal);
+   bool okay;
+   const double val = this->comparisonValue.toDouble (&okay);
+   EVAL_CONDITION;
 }
 
+//------------------------------------------------------------------------------
 // Slot to perform a comparison on a string
-void QELink::in( const QString& inVal )
+//
+void QELink::in (const QString& inVal)
 {
-    bool stringIsNum = false;
+   // Note: no (direct) sendLookup (inVal) for a non numeric.
 
-    // If the string is a valid number, compare it as a number
+   bool stringIsNum = false;
 
-    QStringList inList = QEUtilities::split( inVal );
-    if( inList.size() )
-    {
-        double inDouble = inList[0].toDouble( &stringIsNum );
-        if( stringIsNum )
-        {
-            in( inDouble );
-        }
-    }
+   // If the string starts with a valid number, compare it as a number
 
-    // If the string is not a valid number, do a string comparison
-    if( !stringIsNum )
-    {
-        QString val = comparisonValue.toString();
-        EVAL_CONDITION;
-    }
+   QStringList inList = QEUtilities::split (inVal);
+   if (inList.size () > 0) {
+      const double inDouble = inList.value(0).toDouble (&stringIsNum);
+      if (stringIsNum) {
+         this->in (inDouble);
+      }
+   }
+
+   // If the string is not a valid number, do a string comparison
+   if (!stringIsNum) {
+      bool okay = true;
+      const QString val = this->comparisonValue.toString ();
+      EVAL_CONDITION;
+   }
 }
 
+#undef EVAL_CONDITION
+
+//------------------------------------------------------------------------------
 // Generate appropriate signals following a comparison of an input value
-void QELink::sendValue( bool match )
+//
+void QELink::sendValue (bool match)
 {
-    // Avoid infinite signal-slot loops.
-    if( !isProcessing ){
-        isProcessing = true;
-
-        // If input comparison matched, emit the appropriate value if required
-        if( match )
-        {
-            if( signalTrue )
-                emitValue( outTrueValue );
-        }
-
-        // If input comparison did not match, emit the appropriate value if required
-        else
-        {
-            if( signalFalse )
-                emitValue( outFalseValue );
-        }
-
-        isProcessing = false;
-    }
+   // If input comparison matched, emit the appropriate value if required
+   if (match) {
+      if (this->signalTrue)
+         this->emitValue (this->outTrueValue);
+   }
+   // If input comparison did not match, emit the appropriate value if required
+   else {
+      if (this->signalFalse)
+         this->emitValue (this->outFalseValue);
+   }
 }
 
+//------------------------------------------------------------------------------
 // Emit signals required when input value matches or fails to match
-void QELink::emitValue( QVariant value )
+//
+void QELink::emitValue (const QVariant& value)
 {
-    emit out( value.toBool() );
-    emit out( value.toInt() );
-    emit out( long (value.toLongLong()) );
-    emit out( value.toLongLong() );
-    emit out( value.toDouble() );
-    emit out( value.toString() );
+   // Avoid infinite signal-slot loops.
+   //
+   if (!this->isProcessing) {
+      this->isProcessing = true;
+
+      bool okay;
+      emit this->out (value.toBool ());
+
+      const int ival = value.toInt (&okay);
+      if (okay) emit this->out (ival);
+
+      const qlonglong lval = value.toLongLong (&okay);
+      if (okay) emit this->out (long (lval));
+      if (okay) emit this->out (lval);
+
+      const double dval = value.toDouble (&okay);
+      if (okay) emit this->out (dval);
+
+      emit this->out (value.toString ());
+
+      this->isProcessing = false;
+   }
 }
 
+//------------------------------------------------------------------------------
 // Slot to allow signal/slot manipulation of the auto fill background
 // attribute of the base label class
-void QELink::autoFillBackground( const bool& enable )
+//
+void QELink::autoFillBackground (const bool& enable)
 {
-    setAutoFillBackground( enable );
+   this->setAutoFillBackground (enable);
 }
 
 //==============================================================================
 // Property convenience functions
-
+//
 // condition
-void QELink::setCondition( conditions conditionIn )
+void QELink::setCondition (ConditionNames conditionIn)
 {
-    condition = conditionIn;
-}
-QELink::conditions QELink::getCondition()
-{
-    return condition;
+   this->condition = conditionIn;
 }
 
+QELink::ConditionNames QELink::getCondition ()
+{
+   return this->condition;
+}
+
+//------------------------------------------------------------------------------
 // comparisonValue Value to compare input signals to
-void    QELink::setComparisonValue( QString comparisonValueIn )
+//
+void QELink::setComparisonValue (const QString& comparisonValueIn)
 {
-    comparisonValue = QVariant(comparisonValueIn);
-}
-QString QELink::getComparisonValue()
-{
-    return comparisonValue.toString();
+   this->comparisonValue = QVariant (comparisonValueIn);
 }
 
+QString QELink::getComparisonValue () const
+{
+   return this->comparisonValue.toString ();
+}
+
+//------------------------------------------------------------------------------
 // signalTrue (Signal if condition is met)
-void QELink::setSignalTrue( bool signalTrueIn )
+void QELink::setSignalTrue (bool signalTrueIn)
 {
-    signalTrue = signalTrueIn;
-}
-bool QELink::getSignalTrue()
-{
-    return signalTrue;
+   this->signalTrue = signalTrueIn;
 }
 
+bool QELink::getSignalTrue () const
+{
+   return this->signalTrue;
+}
+
+//------------------------------------------------------------------------------
 // signalFalse (Signal if condition not met)
-void QELink::setSignalFalse( bool signalFalseIn )
+void QELink::setSignalFalse (bool signalFalseIn)
 {
-    signalFalse = signalFalseIn;
-}
-bool QELink::getSignalFalse()
-{
-    return signalFalse;
+   this->signalFalse = signalFalseIn;
 }
 
+bool QELink::getSignalFalse () const
+{
+   return this->signalFalse;
+}
+
+//------------------------------------------------------------------------------
 // outTrueValue Value to emit if condition is met
-void    QELink::setOutTrueValue( QString outTrueValueIn )
+void QELink::setOutTrueValue (const QString& outTrueValueIn)
 {
-    outTrueValue = QVariant(outTrueValueIn);
-}
-QString QELink::getOutTrueValue()
-{
-    return outTrueValue.toString();
+   this->outTrueValue = QVariant (outTrueValueIn);
 }
 
-// outFalseValue Value to emit if condition is not met
-void    QELink::setOutFalseValue( QString outFalseValueIn )
+QString QELink::getOutTrueValue () const
 {
-    outFalseValue = QVariant(outFalseValueIn);
+   return this->outTrueValue.toString ();
 }
-QString QELink::getOutFalseValue()
+
+//------------------------------------------------------------------------------
+// outFalseValue Value to emit if condition is not met
+void QELink::setOutFalseValue (const QString& outFalseValueIn)
 {
-    return outFalseValue.toString();
+   this->outFalseValue = QVariant (outFalseValueIn);
+}
+
+QString QELink::getOutFalseValue () const
+{
+   return this->outFalseValue.toString ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QELink::setLookupValues (const QStringList& lookupValuesIn)
+{
+   this->lookupValues = lookupValuesIn;
+}
+
+QStringList QELink::getLookupValues () const
+{
+   return this->lookupValues;
 }
 
 // end
