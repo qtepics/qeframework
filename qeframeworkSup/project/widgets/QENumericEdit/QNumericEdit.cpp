@@ -90,7 +90,7 @@ void QNumericEdit::commonConstructor ()
    //
    this->mValue = 0.1;  // force initial update
    this->internalSetValue (0.0);
-   this->cursor = this->cursorFirst;
+   this->cursorPosition = this->cursorFirst;
    this->emitValueChangeInhibited = false;
 }
 
@@ -114,7 +114,7 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
 {
    const int key = event->key ();
    const double dblRadix = double (this->fpr.getRadixValue ());
-   const int index = this->getCursor ();
+   const int index = this->getCursorPosition ();
 
    QChar qc;
    QChar qk;
@@ -187,25 +187,25 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
          break;
 
       case Qt::Key_Left:
-         this->setCursor (this->getCursor () - 1);
+         this->setCursorPosition (this->getCursorPosition () - 1);
 
          // If we have moved onto a filler character, then move again.
          //
-         qc = this->charAt (this->getCursor ());
+         qc = this->charAt (this->getCursorPosition ());
          if (!this->isSignOrDigit (qc)) {
-            this->setCursor (this->getCursor () - 1);
+            this->setCursorPosition (this->getCursorPosition () - 1);
          }
          break;
 
 
       case Qt::Key_Right:
-         this->setCursor (this->getCursor () + 1);
+         this->setCursorPosition (this->getCursorPosition () + 1);
 
          // If we have moved onto a filler character, then move again.
          //
-         qc = this->charAt (this->getCursor ());
+         qc = this->charAt (this->getCursorPosition ());
          if (!this->isSignOrDigit (qc)) {
-            this->setCursor (this->getCursor () + 1);
+            this->setCursorPosition (this->getCursorPosition () + 1);
          }
          break;
 
@@ -218,7 +218,7 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
             } else {
                this->internalSetValue (-fabs (this->getValue ()));
             }
-            this->setCursor (this->getCursor () + 1);
+            this->setCursorPosition (this->getCursorPosition () + 1);
 
          } else if (this->cursorOverExpSign ()) {
             QString tryThis = this->lineEdit->text ();
@@ -227,7 +227,7 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
             double newval = this->valueOfImage (tryThis);
 
             this->internalSetValue (newval);
-            this->setCursor (this->getCursor () + 1);
+            this->setCursorPosition (this->getCursorPosition () + 1);
          }
          break;
 
@@ -261,13 +261,13 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
             double newval = this->valueOfImage (tryThis);
 
             this->internalSetValue (newval);
-            this->setCursor (this->getCursor () + 1);
+            this->setCursorPosition (this->getCursorPosition () + 1);
 
             // If we have moved onto a filler character, then move again.
             //
-            qc = this->charAt (this->getCursor ());
+            qc = this->charAt (this->getCursorPosition ());
             if (!this->isSignOrDigit (qc)) {
-               this->setCursor (this->getCursor () + 1);
+               this->setCursorPosition (this->getCursorPosition () + 1);
             }
          }
          break;
@@ -335,7 +335,7 @@ bool QNumericEdit::lineEditMouseReleaseEvent (QMouseEvent* /* event*/ )
       posn = this->lineEdit->cursorPosition ();
    }
 
-   this->setCursor (posn);
+   this->setCursorPosition (posn);
    return true;  //  handled locally
 }
 
@@ -418,7 +418,7 @@ void QNumericEdit::setDigitSelection ()
    // Only set/update selection if/when the widget has focus.
    //
    if (this->lineEdit->hasFocus ()) {
-      int posn = this->getCursor ();
+      int posn = this->getCursorPosition ();
       this->lineEdit->setSelection (posn, 1);
    }
 }
@@ -550,24 +550,24 @@ void QNumericEdit::redisplayText ()
    this->cursorFirst = this->mPrefix.length ();
    this->cursorLast = image.length () - 1 - this->mSuffix.length ();
 
-   this->setCursor (this->cursor);
+   this->setCursorPosition (this->cursorPosition);
 }
 
 //------------------------------------------------------------------------------
 //
-void QNumericEdit::setCursor (const int value)
+void QNumericEdit::setCursorPosition (const int value)
 {
    // Ensure cursor is in range of interest, i.e. excluding prefix/suffix.
    //
-   this->cursor = LIMIT (value, this->cursorFirst, this->cursorLast);
+   this->cursorPosition = LIMIT (value, this->cursorFirst, this->cursorLast);
    this->setDigitSelection ();
 }
 
 //------------------------------------------------------------------------------
 //
-int QNumericEdit::getCursor () const
+int QNumericEdit::getCursorPosition () const
 {
-   return this->cursor;
+   return this->cursorPosition;
 }
 
 //------------------------------------------------------------------------------
@@ -614,7 +614,7 @@ bool QNumericEdit::showSign () const
 //
 bool QNumericEdit::cursorOverSign () const
 {
-   return (this->showSign () && (this->getCursor () == this->cursorFirst));
+   return (this->showSign () && (this->getCursorPosition () == this->cursorFirst));
 }
 
 //------------------------------------------------------------------------------
@@ -622,7 +622,7 @@ bool QNumericEdit::cursorOverSign () const
 bool QNumericEdit::cursorOverExpSign () const
 {
    return ((this->mNotation == QE::Scientific) &&
-           (this->getCursor () == this->cursorLast - 2));
+           (this->getCursorPosition () == this->cursorLast - 2));
 }
 
 //------------------------------------------------------------------------------
@@ -630,8 +630,8 @@ bool QNumericEdit::cursorOverExpSign () const
 bool QNumericEdit::cursorOverExponent () const
 {
    return ((this->mNotation == QE::Scientific) &&
-           ((this->getCursor () == this->cursorLast - 1) ||
-            (this->getCursor () == this->cursorLast)));
+           ((this->getCursorPosition () == this->cursorLast - 1) ||
+            (this->getCursorPosition () == this->cursorLast)));
 }
 
 //------------------------------------------------------------------------------

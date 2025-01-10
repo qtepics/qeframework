@@ -218,7 +218,7 @@ private:
    double maximumMax;
    int cursorFirst;       // First allowed number character within line edit
    int cursorLast;        // Last allowed number character within line edit
-   int cursor;            // Current cursor position
+   int cursorPosition;    // Current cursor position
    bool emitValueChangeInhibited;
 
    void commonConstructor ();
@@ -243,8 +243,8 @@ private:
    void redisplayText ();             // Calls embedded lineEdit's setText using string from imageOfValue.
    void setDigitSelection ();         // High-lights selected digit
 
-   void setCursor (const int value);
-   int getCursor () const;
+   void setCursorPosition (const int value);
+   int getCursorPosition () const;
 
    QChar charAt (const int j) const;      // Conveniance function to extract jth character of line edit text.
    bool isRadixDigit (QChar qc) const;    // Is the character a valid digit for the selected radix
