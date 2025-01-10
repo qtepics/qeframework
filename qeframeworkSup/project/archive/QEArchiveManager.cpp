@@ -53,9 +53,8 @@
 // but may prove to be usefull).
 // For a particualar PV, we also retrieve and store start and stop times.
 //
-class KeyTimeSpec : public QEArchiveInterface::Archive {
-public:
-   uint32_t startTime;  // only need seconds past epoch here
+struct KeyTimeSpec : public QEArchiveInterface::Archive {
+   uint32_t startTime;  // only need seconds past epoch here, not the nano sec
    uint32_t endTime;
 };
 
@@ -69,14 +68,85 @@ public:
 // times. This allows use to choose the key that best fits the request
 // time frame.
 //
-// Note: QHash provides faster lookups than QMap.
-//       When iterating over a QMap, the items are always sorted by key.
-//       With QHash, the items are arbitrarily ordered.
-//
 class SourceSpec {
 public:
+   enum Constants {
+      noKey = -1,
+      numberOfKeys = 4
+   };
+
+   SourceSpec () {
+      for (int k = 0; k < numberOfKeys; k++) {
+         this->keyToTimeSpecLookUp[k].key = noKey;
+      }
+   }
+
+   ~SourceSpec () {}
+
    QEArchiveInterfaceManager* interfaceManager;
-   QHash <int, KeyTimeSpec> keyToTimeSpecLookUp;
+
+   // We use a plain array, as opposed to a QHash, to hold data look up info
+   // which significantly reduces the memory foot print, at the expense of
+   // implementing the keys, contains, value and insert methods.
+   //
+   KeyTimeSpec keyToTimeSpecLookUp [numberOfKeys];
+
+   //---------------------------------------------------------------------------
+   //
+   QList<int> keys() const
+   {
+      QList<int> result;
+      for (int k = 0; k < numberOfKeys; k++) {
+          if (this->keyToTimeSpecLookUp[k].key >= 0) {
+             result.append (this->keyToTimeSpecLookUp[k].key);
+          }
+      }
+      return result;
+   }
+
+   //---------------------------------------------------------------------------
+   //
+   bool contains (const int key) const
+   {
+      for (int k = 0; k < numberOfKeys; k++) {
+         if (this->keyToTimeSpecLookUp[k].key == key) {
+            // We have a match
+            return true;
+         }
+      }
+      return false;
+   }
+
+   //---------------------------------------------------------------------------
+   //
+   KeyTimeSpec value (const int key) const
+   {
+      for (int k = 0; k < numberOfKeys; k++) {
+         if (this->keyToTimeSpecLookUp[k].key == key) {
+            // We have a match
+            return this->keyToTimeSpecLookUp[k];
+         }
+      }
+
+      KeyTimeSpec result;
+      result.key = result.pathIndex = result.nameIndex = noKey;
+      result.startTime = result.endTime = 0;
+      return result;
+   }
+
+   //---------------------------------------------------------------------------
+   //
+   bool insert (const KeyTimeSpec spec)
+   {
+      for (int k = 0; k < numberOfKeys; k++) {
+         if (this->keyToTimeSpecLookUp[k].key < 0) {
+            // We have an empty slot
+            this->keyToTimeSpecLookUp[k] = spec;
+            return true;
+         }
+      }
+      return false;
+   }
 };
 
 //------------------------------------------------------------------------------
@@ -457,11 +527,11 @@ bool QEArchiveManager::getArchivePvInformation (
         hostName = url.host();
       }
 
-      keys = sourceSpec.keyToTimeSpecLookUp.keys ();
+      keys = sourceSpec.keys ();
       for (int j = 0; j < keys.count (); j++) {
          int key = keys.value (j, -1);
          if (key < 0) continue;
-         KeyTimeSpec keyTimeSpec = sourceSpec.keyToTimeSpecLookUp.value (key);
+         KeyTimeSpec keyTimeSpec = sourceSpec.value (key);
 
          QEArchiveAccess::ArchiverPvInfo item;
 
@@ -674,10 +744,10 @@ void QEArchiveManager::readArchiveRequest (const QEArchiveAccess* archiveAccess,
       // which supported both a long term and a short term sub-archives
       // for various catagories of data types.
       //
-      QList <int> keys = sourceSpec.keyToTimeSpecLookUp.keys ();
+      QList <int> keys = sourceSpec.keys ();
       for (int j = 0; j < keys.count (); j++) {
 
-         const KeyTimeSpec keyTimeSpec = sourceSpec.keyToTimeSpecLookUp.value (keys.value (j));
+         const KeyTimeSpec keyTimeSpec = sourceSpec.value (keys.value (j));
 
          // Can't use const here
          QCaDateTime startTime = QCaDateTime (keyTimeSpec.startTime, 0, 0);
@@ -835,7 +905,7 @@ void QEArchiveManager::processPvChannel (QEArchiveInterfaceManager* interfaceMan
       // First instance of this PV Name
       //
       sourceSpec.interfaceManager = interfaceManager;
-      sourceSpec.keyToTimeSpecLookUp.insert (keyTimeSpec.key, keyTimeSpec);
+      sourceSpec.insert (keyTimeSpec);
       this->pvNameToSourceLookUp->insert (pvChannel.pvName, sourceSpec);
       return;
    }
@@ -857,7 +927,7 @@ void QEArchiveManager::processPvChannel (QEArchiveInterfaceManager* interfaceMan
    // Second or subsequent instance of this PV must have a differnt key
    // (corresponding to short/long term archive).
    //
-   if (sourceSpec.keyToTimeSpecLookUp.contains (keyTimeSpec.key)) {
+   if (sourceSpec.contains (keyTimeSpec.key)) {
       message = QString ("PV %1 has multiple instances of key %2")
             .arg (pvChannel.pvName)
             .arg ( keyTimeSpec.key);
@@ -867,7 +937,7 @@ void QEArchiveManager::processPvChannel (QEArchiveInterfaceManager* interfaceMan
 
    // All good to go with subsequent entry.
    //
-   sourceSpec.keyToTimeSpecLookUp.insert (keyTimeSpec.key, keyTimeSpec);
+   sourceSpec.insert (keyTimeSpec);
 
    // QHash: If there is already an item with the key, that item's
    // value is replaced with value.
