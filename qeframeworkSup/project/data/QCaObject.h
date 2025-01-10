@@ -233,6 +233,11 @@ private:
 
    quint64 objectIdentity;   // this object's identity
    static ObjectIdentity nextObjectIdentity;
+
+   // Thus method checks is writes have not been disabled by means of
+   // the of read-only adaptation parameter.
+   //
+   bool writeEnabled() const;
    
    static int disconnectedCount;
    static int connectedCount;

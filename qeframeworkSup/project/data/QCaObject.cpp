@@ -32,6 +32,7 @@
 #include <QByteArray>
 #include <QMetaType>
 #include <QECommon.h>
+#include <QEAdaptationParameters.h>
 #include <QEPlatform.h>
 #include <QEPvNameUri.h>
 #include <QENullClient.h>
@@ -260,7 +261,6 @@ void QCaObject::clearConnectionState()
    //  The connection has gone from 'no connection' to 'not connectet yet')
    //
    QCaConnectionInfo connectionInfo( QCaConnectionInfo::NEVER_CONNECTED,
-                                     QCaConnectionInfo::LINK_DOWN,
                                      this->getRecordName() );
 
    emit connectionChanged( connectionInfo, variableIndex );
@@ -559,10 +559,11 @@ bool QCaObject::getReadAccess() const
 
 //------------------------------------------------------------------------------
 // Get the write access of the current connection.
+// This is deternmined by the clinet and anp specified adaptation parameter.
 //
 bool QCaObject::getWriteAccess() const
 {
-   return this->client->getWriteAccess();
+   return this->client->getWriteAccess() && this->writeEnabled();
 }
 
 //------------------------------------------------------------------------------
@@ -758,12 +759,10 @@ void QCaObject::connectionUpdate (const bool isConnected)
 
    if (isConnected) {
       connectionInfo = QCaConnectionInfo( QCaConnectionInfo::CONNECTED,
-                                          QCaConnectionInfo::LINK_UP,
                                           this->recordName );
       QCaObject::connectedCount++;
    } else {
       connectionInfo = QCaConnectionInfo( QCaConnectionInfo::CLOSED,
-                                          QCaConnectionInfo::LINK_DOWN,
                                           this->recordName );
       QCaObject::connectedCount--;
    }
@@ -869,11 +868,22 @@ void QCaObject::getLastData( bool& isDefinedOut, QVariant& valueOut,
 }
 
 //------------------------------------------------------------------------------
+//
+bool QCaObject::writeEnabled() const
+{
+   QEAdaptationParameters ap ("QE_");
+
+   const bool read_only = ap.getBool ("read_only");  // default is false
+   return !read_only;
+}
+
+//------------------------------------------------------------------------------
 // Write a data out to channel
 //
 bool QCaObject::writeData( const QVariant& value )
 {
    if (!this->client) return false;   // sanity check
+   if (!this->writeEnabled()) return false;
    return this->client->putPvData (value);
 }
 
