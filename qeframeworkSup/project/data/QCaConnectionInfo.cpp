@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2021 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -26,7 +26,7 @@
 
 // CA connection info manager
 
-#include <QCaConnectionInfo.h>
+#include "QCaConnectionInfo.h"
 
 /*
   Construct an empty instance.
@@ -34,20 +34,18 @@
  */
 QCaConnectionInfo::QCaConnectionInfo()
 {
-    channelState = CHANNEL_UNKNOWN;
-    linkState = LINK_UNKNOWN;
+   this->channelState = CHANNEL_UNKNOWN;
+   this->variableName = "";
 }
 
 /*
   Construct an instance given a channel and link state
  */
 QCaConnectionInfo::QCaConnectionInfo( const channel_states channelStateIn,
-                                      const link_states linkStateIn,
                                       const QString& variableNameIn )
 {
-    channelState = channelStateIn;
-    linkState = linkStateIn;
-    variableName = variableNameIn;
+   this->channelState = channelStateIn;
+   this->variableName = variableNameIn;
 }
 
 /*
@@ -60,7 +58,7 @@ QCaConnectionInfo::~QCaConnectionInfo() { }
  */
 bool QCaConnectionInfo::isChannelConnected() const
 {
-    return( channelState == CONNECTED );
+   return( this->channelState == CONNECTED );
 }
 
 /*
@@ -69,7 +67,7 @@ bool QCaConnectionInfo::isChannelConnected() const
  */
 QString QCaConnectionInfo::variable() const
 {
-    return variableName;
+   return this->variableName;
 }
 
 // end
