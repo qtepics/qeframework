@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2024 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -105,7 +105,7 @@ bool QEString::writeStringElement (const QString &data, QString& message)
    bool ok = false;
    QVariant elementValue = this->stringFormat->formatValue (data, ok);
    if (ok) {
-      writeDataElement (elementValue);
+      this->writeDataElement (elementValue);
    } else {
       message = QString ("Write element failed, unabled to format:'").append (data).append ("'.");
    }
