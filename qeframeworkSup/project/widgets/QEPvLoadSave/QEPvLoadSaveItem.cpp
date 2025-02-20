@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2024 Australian Synchrotron
+ *  Copyright (c) 2013-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -256,14 +256,17 @@ QVariant QEPvLoadSaveItem::getNodeValue () const
 //
 int QEPvLoadSaveItem::getElementCount () const
 {
-   int result;
-
    const QMetaType::Type mtype = QEPlatform::metaType (this->value);
-   if (mtype == QMetaType::QVariantList) {
+
+   int result;
+   if (QEVectorVariants::isVectorVariant (this->value)) {
+      result = QEVectorVariants::vectorCount (this->value);
+   }
+   else if (mtype == QMetaType::QVariantList) {
       QVariantList vl = this->value.toList ();
       result = vl.size ();
    } else {
-      result = 1;
+      result = 1;   // assume must be a scalar
    }
    return result;
 }

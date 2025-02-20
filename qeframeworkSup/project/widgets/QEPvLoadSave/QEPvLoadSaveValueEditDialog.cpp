@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2024 Australian Synchrotron
+ *  Copyright (c) 2012-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -31,6 +31,7 @@
 #include <QStringList>
 #include <QECommon.h>
 #include <QEPlatform.h>
+#include <QEVectorVariants.h>
 #include <ui_QEPvLoadSaveValueEditDialog.h>
 
 static const QVariant nilValue = QVariant();
@@ -69,7 +70,11 @@ void QEPvLoadSaveValueEditDialog::setPvName (const QString& pvName)
 void QEPvLoadSaveValueEditDialog::setValue (const QVariant& valueIn)
 {
    const QMetaType::Type mtype = QEPlatform::metaType (valueIn);
-   if (mtype == QMetaType::QVariantList) {
+
+   if (QEVectorVariants::isVectorVariant (valueIn)) {
+      bool okay;
+      this->valueList = QEVectorVariants::convertToVariantList (valueIn, okay);
+   } else if (mtype == QMetaType::QVariantList) {
       this->valueList = valueIn.toList ();
    } else {
       this->valueList.clear ();
