@@ -1,9 +1,9 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qeframeworkSup/project/framework.pro $
-# $Revision: #35 $
-# $DateTime: 2024/11/26 15:48:51 $
+# $Revision: #36 $
+# $DateTime: 2025/02/03 19:14:47 $
 # Last checked in by: $Author: starritt $
 #
-# Copyright (c) 2009-2023 Australian Synchrotron
+# Copyright (c) 2009-2025 Australian Synchrotron
 #
 # This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
@@ -72,6 +72,7 @@ equals( QT_MAJOR_VERSION, 4 ) {
 equals( QT_MAJOR_VERSION, 5 ) {
     CONFIG += plugin qwt
     QT += core gui xml network uitools designer
+    warning ( "QT5 is getting old, consider upgrading to QT6" )
 }
 
 # Qt 6 configuration
@@ -190,11 +191,13 @@ include (widgets/QEBitStatus/QEBitStatus.pri)
 include (widgets/QEButton/QEButton.pri)
 include (widgets/QECalcout/QECalcout.pri)
 include (widgets/QEComboBox/QEComboBox.pri)
+include (widgets/QEComment/QEComment.pri)
 include (widgets/QEConfiguredLayout/QEConfiguredLayout.pri)
 include (widgets/QEAlarmColourSelection/QEAlarmColourSelection.pri)
 include (widgets/QECorrelation/QECorrelation.pri)
 include (widgets/QEDateTime/QEDateTime.pri)
 include (widgets/QEDistribution/QEDistribution.pri)
+include (widgets/QEExitButton/QEExitButton.pri)
 include (widgets/QEFileBrowser/QEFileBrowser.pri)
 include (widgets/QEFileImage/QEFileImage.pri)
 include (widgets/QEForm/QEForm.pri)

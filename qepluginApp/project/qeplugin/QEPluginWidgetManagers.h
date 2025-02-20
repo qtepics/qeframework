@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2017-2024 Australian Synchrotron
+ *  Copyright (c) 2017-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -188,6 +188,16 @@ class QEPLUGINLIBRARYSHARED_EXPORT QEDistributionManager :
    Q_OBJECT
    Q_INTERFACES (QDesignerCustomWidgetInterface)
    QE_DECLARE_PLUGIN_MANAGER (QEDistribution)
+};
+
+//------------------------------------------------------------------------------
+//
+class QEPLUGINLIBRARYSHARED_EXPORT QEExitButtonManager :
+      public QObject, public QDesignerCustomWidgetInterface
+{
+   Q_OBJECT
+   Q_INTERFACES (QDesignerCustomWidgetInterface)
+   QE_DECLARE_PLUGIN_MANAGER (QEExitButton)
 };
 
 //------------------------------------------------------------------------------

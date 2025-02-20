@@ -1,9 +1,9 @@
 # $File: //ASP/tec/gui/qeframework/trunk/qepluginApp/project/qeplugin.pro $
-# $Revision: #7 $
-# $DateTime: 2023/01/12 14:50:32 $
+# $Revision: #8 $
+# $DateTime: 2025/02/03 19:31:33 $
 # Last checked in by: $Author: starritt $
 #
-# Copyright (c) 2017-2023 Australian Synchrotron
+# Copyright (c) 2017-2025 Australian Synchrotron
 #
 # This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
@@ -137,6 +137,7 @@ INCLUDEPATH += O.$$(EPICS_HOST_ARCH)/ui
 
 # Widgets with designer dialogs
 #
+include (QEComment/QEComment.pri)
 include (QEMenuButton/QEMenuButton.pri)
 include (QEPeriodic/QEPeriodic.pri)
 
