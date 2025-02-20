@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2024 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -41,6 +41,7 @@
 #include <QEStringFormatting.h>
 #include <QEIntegerFormatting.h>
 #include <QEFloatingFormatting.h>
+#include <QEVectorVariants.h>
 
 #define DEBUG qDebug () << "QCaObject" << __LINE__ << __FUNCTION__ << "  "
 
@@ -891,27 +892,51 @@ bool QCaObject::writeData( const QVariant& value )
 // Update current data [arrayIndex] with new element value and write to channel.
 // Returns false if the array index is out of range.
 //
-bool QCaObject::writeDataElement( const QVariant& elementValue )
+bool QCaObject::writeDataElement (const QVariant& elementValue)
 {
-   QVariant lastVariantValue = this->getVariant ();
+   const QVariant lastValue = this->getVariant ();
+   const QMetaType::Type ltype = QEPlatform::metaType (lastValue);
+   const bool isVectorVariant = QEVectorVariants::isVectorVariant (lastValue);
+   const bool isVariantList = (ltype == QMetaType::QVariantList);
+   const bool isStringList = (ltype == QMetaType::QStringList);
 
-   bool result;
+   bool result = false;
 
-   const QMetaType::Type ltype = QEPlatform::metaType (lastVariantValue);
-   if( ltype ==  QMetaType::QVariantList ) {
-      QVariantList valueList = lastVariantValue.toList ();
-      if( ( this->arrayIndex >= 0 ) && ( this->arrayIndex < valueList.size() ) )
-      {
-         valueList.replace( this->arrayIndex, elementValue );  // replace with new value
-         result = writeData( valueList );
-      } else {
-         result = false;
+   if (isVectorVariant) {
+      const int count = QEVectorVariants::vectorCount (lastValue);
+      if ((this->arrayIndex >= 0) && (this->arrayIndex < count)) {
+         QVariant vector = lastValue;
+         result = QEVectorVariants::replaceValue (vector, this->arrayIndex, elementValue);
+         if (result) {
+            result = this->writeData (vector);
+         } else {
+            DEBUG << "update of [" << this->arrayIndex << "] with value:"
+                  << elementValue << "failed (of range)";
+         }
       }
-   } else {
-      if( this->arrayIndex == 0 ) {
-         result = writeData( elementValue );       // not an array - write as scalar
-      } else {
-         result = false;
+
+   } else if (isStringList) {
+      QStringList stringList = lastValue.toStringList();
+      const int count = stringList.size();
+      if ((this->arrayIndex >= 0) && (this->arrayIndex < count)) {
+         stringList.replace (this->arrayIndex, elementValue.toString());
+         QVariant value = QVariant (stringList);
+         result = this->writeData (value);
+      }
+
+   } else if (isVariantList) {
+      QVariantList valueList = lastValue.toList ();
+      const int count = valueList.size();
+      if ((this->arrayIndex >= 0) && (this->arrayIndex < count)) {
+         valueList.replace (this->arrayIndex, elementValue);  // replace with new value
+         result = this->writeData (valueList);
+      }
+
+   } else  {
+      // The value is a scalar type.
+      //
+      if (this->arrayIndex == 0) {
+         result = this->writeData (elementValue);       // not an array - write as scalar
       }
    }
    return result;

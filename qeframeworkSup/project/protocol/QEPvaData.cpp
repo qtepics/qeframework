@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (C) 2018-2024 Australian Synchrotron
+ *  Copyright (C) 2018-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -582,12 +582,12 @@ bool QEPvaData::infuseValue (PVStructureSharedPtr& pv,
          pvIndex->put (value.toInt());
          result = true;
       } else {
-         DEBUG << "TBD structure type" << id;
+         DEBUG << "TBD structure type: " << id;
          result = false;
       }
 
    } else {
-      DEBUG << "TBD value type " << valueType;
+      DEBUG << "TBD value type: " << valueType;
       std::cout << valueField << valueField->getField()->getID() << "\n";
       result = false;
    }
@@ -671,12 +671,19 @@ bool QEPvaData::infuseScalarArray (pvd::PVScalarArray::shared_pointer& pvArray,
    bool result;
 
    const QMetaType::Type mtype = QEPlatform::metaType (value);
-   if (mtype == QMetaType::QVariantList) {
+
+   if (QEVectorVariants::isVectorVariant (value)) {
+      result = QEPvaData::infuseScalarArrayVector (pvArray, value);
+
+   } else if (mtype == QMetaType::QStringList) {
+      // Convert the QStringList variant to a list of variants (which are all QString)
+      //
       QVariantList vl = value.toList();
       result = QEPvaData::infuseScalarArrayList (pvArray, vl);
 
-   } else if (QEVectorVariants::isVectorVariant (value)) {
-      result = QEPvaData::infuseScalarArrayVector (pvArray, value);
+   } else if (mtype == QMetaType::QVariantList) {
+      QVariantList vl = value.toList();
+      result = QEPvaData::infuseScalarArrayList (pvArray, vl);
 
    } else {
       // a scalar - convert to a list of one.
@@ -778,45 +785,35 @@ bool QEPvaData::infuseScalarArrayList (epics::pvData::PVScalarArray::shared_poin
 }
 
 //------------------------------------------------------------------------------
-// Free function required by pvd::shared_vector constructor.
-//
-static void nullFree (void*) { }
-
-//------------------------------------------------------------------------------
 // static
 bool QEPvaData::infuseScalarArrayVector (epics::pvData::PVScalarArray::shared_pointer& pvArray,
                                          const QVariant& vector)
 {
    if (!QEVectorVariants::isVectorVariant (vector)) {
       const QMetaType::Type mtype = QEPlatform::metaType (vector);
-      DEBUG << " called with variant type" << mtype;
+      DEBUG << " called with non vector variant type:" << mtype;
       return false;
    }
 
    const std::size_t offset = 0;
    const std::size_t number = QEVectorVariants::vectorCount (vector);
-   const QEVectorVariants::OwnTypes ownType = QEVectorVariants::getOwnType (vector);
 
    bool result = true;   // hypothesize all okay
 
    pvd::ScalarArrayConstPtr ptr = pvArray->getScalarArray ();
    pvd::ScalarType elementType = ptr->getElementType ();
 
-   // If types match, then easy, otherwise we must convert.
+   // Dropped the types match (for now) - it created anomolous behaviour.
+   // We must convert each element.
    //
 #define VVTOA(qevec, qetype, type) {                                           \
    qevec vec = vector.value <qevec>();                                         \
-   if (ownType == qetype) {                                                    \
-      pvd::shared_vector<const type> data (&vec[0], nullFree, offset, number); \
-      pvArray->putFrom (data);                                                 \
-   } else {                                                                    \
-      type* ptr = new type [number];                                           \
-      for (std::size_t j = 0; j < number; ++j) {                               \
-         ptr [j] = type (vec [j]);                                             \
-      }                                                                        \
-      pvd::shared_vector<const type> data (ptr, offset, number);               \
-      pvArray->putFrom (data);                                                 \
+   type* ptr = new type [number];                                              \
+   for (std::size_t j = 0; j < number; ++j) {                                  \
+      ptr [j] = type (vec [j]);                                                \
    }                                                                           \
+   pvd::shared_vector<const type> data (ptr, offset, number);                  \
+   pvArray->putFrom (data);                                                    \
 }
 
 

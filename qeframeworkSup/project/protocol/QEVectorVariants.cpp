@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (c) 2018-2024 Australian Synchrotron
+ *  Copyright (c) 2018-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,7 @@
  */
 
 #include "QEVectorVariants.h"
+#include <limits>
 #include <QDebug>
 #include <QMetaType>
 #include <QEPlatform.h>
@@ -386,8 +387,8 @@ QVariantList QEVectorVariants::convertToVariantList (const QVariant& vector, boo
 
 //------------------------------------------------------------------------------
 // static
-double   QEVectorVariants::getDoubleValue  (const QVariant& vector, const int index,
-                                      const double&   defaultValue)
+double QEVectorVariants::getDoubleValue (const QVariant& vector, const int index,
+                                         const double& defaultValue)
 {
    const OwnTypes type = QEVectorVariants::getOwnType (vector);
    double result = defaultValue;
@@ -457,8 +458,8 @@ double   QEVectorVariants::getDoubleValue  (const QVariant& vector, const int in
 
 //------------------------------------------------------------------------------
 // static
-long     QEVectorVariants::getIntegerValue (const QVariant& vector, const int index,
-                                      const long&     defaultValue)
+long QEVectorVariants::getIntegerValue (const QVariant& vector, const int index,
+                                        const long& defaultValue)
 {
    const OwnTypes type = QEVectorVariants::getOwnType (vector);
    long result = defaultValue;
@@ -529,7 +530,7 @@ long     QEVectorVariants::getIntegerValue (const QVariant& vector, const int in
 //------------------------------------------------------------------------------
 // static
 QVariant QEVectorVariants::getVariantValue (const QVariant& vector, const int index,
-                                      const QVariant& defaultValue)
+                                            const QVariant& defaultValue)
 {
    const OwnTypes type = QEVectorVariants::getOwnType (vector);
    QVariant result = defaultValue;
@@ -593,6 +594,130 @@ QVariant QEVectorVariants::getVariantValue (const QVariant& vector, const int in
          break;
    }
 #undef GET_ELEMENT
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// Template function to replace an element of a vector variant.
+// vtype is the vector type
+// etype is vector element type
+// itype is intermediate value type
+//
+template<class vtype, typename etype, typename itype>
+static bool replaceElement (QVariant& vector,
+                           const int index,
+                           const itype value,
+                           const bool isFloat)
+{
+   // Check value is in element range.
+   //
+   // Note: for floating point numbers numeric_limits min returns the
+   // smallest non zero positive number, and not the most negative number
+   // which we want here.
+   //
+   const itype amax = std::numeric_limits<etype>::max();
+   const itype amin = isFloat ? -amax : std::numeric_limits<etype>::min();
+
+   if (value < amin) return false;
+   if (value > amax) return false;
+
+   // Extract actual vector and check index range.
+   //
+   vtype temp = qvariant_cast<vtype>(vector);
+   if ((index < 0) || (index >= temp.size())) return false;
+
+   // Update element and then variant.
+   //
+   temp [index] = etype(value);
+   vector.setValue (temp);
+   return true;
+}
+
+//------------------------------------------------------------------------------
+// static
+bool QEVectorVariants::replaceValue (QVariant& vector, const int index,
+                                     const QVariant& value)
+{
+   const OwnTypes type = QEVectorVariants::getOwnType (vector);
+   bool result = false;
+
+   bool b;
+   double d;
+   int64_t i;
+   uint16_t u;
+
+   switch (type) {
+      case DoubleVector:
+         d = value.toDouble (&result);
+         if (result)
+            result = replaceElement<QEDoubleVector, double, double>(vector, index, d, true);
+         break;
+
+      case FloatVector:
+         d = value.toDouble (&result);
+         if (result)
+            result = replaceElement<QEFloatVector, float, double>(vector, index, d, true);
+         break;
+
+      case BoolVector:
+         b = value.toBool();
+         result = replaceElement<QEBoolVector, bool, bool>(vector, index, b, false);
+         break;
+
+      case Int8Vector:
+         i = value.toInt (&result);
+         if (result)
+            result = replaceElement<QEInt8Vector, int8_t, int64_t>(vector, index, i, false);
+         break;
+
+      case Int16Vector:
+         i = value.toInt (&result);
+         if (result)
+            result = replaceElement<QEInt16Vector, int16_t, int64_t>(vector, index, i, false);
+         break;
+
+      case Int32Vector:
+         i = value.toInt (&result);
+         if (result)
+            result = replaceElement<QEInt32Vector, int32_t, int64_t>(vector, index, i, false);
+         break;
+
+      case Int64Vector:
+         i = value.toLongLong (&result);
+         if (result)
+            result = replaceElement<QEInt64Vector, int64_t, int64_t>(vector, index, i, false);
+         break;
+
+      case Uint8Vector:
+         u = value.toUInt (&result);
+         if (result)
+            result = replaceElement<QEUint8Vector, uint8_t, uint64_t>(vector, index, u, false);
+         break;
+
+      case Uint16Vector:
+         u = value.toUInt (&result);
+         if (result)
+            result = replaceElement<QEUint16Vector, uint16_t, uint64_t>(vector, index, u, false);
+         break;
+
+      case Uint32Vector:
+         u = value.toUInt (&result);
+         if (result)
+            result = replaceElement<QEUint32Vector, uint32_t, uint64_t>(vector, index, u, false);
+         break;
+
+      case Uint64Vector:
+         u = value.toULongLong (&result);
+         if (result)
+            result = replaceElement<QEUint64Vector, uint64_t, uint64_t>(vector, index, u, false);
+         break;
+
+      case Invalid:
+      default:
+         result = false;
+         break;
+   }
 
    return result;
 }

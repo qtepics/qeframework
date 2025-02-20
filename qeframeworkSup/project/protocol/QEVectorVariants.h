@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2018 Australian Synchrotron
+ *  Copyright (c) 2018-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -132,11 +132,17 @@ public:
    static QVariantList convertToVariantList (const QVariant& vector, bool& okay);
 
    // Conveniance (and quicker) functions to extract a single element from a vector variant.
-   // If index out of range of variant parameter is not a vector variant then default value is returned.
+   // If index out of range or variant parameter is not a vector variant then default value is returned.
    //
    static double   getDoubleValue  (const QVariant& vector, const int index, const double&   defaultValue);
    static long     getIntegerValue (const QVariant& vector, const int index, const long&     defaultValue);
    static QVariant getVariantValue (const QVariant& vector, const int index, const QVariant& defaultValue);
+
+   // Conveniance functions to replace an element of a vector variant.
+   // If not a vector variant or index out of range or value cannot be converted
+   // to the appropriate element type, the return value is false.
+   //
+   static bool replaceValue (QVariant& vector, const int index, const QVariant& value);
 
    // Register these meta types.
    // Note: This function is public for conveniance only, and is invoked by the

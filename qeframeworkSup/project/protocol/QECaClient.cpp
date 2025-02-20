@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2024 Australian Synchrotron
+ *  Copyright (C) 2018-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -369,58 +369,66 @@ bool QECaClient::putPvData (const QVariant& value)
    bool valueInRange = true;  // hypothesize value in field type range
    QString extra = "";
 
-   // Do special for ByteArray type (see GUI-216)
+   // Do special for ByteArray type (see Jira GUI-216)
    //
    if (mtype == QMetaType::QByteArray) {
       QByteArray bytes = value.toByteArray ();
       // NOTE: requires acai 1-5-8 orlater.
       result = this->mainClient->putByteArray ((void*) bytes.constData (), bytes.size());
    }
-   else if (mtype != QMetaType::QVariantList) {
-      // Process as scaler
+
+   else if (QEVectorVariants::isVectorVariant (value)) {
+      // Process as vector variant array.
       //
-      ACAI::ClientInteger i;
-      ACAI::ClientFloating f;
+      const int number = QEVectorVariants::vectorCount (value);
+
+      const double min = this->mainClient->minFieldValue();
+      const double max = this->mainClient->maxFieldValue();
+
+      ACAI::ClientFloatingArray fltArray;
+      ACAI::ClientIntegerArray  intArray;
 
       switch (fieldType) {
-         case ACAI::ClientFieldSTRING:
-            result = this->mainClient->putString (value.toString ().toStdString ());
-            break;
-
          case ACAI::ClientFieldENUM:
-            result = this->varientToEnumIndex (value, i, valueInRange);
-            if (!result) break;
-            result = this->mainClient->putInteger (i);
-            break;
-
+            // It's a vector variant with numerical values - no strings,
+            // so no call to getEnumerationIndex required.
+            // Do we get arrays of enums anyway?
+            //
          case ACAI::ClientFieldCHAR:
-            if (mtype == QMetaType::QString) {
-               // Treat as long string.
-               QString str = value.toString ();
-               const int len = str.length();
-               const std::string keepInScope = str.toStdString();
-               const char* text = keepInScope.c_str();
-               result = this->mainClient->putByteArray (text, len + 1); // include the zero
-            } else {
-               // Treat as numeric.
-               result = this->varientToInteger (value, i, valueInRange);
-               if (!result) break;
-               result = this->mainClient->putInteger (i);
-            }
-            break;
-
          case ACAI::ClientFieldSHORT:
          case ACAI::ClientFieldLONG:
-            result = this->varientToInteger (value, i, valueInRange);
-            if (!result) break;
-            result = this->mainClient->putInteger (i);
+            for (int j = 0; j < number; j++) {
+               ACAI::ClientInteger i;
+               i = QEVectorVariants::getIntegerValue (value, j, 0);
+               if ((i < min) || (i > max)) {
+                  valueInRange = false;
+                  result = false;
+                  break;
+               }
+               intArray.push_back (i);
+            }
+
+            if (result) {
+               result = this->mainClient->putIntegerArray (intArray);
+            }
             break;
 
          case ACAI::ClientFieldFLOAT:
          case ACAI::ClientFieldDOUBLE:
-            result = this->varientToFloat (value, f, valueInRange);
-            if (!result) break;
-            result = this->mainClient->putFloating (f);
+            for (int j = 0; j < number; j++) {
+               ACAI::ClientFloating f;
+               f = QEVectorVariants::getDoubleValue (value, j, 0.0);
+               if ((f < min) || (f > max)) {
+                  valueInRange = false;
+                  result = false;
+                  break;
+               }
+               fltArray.push_back (f);
+            }
+
+            if (result) {
+               result = this->mainClient->putFloatingArray (fltArray);
+            }
             break;
 
          default:
@@ -429,11 +437,27 @@ bool QECaClient::putPvData (const QVariant& value)
             break;
       }
 
-      extra = QString(", source type %1.").arg (value.typeName ());
+      extra = QString (" source vector %1.").arg (value.typeName());
+   }
 
-   } else {
+   else if (mtype == QMetaType::QStringList) {
+      const QStringList valueArray = value.toStringList();
+      const int number = valueArray.count ();
+      ACAI::ClientStringArray strArray;
+
+      // At least for now, we will let the IOC convert string values
+      // to other value types if needs be.
+      //
+      for (int j = 0; j < number; j++) {
+         strArray.push_back (valueArray.value (j).toStdString ());
+      }
+      result = this->mainClient->putStringArray (strArray);
+
+      extra = QString (" source list of string.");
+   }
+
+   else if (mtype == QMetaType::QVariantList) {
       // Process as array.
-      // Consider accepting own QEVectorVariants here.
       //
       const QVariantList valueArray = value.toList ();
       const int number = valueArray.count ();
@@ -498,7 +522,62 @@ bool QECaClient::putPvData (const QVariant& value)
             break;
       }
 
-      extra = QString(" source list of %1.").arg (firstValue.typeName ());
+      extra = QString (" source list of %1.").arg (firstValue.typeName ());
+
+   } else {
+      // Process as scaler
+      //
+      ACAI::ClientInteger i;
+      ACAI::ClientFloating f;
+
+      switch (fieldType) {
+         case ACAI::ClientFieldSTRING:
+            result = this->mainClient->putString (value.toString ().toStdString ());
+            break;
+
+         case ACAI::ClientFieldENUM:
+            result = this->varientToEnumIndex (value, i, valueInRange);
+            if (!result) break;
+            result = this->mainClient->putInteger (i);
+            break;
+
+         case ACAI::ClientFieldCHAR:
+            if (mtype == QMetaType::QString) {
+               // Treat as long string.
+               QString str = value.toString ();
+               const int len = str.length();
+               const std::string keepInScope = str.toStdString();
+               const char* text = keepInScope.c_str();
+               result = this->mainClient->putByteArray (text, len + 1); // include the zero
+            } else {
+               // Treat as numeric.
+               result = this->varientToInteger (value, i, valueInRange);
+               if (!result) break;
+               result = this->mainClient->putInteger (i);
+            }
+            break;
+
+         case ACAI::ClientFieldSHORT:
+         case ACAI::ClientFieldLONG:
+            result = this->varientToInteger (value, i, valueInRange);
+            if (!result) break;
+            result = this->mainClient->putInteger (i);
+            break;
+
+         case ACAI::ClientFieldFLOAT:
+         case ACAI::ClientFieldDOUBLE:
+            result = this->varientToFloat (value, f, valueInRange);
+            if (!result) break;
+            result = this->mainClient->putFloating (f);
+            break;
+
+         default:
+            result = false;
+            knownType = false;
+            break;
+      }
+
+      extra = QString(", source type %1.").arg (value.typeName ());
    }
 
    // Report error - use the UserMessage system if we can otherwise use qDebug.
@@ -633,7 +712,7 @@ bool QECaClient::varientToEnumIndex (const QVariant& qValue,
    }
 
    if ((mtype != QMetaType::QString) || !result) {
-      // Either the varient is a not string type or the string did not match,
+      // Either the variant is a not string type or the string did not match,
       // however we may have a string like "3" which is a perfectly good integer.
       // Decode the "integer" value.
       //
