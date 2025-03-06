@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (C) 2018-2024 Australian Synchrotron
+ *  Copyright (C) 2018-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -28,7 +28,6 @@
 
 #ifdef QE_INCLUDE_PV_ACCESS
 
-#include <QApplication>
 #include <QDebug>
 #include <QMetaType>
 #include <QQueue>
@@ -654,6 +653,11 @@ bool QEPvaClient::openChannel (const ChannelModesFlags modes)
    // We need to hold a reference to the channel to keep it "alive"
    // The channel keeps the requestor and the monitor "alive".
    //
+   if (!pvaProvider) {
+      DEBUG << "pvaProvider not created";
+      return false;
+   }
+
    this->channel = pvaProvider->createChannel (this->getPvName().toStdString(),
                                                this->channelRequester, 10);
 
@@ -999,56 +1003,60 @@ void QEPvaClient::processUpdate (QEPvaClient::Update* update)
 
 
 //==============================================================================
-// QEPvaClientTimer and queue
+// Helper class: QEPvaClientManager
 //==============================================================================
 //
-QEPvaClientManager* singleton = NULL;
+QEPvaClientManager singleton;
 
 //------------------------------------------------------------------------------
 // static
 void QEPvaClientManager::initialise ()
 {
-   if (!singleton) {
-      singleton = new QEPvaClientManager ();
-   }
+   if (singleton.isRunning) return;
+   singleton.isRunning = true;
+
+   pva::ClientFactory::start();
+   pva::ChannelProviderRegistry::shared_pointer providerRegistry = pva::ChannelProviderRegistry::clients();
+   pvaProvider = providerRegistry->getProvider("pva");
+
+   // Schedule first poll event.
+   //
+   QTimer::singleShot (1, &singleton, SLOT (timeoutHandler ()));
 }
 
 //------------------------------------------------------------------------------
 //
-QEPvaClientManager::QEPvaClientManager () : QTimer (NULL)
+QEPvaClientManager::QEPvaClientManager () : QObject (NULL)
 {
-   // Connect to the about to quit signal.
-   // Note: qApp is defined in QApplication.
-   //
-   QObject::connect (qApp, SIGNAL (aboutToQuit ()),
-                     this, SLOT   (aboutToQuitHandler ()));
+   this->isRunning = false;
 
-   // Connect and start regular timed event.
-   //
-   QObject::connect (this, SIGNAL (timeout ()),
-                     this, SLOT   (timeoutHandler ()));
-
-   pva::ClientFactory::start();
-
-   pva::ChannelProviderRegistry::shared_pointer providerRegistry = pva::ChannelProviderRegistry::clients();
-   pvaProvider = providerRegistry->getProvider("pva");
-
-   this->start (16);   // 16 mSec ~ 60 Hz.
+   if (this != &singleton) {
+      // Ignore if this is not the singleton object.
+      DEBUG << "This QEPvaClientManager instance is not the singleton";
+      return;
+   }
 }
 
 //------------------------------------------------------------------------------
 //
 QEPvaClientManager::~QEPvaClientManager ()
 {
+   if (this != &singleton) {
+      // Ignore, this is not the singleton object.
+      return;
+   }
+
+   this->isRunning = false;
    pva::ClientFactory::stop();
    pvaClientUpdateQueue.clear();
 }
 
 //------------------------------------------------------------------------------
-//
-//slots
+//slot
 void QEPvaClientManager::timeoutHandler ()
 {
+   if (!this->isRunning) return;
+
    while (true) {
       QEPvaClient::Update* item = nullptr;
       bool ok = pvaClientUpdateQueue.dequeue (item);
@@ -1058,13 +1066,11 @@ void QEPvaClientManager::timeoutHandler ()
          delete item;
       }
    }
-}
 
-//------------------------------------------------------------------------------
-//
-void QEPvaClientManager::aboutToQuitHandler ()
-{
-   this->stop ();  // Stop the timer.
+   // Schedule another poll event - 16 mS approx 60Hz.
+   // Note: the delay is relative to the end of processing the poll function.
+   //
+   QTimer::singleShot (16, this, SLOT (timeoutHandler ()));
 }
 
 #else
@@ -1108,7 +1114,6 @@ QEPvaClientManager::QEPvaClientManager () { }
 QEPvaClientManager::~QEPvaClientManager () { }
 void QEPvaClientManager::initialise () { }
 void QEPvaClientManager::timeoutHandler () { }
-void QEPvaClientManager::aboutToQuitHandler () { }
 
 #endif
 

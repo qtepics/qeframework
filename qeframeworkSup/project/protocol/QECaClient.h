@@ -120,31 +120,31 @@ private slots:
 //------------------------------------------------------------------------------
 // This is essentially a private class, but must be declared in the header
 // file in order to use the meta object compiler (moc) to allow setup of the
-// timeout/aboutToQuit slots.
+// timeout slot.
 // The main purpose of this class to stimulate the underlying library on a
 // regular basis in order to process CA callbacks. It also receives the
 // aboutToQuit signal in order to do a clean shutdown.
 //
 class QECaClientManager : private QObject {
    Q_OBJECT
-private:
+public:
    explicit QECaClientManager ();
    ~QECaClientManager ();
 
-   // Create the singleton QECaClientManager instance if needs be.
-   // It is called each time a QCaObject.QECaClient is created.
+private:
+   // Initialse the singleton QECaClientManager instance if needs be.
+   // It is called each time a QECaClient is created.
    // This function is idempotent.
    //
    static void initialise ();
 
 private:
-   // Not used directly, set pass as a parameter.
    static void notificationHandlers (const char* notification);
 
-   bool stillRunning;
+   bool isRunning;
+
 private slots:
    void timeoutHandler ();
-   void aboutToQuitHandler ();
 
    friend class QECaClient;
 };

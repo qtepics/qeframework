@@ -25,7 +25,6 @@
  */
 
 #include "QECaClient.h"
-#include <QApplication>
 #include <QDebug>
 #include <QMetaType>
 #include <QTimer>
@@ -820,21 +819,24 @@ void QECaClient::putCallbackNotifcation (const bool isSuccessful)
 
 
 //==============================================================================
-// Helper class: QECaClientTimer
+// Helper class: QECaClientManager
 //==============================================================================
 //
 // This object created when first needed, and not before.
 // Just declaring as a regular object doesn't work.
 //
-static QECaClientManager* singleton = NULL;
+static QECaClientManager singleton;
 
 //------------------------------------------------------------------------------
 // static
 void QECaClientManager::initialise ()
 {
-   if (!singleton) {   // Mutex needed ??
-      singleton = new QECaClientManager ();
-   }
+   if (singleton.isRunning) return;
+   singleton.isRunning = true;
+
+   // Schedule first poll event.
+   //
+   QTimer::singleShot (1, &singleton, SLOT (timeoutHandler ()));
 }
 
 //------------------------------------------------------------------------------
@@ -850,31 +852,39 @@ void QECaClientManager::notificationHandlers (const char* notification)
 //
 QECaClientManager::QECaClientManager () : QObject (NULL)
 {
-   this->stillRunning = true;
+   this->isRunning = false;
+
+   if (this != &singleton) {
+      // Ignore if this is not the singleton object.
+      DEBUG << "This QECaClientManager instance is not the singleton";
+      return;
+   }
+
    ACAI::Client::initialise ();
    ACAI::Client::setNotificationHandler (QECaClientManager::notificationHandlers);
-
-   // Connect to the about to quit signal.
-   // Note: qApp is defined in QApplication
-   //
-   QObject::connect (qApp, SIGNAL (aboutToQuit ()),
-                     this, SLOT   (aboutToQuitHandler ()));
-
-   // Schedule first poll event.
-   //
-   QTimer::singleShot (1, this, SLOT (timeoutHandler ()));
 }
 
 //------------------------------------------------------------------------------
-// destructor - place holder
-//
-QECaClientManager::~QECaClientManager () { }
+// destructor
+QECaClientManager::~QECaClientManager ()
+{
+   if (this != &singleton) {
+      // Ignore, this is not the singleton object.
+      return;
+   }
+
+   // Static variables will be freed when application terminates.
+   // Call `finalise` here.
+   //
+   this->isRunning = false;
+   ACAI::Client::finalise ();
+}
 
 //------------------------------------------------------------------------------
 //
 void QECaClientManager::timeoutHandler ()
 {
-   if (!this->stillRunning) return;
+   if (!this->isRunning) return;
 
    // The ACAI package requires a regular poll.
    // Catch any exceptions here.
@@ -890,14 +900,6 @@ void QECaClientManager::timeoutHandler ()
    // Note: the delay is relative to the end of processing the poll function.
    //
    QTimer::singleShot (16, this, SLOT (timeoutHandler ()));
-}
-
-//------------------------------------------------------------------------------
-//
-void QECaClientManager::aboutToQuitHandler ()
-{
-   this->stillRunning = false;
-   ACAI::Client::finalise ();
 }
 
 // end
