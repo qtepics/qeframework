@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2024 Australian Synchrotron
+ *  Copyright (c) 2013-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -279,10 +279,16 @@ void QEPvLoadSave::Halves::open (const QString& configurationFile)
       return;
    }
 
-   rootItem = QEPvLoadSaveUtilities::readTree (configurationFile, this->macroString->text ());
+   QString errorMessage;
+   rootItem = QEPvLoadSaveUtilities::readTree (configurationFile,
+                                               this->macroString->text (),
+                                               errorMessage);
    if (!rootItem) {
-       DEBUG << "file read fail " << configurationFile;
-       return;
+      DEBUG << errorMessage;
+      const message_types mt = message_types (MESSAGE_TYPE_WARNING,
+                                              MESSAGE_KIND_STANDARD);
+      this->owner->sendMessage (errorMessage, mt);
+      return;
    }
 
    this->setRoot (rootItem, configurationFile);

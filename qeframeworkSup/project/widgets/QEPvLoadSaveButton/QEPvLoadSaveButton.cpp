@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020-2022 Australian Synchrotron
+ *  Copyright (c) 2020-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,6 @@
  *    andraz.pozar@ansto.gov.au
  */
 
-
 #include "QEPvLoadSaveButton.h"
 
 #include <QDebug>
@@ -37,7 +36,7 @@
 #include "QEPvLoadSaveModel.h"
 #include "QEPvLoadSaveUtilities.h"
 
-#define DEBUG  qDebug () << "QEPvLoadSaveButton.cpp" << __LINE__ << __FUNCTION__ << "  "
+#define DEBUG  qDebug () << "QEPvLoadSaveButton" << __LINE__ << __FUNCTION__ << "  "
 
 QEPvLoadSaveButton::QEPvLoadSaveButton (QWidget* parent) : QPushButton (parent), QEWidget (this) {
 
@@ -90,11 +89,15 @@ void QEPvLoadSaveButton::useNewConfigurationFileProperty (QString configurationF
 
 // On user click on the button
 //
-void QEPvLoadSaveButton::userClicked(bool) {
+void QEPvLoadSaveButton::userClicked(bool)
+{
+   const message_types mt = message_types (MESSAGE_TYPE_WARNING,
+                                           MESSAGE_KIND_STANDARD);
+
    // Check that the configuration file is actually set
    //
    if (this->getConfigurationFile().isEmpty()) {
-      this->sendMessage( "No configuration file defined for this widget. Won't do anything.", message_types(MESSAGE_TYPE_WARNING));
+      this->sendMessage ("No configuration file defined for this widget. Won't do anything.",  mt);
       return;
    }
 
@@ -102,9 +105,10 @@ void QEPvLoadSaveButton::userClicked(bool) {
    // we fail and print the message below.
    //
    QString configurationFile = this->getSubstitutedVariableName (0);
-   this->rootItem = QEPvLoadSaveUtilities::readTree (configurationFile, QString());
+   QString errorMessage;
+   this->rootItem = QEPvLoadSaveUtilities::readTree (configurationFile, QString(), errorMessage);
    if (!this->rootItem) {
-       this->sendMessage( QString ("Failed to read file %1").arg(configurationFile), message_types(MESSAGE_TYPE_ERROR));;
+       this->sendMessage (errorMessage, mt);
        return;
    }
 
