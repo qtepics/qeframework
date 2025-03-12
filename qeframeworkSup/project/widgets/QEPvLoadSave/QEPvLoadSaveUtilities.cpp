@@ -220,19 +220,18 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readTree (const QString& filename,
                                                    const QString& macroString,
                                                    QString& errorMessage)
 {
-   QEPvLoadSaveGroup* result = NULL;
    macroSubstitutionList macroList (macroString);
    errorMessage = "n/a";
 
    if (filename.isEmpty()) {
-      qWarning () << __FUNCTION__ << " null file filename";
-      return result;
+      errorMessage = "null file filename";
+      return NULL;
    }
 
    QFile file (filename);
    if (!file.open (QIODevice::ReadOnly)) {
-      qWarning () << __FUNCTION__ << filename  << " file open (read) failed";
-      return result;
+      errorMessage = QString("file %1 open (read) failed").arg (filename);
+      return NULL;
    }
 
    QDomDocument doc;
@@ -248,7 +247,7 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readTree (const QString& filename,
                              .arg (errorCol)
                              .arg (errorText);
       file.close ();
-      return result;   // still null
+      return NULL;
    }
 
    QDomElement docElem = doc.documentElement ();
@@ -260,8 +259,10 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readTree (const QString& filename,
    // Examine top level tag name - is this the tag we expect.
    //
    if (docElem.tagName () != fileTagName) {
-      qWarning () << filename  << " unexpected tag name " << docElem.tagName ();
-      return result;
+      errorMessage = QString ("file %1 unexpected tag <%2>")
+                             .arg (filename)
+                             .arg (docElem.tagName ());
+      return NULL;
    }
 
    QString versionImage = docElem.attribute (versionAttribute).trimmed ();
@@ -272,8 +273,10 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readTree (const QString& filename,
       // A version has been specified - we must ensure it is sensible.
       //
       if (!versionOkay) {
-         qWarning () << filename  << " invalid version string " << versionImage << " (integer expected)";
-         return result;
+         errorMessage = QString ("file %1 invalid version %2 (integer expected)")
+                                .arg (filename)
+                                .arg (versionImage);
+         return NULL;
       }
 
    } else {
@@ -283,13 +286,15 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readTree (const QString& filename,
    }
 
    if (version != 1) {
-      qWarning () << filename  << " unexpected version specified " << versionImage << " (out of range)";
-      return result;
+      errorMessage = QString ("file %1 unexpected version specified %2 (out of range)")
+                             .arg (filename)
+                             .arg (versionImage);
+      return NULL;
    }
 
    // Create the root item.
    //
-   result = new QEPvLoadSaveGroup ("ROOT", NULL);
+   QEPvLoadSaveGroup* result = new QEPvLoadSaveGroup ("ROOT", NULL);
 
    // Parse XML using Qt's Document Object Model.
    //
@@ -299,7 +304,7 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readTree (const QString& filename,
 }
 
 //------------------------------------------------------------------------------
-//QEPvLoadSaveLeaf
+// QEPvLoadSaveLeaf
 void QEPvLoadSaveUtilities::writeXmlScalerPv (const QEPvLoadSaveItem* itemIn,
                                               QDomElement& pvElement)
 {

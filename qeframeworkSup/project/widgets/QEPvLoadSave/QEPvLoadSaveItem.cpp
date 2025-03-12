@@ -401,7 +401,7 @@ QVariant QEPvLoadSaveGroup::getData (int column) const
 
       case QEPvLoadSaveCommon::Delta:
          summary = this->getStatusSummary();
-         result.setValue (QString ("(%1, %2, %3)")
+         result.setValue (QString ("(eq %1, ne %2, n/a %3)")
                           .arg(summary.isEqualCount)
                           .arg(summary.isNotEqualCount)
                           .arg(summary.isNotAplicableCount));
@@ -541,6 +541,10 @@ QEPvLoadSaveLeaf::QEPvLoadSaveLeaf (const QString& setPointPvNameIn,
    this->archiveAccess = NULL;
    this->actionIsComplete = true;
 
+   this->leafStatus.isEqualCount = 0;
+   this->leafStatus.isNotEqualCount = 0;
+   this->leafStatus.isNotAplicableCount = 0;
+
    this->setupQCaObjects ();
 
    // Allow item to retrive archive data values.
@@ -611,8 +615,9 @@ QEPvLoadSaveItem* QEPvLoadSaveLeaf::clone (QEPvLoadSaveItem* parent)
 //
 QVariant QEPvLoadSaveLeaf::getData (int column) const
 {
-   const QEPvLoadSaveCommon::ColumnKinds kind = QEPvLoadSaveCommon::ColumnKinds (column);
+   static const QString arrayImage = QString ("<< array [%1] >>");
 
+   const QEPvLoadSaveCommon::ColumnKinds kind = QEPvLoadSaveCommon::ColumnKinds (column);
    const QMetaType::Type selfMetaType = QEPlatform::metaType (this->value);
    const QMetaType::Type liveMetaType = QEPlatform::metaType (this->liveValue);
 
@@ -625,13 +630,15 @@ QVariant QEPvLoadSaveLeaf::getData (int column) const
          break;
 
       case QEPvLoadSaveCommon::LoadSave:
+         // For arrays and vectors, we just display type and size.
+         //
          if (selfMetaType == QMetaType::QVariantList) {
             QVariantList vl = this->value.toList ();
-            valueImage = QString (" << %1 element array >>").arg (vl.size ());
+            valueImage = arrayImage.arg (vl.size ());
 
-         } else if (QEVectorVariants::isVectorVariant(this->value)) {
-            int n = QEVectorVariants::vectorCount (this->value);
-            valueImage = QString (" << %1 element vector >>").arg (n);
+         } else if (QEVectorVariants::isVectorVariant (this->value)) {
+            const int n = QEVectorVariants::vectorCount (this->value);
+            valueImage = arrayImage.arg (n);
 
          } else {
             valueImage = this->value.toString ();
@@ -643,11 +650,11 @@ QVariant QEPvLoadSaveLeaf::getData (int column) const
       case QEPvLoadSaveCommon::Live:
          if (liveMetaType == QMetaType::QVariantList) {
             QVariantList vl = this->value.toList ();
-            valueImage = QString (" << %1 element array >>").arg (vl.size ());
+            valueImage = arrayImage.arg (vl.size ());
 
-         } else if (QEVectorVariants::isVectorVariant(this->liveValue)) {
-            int n = QEVectorVariants::vectorCount (this->liveValue);
-            valueImage = QString (" << %1 element vector >>").arg (n);
+         } else if (QEVectorVariants::isVectorVariant (this->liveValue)) {
+            const int n = QEVectorVariants::vectorCount (this->liveValue);
+            valueImage = arrayImage.arg (n);
 
          } else {
             valueImage = this->liveValue.toString ();
@@ -657,25 +664,8 @@ QVariant QEPvLoadSaveLeaf::getData (int column) const
          break;
 
       case QEPvLoadSaveCommon::Delta:
-         if ((liveMetaType != QMetaType::UnknownType) &&
-             (selfMetaType != QMetaType::UnknownType))
-         {
-            // Both values are defined.
-            //
-            bool ok1, ok2;
-            double diff = this->liveValue.toDouble (&ok1) - this->value.toDouble (&ok2);
-            if (ok1 && ok2) {
-               // Numerical value - we can calculate a numeric difference.
-               //
-               result.setValue (diff);
-            } else if (this->liveValue == this->value) {
-               result.setValue (QString ("identical"));
-            } else {
-               result.setValue (QString ("different"));
-            }
-         } else {
-            result.setValue (QString ("n/a"));
-         }
+         this->determineDeltaAndLeafStatus ();
+         result = this->deltaText;
          break;
 
       default:
@@ -684,6 +674,104 @@ QVariant QEPvLoadSaveLeaf::getData (int column) const
    }
 
    return result;
+}
+
+//-----------------------------------------------------------------------------
+// leafStatus and deltaText are mutable.
+//
+void QEPvLoadSaveLeaf::determineDeltaAndLeafStatus () const
+{
+   const QMetaType::Type selfMetaType = QEPlatform::metaType (this->value);
+   const bool selfIsVariantList   = selfMetaType == QMetaType::QVariantList;
+   const bool selfIsVectorVariant = QEVectorVariants::isVectorVariant (this->value);
+   const bool selfIsScalar        = !(selfIsVariantList || selfIsVectorVariant);
+
+   const QMetaType::Type liveMetaType = QEPlatform::metaType (this->liveValue);
+   const bool liveIsVariantList   = liveMetaType == QMetaType::QVariantList;
+   const bool liveIsVectorVariant = QEVectorVariants::isVectorVariant (this->liveValue);
+   const bool liveIsScalar        = !(liveIsVariantList || liveIsVectorVariant);
+
+   // Re(set) all to zero to start with.
+   //
+   this->leafStatus.isEqualCount = 0;
+   this->leafStatus.isNotEqualCount = 0;
+   this->leafStatus.isNotAplicableCount = 0;
+
+   if ((liveMetaType == QMetaType::UnknownType) ||
+       (selfMetaType == QMetaType::UnknownType))
+   {
+      // One of both are undefined.
+      //
+      this->deltaText.setValue (QString ("n/a"));
+      this->leafStatus.isNotAplicableCount = 1;
+      return;
+   }
+
+   // Both values are defined.
+   //
+   if (selfIsScalar && liveIsScalar) {
+      // Both are scalar.
+      //
+      bool ok1, ok2;
+      double diff = this->liveValue.toDouble (&ok1) - this->value.toDouble (&ok2);
+      if (ok1 && ok2) {
+         // Numerical value - we can calculate a numeric difference.
+         //
+         this->deltaText.setValue (diff);
+         this->leafStatus.isEqualCount = (diff == 0) ? 1 : 0;
+         this->leafStatus.isNotAplicableCount = 1 - this->leafStatus.isEqualCount;
+      } else {
+         // Not numerical
+         if (this->liveValue == this->value) {
+            this->deltaText.setValue (QString ("identical"));
+            this->leafStatus.isEqualCount = 1;
+         } else {
+            this->deltaText.setValue (QString ("different"));
+            this->leafStatus.isEqualCount = 0;
+         }
+         this->leafStatus.isNotEqualCount = 1 - this->leafStatus.isEqualCount;
+      }
+
+   } else if (!selfIsScalar || !liveIsScalar ) {
+      // Both are multi value: variants list or vector variant.
+      //
+      QVariantList selfList;
+      if (selfIsVectorVariant) {
+         bool okay;
+         // The QVariant methoid .toList works for VectorVariants (at least on 6.8.1)
+         // however does not provide status.
+         //
+         selfList = QEVectorVariants::convertToVariantList(this->value, okay);
+      } else {
+         selfList = this->value.toList();
+      }
+
+      QVariantList liveList;
+      if (liveIsVectorVariant) {
+         bool okay;
+         // The QVariant methoid .toList works for VectorVariants (at least on 6.8.1)
+         // however does not provide status.
+         //
+         liveList = QEVectorVariants::convertToVariantList(this->liveValue, okay);
+      } else {
+         liveList = this->liveValue.toList();
+      }
+
+      if (liveList == selfList) {
+         this->deltaText.setValue (QString ("identical"));
+         this->leafStatus.isEqualCount = 1;
+      } else {
+         this->deltaText.setValue (QString ("different"));
+         this->leafStatus.isEqualCount = 0;
+      }
+      this->leafStatus.isNotEqualCount = 1 - this->leafStatus.isEqualCount;
+
+   } else {
+      // A mixture of scalar and array types
+      //
+      this->deltaText.setValue (QString ("n/a"));
+      this->leafStatus.isNotAplicableCount = 1;
+   }
 }
 
 //-----------------------------------------------------------------------------
@@ -853,27 +941,10 @@ int QEPvLoadSaveLeaf::leafCount () const
 //
 QEPvLoadSaveCommon::StatusSummary QEPvLoadSaveLeaf::getStatusSummary () const
 {
-   const QMetaType::Type selfMetaType = QEPlatform::metaType (this->value);
-   const QMetaType::Type liveMetaType = QEPlatform::metaType (this->liveValue);
-
-   QEPvLoadSaveCommon::StatusSummary result;
-   QEPvLoadSaveCommon::clear (result);    // set all zero
-
-   if ((liveMetaType != QMetaType::UnknownType) &&
-       (selfMetaType != QMetaType::UnknownType))
-   {
-      // Both values are defined.
-      //
-      if (this->liveValue == this->value) {
-         result.isEqualCount = 1;
-      } else {
-         result.isNotEqualCount = 1;
-      }
-   } else {
-      result.isNotAplicableCount = 1;
-   }
-
-   return result;
+   // Force re-evalueation of the leaf status.
+   //
+   this->determineDeltaAndLeafStatus ();
+   return this->leafStatus;
 }
 
 //-----------------------------------------------------------------------------
