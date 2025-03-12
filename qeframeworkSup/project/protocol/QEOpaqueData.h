@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2019-2024 Australian Synchrotron
+ *  Copyright (C) 2019-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -47,12 +47,12 @@
 ///   QEOpaqueData opaque;
 ///   QVariant var;
 ///
-///   var.setValue <QEOpaqueData> (opaque);       or
-///   var = opaque.toVariant();
+///   var.setValue (opaque);       or
+///   var = opaque.toVariant();          -- defined in this module
 ///
 ///   opaque = var.value<QEOpaqueData>();
 ///   opaque = qvariant_cast<QEOpaqueData>(var);  or
-///   opaque.assignFromVariant (var);
+///   opaque.assignFromVariant (var);    -- defined in this module
 ///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEOpaqueData {
 public:

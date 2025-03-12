@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2024 Australian Synchrotron
+ *  Copyright (C) 2018-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -48,14 +48,14 @@
 /// This type is registered as a QVariant type, and can be set/get like this:
 ///
 ///   QENTNDArrayData arrayData;
-///   QVariant var;
+///   QVariant variant;
 ///
-///   var.setValue <QENTNDArrayData> (arrayData);       or
-///   var = arrayData.toVariant();
+///   variant.setValue (arrayData);                         or
+///   variant = arrayData.toVariant();                      -- defined in this module
 ///
-///   arrayData = var.value<QENTNDArrayData>();
-///   arrayData = qvariant_cast<QENTNDArrayData>(var);  or
-///   arrayData.assignFromVariant (var);
+///   arrayData = variant.value<QENTNDArrayData>();         or
+///   arrayData = qvariant_cast<QENTNDArrayData>(variant);  or
+///   arrayData.assignFromVariant (variant);                -- defined in this module
 ///
 /// Much of this class was based on ntndArrayConverter out of areaDetector
 ///
