@@ -443,6 +443,13 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    this->createAction (this->treeContextMenu, "Examine Properties",   false, TCM_SHOW_PV_PROPERTIES);
    this->createAction (this->treeContextMenu, "Plot in StripChart",   false, TCM_ADD_TO_STRIPCHART);
    this->createAction (this->treeContextMenu, "Show in Scatch Pad",   false, TCM_ADD_TO_SCRATCH_PAD);
+
+   // Array PV releated.
+   //
+   this->createAction (this->treeContextMenu, "Show in Plotter",      false, TCM_ADD_TO_PLOTTER);
+   this->createAction (this->treeContextMenu, "Show in Historgram",   false, TCM_ADD_TO_HISTORGRAM);
+   this->createAction (this->treeContextMenu, "Show in Table",        false, TCM_ADD_TO_TABLE);
+
    this->treeContextMenu->addSeparator ();
    this->createAction (this->treeContextMenu, "Edit PV Name...",      false, TCM_EDIT_PV_NAME);
    this->createAction (this->treeContextMenu, "Edit PV Value...",     false, TCM_EDIT_PV_VALUE);
@@ -702,12 +709,27 @@ void QEPvLoadSave::treeMenuRequested (const QPoint& pos)
    // Does item even exit at this position.
    //
    if (this->contextMenuItem) {
-      // Is is a leaf/PV node or a gruop node?
+      // Is is a leaf/PV node or a group node?
       //
       if (this->contextMenuItem->getIsPV ()) {
          for (j = TCM_COPY_VARIABLE; j <= TCM_EDIT_PV_VALUE; j++) {
             this->actionList [j]->setVisible (true);
          }
+
+         // Specials for if/when is an arrays PV.
+         //
+         bool isAnArrayPv = false;
+         QEPvLoadSaveLeaf* leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         if (leaf) {   // just in case
+            const QVariant data = leaf->getNodeValue ();
+            const QVariantList valueList = data.toList ();
+            const int number = valueList.size ();
+            isAnArrayPv = (number >= 2);
+         }
+         this->actionList [TCM_ADD_TO_PLOTTER]->setVisible (isAnArrayPv);
+         this->actionList [TCM_ADD_TO_HISTORGRAM]->setVisible (isAnArrayPv);
+         this->actionList [TCM_ADD_TO_TABLE]->setVisible (isAnArrayPv);
+
       } else {
          this->actionList [TCM_ADD_GROUP]->setVisible (true);
          if (this->contextMenuItem != model->getRootItem ()) {
@@ -789,8 +811,6 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          break;
 
       case TCM_ADD_GROUP:
-         /// TODO - create group name dialog - re-purposing pvNameSelectDialog here for now
-         //
          this->groupNameDialog->setWindowTitle ("QEPvLoadSave - Add Group");
          this->groupNameDialog->setGroupName ("");
          n = this->groupNameDialog->exec (tree);
@@ -801,7 +821,6 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          break;
 
       case TCM_RENAME_GROUP:
-         /// TODO - create group name dialog - re-purposing pvNameSelectDialog here for now
          this->groupNameDialog->setWindowTitle ("QEPvLoadSave - Rename Group");
          this->groupNameDialog->setGroupName (nodeName);
          n = this->groupNameDialog->exec (tree);
@@ -826,7 +845,7 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          break;
 
       case TCM_EDIT_PV_NAME:
-         leaf = dynamic_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
             this->pvNameSelectDialog->setWindowTitle ("QEPvLoadSave - edit PV");
             this->pvNameSelectDialog->setPvNames (leaf->getSetPointPvName(),
@@ -849,7 +868,7 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          break;
 
       case TCM_COPY_VARIABLE:
-         leaf = dynamic_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
             QApplication::clipboard ()->setText (leaf->copyVariables());
          }
@@ -877,23 +896,44 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          break;
 
       case TCM_SHOW_PV_PROPERTIES:
-         leaf = dynamic_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
             emit this->requestAction (QEActionRequests (QEActionRequests::actionPvProperties (), leaf->copyVariables()));
          }
          break;
 
       case TCM_ADD_TO_STRIPCHART:
-         leaf = dynamic_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
             emit this->requestAction (QEActionRequests (QEActionRequests::actionStripChart (), leaf->copyVariables()));
          }
          break;
 
       case TCM_ADD_TO_SCRATCH_PAD:
-         leaf = dynamic_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
             emit this->requestAction (QEActionRequests (QEActionRequests::actionScratchPad (), leaf->copyVariables()));
+         }
+         break;
+
+      case TCM_ADD_TO_PLOTTER:
+         leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         if (leaf) {   // sanity check
+            emit this->requestAction (QEActionRequests (QEActionRequests::actionPlotter (), leaf->copyVariables()));
+         }
+         break;
+
+      case TCM_ADD_TO_HISTORGRAM:
+         leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         if (leaf) {   // sanity check
+            emit this->requestAction (QEActionRequests (QEActionRequests::actionShowInHisogram (), leaf->copyVariables()));
+         }
+         break;
+
+      case TCM_ADD_TO_TABLE:
+         leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         if (leaf) {   // sanity check
+            emit this->requestAction (QEActionRequests (QEActionRequests::actionTable (), leaf->copyVariables()));
          }
          break;
 
