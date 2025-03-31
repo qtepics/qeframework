@@ -1015,6 +1015,8 @@ void QEPvaClientManager::initialise ()
    if (singleton.isRunning) return;
    singleton.isRunning = true;
 
+   // Initialise PVA client
+   //
    pva::ClientFactory::start();
    pva::ChannelProviderRegistry::shared_pointer providerRegistry = pva::ChannelProviderRegistry::clients();
    pvaProvider = providerRegistry->getProvider("pva");
@@ -1055,6 +1057,11 @@ QEPvaClientManager::~QEPvaClientManager ()
 //slot
 void QEPvaClientManager::timeoutHandler ()
 {
+   if (this != &singleton) {
+      // Ignore, this is not the singleton object.
+      return;
+   }
+
    if (!this->isRunning) return;
 
    while (true) {
