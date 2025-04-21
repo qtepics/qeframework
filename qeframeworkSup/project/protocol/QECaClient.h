@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2023 Australian Synchrotron
+ *  Copyright (C) 2018-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -35,11 +35,16 @@
 #include <QCaDateTime.h>
 #include <QEFrameworkLibraryGlobal.h>
 
+// We use encapsulation rather than direct inheritance.
+//
+class QE_ACAI_Client;  // differed - internal class
+
+//------------------------------------------------------------------------------
 /// The main purpose of this class is to convert regular call backs from
 /// the ACAI client class into Qt signals (specified in QEBaseClient).
 ///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QECaClient :
-      public QEBaseClient, public ACAI::Client
+      public QEBaseClient
 {
    Q_OBJECT
 public:
@@ -47,19 +52,53 @@ public:
                         QObject* parent);
    ~QECaClient ();
 
-   // Override QEBaseClient parent functions.
+   // Override QEBaseClient parent methods.
    //
+   bool openChannel (const ChannelModesFlags modes);
+   void closeChannel ();
+
    QVariant getPvData () const;
    bool putPvData (const QVariant& value);
 
+   bool getIsConnected () const;
+   bool dataIsAvailable () const;
+
+   QString getId () const;            // this is the fieldtype
+   QString getRemoteAddress() const;  // this is the hostname
+   QString getEgu () const;
+   int getPrecision() const;
+   unsigned int hostElementCount () const;
+   unsigned int dataElementCount () const;
+   double getDisplayLimitHigh () const;
+   double getDisplayLimitLow () const;
+   double getHighAlarmLimit () const;
+   double getLowAlarmLimit () const;
+   double getHighWarningLimit () const;
+   double getLowWarningLimit () const;
+   double getControlLimitHigh () const;
+   double getControlLimitLow () const;
+   double getMinStep () const;
    QStringList getEnumerations() const;
    QCaAlarmInfo getAlarmInfo () const;
    QCaDateTime  getTimeStamp () const;
    QString getDescription () const;
+   bool getReadAccess() const;
+   bool getWriteAccess() const;
+
+   // CA client specific methods
+   //
+   void setPriority (const unsigned int priority);
+   void setRequestCount (const unsigned int number);
+   void setUsePutCallback (const bool enable);
+   bool getUsePutCallback() const;
+   unsigned getDataElementSize() const;
+   const void* getRawDataPointer (size_t& count, const size_t offset = 0) const;
 
 protected:
-   // Override ACAI::Client parent class functions.
+   // Called by QE_ACAI_Client.
    //
+   friend class QE_ACAI_Client;
+
    void connectionUpdate (const bool isConnected);
    void dataUpdate (const bool firstUpdate);
    void putCallbackNotifcation (const bool isSuccessful);
@@ -71,7 +110,8 @@ private:
    bool varientToInteger (const QVariant& qValue, ACAI::ClientInteger& iValue, bool& valueInRange);
    bool varientToEnumIndex (const QVariant& qValue, ACAI::ClientInteger& index, bool& valueInRange);
 
-   QECaClient* descriptionClient;  // connects to the .DESC field
+   QE_ACAI_Client* mainClient;    // Typically but not necessarily .VAL field.
+   QE_ACAI_Client* descClient;    // connects to the .DESC field (when needed).
 
 private slots:
    void requestDescription ();
@@ -80,31 +120,31 @@ private slots:
 //------------------------------------------------------------------------------
 // This is essentially a private class, but must be declared in the header
 // file in order to use the meta object compiler (moc) to allow setup of the
-// timeout/aboutToQuit slots.
+// timeout slot.
 // The main purpose of this class to stimulate the underlying library on a
 // regular basis in order to process CA callbacks. It also receives the
 // aboutToQuit signal in order to do a clean shutdown.
 //
 class QECaClientManager : private QObject {
    Q_OBJECT
-private:
+public:
    explicit QECaClientManager ();
    ~QECaClientManager ();
 
-   // Create the singleton QECaClientManager instance if needs be.
-   // It is called each time a QCaObject.QECaClient is created.
+private:
+   // Initialse the singleton QECaClientManager instance if needs be.
+   // It is called each time a QECaClient is created.
    // This function is idempotent.
    //
    static void initialise ();
 
 private:
-   // Not used directly, set pass as a parameter.
    static void notificationHandlers (const char* notification);
 
-   bool stillRunning;
+   bool isRunning;
+
 private slots:
    void timeoutHandler ();
-   void aboutToQuitHandler ();
 
    friend class QECaClient;
 };

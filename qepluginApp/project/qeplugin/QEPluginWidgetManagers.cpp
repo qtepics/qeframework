@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2017-2021 Australian Synchrotron
+ *  Copyright (c) 2017-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +27,7 @@
 #include "QEPluginWidgetManagers.h"
 
 #include <QEDesignerPluginGroupNames.h>
+#include <QEAlarmColourSelection.h>
 #include <QEAnalogIndicator.h>
 #include <QEAnalogProgressBar.h>
 #include <QAnalogSlider.h>
@@ -42,6 +43,7 @@
 #include <QEConfiguredLayout.h>
 #include <QECorrelation.h>
 #include <QEDistribution.h>
+#include <QEExitButton.h>
 #include <QEFileBrowser.h>
 #include <QEFileImage.h>
 #include <QEForm.h>
@@ -96,9 +98,10 @@
 #include <QEArchiveStatus.h>
 
 // Implement the widget plugin managers for all regular widgets.
-// Note : QEMenuButton and QEPeriodic provide designer extentions and
-//        are provided elsewhere.
+// Note : QEComment, QEMenuButton and QEPeriodic provide designer extentions
+//        and are provided elsewhere.
 
+QE_IMPLEMENT_PLUGIN_MANAGER (QEAlarmColourSelection, QETOOL,  ":/qe/plugin/QEAlarmColourSelection.png", false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEAnalogIndicator,   QETOOL,     ":/qe/plugin/QEAnalogIndicator.png",   false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEAnalogProgressBar, QEMONITOR,  ":/qe/plugin/QEAnalogProgressBar.png", false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QAnalogSlider,       QETOOL,     ":/qe/plugin/QAnalogSlider.png",       false)
@@ -112,6 +115,7 @@ QE_IMPLEMENT_PLUGIN_MANAGER (QEComboBox,          QECONTROL,  ":/qe/plugin/QECom
 QE_IMPLEMENT_PLUGIN_MANAGER (QEConfiguredLayout,  QESUPPORT,  ":/qe/plugin/QEConfiguredLayout.png",  false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QECorrelation,       QEGRAPHIC,  ":/qe/plugin/QECorrelation.png",       false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEDistribution,      QEGRAPHIC,  ":/qe/plugin/QEDistribution.png",      false)
+QE_IMPLEMENT_PLUGIN_MANAGER (QEExitButton,        QESUPPORT,  ":/qe/plugin/QEExitButton.png",        false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEFileBrowser,       QECONTROL,  ":/qe/plugin/QEFileBrowser.png",       false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEFileImage,         QEMONITOR,  ":/qe/plugin/QEFileImage.png",         false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEForm,              QESUPPORT,  ":/qe/plugin/QEForm.png",              false)

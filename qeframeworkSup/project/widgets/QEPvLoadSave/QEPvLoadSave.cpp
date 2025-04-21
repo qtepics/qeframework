@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron
+ *  Copyright (c) 2013-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -35,8 +35,10 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QMessageBox>
+#include <QMetaType>
 
 #include <QECommon.h>
+#include <QEPlatform.h>
 #include <QEScaling.h>
 #include "QEPvLoadSaveAccessFail.h"
 #include "QEPvLoadSaveCompare.h"
@@ -45,6 +47,8 @@
 #include "QEPvLoadSaveUtilities.h"
 
 #define DEBUG  qDebug () << "QEPvLoadSave.cpp" << __LINE__ << __FUNCTION__ << "  "
+
+static const QVariant nilValue = QVariant();
 
 // Compare with QEStripChartToolBar
 //
@@ -275,10 +279,16 @@ void QEPvLoadSave::Halves::open (const QString& configurationFile)
       return;
    }
 
-   rootItem = QEPvLoadSaveUtilities::readTree (configurationFile, this->macroString->text ());
+   QString errorMessage;
+   rootItem = QEPvLoadSaveUtilities::readTree (configurationFile,
+                                               this->macroString->text (),
+                                               errorMessage);
    if (!rootItem) {
-       DEBUG << "file read fail " << configurationFile;
-       return;
+      DEBUG << errorMessage;
+      const message_types mt = message_types (MESSAGE_TYPE_WARNING,
+                                              MESSAGE_KIND_STANDARD);
+      this->owner->sendMessage (errorMessage, mt);
+      return;
    }
 
    this->setRoot (rootItem, configurationFile);
@@ -349,7 +359,7 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    //
    this->setAllowDrop (false); // applies to widget as a whole, not the tree view.
    this->setVariableAsToolTip (false);
-   this->setDisplayAlarmStateOption (standardProperties::DISPLAY_ALARM_STATE_NEVER);
+   this->setDisplayAlarmStateOption (QE::Never);
 
    this->defaultDir = "";
    this->confirmRequired = true;
@@ -426,6 +436,7 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    // TODO - leverage of standard context menu if we can.
    //
    this->treeContextMenu = new QMenu (this);
+
    this->createAction (this->treeContextMenu, tr("Create Root"),          false, TCM_CREATE_ROOT);
    this->createAction (this->treeContextMenu, tr("Add Group..."),         false, TCM_ADD_GROUP);
    this->createAction (this->treeContextMenu, tr("Rename Group..."),      false, TCM_RENAME_GROUP);
@@ -433,6 +444,13 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    this->createAction (this->treeContextMenu, tr("Examine Properties"),   false, TCM_SHOW_PV_PROPERTIES);
    this->createAction (this->treeContextMenu, tr("Plot in StripChart"),   false, TCM_ADD_TO_STRIPCHART);
    this->createAction (this->treeContextMenu, tr("Show in Scatch Pad"),   false, TCM_ADD_TO_SCRATCH_PAD);
+
+   // Array PV releated.
+   //
+   this->createAction (this->treeContextMenu, tr("Show in Plotter"),      false, TCM_ADD_TO_PLOTTER);
+   this->createAction (this->treeContextMenu, tr("Show in Historgram"),   false, TCM_ADD_TO_HISTORGRAM);
+   this->createAction (this->treeContextMenu, tr("Show in Table"),        false, TCM_ADD_TO_TABLE);
+
    this->treeContextMenu->addSeparator ();
    this->createAction (this->treeContextMenu, tr("Edit PV Name..."),      false, TCM_EDIT_PV_NAME);
    this->createAction (this->treeContextMenu, tr("Edit PV Value..."),     false, TCM_EDIT_PV_VALUE);
@@ -692,12 +710,27 @@ void QEPvLoadSave::treeMenuRequested (const QPoint& pos)
    // Does item even exit at this position.
    //
    if (this->contextMenuItem) {
-      // Is is a leaf/PV node or a gruop node?
+      // Is is a leaf/PV node or a group node?
       //
       if (this->contextMenuItem->getIsPV ()) {
          for (j = TCM_COPY_VARIABLE; j <= TCM_EDIT_PV_VALUE; j++) {
             this->actionList [j]->setVisible (true);
          }
+
+         // Specials for if/when is an arrays PV.
+         //
+         bool isAnArrayPv = false;
+         QEPvLoadSaveLeaf* leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         if (leaf) {   // just in case
+            const QVariant data = leaf->getNodeValue ();
+            const QVariantList valueList = data.toList ();
+            const int number = valueList.size ();
+            isAnArrayPv = (number >= 2);
+         }
+         this->actionList [TCM_ADD_TO_PLOTTER]->setVisible (isAnArrayPv);
+         this->actionList [TCM_ADD_TO_HISTORGRAM]->setVisible (isAnArrayPv);
+         this->actionList [TCM_ADD_TO_TABLE]->setVisible (isAnArrayPv);
+
       } else {
          this->actionList [TCM_ADD_GROUP]->setVisible (true);
          if (this->contextMenuItem != model->getRootItem ()) {
@@ -753,7 +786,6 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
    bool okay;
    int intAction;
    TreeContextMenuActions menuAction;
-   QVariant nilValue (QVariant::Invalid);
    QEPvLoadSaveItem* item = NULL;
    QEPvLoadSaveLeaf* leaf = NULL;
    QString nodeName = "";
@@ -780,8 +812,6 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          break;
 
       case TCM_ADD_GROUP:
-         /// TODO - create group name dialog - re-purposing pvNameSelectDialog here for now
-         //
          this->groupNameDialog->setWindowTitle (tr("QEPvLoadSave - Add Group"));
          this->groupNameDialog->setGroupName ("");
          n = this->groupNameDialog->exec (tree);
@@ -792,7 +822,6 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          break;
 
       case TCM_RENAME_GROUP:
-         /// TODO - create group name dialog - re-purposing pvNameSelectDialog here for now
          this->groupNameDialog->setWindowTitle (tr("QEPvLoadSave - Rename Group"));
          this->groupNameDialog->setGroupName (nodeName);
          n = this->groupNameDialog->exec (tree);
@@ -817,7 +846,7 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          break;
 
       case TCM_EDIT_PV_NAME:
-         leaf = dynamic_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
             this->pvNameSelectDialog->setWindowTitle (tr("QEPvLoadSave - edit PV"));
             this->pvNameSelectDialog->setPvNames (leaf->getSetPointPvName(),
@@ -840,7 +869,7 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          break;
 
       case TCM_COPY_VARIABLE:
-         leaf = dynamic_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
             QApplication::clipboard ()->setText (leaf->copyVariables());
          }
@@ -849,8 +878,9 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
       case TCM_COPY_DATA:
          nodeValue = this->contextMenuItem->getNodeValue ();
 
-         // Need be aware of lists.
-         if (nodeValue.type() == QVariant::List) {
+         // Need to be aware of lists.
+         //
+         if (QEPlatform::metaType (nodeValue) == QMetaType::QVariantList) {
             QStringList sl = nodeValue.toStringList ();
             QString text = "( ";
 
@@ -867,23 +897,44 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          break;
 
       case TCM_SHOW_PV_PROPERTIES:
-         leaf = dynamic_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
             emit this->requestAction (QEActionRequests (QEActionRequests::actionPvProperties (), leaf->copyVariables()));
          }
          break;
 
       case TCM_ADD_TO_STRIPCHART:
-         leaf = dynamic_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
             emit this->requestAction (QEActionRequests (QEActionRequests::actionStripChart (), leaf->copyVariables()));
          }
          break;
 
       case TCM_ADD_TO_SCRATCH_PAD:
-         leaf = dynamic_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
             emit this->requestAction (QEActionRequests (QEActionRequests::actionScratchPad (), leaf->copyVariables()));
+         }
+         break;
+
+      case TCM_ADD_TO_PLOTTER:
+         leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         if (leaf) {   // sanity check
+            emit this->requestAction (QEActionRequests (QEActionRequests::actionPlotter (), leaf->copyVariables()));
+         }
+         break;
+
+      case TCM_ADD_TO_HISTORGRAM:
+         leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         if (leaf) {   // sanity check
+            emit this->requestAction (QEActionRequests (QEActionRequests::actionShowInHisogram (), leaf->copyVariables()));
+         }
+         break;
+
+      case TCM_ADD_TO_TABLE:
+         leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+         if (leaf) {   // sanity check
+            emit this->requestAction (QEActionRequests (QEActionRequests::actionTable (), leaf->copyVariables()));
          }
          break;
 
@@ -1228,7 +1279,7 @@ void QEPvLoadSave::compareClicked (bool)
          // Create component item and associated request.
          //
          componentHostListItem item (graphicalCompare,
-                                     QEActionRequests::OptionFloatingDockWindow,
+                                     QE::DockFloating,
                                      false, title);
 
          // ... and request this hosted by the support application.
@@ -1259,7 +1310,7 @@ void QEPvLoadSave::abortClicked (bool)
          // Create component item and associated request.
          //
          componentHostListItem item (this->accessFail,
-                                     QEActionRequests::OptionFloatingDockWindow,
+                                     QE::DockFloating,
                                      false, title);
 
          // ... and request this hosted by the support application.

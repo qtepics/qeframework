@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2020  Australian Synchrotron
+ *  Copyright (c) 2009-2022  Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -67,8 +67,8 @@ ContainerProfile::ContainerProfile()
     this->userSlot.setOwner( this );
 
     QEPublishedProfile* publishedProfile = ContainerProfile::getPublishedProfile();
-    QObject::connect( &(publishedProfile->userSignal), SIGNAL( userChanged( userLevelTypes::userLevels ) ),
-                      &this->userSlot,                 SLOT  ( userChanged( userLevelTypes::userLevels ) ) );
+    QObject::connect( &(publishedProfile->userSignal), SIGNAL( userChanged( QE::UserLevels ) ),
+                      &this->userSlot,                 SLOT  ( userChanged( QE::UserLevels ) ) );
 
     // Take a local copy of the defined profile
     this->takeLocalCopy();
@@ -150,7 +150,7 @@ QObject* ContainerProfile::replaceGuiLaunchConsumer( QObject* newGuiLaunchConsum
 /* -----------------------------------------------------------------------------
    Virtual function default/null implementation
  */
-void ContainerProfile::userLevelChangedGeneral( userLevelTypes::userLevels ) {}
+void ContainerProfile::userLevelChangedGeneral( QE::UserLevels ) {}
 
 /* -----------------------------------------------------------------------------
    Return a reference to the single persistance manager
@@ -532,16 +532,16 @@ QEWidget* ContainerProfile::getNextContainedWidget()
 /* -----------------------------------------------------------------------------
   Get the local copy of the user level password for the specified user level
   */
-QString ContainerProfile::getUserLevelPassword( userLevelTypes::userLevels level )
+QString ContainerProfile::getUserLevelPassword( QE::UserLevels level )
 {
     QEPublishedProfile* publishedProfile = ContainerProfile::getPublishedProfile();
 
     QString result;
     switch( level )
     {
-        case userLevelTypes::USERLEVEL_USER:      result = publishedProfile->userLevelPassword;      break;
-        case userLevelTypes::USERLEVEL_SCIENTIST: result = publishedProfile->scientistLevelPassword; break;
-        case userLevelTypes::USERLEVEL_ENGINEER:  result = publishedProfile->engineerLevelPassword;  break;
+        case QE::User:      result = publishedProfile->userLevelPassword;      break;
+        case QE::Scientist: result = publishedProfile->scientistLevelPassword; break;
+        case QE::Engineer:  result = publishedProfile->engineerLevelPassword;  break;
     }
     return result;
 }
@@ -549,15 +549,15 @@ QString ContainerProfile::getUserLevelPassword( userLevelTypes::userLevels level
 /* -----------------------------------------------------------------------------
   Set the local copy of the user level password for the specified user level
   */
-void ContainerProfile::setUserLevelPassword( userLevelTypes::userLevels level, QString passwordIn )
+void ContainerProfile::setUserLevelPassword( QE::UserLevels level, QString passwordIn )
 {
     QEPublishedProfile* publishedProfile = ContainerProfile::getPublishedProfile();
 
     switch( level )
     {
-        case userLevelTypes::USERLEVEL_USER:      publishedProfile->userLevelPassword      = passwordIn; break;
-        case userLevelTypes::USERLEVEL_SCIENTIST: publishedProfile->scientistLevelPassword = passwordIn; break;
-        case userLevelTypes::USERLEVEL_ENGINEER:  publishedProfile->engineerLevelPassword  = passwordIn; break;
+        case QE::User:      publishedProfile->userLevelPassword      = passwordIn; break;
+        case QE::Scientist: publishedProfile->scientistLevelPassword = passwordIn; break;
+        case QE::Engineer:  publishedProfile->engineerLevelPassword  = passwordIn; break;
     }
 
     publishedProfile->userLevelPasswordsSet = true;
@@ -566,7 +566,7 @@ void ContainerProfile::setUserLevelPassword( userLevelTypes::userLevels level, Q
 /* -----------------------------------------------------------------------------
   Set the application user type (user/scientist/engineer)
   */
-void ContainerProfile::setUserLevel( userLevelTypes::userLevels level )
+void ContainerProfile::setUserLevel( QE::UserLevels level )
 {
     // Update the user level (this will result in a signal being emited
     ContainerProfile::getPublishedProfile()->userSignal.setLevel( level );
@@ -584,43 +584,43 @@ QChar ContainerProfile::platformSeperator()
 
 //------------------------------------------------------------------------------
 // Return the user level string name given the user level value
-QString ContainerProfile::getUserLevelName( userLevelTypes::userLevels userLevelValue )
+QString ContainerProfile::getUserLevelName( QE::UserLevels userLevelValue )
 {
     switch( userLevelValue )
     {
-        case userLevelTypes::USERLEVEL_USER:      return "User";
-        case userLevelTypes::USERLEVEL_SCIENTIST: return "Scientist";
-        case userLevelTypes::USERLEVEL_ENGINEER:  return "Engineer";
+        case QE::User:      return "User";
+        case QE::Scientist: return "Scientist";
+        case QE::Engineer:  return "Engineer";
         default: return "Unknown";
     }
 }
 
 //------------------------------------------------------------------------------
 // Return the user level value given the user level string name
-userLevelTypes::userLevels ContainerProfile::getUserLevelValue( QString userLevelName )
+QE::UserLevels ContainerProfile::getUserLevelValue( QString userLevelName )
 {
     if( userLevelName == "User" )
     {
-        return userLevelTypes::USERLEVEL_USER;
+        return QE::User;
     }
     else if ( ( userLevelName == "Scientist" ) )
     {
-        return userLevelTypes::USERLEVEL_SCIENTIST;
+        return QE::Scientist;
     }
     else if ( ( userLevelName == "Engineer" ) )
     {
-        return userLevelTypes::USERLEVEL_ENGINEER;
+        return QE::Engineer;
     }
     else // default
     {
-        return userLevelTypes::USERLEVEL_USER;
+        return QE::User;
     }
 }
 
 /* -----------------------------------------------------------------------------
   Get the application user type (user/scientist/engineer)
   */
-userLevelTypes::userLevels ContainerProfile::getUserLevel()
+QE::UserLevels ContainerProfile::getUserLevel()
 {
     return ContainerProfile::getPublishedProfile()->userSignal.getLevel();
 }
@@ -645,7 +645,7 @@ void QEProfileUserLevelSlot::setOwner( ContainerProfile* ownerIn )
 
 //------------------------------------------------------------------------------
 //
-void QEProfileUserLevelSlot::userChanged( userLevelTypes::userLevels level )
+void QEProfileUserLevelSlot::userChanged( QE::UserLevels level )
 {
     if( this->owner )
         this->owner->userLevelChangedGeneral( level );
@@ -655,7 +655,7 @@ void QEProfileUserLevelSlot::userChanged( userLevelTypes::userLevels level )
 //
 QEProfileUserLevelSignal::QEProfileUserLevelSignal() : QObject( NULL )
 {
-    this->level = userLevelTypes::USERLEVEL_USER;
+    this->level = QE::User;
 }
 
 //------------------------------------------------------------------------------
@@ -664,7 +664,7 @@ QEProfileUserLevelSignal::~QEProfileUserLevelSignal() { }
 
 //------------------------------------------------------------------------------
 //
-void QEProfileUserLevelSignal::setLevel( userLevelTypes::userLevels levelIn )
+void QEProfileUserLevelSignal::setLevel( QE::UserLevels levelIn )
 {
     this->level = levelIn;
     emit userChanged( level );
@@ -672,7 +672,7 @@ void QEProfileUserLevelSignal::setLevel( userLevelTypes::userLevels levelIn )
 
 //------------------------------------------------------------------------------
 //
-userLevelTypes::userLevels QEProfileUserLevelSignal::getLevel() const
+QE::UserLevels QEProfileUserLevelSignal::getLevel() const
 {
     return this->level;
 }

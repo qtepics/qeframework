@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2024 Australian Synchrotron
+ *  Copyright (C) 2018-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -25,23 +25,85 @@
  */
 
 #include "QECaClient.h"
-#include <QApplication>
 #include <QDebug>
+#include <QMetaType>
 #include <QTimer>
+#include <QtGlobal>
 #include <acai_version.h>
+#include <QEPlatform.h>
 #include <QEPvNameUri.h>
 #include <QERecordFieldName.h>
+#include <QEVectorVariants.h>
 
 #define DEBUG qDebug () << "QECaClient" << __LINE__ << __FUNCTION__ << "  "
 
+//==============================================================================
+// QE_ACAI_Client
+//==============================================================================
+//
+// Its sole purpose is to override connectionUpdate, dataUpdate and
+// putCallbackNotifcation.
+//
+class QE_ACAI_Client : public ACAI::Client {
+public:
+  explicit  QE_ACAI_Client (const QString& pvName, QECaClient* owner);
+   ~QE_ACAI_Client ();
+
+protected:
+   // Override ACAI::Client parent class functions.
+   //
+   void connectionUpdate (const bool isConnected);
+   void dataUpdate (const bool firstUpdate);
+   void putCallbackNotifcation (const bool isSuccessful);
+private:
+   QECaClient* const owner;   // ptr is const, not the object itself.
+};
+
 //------------------------------------------------------------------------------
+//
+QE_ACAI_Client::QE_ACAI_Client (const QString& pvName,
+                                QECaClient* ownerIn) :
+   ACAI::Client (pvName.toStdString()),
+   owner(ownerIn)
+{ }
+
+//------------------------------------------------------------------------------
+//
+QE_ACAI_Client::~QE_ACAI_Client () { }
+
+//------------------------------------------------------------------------------
+// Override ACAI::Client parent class functions.
+//
+void QE_ACAI_Client::connectionUpdate (const bool isConnected)
+{
+   if (this->owner) this->owner->connectionUpdate (isConnected);
+}
+
+//------------------------------------------------------------------------------
+//
+void QE_ACAI_Client::dataUpdate (const bool firstUpdate)
+{
+   if (this->owner) this->owner->dataUpdate (firstUpdate);
+}
+
+//------------------------------------------------------------------------------
+//
+void QE_ACAI_Client::putCallbackNotifcation (const bool isSuccessful)
+{
+   if (this->owner) this->owner->putCallbackNotifcation (isSuccessful);
+}
+
+
+//==============================================================================
+// QECaClient
+//==============================================================================
 //
 QECaClient::QECaClient (const QString& pvNameIn,
                         QObject* parent) :
    QEBaseClient (QEBaseClient::CAType, pvNameIn, parent),
-   ACAI::Client (pvNameIn.toStdString())
+   mainClient (new QE_ACAI_Client (pvNameIn, this))
 {
-   this->descriptionClient = NULL;
+   this->descClient = NULL;     // we don't create a DESC client unless requested.
    QECaClientManager::initialise ();   // idempotent
 }
 
@@ -49,7 +111,19 @@ QECaClient::QECaClient (const QString& pvNameIn,
 //
 QECaClient::~QECaClient ()
 {
-   this->closeChannel ();
+   // valueClient and descriptionClient have an owner(this) but not a parent,
+   // so we must explicitly delete these QE_ACAI_Client objects.
+   //
+   this->mainClient->closeChannel ();
+
+   if (this->descClient && (this->descClient != this->mainClient)) {
+      // This is a separate client
+      this->descClient->closeChannel();
+      delete this->descClient;
+      this->descClient = NULL;
+   }
+
+   delete this->mainClient;
 }
 
 //------------------------------------------------------------------------------
@@ -57,40 +131,109 @@ QECaClient::~QECaClient ()
 // Note: the assumption here is that the PV is a the name of a record or a
 // record field hosted on an IOC. However if this is a PV hosted on a Portable
 // Channel Access Server (PCAS) such as a gateway generated PV or a pycas PV,
-// the <name>.DESC PV may not exist.
+// the <name>.DESC PV may not exist, or if it does it may not actually be
+// a description.
 //
 void QECaClient::requestDescription ()
 {
-   if (!this->descriptionClient) {
+   if (!this->descClient) {
       QString pvName = this->getPvName();
 
       if (pvName.endsWith (".DESC")) {
          // This client is already looking at a description field.
          //
-         this->descriptionClient = this;
+         this->descClient = this->mainClient;
       } else {
          QString descPvName = QERecordFieldName::fieldPvName (pvName, "DESC");
-         this->descriptionClient = new QECaClient (descPvName, this);
-         this->descriptionClient->openChannel();
+         this->descClient = new QE_ACAI_Client (descPvName, this);
+         this->descClient->openChannel();
       }
    }
 }
 
 //------------------------------------------------------------------------------
 //
+bool QECaClient::openChannel (const ChannelModesFlags modes)
+{
+   ACAI::ReadModes readMode = ACAI::Subscribe;  // avoid warning
+
+   if (modes == QEBaseClient::None) {
+      return false;
+   }
+
+   if (modes & QEBaseClient::Write) {
+      // just connects, however allows writes
+      readMode = ACAI::NoRead;
+   }
+
+   if (modes & QEBaseClient::Read) {
+      // single one-off read only and allows writes
+      readMode = ACAI::SingleRead;
+   }
+
+   if (modes & QEBaseClient::Monitor) {
+      // read plus subscription and allows writes
+      readMode = ACAI::Subscribe;
+   }
+
+   this->mainClient->setReadMode (readMode);
+   return this->mainClient->openChannel ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QECaClient::closeChannel ()
+{
+   this->mainClient->closeChannel ();
+}
+
+//------------------------------------------------------------------------------
+//
+bool QECaClient::getIsConnected () const
+{
+   return this->mainClient->isConnected ();
+}
+
+//------------------------------------------------------------------------------
+//
+bool QECaClient::dataIsAvailable () const
+{
+   return this->mainClient->dataIsAvailable();
+}
+
+//------------------------------------------------------------------------------
+//
+QString QECaClient::getId () const
+{
+   ACAI::ClientFieldType ft = this->mainClient->hostFieldType();
+   return QString::fromStdString (ACAI::clientFieldTypeImage (ft));
+}
+
+//------------------------------------------------------------------------------
+//
+const void* QECaClient::getRawDataPointer (size_t& count,
+                                           const size_t offset) const
+{
+   return this->mainClient->rawDataPointer (count, offset);
+}
+
+//------------------------------------------------------------------------------
+//
 QVariant QECaClient::getPvData () const
 {
-   QVariant result = QVariant (QVariant::Invalid);  // default
+   QVariant result = QVariant ();  // default - invalid/unknown
 
    if (!this->dataIsAvailable ()) return result;
 
-   const ACAI::ClientFieldType fieldType = this->dataFieldType ();
+   const ACAI::ClientFieldType fieldType = this->mainClient->dataFieldType ();
    const unsigned int number = this->dataElementCount ();
+
+   if (number == 0) return result;  // can we eve get 0?
 
    // Specials.
    //
-   if (this->processingAsLongString()) {
-      result = QVariant (QString::fromStdString (this->getString (0)));
+   if (this->mainClient->processingAsLongString()) {
+      result = QVariant (QString::fromStdString (this->mainClient->getString (0)));
       return result;
    }
 
@@ -100,11 +243,11 @@ QVariant QECaClient::getPvData () const
       switch (fieldType) {
 
          case ACAI::ClientFieldSTRING:
-            result = QVariant (QString::fromStdString (this->getString (0)));
+            result = QVariant (QString::fromStdString (this->mainClient->getString (0)));
             break;
 
          case ACAI::ClientFieldCHAR:
-            result = QVariant (qlonglong (this->getInteger (0)));
+            result = QVariant (qlonglong (this->mainClient->getInteger (0)));
             break;
 
             // We treat enums as integer here - QEStringFormatting does the converion,
@@ -113,12 +256,12 @@ QVariant QECaClient::getPvData () const
          case ACAI::ClientFieldENUM:
          case ACAI::ClientFieldSHORT:
          case ACAI::ClientFieldLONG:
-            result = QVariant (qlonglong (this->getInteger (0)));
+            result = QVariant (qlonglong (this->mainClient->getInteger (0)));
             break;
 
          case ACAI::ClientFieldFLOAT:
          case ACAI::ClientFieldDOUBLE:
-            result = QVariant (this->getFloating (0));
+            result = QVariant (this->mainClient->getFloating (0));
             break;
 
          default:
@@ -128,41 +271,76 @@ QVariant QECaClient::getPvData () const
    } else {
       // Treat as an array
       //
-      QVariantList list;
+      size_t byteCount;
+      const void* rawData = this->mainClient->rawDataPointer (byteCount);
 
       switch (fieldType) {
 
+// Use macro function to assign CA data to the QE varaint arrays.
+// This not only ensure consistancy, it more easily enables use to
+// be Qt version specfic.
+//
+#if QT_VERSION < 0x060000
+#define ASSIGN_ARRAY(arrayType, elementType) {                                \
+   const elementType* data = reinterpret_cast<const elementType*> (rawData);  \
+   arrayType array;                                                           \
+   array.reserve (number);                                                    \
+   for (unsigned int j = 0; j < number; j++) {                                \
+       array.append (data[j]);                                                \
+   }                                                                          \
+   result.setValue (array);                                                   \
+}
+
+#else
+#define ASSIGN_ARRAY(arrayType, elementType) {                                \
+   const elementType* data = reinterpret_cast<const elementType*> (rawData);  \
+   arrayType array (data, data + number);                                     \
+   result.setValue (array);                                                   \
+}
+
+#endif
+
          case ACAI::ClientFieldSTRING:
-            for (unsigned int j = 0; j < number; j++) {
-               list.append (QVariant (QString::fromStdString (this->getString (j))));
+            {
+               QStringList stringList;
+               for (unsigned int j = 0; j < number; j++) {
+                  QString element = QString::fromStdString (this->mainClient->getString (j));
+                  stringList.append (element);
+               }
+               result = QVariant (stringList);
             }
             break;
 
          case ACAI::ClientFieldCHAR:
-            for (unsigned int j = 0; j < number; j++) {
-               list.append (QVariant (qlonglong (this->getInteger (j))));
-            }
+            ASSIGN_ARRAY (QEUint8Vector, uint8_t);
             break;
 
          case ACAI::ClientFieldENUM:
+            // For completeness.
+            ASSIGN_ARRAY (QEUint16Vector, uint16_t);
+            break;
+
          case ACAI::ClientFieldSHORT:
+            ASSIGN_ARRAY (QEInt16Vector, int16_t);
+            break;
+
          case ACAI::ClientFieldLONG:
-            for (unsigned int j = 0; j < number; j++) {
-               list.append (QVariant (qlonglong (this->getInteger (j))));
-            }
+            ASSIGN_ARRAY (QEInt32Vector, int32_t);
             break;
 
          case ACAI::ClientFieldFLOAT:
+            ASSIGN_ARRAY (QEFloatVector, float);
+            break;
+
          case ACAI::ClientFieldDOUBLE:
-            for (unsigned int j = 0; j < number; j++) {
-               list.append (QVariant (this->getFloating (j)));
-            }
+            ASSIGN_ARRAY (QEDoubleVector, double);
             break;
 
          default:
             break;
+
+#undef ASSIGN_ARRAY
       }
-      result = list;
    }
 
    return result;
@@ -174,8 +352,8 @@ QVariant QECaClient::getPvData () const
 //
 bool QECaClient::putPvData (const QVariant& value)
 {
-   const QVariant::Type vtype = value.type ();
-   const ACAI::ClientFieldType fieldType = this->hostFieldType ();
+   const QMetaType::Type mtype = QEPlatform::metaType (value);
+   const ACAI::ClientFieldType fieldType = this->mainClient->hostFieldType ();
    const QString fieldName = clientFieldTypeImage (fieldType).c_str();
 
    // Note: min and max field value functions require ACAI 1.6.4 or later.
@@ -190,59 +368,66 @@ bool QECaClient::putPvData (const QVariant& value)
    bool valueInRange = true;  // hypothesize value in field type range
    QString extra = "";
 
-   // Do special for ByteArray type (see GUI-216)
+   // Do special for ByteArray type (see Jira GUI-216)
    //
-   if (vtype == QVariant::ByteArray) {
+   if (mtype == QMetaType::QByteArray) {
       QByteArray bytes = value.toByteArray ();
       // NOTE: requires acai 1-5-8 orlater.
-      result = this->putByteArray ((void*) bytes.constData (), bytes.size());
+      result = this->mainClient->putByteArray ((void*) bytes.constData (), bytes.size());
    }
-   else if (vtype != QVariant::List) {
-      // Process as scaler
+
+   else if (QEVectorVariants::isVectorVariant (value)) {
+      // Process as vector variant array.
       //
-      ACAI::ClientInteger i;
-      ACAI::ClientFloating f;
-      QByteArray bytes;
+      const int number = QEVectorVariants::vectorCount (value);
+
+      const double min = this->mainClient->minFieldValue();
+      const double max = this->mainClient->maxFieldValue();
+
+      ACAI::ClientFloatingArray fltArray;
+      ACAI::ClientIntegerArray  intArray;
 
       switch (fieldType) {
-         case ACAI::ClientFieldSTRING:
-            result = this->putString (value.toString ().toStdString ());
-            break;
-
          case ACAI::ClientFieldENUM:
-            result = this->varientToEnumIndex (value, i, valueInRange);
-            if (!result) break;
-            result = this->putInteger (i);
-            break;
-
+            // It's a vector variant with numerical values - no strings,
+            // so no call to getEnumerationIndex required.
+            // Do we get arrays of enums anyway?
+            //
          case ACAI::ClientFieldCHAR:
-            if (vtype == QVariant::String) {
-               // Treat as long string.
-               QString str = value.toString ();
-               const int len = str.length();
-               const std::string keepInScope = str.toStdString();
-               const char* text = keepInScope.c_str();
-               result = this->putByteArray (text, len + 1); // include the zero
-            } else {
-               // Treat as numeric.
-               result = this->varientToInteger (value, i, valueInRange);
-               if (!result) break;
-               result = this->putInteger (i);
-            }
-            break;
-
          case ACAI::ClientFieldSHORT:
          case ACAI::ClientFieldLONG:
-            result = this->varientToInteger (value, i, valueInRange);
-            if (!result) break;
-            result = this->putInteger (i);
+            for (int j = 0; j < number; j++) {
+               ACAI::ClientInteger i;
+               i = QEVectorVariants::getIntegerValue (value, j, 0);
+               if ((i < min) || (i > max)) {
+                  valueInRange = false;
+                  result = false;
+                  break;
+               }
+               intArray.push_back (i);
+            }
+
+            if (result) {
+               result = this->mainClient->putIntegerArray (intArray);
+            }
             break;
 
          case ACAI::ClientFieldFLOAT:
          case ACAI::ClientFieldDOUBLE:
-            result = this->varientToFloat (value, f, valueInRange);
-            if (!result) break;
-            result = this->putFloating (f);
+            for (int j = 0; j < number; j++) {
+               ACAI::ClientFloating f;
+               f = QEVectorVariants::getDoubleValue (value, j, 0.0);
+               if ((f < min) || (f > max)) {
+                  valueInRange = false;
+                  result = false;
+                  break;
+               }
+               fltArray.push_back (f);
+            }
+
+            if (result) {
+               result = this->mainClient->putFloatingArray (fltArray);
+            }
             break;
 
          default:
@@ -251,9 +436,26 @@ bool QECaClient::putPvData (const QVariant& value)
             break;
       }
 
-      extra = QString(", source type %1.").arg (value.typeName ());
+      extra = QString (" source vector %1.").arg (value.typeName());
+   }
 
-   } else {
+   else if (mtype == QMetaType::QStringList) {
+      const QStringList valueArray = value.toStringList();
+      const int number = valueArray.count ();
+      ACAI::ClientStringArray strArray;
+
+      // At least for now, we will let the IOC convert string values
+      // to other value types if needs be.
+      //
+      for (int j = 0; j < number; j++) {
+         strArray.push_back (valueArray.value (j).toStdString ());
+      }
+      result = this->mainClient->putStringArray (strArray);
+
+      extra = QString (" source list of string.");
+   }
+
+   else if (mtype == QMetaType::QVariantList) {
       // Process as array.
       //
       const QVariantList valueArray = value.toList ();
@@ -269,7 +471,7 @@ bool QECaClient::putPvData (const QVariant& value)
             for (int j = 0; j < number; j++) {
                strArray.push_back (valueArray.value (j).toString ().toStdString ());
             }
-            result = this->putStringArray (strArray);
+            result = this->mainClient->putStringArray (strArray);
             break;
 
          case ACAI::ClientFieldENUM:
@@ -282,7 +484,7 @@ bool QECaClient::putPvData (const QVariant& value)
                intArray.push_back (i);
             }
             if (result) {
-               result = this->putIntegerArray (intArray);
+               result = this->mainClient->putIntegerArray (intArray);
             }
             break;
 
@@ -296,7 +498,7 @@ bool QECaClient::putPvData (const QVariant& value)
                intArray.push_back (i);
             }
             if (result) {
-               result = this->putIntegerArray (intArray);
+               result = this->mainClient->putIntegerArray (intArray);
             }
             break;
 
@@ -309,7 +511,7 @@ bool QECaClient::putPvData (const QVariant& value)
                fltArray.push_back (f);
             }
             if (result) {
-               result = this->putFloatingArray (fltArray);
+               result = this->mainClient->putFloatingArray (fltArray);
             }
             break;
 
@@ -319,7 +521,62 @@ bool QECaClient::putPvData (const QVariant& value)
             break;
       }
 
-      extra = QString(" source list of %1.").arg (firstValue.typeName ());
+      extra = QString (" source list of %1.").arg (firstValue.typeName ());
+
+   } else {
+      // Process as scaler
+      //
+      ACAI::ClientInteger i;
+      ACAI::ClientFloating f;
+
+      switch (fieldType) {
+         case ACAI::ClientFieldSTRING:
+            result = this->mainClient->putString (value.toString ().toStdString ());
+            break;
+
+         case ACAI::ClientFieldENUM:
+            result = this->varientToEnumIndex (value, i, valueInRange);
+            if (!result) break;
+            result = this->mainClient->putInteger (i);
+            break;
+
+         case ACAI::ClientFieldCHAR:
+            if (mtype == QMetaType::QString) {
+               // Treat as long string.
+               QString str = value.toString ();
+               const int len = str.length();
+               const std::string keepInScope = str.toStdString();
+               const char* text = keepInScope.c_str();
+               result = this->mainClient->putByteArray (text, len + 1); // include the zero
+            } else {
+               // Treat as numeric.
+               result = this->varientToInteger (value, i, valueInRange);
+               if (!result) break;
+               result = this->mainClient->putInteger (i);
+            }
+            break;
+
+         case ACAI::ClientFieldSHORT:
+         case ACAI::ClientFieldLONG:
+            result = this->varientToInteger (value, i, valueInRange);
+            if (!result) break;
+            result = this->mainClient->putInteger (i);
+            break;
+
+         case ACAI::ClientFieldFLOAT:
+         case ACAI::ClientFieldDOUBLE:
+            result = this->varientToFloat (value, f, valueInRange);
+            if (!result) break;
+            result = this->mainClient->putFloating (f);
+            break;
+
+         default:
+            result = false;
+            knownType = false;
+            break;
+      }
+
+      extra = QString(", source type %1.").arg (value.typeName ());
    }
 
    // Report error - use the UserMessage system if we can otherwise use qDebug.
@@ -348,10 +605,10 @@ bool QECaClient::putPvData (const QVariant& value)
          msg.append (fieldName);
          msg.append (".");
       }
-      else if (!this->isConnected()) {
+      else if (!this->mainClient->isConnected()) {
          msg.append (" Channel disconnected.");
 
-      } else if (!this->writeAccess()) {
+      } else if (!this->mainClient->writeAccess()) {
          msg.append (" Channel has no write access.");
 
       } else {
@@ -381,8 +638,8 @@ bool QECaClient::varientToFloat (const QVariant& qValue,
 
    fltValue = qValue.toDouble (&result);
    if (result) {
-      const double min = this->minFieldValue();
-      const double max = this->maxFieldValue();
+      const double min = this->mainClient->minFieldValue();
+      const double max = this->mainClient->maxFieldValue();
 
       if ((fltValue < min) || (fltValue > max)) {
          valueInRange = false;
@@ -409,8 +666,8 @@ bool QECaClient::varientToInteger (const QVariant& qValue,
    //
    double f = qValue.toDouble (&result);
    if (result) {
-      const double min = this->minFieldValue();
-      const double max = this->maxFieldValue();
+      const double min = this->mainClient->minFieldValue();
+      const double max = this->mainClient->maxFieldValue();
 
       if ((f < min) || (f > max)) {
          valueInRange = false;
@@ -432,29 +689,29 @@ bool QECaClient::varientToEnumIndex (const QVariant& qValue,
                                      ACAI::ClientInteger& index,
                                      bool& valueInRange)
 {
-   const QVariant::Type vtype = qValue.type ();
+   const QMetaType::Type mtype = QEPlatform::metaType (qValue);
    bool result;
    valueInRange = true;   // hypothesize good input
    result = true;
 
    // value van be string or not-string.
    //
-   if (vtype == QVariant::String) {
+   if (mtype == QMetaType::QString) {
       // Decode the "string" value
       // NOTE: This checks the known enumeration values.
       // If the IOC has been patched and there has been no channel re-connection,
       // then the user/client will continue to use the original enum values.
       //
       ACAI::ClientString enumText = qValue.toString ().toStdString ();
-      index = this->getEnumerationIndex (enumText);
+      index = this->mainClient->getEnumerationIndex (enumText);
       if (index < 0) {
          valueInRange = false;
          result = false;
       }
    }
 
-   if ((vtype != QVariant::String) || !result) {
-      // Either the varient is a not string type or the string did not match,
+   if ((mtype != QMetaType::QString) || !result) {
+      // Either the variant is a not string type or the string did not match,
       // however we may have a string like "3" which is a perfectly good integer.
       // Decode the "integer" value.
       //
@@ -465,14 +722,32 @@ bool QECaClient::varientToEnumIndex (const QVariant& qValue,
 }
 
 //------------------------------------------------------------------------------
+// As-is call throughs.
+//
+QString QECaClient::getRemoteAddress() const       { return QString::fromStdString (this->mainClient->hostName()); }
+QString QECaClient::getEgu () const                { return QString::fromStdString (this->mainClient->units()); }
+int QECaClient::getPrecision() const               { return this->mainClient->precision (); }
+unsigned int QECaClient::hostElementCount () const { return this->mainClient->hostElementCount(); }
+unsigned int QECaClient::dataElementCount () const { return this->mainClient->dataElementCount(); }
+double QECaClient::getDisplayLimitHigh () const    { return this->mainClient->upperDisplayLimit(); }
+double QECaClient::getDisplayLimitLow () const     { return this->mainClient->lowerDisplayLimit(); }
+double QECaClient::getHighAlarmLimit () const      { return this->mainClient->upperAlarmLimit(); }
+double QECaClient::getLowAlarmLimit () const       { return this->mainClient->lowerAlarmLimit(); }
+double QECaClient::getHighWarningLimit () const    { return this->mainClient->upperWarningLimit(); }
+double QECaClient::getLowWarningLimit () const     { return this->mainClient->lowerWarningLimit(); }
+double QECaClient::getControlLimitHigh () const    { return this->mainClient->upperControlLimit(); }
+double QECaClient::getControlLimitLow () const     { return this->mainClient->lowerControlLimit(); }
+double QECaClient::getMinStep () const             { return 0.0; }  // not applicable to CA
+
+//------------------------------------------------------------------------------
 //
 QStringList QECaClient::getEnumerations() const
 {
    QStringList enumerations;
 
-   const int n = this->enumerationStatesCount ();
+   const int n = this->mainClient->enumerationStatesCount ();
    for (int j = 0; j < n; j++) {
-      enumerations.append (QString::fromStdString (this->getEnumeration (j)));
+      enumerations.append (QString::fromStdString (this->mainClient->getEnumeration (j)));
    }
 
    return enumerations;
@@ -482,8 +757,8 @@ QStringList QECaClient::getEnumerations() const
 //
 QCaAlarmInfo QECaClient::getAlarmInfo () const
 {
-   const QCaAlarmInfo::Status   status   = (QCaAlarmInfo::Status) this->alarmStatus ();
-   const QCaAlarmInfo::Severity severity = (QCaAlarmInfo::Severity) this->alarmSeverity ();
+   const QCaAlarmInfo::Status   status   = (QCaAlarmInfo::Status) this->mainClient->alarmStatus ();
+   const QCaAlarmInfo::Severity severity = (QCaAlarmInfo::Severity) this->mainClient->alarmSeverity ();
 
    return QCaAlarmInfo (QEPvNameUri::ca, this->getPvName(), status, severity, "");
 }
@@ -492,7 +767,7 @@ QCaAlarmInfo QECaClient::getAlarmInfo () const
 //
 QCaDateTime QECaClient::getTimeStamp () const
 {
-   const ACAI::ClientTimeStamp updateTime = this->timeStamp ();
+   const ACAI::ClientTimeStamp updateTime = this->mainClient->timeStamp ();
    return QCaDateTime (updateTime.secPastEpoch, updateTime.nsec, 0);
 }
 
@@ -501,8 +776,8 @@ QCaDateTime QECaClient::getTimeStamp () const
 QString QECaClient::getDescription () const
 {
    QString result;
-   if (this->descriptionClient) {
-      result = QString::fromStdString (this->descriptionClient->getString());
+   if (this->descClient) {
+      result = QString::fromStdString (this->descClient->getString());
    } else {
       // We use a slot, mainly to overcome the const qualifier error.
       //
@@ -510,6 +785,16 @@ QString QECaClient::getDescription () const
    }
    return result;
 }
+
+//------------------------------------------------------------------------------
+// As-is call throughs.
+void QECaClient::setPriority (const unsigned int priority)   { this->mainClient->setPriority (priority); }
+void QECaClient::setRequestCount (const unsigned int number) { this->mainClient->setRequestCount (number); }
+bool QECaClient::getReadAccess() const                       { return this->mainClient->readAccess(); }
+bool QECaClient::getWriteAccess() const                      { return this->mainClient->writeAccess(); }
+void QECaClient::setUsePutCallback (const bool enable)       { this->mainClient->setUsePutCallback (enable); }
+bool QECaClient::getUsePutCallback() const                   { return this->mainClient->usePutCallback(); }
+unsigned QECaClient::getDataElementSize() const              { return this->mainClient->dataElementSize(); }
 
 //------------------------------------------------------------------------------
 //
@@ -534,21 +819,29 @@ void QECaClient::putCallbackNotifcation (const bool isSuccessful)
 
 
 //==============================================================================
-// Helper class: QECaClientTimer
+// Helper class: QECaClientManager
 //==============================================================================
 //
 // This object created when first needed, and not before.
 // Just declaring as a regular object doesn't work.
 //
-static QECaClientManager* singleton = NULL;
+static QECaClientManager singleton;
 
 //------------------------------------------------------------------------------
 // static
 void QECaClientManager::initialise ()
 {
-   if (!singleton) {   // Mutex needed ??
-      singleton = new QECaClientManager ();
-   }
+   if (singleton.isRunning) return;
+   singleton.isRunning = true;
+
+   // Initialise CA client
+   //
+   ACAI::Client::initialise ();
+   ACAI::Client::setNotificationHandler (QECaClientManager::notificationHandlers);
+
+   // Schedule first poll event.
+   //
+   QTimer::singleShot (1, &singleton, SLOT (timeoutHandler ()));
 }
 
 //------------------------------------------------------------------------------
@@ -556,6 +849,7 @@ void QECaClientManager::initialise ()
 void QECaClientManager::notificationHandlers (const char* notification)
 {
    UserMessage userMessage;
+
    userMessage.sendMessage (notification, message_types (MESSAGE_TYPE_ERROR));
 }
 
@@ -564,31 +858,41 @@ void QECaClientManager::notificationHandlers (const char* notification)
 //
 QECaClientManager::QECaClientManager () : QObject (NULL)
 {
-   this->stillRunning = true;
-   ACAI::Client::initialise ();
-   ACAI::Client::setNotificationHandler (QECaClientManager::notificationHandlers);
+   this->isRunning = false;
 
-   // Connect to the about to quit signal.
-   // Note: qApp is defined in QApplication
-   //
-   QObject::connect (qApp, SIGNAL (aboutToQuit ()),
-                     this, SLOT   (aboutToQuitHandler ()));
-
-   // Schedule first poll event.
-   //
-   QTimer::singleShot (1, this, SLOT (timeoutHandler ()));
+   if (this != &singleton) {
+      // Ignore if this is not the singleton object.
+      DEBUG << "This QECaClientManager instance is not the singleton";
+      return;
+   }
 }
 
 //------------------------------------------------------------------------------
-// destructor - place holder
-//
-QECaClientManager::~QECaClientManager () { }
+// destructor
+QECaClientManager::~QECaClientManager ()
+{
+   if (this != &singleton) {
+      // Ignore, this is not the singleton object.
+      return;
+   }
+
+   // Static variables will be freed when application terminates.
+   // Call `finalise` here.
+   //
+   this->isRunning = false;
+   ACAI::Client::finalise ();
+}
 
 //------------------------------------------------------------------------------
 //
 void QECaClientManager::timeoutHandler ()
 {
-   if (!this->stillRunning) return;
+   if (this != &singleton) {
+      // Ignore, this is not the singleton object.
+      return;
+   }
+
+   if (!this->isRunning) return;
 
    // The ACAI package requires a regular poll.
    // Catch any exceptions here.
@@ -604,14 +908,6 @@ void QECaClientManager::timeoutHandler ()
    // Note: the delay is relative to the end of processing the poll function.
    //
    QTimer::singleShot (16, this, SLOT (timeoutHandler ()));
-}
-
-//------------------------------------------------------------------------------
-//
-void QECaClientManager::aboutToQuitHandler ()
-{
-   this->stillRunning = false;
-   ACAI::Client::finalise ();
 }
 
 // end

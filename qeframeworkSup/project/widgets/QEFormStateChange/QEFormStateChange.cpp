@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2019 Australian Synchrotron
+ *  Copyright (c) 2019-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -150,8 +150,8 @@ void QEFormStateChange::setup ()
    this->actionList [viOpen]  = new Actions (viOpen, this);
    this->actionList [viClose] = new Actions (viClose, this);
 
-   this->setMinimumSize (8,8);
-   this->setMaximumSize (24,24);
+   this->setMinimumSize (16, 16);
+   this->setMaximumSize (64, 64);
 
    // Set up data
    //
@@ -173,7 +173,7 @@ void QEFormStateChange::setup ()
 //
 QSize QEFormStateChange::sizeHint ()
 {
-   return QSize (12, 12);
+   return QSize (16, 16);
 }
 
 //------------------------------------------------------------------------------
@@ -310,36 +310,47 @@ QStringList QEFormStateChange::getCloseArguments () const
 
 //------------------------------------------------------------------------------
 //
-void QEFormStateChange::setFormatProperty (const Formats format)
+void QEFormStateChange::setFormatProperty (const QE::Formats format)
 {
-   this->setFormat (QEStringFormatting::formats (format) );
+   this->setFormat (format);
 }
 
 //------------------------------------------------------------------------------
 //
-QEFormStateChange::Formats QEFormStateChange::getFormatProperty () const
+QE::Formats QEFormStateChange::getFormatProperty () const
 {
-   return Formats (this->getFormat ());
+   return this->getFormat ();
 }
 
 //------------------------------------------------------------------------------
 //
 void QEFormStateChange::paintEvent (QPaintEvent* /* event */)
 {
+   const QRect rect (0, 0, this->width() - 1, this->height() - 1);
+
    QPainter painter (this);
    QPen pen;
    QBrush brush;
 
-   pen.setWidth (1);
-   pen.setStyle (Qt::SolidLine);
-   pen.setColor (QColor ("#607080"));
+   pen.setStyle (Qt::NoPen);
    painter.setPen (pen);
 
    brush.setStyle (Qt::SolidPattern);
-   brush.setColor (QColor ("#c0e0ff"));
+   brush.setColor (QColor (0,0,0,0));   // apha = 0, i.e. see through
    painter.setBrush (brush);
+   painter.drawRect (rect);
 
-   painter.drawRect (0, 0, this->width () - 1, this->height () - 1);
+   for (int q = 0; q < 4; q++) {
+      const int spanAngle = 90;
+      const int centreAngle = 45 + q*90;
+      const int f = 8 * (180 - (2*centreAngle - spanAngle));
+      const int g = - 16 * spanAngle;
+
+      brush.setColor (q%2 == 0 ? QColor(0xff0000) : QColor(0x0000ff));
+      painter.setBrush (brush);
+      painter.drawPie (rect, f, g);
+   }
+
 }
 
 //------------------------------------------------------------------------------
@@ -347,13 +358,13 @@ void QEFormStateChange::paintEvent (QPaintEvent* /* event */)
 // QCaObject required. For a QEFormStateChange, a QCaObject that accepts strings
 // is required.
 //
-qcaobject::QCaObject* QEFormStateChange::createQcaItem (unsigned int variableIndex)
+qcaobject::QCaObject* QEFormStateChange::createQcaItem (unsigned int vi)
 {
-   if (variableIndex >= NUMBER_OF_VARIABLES) return NULL;
+   if (vi >= NUMBER_OF_VARIABLES) return NULL;
 
    // Create all items as QEFloating
-   QString pvName = this->getSubstitutedVariableName (variableIndex);
-   return new QEString (pvName, this, &this->actionList[variableIndex]->formatting, variableIndex);
+   QString pvName = this->getSubstitutedVariableName (vi);
+   return new QEString (pvName, this, &this->actionList[vi]->formatting, vi);
 }
 
 //------------------------------------------------------------------------------
@@ -362,13 +373,13 @@ qcaobject::QCaObject* QEFormStateChange::createQcaItem (unsigned int variableInd
 // connection to a PV as the variable name has changed.
 // This function may also be used to initiate updates when loaded as a plugin.
 //
-void QEFormStateChange::establishConnection (unsigned int variableIndex)
+void QEFormStateChange::establishConnection (unsigned int vi)
 {
-   if (variableIndex >= NUMBER_OF_VARIABLES) return;
+   if (vi >= NUMBER_OF_VARIABLES) return;
 
    // Create a connection. We don't need any connection/update signals.
    //
-   this->createConnection (variableIndex, false);
+   this->createConnection (vi, false);
 }
 
 //------------------------------------------------------------------------------

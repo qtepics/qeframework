@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2021 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +27,7 @@
 #include <QEDesignerPlugin.h>
 #include <QEPluginWidgetManagers.h>
 
+#include <QECommentManager.h>
 #include <QEMenuButtonManager.h>
 #include <QEPeriodicManager.h>
 
@@ -96,12 +97,15 @@ QEWidgets::QEWidgets(QObject *parent) : QObject(parent) {
 
     // Non-EPICS aware framework widgets.
     //
+    widgets.append(new QEAlarmColourSelectionManager(this));
     widgets.append(new QEAnalogIndicatorManager(this));
     widgets.append(new QAnalogSliderManager(this));
     widgets.append(new QEArchiveNameSearchManager(this));
     widgets.append(new QEArchiveStatusManager(this));
     widgets.append(new QBitStatusManager(this));
+    widgets.append(new QECommentManager(this));
     widgets.append(new QEDateTimeManager(this));
+    widgets.append(new QEExitButtonManager(this));
     widgets.append(new QEFrameManager(this));
     widgets.append(new QEGroupBoxManager(this));
     widgets.append(new QEFormGroupBoxManager(this));

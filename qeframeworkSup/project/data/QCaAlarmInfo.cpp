@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2023 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -107,6 +107,19 @@ QCaAlarmInfo::QCaAlarmInfo ()
 }
 
 //------------------------------------------------------------------------------
+// Copy construct.
+//
+QCaAlarmInfo::QCaAlarmInfo( const QCaAlarmInfo& other )
+{
+   this->protocol = other.protocol;
+   this->pvName = other.pvName;
+   this->status = other.status;
+   this->severity = other.severity;
+   this->message = other.message;
+}
+
+
+//------------------------------------------------------------------------------
 // Construct an instance given an alarm state and severity
 //
 QCaAlarmInfo::QCaAlarmInfo (const Status statusIn,
@@ -140,6 +153,18 @@ QCaAlarmInfo::QCaAlarmInfo (const QEPvNameUri::Protocol protocolIn,
 // Deconstruct - place holder
 //
 QCaAlarmInfo::~QCaAlarmInfo () { }
+
+//------------------------------------------------------------------------------
+// Assignment function.
+QCaAlarmInfo& QCaAlarmInfo::operator=(const QCaAlarmInfo& other)
+{
+   this->protocol = other.protocol;
+   this->pvName = other.pvName;
+   this->status = other.status;
+   this->severity = other.severity;
+   this->message = other.message;
+   return *this;
+}
 
 //------------------------------------------------------------------------------
 // Equality function.
@@ -367,6 +392,7 @@ void QCaAlarmInfoColorNamesManager::determineColorNames ()
       if (!v3.isEmpty()) cn = v3;
       if (!cn.isEmpty()) workList.replace (j, cn);
    }
+
    styleColorNames = workList;
 
    // Ditto the color names
@@ -432,6 +458,20 @@ QStringList QCaAlarmInfoColorNamesManager::getDefaultStyleColorNames()
 QStringList QCaAlarmInfoColorNamesManager::getDefaultColorNames()
 {
    return defaultColorNames;
+}
+
+//------------------------------------------------------------------------------
+// static
+QStringList QCaAlarmInfoColorNamesManager::getInUseStyleColorNames()
+{
+   return styleColorNames;
+}
+
+//------------------------------------------------------------------------------
+// static
+QStringList QCaAlarmInfoColorNamesManager::getInUseColorNames()
+{
+   return colorNames;
 }
 
 //------------------------------------------------------------------------------

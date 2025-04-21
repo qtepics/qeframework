@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2023 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -32,6 +32,7 @@
 #include <QLayout>
 #include <QGridLayout>
 #include <QHeaderView>
+#include <QMetaType>
 #include <QRegularExpression>
 #include <QSize>
 #include <QTableWidget>
@@ -42,6 +43,7 @@
 #include <QEResizeableFrame.h>
 #include <QSimpleShape.h>
 #include <QEImage.h>
+#include <QEPlatform.h>
 #include <QEWidget.h>
 #include <QECommon.h>
 
@@ -140,7 +142,7 @@ int QEScaling::dataSize () const
 QVariant QEScaling::encodeProperty () const
 {
    if (!isDefined) {
-      return QVariant (QVariant::Invalid);
+      return QVariant ();
    }
 
    const void* base = &this->firstMember;
@@ -162,16 +164,19 @@ bool QEScaling::decodeProperty (const QVariant& property)
 
    this->isDefined = false;
 
-   if (property.type () != QVariant::List) return false;
+   const QMetaType::Type ptype = QEPlatform::metaType (property);
+   if (ptype != QMetaType::QVariantList) return false;
 
    QVariantList variantList = property.toList ();
    if (variantList.count () != piNUMBER_OF_ITEMS) return false;
 
    QVariant styl = variantList.value (piStyleSheet);
-   if (styl.type () != QVariant::String) return false;
+   const QMetaType::Type stype = QEPlatform::metaType (styl);
+   if (stype != QMetaType::QString) return false;
 
    QVariant data = variantList.value (piGenericData);
-   if (data.type () != QVariant::ByteArray) return false;
+   const QMetaType::Type dtype = QEPlatform::metaType (data);
+   if (dtype != QMetaType::QByteArray) return false;
 
    // Extract style sheet
    this->styleSheet = styl.toString ();
@@ -666,17 +671,19 @@ void QEScaling::getWidgetScaling (const QWidget* widget, int& m, int& d)
    if (!widget) return;
 
    QVariant property = widget->property (CURRENT_SCALE);
-
-   if (property.type () != QVariant::List) return;
+   const QMetaType::Type ptype = QEPlatform::metaType (property);
+   if (ptype != QMetaType::QVariantList) return;
 
    QVariantList variantList = property.toList ();
    if (variantList.count () != 2) return;
 
    QVariant mp = variantList.value (0);
-   if (mp.type() != QVariant::Int) return;
+   const QMetaType::Type mtype = QEPlatform::metaType (mp);
+   if (mtype != QMetaType::Int) return;
 
    QVariant dp = variantList.value (1);
-   if (dp.type() != QVariant::Int) return;
+   const QMetaType::Type dtype = QEPlatform::metaType (dp);
+   if (dtype != QMetaType::Int) return;
 
    m = mp.toInt ();
    d = dp.toInt ();
@@ -712,8 +719,8 @@ QString QEScaling::scaleStyleSheet (const QString& input)
    //
    if (input.isEmpty()) return input;
 
-   const QString pattern = "[0-9][0-9]*p[xt]";
-   const QRegularExpression re (pattern, QRegularExpression::NoPatternOption);
+   static const QString pattern = "[0-9][0-9]*p[xt]";
+   static const QRegularExpression re (pattern, QRegularExpression::NoPatternOption);
 
    QString workingInput = input;
    QString result = "";

@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2011-2022 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -16,28 +18,19 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2011,2013,2016 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
  *    andrew.starritt@synchrotron.org.au
  */
 
-/*
-  This class is a CA aware Bit Status widget based on the BitStatus widget.
-  It is tighly integrated with the base class QEWidget.
-  Refer to QEWidget.cpp for details
- */
-
-
+#include "QEBitStatus.h"
 #include <alarm.h>
 #include <QDebug>
 #include <QECommon.h>
-#include <QEBitStatus.h>
 #include <QCaObject.h>
 
-#define DEBUG  qDebug () << "QEBitStatus" << __FUNCTION__ << __LINE__
+#define DEBUG  qDebug () << "QEBitStatus"  << __LINE__<< __FUNCTION__ << "  "
 
 #define PV_VARIABLE_INDEX      0
 

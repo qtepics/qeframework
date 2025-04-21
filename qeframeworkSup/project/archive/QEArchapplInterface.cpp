@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2021-2022 Australian Synchrotron
+ *  Copyright (c) 2021-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -36,6 +36,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <QEArchiveManager.h>
 
 // Enable Archiver Appliance support
 //
@@ -492,8 +493,8 @@ void QEArchapplInterface::processArchives (const QObject* userData)
    struct Archive item;
 
    item.key  = 0;
-   item.name = QString("Archiver Appliance");
-   item.path = QString("");
+   item.nameIndex = QEArchiveManager::getArchiveNameIndex ("Archiver Appliance");
+   item.pathIndex = QEArchiveManager::getPathIndex ("");
 
    PvArchives.append (item);
 

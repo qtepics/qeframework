@@ -32,6 +32,7 @@
 
 #include "standardProperties.h"
 #include <QDebug>
+#include <ContainerProfile.h>
 #include <QEWidget.h>
 #include <QEStringFormattingMethods.h>
 
@@ -47,8 +48,8 @@ standardProperties::standardProperties (QWidget* ownerIn)
 
    ContainerProfile profile;
 
-   this->visibilityLevel = userLevelTypes::USERLEVEL_USER;
-   this->enabledLevel = userLevelTypes::USERLEVEL_USER;
+   this->visibilityLevel = QE::User;
+   this->enabledLevel = QE::User;
    this->currentLevel = profile.getUserLevel ();
 
    this->userLevelDisabled = false;
@@ -57,7 +58,7 @@ standardProperties::standardProperties (QWidget* ownerIn)
    // This is the default-default state.
    // Some widgets, esp QEAbstractDynamicWidgets can/di overide this default.
    //
-   this->displayAlarmState = DISPLAY_ALARM_STATE_ALWAYS;
+   this->displayAlarmState = QE::Always;
    this->isOosAware = true;
 }
 
@@ -65,14 +66,14 @@ standardProperties::~standardProperties () {}
 
 //------------------------------------------------------------------------------
 //
-userLevelTypes::userLevels standardProperties::getUserLevelVisibility () const
+QE::UserLevels standardProperties::getUserLevelVisibility () const
 {
    return this->visibilityLevel;
 }
 
 //------------------------------------------------------------------------------
 //
-void standardProperties::setUserLevelVisibility (userLevelTypes::userLevels levelIn)
+void standardProperties::setUserLevelVisibility (QE::UserLevels levelIn)
 {
    this->visibilityLevel = levelIn;
    this->setSuperVisibility ();
@@ -80,14 +81,14 @@ void standardProperties::setUserLevelVisibility (userLevelTypes::userLevels leve
 
 //------------------------------------------------------------------------------
 //
-userLevelTypes::userLevels standardProperties::getUserLevelEnabled () const
+QE::UserLevels standardProperties::getUserLevelEnabled () const
 {
    return this->enabledLevel;
 }
 
 //------------------------------------------------------------------------------
 //
-void standardProperties::setUserLevelEnabled (userLevelTypes::userLevels levelIn)
+void standardProperties::setUserLevelEnabled (QE::UserLevels levelIn)
 {
    this->enabledLevel = levelIn;
    this->setSuperEnabled ();
@@ -154,7 +155,7 @@ void standardProperties::setSuperVisibility ()
 //------------------------------------------------------------------------------
 // Given a user level, note the new level and determine if the widget should be visible or enabled.
 //
-void standardProperties::checkVisibilityEnabledLevel (userLevelTypes::userLevels level)
+void standardProperties::checkVisibilityEnabledLevel (QE::UserLevels level)
 {
    // Note the new user level
    this->currentLevel = level;
@@ -197,7 +198,7 @@ void standardProperties::invokeStringFormattingChange ()
 // any variable data is displaying.
 //
 void standardProperties::
-setDisplayAlarmStateOption (displayAlarmStateOptions displayAlarmStateIn)
+setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions displayAlarmStateIn)
 {
    this->displayAlarmState = displayAlarmStateIn;
    this->invokeStringFormattingChange ();
@@ -205,7 +206,7 @@ setDisplayAlarmStateOption (displayAlarmStateOptions displayAlarmStateIn)
 
 //------------------------------------------------------------------------------
 //
-standardProperties::displayAlarmStateOptions
+QE::DisplayAlarmStateOptions
 standardProperties::getDisplayAlarmStateOption () const
 {
    return this->displayAlarmState;
@@ -240,19 +241,19 @@ bool standardProperties::getUseAlarmState (const QCaAlarmInfo & alarmInfo) const
    } else {
       switch (this->getDisplayAlarmStateOption ()) {
 
-         case DISPLAY_ALARM_STATE_ALWAYS:
+         case QE::Always:
             result = true;
             break;
 
-         case DISPLAY_ALARM_STATE_WHEN_IN_ALARM:
+         case QE::WhenInAlarm:
             result = alarmInfo.isInAlarm ();
             break;
 
-         case DISPLAY_ALARM_STATE_WHEN_INVALID:
+         case QE::WhenInvalid:
             result = alarmInfo.isInvalid ();
             break;
 
-         case DISPLAY_ALARM_STATE_NEVER:
+         case QE::Never:
             result = false;
             break;
       }

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2019 Australian Synchrotron.
+ *  Copyright (c) 2019-2023 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -170,7 +170,7 @@ void QEDistribution::setup()
    // By default, the distribution widget does not display the alarm state.
    // The internal valueLabel widget does this on our behalf.
    //
-   this->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_NEVER);
+   this->setDisplayAlarmStateOption (QE::Never);
 
    // Set up a connection to receive variable name property changes
    // The variable name property manager class only delivers an updated
@@ -882,7 +882,7 @@ void QEDistribution::setPvValue (const double& value, QCaAlarmInfo& alarmInfo,
    if (!qca) return;  // sanity check
 
    if (this->isFirstUpdate) {
-      this->stringFormatting.setArrayAction (QEStringFormatting::INDEX);
+      this->stringFormatting.setArrayAction (QE::Index);
       this->stringFormatting.setDbEgu (qca->getEgu ());
       this->stringFormatting.setDbEnumerations (qca->getEnumerations ());
       this->stringFormatting.setDbPrecision (qca->getPrecision ());
@@ -1260,7 +1260,8 @@ void QEDistribution::createWidgets()
 
    this->xAxis = new QEAxisPainter (this->plotArea);
    this->xAxis->setHasAxisLine (true);
-   this->xAxis->setOrientation (QEAxisPainter::Left_To_Right);
+   this->xAxis->setOrientation (Qt::Horizontal);
+   this->xAxis->setInvertedAppearance (false);
    this->xAxis->setFixedHeight (32);
    this->xAxis->setMinimum (this->currentXPlotMin);
    this->xAxis->setMaximum (this->currentXPlotMax);
@@ -1276,7 +1277,8 @@ void QEDistribution::createWidgets()
 
    this->yAxis = new QEAxisPainter (this->plotArea);
    this->yAxis->setHasAxisLine (true);
-   this->yAxis->setOrientation (QEAxisPainter::Bottom_To_Top);
+   this->yAxis->setOrientation (Qt::Vertical);
+   this->yAxis->setInvertedAppearance (false);
    this->yAxis->setFixedWidth (52);
    this->yAxis->setMinimum (this->currentYPlotMin);
    this->yAxis->setMaximum (this->currentYPlotMax);

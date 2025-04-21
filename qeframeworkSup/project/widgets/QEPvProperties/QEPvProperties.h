@@ -1,9 +1,9 @@
-/* QEPvProperties.h
+/*  QEPvProperties.h
  *
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (c) 2012-2021 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -42,6 +42,7 @@
 
 #include <persistanceManager.h>
 #include <QCaAlarmInfo.h>
+#include <QEEnums.h>
 #include <QEDragDrop.h>
 #include <QCaObject.h>
 #include <QEFrameworkLibraryGlobal.h>
@@ -146,8 +147,8 @@ protected:
    // Override QEDragDrop functions.
    //
    void mousePressEvent (QMouseEvent* event)    { qcaMousePressEvent (event); }
-   void dragEnterEvent (QDragEnterEvent* event) { qcaDragEnterEvent (event, false); }
-   void dropEvent (QDropEvent* event)           { qcaDropEvent(event, true); }
+   void dragEnterEvent (QDragEnterEvent* event) { qcaDragEnterEvent (event);  }
+   void dropEvent (QDropEvent* event)           { qcaDropEvent(event, true);  }
    // This widget uses the setDrop/getDrop defined in QEWidget.
 
    void saveConfiguration (PersistanceManager* pm);

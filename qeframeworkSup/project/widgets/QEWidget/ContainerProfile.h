@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2020 Australian Synchrotron
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -92,30 +92,12 @@
 #include <QList>
 #include <QStringList>
 #include <QDebug>
+#include <QEEnums.h>
 #include <QEFrameworkLibraryGlobal.h>
 #include <persistanceManager.h>
 
 class QEWidget;             // differed
 class ContainerProfile;     // differed
-
-// Define the user levels
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT userLevelTypes : public QObject
-{
-    Q_OBJECT
-public:
-    // Define the user levels
-    // NOTE: order must remain least privileged to most privileged
-    /// \public
-    /// \enum userLevels
-    /// User levels set by widgets such as QELogin and used by many widgets
-    ///  to determine visibility, enabled state, and style.
-    enum userLevels { USERLEVEL_USER,       ///< User level - least privilaged
-                      USERLEVEL_SCIENTIST,  ///< User level - more privilaged than user, less than engineer
-                      USERLEVEL_ENGINEER    ///< User level - most privilaged
-                    };
-    Q_ENUMS (userLevels)
-};
-
 
 // Class used to generate signals that the user level has changed.
 // A single instance of this class is shared by all instances of
@@ -137,20 +119,20 @@ public:
     // Set the application wide user level
     // When level is set in the single instance of this class, all ContainerProfile
     // classes are signaled
-    void setLevel( userLevelTypes::userLevels level );
+    void setLevel( QE::UserLevels level );
 
     // Get the application wide user level
     // Each widget can reimplement ContainerProfile::userLevelChanged() to be
     // notified of user level changes, but this function can be used to
     // determine the user level when a widget is first created
-    userLevelTypes::userLevels getLevel() const;
+    QE::UserLevels getLevel() const;
 
 signals:
     /// Internal use only. Send when the user level has changed
-    void userChanged( userLevelTypes::userLevels level );   // User level change signal
+    void userChanged( QE::UserLevels level );   // User level change signal
 
 private:
-    userLevelTypes::userLevels level;    // Current user level
+    QE::UserLevels level;    // Current user level
 };
 
 // Class used to recieve signals that the user level has changed.
@@ -174,10 +156,10 @@ public:
     void setOwner( ContainerProfile* owner );
 
 public slots:
-    void userChanged( userLevelTypes::userLevels level );  // Receive user level change signals
+    void userChanged( QE::UserLevels level );  // Receive user level change signals
 
 private:
-    ContainerProfile* owner;                                // ContainerProfile class that this instance is a part of
+    ContainerProfile* owner;  // ContainerProfile class that this instance is a part of.
 };
 
 // Class to allow a truly unique instance of the published profile.
@@ -262,17 +244,17 @@ public:
     // The following methods are static - they operate on  share.publishedProfile
     //
     static void addMacroSubstitutions( QString macroSubstitutions ); // Add another set of macro substitutions to those setup by setupProfile(). Used as sub forms are created
-    static void removeMacroSubstitutions();                            // Remove the last set of macro substitutions added by addMacroSubstitutions(). Used after sub forms are created
+    static void removeMacroSubstitutions();                          // Remove the last set of macro substitutions added by addMacroSubstitutions(). Used after sub forms are created
 
     static void addPriorityMacroSubstitutions( QString macroSubstitutions ); // Add another set of macro substitutions to those setup by setupProfile(). Used as sub forms are created. These macros take priority
-    static void removePriorityMacroSubstitutions();                            // Remove the last set of macro substitutions added by addPriorityMacroSubstitutions(). Used after sub forms are created
+    static void removePriorityMacroSubstitutions();                          // Remove the last set of macro substitutions added by addPriorityMacroSubstitutions(). Used after sub forms are created
 
     static void setPublishedParentPath( QString publishedParentPath ); // Set the published current object path used for file operations
     static bool isProfileDefined();           // Returns true if a profile has been setup by setupProfile()
     static bool areUserLevelPasswordsSet();   // Return true if one or more user level passwords have been set in the profile
 
-    static QString getUserLevelPassword( userLevelTypes::userLevels level );  // Get the local copy of the user level password for the specified user level
-    static void setUserLevelPassword( userLevelTypes::userLevels level, QString password );  // Set the local copy of the user level password for the specified user level
+    static QString getUserLevelPassword( QE::UserLevels level );                 // Get the local copy of the user level password for the specified user level
+    static void setUserLevelPassword( QE::UserLevels level, QString password );  // Set the local copy of the user level password for the specified user level
 
     static void addContainedWidget( QEWidget* containedWidget );    // Adds a reference to the list of QE widgets created with this profile
     static QEWidget* getNextContainedWidget();               // Returns a reference to the next QE widgets in the list of QE widgets created with this profile
@@ -284,25 +266,25 @@ public:
     static QStringList getEnvPathList();                     // Get the path list from the environment variable
 
     static bool setDontActivateYet( bool dontActivate );   // Flag newly created QE widgets should hold of activating until told to do so
-    static bool getDontActivateYet();                        // Get flag indicating QE widgets should hold of activating until told to do so
+    static bool getDontActivateYet();                      // Get flag indicating QE widgets should hold of activating until told to do so
 
     static void releaseProfile();                            // Clears the context setup by setupProfile(). Local data in all instances is still valid
 
-    static void setUserLevel( userLevelTypes::userLevels level );        // Set the current user level
-    static userLevelTypes::userLevels getUserLevel();                    // Return the current user level
+    static void setUserLevel( QE::UserLevels level );        // Set the current user level
+    static QE::UserLevels getUserLevel();                    // Return the current user level
 
     static PersistanceManager* getPersistanceManager();  // Return a reference to the single persistance manager
 
     static QChar platformSeperator();                   // Return the platform dependant path separator (between paths, not directories in a path). Qt only provides a platform directory separator (\ or /)
 
-    static QString getUserLevelName( userLevelTypes::userLevels userLevelValue );   // Return the user level string given the user level
-    static userLevelTypes::userLevels getUserLevelValue( QString userLevelName );   // Return the user level value given the user level string name
+    static QString getUserLevelName( QE::UserLevels userLevelValue );   // Return the user level string given the user level
+    static QE::UserLevels getUserLevelValue( QString userLevelName );   // Return the user level value given the user level string name
 
 protected:
     // Virtual function implemented by QEWidget that manages general aspects of
     // user level change, then calls optional QE widget specific virtual functions.
     //
-    virtual void userLevelChangedGeneral( userLevelTypes::userLevels );
+    virtual void userLevelChangedGeneral( QE::UserLevels );
 
 private:
     // Publish an environmental profile for all QEWidgets to use on creation
@@ -357,9 +339,5 @@ private:
     QEWidget* owner;
     bool localProfileWasPublished;
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (userLevelTypes::userLevels)
-#endif
 
 #endif // QE_CONTAINER_PROFILE_H

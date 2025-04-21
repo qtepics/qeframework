@@ -30,6 +30,7 @@
 #include <QWidget>
 #include <QString>
 #include <QStringList>
+#include <QEEnums.h>
 #include <QEFrameworkLibraryGlobal.h>
 #include <ContainerProfile.h>
 #include <QEFrame.h>
@@ -49,6 +50,20 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAbstractDynamicWidget : public QEFram
    typedef QEFrame ParentWidgetClass;
 
 public:
+   // Some QEFrame properties are really not applicable to this widget hierarchy.
+   // These are re-declared as DESIGNABLE false.
+   // Consider spliting QEFrame into QEFrame (basic) and QEPixmapFrame.
+   //
+   Q_PROPERTY (bool scaledContents READ getScaledContents  WRITE setScaledContents  DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap0     READ getPixmap0Property WRITE setPixmap0Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap1     READ getPixmap1Property WRITE setPixmap1Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap2     READ getPixmap2Property WRITE setPixmap2Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap3     READ getPixmap3Property WRITE setPixmap3Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap4     READ getPixmap4Property WRITE setPixmap4Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap5     READ getPixmap5Property WRITE setPixmap5Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap6     READ getPixmap6Property WRITE setPixmap6Property DESIGNABLE false)
+   Q_PROPERTY (QPixmap pixmap7     READ getPixmap7Property WRITE setPixmap7Property DESIGNABLE false)
+
    /// Default directory used for loading/saving files. Default to null string
    /// which is interpreted as the current directory.
    ///
@@ -67,14 +82,7 @@ public:
    /// The default is useAliasName, however the default aliasName are undefined,
    /// so the effective default is usePvName.
    ///
-   enum PVLabelMode {
-      usePvName,         ///< display the PV name
-      useAliasName,      ///< display alias if defined otherwise display the PV name
-      useDescription     ///< display description if defined otherwise display the PV name
-   };
-   Q_ENUM (PVLabelMode)
-
-   Q_PROPERTY (PVLabelMode pvLabelMode  READ getPVLabelMode  WRITE setPVLabelMode)
+   Q_PROPERTY (QE::PVLabelMode pvLabelMode READ getPVLabelMode  WRITE setPVLabelMode)
 
 public:
    // Abstract Dynamic Widget Context Menu values
@@ -104,8 +112,8 @@ public:
 
    // Set/Get pvLabelMode.
    //
-   void setPVLabelMode (const PVLabelMode pvLabelMode);
-   PVLabelMode getPVLabelMode () const;
+   void setPVLabelMode (const QE::PVLabelMode pvLabelMode);
+   QE::PVLabelMode getPVLabelMode () const;
 
    // Override paste. This functions adds PVs names to the next
    // available slot(s) if any.
@@ -147,7 +155,7 @@ protected:
 
    // Sub-class convienence utility functions.
    //
-   userLevelTypes::userLevels minimumEditPvUserLevel () const;
+   QE::UserLevels minimumEditPvUserLevel () const;
    void setStandardFormat (QELabel* dataLabel);
 
 protected slots:
@@ -168,11 +176,7 @@ private:
    bool useOwnPersistantName;
    QString defaultDir;
    bool enableEditPv;
-   PVLabelMode pvLabelMode;
+   QE::PVLabelMode pvLabelMode;
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QEAbstractDynamicWidget::PVLabelMode)
-#endif
 
 #endif // QE_ABSTRACT_DYNAMIC_WIDGET_H

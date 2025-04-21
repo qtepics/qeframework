@@ -4,6 +4,8 @@
 # the Australian Synchrotron. This file is included into and as part
 # of the overall framework.pro project file.
 #
+# Copyright (c) 2017-2024 Australian Synchrotron
+#
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -17,25 +19,21 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (c) 2017 Australian Synchrotron
-#
 # Author:
 #   Andrew Starritt
 # Contact details:
-#   andrew.starritt@synchrotron.org.au
+#   andrews@ansto.gov.au
 #
 
-HEADERS += \
-    widgets/QEHistogram/QEHistogram.h \
-    widgets/QEHistogram/QEScalarHistogram.h \
-    widgets/QEHistogram/QEWaveformHistogram.h
+INCLUDEPATH += $$PWD
 
-SOURCES += \
-    widgets/QEHistogram/QEHistogram.cpp \
-    widgets/QEHistogram/QEScalarHistogram.cpp \
-    widgets/QEHistogram/QEWaveformHistogram.cpp
+HEADERS += $$PWD/QEHistogram.h
+SOURCES += $$PWD/QEHistogram.cpp
 
-INCLUDEPATH += \
-    widgets/QEHistogram
+HEADERS += $$PWD/QEScalarHistogram.h
+SOURCES += $$PWD/QEScalarHistogram.cpp
+
+HEADERS += $$PWD/QEWaveformHistogram.h
+SOURCES += $$PWD/QEWaveformHistogram.cpp
 
 # end

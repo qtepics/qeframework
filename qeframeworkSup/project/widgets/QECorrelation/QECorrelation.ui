@@ -61,7 +61,7 @@
        <number>4</number>
       </property>
       <item>
-       <widget class="QFrame" name="Contol_Panel">
+       <widget class="QFrame" name="Control_Panel">
         <property name="minimumSize">
          <size>
           <width>0</width>
@@ -553,7 +553,7 @@
           <rect>
            <x>0</x>
            <y>92</y>
-           <width>660</width>
+           <width>664</width>
            <height>20</height>
           </rect>
          </property>
@@ -580,9 +580,6 @@
           </property>
           <property name="useDbPrecision">
            <bool>false</bool>
-          </property>
-          <property name="arrayAction" stdset="0">
-           <enum>QELabel::Index</enum>
           </property>
           <property name="text">
            <string>- </string>
@@ -637,7 +634,7 @@
           <rect>
            <x>0</x>
            <y>112</y>
-           <width>660</width>
+           <width>664</width>
            <height>20</height>
           </rect>
          </property>
@@ -664,9 +661,6 @@
           </property>
           <property name="useDbPrecision">
            <bool>false</bool>
-          </property>
-          <property name="arrayAction" stdset="0">
-           <enum>QELabel::Index</enum>
           </property>
           <property name="text">
            <string>- </string>

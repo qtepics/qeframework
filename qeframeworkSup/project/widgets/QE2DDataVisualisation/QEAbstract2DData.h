@@ -34,6 +34,7 @@
 #include <QRect>
 #include <QVector>
 #include <QWidget>
+#include <QEEnums.h>
 #include <QEFloating.h>
 #include <QEFloatingArray.h>
 #include <QEFloatingFormatting.h>
@@ -138,18 +139,9 @@ public:
    // rotate/flip options. We follow the QEImage paradigm for both consistancy
    // and probably less mental gymnastics for the user.
    //
-   /// \enum RotationOptions
-   enum RotationOptions {
-      NoRotation,              ///< No data rotation - default
-      Rotate90Right,           ///< Rotate data 90 degrees clockwise
-      Rotate180,               ///< Rotate data 180 degrees
-      Rotate90Left             ///< Rotate data 90 degrees anti-clockwise
-   };
-   Q_ENUM (RotationOptions)
-
    /// Data rotation option.
    ///
-   Q_PROPERTY (RotationOptions rotation  READ getRotation              WRITE setRotation)
+   Q_PROPERTY (QE::RotationOptions rotation  READ getRotation            WRITE setRotation)
 
    /// If true, flip image vertically.
    ///
@@ -175,20 +167,8 @@ public:
    ///
    Q_PROPERTY (bool logScale             READ getLogScale              WRITE setLogScale)
 
-   /// Mouse move signal selection options.
-   ///
-   enum MouseMoveSignals {
-      signalStatus         = 0x0001,  ///< signals row, col and value as status text via sendMessage
-      signalData           = 0x0002,  ///< signals row, col and value emited as binary data
-      signalText           = 0x0004,  ///< signals row, col and value emited as as text
-   };
-   Q_ENUM (MouseMoveSignals)
-
-   Q_DECLARE_FLAGS (MouseMoveSignalFlags, MouseMoveSignals)
-   Q_FLAG (MouseMoveSignalFlags)
-
-   Q_PROPERTY (MouseMoveSignalFlags mouseMoveSignals READ getMouseMoveSignals
-                                                     WRITE setMouseMoveSignals)
+   Q_PROPERTY (QE::MouseMoveSignalFlags mouseMoveSignals
+               READ getMouseMoveSignals  WRITE setMouseMoveSignals)
 
    /// Default macro substitutions. The default is no substitutions.
    /// The format is NAME1=VALUE1[,] NAME2=VALUE2...
@@ -258,8 +238,8 @@ public:
    void setVariableNameSubstitutions (const QString variableSubstitutions);
    QString getVariableNameSubstitutions () const;
 
-   void setMouseMoveSignals (const MouseMoveSignalFlags flags);
-   MouseMoveSignalFlags getMouseMoveSignals () const;
+   void setMouseMoveSignals (const QE::MouseMoveSignalFlags flags);
+   QE::MouseMoveSignalFlags getMouseMoveSignals () const;
 
 public slots:
    // All non-PV name related property setters are also slots.
@@ -274,7 +254,7 @@ public slots:
    void setVerticalBin  (const int bin);
    void setHorizontalBin  (const int bin);
    void setDataBinning  (const DataBinning option);
-   void setRotation (const RotationOptions rotation);
+   void setRotation (const QE::RotationOptions rotation);
    void setVerticalFlip (const bool verticalFlip);
    void setHorizontalFlip (const bool horizontalFlip);
    void setScaleMode (const ScaleModes);
@@ -295,7 +275,7 @@ public:
    int getVerticalBin () const;
    int getHorizontalBin () const;
    DataBinning getDataBinning () const;
-   RotationOptions getRotation() const;
+   QE::RotationOptions getRotation() const;
    bool getVerticalFlip () const;
    bool getHorizontalFlip () const;
    ScaleModes getScaleMode () const;
@@ -428,7 +408,7 @@ private:
    int mHorizontalBin;
    DataBinning mDataBinning;
 
-   RotationOptions mRotation;
+   QE::RotationOptions mRotation;
    bool mVerticalFlip;
    bool mHorizontalFlip;
    ScaleModes mScaleMode;
@@ -437,7 +417,7 @@ private:
    bool mLogScale;
    DataFormats mDataFormat;
    int mNumberOfSets;
-   MouseMoveSignalFlags mMouseMoveSignals;
+   QE::MouseMoveSignalFlags mMouseMoveSignals;
 
    // Data is held as a list of vectors.
    // For 2D data, there is only one vector in the list.
@@ -493,15 +473,10 @@ private slots:
                        QCaDateTime&, const unsigned int&);
 };
 
-Q_DECLARE_OPERATORS_FOR_FLAGS (QEAbstract2DData::MouseMoveSignalFlags)
-
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
 Q_DECLARE_METATYPE (QEAbstract2DData::DataFormats)
 Q_DECLARE_METATYPE (QEAbstract2DData::DataBinning)
-Q_DECLARE_METATYPE (QEAbstract2DData::RotationOptions)
 Q_DECLARE_METATYPE (QEAbstract2DData::ScaleModes)
-Q_DECLARE_METATYPE (QEAbstract2DData::QEAbstract2DData::MouseMoveSignals)
-Q_DECLARE_METATYPE (QEAbstract2DData::QEAbstract2DData::MouseMoveSignalFlags)
 #endif
 
 #endif // QE_ABSTRACT_2D_DATA_H

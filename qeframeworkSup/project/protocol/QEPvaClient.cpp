@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (C) 2018-2023 Australian Synchrotron
+ *  Copyright (C) 2018-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -28,8 +28,8 @@
 
 #ifdef QE_INCLUDE_PV_ACCESS
 
-#include <QApplication>
 #include <QDebug>
+#include <QMetaType>
 #include <QQueue>
 #include <QMutex>
 
@@ -39,6 +39,8 @@
 #include <pv/pvAccess.h>
 #include <pv/pvData.h>
 #include <pv/clientFactory.h>
+#include <QEPlatform.h>
+#include <QEThreadSafeQueue.h>
 #include <QEVectorVariants.h>
 
 #define DEBUG qDebug () << "QEPvaClient" << __LINE__ << __FUNCTION__ << "  "
@@ -182,66 +184,9 @@ void QEPvaClient::Update::process()
 }
 
 //==============================================================================
-// Wrapper around a QQueue with mutex.
-//==============================================================================
 //
-class QEPvaClient::UpdateQueue {
-public:
-   explicit UpdateQueue();
-   ~UpdateQueue();
+static QEThreadSafeQueue<QEPvaClient::Update*> pvaClientUpdateQueue;
 
-   // Thread safe enqueue
-   void enqueue (QEPvaClient::Update* update);
-
-   // Thread safe dequeue - returns NULL if/when the queue is empty.
-   QEPvaClient::Update* dequeue();
-
-private:
-   mutable QMutex mutex;
-
-   typedef QQueue <QEPvaClient::Update*> PvaLoadQueue;
-   PvaLoadQueue actualQueue;
-};
-
-//------------------------------------------------------------------------------
-//
-static QEPvaClient::UpdateQueue* pvaClientUpdateQueue = NULL;
-
-//------------------------------------------------------------------------------
-//
-QEPvaClient::UpdateQueue::UpdateQueue () { }
-
-//------------------------------------------------------------------------------
-//
-QEPvaClient::UpdateQueue::~UpdateQueue ()
-{
-   QMutexLocker locker (&this->mutex);
-   while (!this->actualQueue.isEmpty()) {
-      QEPvaClient::Update* item = this->actualQueue.dequeue();
-      delete item;
-   }
-}
-
-//------------------------------------------------------------------------------
-//
-void QEPvaClient::UpdateQueue::enqueue (QEPvaClient::Update* update)
-{
-   QMutexLocker locker (&this->mutex);
-   this->actualQueue.enqueue (update);
-}
-
-//------------------------------------------------------------------------------
-//
-QEPvaClient::Update* QEPvaClient::UpdateQueue::dequeue()
-{
-   QMutexLocker locker (&this->mutex);
-   QEPvaClient::Update* result = NULL;
-
-   if (!this->actualQueue.isEmpty()) {
-      result = this->actualQueue.dequeue();
-   }
-   return result;
-}
 
 //==============================================================================
 // Channel Requester Get, Monitor and Put implementation interface classes
@@ -334,7 +279,7 @@ void QEPvaChannelRequesterInterface::channelStateChange (pva::Channel::shared_po
                                          QEPvaClient::Update::ukConnection,
                                          nullVariant, "",
                                          true);
-         pvaClientUpdateQueue->enqueue (item);
+         pvaClientUpdateQueue.enqueue (item);
          break;
 
       case pva::Channel::DISCONNECTED:
@@ -342,7 +287,7 @@ void QEPvaChannelRequesterInterface::channelStateChange (pva::Channel::shared_po
                                          QEPvaClient::Update::ukConnection,
                                          nullVariant, "",
                                          false);
-         pvaClientUpdateQueue->enqueue (item);
+         pvaClientUpdateQueue.enqueue (item);
          break;
 
       case pva::Channel::DESTROYED:
@@ -475,14 +420,13 @@ void QEPvaMonitorRequesterInterface::processElement (pva::MonitorElement::const_
 
    // We have copied all the element data.
    //
-   pvaClientUpdateQueue->enqueue (item);
+   pvaClientUpdateQueue.enqueue (item);
 }
 
 //------------------------------------------------------------------------------
 //
 void QEPvaMonitorRequesterInterface::unlisten (pva::MonitorPtr const & monitor)
 {
-   DEBUG << this->pvName;
    monitor->stop ();
 }
 
@@ -709,6 +653,11 @@ bool QEPvaClient::openChannel (const ChannelModesFlags modes)
    // We need to hold a reference to the channel to keep it "alive"
    // The channel keeps the requestor and the monitor "alive".
    //
+   if (!pvaProvider) {
+      DEBUG << "pvaProvider not created";
+      return false;
+   }
+
    this->channel = pvaProvider->createChannel (this->getPvName().toStdString(),
                                                this->channelRequester, 10);
 
@@ -815,7 +764,8 @@ bool QEPvaClient::getIsConnected () const
 //
 bool QEPvaClient::dataIsAvailable () const
 {
-   return this->pvData.type() != QVariant::Invalid;
+   const QMetaType::Type mtype = QEPlatform::metaType (this->pvData);
+   return mtype != QMetaType::UnknownType;
 }
 
 //------------------------------------------------------------------------------
@@ -852,22 +802,31 @@ int QEPvaClient::getPrecision () const
 
 //------------------------------------------------------------------------------
 //
+unsigned int QEPvaClient::hostElementCount () const
+{
+   // These are treated the same for PV Acccess.
+   //
+   return this->dataElementCount();
+}
+
+//------------------------------------------------------------------------------
+//
 unsigned int QEPvaClient::dataElementCount () const
 {
-   const int type = this->pvData.type();
+   const QMetaType::Type mtype = QEPlatform::metaType (this->pvData);
 
    int result = 0;
 
-   if (type == QVariant::List) {
+   if (mtype == QMetaType::QVariantList) {
       result = this->pvData.toList().count();
 
    } else if (QEVectorVariants::isVectorVariant (this->pvData)) {
       result = QEVectorVariants::vectorCount (this->pvData);
 
-   } else if (type == QVariant::StringList) {
+   } else if (mtype == QMetaType::QStringList) {
       result = this->pvData.toStringList().count();
 
-   } else if (type != QVariant::Invalid) {
+   } else if (mtype !=  QMetaType::UnknownType) {
       // Assume singular value.
       result = 1;
    }
@@ -981,6 +940,20 @@ QString QEPvaClient::getDescription () const
 
 //------------------------------------------------------------------------------
 //
+bool QEPvaClient::getReadAccess() const
+{
+   return true;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEPvaClient::getWriteAccess() const
+{
+   return true;
+}
+
+//------------------------------------------------------------------------------
+//
 void QEPvaClient::processUpdate (QEPvaClient::Update* update)
 {
    if (!update) return;  // sanity check
@@ -1030,75 +1003,81 @@ void QEPvaClient::processUpdate (QEPvaClient::Update* update)
 
 
 //==============================================================================
-// QEPvaClientTimer and queue
+// Helper class: QEPvaClientManager
 //==============================================================================
 //
-QEPvaClientManager* singleton = NULL;
+QEPvaClientManager singleton;
 
 //------------------------------------------------------------------------------
 // static
 void QEPvaClientManager::initialise ()
 {
-   if (!singleton) {
-      singleton = new QEPvaClientManager ();
-   }
+   if (singleton.isRunning) return;
+   singleton.isRunning = true;
+
+   // Initialise PVA client
+   //
+   pva::ClientFactory::start();
+   pva::ChannelProviderRegistry::shared_pointer providerRegistry = pva::ChannelProviderRegistry::clients();
+   pvaProvider = providerRegistry->getProvider("pva");
+
+   // Schedule first poll event.
+   //
+   QTimer::singleShot (1, &singleton, SLOT (timeoutHandler ()));
 }
 
 //------------------------------------------------------------------------------
 //
-QEPvaClientManager::QEPvaClientManager () : QTimer (NULL)
+QEPvaClientManager::QEPvaClientManager () : QObject (NULL)
 {
-   // Create the update queue.
-   //
-   pvaClientUpdateQueue = new QEPvaClient::UpdateQueue ();
+   this->isRunning = false;
 
-   // Connect to the about to quit signal.
-   // Note: qApp is defined in QApplication.
-   //
-   QObject::connect (qApp, SIGNAL (aboutToQuit ()),
-                     this, SLOT   (aboutToQuitHandler ()));
-
-   // Connect and start regular timed event.
-   //
-   QObject::connect (this, SIGNAL (timeout ()),
-                     this, SLOT   (timeoutHandler ()));
-
-   pva::ClientFactory::start();
-
-   pva::ChannelProviderRegistry::shared_pointer providerRegistry = pva::ChannelProviderRegistry::clients();
-   pvaProvider = providerRegistry->getProvider("pva");
-
-   this->start (16);   // 16 mSec ~ 60 Hz.
+   if (this != &singleton) {
+      // Ignore if this is not the singleton object.
+      DEBUG << "This QEPvaClientManager instance is not the singleton";
+      return;
+   }
 }
 
 //------------------------------------------------------------------------------
 //
 QEPvaClientManager::~QEPvaClientManager ()
 {
+   if (this != &singleton) {
+      // Ignore, this is not the singleton object.
+      return;
+   }
+
+   this->isRunning = false;
    pva::ClientFactory::stop();
-   delete pvaClientUpdateQueue;
-   pvaClientUpdateQueue = NULL;
+   pvaClientUpdateQueue.clear();
 }
 
 //------------------------------------------------------------------------------
-//
-//slots
+//slot
 void QEPvaClientManager::timeoutHandler ()
 {
-   while (pvaClientUpdateQueue) {
-      QEPvaClient::Update* item;
-      item = pvaClientUpdateQueue->dequeue ();
-      if (!item) break;  // all done
-      item->process();
-      delete item;
+   if (this != &singleton) {
+      // Ignore, this is not the singleton object.
+      return;
    }
-}
 
-//------------------------------------------------------------------------------
-//
-void QEPvaClientManager::aboutToQuitHandler ()
-{
-   this->stop ();  // Stop the timer.
+   if (!this->isRunning) return;
+
+   while (true) {
+      QEPvaClient::Update* item = nullptr;
+      bool ok = pvaClientUpdateQueue.dequeue (item);
+      if (!ok) break;  // all done
+      if (item) {
+         item->process();
+         delete item;
+      }
+   }
+
+   // Schedule another poll event - 16 mS approx 60Hz.
+   // Note: the delay is relative to the end of processing the poll function.
+   //
+   QTimer::singleShot (16, this, SLOT (timeoutHandler ()));
 }
 
 #else
@@ -1117,6 +1096,7 @@ QString QEPvaClient::getId () const { return ""; }
 QString QEPvaClient::getRemoteAddress() const { return ""; }
 QString QEPvaClient::getEgu() const { return ""; }
 int QEPvaClient::getPrecision() const { return 0; }
+unsigned int QEPvaClient::hostElementCount () const { return 0; }
 unsigned int QEPvaClient::dataElementCount () const { return 0; }
 double QEPvaClient::getDisplayLimitHigh() const { return 0.0; }
 double QEPvaClient::getDisplayLimitLow() const { return 0.0; }
@@ -1133,13 +1113,14 @@ QStringList QEPvaClient::getEnumerations () const { QStringList d; return d; }
 QCaAlarmInfo QEPvaClient::getAlarmInfo () const { QCaAlarmInfo d; return d; }
 QCaDateTime  QEPvaClient::getTimeStamp () const { QCaDateTime d; return d; }
 QString QEPvaClient::getDescription () const { return ""; }
+bool QEPvaClient::getReadAccess() const { return false; }
+bool QEPvaClient::getWriteAccess() const { return false; }
 void QEPvaClient::processUpdate (QEPvaClient::Update*) { }
 
 QEPvaClientManager::QEPvaClientManager () { }
 QEPvaClientManager::~QEPvaClientManager () { }
 void QEPvaClientManager::initialise () { }
 void QEPvaClientManager::timeoutHandler () { }
-void QEPvaClientManager::aboutToQuitHandler () { }
 
 #endif
 

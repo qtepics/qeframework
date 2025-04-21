@@ -48,7 +48,7 @@ QEAbstractDynamicWidget::QEAbstractDynamicWidget (QWidget* parent) :
    this->defaultDir = "";
    this->useOwnPersistantName = false;
    this->enableEditPv = false;
-   this->pvLabelMode = useAliasName;
+   this->pvLabelMode = QE::useAliasName;
 
    // Typically QEAbstractDynamicWidget widgets hold other QEWidgets, like 
    // QEDistrubtion, and theses widgets handle this internally.
@@ -82,11 +82,9 @@ QString QEAbstractDynamicWidget::getDefaultDir () const
 //------------------------------------------------------------------------------
 // Sub class utility
 //
-userLevelTypes::userLevels QEAbstractDynamicWidget::minimumEditPvUserLevel () const
+QE::UserLevels QEAbstractDynamicWidget::minimumEditPvUserLevel () const
 {
-   return this->getEnableEditPv () ?
-          userLevelTypes::USERLEVEL_USER :
-          userLevelTypes::USERLEVEL_ENGINEER;
+   return this->getEnableEditPv () ? QE::User : QE::Engineer;
 }
 
 //------------------------------------------------------------------------------
@@ -99,9 +97,9 @@ void QEAbstractDynamicWidget::setStandardFormat (QELabel* dataLabel)
    dataLabel->setPrecision (6);
    dataLabel->setForceSign (true);
    dataLabel->setUseDbPrecision (false);
-   dataLabel->setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
-   dataLabel->setSeparator (QEStringFormatting::SEPARATOR_COMMA);
-   dataLabel->setArrayAction (QEStringFormatting::INDEX);
+   dataLabel->setNotation (QE::Automatic);
+   dataLabel->setSeparator (QE::Comma);
+   dataLabel->setArrayAction (QE::Index);
    dataLabel->setArrayIndex (0);
 }
 
@@ -134,7 +132,7 @@ bool QEAbstractDynamicWidget::getEnableEditPv () const
 
 //------------------------------------------------------------------------------
 //
-void QEAbstractDynamicWidget::setPVLabelMode (const PVLabelMode pvLabelModeIn)
+void QEAbstractDynamicWidget::setPVLabelMode (const QE::PVLabelMode pvLabelModeIn)
 {
    this->pvLabelMode = pvLabelModeIn;
    this->pvLabelModeChanged ();
@@ -142,8 +140,7 @@ void QEAbstractDynamicWidget::setPVLabelMode (const PVLabelMode pvLabelModeIn)
 
 //------------------------------------------------------------------------------
 //
-QEAbstractDynamicWidget::PVLabelMode
-QEAbstractDynamicWidget::getPVLabelMode () const
+QE::PVLabelMode QEAbstractDynamicWidget::getPVLabelMode () const
 {
    return this->pvLabelMode;
 }
@@ -219,19 +216,19 @@ void QEAbstractDynamicWidget::addPVLabelModeContextMenu (QMenu* menu)
 
    action = new QAction (tr("Use PV Names"), menu);
    action->setCheckable (true);
-   action->setChecked (this->pvLabelMode == usePvName);
+   action->setChecked (this->pvLabelMode == QE::usePvName);
    action->setData (ADWCM_SELECT_USE_PV_NAME);
    menu->addAction (action);
 
    action = new QAction (tr("Use Alias Names (if available)"), menu);
    action->setCheckable (true);
-   action->setChecked (this->pvLabelMode == useAliasName);
+   action->setChecked (this->pvLabelMode == QE::useAliasName);
    action->setData (ADWCM_SELECT_USE_ALIAS_NAME);
    menu->addAction (action);
 
    action = new QAction (tr("Use Descriptions (if available)"), menu);
    action->setCheckable (true);
-   action->setChecked (this->pvLabelMode == useDescription);
+   action->setChecked (this->pvLabelMode == QE::useDescription);
    action->setData (ADWCM_SELECT_USE_DESCRIPTION);
    menu->addAction (action);
 }
@@ -251,15 +248,15 @@ void QEAbstractDynamicWidget::contextMenuTriggered (int selectedItemNum)
          break;
 
       case ADWCM_SELECT_USE_PV_NAME:
-         this->setPVLabelMode (usePvName);
+         this->setPVLabelMode (QE::usePvName);
          break;
 
       case ADWCM_SELECT_USE_ALIAS_NAME:
-         this->setPVLabelMode (useAliasName);
+         this->setPVLabelMode (QE::useAliasName);
          break;
 
       case ADWCM_SELECT_USE_DESCRIPTION:
-         this->setPVLabelMode (useDescription);
+         this->setPVLabelMode (QE::useDescription);
          break;
 
       default:

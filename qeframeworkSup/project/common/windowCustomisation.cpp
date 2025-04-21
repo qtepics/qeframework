@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -159,7 +159,7 @@ windowCustomisationItem::windowCustomisationItem(
       windows.append( windowsIn.at(i));
    }
 
-   programLauncher.setProgramStartupOption( applicationLauncher::PSO_LOGOUTPUT );
+   programLauncher.setProgramStartupOption( QE::LogOutput );
    programLauncher.setProgram( programIn );
    programLauncher.setArguments( argumentsIn );
 
@@ -177,7 +177,7 @@ windowCustomisationItem::windowCustomisationItem(windowCustomisationItem* item):
       windows.append( item->windows.at(i));
    }
 
-   programLauncher.setProgramStartupOption( applicationLauncher::PSO_LOGOUTPUT );
+   programLauncher.setProgramStartupOption( QE::LogOutput );
    programLauncher.setProgram( item->getProgram() );
    programLauncher.setArguments( item->getArguments() );
 
@@ -209,8 +209,8 @@ void windowCustomisationItem::commonInit()
 {
    profile.takeLocalCopy();
 
-   userLevelVisible = userLevelTypes::USERLEVEL_USER;
-   userLevelEnabled = userLevelTypes::USERLEVEL_USER;
+   userLevelVisible = QE::User;
+   userLevelEnabled = QE::User;
 }
 
 // A menu item or button has been created, let the application or widget know about it
@@ -309,7 +309,7 @@ void windowCustomisationItem::addUserLevelAccess( QDomElement element, customisa
 }
 
 // Set the visibility and enabled state of the item according to the user level
-void windowCustomisationItem::setUserLevelState( userLevelTypes::userLevels currentUserLevel )
+void windowCustomisationItem::setUserLevelState( QE::UserLevels currentUserLevel )
 {
    if( !iAction ) return; // sainty check
 
@@ -609,25 +609,27 @@ void windowCustomisation::addItem( windowCustomisationButtonItem* button )
 }
 
 // Translate creation option text from .xml file to enumeration in QEActionRequests
-QEActionRequests::Options windowCustomisation::translateCreationOption( QString creationOption )
+// TODO: Use the in built moc enum to/from string
+//
+QE::CreationOptions windowCustomisation::translateCreationOption( QString creationOption )
 {
-   if( creationOption.compare( "Open"              ) == 0 ) { return QEActionRequests::OptionOpen;                   }
-   else if( creationOption.compare( "NewTab"            ) == 0 ) { return QEActionRequests::OptionNewTab;                 }
-   else if( creationOption.compare( "NewWindow"         ) == 0 ) { return QEActionRequests::OptionNewWindow;              }
+   if(      creationOption.compare( "Open"              ) == 0 ) { return QE::Open;             }
+   else if( creationOption.compare( "NewTab"            ) == 0 ) { return QE::NewTab;           }
+   else if( creationOption.compare( "NewWindow"         ) == 0 ) { return QE::NewWindow;        }
 
-   else if( creationOption.compare( "FloatingDock"      ) == 0 ) { return QEActionRequests::OptionFloatingDockWindow;     }
+   else if( creationOption.compare( "FloatingDock"      ) == 0 ) { return QE::DockFloating;     }
 
-   else if( creationOption.compare( "LeftDock"          ) == 0 ) { return QEActionRequests::OptionLeftDockWindow;         }
-   else if( creationOption.compare( "RightDock"         ) == 0 ) { return QEActionRequests::OptionRightDockWindow;        }
-   else if( creationOption.compare( "TopDock"           ) == 0 ) { return QEActionRequests::OptionTopDockWindow;          }
-   else if( creationOption.compare( "BottomDock"        ) == 0 ) { return QEActionRequests::OptionBottomDockWindow;       }
+   else if( creationOption.compare( "LeftDock"          ) == 0 ) { return QE::DockLeft;         }
+   else if( creationOption.compare( "RightDock"         ) == 0 ) { return QE::DockRight;        }
+   else if( creationOption.compare( "TopDock"           ) == 0 ) { return QE::DockTop;          }
+   else if( creationOption.compare( "BottomDock"        ) == 0 ) { return QE::DockBottom;       }
 
-   else if( creationOption.compare( "LeftDockTabbed"    ) == 0 ) { return QEActionRequests::OptionLeftDockWindowTabbed;   }
-   else if( creationOption.compare( "RightDockTabbed"   ) == 0 ) { return QEActionRequests::OptionRightDockWindowTabbed;  }
-   else if( creationOption.compare( "TopDockTabbed"     ) == 0 ) { return QEActionRequests::OptionTopDockWindowTabbed;    }
-   else if( creationOption.compare( "BottomDockTabbed"  ) == 0 ) { return QEActionRequests::OptionBottomDockWindowTabbed; }
+   else if( creationOption.compare( "LeftDockTabbed"    ) == 0 ) { return QE::DockLeftTabbed;   }
+   else if( creationOption.compare( "RightDockTabbed"   ) == 0 ) { return QE::DockRightTabbed;  }
+   else if( creationOption.compare( "TopDockTabbed"     ) == 0 ) { return QE::DockTopTabbed;    }
+   else if( creationOption.compare( "BottomDockTabbed"  ) == 0 ) { return QE::DockBottomTabbed; }
 
-   return QEActionRequests::OptionNewWindow;  // Default
+   return QE::NewWindow;  // Default
 }
 
 //==============================================================================================
@@ -943,18 +945,18 @@ bool windowCustomisationList::parseMenuAndButtonItem( QDomElement itemElement,
       // Note: We don't support Time and Local Enumeration here.
       //
       if (format == "Default") {
-         pvInfo.format = QEStringFormatting::FORMAT_DEFAULT;
+         pvInfo.format = QE::Default;
       } else if (format == "Floating") {
-         pvInfo.format = QEStringFormatting::FORMAT_FLOATING;
+         pvInfo.format = QE::Floating;
       } else if (format == "Integer") {
-         pvInfo.format = QEStringFormatting::FORMAT_INTEGER;
+         pvInfo.format = QE::Integer;
       } else if (format == "UnsignedInteger") {
-         pvInfo.format = QEStringFormatting::FORMAT_UNSIGNEDINTEGER;
+         pvInfo.format = QE::UnsignedInteger;
       } else if (format == "String") {
-         pvInfo.format = QEStringFormatting::FORMAT_STRING;
+         pvInfo.format = QE::String;
       } else {
          qDebug() << pvInfo.pvName << "Unknown/unexpected format:" << format;
-         pvInfo.format = QEStringFormatting::FORMAT_DEFAULT;
+         pvInfo.format = QE::Default;
       }
    }
 
@@ -1010,7 +1012,7 @@ bool windowCustomisationList::parseMenuAndButtonItem( QDomElement itemElement,
 
       // Read optional creation option
       QDomElement creationOptionElement = windowElement.firstChildElement( "CreationOption" );
-      windowItem.creationOption = QEActionRequests::OptionNewWindow;
+      windowItem.creationOption = QE::NewWindow;
       if( !creationOptionElement.isNull() )
       {
          windowItem.creationOption = windowCustomisation::translateCreationOption( creationOptionElement.text() );
@@ -1081,7 +1083,7 @@ void windowCustomisationList::parseDockItem( QDomElement itemElement,
          }
 
          QDomElement creationOptionElement = dockElement.firstChildElement( "CreationOption" );
-         windowItem.creationOption = QEActionRequests::OptionFloatingDockWindow;
+         windowItem.creationOption = QE::DockFloating;
 
          if( !creationOptionElement.isNull() )
          {
@@ -1371,8 +1373,9 @@ void windowCustomisationList::initialise( windowCustomisationInfo* customisation
    }
 }
 
-// Repond to a user level change (this is an implementation for the base ContainerProfile class
-void windowCustomisationList::userLevelChangedGeneral( userLevelTypes::userLevels currentUserLevel )
+// Respond to a user level change (this is an implementation for the base ContainerProfile class
+//
+void windowCustomisationList::userLevelChangedGeneral( QE::UserLevels currentUserLevel )
 {
    // Update the visibility and enabled state of all items in all customisation sets
    for( int i = 0; i < customisationList.count(); i++ )
@@ -1395,19 +1398,16 @@ void windowCustomisationList::userLevelChangedGeneral( userLevelTypes::userLevel
 
 // Add the named customisation to a main window.
 // Return true if named customisation found and loaded.
-void windowCustomisationList::applyCustomisation( QMainWindow* mw,                              // Main window to apply customisations to
-                                                  QString customisationName,                    // Customisation name used to identify set of customisations
-                                                  windowCustomisationInfo* customisationInfo,   // Customisations loaded from customisation file
-                                                  dockMap dockedComponents )                    // Map of existing docks
+void windowCustomisationList::applyCustomisation(
+      QMainWindow* mw,                              // Main window to apply customisations to
+      QString customisationName,                    // Customisation name used to identify set of customisations
+      windowCustomisationInfo* customisationInfo,   // Customisations loaded from customisation file
+      dockMap dockedComponents )                    // Map of existing docks
 {
 
-   // If this customisation has been applied, do nothing
-   // This is a bit more than for efficiency - if docks are present, and have been manipulated (scrolled, etc), we don't want to re-create them
-   if( lastAppliedCustomisation == customisationName )
-   {
-      return;
-   }
-   lastAppliedCustomisation == customisationName;
+   // Note: The check for current customisationName vs. lastAppliedCustomisation
+   // for efficiency reasons never actually kiicked in (= vs. ==) and after
+   // being "fixed" has some unintentional consequences, so has been removed.
 
 
    // Clear the existing customisation (but only if we have a customisation name to replace it with)
@@ -1773,13 +1773,21 @@ itemCheckInfo::itemCheckInfo()
    checkable = false;
 }
 
+// Copy constructor
+itemCheckInfo::itemCheckInfo( const itemCheckInfo& other )
+{
+   this->key = other.key;
+   this->value = other.value;
+   this->checkable = other.checkable;
+}
+
 // Destructor
 itemCheckInfo::~itemCheckInfo() {}
 
 // itemCheckInfo constructor.
 // Parses xml to determine if an item is checkable (check box or radio button)
 // and if it is exclusive (a radio button)
-itemCheckInfo::itemCheckInfo( QDomElement itemElement )
+itemCheckInfo::itemCheckInfo( const QDomElement& itemElement )
 {
    // Assume not checkable
    checkable = false;
@@ -1802,12 +1810,14 @@ itemCheckInfo::itemCheckInfo( QDomElement itemElement )
    }
 }
 
-// Copy constructor
-itemCheckInfo::itemCheckInfo( const itemCheckInfo &other )
+// Assignment
+itemCheckInfo& itemCheckInfo::operator=(const itemCheckInfo& other)
 {
-   key = other.key;
-   value = other.value;
-   checkable = other.checkable;
+   this->key = other.key;
+   this->value = other.value;
+   this->checkable = other.checkable;
+
+   return *this;
 }
 
 //==============================================================================
@@ -1828,7 +1838,7 @@ windowCustomisationInfo::~windowCustomisationInfo () { }
 // the dock, so enabling or disabling this customisation item will have no effect. This is OK as docks
 // cannot be enabled or dissabled according to user level. Applying user level to docks is not done as
 // it would interfere with the standard dock paradigm.
-void windowCustomisationInfo::userLevelChangedGeneral( userLevelTypes::userLevels userLevel )
+void windowCustomisationInfo::userLevelChangedGeneral( QE::UserLevels userLevel )
 {
    for( int i = 0; i < items.count(); i++ )
    {

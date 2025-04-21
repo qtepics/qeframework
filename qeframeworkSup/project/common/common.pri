@@ -60,6 +60,8 @@ SOURCES += $$PWD/QEDialog.cpp
 HEADERS += $$PWD/QEDisplayRanges.h
 SOURCES += $$PWD/QEDisplayRanges.cpp
 
+HEADERS += $$PWD/QEEnums.h
+
 HEADERS += $$PWD/QEExpressionEvaluation.h
 SOURCES += $$PWD/QEExpressionEvaluation.cpp
 

@@ -1,10 +1,10 @@
-# QEAbstract2DData.pri
+# QE2DDataVisualisation.pri
 #
 # This file is part of the EPICS QT Framework, initially developed at
 # the Australian Synchrotron. This file is included into and as part
 # of the overall framework.pro project file.
 #
-# Copyright (c) 2020 Australian Synchrotron
+# Copyright (c) 2020-2024 Australian Synchrotron
 #
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -25,18 +25,18 @@
 #   andrews@ansto.gov.au
 #
 
-HEADERS += widgets/QE2DDataVisualisation/QEAbstract2DData.h
-SOURCES += widgets/QE2DDataVisualisation/QEAbstract2DData.cpp
+INCLUDEPATH += $$PWD
 
-HEADERS += widgets/QE2DDataVisualisation/QESpectrogram.h
-SOURCES += widgets/QE2DDataVisualisation/QESpectrogram.cpp
+HEADERS += $$PWD/QEAbstract2DData.h
+SOURCES += $$PWD/QEAbstract2DData.cpp
 
-HEADERS += widgets/QE2DDataVisualisation/QESurface.h
-SOURCES += widgets/QE2DDataVisualisation/QESurface.cpp
+HEADERS += $$PWD/QESpectrogram.h
+SOURCES += $$PWD/QESpectrogram.cpp
 
-HEADERS += widgets/QE2DDataVisualisation/QEWaterfall.h
-SOURCES += widgets/QE2DDataVisualisation/QEWaterfall.cpp
+HEADERS += $$PWD/QESurface.h
+SOURCES += $$PWD/QESurface.cpp
 
-INCLUDEPATH += widgets/QE2DDataVisualisation
+HEADERS += $$PWD/QEWaterfall.h
+SOURCES += $$PWD/QEWaterfall.cpp
 
 # end

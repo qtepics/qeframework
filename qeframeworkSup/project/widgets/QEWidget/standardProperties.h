@@ -28,8 +28,8 @@
 #define QE_STANDARD_PROPERTIES_H
 
 #include <QWidget>
+#include <QEEnums.h>
 #include <QCaAlarmInfo.h>
-#include <ContainerProfile.h>
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT standardProperties
 {
@@ -38,20 +38,11 @@ public:
    virtual ~standardProperties ();
 
 public:
-   // Options regarding when the widget should display alarm state.
-   //
-   enum displayAlarmStateOptions {
-      DISPLAY_ALARM_STATE_ALWAYS,
-      DISPLAY_ALARM_STATE_WHEN_IN_ALARM,
-      DISPLAY_ALARM_STATE_WHEN_INVALID,
-      DISPLAY_ALARM_STATE_NEVER
-   };
+   QE::UserLevels getUserLevelVisibility () const;
+   void setUserLevelVisibility (QE::UserLevels level);
 
-   userLevelTypes::userLevels getUserLevelVisibility () const;
-   void setUserLevelVisibility (userLevelTypes::userLevels level);
-
-   userLevelTypes::userLevels getUserLevelEnabled () const;
-   void setUserLevelEnabled (userLevelTypes::userLevels level);
+   QE::UserLevels getUserLevelEnabled () const;
+   void setUserLevelEnabled (QE::UserLevels level);
 
    bool getApplicationEnabled () const;
    void setApplicationEnabled (bool state);
@@ -60,8 +51,8 @@ public:
    void setRunVisible (bool visibleIn);
    bool getRunVisible () const;
 
-   void setDisplayAlarmStateOption (displayAlarmStateOptions displayAlarmStateIn);
-   displayAlarmStateOptions getDisplayAlarmStateOption () const;
+   void setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions displayAlarmStateIn);
+   QE::DisplayAlarmStateOptions getDisplayAlarmStateOption () const;
 
    // Controls if widget is OOS aware, i.e. responds to being declared out of service.
    //
@@ -74,23 +65,23 @@ public:
    bool getUseAlarmState (const QCaAlarmInfo& alarmInfo) const;
 
 protected:
-   void checkVisibilityEnabledLevel (userLevelTypes::userLevels level);
+   void checkVisibilityEnabledLevel (QE::UserLevels level);
 
 private:
    QWidget* owner;
 
-   userLevelTypes::userLevels currentLevel;
+   QE::UserLevels currentLevel;
 
    void invokeStringFormattingChange ();
    void setSuperEnabled ();
    void setSuperVisibility ();
 
-   userLevelTypes::userLevels visibilityLevel;  // User level below which the widget will be made invisible
-   userLevelTypes::userLevels enabledLevel;     // User level below which the widget will be made disabled
+   QE::UserLevels visibilityLevel;  // User level below which the widget will be made invisible
+   QE::UserLevels enabledLevel;     // User level below which the widget will be made disabled
 
    bool userLevelDisabled;      // Flag indicating the widget has been disabled due to inapropriate user level
    bool applicationVisibility;  // The 'visibility' state of the widget unless held invisible due to inapropriate user level
-   displayAlarmStateOptions displayAlarmState;  // Flag when the widget should display alarm state
+   QE::DisplayAlarmStateOptions displayAlarmState;  // Flag when the widget should display alarm state
    bool isOosAware;             // Flag is widget should display OOS status.
 };
 

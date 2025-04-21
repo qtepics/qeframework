@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2013-2023 Australian Synchrotron
+ *  Copyright (C) 2013-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -275,6 +275,7 @@ signals:
 private:
    QString calcNodeName () const;  // Merges three PV names into a single node name.
    void setupQCaObjects ();        // Create/updates internal QCaObjects
+   void determineDeltaAndLeafStatus () const;
 
    // Conveniance function
    //
@@ -291,6 +292,8 @@ private:
    QEPvLoadSaveCommon::ActionKinds action;
    bool actionIsComplete;
    QCaDateTime readArchiveDateTime;
+   mutable QEPvLoadSaveCommon::StatusSummary leafStatus;
+   mutable QVariant deltaText;
 
 private slots:
    void dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,

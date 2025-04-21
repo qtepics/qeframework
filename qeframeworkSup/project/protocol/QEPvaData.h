@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2023 Australian Synchrotron
+ *  Copyright (C) 2018-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -241,15 +241,18 @@ public:
 
    // The opposite of extractScalarArray
    static bool
-   infuseScalarArray (epics::pvData::PVScalarArray::shared_pointer& pvArray, const QVariant& value);
+   infuseScalarArray (epics::pvData::PVScalarArray::shared_pointer& pvArray,
+                      const QVariant& value);
 
    // This handles QVariantList variants.
    static bool
-   infuseScalarArrayList   (epics::pvData::PVScalarArray::shared_pointer& pvArray, const QVariantList& value);
+   infuseScalarArrayList (epics::pvData::PVScalarArray::shared_pointer& pvArray,
+                          const QVariantList& value);
 
    // This handles own QEVector variants.
    static bool
-   infuseScalarArrayVector (epics::pvData::PVScalarArray::shared_pointer& pvArray, const QVariant& value);
+   infuseScalarArrayVector (epics::pvData::PVScalarArray::shared_pointer& pvArray,
+                            const QVariant& value);
 
    // Converts a PVScalarArray to a basic QVariantList and a opposed to a vector variant.
    // Used by QETableData only so far. Relocate

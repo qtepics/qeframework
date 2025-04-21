@@ -1,6 +1,9 @@
 /*  styleManager.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,17 +18,16 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
- *
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
  *    andrew.rhyder@synchrotron.org.au
  */
 
-#ifndef STYLEMANAGER_H
-#define STYLEMANAGER_H
+#ifndef QE_STYLE_MANAGER_H
+#define QE_STYLE_MANAGER_H
 
+#include <QEEnums.h>
 #include <ContainerProfile.h>
 
 #include <QEFrameworkLibraryGlobal.h>
@@ -115,7 +117,7 @@ public:
     void updateConnectionStyle( bool connected );  //!< Set the Style Sheet string to be applied to reflect the current connection state (connected or disconnected) of the current data.
                                                    //!< For example, a disconnected value may be greyed out.
 
-    void styleUserLevelChanged( userLevelTypes::userLevels levelIn );/**< Set the current user level.*/
+    void styleUserLevelChanged( QE::UserLevels levelIn );/**< Set the current user level.*/
 
 private:
     void enabledChange();               // Called to notify the manager that the enabled state of the widget has changed
@@ -135,7 +137,7 @@ private:
 
     void updateStyleSheet();            // Update the style sheet with the various style sheet components used to modify the label style (alarm info, enumeration color)
 
-    userLevelTypes::userLevels level;   // Current user level - used to select appropriate user style
+    QE::UserLevels level;               // Current user level - used to select appropriate user style
 
     changeEventFilter* eventFilter;     // Event filter to catch enables and disabled (all styles are removed when disabled)
 };
@@ -162,4 +164,4 @@ private:
 };
 
 
-#endif // STYLEMANAGER_H
+#endif // QE_STYLE_MANAGER_H

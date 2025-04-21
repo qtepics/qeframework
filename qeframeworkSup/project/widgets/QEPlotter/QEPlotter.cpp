@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2023 Australian Synchrotron.
+ *  Copyright (c) 2013-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -602,7 +602,7 @@ QEPlotter::QEPlotter (QWidget* parent) : QEAbstractDynamicWidget (parent)
    this->alaisSetChangeInhibited = false;
 
    this->setAllowDrop (false);
-   this->setDisplayAlarmStateOption (standardProperties::DISPLAY_ALARM_STATE_NEVER);
+   this->setDisplayAlarmStateOption (QE::Never);
 
    // Set up a connection to recieve variable name property changes
    //
@@ -700,7 +700,7 @@ void QEPlotter::updateLabel (const int slot)
 
    DataSets* ds = &this->xy [slot];
    QString caption;
-   QEAbstractDynamicWidget::PVLabelMode labelMode;
+   QE::PVLabelMode labelMode;
    qcaobject::QCaObject* qca = NULL;
 
    caption.clear ();
@@ -715,7 +715,7 @@ void QEPlotter::updateLabel (const int slot)
          // If an alias name/description is defined - use it if requested.
          //
          switch (labelMode) {
-            case QEAbstractDynamicWidget::useAliasName:
+            case QE::useAliasName:
                if (!ds->aliasName.isEmpty() && ds->aliasName != "<>") {
                   caption.append (ds->aliasName);
                } else {
@@ -723,7 +723,7 @@ void QEPlotter::updateLabel (const int slot)
                }
                break;
 
-            case QEAbstractDynamicWidget::useDescription:
+            case QE::useDescription:
                // First refresh description - if we can.
                //
                qca = this->getQcaItem (viOfDataSlot (slot));
@@ -738,7 +738,7 @@ void QEPlotter::updateLabel (const int slot)
                }
                break;
 
-            case QEAbstractDynamicWidget::usePvName:
+            case QE::usePvName:
             default:
                caption.append (ds->pvName);
                break;
@@ -1122,13 +1122,13 @@ void QEPlotter::generalContextMenuRequested (const QPoint& pos)
 
    // Set up Use PV name, Alias and or descritiom.
    //
-   const QEAbstractDynamicWidget::PVLabelMode plm = this->getPVLabelMode ();
+   const QE::PVLabelMode plm = this->getPVLabelMode ();
    this->generalContextMenu->setActionChecked (QEPlotterNames::PLOTTER_SELECT_USE_PV_NAME,
-                                               plm == QEAbstractDynamicWidget::usePvName);
+                                               plm == QE::usePvName);
    this->generalContextMenu->setActionChecked (QEPlotterNames::PLOTTER_SELECT_USE_ALIAS_NAME,
-                                               plm == QEAbstractDynamicWidget::useAliasName);
+                                               plm == QE::useAliasName);
    this->generalContextMenu->setActionChecked (QEPlotterNames::PLOTTER_SELECT_USE_DESCRIPTION,
-                                               plm == QEAbstractDynamicWidget::useDescription);
+                                               plm == QE::useDescription);
 
    this->generalContextMenu->exec (golbalPos);
 }
@@ -1161,7 +1161,7 @@ void QEPlotter::itemContextMenuRequested (const QPoint& pos)
 
    // Allow edit PV menu if and only if we are using the engineer use level.
    //
-   bool inEngineeringMode = (this->getUserLevel () == userLevelTypes::USERLEVEL_ENGINEER);
+   bool inEngineeringMode = (this->getUserLevel () == QE::Engineer);
 
    ds->itemMenu->setActionVisible (QEPlotterNames::PLOTTER_GENERAL_DATA_PV_EDIT, inEngineeringMode);
    ds->itemMenu->setActionVisible (QEPlotterNames::PLOTTER_GENERAL_SIZE_PV_EDIT, inEngineeringMode);
@@ -1244,7 +1244,7 @@ void QEPlotter::menuSelected (const QEPlotterNames::MenuActions action, const in
             this->plotArea->setMarkupVisible (QEGraphicNames::CrossHair, this->crosshairsAreRequired);
             this->plotArea->setMarkupPosition (QEGraphicNames::CrossHair, this->contextMenuRequestPosition);
          } else {
-            // Mouse not over the graphic - use previos location.
+            // Mouse not over the graphic - use previous location.
             this->plotArea->setMarkupVisible (QEGraphicNames::CrossHair, this->crosshairsAreRequired);
          }
          this->replotIsRequired = true;
@@ -1268,6 +1268,11 @@ void QEPlotter::menuSelected (const QEPlotterNames::MenuActions action, const in
          emit this->yCoordinateSelected (this->contextMenuRequestPosition.y ());
          break;
 
+      case QEPlotterNames::PLOTTER_SAVE:
+         // Does not change state - just saves a copy
+         this->pushState ();
+         break;
+
       case QEPlotterNames::PLOTTER_PREV:
          this->prevState ();
          break;
@@ -1277,12 +1282,12 @@ void QEPlotter::menuSelected (const QEPlotterNames::MenuActions action, const in
          break;
 
       case QEPlotterNames::PLOTTER_NORMAL_VIDEO:
-         this->setVideoMode (normal);
+         this->setVideoMode (QE::normal);
          this->pushState ();
          break;
 
       case QEPlotterNames::PLOTTER_REVERSE_VIDEO:
-         this->setVideoMode (reverse);
+         this->setVideoMode (QE::reverse);
          this->pushState ();
          break;
 
@@ -3256,16 +3261,16 @@ bool QEPlotter::getAxisEnableY () const
 
 //------------------------------------------------------------------------------
 //
-void QEPlotter::setVideoMode (const VideoModes mode)
+void QEPlotter::setVideoMode (const QE::VideoModes mode)
 {
    switch (mode) {
-      case normal:
+      case QE::normal:
          this->isReverse = false;
          this->setXYColour (NUMBER_OF_PLOTS, clBlack);
          this->replotIsRequired = true;
          break;
 
-      case reverse:
+      case QE::reverse:
          this->isReverse = true;
          this->setXYColour (NUMBER_OF_PLOTS, clWhite);
          this->replotIsRequired = true;
@@ -3273,9 +3278,9 @@ void QEPlotter::setVideoMode (const VideoModes mode)
    }
 }
 
-QEPlotter::VideoModes QEPlotter::getVideoMode () const
+QE::VideoModes QEPlotter::getVideoMode () const
 {
-   return this->isReverse ? reverse : normal;
+   return this->isReverse ? QE::reverse : QE::normal;
 }
 
 //------------------------------------------------------------------------------

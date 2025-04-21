@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2022 Australian Synchrotron
+ *  Copyright (c) 2011-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -24,11 +24,7 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
-/*
-  This class is a analog version of the Qt progress bar widget.
- */
-
-#include <QEAnalogIndicator.h>
+#include "QEAnalogIndicator.h"
 
 #include <QDebug>
 #include <QFontMetrics>
@@ -41,7 +37,7 @@
 #define  _USE_MATH_DEFINES
 #include <math.h>
 
-#define DEBUG qDebug () "QEAnalogIndicator" << __LINE__ << __FUNCTION__ << "  "
+#define DEBUG qDebug () << "QEAnalogIndicator" << __LINE__ << __FUNCTION__ << "  "
 
 #define MINIMUM_SPAN        0.000001
 #define RADIANS_PER_DEGREE  (M_PI / 180.0)
@@ -63,7 +59,8 @@ QEAnalogIndicator::QEAnalogIndicator (QWidget *parent) : QWidget (parent)
    this->mMajorMinorRatio = 5;   // => major = 20
    this->mLogScaleInterval = 1;
 
-   this->mOrientation = Left_To_Right;
+   this->mOrientation = Qt::Horizontal;
+   this->mInvertedAppearance = false;
    this->mMode = Bar;
    this->mShowText = true;
    this->mShowScale = false;
@@ -205,12 +202,11 @@ QColor QEAnalogIndicator::getFontPaintColour () const
 //
 bool QEAnalogIndicator::isLeftRight () const
 {
-   return (this->mOrientation == Left_To_Right) || (this->mOrientation == Right_To_Left);
+   return (this->mOrientation == Qt::Horizontal);
 }
 
-
 //------------------------------------------------------------------------------
-//
+// Consider using QEAxisPainter
 void QEAnalogIndicator::drawAxis  (QPainter & painter, QRect & axis)
 {
    QPen pen;
@@ -227,37 +223,48 @@ void QEAnalogIndicator::drawAxis  (QPainter & painter, QRect & axis)
 
    switch (this->mOrientation) {
 
-      case Left_To_Right:
-         x_first = axis.left ();
-         x_last  = axis.right ();
-         y_first = axis.top ();
-         y_last  = axis.top ();
+      case Qt::Horizontal:
+         if (!this->mInvertedAppearance) {
+            // Progress left to right.
+            //
+            x_first = axis.left ();
+            x_last  = axis.right ();
+            y_first = axis.top ();
+            y_last  = axis.top ();
+
+         } else {
+            // Progress right to left.
+            //
+            x_first = axis.right ();
+            x_last  = axis.left ();
+            y_first = axis.top ();
+            y_last  = axis.top ();
+         }
          break;
 
-      case Top_To_Bottom:
-         x_first = axis.left ();
-         x_last  = axis.left ();
-         y_first = axis.top ();
-         y_last  = axis.bottom ();
-         break;
+      case Qt::Vertical:
+         if (!this->mInvertedAppearance) {
+            // Progress bottom to top.
+            //
+            x_first = axis.left ();
+            x_last  = axis.left ();
+            y_first = axis.bottom ();
+            y_last  = axis.top ();
 
-      case Right_To_Left:
-         x_first = axis.right ();
-         x_last  = axis.left ();
-         y_first = axis.top ();
-         y_last  = axis.top ();
-         break;
-
-      case Bottom_To_Top:
-         x_first = axis.left ();
-         x_last  = axis.left ();
-         y_first = axis.bottom ();
-         y_last  = axis.top ();
+         } else {
+            // Progress top to bottom.
+            //
+            x_first = axis.left ();
+            x_last  = axis.left ();
+            y_first = axis.top ();
+            y_last  = axis.bottom ();
+         }
          break;
 
       default:
-         // report an error??
+         // report an error.
          //
+         DEBUG << "unexpected orientation " << int (this->mOrientation);
          return;
    }
 
@@ -381,31 +388,40 @@ void QEAnalogIndicator::drawBar (QPainter & painter, QRect &area,
 
    switch (this->mOrientation) {
 
-      case Left_To_Right:
-         // Convert fractions back to pixels.
-         //
-         temp = int (fraction * (area.right () - area.left ()));
-         barRect.setRight (area.left () + temp);
+      case Qt::Horizontal:
+         if (!this->mInvertedAppearance) {
+            // Progress left to right.
+            //
+            temp = int (fraction * (area.right () - area.left ()));
+            barRect.setRight (area.left () + temp);
+
+         } else {
+            // Progress right to left.
+            //
+            temp = int (fraction * (area.right () - area.left ()));
+            barRect.setLeft (area.right () - temp);
+         }
          break;
 
-      case Top_To_Bottom:
-         temp = int (fraction * (area.bottom () - area.top ()));
-         barRect.setBottom (area.top () + temp);
-         break;
+      case Qt::Vertical:
+         if (!this->mInvertedAppearance) {
+            // Progress bottom to top.
+            //
+            temp = int (fraction * (area.bottom () - area.top ()));
+            barRect.setTop (area.bottom () - temp);
 
-      case Right_To_Left:
-         temp = int (fraction * (area.right () - area.left ()));
-         barRect.setLeft (area.right () - temp);
-         break;
-
-      case Bottom_To_Top:
-         temp = int (fraction * (area.bottom () - area.top ()));
-         barRect.setTop (area.bottom () - temp);
+         } else {
+            // Progress top to bottom.
+            //
+            temp = int (fraction * (area.bottom () - area.top ()));
+            barRect.setBottom (area.top () + temp);
+         }
          break;
 
       default:
-         // report an error??
+         // report an error
          //
+         DEBUG << "unexpected orientation " << int (this->mOrientation);
          return;
    }
 
@@ -461,39 +477,50 @@ void QEAnalogIndicator::drawMarker (QPainter & painter, QRect &area, const doubl
 
    switch (this->mOrientation) {
 
-      case Left_To_Right:
-         // Convert fractions back to pixels.
-         //
-         temp = int (fraction * (area.right () - area.left ()));
-         cx = area.left () + temp;
-         l = cx - span;
-         r = cx + span;
+      // Convert fractions back to pixels.
+      //
+      case Qt::Horizontal:
+         if (!this->mInvertedAppearance) {
+            // Progress left to right.
+            //
+            temp = int (fraction * (area.right () - area.left ()));
+            cx = area.left () + temp;
+            l = cx - span;
+            r = cx + span;
+
+         } else {
+            // Progress right to left.
+            //
+            temp = int (fraction * (area.right () - area.left ()));
+            cx = area.right () - temp;
+            l = cx - span;
+            r = cx + span;
+         }
          break;
 
-      case Top_To_Bottom:
-         temp = int (fraction * (area.bottom () - area.top ()));
-         cy = area.top () + temp;
-         t = cy - span;
-         b = cy + span;
-         break;
+      case Qt::Vertical:
+         if (!this->mInvertedAppearance) {
+            // Progress bottom to top.
+            //
+            temp = int (fraction * (area.bottom () - area.top ()));
+            cy = area.bottom () - temp;
+            t = cy - span;
+            b = cy + span;
 
-      case Right_To_Left:
-         temp = int (fraction * (area.right () - area.left ()));
-         cx = area.right () - temp;
-         l = cx - span;
-         r = cx + span;
-         break;
-
-      case Bottom_To_Top:
-         temp = int (fraction * (area.bottom () - area.top ()));
-         cy = area.bottom () - temp;
-         t = cy - span;
-         b = cy + span;
+         } else {
+            // Progress top to bottom.
+            //
+            temp = int (fraction * (area.bottom () - area.top ()));
+            cy = area.top () + temp;
+            t = cy - span;
+            b = cy + span;
+         }
          break;
 
       default:
-         // report an error??
+         // report an error
          //
+         DEBUG << "unexpected orientation " << int (this->mOrientation);
          return;
    }
 
@@ -983,6 +1010,8 @@ void QEAnalogIndicator::setMinorInterval (const double value)
    }
 }
 
+//------------------------------------------------------------------------------
+//
 double QEAnalogIndicator::getMinorInterval () const
 {
    return this->mMinorInterval;
@@ -1002,6 +1031,8 @@ void QEAnalogIndicator::setMajorInterval (const double value)
    }
 }
 
+//------------------------------------------------------------------------------
+//
 double QEAnalogIndicator::getMajorInterval () const
 {
    return this->mMajorMinorRatio * this->mMinorInterval;
@@ -1068,8 +1099,7 @@ double QEAnalogIndicator::getMaximum () const
 #define PROPERTY_ACCESS(type, name, convert)                 \
                                                              \
 void QEAnalogIndicator::set##name (const type value)  {      \
-   type temp;                                                \
-   temp = convert;                                           \
+   const type temp = convert;                                \
    if (this->m##name != temp) {                              \
       this->m##name = temp;                                  \
       this->update ();                                       \
@@ -1083,7 +1113,9 @@ type QEAnalogIndicator::get##name () const {                 \
 
 // NOTE: we have to use qualified type for Orientation and Mode.
 //
-PROPERTY_ACCESS (QEAnalogIndicator::Orientations, Orientation, value)
+PROPERTY_ACCESS (Qt::Orientation, Orientation, value)
+
+PROPERTY_ACCESS (bool, InvertedAppearance, value)
 
 PROPERTY_ACCESS (QEAnalogIndicator::Modes, Mode, value)
 

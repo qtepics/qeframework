@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron
+ *  Copyright (c) 2013-2023 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -33,6 +33,7 @@
 #include <QSize>
 
 #include <QECommon.h>
+#include <QEEnums.h>
 #include <QEAbstractWidget.h>
 #include <QNumericEdit.h>
 #include <QEFloating.h>
@@ -112,16 +113,17 @@ public:
    //       which is important given the nature of how radix, leading zeros,
    //       precision, min and max are related.
    /// Notation used for formatting/editing. Default is fixed.
+   /// The widget does not allow Automatic
    ///
-   Q_PROPERTY (QNumericEdit::Notations notation     READ getNotation       WRITE setNotation)
+   Q_PROPERTY (QE::Notations notation     READ getNotation       WRITE setNotation)
 
    /// Specify radix, default is Decimal.
    ///
-   Q_PROPERTY (QEFixedPointRadix::Radicies radix        READ getRadix       WRITE setRadix)
+   Q_PROPERTY (QE::Radicies radix        READ getRadix       WRITE setRadix)
 
-   /// Specify digit 'thousands' separator character, default is none.
+   /// Specify digit 'thousands' separator character, default is NoSeparator.
    ///
-   Q_PROPERTY (QEFixedPointRadix::Separators separator  READ getSeparator   WRITE setSeparator)
+   Q_PROPERTY (QE::Separators separator  READ getSeparator   WRITE setSeparator)
 
    /// Speficies the number of leading zeros. The default is 3.
    /// This is only used if autoScale is false. When autoScale is true the PV's control range is used
@@ -140,6 +142,11 @@ public:
    /// When false (default), no "+" sign when range of valued non-negative.
    ///
    Q_PROPERTY (bool forceSign        READ getForceSign      WRITE setForceSign)
+
+   /// When set true (default is false) the numeric edit widget will wrap around
+   /// from the max/min to min/max value.
+   ///
+   Q_PROPERTY (bool wrapValue        READ getWrapValue      WRITE setWrapValue)
 
    /// Speficies the mimimum allowed value.
    /// This is only used if autoScale is false.
@@ -275,11 +282,13 @@ public:
    // Expose access to the internal widget's set/get functions.
    //
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, bool, hasFrame, setFrame)
+   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, bool, getWrapValue, setWrapValue)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, bool, getForceSign, setForceSign)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, Qt::Alignment, alignment, setAlignment)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, QNumericEdit::Notations, getNotation, setNotation)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, QEFixedPointRadix::Radicies, getRadix, setRadix)
-   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, QEFixedPointRadix::Separators, getSeparator, setSeparator)
+   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, QE::Notations, getNotation, setNotation)
+   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, QE::Radicies, getRadix, setRadix)
+   QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (internalWidget, QE::Separators, getSeparator, setSeparator)
+
    QString getCleanText () const { return this->internalWidget->getCleanText (); }
 
 signals:
@@ -401,9 +410,5 @@ private slots:
    void returnPressed ();        // Act on the user pressing return in the widget
    void editingFinished ();      // Act on the user signaling text editing is complete (pressing return)
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-// None
-#endif
 
 #endif // QE_NUMERIC_EDIT_H

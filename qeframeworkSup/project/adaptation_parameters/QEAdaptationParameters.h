@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -75,7 +75,12 @@ public:
    double  getFloat  (const QString& name, const double   defaultValue);
    double  getFloat  (const QString& name, const QChar letter, const double   defaultValue);
 
-   // TODO - add get file name
+   // Essentially the same as getString except that a returned file name of the
+   // form "~/abc/def" maps to "<home_path><separator>abc/def".
+   // <separator> is platform dependent.
+   //
+   QString getFilename (const QString& name, const QString& defaultValue);
+   QString getFilename (const QString& name, const QChar letter, const QString& defaultValue);
 
 private:
    QEEnvironmentVariables* environment;

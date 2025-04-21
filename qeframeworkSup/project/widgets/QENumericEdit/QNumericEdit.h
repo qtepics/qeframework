@@ -35,6 +35,7 @@
 #include <QWidget>
 
 #include <QECommon.h>
+#include <QEEnums.h>
 #include <QEFixedPointRadix.h>
 #include <QEFrameworkLibraryGlobal.h>
 
@@ -54,15 +55,6 @@
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QNumericEdit : public QWidget {
    Q_OBJECT
 public:
-   /// \enum Notations
-   /// User friendly enumerations for notation property.
-   enum Notations {
-      Fixed,        ///< Fixed point:   +ddd.ddd
-      Scientific    ///< Scienctific:   +d.ddddde+nn
-   };
-   Q_ENUM (Notations)
-
-
    /// This property holds whether the numeric edit draws itself with a frame.
    /// If enabled (the default) the numeric edit draws itself inside a frame,
    /// otherwise the line edit draws itself without any frame.
@@ -92,31 +84,37 @@ public:
    //       which is important given the nature of how radix, leading zeros,
    //       precision, min and max are related.
    /// Notation used for formatting/editing. Default is fixed.
+   /// The widget does not allow Automatic
    ///
-   Q_PROPERTY (Notations notation     READ getNotation       WRITE setNotation)
+   Q_PROPERTY (QE::Notations notation        READ getNotation       WRITE setNotation)
 
    /// Specify radix, default is Decimal.
    ///
-   Q_PROPERTY (QEFixedPointRadix::Radicies radix        READ getRadix          WRITE setRadix)
+   Q_PROPERTY (QE::Radicies radix  READ getRadix WRITE setRadix)
 
-   /// Specify digit 'thousands' separator character, default is none.
+   /// Specify digit 'thousands' separator character, default is NoSeparator.
    ///
-   Q_PROPERTY (QEFixedPointRadix::Separators separator  READ getSeparator      WRITE setSeparator)
+   Q_PROPERTY (QE::Separators separator  READ getSeparator      WRITE setSeparator)
 
    /// Speficies the number of leading zeros.
    /// Strictly speaking, this should be an unsigned int, but designer int properties editor much 'nicer'.
    ///
-   Q_PROPERTY (int leadingZeros      READ getLeadingZeros   WRITE setLeadingZeros)
+   Q_PROPERTY (int leadingZeros          READ getLeadingZeros   WRITE setLeadingZeros)
 
    /// Precision used for the display and editing of numbers. The default is 4.
    /// Strictly speaking, this should be an unsigned int, but designer int properties editor much 'nicer'.
    ///
-   Q_PROPERTY (int  precision        READ getPrecision      WRITE setPrecision)
+   Q_PROPERTY (int  precision            READ getPrecision      WRITE setPrecision)
 
    /// When true, there is always a sign charactere "+" or "-".
    /// When false (default), no "+" sign when range of valued non-negative.
    ///
    Q_PROPERTY (bool forceSign        READ getForceSign      WRITE setForceSign)
+
+   /// When set true (default is false) the numeric edit widget will wrap around
+   /// from the max/min to min/max value.
+   ///
+   Q_PROPERTY (bool wrapValue        READ getWrapValue      WRITE setWrapValue)
 
    /// Specify the mimimum allowed value.
    ///
@@ -164,8 +162,11 @@ public:
    void setForceSign (const bool value);
    bool getForceSign () const;
 
-   void setNotation (const Notations notation);
-   Notations getNotation () const;
+   void setWrapValue (const bool value);
+   bool getWrapValue () const;
+
+   void setNotation (const QE::Notations notation);
+   QE::Notations getNotation () const;
 
    void setMinimum (const double value);
    double getMinimum () const;
@@ -173,11 +174,11 @@ public:
    void setMaximum (const double value);
    double getMaximum () const;
 
-   void setRadix (const QEFixedPointRadix::Radicies value);
-   QEFixedPointRadix::Radicies getRadix () const;
+   void setRadix (const QE::Radicies value);
+   QE::Radicies getRadix () const;
 
-   void setSeparator (const QEFixedPointRadix::Separators value);
-   QEFixedPointRadix::Separators getSeparator () const;
+   void setSeparator (const QE::Separators value);
+   QE::Separators getSeparator () const;
 
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (lineEdit, bool,          hasFrame,   setFrame)
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (lineEdit, Qt::Alignment, alignment,  setAlignment)
@@ -207,7 +208,8 @@ private:
    int mLeadingZeros;
    int mPrecision;
    bool mForceSign;
-   Notations mNotation;
+   bool mWrapValue;
+   QE::Notations mNotation;
    double mValue;         // the actual value
 
    // Other values
@@ -216,11 +218,11 @@ private:
    double maximumMax;
    int cursorFirst;       // First allowed number character within line edit
    int cursorLast;        // Last allowed number character within line edit
-   int cursor;            // Current cursor position
+   int cursorPosition;    // Current cursor position
    bool emitValueChangeInhibited;
 
    void commonConstructor ();
-   void internalSetValue (const double value);  // used from withn the widget.
+   void internalSetValue (const double value);  // used from within the widget.
 
    bool lineEditKeyPressEvent (QKeyEvent *event);
    bool lineEditFocusInEvent (QFocusEvent *event);
@@ -241,8 +243,8 @@ private:
    void redisplayText ();             // Calls embedded lineEdit's setText using string from imageOfValue.
    void setDigitSelection ();         // High-lights selected digit
 
-   void setCursor (const int value);
-   int getCursor () const;
+   void setCursorPosition (const int value);
+   int getCursorPosition () const;
 
    QChar charAt (const int j) const;      // Conveniance function to extract jth character of line edit text.
    bool isRadixDigit (QChar qc) const;    // Is the character a valid digit for the selected radix
@@ -264,9 +266,5 @@ private:
 
    friend class QENumericEdit;
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QNumericEdit::Notations)
-#endif
 
 #endif  // Q_NUMERIC_EDIT_H

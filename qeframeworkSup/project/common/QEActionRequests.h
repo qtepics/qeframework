@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2018 Australian Synchrotron
+ *  Copyright (c) 2013-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,6 +31,7 @@
 #include <QString>
 #include <QStringList>
 #include <QVariant>
+#include <QEEnums.h>
 #include <QEFrameworkLibraryGlobal.h>
 #include <QAction>
 #include <QEFormMapper.h>
@@ -63,21 +64,7 @@ public:
 
    // How new windows created for the request are to be presented.
    // May not be relevent for all requests
-   enum Options {
-      OptionOpen,
-      OptionNewTab,
-      OptionNewWindow,
-      OptionTopDockWindow,
-      OptionBottomDockWindow,
-      OptionLeftDockWindow,
-      OptionRightDockWindow,
-      OptionTopDockWindowTabbed,
-      OptionBottomDockWindowTabbed,
-      OptionLeftDockWindowTabbed,
-      OptionRightDockWindowTabbed,
-      OptionFloatingDockWindow
-   };
-
+   // enum QE::CreationOptions  replaces  enum Options
 
    // Predefined actions values for built in windows that consumer may provide.
    //
@@ -101,7 +88,7 @@ public:
    // .ui file name plus create option plus optional form handle.
    QEActionRequests (const QString &filename,
                      const QString &config,
-                     const Options optionIn,
+                     const QE::CreationOptions optionIn,
                      const QEFormMapper::FormHandles& formHandle = QEFormMapper::nullHandle ());
 
    // a set of windows to create
@@ -128,8 +115,8 @@ public:
    void setArguments (const QStringList & argumentsIn);
    QStringList getArguments () const;
 
-   void setOption (const Options optionIn);
-   Options getOption () const;
+   void setOption (const QE::CreationOptions optionIn);
+   QE::CreationOptions getOption () const;
 
    void setAction( const QString actionIn );
    QString getAction() const;
@@ -151,14 +138,14 @@ public:
    QList<windowCreationListItem> getWindows() const;
    QList<componentHostListItem> getComponents() const;
 
-   static bool isDockCreationOption( const Options createOption );          // Return true if creation option creates a dock
-   static bool isTabbedDockCreationOption( const Options createOption );    // Return true if creation option creates a tabbed dock
+   static bool isDockCreationOption( const QE::CreationOptions createOption );          // Return true if creation option creates a dock
+   static bool isTabbedDockCreationOption( const QE::CreationOptions createOption );    // Return true if creation option creates a tabbed dock
 
 private:
    Kinds kind;
    QString action;
    QStringList arguments;
-   Options option;
+   QE::CreationOptions option;
    QString customisation;  // Window configuration (menus, buttons, etc)
    QEFormMapper::FormHandles formHandle;  // allows requestor to nominate a handle for the created QEForm.
    QList<windowCreationListItem> windows;
@@ -183,7 +170,7 @@ public:
    QString                   macroSubstitutions;   // Macro substitutions to apply when this item is actioned
    QString                   customisationName;    // Customisation name to apply to any main windows created when this item is actioned
    QEFormMapper::FormHandles formHandle;           // Allows requestor to nominate a handle for the created QEForm.
-   QEActionRequests::Options creationOption;       // Creation option defining how the UI file is presented (in a new window, a tabbed dock, etc)
+   QE::CreationOptions creationOption;             // Creation option defining how the UI file is presented (in a new window, a tabbed dock, etc)
    bool                      hidden;               // If true, any new dock is created hidden
    QString                   title;                // Title of this menu item
 };
@@ -199,14 +186,14 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT componentHostListItem
 public:
    componentHostListItem ();
    componentHostListItem (QWidget*                  widgetIn,
-                          QEActionRequests::Options creationOptionIn,
+                          QE::CreationOptions       creationOptionIn,
                           bool                      hiddenIn,
                           QString                   titleIn );
    componentHostListItem (componentHostListItem* item);
    ~componentHostListItem ();
 
    QWidget*                  widget;
-   QEActionRequests::Options creationOption;
+   QE::CreationOptions       creationOption;
    bool                      hidden;
    QString                   title;
 };

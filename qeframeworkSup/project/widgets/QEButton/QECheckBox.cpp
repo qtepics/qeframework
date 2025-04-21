@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2021 Australian Synchrotron
+ *  Copyright (c) 2009-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -38,7 +38,10 @@
 /*
     Constructor with no initialisation
 */
-QECheckBox::QECheckBox( QWidget *parent ) : QCheckBox( parent ), QEGenericButton( this ) {
+QECheckBox::QECheckBox( QWidget *parent ) :
+   QCheckBox( parent ),
+   QEGenericButton( this )
+{
     QEGenericButton::setup();
     setup();
 }
@@ -46,7 +49,10 @@ QECheckBox::QECheckBox( QWidget *parent ) : QCheckBox( parent ), QEGenericButton
 /*
     Constructor with known variable
 */
-QECheckBox::QECheckBox( const QString &variableNameIn, QWidget *parent ) : QCheckBox( parent ), QEGenericButton( this ) {
+QECheckBox::QECheckBox( const QString &variableNameIn, QWidget *parent ) :
+   QCheckBox( parent ),
+   QEGenericButton( this )
+{
     setVariableName( variableNameIn, 0 );
 
     QEGenericButton::setup();
@@ -58,7 +64,8 @@ QECheckBox::QECheckBox( const QString &variableNameIn, QWidget *parent ) : QChec
 /*
     Setup common to all constructors
 */
-void QECheckBox::setup() {
+void QECheckBox::setup()
+{
     // Identify the type of button
     setText( "QECheckBox" );
 
@@ -76,9 +83,9 @@ QECheckBox::~QECheckBox() { }
 
 // Setup default updateOption.
 //
-QEGenericButton::updateOptions QECheckBox::getDefaultUpdateOption()
+QE::UpdateOptions QECheckBox::getDefaultUpdateOption()
 {
-   return QEGenericButton::UPDATE_STATE;
+   return QE::State;
 }
 
 // Slot to receiver a 'process completed' signal from the application launcher

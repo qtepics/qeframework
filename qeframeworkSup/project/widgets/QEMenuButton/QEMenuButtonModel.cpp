@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2023 Australian Synchrotron
+ *  Copyright (c) 2015-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -333,9 +333,10 @@ QModelIndex QEMenuButtonModel::parent (const QModelIndex& childIndex) const
    QEMenuButtonItem* childItem = this->getItem (childIndex);
    if (!childItem) {
       DEBUG << "null childItem " << childIndex;
+      return QModelIndex ();
    }
-   QEMenuButtonItem* parentItem = childItem->getParent ();
 
+   QEMenuButtonItem* parentItem = childItem->getParent ();
    if (parentItem == this->coreItem) {
       return QModelIndex ();
    }

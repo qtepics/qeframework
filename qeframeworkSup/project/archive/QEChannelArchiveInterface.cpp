@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2021 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -28,6 +28,7 @@
 
 #include <QDebug>
 #include <QtCore>
+#include <QMetaType>
 #include <QtXml>
 #include <QVariantList>
 #include <alarm.h>
@@ -37,6 +38,8 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <QEPlatform.h>
+#include <QEArchiveManager.h>
 
 #define DEBUG qDebug () << "QEArchiveInterfaceCA" << __LINE__ << __FUNCTION__  << "  "
 
@@ -195,7 +198,8 @@ void QEChannelArchiveInterface::processInfo (const QObject *userData, const QVar
    int version;
    bool okay;
 
-   if (response.type () != QVariant::Map) {
+   const QMetaType::Type rtype = QEPlatform::metaType (response);
+   if (rtype != QMetaType::QVariantMap) {
       DEBUG << "response not a map";
       return;
    }
@@ -215,7 +219,8 @@ void QEChannelArchiveInterface::processInfo (const QObject *userData, const QVar
 
 //------------------------------------------------------------------------------
 //
-void QEChannelArchiveInterface::processArchives (const QObject *userData, const QVariant & response)
+void QEChannelArchiveInterface::processArchives (const QObject *userData,
+                                                 const QVariant & response)
 {
    ArchiveList PvArchives;
    QVariantList list;
@@ -225,7 +230,8 @@ void QEChannelArchiveInterface::processArchives (const QObject *userData, const 
    bool okay;
    struct Archive item;
 
-   if (response.type () != QVariant::List) {
+   const QMetaType::Type rtype = QEPlatform::metaType (response);
+   if (rtype != QMetaType::QVariantList) {
       DEBUG << "response not a list";
       return;
    }
@@ -233,12 +239,14 @@ void QEChannelArchiveInterface::processArchives (const QObject *userData, const 
    list = response.toList ();
    for (j = 0; j < list.count (); j++) {
       element = list.value (j);
-      if (element.type () == QVariant::Map) {
+
+      const QMetaType::Type etype = QEPlatform::metaType (element);
+      if (etype == QMetaType::QVariantMap) {
          map = element.toMap ();
 
          item.key  = map ["key"].toInt (&okay);
-         item.name = map ["name"].toString ();
-         item.path = map ["path"].toString ();
+         item.nameIndex = QEArchiveManager::getArchiveNameIndex (map ["name"].toString ());
+         item.pathIndex = QEArchiveManager::getPathIndex (map ["path"].toString ());
          PvArchives.append (item);
 
       } else {
@@ -265,7 +273,8 @@ void QEChannelArchiveInterface::processPvNames  (const QObject *userData, const 
    QDateTime time;
    struct PVName item;
 
-   if (response.type () != QVariant::List) {
+   const QMetaType::Type rtype = QEPlatform::metaType (response);
+   if (rtype != QMetaType::QVariantList) {
       DEBUG << "response not a list";
       return;
    }
@@ -273,7 +282,9 @@ void QEChannelArchiveInterface::processPvNames  (const QObject *userData, const 
    list = response.toList ();
    for (j = 0; j < list.count (); j++) {
       element = list.value (j);
-      if (element.type () == QVariant::Map) {
+
+      const QMetaType::Type etype = QEPlatform::metaType (element);
+      if (etype == QMetaType::QVariantMap) {
          map = element.toMap ();
 
          item.pvName = map ["name"].toString ();
@@ -356,10 +367,9 @@ void QEChannelArchiveInterface::processOnePV (const StringToVariantMaps& map,
                                               const unsigned int requested_element,
                                               struct ResponseValues& item)
 {
-
    StringToVariantMaps meta;
    bool okay;
-   enum MetaType mtype;
+   enum MetaKind mkind;
    enum DataType dtype;
    QVariantList values_list;
    int count;
@@ -368,11 +378,11 @@ void QEChannelArchiveInterface::processOnePV (const StringToVariantMaps& map,
    item.pvName = map ["name"].toString ();
 
    meta = map ["meta"].toMap ();
-   mtype = (enum MetaType)  meta ["type"].toInt (&okay);
+   mkind = (enum MetaKind)  meta ["type"].toInt (&okay);
 
    // The meta data values available depends of the type.
    //
-   switch (mtype) {
+   switch (mkind) {
    case mtEnumeration:
       item.displayLow  = 0.0;
       item.displayHigh = meta ["states"].toList ().count () - 1;
@@ -424,7 +434,8 @@ void QEChannelArchiveInterface::processValues (const QObject* userData,
    QVariant element;
    int j;
 
-   if (response.type () != QVariant::List) {
+   const QMetaType::Type rtype = QEPlatform::metaType (response);
+   if (rtype != QMetaType::QVariantList) {
       DEBUG << "response not a list";
       return;
    }
@@ -432,7 +443,9 @@ void QEChannelArchiveInterface::processValues (const QObject* userData,
    list = response.toList ();
    for (j = 0; j < list.count (); j++) {
       element = list.value (j);
-      if (element.type () == QVariant::Map) {
+
+      const QMetaType::Type etype = QEPlatform::metaType (element) ;
+      if (etype == QMetaType::QVariantMap) {
 
          StringToVariantMaps map = element.toMap ();
          struct ResponseValues item;

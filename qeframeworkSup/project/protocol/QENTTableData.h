@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018 Australian Synchrotron
+ *  Copyright (C) 2018-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -44,15 +44,15 @@
 /// Defines a table data class type, specifically to support the epics:nt/NTTable type.
 /// This type is registered as a QVariant type, and can be set/get like this:
 ///
-///   QETableData tab;
-///   QVariant var;
+///   QETableData table;
+///   QVariant variant;
 ///
-///   var.setValue <QENTTableData> (tab);       or
-///   var = tab.toVariant();
+///   variant.setValue (table);                       or
+///   variant = table.toVariant();                    -- defined in this module
 ///
-///   tab = var.value<QENTTableData>();
-///   tab = qvariant_cast<QENTTableData>(var);  or
-///   tab.assignFromVariant (var);
+///   table = variant.value<QENTTableData>();         or
+///   table = qvariant_cast<QENTTableData>(variant);  or
+///   table.assignFromVariant (variant);              -- defined in this module
 ///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QENTTableData {
 public:
@@ -60,6 +60,8 @@ public:
    QENTTableData ();
    QENTTableData (const QENTTableData& other);
    ~QENTTableData ();
+
+   QENTTableData& operator=(const QENTTableData& other);
 
 #ifdef QE_INCLUDE_PV_ACCESS
    // Note: we can only read NTTable types for now.

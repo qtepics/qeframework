@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2012-2025 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -16,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2012 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
@@ -25,15 +25,16 @@
  *
  */
 
+#include "QEPvLoadSaveValueEditDialog.h"
 #include <QDebug>
+#include <QMetaType>
 #include <QStringList>
-
 #include <QECommon.h>
-#include <QEPvLoadSaveValueEditDialog.h>
+#include <QEPlatform.h>
+#include <QEVectorVariants.h>
 #include <ui_QEPvLoadSaveValueEditDialog.h>
 
-
-static const QVariant nilValue (QVariant::Invalid);
+static const QVariant nilValue = QVariant();
 
 //------------------------------------------------------------------------------
 //
@@ -68,19 +69,21 @@ void QEPvLoadSaveValueEditDialog::setPvName (const QString& pvName)
 //
 void QEPvLoadSaveValueEditDialog::setValue (const QVariant& valueIn)
 {
-   int n;
+   const QMetaType::Type mtype = QEPlatform::metaType (valueIn);
 
-   if (valueIn.type() == QVariant::List) {
+   if (QEVectorVariants::isVectorVariant (valueIn)) {
+      bool okay;
+      this->valueList = QEVectorVariants::convertToVariantList (valueIn, okay);
+   } else if (mtype == QMetaType::QVariantList) {
       this->valueList = valueIn.toList ();
    } else {
       this->valueList.clear ();
       this->valueList.append (valueIn);
    }
 
-   n = this->valueList.size ();
+   const int n = this->valueList.size ();
 
    this->ui->numberElementsEdit->setValue (n);
-
    this->ui->elementIndexEdit->setMaximum (n);
    this->ui->elementIndexEdit->setValue (1);
 

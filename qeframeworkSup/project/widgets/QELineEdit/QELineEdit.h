@@ -28,6 +28,7 @@
 #define QE_LINE_EDIT_H
 
 #include <QLineEdit>
+#include <QEEnums.h>
 #include <QEWidget.h>
 #include <QEString.h>
 #include <QEStringFormatting.h>
@@ -72,7 +73,9 @@ public:
     ///
     Q_PROPERTY(bool forceSign READ getForceSign WRITE setForceSign)
 
-    // NOTE, keep in sync. The documentation below is repeated in QEStringFormatting::setLocalEnumeration() (in QEStringformatting.cpp)
+    // NOTE, keep in sync. The documentation below is repeated in
+    // QEStringFormatting::setLocalEnumeration() (in QEStringformatting.cpp)
+    //
     /// An enumeration list used to data values. Used only when the formatting option is 'local enumeration'.
     /// Value is converted to an integer and used to select a string from this list.
     ///
@@ -113,74 +116,35 @@ public:
     /// A range of numbers can be covered by a pair of values as in the following example: >=4:"Between 4 and 8",<=8:"Between 4 and 8"
     Q_PROPERTY(QString/*localEnumerationList*/ localEnumeration READ getLocalEnumeration WRITE setLocalEnumeration)
 
-    /// \enum    Formats
-    /// User friendly enumerations for format property - refer to QEStringFormatting::formats for details.
-    enum Formats {
-       Default          = QEStringFormatting::FORMAT_DEFAULT,            ///< Format as best appropriate for the data type
-       Floating         = QEStringFormatting::FORMAT_FLOATING,           ///< Format as a floating point number
-       Integer          = QEStringFormatting::FORMAT_INTEGER,            ///< Format as an integer
-       UnsignedInteger  = QEStringFormatting::FORMAT_UNSIGNEDINTEGER,    ///< Format as an unsigned integer
-       Time             = QEStringFormatting::FORMAT_TIME,               ///< Format as a time
-       LocalEnumeration = QEStringFormatting::FORMAT_LOCAL_ENUMERATE     ///< Format as a selection from the #localEnumeration property
-    };
-    Q_ENUM (Formats)
-    void setFormatProperty( Formats format ){ setFormat( (QEStringFormatting::formats)format ); }  ///< Access function for #format property - refer to #format property for details
-    Formats getFormatProperty(){ return (Formats)getFormat(); }                                    ///< Access function for #format property - refer to #format property for details
-
     /// Format to apply to data. Default is 'Default' in which case the data type supplied with the data determines how the data is formatted.
     /// For all other options, an attempt is made to format the data as requested (whatever its native form).
-    Q_PROPERTY(Formats format READ getFormatProperty WRITE setFormatProperty)
+    Q_PROPERTY(QE::Formats format READ getFormatProperty WRITE setFormatProperty)
+
+    void setFormatProperty (QE::Formats format) { this->setFormat(format); }  ///< Access function for #format property - refer to #format property for details
+    QE::Formats getFormatProperty() const { return this->getFormat(); }       ///< Access function for #format property - refer to #format property for details
 
     /// Base used for when formatting integers. Default is 10 (duh!)
     ///
     Q_PROPERTY(int radix READ getRadix WRITE setRadix)
 
-    /// \enum Separators
-    /// User friendly enumerations for seprator property - refer to QEStringFormatting::formats for details.
-    enum Separators {
-       NoSeparator = QEStringFormatting::SEPARATOR_NONE,         ///< Use no separator
-       Comma       = QEStringFormatting::SEPARATOR_COMMA,        ///< Use ',' as separator
-       Underscore  = QEStringFormatting::SEPARATOR_UNDERSCORE,   ///< Use '_' as separator
-       Space       = QEStringFormatting::SEPARATOR_SPACE         ///< Use ' ' as separator
-    };
-    Q_ENUM (Separators)
-    void setSeparatorProperty( const Separators notation ){ setSeparator( (QEStringFormatting::separators)notation ); }  ///< Access function for #separator property - refer to #separator property for details
-    Separators getSeparatorProperty() const { return (Separators)getSeparator(); }                                       ///< Access function for #separator property - refer to #separator property for details
-
     /// Seperators used for interger and fixed point formatting. Default is None.
     ///
-    Q_PROPERTY(Separators separator READ getSeparatorProperty WRITE setSeparatorProperty)
+    Q_PROPERTY(QE::Separators separator READ getSeparator WRITE setSeparator)
 
-    /// \enum Notations
-    /// User friendly enumerations for notation property - refer to QEStringFormatting::notations for details.
-    enum Notations {
-       Fixed       = QEStringFormatting::NOTATION_FIXED,              ///< Refer to QEStringFormatting::NOTATION_FIXED for details
-       Scientific  = QEStringFormatting::NOTATION_SCIENTIFIC,         ///< Refer to QEStringFormatting::NOTATION_SCIENTIFIC for details
-       Automatic   = QEStringFormatting::NOTATION_AUTOMATIC           ///< Refer to QEStringFormatting::NOTATION_AUTOMATIC for details
-    };
-    Q_ENUM (Notations)
-    void setNotationProperty( Notations notation ){ setNotation( (QEStringFormatting::notations)notation ); }  ///< Access function for #notation property - refer to #notation property for details
-    Notations getNotationProperty(){ return (Notations)getNotation(); }                                        ///< Access function for #notation property - refer to #notation property for details
     /// Notation used for numerical formatting. Default is fixed.
     ///
-    Q_PROPERTY(Notations notation READ getNotationProperty WRITE setNotationProperty)
-
-    /// \enum ArrayActions
-    /// User friendly enumerations for arrayAction property - refer to QEStringFormatting::arrayActions for details.
-    enum ArrayActions {
-       Append = QEStringFormatting::APPEND,            ///< Refer to QEStringFormatting::APPEND for details
-       Ascii  = QEStringFormatting::ASCII,             ///< Refer to QEStringFormatting::ASCII for details
-       Index  = QEStringFormatting::INDEX              ///< Refer to QEStringFormatting::INDEX for details
-    };
-    Q_ENUM (ArrayActions)
-    void setArrayActionProperty( ArrayActions arrayAction ){ setArrayAction( (QEStringFormatting::arrayActions)arrayAction ); }    ///< Access function for #arrayAction property - refer to #arrayAction property for details
-    ArrayActions getArrayActionProperty(){ return (ArrayActions)getArrayAction(); }                                                ///< Access function for #arrayAction property - refer to #arrayAction property for details
+    Q_PROPERTY(QE::Notations notation READ getNotation WRITE setNotation)
 
     /// Text formatting option for array data. Default is ASCII. Options are:
     /// \li ASCII - treat array as a single text string. For example an array of three characters 'a' 'b' 'c' will be formatted as 'abc'.
-    /// \li APPEND - treat array as an array of numbers and format a string containing them all with a space between each. For example, an array of three numbers 10, 11 and 12 will be formatted as '10 11 12'.
-    /// \li INDEX - Extract a single item from the array. The item is then formatted as any other non array data would be. The item selected is determined by the arrayIndex property. For example, if arrayIndex property is 1, an array of three numbers 10, 11 and 12 will be formatted as '11'.
-    Q_PROPERTY(ArrayActions arrayAction READ getArrayActionProperty WRITE setArrayActionProperty)
+    /// \li APPEND - treat array as an array of numbers and format a string containing them all with a space between each.
+    ///              For example, an array of three numbers 10, 11 and 12 will be formatted as '10 11 12'.
+    /// \li INDEX - Extract a single item from the array. The item is then formatted as any other non array data would be.
+    ///             The item selected is determined by the arrayIndex property. For example, if arrayIndex property is 1,
+    ///             an array of three numbers 10, 11 and 12 will be formatted as '11'.
+    ///
+    Q_PROPERTY(QE::ArrayActions arrayAction READ getArrayAction WRITE setArrayAction)
+
 public:
     // END-STRING-FORMATTING-PROPERTIES ===============================================
 
@@ -243,12 +207,5 @@ private:
     bool writeData( const QVariant & value, QString& message );
 
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QELineEdit::Formats)
-Q_DECLARE_METATYPE (QELineEdit::Separators)
-Q_DECLARE_METATYPE (QELineEdit::Notations)
-Q_DECLARE_METATYPE (QELineEdit::ArrayActions)
-#endif
 
 #endif   // QE_LINE_EDIT_H

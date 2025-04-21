@@ -1,7 +1,7 @@
 /*  QEFixedPointRadix.cpp
  *
  *  This file is part of the EPICS QT Framework, initially developed at the
- *  Australian Synchrotron.
+ *  Australian Synchrotron
  *
  *  Copyright (c) 2014-2024 Australian Synchrotron.
  *
@@ -29,6 +29,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QEEnums.h>
 #include <QEFrameworkLibraryGlobal.h>
 
 /// The QString class provides general value to/from radix string representation,
@@ -42,27 +43,21 @@
 // This class is QObject mainly to allow Radicies/Separators to become part of the
 // meta object system.
 //
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFixedPointRadix : public QObject {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFixedPointRadix : public QObject
+{
    Q_OBJECT
 public:
-
-   /// Defines allowed radix values.
-   enum Radicies { Decimal = 0, Hexadecimal, Octal, Binary };
-   Q_ENUM (Radicies)
-
-   /// Defines the digit 'thousands' separator character.
-   enum Separators { None = 0, Comma, Underscore, Space };
-   Q_ENUM (Separators)
-
-   explicit QEFixedPointRadix (QObject* parent = 0);  // default is Decimal, None
-   explicit QEFixedPointRadix (const Radicies radix, const Separators separator, QObject* parent = 0);
+   explicit QEFixedPointRadix (QObject* parent = 0);  // default is Decimal, NoSeparator
+   explicit QEFixedPointRadix (const QE::Radicies radix,
+                               const QE::Separators separator,
+                               QObject* parent = 0);
    ~QEFixedPointRadix();
 
-   void setRadix (const Radicies radix);
-   Radicies getRadix () const;
+   void setRadix (const QE::Radicies radix);
+   QE::Radicies getRadix () const;
 
-   void setSeparator (const Separators separator);
-   Separators getSeparator () const;
+   void setSeparator (const QE::Separators separator);
+   QE::Separators getSeparator () const;
 
    int getRadixValue () const;   // i.e. 10, 16, 8 or 2.
 
@@ -84,13 +79,8 @@ public:
                    bool& okay) const;
 
 private:
-   Radicies radix;
-   Separators separator;
+   QE::Radicies radix;
+   QE::Separators separator;
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QEFixedPointRadix::Radicies)
-Q_DECLARE_METATYPE (QEFixedPointRadix::Separators)
-#endif
 
 #endif // QE_FIXED_POINT_RADIX_H

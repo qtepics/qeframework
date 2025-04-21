@@ -25,12 +25,15 @@
  */
 
 #include "QEFileBrowser.h"
+#include <QDebug>
 #include <QLineEdit>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFileDialog>
 #include <QHeaderView>
 #include <QELineEdit.h>
+
+#define DEBUG qDebug () << "QEFileBrowser" << __LINE__ << __FUNCTION__ << "  "
 
 // =============================================================================
 //  QEFILEBROWSER METHODS
@@ -44,7 +47,7 @@ QEFileBrowser::QEFileBrowser(QWidget *pParent):QWidget(pParent), QEWidget( this 
    //
    setVariableAsToolTip(false);
    setAllowDrop(false);
-   setDisplayAlarmStateOption(standardProperties::DISPLAY_ALARM_STATE_NEVER);
+   setDisplayAlarmStateOption(QE::Never);
 
    qeLineEditDirectoryPath = new QELineEdit(this);
    qPushButtonDirectoryBrowser = new QPushButton(this);
@@ -81,7 +84,7 @@ QEFileBrowser::QEFileBrowser(QWidget *pParent):QWidget(pParent), QEWidget( this 
    setShowFileExtension(true);
    setFileFilter("");
    setFileDialogDirectoriesOnly(true);
-   setOptionsLayout(Top);
+   setOptionsLayout(QE::Top);
 }
 
 //------------------------------------------------------------------------------
@@ -273,7 +276,7 @@ bool QEFileBrowser::getFileDialogDirectoriesOnly()
 
 //------------------------------------------------------------------------------
 //
-void QEFileBrowser::setOptionsLayout(int pValue)
+void QEFileBrowser::setOptionsLayout(QE::LayoutOptions pValue)
 {
    QLayout *qLayoutMain;
    QLayout *qLayoutChild;
@@ -282,8 +285,8 @@ void QEFileBrowser::setOptionsLayout(int pValue)
 
    switch(pValue)
    {
-      case Top:
-         optionsLayout = Top;
+      case QE::Top:
+         optionsLayout = QE::Top;
          qLayoutMain = new QVBoxLayout(this);
          qLayoutChild = new QHBoxLayout();
          qLayoutChild->addWidget(qeLineEditDirectoryPath);
@@ -293,8 +296,8 @@ void QEFileBrowser::setOptionsLayout(int pValue)
          qLayoutMain->addWidget(qTableWidgetFileBrowser);
          break;
 
-      case Bottom:
-         optionsLayout = Bottom;
+      case QE::Bottom:
+         optionsLayout = QE::Bottom;
          qLayoutMain = new QVBoxLayout(this);
          qLayoutMain->addWidget(qTableWidgetFileBrowser);
          qLayoutChild = new QHBoxLayout();
@@ -304,8 +307,8 @@ void QEFileBrowser::setOptionsLayout(int pValue)
          qLayoutMain->addItem(qLayoutChild);
          break;
 
-      case Left:
-         optionsLayout = Left;
+      case QE::Left:
+         optionsLayout = QE::Left;
          qLayoutMain = new QHBoxLayout(this);
          qLayoutChild = new QVBoxLayout();
          qLayoutChild->addWidget(qeLineEditDirectoryPath);
@@ -315,8 +318,8 @@ void QEFileBrowser::setOptionsLayout(int pValue)
          qLayoutMain->addWidget(qTableWidgetFileBrowser);
          break;
 
-      case Right:
-         optionsLayout = Right;
+      case QE::Right:
+         optionsLayout = QE::Right;
          qLayoutMain = new QHBoxLayout(this);
          qLayoutChild = new QVBoxLayout();
          qLayoutChild->addWidget(qeLineEditDirectoryPath);
@@ -329,7 +332,7 @@ void QEFileBrowser::setOptionsLayout(int pValue)
 
 //------------------------------------------------------------------------------
 //
-int QEFileBrowser::getOptionsLayout()
+QE::LayoutOptions QEFileBrowser::getOptionsLayout()
 {
    return optionsLayout;
 }
@@ -355,7 +358,6 @@ void QEFileBrowser::buttonDirectoryBrowserClicked()
    {
       result = QFileDialog::getOpenFileName(this, tr("Select file"), qeLineEditDirectoryPath->text());
    }
-
 
    if (!result.isEmpty())
    {

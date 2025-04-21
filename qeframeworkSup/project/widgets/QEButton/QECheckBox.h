@@ -29,6 +29,7 @@
 
 #include <QCheckBox>
 #include <QEWidget.h>
+#include <QEEnums.h>
 #include <QEString.h>
 #include <QEStringFormatting.h>
 #include <QEFrameworkLibraryGlobal.h>
@@ -118,32 +119,11 @@ public:
     /// to the list and the existing macro substitutions take precedence.
     Q_PROPERTY(QString prioritySubstitutions READ getPrioritySubstitutions WRITE setPrioritySubstitutions)
 
-    /// Creation options. Used to indicate how to present a GUI when requesting a new GUI be created. 
-    /// Open a new window, open a new tab, or replace the current window.
-    ///
-    enum CreationOptionNames {
-        Open = QEActionRequests::OptionOpen,                                ///< Replace the current GUI with the new GUI
-        NewTab = QEActionRequests::OptionNewTab,                            ///< Open new GUI in a new tab
-        NewWindow = QEActionRequests::OptionNewWindow,                      ///< Open new GUI in a new window
-        DockTop = QEActionRequests::OptionTopDockWindow,                    ///< Open new GUI in a top dock window
-        DockBottom = QEActionRequests::OptionBottomDockWindow,              ///< Open new GUI in a bottom dock window
-        DockLeft = QEActionRequests::OptionLeftDockWindow,                  ///< Open new GUI in a left dock window
-        DockRight = QEActionRequests::OptionRightDockWindow,                ///< Open new GUI in a right dock window
-        DockTopTabbed = QEActionRequests::OptionTopDockWindowTabbed,        ///< Open new GUI in a top dock window (tabbed with any existing dock in that area)
-        DockBottomTabbed = QEActionRequests::OptionBottomDockWindowTabbed,  ///< Open new GUI in a bottom dock window (tabbed with any existing dock in that area)
-        DockLeftTabbed = QEActionRequests::OptionLeftDockWindowTabbed,      ///< Open new GUI in a left dock window (tabbed with any existing dock in that area)
-        DockRightTabbed = QEActionRequests::OptionRightDockWindowTabbed,    ///< Open new GUI in a right dock window (tabbed with any existing dock in that area)
-        DockFloating = QEActionRequests::OptionFloatingDockWindow           ///< Open new GUI in a floating dock window
-    };
-
-    // Creation options
-    Q_ENUM (CreationOptionNames)
-
     /// Creation options when opening a new GUI. Open a new window, open a new tab, or replace the current window.
     /// the creation option is supplied when the button generates a newGui signal.
     /// Application code connected to this signal should honour this request if possible.
     /// When used within the QEGui application, the QEGui application creates a new window, new tab, or replaces the current window as appropriate.
-    Q_PROPERTY(CreationOptionNames creationOption READ getCreationOptionProperty WRITE setCreationOptionProperty)
+    Q_PROPERTY(QE::CreationOptions creationOption READ getCreationOption WRITE setCreationOption)
 
 
     /// Window customisation name. This name will be used to select a set of window customisations including menu items and tool bar buttons.
@@ -165,19 +145,8 @@ public:
 
     /// Startup options. Just run the command, run the command within a terminal, or display the output in QE message system.
     ///
-    Q_PROPERTY(ProgramStartupOptionNames programStartupOption READ getProgramStartupOptionProperty WRITE setProgramStartupOptionProperty)
-
-    // Program startup options
-    /// Startup options. Just run the command, run the command within a terminal, or display the output in QE message system.
-    ///
-    enum ProgramStartupOptionNames{
-        None      = applicationLauncher::PSO_NONE,       ///< Just run the program
-        Terminal  = applicationLauncher::PSO_TERMINAL,   ///< Run the program in a termainal (in Windows a command interpreter will also be started, so the program may be a built-in command like 'dir')
-        LogOutput = applicationLauncher::PSO_LOGOUTPUT,  ///< Run the program, and log the output in the QE message system
-        StdOutput = applicationLauncher::PSO_STDOUTPUT   ///< Run the program, and send doutput to standard output and standard error
-    };
-    Q_ENUM (ProgramStartupOptionNames)
-
+    Q_PROPERTY(QE::ProgramStartupOptions programStartupOption
+               READ getProgramStartupOption WRITE setProgramStartupOption)
 
     //--------------------------------------------------------------------------
     // Other button properties
@@ -188,7 +157,7 @@ public:
     /// When the policy is grayout, the widget is style is set as if disconnected when the record is disabled.
     /// When the policy is disable, the widget is disabled when the record is disabled.
     ///
-    Q_PROPERTY(QEWidgetProperties::DisabledRecordPolicy disabledRecordPolicy READ getDisabledRecordPolicy WRITE setDisabledRecordPolicy)
+    Q_PROPERTY(QE::DisabledRecordPolicy disabledRecordPolicy READ getDisabledRecordPolicy WRITE setDisabledRecordPolicy)
 
     /// Set the buttons text alignment.
     /// Left justification is particularly useful when displaying quickly changing numeric data updates.
@@ -196,20 +165,7 @@ public:
 
     /// Update options (text, pixmap, both, or state (checked or unchecked)
     ///
-    Q_PROPERTY(UpdateOptions updateOption READ getUpdateOptionProperty WRITE setUpdateOptionProperty)
-
-    /// User friendly enumerations for updateOption property - refer to QEGenericButton::updateOptions for details.
-    enum UpdateOptions { 
-        NoUpdate         = QEGenericButton::UPDATE_NONE,             ///< Data updates will not update button
-        Text             = QEGenericButton::UPDATE_TEXT,             ///< Data updates will update the button text
-        Icon             = QEGenericButton::UPDATE_ICON,             ///< Data updates will update the button icon
-        TextAndIcon      = QEGenericButton::UPDATE_TEXT_AND_ICON,    ///< Data updates will update the button text and icon
-        State            = QEGenericButton::UPDATE_STATE,            ///< Data updates will update the button state (checked or unchecked)
-        TextAndState     = QEGenericButton::UPDATE_TEXT_AND_STATE,   ///< Data updates will update the button text and state
-        IconAndState     = QEGenericButton::UPDATE_ICON_AND_STATE,   ///< Data updates will update the button icon and state
-        TextIconAndState = QEGenericButton::UPDATE_TEXT_ICON_AND_STATE  ///< Data updates will update the button - the lot
-    };
-    Q_ENUM (UpdateOptions)
+    Q_PROPERTY(QE::UpdateOptions updateOption READ getUpdateOption WRITE setUpdateOption)
 
     /// Pixmap to display if updateOption is Icon or TextAndIcon and data value translates to an index of 0
     ///
@@ -303,66 +259,68 @@ public:
     // These properties should be identical for every widget using them.
     // WHEN MAKING CHANGES: Use the update_widget_properties script in the
     // resources directory.
-public slots:
-    /// Slot to set the visibility of a QE widget, taking into account the user level.
-    /// Widget will be hidden if hidden by a call this slot, by will only be made visible by a calll to this slot if the user level allows.
-    void setManagedVisible( bool v ){ setRunVisible( v ); }
 public:
-    /// Use the variable as the tool tip. Default is true. Tool tip property will be overwritten by the variable name.
+    /// Use the variable as the tool tip. Default is true. Tool tip property
+    /// will be overwritten by the variable name.
     ///
     Q_PROPERTY(bool variableAsToolTip READ getVariableAsToolTip WRITE setVariableAsToolTip)
 
-    /// Allow drag/drops operations to this widget. Default is false. Any dropped text will be used as a new variable name.
+    /// Allow drag/drops operations to this widget. Default is false.
+    /// Any dropped text will be used as a new variable name.
     ///
     Q_PROPERTY(bool allowDrop READ getAllowDrop WRITE setAllowDrop)
 
     /// Display the widget. Default is true.
-    /// Setting this property false is usefull if widget is only used to provide a signal - for example, when supplying data to a QELink widget.
+    /// Setting this property false is usefull if widget is only used to provide
+    /// a signal - for example, when supplying data to a QELink widget.
     /// Note, when false the widget will still be visible in Qt Designer.
+    ///
     Q_PROPERTY(bool visible READ getRunVisible WRITE setRunVisible)
 
     /// Set the ID used by the message filtering system. Default is zero.
-    /// Widgets or applications that use messages from the framework have the option of filtering on this ID.
-    /// For example, by using a unique message source ID a QELog widget may be set up to only log messages from a select set of widgets.
+    /// Widgets or applications that use messages from the framework have the option
+    /// of filtering on this ID. For example, by using a unique message source ID
+    /// a QELog widget may be set up to only log messages from a select set of widgets.
+    ///
     Q_PROPERTY(unsigned int messageSourceId READ getMessageSourceId WRITE setMessageSourceId )
 
-    /// Hide style sheet from designer as style calculation by the styleManager and not directly setable per se.
+    /// Hide style sheet from designer as style calculation by the styleManager
+    /// and not directly setable per se.
     /// This also stops transient styles being saved to the ui file.
     Q_PROPERTY(QString styleSheet   READ styleSheet       WRITE setStyleSheet  DESIGNABLE false)
 
-    /// Style Sheet string to be applied before, i.e. lower priority than, any other style, e.g. alarm style and/or user level style.
+    /// Style Sheet string to be applied before, i.e. lower priority than, any other
+    /// style, e.g. alarm style and/or user level style.
     /// Default is an empty string.
+    ///
     Q_PROPERTY(QString defaultStyle READ getStyleDefault  WRITE setStyleDefault)
 
     /// Style Sheet string to be applied when the widget is displayed in 'User' mode. Default is an empty string.
     /// The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
     /// This Style Sheet string will be applied by the styleManager class.
-    /// Refer to the styleManager class for details about how this Style Sheet string will be merged with any pre-existing Style Sheet string
+    /// Refer to the styleManager class for details about how this Style Sheet
+    /// string will be merged with any pre-existing Style Sheet string
     /// and any Style Sheet strings generated during the display of data.
+    ///
     Q_PROPERTY(QString userLevelUserStyle READ getStyleUser WRITE setStyleUser)
 
     /// Style Sheet string to be applied when the widget is displayed in 'Scientist' mode. Default is an empty string.
     /// The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
     /// This Style Sheet string will be applied by the styleManager class.
-    /// Refer to the styleManager class for details about how this Style Sheet string will be merged with any pre-existing Style Sheet string
+    /// Refer to the styleManager class for details about how this Style Sheet
+    /// string will be merged with any pre-existing Style Sheet string
     /// and any Style Sheet strings generated during the display of data.
+    ///
     Q_PROPERTY(QString userLevelScientistStyle READ getStyleScientist WRITE setStyleScientist)
 
     /// Style Sheet string to be applied when the widget is displayed in 'Engineer' mode. Default is an empty string.
     /// The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
     /// This Style Sheet string will be applied by the styleManager class.
-    /// Refer to the styleManager class for details about how this Style Sheet string will be merged with any pre-existing Style Sheet string
+    /// Refer to the styleManager class for details about how this Style Sheet string
+    /// will be merged with any pre-existing Style Sheet string
     /// and any Style Sheet strings generated during the display of data.
+    ///
     Q_PROPERTY(QString userLevelEngineerStyle READ getStyleEngineer WRITE setStyleEngineer)
-
-    /// \enum UserLevels
-    /// User friendly enumerations for #userLevelVisibility and #userLevelEnabled properties - refer to #userLevelVisibility and #userLevelEnabled properties and userLevel enumeration for details.
-    enum UserLevels {
-        User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
-        Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
-        Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
-    };
-    Q_ENUM (UserLevels)
 
     /// Lowest user level at which the widget is visible. Default is 'User'.
     /// Used when designing GUIs that display more and more detail according to the user mode.
@@ -370,7 +328,8 @@ public:
     /// Widgets that are always visible should be visible at 'User'.
     /// Widgets that are only used by scientists managing the facility should be visible at 'Scientist'.
     /// Widgets that are only used by engineers maintaining the facility should be visible at 'Engineer'.
-    Q_PROPERTY(UserLevels userLevelVisibility READ getUserLevelVisibilityProperty WRITE setUserLevelVisibilityProperty)
+    ///
+    Q_PROPERTY(QE::UserLevels userLevelVisibility READ getUserLevelVisibility WRITE setUserLevelVisibility)
 
     /// Lowest user level at which the widget is enabled. Default is 'User'.
     /// Used when designing GUIs that allow access to more and more detail according to the user mode.
@@ -378,23 +337,9 @@ public:
     /// Widgets that are always accessable should be visible at 'User'.
     /// Widgets that are only accessable to scientists managing the facility should be visible at 'Scientist'.
     /// Widgets that are only accessable to engineers maintaining the facility should be visible at 'Engineer'.
-    Q_PROPERTY(UserLevels userLevelEnabled READ getUserLevelEnabledProperty WRITE setUserLevelEnabledProperty)
+    ///
+    Q_PROPERTY(QE::UserLevels userLevelEnabled READ getUserLevelEnabled WRITE setUserLevelEnabled)
 
-    UserLevels getUserLevelVisibilityProperty() { return (UserLevels)getUserLevelVisibility(); }            ///< Access function for #userLevelVisibility property - refer to #userLevelVisibility property for details
-    void setUserLevelVisibilityProperty( UserLevels level ) { setUserLevelVisibility( (userLevelTypes::userLevels)level ); }///< Access function for #userLevelVisibility property - refer to #userLevelVisibility property for details
-    UserLevels getUserLevelEnabledProperty() { return (UserLevels)getUserLevelEnabled(); }                  ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
-    void setUserLevelEnabledProperty( UserLevels level ) { setUserLevelEnabled( (userLevelTypes::userLevels)level ); }      ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
-
-    /// \enum DisplayAlarmStateOptions
-    /// User friendly enumerations for #displayAlarmStateOption property - refer to #displayAlarmStateOption
-    /// property and displayAlarmStateOptions enumeration for details.
-    enum DisplayAlarmStateOptions {
-       Always      = standardProperties::DISPLAY_ALARM_STATE_ALWAYS,              ///< Refer to DISPLAY_ALARM_STATE_ALWAYS for details
-       WhenInAlarm = standardProperties::DISPLAY_ALARM_STATE_WHEN_IN_ALARM,       ///< Refer to DISPLAY_ALARM_STATE_WHEN_IN_ALARM for details
-       WhenInvalid = standardProperties::DISPLAY_ALARM_STATE_WHEN_INVALID,        ///< Refer to DISPLAY_ALARM_STATE_WHEN_INVALID for details
-       Never       = standardProperties::DISPLAY_ALARM_STATE_NEVER                ///< Refer to DISPLAY_ALARM_STATE_NEVER for details
-    };
-    Q_ENUM (DisplayAlarmStateOptions)
     /// If 'Always' (default) widget will indicate the alarm state of any variable data it is displaying, including 'No Alarm'
     /// If 'WhenInAlarm' widget only indicate the alarm state of any variable data it is displaying if it is 'in alarm' or 'Out of Service'.
     /// If 'WhenInvalid' widget only indicate the alarm state of any variable data it is in the 'Invalid' alarm state or 'Out of Service'.
@@ -402,14 +347,14 @@ public:
     /// Typically the background colour is set to indicate the alarm state.
     /// Note, this property is included in the set of standard properties as it applies to most widgets.
     /// It will do nothing for widgets that don't display data.
-    Q_PROPERTY(DisplayAlarmStateOptions displayAlarmStateOption READ getDisplayAlarmStateOptionProperty WRITE setDisplayAlarmStateOptionProperty)
+    ///
+    Q_PROPERTY(QE::DisplayAlarmStateOptions displayAlarmStateOption
+               READ getDisplayAlarmStateOption WRITE setDisplayAlarmStateOption)
 
     /// Indicates whether the widget should repond to the underlying PV(s) being declared Out of Service.
     /// The default oosAware value is most often true, however is false for some widgets.
+    ///
     Q_PROPERTY(bool oosAware READ getOosAware WRITE setOosAware)
-
-    DisplayAlarmStateOptions getDisplayAlarmStateOptionProperty() { return (DisplayAlarmStateOptions)getDisplayAlarmStateOption(); }            ///< Access function for #displayAlarmStateOption property - refer to #displayAlarmStateOption property for details
-    void setDisplayAlarmStateOptionProperty( DisplayAlarmStateOptions option ) { setDisplayAlarmStateOption( (displayAlarmStateOptions)option ); }///< Access function for #displayAlarmStateOption property - refer to #displayAlarmStateOption property for details
 
 public:
     // END-STANDARD-PROPERTIES ========================================================
@@ -441,7 +386,9 @@ public:
     ///
     Q_PROPERTY(bool forceSign READ getForceSign WRITE setForceSign)
 
-    // NOTE, keep in sync. The documentation below is repeated in QEStringFormatting::setLocalEnumeration() (in QEStringformatting.cpp)
+    // NOTE, keep in sync. The documentation below is repeated in
+    // QEStringFormatting::setLocalEnumeration() (in QEStringformatting.cpp)
+    //
     /// An enumeration list used to data values. Used only when the formatting option is 'local enumeration'.
     /// Value is converted to an integer and used to select a string from this list.
     ///
@@ -482,74 +429,35 @@ public:
     /// A range of numbers can be covered by a pair of values as in the following example: >=4:"Between 4 and 8",<=8:"Between 4 and 8"
     Q_PROPERTY(QString/*localEnumerationList*/ localEnumeration READ getLocalEnumeration WRITE setLocalEnumeration)
 
-    /// \enum    Formats
-    /// User friendly enumerations for format property - refer to QEStringFormatting::formats for details.
-    enum Formats {
-       Default          = QEStringFormatting::FORMAT_DEFAULT,            ///< Format as best appropriate for the data type
-       Floating         = QEStringFormatting::FORMAT_FLOATING,           ///< Format as a floating point number
-       Integer          = QEStringFormatting::FORMAT_INTEGER,            ///< Format as an integer
-       UnsignedInteger  = QEStringFormatting::FORMAT_UNSIGNEDINTEGER,    ///< Format as an unsigned integer
-       Time             = QEStringFormatting::FORMAT_TIME,               ///< Format as a time
-       LocalEnumeration = QEStringFormatting::FORMAT_LOCAL_ENUMERATE     ///< Format as a selection from the #localEnumeration property
-    };
-    Q_ENUM (Formats)
-    void setFormatProperty( Formats format ){ setFormat( (QEStringFormatting::formats)format ); }  ///< Access function for #format property - refer to #format property for details
-    Formats getFormatProperty(){ return (Formats)getFormat(); }                                    ///< Access function for #format property - refer to #format property for details
-
     /// Format to apply to data. Default is 'Default' in which case the data type supplied with the data determines how the data is formatted.
     /// For all other options, an attempt is made to format the data as requested (whatever its native form).
-    Q_PROPERTY(Formats format READ getFormatProperty WRITE setFormatProperty)
+    Q_PROPERTY(QE::Formats format READ getFormatProperty WRITE setFormatProperty)
+
+    void setFormatProperty (QE::Formats format) { this->setFormat(format); }  ///< Access function for #format property - refer to #format property for details
+    QE::Formats getFormatProperty() const { return this->getFormat(); }       ///< Access function for #format property - refer to #format property for details
 
     /// Base used for when formatting integers. Default is 10 (duh!)
     ///
     Q_PROPERTY(int radix READ getRadix WRITE setRadix)
 
-    /// \enum Separators
-    /// User friendly enumerations for seprator property - refer to QEStringFormatting::formats for details.
-    enum Separators {
-       NoSeparator = QEStringFormatting::SEPARATOR_NONE,         ///< Use no separator
-       Comma       = QEStringFormatting::SEPARATOR_COMMA,        ///< Use ',' as separator
-       Underscore  = QEStringFormatting::SEPARATOR_UNDERSCORE,   ///< Use '_' as separator
-       Space       = QEStringFormatting::SEPARATOR_SPACE         ///< Use ' ' as separator
-    };
-    Q_ENUM (Separators)
-    void setSeparatorProperty( const Separators notation ){ setSeparator( (QEStringFormatting::separators)notation ); }  ///< Access function for #separator property - refer to #separator property for details
-    Separators getSeparatorProperty() const { return (Separators)getSeparator(); }                                       ///< Access function for #separator property - refer to #separator property for details
-
     /// Seperators used for interger and fixed point formatting. Default is None.
     ///
-    Q_PROPERTY(Separators separator READ getSeparatorProperty WRITE setSeparatorProperty)
+    Q_PROPERTY(QE::Separators separator READ getSeparator WRITE setSeparator)
 
-    /// \enum Notations
-    /// User friendly enumerations for notation property - refer to QEStringFormatting::notations for details.
-    enum Notations {
-       Fixed       = QEStringFormatting::NOTATION_FIXED,              ///< Refer to QEStringFormatting::NOTATION_FIXED for details
-       Scientific  = QEStringFormatting::NOTATION_SCIENTIFIC,         ///< Refer to QEStringFormatting::NOTATION_SCIENTIFIC for details
-       Automatic   = QEStringFormatting::NOTATION_AUTOMATIC           ///< Refer to QEStringFormatting::NOTATION_AUTOMATIC for details
-    };
-    Q_ENUM (Notations)
-    void setNotationProperty( Notations notation ){ setNotation( (QEStringFormatting::notations)notation ); }  ///< Access function for #notation property - refer to #notation property for details
-    Notations getNotationProperty(){ return (Notations)getNotation(); }                                        ///< Access function for #notation property - refer to #notation property for details
     /// Notation used for numerical formatting. Default is fixed.
     ///
-    Q_PROPERTY(Notations notation READ getNotationProperty WRITE setNotationProperty)
-
-    /// \enum ArrayActions
-    /// User friendly enumerations for arrayAction property - refer to QEStringFormatting::arrayActions for details.
-    enum ArrayActions {
-       Append = QEStringFormatting::APPEND,            ///< Refer to QEStringFormatting::APPEND for details
-       Ascii  = QEStringFormatting::ASCII,             ///< Refer to QEStringFormatting::ASCII for details
-       Index  = QEStringFormatting::INDEX              ///< Refer to QEStringFormatting::INDEX for details
-    };
-    Q_ENUM (ArrayActions)
-    void setArrayActionProperty( ArrayActions arrayAction ){ setArrayAction( (QEStringFormatting::arrayActions)arrayAction ); }    ///< Access function for #arrayAction property - refer to #arrayAction property for details
-    ArrayActions getArrayActionProperty(){ return (ArrayActions)getArrayAction(); }                                                ///< Access function for #arrayAction property - refer to #arrayAction property for details
+    Q_PROPERTY(QE::Notations notation READ getNotation WRITE setNotation)
 
     /// Text formatting option for array data. Default is ASCII. Options are:
     /// \li ASCII - treat array as a single text string. For example an array of three characters 'a' 'b' 'c' will be formatted as 'abc'.
-    /// \li APPEND - treat array as an array of numbers and format a string containing them all with a space between each. For example, an array of three numbers 10, 11 and 12 will be formatted as '10 11 12'.
-    /// \li INDEX - Extract a single item from the array. The item is then formatted as any other non array data would be. The item selected is determined by the arrayIndex property. For example, if arrayIndex property is 1, an array of three numbers 10, 11 and 12 will be formatted as '11'.
-    Q_PROPERTY(ArrayActions arrayAction READ getArrayActionProperty WRITE setArrayActionProperty)
+    /// \li APPEND - treat array as an array of numbers and format a string containing them all with a space between each.
+    ///              For example, an array of three numbers 10, 11 and 12 will be formatted as '10 11 12'.
+    /// \li INDEX - Extract a single item from the array. The item is then formatted as any other non array data would be.
+    ///             The item selected is determined by the arrayIndex property. For example, if arrayIndex property is 1,
+    ///             an array of three numbers 10, 11 and 12 will be formatted as '11'.
+    ///
+    Q_PROPERTY(QE::ArrayActions arrayAction READ getArrayAction WRITE setArrayAction)
+
 public:
     // END-STRING-FORMATTING-PROPERTIES ===============================================
 
@@ -592,6 +500,12 @@ public slots:
     /// Update the default style applied to this widget.
     ///
     void setDefaultStyle( const QString& style ) { setStyleDefault( style ); }
+
+   /// Slot to set the visibility of a QE widget, taking into account the user level.
+   /// Widget will be hidden if hidden by a call this slot, by will only be made
+   /// visible by a calll to this slot if the user level allows.
+   ///
+   void setManagedVisible( bool v ){ setRunVisible( v ); }
 
 signals:
     // Note, the following signals are common to many QE widgets,
@@ -650,7 +564,7 @@ private:
 
     void stringFormattingChange(){ requestResend(); }
 
-    QEGenericButton::updateOptions getDefaultUpdateOption();
+    QE::UpdateOptions getDefaultUpdateOption();
 
     void emitPressed( int value ){ emit pressed( value ); }
     void emitReleased( int value ){ emit released( value ); }
@@ -663,18 +577,6 @@ private:
 
     // Copy paste (See QEGenericButton.cpp for common button copy and paste)
     QVariant copyData();
-
-    // Access function for updateOption property
-    void setUpdateOptionProperty( UpdateOptions updateOption ){ setUpdateOption( (QECheckBox::updateOptions)updateOption ); }
-    UpdateOptions getUpdateOptionProperty(){ return (UpdateOptions)getUpdateOption(); }
-
-    // Access function for programStartupOptions property
-    void setProgramStartupOptionProperty( ProgramStartupOptionNames programStartupOptionIn ){ setProgramStartupOption( (applicationLauncher::programStartupOptions)programStartupOptionIn ); }
-    ProgramStartupOptionNames getProgramStartupOptionProperty(){ return (ProgramStartupOptionNames)getProgramStartupOption(); }
-
-    // Access function for creationOption property
-    void setCreationOptionProperty( CreationOptionNames creationOptionIn ){ setCreationOption( (QEActionRequests::Options)creationOptionIn ); }
-    CreationOptionNames getCreationOptionProperty(){ return (CreationOptionNames)getCreationOption(); }
 
 private slots:
     // Hand-ball to QEGenericButton.
@@ -693,19 +595,6 @@ private slots:
     {
         useGenericNewVariableName( variableNameIn, variableNameSubstitutionsIn, variableIndex );
     }
-
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QECheckBox::UserLevels)
-Q_DECLARE_METATYPE (QECheckBox::DisplayAlarmStateOptions)
-Q_DECLARE_METATYPE (QECheckBox::Formats)
-Q_DECLARE_METATYPE (QECheckBox::Separators)
-Q_DECLARE_METATYPE (QECheckBox::Notations)
-Q_DECLARE_METATYPE (QECheckBox::ArrayActions)
-Q_DECLARE_METATYPE (QECheckBox::UpdateOptions)
-Q_DECLARE_METATYPE (QECheckBox::ProgramStartupOptionNames)
-Q_DECLARE_METATYPE (QECheckBox::CreationOptionNames)
-#endif
 
 #endif // QE_CHECK_BOX_H

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -58,8 +58,9 @@ public:
       PLOTTER_SHOW_HIDE_STATUS,    //
       PLOTTER_EMIT_COORDINATES,    //
 
+      PLOTTER_SAVE,                // Save state
       PLOTTER_PREV,                // Previous state
-      PLOTTER_NEXT,                // Previous state
+      PLOTTER_NEXT,                // Next state
 
       PLOTTER_NORMAL_VIDEO,        //
       PLOTTER_REVERSE_VIDEO,       //
@@ -98,7 +99,7 @@ public:
       PLOTTER_SELECT_USE_ALIAS_NAME,
       PLOTTER_SELECT_USE_DESCRIPTION,
 
-      // PV item context menu items.
+      // PV item context menu items  - the slot number is relevent
       //
       PLOTTER_LINE_BOLD,           //
       PLOTTER_LINE_DASHED,         //

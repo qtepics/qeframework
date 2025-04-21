@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (c) 2014-2023  Australian Synchrotron.
+ *  Copyright (c) 2014-2024  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -44,25 +44,31 @@
 #define SELECT(ho, vo)   (HORIZONTAL ? (ho) : (vo))
 
 // Magic null values - use NaN ?
-// 'Unlikely' to occur and can be exactly represented as a double.
+// 'Unlikely' to occur, and outside of the min-max range.
 // A bit 'naughty' mixing control and data, but it's pragmatic.
 //
-static const double  NO_DATA_VALUE = -1073741824.0;
+static const double  NO_DATA_VALUE = -1.0E+22;
 static const QColor  NO_COLOUR_VALUE = QColor (3, 1, 4, 2);   // Pi colour ;-)
 
-static const double  MINIMUM_SPAN  = +1.0E-18;
+static const double  MINIMUM_VALUE = -1.0E+20;
+static const double  MAXIMUM_VALUE = +1.0E+40;
+static const double  MINIMUM_SPAN  = +1.0E-12;
 static const int     MAX_CAPACITY  = 100000;
 
 //------------------------------------------------------------------------------
 //
-static bool isNullDataValue (const double x) {
+static bool isNullDataValue (const double x)
+{
+   static const double deltaLimit = ABS(NO_DATA_VALUE) * 1.0e-14;
+
    double d = ABS (x - NO_DATA_VALUE);
-   return (d <= 0.001);
+   return (d <= deltaLimit);
 }
 
 //------------------------------------------------------------------------------
 //
-static bool isNullColourValue (const QColor& x) {
+static bool isNullColourValue (const QColor& x)
+{
    return x == NO_COLOUR_VALUE;
 }
 
@@ -142,7 +148,6 @@ QEHistogram::QEHistogram (QWidget *parent) : QFrame (parent)
    QObject::connect (this->scrollbar, SIGNAL (valueChanged (int)),
                      this,     SLOT (scrollBarValueChanged (int)));
 }
-
 
 //------------------------------------------------------------------------------
 //  Define default size for this widget class.
@@ -962,6 +967,41 @@ void QEHistogram::createTestData ()
 // Property functions (standard)
 //==============================================================================
 //
+// We need smart property setters for min and max.
+//
+void QEHistogram::setMinimum(const double value)
+{
+   this->mMinimum = LIMIT (value, MINIMUM_VALUE, MAXIMUM_VALUE);
+   this->mMaximum = MAX (this->mMaximum, this->mMinimum + MINIMUM_SPAN);
+   this->mAutoScale = false;
+   this->update ();
+}
+
+//------------------------------------------------------------------------------
+//
+double QEHistogram::getMinimum() const
+{
+   return this->mMinimum;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEHistogram::setMaximum(const double value)
+{
+   this->mMaximum = LIMIT (value, MINIMUM_VALUE, MAXIMUM_VALUE);
+   this->mMinimum = MIN (this->mMinimum, this->mMaximum - MINIMUM_SPAN);
+   this->mAutoScale = false;
+   this->update ();
+}
+
+//------------------------------------------------------------------------------
+//
+double QEHistogram::getMaximum() const
+{
+   return this->mMaximum;
+}
+
+//------------------------------------------------------------------------------
 // Standard propery access macro.
 //
 #define PROPERTY_ACCESS(type, name, convert, extra)          \
@@ -982,26 +1022,24 @@ type QEHistogram::get##name () const {                       \
 
 #define NO_EXTRA
 
-PROPERTY_ACCESS (int,    BarWidth,         LIMIT (value, 1, 120),                                 NO_EXTRA)
-PROPERTY_ACCESS (int,    Gap,              LIMIT (value, 0, 20),                                  NO_EXTRA)
-PROPERTY_ACCESS (int,    Margin,           LIMIT (value, 0, 20),                                  this->layoutA->setContentsMargins (this->mMargin, this->mMargin, 
-                                                                                                                                     this->mMargin, this->mMargin))
-PROPERTY_ACCESS (double, Minimum,          LIMIT (value, -1.0E20, this->mMaximum - MINIMUM_SPAN), this->mAutoScale = false)
-PROPERTY_ACCESS (double, Maximum,          LIMIT (value, this->mMinimum + MINIMUM_SPAN, +1.0E40), this->mAutoScale = false)
-PROPERTY_ACCESS (double, BaseLine,         value,                                                 NO_EXTRA)
-PROPERTY_ACCESS (bool,   AutoScale,        value,                                                 NO_EXTRA)
-PROPERTY_ACCESS (bool,   AutoBarGapWidths, value,                                                 NO_EXTRA)
-PROPERTY_ACCESS (bool,   ShowScale,        value,                                                 this->axisPainter->setVisible (this->mShowScale))
-PROPERTY_ACCESS (bool,   ShowGrid,         value,                                                 NO_EXTRA)
-PROPERTY_ACCESS (bool,   LogScale,         value,                                                 NO_EXTRA)
-PROPERTY_ACCESS (bool,   DrawAxies,        value,                                                 this->axisPainter->setHasAxisLine (this->mDrawAxies);)
-PROPERTY_ACCESS (bool,   DrawBorder,       value,                                                 NO_EXTRA)
-PROPERTY_ACCESS (QColor, BackgroundColour, value,                                                 NO_EXTRA)
-PROPERTY_ACCESS (QColor, SecondBgColour,   value,                                                 NO_EXTRA)
-PROPERTY_ACCESS (int,    SecondBgSize,     LIMIT (value, 1, 100),                                 NO_EXTRA)
-PROPERTY_ACCESS (bool,   ShowSecondBg,     value,                                                 NO_EXTRA)
-PROPERTY_ACCESS (QColor, BarColour,        value,                                                 NO_EXTRA)
-PROPERTY_ACCESS (int,    TestSize,         LIMIT (value, 0, MAX_CAPACITY),                        this->createTestData ())
+PROPERTY_ACCESS (int,    BarWidth,         LIMIT (value, 1, 120),          NO_EXTRA)
+PROPERTY_ACCESS (int,    Gap,              LIMIT (value, 0, 20),           NO_EXTRA)
+PROPERTY_ACCESS (int,    Margin,           LIMIT (value, 0, 20),           this->layoutA->setContentsMargins (this->mMargin, this->mMargin,
+                                                                                                              this->mMargin, this->mMargin))
+PROPERTY_ACCESS (double, BaseLine,         value,                          NO_EXTRA)
+PROPERTY_ACCESS (bool,   AutoScale,        value,                          NO_EXTRA)
+PROPERTY_ACCESS (bool,   AutoBarGapWidths, value,                          NO_EXTRA)
+PROPERTY_ACCESS (bool,   ShowScale,        value,                          this->axisPainter->setVisible (this->mShowScale))
+PROPERTY_ACCESS (bool,   ShowGrid,         value,                          NO_EXTRA)
+PROPERTY_ACCESS (bool,   LogScale,         value,                          NO_EXTRA)
+PROPERTY_ACCESS (bool,   DrawAxies,        value,                          this->axisPainter->setHasAxisLine (this->mDrawAxies);)
+PROPERTY_ACCESS (bool,   DrawBorder,       value,                          NO_EXTRA)
+PROPERTY_ACCESS (QColor, BackgroundColour, value,                          NO_EXTRA)
+PROPERTY_ACCESS (QColor, SecondBgColour,   value,                          NO_EXTRA)
+PROPERTY_ACCESS (int,    SecondBgSize,     LIMIT (value, 1, 100),          NO_EXTRA)
+PROPERTY_ACCESS (bool,   ShowSecondBg,     value,                          NO_EXTRA)
+PROPERTY_ACCESS (QColor, BarColour,        value,                          NO_EXTRA)
+PROPERTY_ACCESS (int,    TestSize,         LIMIT (value, 0, MAX_CAPACITY), this->createTestData ())
 
 #undef PROPERTY_ACCESS
 
@@ -1039,8 +1077,10 @@ void QEHistogram::setOrientation (const Qt::Orientation orientation)
       this->layoutB->setContentsMargins (0, 0, 0, 0);
       this->layoutB->setSpacing (0);
 
-      this->axisPainter->setOrientation (SELECT (QEAxisPainter::Bottom_To_Top,
-                                                 QEAxisPainter::Left_To_Right));
+      // The axis orientation is opposite to the histogram orientation.
+      //
+      this->axisPainter->setOrientation (this->mOrientation == Qt::Horizontal
+                                         ? Qt::Vertical : Qt::Horizontal);
 
       if (HORIZONTAL) {
          this->axisPainter->setFixedWidth (60);

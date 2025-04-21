@@ -32,43 +32,49 @@
 
 #include <QEStringFormattingMethods.h>
 
+// Place holders
+//
+QEStringFormattingMethods::QEStringFormattingMethods(){}
+
+QEStringFormattingMethods::~QEStringFormattingMethods(){}
+
 // String formatting properties
 
 // precision
 void QEStringFormattingMethods::setPrecision( int precision )
 {
-    stringFormatting.setPrecision( precision );
-    stringFormattingChange();
+    this->stringFormatting.setPrecision( precision );
+    this->stringFormattingChange();
 }
 int QEStringFormattingMethods::getPrecision() const
 {
-    return stringFormatting.getPrecision();
+    return this->stringFormatting.getPrecision();
 }
 
 // useDbPrecision
 void QEStringFormattingMethods::setUseDbPrecision( bool useDbPrecision )
 {
-    stringFormatting.setUseDbPrecision( useDbPrecision);
-    stringFormattingChange();
+    this->stringFormatting.setUseDbPrecision( useDbPrecision);
+    this->stringFormattingChange();
 }
 bool QEStringFormattingMethods::getUseDbPrecision() const
 {
-    return stringFormatting.getUseDbPrecision();
+    return this->stringFormatting.getUseDbPrecision();
 }
 
 // leadingZeros
 void QEStringFormattingMethods::setLeadingZeros( const int leadingZeros )
 {
-   stringFormatting.setLeadingZeros( leadingZeros );
-   stringFormattingChange();
+   this->stringFormatting.setLeadingZeros( leadingZeros );
+   this->stringFormattingChange();
 }
 int QEStringFormattingMethods::getLeadingZeros() const
 {
-   return stringFormatting.getLeadingZeros();
+   return this->stringFormatting.getLeadingZeros();
 }
 
 // leadingZero - deprecated
-void QEStringFormattingMethods::setLeadingZero( bool leadingZero )
+void QEStringFormattingMethods::setLeadingZero( bool )
 {
 }
 bool QEStringFormattingMethods::getLeadingZero() const
@@ -77,7 +83,7 @@ bool QEStringFormattingMethods::getLeadingZero() const
 }
 
 // trailingZeros - deprecated
-void QEStringFormattingMethods::setTrailingZeros( bool trailingZeros )
+void QEStringFormattingMethods::setTrailingZeros( bool )
 {
 }
 bool QEStringFormattingMethods::getTrailingZeros() const
@@ -88,95 +94,95 @@ bool QEStringFormattingMethods::getTrailingZeros() const
 // forceSign
 void QEStringFormattingMethods::setForceSign( bool forceSign )
 {
-    stringFormatting.setForceSign( forceSign );
-    stringFormattingChange();
+    this->stringFormatting.setForceSign( forceSign );
+    this->stringFormattingChange();
 }
 bool QEStringFormattingMethods::getForceSign() const
 {
-    return stringFormatting.getForceSign();
+    return this->stringFormatting.getForceSign();
 }
 
 // addUnits
 void QEStringFormattingMethods::setAddUnits( bool addUnits )
 {
-    stringFormatting.setAddUnits( addUnits );
-    stringFormattingChange();
+    this->stringFormatting.setAddUnits( addUnits );
+    this->stringFormattingChange();
 }
 bool QEStringFormattingMethods::getAddUnits() const
 {
-    return stringFormatting.getAddUnits();
+    return this->stringFormatting.getAddUnits();
 }
 
 // localEnumeration
 void QEStringFormattingMethods::setLocalEnumeration( QString localEnumeration )
 {
-    stringFormatting.setLocalEnumeration( localEnumeration );
-    stringFormattingChange();
+    this->stringFormatting.setLocalEnumeration( localEnumeration );
+    this->stringFormattingChange();
 }
 QString QEStringFormattingMethods::getLocalEnumeration() const
 {
-    return stringFormatting.getLocalEnumeration();
+    return this->stringFormatting.getLocalEnumeration();
 }
 
 // format
-void QEStringFormattingMethods::setFormat( QEStringFormatting::formats format )
+void QEStringFormattingMethods::setFormat( QE::Formats format )
 {
-    stringFormatting.setFormat( format );
-    stringFormattingChange();
+    this->stringFormatting.setFormat( format );
+    this->stringFormattingChange();
 }
-QEStringFormatting::formats QEStringFormattingMethods::getFormat() const
+QE::Formats QEStringFormattingMethods::getFormat() const
 {
-    return stringFormatting.getFormat();
+    return this->stringFormatting.getFormat();
 }
 
 // separator
-void QEStringFormattingMethods::setSeparator( const QEStringFormatting::separators separator )
+void QEStringFormattingMethods::setSeparator( const QE::Separators separator )
 {
-    stringFormatting.setSeparator( separator );
-    stringFormattingChange();
+    this->stringFormatting.setSeparator( separator );
+    this->stringFormattingChange();
 }
-QEStringFormatting::separators QEStringFormattingMethods::getSeparator() const
+QE::Separators QEStringFormattingMethods::getSeparator() const
 {
-   return stringFormatting.getSeparator();
+   return this->stringFormatting.getSeparator();
 }
 
 // radix
 void QEStringFormattingMethods::setRadix( const int radix )
 {
-    stringFormatting.setRadix( radix);
-    stringFormattingChange();
+    this->stringFormatting.setRadix( radix);
+    this->stringFormattingChange();
 }
 unsigned int QEStringFormattingMethods::getRadix() const
 {
-    return stringFormatting.getRadix();
+    return this->stringFormatting.getRadix();
 }
 
 // notation
-void QEStringFormattingMethods::setNotation( QEStringFormatting::notations notation )
+void QEStringFormattingMethods::setNotation( QE::Notations notation )
 {
-    stringFormatting.setNotation( notation );
-    stringFormattingChange();
+    this->stringFormatting.setNotation( notation );
+    this->stringFormattingChange();
 }
-QEStringFormatting::notations QEStringFormattingMethods::getNotation() const
+QE::Notations QEStringFormattingMethods::getNotation() const
 {
-    return stringFormatting.getNotation();
+    return this->stringFormatting.getNotation();
 }
 
 // arrayAction
-void QEStringFormattingMethods::setArrayAction( QEStringFormatting::arrayActions arrayAction )
+void QEStringFormattingMethods::setArrayAction( QE::ArrayActions arrayAction )
 {
-    stringFormatting.setArrayAction( arrayAction );
-    stringFormattingChange();
+    this->stringFormatting.setArrayAction( arrayAction );
+    this->stringFormattingChange();
 }
-QEStringFormatting::arrayActions QEStringFormattingMethods::getArrayAction() const
+QE::ArrayActions QEStringFormattingMethods::getArrayAction() const
 {
-    return stringFormatting.getArrayAction();
+    return this->stringFormatting.getArrayAction();
 }
 
 // local enuerations
 QELocalEnumeration QEStringFormattingMethods::getLocalEnumerationObject() const
 {
-    return stringFormatting.getLocalEnumerationObject();
+    return this->stringFormatting.getLocalEnumerationObject();
 }
 
 // end

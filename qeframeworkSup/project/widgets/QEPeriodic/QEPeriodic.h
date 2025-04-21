@@ -32,6 +32,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QHBoxLayout>
+#include <QEEnums.h>
 #include <QEWidget.h>
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
@@ -108,7 +109,7 @@ public:
 
     static QColor categoryColour (const Category cat);
 
-    // Static element information structure
+    // Static element information structure with examples
     struct elementInfoStruct
     {
         unsigned int number;            // Atomic number:     1
@@ -204,13 +205,8 @@ public:
     bool isColourised() const;
 
     // user info source options
-    enum userInfoSourceOptions {
-        USER_INFO_SOURCE_TEXT,
-        USER_INFO_SOURCE_FILE
-    };
-
-    void setUserInfoSourceOption( userInfoSourceOptions userInfoSourceOptionIn );
-    userInfoSourceOptions getUserInfoSourceOption() const;
+    void setUserInfoSourceOption( QE::SourceOptions userInfoSourceOptionIn );
+    QE::SourceOptions getUserInfoSourceOption() const;
 
     // The user info has changed (from the user info setup dialog), so update the current user info source
     void updateUserInfoSource();
@@ -300,7 +296,7 @@ private:
 
     QString userInfoText;
     QString userInfoFile;
-    userInfoSourceOptions userInfoSourceOption;
+    QE::SourceOptions userInfoSourceOption;
 
     // Drag and Drop
 protected:
@@ -443,22 +439,14 @@ public:
     /// and any Style Sheet strings generated during the display of data.
     Q_PROPERTY(QString userLevelEngineerStyle READ getStyleEngineer WRITE setStyleEngineer)
 
-    /// \enum UserLevels
-    /// User friendly enumerations for #userLevelVisibility and #userLevelEnabled properties - refer to #userLevelVisibility and #userLevelEnabled properties and userLevel enumeration for details.
-    enum UserLevels {
-        User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
-        Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
-        Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
-    };
-    Q_ENUM (UserLevels)
-
     /// Lowest user level at which the widget is visible. Default is 'User'.
     /// Used when designing GUIs that display more and more detail according to the user mode.
     /// The user mode is set application wide through the QELogin widget, or programatically through setUserLevel()
     /// Widgets that are always visible should be visible at 'User'.
     /// Widgets that are only used by scientists managing the facility should be visible at 'Scientist'.
     /// Widgets that are only used by engineers maintaining the facility should be visible at 'Engineer'.
-    Q_PROPERTY(UserLevels userLevelVisibility READ getUserLevelVisibilityProperty WRITE setUserLevelVisibilityProperty)
+    ///
+    Q_PROPERTY(QE::UserLevels userLevelVisibility READ getUserLevelVisibility WRITE setUserLevelVisibility)
 
     /// Lowest user level at which the widget is enabled. Default is 'User'.
     /// Used when designing GUIs that allow access to more and more detail according to the user mode.
@@ -466,31 +454,18 @@ public:
     /// Widgets that are always accessable should be visible at 'User'.
     /// Widgets that are only accessable to scientists managing the facility should be visible at 'Scientist'.
     /// Widgets that are only accessable to engineers maintaining the facility should be visible at 'Engineer'.
-    Q_PROPERTY(UserLevels userLevelEnabled READ getUserLevelEnabledProperty WRITE setUserLevelEnabledProperty)
+    ///
+    Q_PROPERTY(QE::UserLevels userLevelEnabled READ getUserLevelEnabled WRITE setUserLevelEnabled)
 
-    UserLevels getUserLevelVisibilityProperty() { return (UserLevels)getUserLevelVisibility(); }            ///< Access function for #userLevelVisibility property - refer to #userLevelVisibility property for details
-    void setUserLevelVisibilityProperty( UserLevels level ) { setUserLevelVisibility( (userLevelTypes::userLevels)level ); }///< Access function for #userLevelVisibility property - refer to #userLevelVisibility property for details
-    UserLevels getUserLevelEnabledProperty() { return (UserLevels)getUserLevelEnabled(); }                  ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
-    void setUserLevelEnabledProperty( UserLevels level ) { setUserLevelEnabled( (userLevelTypes::userLevels)level ); }      ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
-
-    /// \enum DisplayAlarmStateOptions
-    /// User friendly enumerations for #displayAlarmStateOption property - refer to #displayAlarmStateOption property and displayAlarmStateOptions enumeration for details.
-    enum DisplayAlarmStateOptions {
-        Never       = standardProperties::DISPLAY_ALARM_STATE_NEVER,          ///< Refer to DISPLAY_ALARM_STATE_NEVER for details
-        Always      = standardProperties::DISPLAY_ALARM_STATE_ALWAYS,         ///< Refer to DISPLAY_ALARM_STATE_ALWAYS for details
-        WhenInAlarm = standardProperties::DISPLAY_ALARM_STATE_WHEN_IN_ALARM   ///< Refer to DISPLAY_ALARM_STATE_WHEN_IN_ALARM for details
-    };
-    Q_ENUM (DisplayAlarmStateOptions)
     /// If 'Always' (default) widget will indicate the alarm state of any variable data it is displaying, including 'No Alarm'
     /// If 'Never' widget will never indicate the alarm state of any variable data it is displaying.
     /// If 'WhenInAlarm' widget only indicate the alarm state of any variable data it is displaying if it is 'in alarm'.
     /// Typically the background colour is set to indicate the alarm state.
     /// Note, this property is included in the set of standard properties as it applies to most widgets. It
     /// will do nothing for widgets that don't display data.
-    Q_PROPERTY(DisplayAlarmStateOptions displayAlarmStateOption READ getDisplayAlarmStateOptionProperty WRITE setDisplayAlarmStateOptionProperty)
-
-    DisplayAlarmStateOptions getDisplayAlarmStateOptionProperty() { return (DisplayAlarmStateOptions)getDisplayAlarmStateOption(); }            ///< Access function for #displayAlarmStateOption property - refer to #displayAlarmStateOption property for details
-    void setDisplayAlarmStateOptionProperty( DisplayAlarmStateOptions option ) { setDisplayAlarmStateOption( (displayAlarmStateOptions)option ); }///< Access function for #displayAlarmStateOption property - refer to #displayAlarmStateOption property for details
+    ///
+    Q_PROPERTY(QE::DisplayAlarmStateOptions displayAlarmStateOption
+               READ getDisplayAlarmStateOption WRITE setDisplayAlarmStateOption)
 
 public:
    // END-STANDARD-PROPERTIES ========================================================
@@ -534,34 +509,25 @@ public:
     Q_PROPERTY(double variableTolerance1 READ getVariableTolerance1 WRITE setVariableTolerance1)
     Q_PROPERTY(double variableTolerance2 READ getVariableTolerance2 WRITE setVariableTolerance2)
 
-    // This property should be called userInfoText. It was named userInfo before there was a choise of user info sources (text property or file)
+    // This property should be called userInfoText. It was named userInfo before
+    // there was a choise of user info sources (text property or file)
     Q_PROPERTY(QString userInfo READ getUserInfoText WRITE setUserInfoText)
 
     Q_PROPERTY(QString userInfoFile READ getUserInfoFile WRITE setUserInfoFile)
 
-    enum UserInfoSourceOptions {
-        userInfoSourceText = QEPeriodic::USER_INFO_SOURCE_TEXT,
-        userInfoSourceFile = QEPeriodic::USER_INFO_SOURCE_FILE
-    };
-    Q_ENUM(UserInfoSourceOptions)
-    Q_PROPERTY(UserInfoSourceOptions userInfoSourceOption READ getUserInfoSourceOptionProperty WRITE setUserInfoSourceOptionProperty)
-
-    void setUserInfoSourceOptionProperty( UserInfoSourceOptions userInfoSourceOption ){ setUserInfoSourceOption( (QEPeriodic::userInfoSourceOptions)userInfoSourceOption ); }
-    UserInfoSourceOptions getUserInfoSourceOptionProperty(){ return (UserInfoSourceOptions)getUserInfoSourceOption(); }
+    Q_PROPERTY(QE::SourceOptions userInfoSourceOption READ getUserInfoSourceOption
+                                                      WRITE setUserInfoSourceOption)
 
     /// This property sets element colourised enable/disable on the PeridicDialog.
     ///
     Q_PROPERTY(bool colourised READ isColourised WRITE setColourised)
 };
 
-Q_DECLARE_METATYPE(QEPeriodic::userInfoStructArray)
+Q_DECLARE_METATYPE (QEPeriodic::userInfoStructArray)
 
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QEPeriodic::UserLevels)
-Q_DECLARE_METATYPE (QEPeriodic::DisplayAlarmStateOptions)
 Q_DECLARE_METATYPE (QEPeriodic::PresentationOptions)
 Q_DECLARE_METATYPE (QEPeriodic::VariableTypes)
-Q_DECLARE_METATYPE (QEPeriodic::UserInfoSourceOptions)
 #endif
 
 #endif // QE_PERIODIC_H

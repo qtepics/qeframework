@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2023 Australian Synchrotron.
+ *  Copyright (c) 2011-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -45,6 +45,7 @@
 #include <PeriodicDialog.h>
 #include <math.h>
 #include <QDebug>
+#include <QFile>
 #include <QSizePolicy>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
@@ -56,24 +57,26 @@
 #define DEBUG  qDebug () << "QEPeriodic" << __LINE__ << __FUNCTION__ << "  "
 
 
+//------------------------------------------------------------------------------
 // Table containing all static element information
 // (Another table - userInfo - contains dynamic element information that
 // varies from instance to instance of this class)
 //
 const QEPeriodic::elementInfoStruct QEPeriodic::elementInfo[NUM_ELEMENTS] = {
-//     .------------------------------------------------------------------------------------- Atomic Number,
-//     |    .-------------------------------------------------------------------------------- Atomic Weight
-//     |    |       .------------------------------------------------------------------------ Name
-//     |    |       |                .------------------------------------------------------- Symbol
-//     |    |       |                |        .---------------------------------------------- Melting Point (deg C)
-//     |    |       |                |        |        .------------------------------------- Boiling Point (deg C)
-//     |    |       |                |        |        |       .----------------------------- Density
-//     |    |       |                |        |        |       |       .--------------------- Group
-//     |    |       |                |        |        |       |       |   .----------------- Ionization energy,
-//     |    |       |                |        |        |       |       |   |        .-------- Table row
-//     |    |       |                |        |        |       |       |   |        |   .---- Table column
-//     |    |       |                |        |        |       |       |   |        |   |  .- Catagory
-//     |    |       |                |        |        |       |       |   |        |   |  |
+   //  .------------------------------------------------------------------------------------- Atomic Number,
+   //  |    .-------------------------------------------------------------------------------- Atomic Weight
+   //  |    |       .------------------------------------------------------------------------ Name
+   //  |    |       |                .------------------------------------------------------- Symbol
+   //  |    |       |                |        .---------------------------------------------- Melting Point (deg C)
+   //  |    |       |                |        |        .------------------------------------- Boiling Point (deg C)
+   //  |    |       |                |        |        |       .----------------------------- Density
+   //  |    |       |                |        |        |       |       .--------------------- Group
+   //  |    |       |                |        |        |       |       |   .----------------- Ionization energy,
+   //  |    |       |                |        |        |       |       |   |        .-------- Table row
+   //  |    |       |                |        |        |       |       |   |        |   .---- Table column
+   //  |    |       |                |        |        |       |       |   |        |   |  .- Catagory
+   //  |    |       |                |        |        |       |       |   |        |   |  |
+   //  v    v       v                v        v        v       v       v   v        v   v  v
    {   1,   1.0079, "Hydrogen",      "H",    -259.0,  -253.0,  0.09,   1, 13.5984,  0,  0, QEPeriodic::Hydrogen  },
    {   2,   4.0026, "Helium",        "He",   -272.0,  -269.0,  0.18,  18, 24.5874,  0, 18, QEPeriodic::NobleGas  },
 
@@ -201,367 +204,379 @@ const QEPeriodic::elementInfoStruct QEPeriodic::elementInfo[NUM_ELEMENTS] = {
 };
 
 
-static const QColor categoryColourMap [QEPeriodic::NUMBER_OF_CATEGORIES]
+//------------------------------------------------------------------------------
+//
+static const QColor categoryColourMap [QEPeriodic::NUMBER_OF_CATEGORIES] =
 {
-    QColor ("#d8e180"),   // 0   Hydrogen
-    QColor ("#e35457"),   // 1   Alkali metal
-    QColor ("#e5c897"),   // 2   Alkaline earth metal
-    QColor ("#e5a8a9"),   // 3   Transition metal
-    QColor ("#b4b4b4"),   // 4   Post transition metal
-    QColor ("#b3b684"),   // 5   Metalloid
-    QColor ("#d7e87c"),   // 6   Reactive non-metal
-    QColor ("#ade8e7"),   // 7   Noble gas
-    QColor ("#e6a5e8"),   // 8   Lan­thanide
-    QColor ("#e580b5"),   // 9   Actinide
-    QColor ("#d0d0d0")    // 10  Unknown properties.
+   QColor ("#d8e180"),   // 0   Hydrogen
+   QColor ("#e35457"),   // 1   Alkali metal
+   QColor ("#e5c897"),   // 2   Alkaline earth metal
+   QColor ("#e5a8a9"),   // 3   Transition metal
+   QColor ("#b4b4b4"),   // 4   Post transition metal
+   QColor ("#b3b684"),   // 5   Metalloid
+   QColor ("#d7e87c"),   // 6   Reactive non-metal
+   QColor ("#ade8e7"),   // 7   Noble gas
+   QColor ("#e6a5e8"),   // 8   Lan­thanide
+   QColor ("#e580b5"),   // 9   Actinide
+   QColor ("#d0d0d0")    // 10  Unknown properties.
 };
 
-/*
-    Get the colour associate with this catagory
-    Remainder ensure no array out of bounds errors.
-*/
+//------------------------------------------------------------------------------
+// Get the colour associate with this catagory
+// Remainder ensures there is no array out of bounds errors.
+//
 QColor QEPeriodic::categoryColour( const Category cat )
 {
    return categoryColourMap[ int( cat ) % QEPeriodic::NUMBER_OF_CATEGORIES ];
 }
 
-/*
-    Constructor with no initialisation
-*/
+//------------------------------------------------------------------------------
+// Constructor with no initialisation
+//
 QEPeriodic::QEPeriodic( QWidget *parent ) :
-    QFrame( parent ), QEWidget( this )
+   QFrame( parent ), QEWidget( this )
 {
-    setup();
+   setup();
 }
 
-/*
-    Constructor with known variable
-*/
+//------------------------------------------------------------------------------
+// Constructor with known variable
+//
 QEPeriodic::QEPeriodic( const QString &variableNameIn, QWidget *parent ) :
-    QFrame( parent ), QEWidget( this )
+   QFrame( parent ), QEWidget( this )
 {
-    setVariableName( variableNameIn, 0 );
-
-    setup();
-
-    activate();
+   setVariableName( variableNameIn, 0 );
+   setup();
+   activate();
 }
 
-/*
-    Setup common to all constructors
-*/
+//------------------------------------------------------------------------------
+// Setup common to all constructors
+//
 void QEPeriodic::setup()
 {
-    selectedSymbol = "";
-    selectedAtomicNumber = 0;
+   selectedSymbol = "";
+   selectedAtomicNumber = 0;
 
-    // Place element selection button to left, and readback label on right
-    layout = new QHBoxLayout;
-    layout->setContentsMargins(0, 0, 0, 0);
-    setLayout(layout);
+   // Place element selection button to left, and readback label on right
+   layout = new QHBoxLayout;
+   layout->setContentsMargins(0, 0, 0, 0);
+   setLayout(layout);
 
-    // Note the variables associated with the write element button
-    writeButtonData.variableIndex1 = 0;
-    writeButtonData.variableIndex2 = 1;
+   // Note the variables associated with the write element button
+   writeButtonData.variableIndex1 = 0;
+   writeButtonData.variableIndex2 = 1;
 
-    // Note the variables associated with the element readback label
-    readbackLabelData.variableIndex1 = 2;
-    readbackLabelData.variableIndex2 = 3;
+   // Note the variables associated with the element readback label
+   readbackLabelData.variableIndex1 = 2;
+   readbackLabelData.variableIndex2 = 3;
 
-    // Default to just a write element button
-    writeButton = NULL;
-    readbackLabel = NULL;
-    presentationOption = PRESENTATION_BUTTON_ONLY;
-    updatePresentationOptions();
+   // Default to just a write element button
+   writeButton = NULL;
+   readbackLabel = NULL;
+   presentationOption = PRESENTATION_BUTTON_ONLY;
+   updatePresentationOptions();
 
-    // Default to using user info text property as the source for user information
-    userInfoSourceOption = USER_INFO_SOURCE_TEXT;
+   // Default to using user info text property as the source for user information
+   userInfoSourceOption = QE::SourceText;
 
-    // Set up data
-    // This control uses:
-    // A pair of values to read and write an 'element' set point
-    // A pair of values to read 'element' readback
-    setNumVariables(4);
+   // Set up data
+   // This control uses:
+   // A pair of values to read and write an 'element' set point
+   // A pair of values to read 'element' readback
+   setNumVariables(4);
 
-    // Set variable indices used to select write access cursor style.
-    ControlVariableIndicesSet controlPvs;
-    controlPvs << 0 << 1;
-    setControlPVs( controlPvs );
+   // Set variable indices used to select write access cursor style.
+   ControlVariableIndicesSet controlPvs;
+   controlPvs << 0 << 1;
+   setControlPVs( controlPvs );
 
 
-    // Override default QEWidget and QPushButton properties
-    subscribe = false;
+   // Override default QEWidget and QPushButton properties
+   subscribe = false;
 
-    // Set up default properties
-    localEnabled = true;
-    variableTolerance1 = 0.1;
-    variableTolerance2 = 0.1;
-    setAllowDrop( false );
+   // Set up default properties
+   localEnabled = true;
+   variableTolerance1 = 0.1;
+   variableTolerance2 = 0.1;
+   setAllowDrop( false );
 
-    colourise = false;
+   colourise = false;
 
-    // Set the initial state
-    isConnected = false;
+   // Set the initial state
+   isConnected = false;
 
-    variableType1 = VARIABLE_TYPE_USER_VALUE_1;
-    variableType2 = VARIABLE_TYPE_USER_VALUE_2;
+   variableType1 = VARIABLE_TYPE_USER_VALUE_1;
+   variableType2 = VARIABLE_TYPE_USER_VALUE_2;
 
-    // Use standard context menu
-    setupContextMenu();
+   // Use standard context menu
+   setupContextMenu();
 
-    // !! move this functionality into QEWidget???
-    // !! needs one for single variables and one for multiple variables, or just the multiple variable one for all
-    // for each variable name property manager, set up an index to identify it when it signals and
-    // set up a connection to recieve variable name property changes.
-    // The variable name property manager class only delivers an updated variable name after the user has stopped typing
-    for( int i = 0; i < QEPERIODIC_NUM_VARIABLES; i++ )
-    {
-        variableNamePropertyManagers[i].setVariableIndex( i );
-        QObject::connect( &variableNamePropertyManagers[i], SIGNAL( newVariableNameProperty( QString, QString, unsigned int ) ), this, SLOT( useNewVariableNameProperty( QString, QString, unsigned int ) ) );
-    }
+   // !! move this functionality into QEWidget???
+   // !! needs one for single variables and one for multiple variables, or just the multiple variable one for all
+   // for each variable name property manager, set up an index to identify it when it signals and
+   // set up a connection to recieve variable name property changes.
+   // The variable name property manager class only delivers an updated variable name after the user has stopped typing.
+   //
+   for( int i = 0; i < QEPERIODIC_NUM_VARIABLES; i++ )
+   {
+      variableNamePropertyManagers[i].setVariableIndex( i );
+      QObject::connect( &variableNamePropertyManagers[i],
+                            SIGNAL(    newVariableNameProperty( QString, QString, unsigned int ) ),
+                        this, SLOT( useNewVariableNameProperty( QString, QString, unsigned int ) ) );
+   }
 }
 
-/*
-    Implementation of QEWidget's virtual funtion to create the specific type of QCaObject required.
-    For a push button a QCaObject that streams strings is required.
-*/
+//------------------------------------------------------------------------------
+// Implementation of QEWidget's virtual funtion to create the specific type of QCaObject required.
+// For a push button a QCaObject that streams strings is required.
+//
 qcaobject::QCaObject* QEPeriodic::createQcaItem( unsigned int variableIndex ) {
 
-    // Reflect the initial disconnected state if there is a write PVs.
-    // If there are no write PVs, leave it enabled it as this widget can be used to signal
-    // an element selection as well as write element related values.
-    if( writeButton && ( variableIndex == WRITE_VARIABLE_1 || variableIndex == WRITE_VARIABLE_2 ))
-    {
-        writeButton->setEnabled( false );
-    }
+   // Reflect the initial disconnected state if there is a write PVs.
+   // If there are no write PVs, leave it enabled it as this widget can be used to signal
+   // an element selection as well as write element related values.
+   if( writeButton && ( variableIndex == WRITE_VARIABLE_1 || variableIndex == WRITE_VARIABLE_2 ))
+   {
+      writeButton->setEnabled( false );
+   }
 
-    // Create the items as a QEFloating
-    return new QEFloating( getSubstitutedVariableName( variableIndex ), this, &floatingFormatting, variableIndex );
+   // Create the items as a QEFloating
+   return new QEFloating( getSubstitutedVariableName( variableIndex ), this, &floatingFormatting, variableIndex );
 }
 
-/*
-    Start updating.
-    Implementation of VariableNameManager's virtual funtion to establish a connection to a PV as the variable name has changed.
-    This function may also be used to initiate updates when loaded as a plugin.
-*/
+//------------------------------------------------------------------------------
+// Start updating.
+// Implementation of VariableNameManager's virtual funtion to establish a connection
+// to a PV as the variable name has changed.
+// This function may also be used to initiate updates when loaded as a plugin.
+//
 void QEPeriodic::establishConnection( unsigned int variableIndex ) {
 
-    // Create a connection.
-    // If successfull, the QCaObject object that will supply data update signals will be returned
-    qcaobject::QCaObject* qca = createConnection( variableIndex );
+   // Create a connection.
+   // If successfull, the QCaObject object that will supply data update signals will be returned
+   qcaobject::QCaObject* qca = createConnection( variableIndex );
 
-    // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots
-    if(  qca ) {
-        QObject::connect( qca,  SIGNAL( floatingChanged( const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
-                          this, SLOT( setElement( const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
+   // If a QCaObject object is now available to supply data update signals,
+   // connect it to the appropriate slots
+   if(  qca ) {
+      QObject::connect( qca,  SIGNAL( floatingChanged( const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
+                        this, SLOT(        setElement( const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
 
-        // Get conection status changes always (subscribing or not)
-        QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ),
-                          this, SLOT( connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ) );
-        QObject::connect( this, SIGNAL( requestResend() ),
-                          qca, SLOT( resendLastData() ) );
+      // Get conection status changes always (subscribing or not)
+      QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ),
+                        this, SLOT(   connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ) );
+      QObject::connect( this, SIGNAL( requestResend() ),
+                        qca,  SLOT(  resendLastData() ) );
 
-    }
+   }
 }
 
-/*
-    Act on a connection change.
-    Change how the label looks and change the tool tip
-    This is the slot used to recieve connection updates from a QCaObject based class.
- */
-void QEPeriodic::connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex )
+//------------------------------------------------------------------------------
+// Act on a connection change.
+// Change how the label looks and change the tool tip
+// This is the slot used to recieve connection updates from a QCaObject based class.
+void QEPeriodic::connectionChanged( QCaConnectionInfo& connectionInfo,
+                                    const unsigned int& variableIndex )
 {
-    // If connected enabled the widget if required.
-    if( connectionInfo.isChannelConnected() )
-    {
-        isConnected = true;
-        updateToolTipConnection( isConnected, variableIndex );
+   // If connected enabled the widget if required.
+   if( connectionInfo.isChannelConnected() )
+   {
+      isConnected = true;
+      updateToolTipConnection( isConnected, variableIndex );
 
-        if( localEnabled )
-        {
-            if( writeButton )
-                writeButton->setEnabled( true );
+      if( localEnabled )
+      {
+         if( writeButton )
+            writeButton->setEnabled( true );
 
-            if( readbackLabel )
-                readbackLabel->setEnabled( true );
-        }
-    }
+         if( readbackLabel )
+            readbackLabel->setEnabled( true );
+      }
+   }
 
-    // If disconnected always disable the widget.
-    else
-    {
-        isConnected = false;
-        updateToolTipConnection( isConnected, variableIndex );
+   // If disconnected always disable the widget.
+   else
+   {
+      isConnected = false;
+      updateToolTipConnection( isConnected, variableIndex );
 
-        if( writeButton )
-            writeButton->setEnabled( false );
+      if( writeButton )
+         writeButton->setEnabled( false );
 
-        if( readbackLabel )
-            readbackLabel->setEnabled( false );
-    }
+      if( readbackLabel )
+         readbackLabel->setEnabled( false );
+   }
 
-    // Set cursor to indicate access mode.
-    setAccessCursorStyle();
+   // Set cursor to indicate access mode.
+   setAccessCursorStyle();
 }
 
+//------------------------------------------------------------------------------
 //  Implement a slot to set the current text of the push button
 //  This is the slot used to recieve data updates from a QCaObject based class.
 void QEPeriodic::setElement( const double& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex )
 {
-    // Signal a database value change to any Link widgets
-    emit dbValueChanged( value );
+   // Signal a database value change to any Link widgets
+   emit dbValueChanged( value );
 
-    QString newText;
-    switch( variableIndex )
-    {
-        // Write push button variables
-        case 0:
-        case 1:
+   QString newText;
+   switch( variableIndex )
+   {
+      // Write push button variables
+      case 0:
+      case 1:
+         if( writeButton )
+         {
+            if( getElementTextForValue( value, variableIndex, writeButtonData, writeButton->text(), newText  ) )
+               writeButton->setText( newText );
+         }
+         break;
+
+         // Readback Label variables
+      case 2:
+      case 3:
+         if( readbackLabel )
+         {
+            // When checking if an element matched the current text, use the button text in preference to the readback label.
+            // This is required if several elements have the same values.
+            QString currentText;
             if( writeButton )
             {
-                if( getElementTextForValue( value, variableIndex, writeButtonData, writeButton->text(), newText  ) )
-                    writeButton->setText( newText );
+               currentText = writeButton->text();
             }
-            break;
-
-        // Readback Label variables
-        case 2:
-        case 3:
-            if( readbackLabel )
+            else
             {
-                // When checking if an element matched the current text, use the button text in preference to the readback label.
-                // This is required if several elements have the same values.
-                QString currentText;
-                if( writeButton )
-                {
-                    currentText = writeButton->text();
-                }
-                else
-                {
-                    currentText = readbackLabel->text();
-                }
-                if( getElementTextForValue( value, variableIndex, readbackLabelData, currentText, newText  ) )
-                    readbackLabel->setText( newText );
+               currentText = readbackLabel->text();
             }
-            break;
-    }
+            if( getElementTextForValue( value, variableIndex, readbackLabelData, currentText, newText  ) )
+               readbackLabel->setText( newText );
+         }
+         break;
+   }
 
-    // Invoke common alarm handling processing.
-    // TODO: Aggregate all channel severities into a single alarm state.
-    processAlarmInfo( alarmInfo );
+   // Invoke common alarm handling processing.
+   // TODO: Aggregate all channel severities into a single alarm state.
+   processAlarmInfo( alarmInfo );
 
-//   if( writeButton )
-//      writeButton->setStyleSheet( ai.style() );
-//
-//   if( readbackLabel )
-//       readbackLabel->setStyleSheet( ai.style() );
+   //   if( writeButton )
+   //      writeButton->setStyleSheet( ai.style() );
+   //
+   //   if( readbackLabel )
+   //       readbackLabel->setStyleSheet( ai.style() );
 }
 
 
+//------------------------------------------------------------------------------
 // Implement a slot to set the current text of the push button
 // This is the slot used to recieve signals specifying an element symbol.
 void QEPeriodic::setElement(  const QString symbol )
 {
-    int i; // element index
+   int i; // element index
 
-    // Look for the index of the nominated element
-    for( i = 0; i < NUM_ELEMENTS; i++ )
-    {
-        if(userInfo[i].enable && ( elementInfo[i].symbol.compare( symbol ) == 0 ))
-            break;
-    }
+   // Look for the index of the nominated element
+   for( i = 0; i < NUM_ELEMENTS; i++ )
+   {
+      if(userInfo[i].enable && ( elementInfo[i].symbol.compare( symbol ) == 0 ))
+         break;
+   }
 
-    selectedSymbol = symbol;
-    // If symbol did not match an enabled element, do nothing
-    if( i == NUM_ELEMENTS )
-    {   // can be used as a user prefered initial text, ie no element is selected - can be empty string, "--" and something else
-        if( writeButton )
-        {
-            writeButton->setText( symbol );
-        }
-        selectedAtomicNumber = 0;
-        return;
-    }
+   selectedSymbol = symbol;
+   // If symbol did not match an enabled element, do nothing
+   if( i == NUM_ELEMENTS )
+   {   // can be used as a user prefered initial text, ie no element is selected - can be empty string, "--" and something else
+      if( writeButton )
+      {
+         writeButton->setText( symbol );
+      }
+      selectedAtomicNumber = 0;
+      return;
+   }
 
-    // Also set the selected atomic number.
-    selectedAtomicNumber = elementInfo[i].number;
+   // Also set the selected atomic number.
+   selectedAtomicNumber = elementInfo[i].number;
 
-    // Set the button and readback text
-    if( writeButton )
-    {
-        writeButton->setText( elementInfo[i].symbol );
-    }
-    if( readbackLabel )
-    {
-        readbackLabel->setText( elementInfo[i].symbol );
-    }
+   // Set the button and readback text
+   if( writeButton )
+   {
+      writeButton->setText( elementInfo[i].symbol );
+   }
+   if( readbackLabel )
+   {
+      readbackLabel->setText( elementInfo[i].symbol );
+   }
 }
 
+//------------------------------------------------------------------------------
 // Implement a slot to set the current text of the push button
 // This is the slot used to recieve signals specifying an element atomic number.
 void QEPeriodic::setAtomicNumber( const int atomicNumber )
 {
-    // If atomic number is out of range, then essentially do nothing
-    if( (atomicNumber < 1) || (atomicNumber > NUM_ELEMENTS)) {
-        //
-        selectedAtomicNumber = 0;
-        selectedSymbol = "--";
-        if( writeButton )
-        {
-            writeButton->setText( selectedSymbol );
-        }
-        return;
-    }
+   // If atomic number is out of range, then essentially do nothing
+   if( (atomicNumber < 1) || (atomicNumber > NUM_ELEMENTS)) {
+      //
+      selectedAtomicNumber = 0;
+      selectedSymbol = "--";
+      if( writeButton )
+      {
+         writeButton->setText( selectedSymbol );
+      }
+      return;
+   }
 
-    // Set the write button and readback text
-    // NOTE: We know that atomicNumber 1 element is in array positon 0 etc.
-    //
-    selectedAtomicNumber = atomicNumber;
-    selectedSymbol = elementInfo[atomicNumber - 1].symbol;
-    if( writeButton )
-    {
-        writeButton->setText( selectedSymbol );
-    }
-    if( readbackLabel )
-    {
-        readbackLabel->setText( selectedSymbol );
-    }
+   // Set the write button and readback text
+   // NOTE: We know that atomicNumber 1 element is in array positon 0 etc.
+   //
+   selectedAtomicNumber = atomicNumber;
+   selectedSymbol = elementInfo[atomicNumber - 1].symbol;
+   if( writeButton )
+   {
+      writeButton->setText( selectedSymbol );
+   }
+   if( readbackLabel )
+   {
+      readbackLabel->setText( selectedSymbol );
+   }
 }
 
+//------------------------------------------------------------------------------
 // Return the user values for a given element symbol. (Not nessesarily the current element)
 bool QEPeriodic::getElementValues( QString symbol, double* value1, double* value2 ) const
 {
-    int i; // element index
+   int i; // element index
 
-    // Look for the index of the nominated element
-    for( i = 0; i < NUM_ELEMENTS; i++ )
-    {
-        if(userInfo[i].enable && ( elementInfo[i].symbol.compare( symbol ) == 0 ))
-            break;
-    }
+   // Look for the index of the nominated element
+   for( i = 0; i < NUM_ELEMENTS; i++ )
+   {
+      if(userInfo[i].enable && ( elementInfo[i].symbol.compare( symbol ) == 0 ))
+         break;
+   }
 
-    // If symbol did not match an enabled element, do nothing
-    if( i == NUM_ELEMENTS )
-    {
-        return false;
-    }
+   // If symbol did not match an enabled element, do nothing
+   if( i == NUM_ELEMENTS )
+   {
+      return false;
+   }
 
-    // Return the user values for the element
-    *value1 = userInfo[i].value1;
-    *value2 = userInfo[i].value2;
-    return true;
+   // Return the user values for the element
+   *value1 = userInfo[i].value1;
+   *value2 = userInfo[i].value2;
+   return true;
 }
 
+//------------------------------------------------------------------------------
 QString QEPeriodic::getSelectedSymbol() const
 {
-    return selectedSymbol;
+   return selectedSymbol;
 }
 
+//------------------------------------------------------------------------------
 int QEPeriodic::getSelectedAtomicNumber() const
 {
-    return selectedAtomicNumber;
+   return selectedAtomicNumber;
 }
 
+//------------------------------------------------------------------------------
 // Determine the element text required for the component (either the write button or the readback label)
 // Multiple elements may match the same values (for example, where a compound
 // is positioned on a reference foil stage). To avoid matching another element to the one
@@ -575,158 +590,159 @@ bool QEPeriodic::getElementTextForValue( const double& value,
                                          const QString& currentText,
                                          QString& newText )
 {
-    // Save the value
-    if( variableIndex == componentData.variableIndex1 )
-    {
-        componentData.lastData1 = value;
-        componentData.haveLastData1 = true;
-    }
-    else if( variableIndex == componentData.variableIndex2 )
-    {
-        componentData.lastData2 = value;
-        componentData.haveLastData2 = true;
-    }
+   // Save the value
+   if( variableIndex == componentData.variableIndex1 )
+   {
+      componentData.lastData1 = value;
+      componentData.haveLastData1 = true;
+   }
+   else if( variableIndex == componentData.variableIndex2 )
+   {
+      componentData.lastData2 = value;
+      componentData.haveLastData2 = true;
+   }
 
-    // Get the related QCa data objects.
-    // We won't be using them for much - their presence (or absense) just tells us what data to expect.
-    QEString* qca1 = (QEString*)getQcaItem(componentData.variableIndex1);
-    QEString* qca2 = (QEString*)getQcaItem(componentData.variableIndex2);
+   // Get the related QCa data objects.
+   // We won't be using them for much - their presence (or absense) just tells us what data to expect.
+   QEString* qca1 = (QEString*)getQcaItem(componentData.variableIndex1);
+   QEString* qca2 = (QEString*)getQcaItem(componentData.variableIndex2);
 
-    // If all required data is available...
-    if( ( qca1 && componentData.haveLastData1 && qca2 && componentData.haveLastData2 ) ||   // If both inputs are required and are present
-        ( qca1 && componentData.haveLastData1 && !qca2 ) ||                   // Or if only first is required and is present
-        ( !qca1 && qca2 && componentData.haveLastData2 ) )                    // Or if only second is required and is present
-    {
-        // ... update the element
+   // If all required data is available...
+   if( ( qca1 && componentData.haveLastData1 && qca2 && componentData.haveLastData2 ) ||   // If both inputs are required and are present
+       ( qca1 && componentData.haveLastData1 && !qca2 ) ||                   // Or if only first is required and is present
+       ( !qca1 && qca2 && componentData.haveLastData2 ) )                    // Or if only second is required and is present
+   {
+      // ... update the element
 
-        int i;
-        float match = 0.0;  // 0.0 = no match through to 1.0 = perfect match
+      int i;
+      float match = 0.0;  // 0.0 = no match through to 1.0 = perfect match
 
-        // Look for the index of the currently selected element
-        for( i = 0; i < NUM_ELEMENTS; i++ )
-        {
-            if( elementInfo[i].symbol.compare( currentText ) == 0 )
-                break;
-        }
+      // Look for the index of the currently selected element
+      for( i = 0; i < NUM_ELEMENTS; i++ )
+      {
+         if( elementInfo[i].symbol.compare( currentText ) == 0 )
+            break;
+      }
 
-        // If there is a currently selected element, check if it matches the current values first
-        if( i != NUM_ELEMENTS )
-        {
+      // If there is a currently selected element, check if it matches the current values first
+      if( i != NUM_ELEMENTS )
+      {
+         match =  elementMatch( i, qca1!=NULL, componentData.lastData1, qca2!=NULL, componentData.lastData2 );
+      }
+
+      // If there was no currently selected element, or it didn't match the current values,
+      // check each element looking for one that matches the current values best
+      if( match == 0.0 )
+      {
+         float bestMatch = 0.0;
+         int bestElement = 0;
+
+         for( i = 0; i < NUM_ELEMENTS; i++ )
+         {
             match =  elementMatch( i, qca1!=NULL, componentData.lastData1, qca2!=NULL, componentData.lastData2 );
-        }
-
-        // If there was no currently selected element, or it didn't match the current values,
-        // check each element looking for one that matches the current values best
-        if( match == 0.0 )
-        {
-            float bestMatch = 0.0;
-            int bestElement = 0;
-
-            for( i = 0; i < NUM_ELEMENTS; i++ )
+            if( match > bestMatch )
             {
-                match =  elementMatch( i, qca1!=NULL, componentData.lastData1, qca2!=NULL, componentData.lastData2 );
-                if( match > bestMatch )
-                {
-                    bestMatch = match;
-                    bestElement = i;
-                }
+               bestMatch = match;
+               bestElement = i;
             }
-            match = bestMatch;
-            i = bestElement;
-        }
+         }
+         match = bestMatch;
+         i = bestElement;
+      }
 
-        // If an element matched, display it and emit any related text
-        // Note, 'i' is valid if a match has been found
-        if( match > 0.0 )
-        {
-            newText = elementInfo[i].symbol;
-            emit dbElementChanged( userInfo[i].elementText );
-            emit dbAtomicNumberChanged( elementInfo[i].number );
-        }
+      // If an element matched, display it and emit any related text
+      // Note, 'i' is valid if a match has been found
+      if( match > 0.0 )
+      {
+         newText = elementInfo[i].symbol;
+         emit dbElementChanged( userInfo[i].elementText );
+         emit dbAtomicNumberChanged( elementInfo[i].number );
+      }
 
-        // If no element matched, display a neutral string and it emit an
-        // empty string and zero/null atomic number
-        else
-        {
-            newText = "--";
-            emit dbElementChanged( "" );
-            emit dbAtomicNumberChanged( 0 );
-        }
-        return true;
-    }
+      // If no element matched, display a neutral string and it emit an
+      // empty string and zero/null atomic number
+      else
+      {
+         newText = "--";
+         emit dbElementChanged( "" );
+         emit dbAtomicNumberChanged( 0 );
+      }
+      return true;
+   }
 
-    // Don't have all data required to set a value yet
-    else
-    {
-        return false;
-    }
+   // Don't have all data required to set a value yet
+   else
+   {
+      return false;
+   }
 
 }
 
+//------------------------------------------------------------------------------
 // Determine if the value or values recieved match an element
 // Used in QEPeriodic::setElement() above only
 float QEPeriodic::elementMatch( int i,
-                                 bool haveFirstVariable,
-                                 double lastData1,
-                                 bool haveSecondVariable,
-                                 double lastData2 )
+                                bool haveFirstVariable,
+                                double lastData1,
+                                bool haveSecondVariable,
+                                double lastData2 )
 {
-    // If the element is not enabled, don't match
-    if( !userInfo[i].enable )
-        return 0.0;
+   // If the element is not enabled, don't match
+   if( !userInfo[i].enable )
+      return 0.0;
 
-    // Value selected from element info or user info depending on type
-    double value = 0;
+   // Value selected from element info or user info depending on type
+   double value = 0;
 
-    // Assume an element matches
-    float match1 = 1.0;
-    float match2 = 1.0;
+   // Assume an element matches
+   float match1 = 1.0;
+   float match2 = 1.0;
 
-    // If first variable is used, check if element is a match
-    if( haveFirstVariable )
-    {
-        switch( variableType1 )
-        {
-        case VARIABLE_TYPE_NUMBER:            value = elementInfo[i].number;           break;
-        case VARIABLE_TYPE_ATOMIC_WEIGHT:     value = elementInfo[i].atomicWeight;     break;
-        case VARIABLE_TYPE_MELTING_POINT:     value = elementInfo[i].meltingPoint;     break;
-        case VARIABLE_TYPE_BOILING_POINT:     value = elementInfo[i].boilingPoint;     break;
-        case VARIABLE_TYPE_DENSITY:           value = elementInfo[i].density;          break;
-        case VARIABLE_TYPE_GROUP:             value = elementInfo[i].group;            break;
-        case VARIABLE_TYPE_IONIZATION_ENERGY: value = elementInfo[i].ionizationEnergy; break;
-        case VARIABLE_TYPE_USER_VALUE_1:      value = userInfo[i].value1;              break;
-        case VARIABLE_TYPE_USER_VALUE_2:      value = userInfo[i].value2;              break;
-        }
+   // If first variable is used, check if element is a match
+   if( haveFirstVariable )
+   {
+      switch( variableType1 )
+      {
+         case VARIABLE_TYPE_NUMBER:            value = elementInfo[i].number;           break;
+         case VARIABLE_TYPE_ATOMIC_WEIGHT:     value = elementInfo[i].atomicWeight;     break;
+         case VARIABLE_TYPE_MELTING_POINT:     value = elementInfo[i].meltingPoint;     break;
+         case VARIABLE_TYPE_BOILING_POINT:     value = elementInfo[i].boilingPoint;     break;
+         case VARIABLE_TYPE_DENSITY:           value = elementInfo[i].density;          break;
+         case VARIABLE_TYPE_GROUP:             value = elementInfo[i].group;            break;
+         case VARIABLE_TYPE_IONIZATION_ENERGY: value = elementInfo[i].ionizationEnergy; break;
+         case VARIABLE_TYPE_USER_VALUE_1:      value = userInfo[i].value1;              break;
+         case VARIABLE_TYPE_USER_VALUE_2:      value = userInfo[i].value2;              break;
+      }
 
-        // If first variable matches, calculate how well it matches
-        if( value >= lastData1 - variableTolerance1 &&
-            value <= lastData1 + variableTolerance1 )
-        {
-            // 0.0 = no match through to 1.0 = perfect match
-            match1 = 1 - ( fabs( value - lastData1 ) / variableTolerance1 );
-        }
+      // If first variable matches, calculate how well it matches
+      if( value >= lastData1 - variableTolerance1 &&
+          value <= lastData1 + variableTolerance1 )
+      {
+         // 0.0 = no match through to 1.0 = perfect match
+         match1 = 1 - ( fabs( value - lastData1 ) / variableTolerance1 );
+      }
 
-        // first variable does not match
-        else
-        {
-            match1 = 0.0;
-        }
-    }
+      // first variable does not match
+      else
+      {
+         match1 = 0.0;
+      }
+   }
 
-    // No first variable, so always match first variable
-    else
-    {
-        match1 = 1.0;
-    }
+   // No first variable, so always match first variable
+   else
+   {
+      match1 = 1.0;
+   }
 
-    // Only bother checking second variable if first variable matched
-    if( match1 > 0.0 )
-    {
-        // If second variable is used, check if element is a match
-        if( haveSecondVariable )
-        {
-            switch( variableType2 )
-            {
+   // Only bother checking second variable if first variable matched
+   if( match1 > 0.0 )
+   {
+      // If second variable is used, check if element is a match
+      if( haveSecondVariable )
+      {
+         switch( variableType2 )
+         {
             case VARIABLE_TYPE_NUMBER:            value = elementInfo[i].number;           break;
             case VARIABLE_TYPE_ATOMIC_WEIGHT:     value = elementInfo[i].atomicWeight;     break;
             case VARIABLE_TYPE_MELTING_POINT:     value = elementInfo[i].meltingPoint;     break;
@@ -736,202 +752,204 @@ float QEPeriodic::elementMatch( int i,
             case VARIABLE_TYPE_IONIZATION_ENERGY: value = elementInfo[i].ionizationEnergy; break;
             case VARIABLE_TYPE_USER_VALUE_1:      value = userInfo[i].value1;              break;
             case VARIABLE_TYPE_USER_VALUE_2:      value = userInfo[i].value2;              break;
-            }
+         }
 
-            // If second variable matches, calculate how well it matches
-            if( value >= lastData2 - variableTolerance2 &&
-                value <= lastData2 + variableTolerance2 )
-            {
-                // 0.0 = no match through to 1.0 = perfect match
-                match2 = 1 - ( fabs( value - lastData2 ) / variableTolerance2 );
-            }
+         // If second variable matches, calculate how well it matches
+         if( value >= lastData2 - variableTolerance2 &&
+             value <= lastData2 + variableTolerance2 )
+         {
+            // 0.0 = no match through to 1.0 = perfect match
+            match2 = 1 - ( fabs( value - lastData2 ) / variableTolerance2 );
+         }
 
-            // second variable does not match
-            else
-            {
-                match2 = 0.0;
-            }
-        }
+         // second variable does not match
+         else
+         {
+            match2 = 0.0;
+         }
+      }
 
-        // No second variable, so always match second variable
-        else
-        {
-            match2 = 1.0;
-        }
-    }
+      // No second variable, so always match second variable
+      else
+      {
+         match2 = 1.0;
+      }
+   }
 
-    // If either variable fails to match, the element has not matched.
-    // If both variables match to some extent, average the match for both variables
-    if( match1 == 0.0 || match2 == 0.0 )
-    {
-        return 0.0;
-    }
-    else
-    {
-        return ( match1 + match2 ) / 2;
-    }
+   // If either variable fails to match, the element has not matched.
+   // If both variables match to some extent, average the match for both variables
+   if( match1 == 0.0 || match2 == 0.0 )
+   {
+      return 0.0;
+   }
+   else
+   {
+      return ( match1 + match2 ) / 2;
+   }
 }
 
-/*
-    Button click event.
-    Present the element selection dialog.
-
-    Note, this function may be called if no PVs were defined since this widget can also be used just to signal an element selection
-*/
+//------------------------------------------------------------------------------
+// Button click event.
+// Present the element selection dialog.
+//
+// Note, this function may be called if no PVs were defined since this widget
+// can also be used just to signal an element selection.
+//
 void QEPeriodic::userClicked() {
 
-    // Get the variables to write to
-    // The write button uses the first two variables
-    QEFloating *qca1 = (QEFloating*)getQcaItem(0);
-    QEFloating *qca2 = (QEFloating*)getQcaItem(1);
+   // Get the variables to write to
+   // The write button uses the first two variables
+   QEFloating *qca1 = (QEFloating*)getQcaItem(0);
+   QEFloating *qca2 = (QEFloating*)getQcaItem(1);
 
-    // Build a list of what buttons should be enabled
-    // !! This could be build once during construction, or when userInfo enabled is changed??
-    QList<bool> enabledList;
-    for( int i = 0; i < NUM_ELEMENTS; i++ )
-    {
-        enabledList.append( userInfo[i].enable );
-    }
+   // Build a list of what buttons should be enabled
+   // !! This could be build once during construction, or when userInfo enabled is changed??
+   QList<bool> enabledList;
+   for( int i = 0; i < NUM_ELEMENTS; i++ )
+   {
+      enabledList.append( userInfo[i].enable );
+   }
 
-    // Present the element selection dialog - set selected colourisation option
-    PeriodicDialog dialog( writeButton );
-    dialog.setColourised( colourise );
+   // Present the element selection dialog - set selected colourisation option
+   PeriodicDialog dialog( writeButton );
+   dialog.setColourised( colourise );
 
-    // The dialog object constructed post QEPeriodic construction - apply scaling.
-    QEScaling::applyToWidget ( &dialog );
+   // The dialog object constructed post QEPeriodic construction - apply scaling.
+   QEScaling::applyToWidget ( &dialog );
 
-    dialog.setElement( writeButton->text(), enabledList );
-    dialog.exec( writeButton );
+   dialog.setElement( writeButton->text(), enabledList );
+   dialog.exec( writeButton );
 
-    // Use the selected element
-    QString symbol = dialog.getElement();
-    if( symbol.size() )
-    {
-        writeButton->setText( symbol );
+   // Use the selected element
+   QString symbol = dialog.getElement();
+   if( symbol.size() )
+   {
+      writeButton->setText( symbol );
 
-        // Value selected from element info or user info depending on type
-        double value;
+      // Value selected from element info or user info depending on type
+      double value;
 
-        for( int i = 0; i < NUM_ELEMENTS; i++ )
-        {
-            if( elementInfo[i].symbol.compare( symbol ) == 0 )
+      for( int i = 0; i < NUM_ELEMENTS; i++ )
+      {
+         if( elementInfo[i].symbol.compare( symbol ) == 0 )
+         {
+            // Write the user values to the variables if present
+            if( qca1 )
             {
-                // Write the user values to the variables if present
-                if( qca1 )
-                {
-                    switch( variableType1 )
-                    {
-                    case VARIABLE_TYPE_NUMBER:            value = elementInfo[i].number;           break;
-                    case VARIABLE_TYPE_ATOMIC_WEIGHT:     value = elementInfo[i].atomicWeight;     break;
-                    case VARIABLE_TYPE_MELTING_POINT:     value = elementInfo[i].meltingPoint;     break;
-                    case VARIABLE_TYPE_BOILING_POINT:     value = elementInfo[i].boilingPoint;     break;
-                    case VARIABLE_TYPE_DENSITY:           value = elementInfo[i].density;          break;
-                    case VARIABLE_TYPE_GROUP:             value = elementInfo[i].group;            break;
-                    case VARIABLE_TYPE_IONIZATION_ENERGY: value = elementInfo[i].ionizationEnergy; break;
-                    case VARIABLE_TYPE_USER_VALUE_1:      value = userInfo[i].value1;              break;
-                    case VARIABLE_TYPE_USER_VALUE_2:      value = userInfo[i].value2;              break;
-                    }
-                    qca1->writeFloating( value );
-                }
-                if( qca2 )
-                {
-                    switch( variableType2 )
-                    {
-                    case VARIABLE_TYPE_NUMBER:            value = elementInfo[i].number;           break;
-                    case VARIABLE_TYPE_ATOMIC_WEIGHT:     value = elementInfo[i].atomicWeight;     break;
-                    case VARIABLE_TYPE_MELTING_POINT:     value = elementInfo[i].meltingPoint;     break;
-                    case VARIABLE_TYPE_BOILING_POINT:     value = elementInfo[i].boilingPoint;     break;
-                    case VARIABLE_TYPE_DENSITY:           value = elementInfo[i].density;          break;
-                    case VARIABLE_TYPE_GROUP:             value = elementInfo[i].group;            break;
-                    case VARIABLE_TYPE_IONIZATION_ENERGY: value = elementInfo[i].ionizationEnergy; break;
-                    case VARIABLE_TYPE_USER_VALUE_1:      value = userInfo[i].value1;              break;
-                    case VARIABLE_TYPE_USER_VALUE_2:      value = userInfo[i].value2;              break;
-                    }
-                    qca2->writeFloating( value );
-                }
-
-                // Save the (new) selected symbol/atomic number.
-                selectedSymbol = symbol;
-                selectedAtomicNumber = elementInfo[i].number;
-
-                // Emit a signals indicating the user has selected an element
-                emit userElementChanged( symbol );
-                emit userAtomicNumberChanged( selectedAtomicNumber );
-
-                break;
+               switch( variableType1 )
+               {
+                  case VARIABLE_TYPE_NUMBER:            value = elementInfo[i].number;           break;
+                  case VARIABLE_TYPE_ATOMIC_WEIGHT:     value = elementInfo[i].atomicWeight;     break;
+                  case VARIABLE_TYPE_MELTING_POINT:     value = elementInfo[i].meltingPoint;     break;
+                  case VARIABLE_TYPE_BOILING_POINT:     value = elementInfo[i].boilingPoint;     break;
+                  case VARIABLE_TYPE_DENSITY:           value = elementInfo[i].density;          break;
+                  case VARIABLE_TYPE_GROUP:             value = elementInfo[i].group;            break;
+                  case VARIABLE_TYPE_IONIZATION_ENERGY: value = elementInfo[i].ionizationEnergy; break;
+                  case VARIABLE_TYPE_USER_VALUE_1:      value = userInfo[i].value1;              break;
+                  case VARIABLE_TYPE_USER_VALUE_2:      value = userInfo[i].value2;              break;
+               }
+               qca1->writeFloating( value );
             }
-        }
-    }
+            if( qca2 )
+            {
+               switch( variableType2 )
+               {
+                  case VARIABLE_TYPE_NUMBER:            value = elementInfo[i].number;           break;
+                  case VARIABLE_TYPE_ATOMIC_WEIGHT:     value = elementInfo[i].atomicWeight;     break;
+                  case VARIABLE_TYPE_MELTING_POINT:     value = elementInfo[i].meltingPoint;     break;
+                  case VARIABLE_TYPE_BOILING_POINT:     value = elementInfo[i].boilingPoint;     break;
+                  case VARIABLE_TYPE_DENSITY:           value = elementInfo[i].density;          break;
+                  case VARIABLE_TYPE_GROUP:             value = elementInfo[i].group;            break;
+                  case VARIABLE_TYPE_IONIZATION_ENERGY: value = elementInfo[i].ionizationEnergy; break;
+                  case VARIABLE_TYPE_USER_VALUE_1:      value = userInfo[i].value1;              break;
+                  case VARIABLE_TYPE_USER_VALUE_2:      value = userInfo[i].value2;              break;
+               }
+               qca2->writeFloating( value );
+            }
+
+            // Save the (new) selected symbol/atomic number.
+            selectedSymbol = symbol;
+            selectedAtomicNumber = elementInfo[i].number;
+
+            // Emit a signals indicating the user has selected an element
+            emit userElementChanged( symbol );
+            emit userAtomicNumberChanged( selectedAtomicNumber );
+
+            break;
+         }
+      }
+   }
 }
 
-/*
-  Update what is presented to the user. Either an element select button, a 'current element' label, or both
-  */
+//------------------------------------------------------------------------------
+// Update what is presented to the user. Either an element select button,
+// a 'current element' label, or both
+//
 void QEPeriodic::updatePresentationOptions()
 {
-    // Create the button if it is required and not there
-    // Delete the button if it is not required and is present
-    if( presentationOption == PRESENTATION_BUTTON_AND_LABEL ||
-        presentationOption == PRESENTATION_BUTTON_ONLY )
-    {
-        if( !writeButton )
-        {
-            writeButton = new QPushButton();
-            writeButton->setParent( this );
-            layout->addWidget( writeButton );
-            writeButton->setSizePolicy( QSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding) );
+   // Create the button if it is required and not there
+   // Delete the button if it is not required and is present
+   if( presentationOption == PRESENTATION_BUTTON_AND_LABEL ||
+       presentationOption == PRESENTATION_BUTTON_ONLY )
+   {
+      if( !writeButton )
+      {
+         writeButton = new QPushButton();
+         writeButton->setParent( this );
+         layout->addWidget( writeButton );
+         writeButton->setSizePolicy( QSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding) );
 
-            // If a label is already present, and will still be required,
-            // Ensure the button appears to the left of the label
-            if( presentationOption == PRESENTATION_BUTTON_AND_LABEL && readbackLabel )
-            {
-                layout->removeWidget( readbackLabel );
-                layout->addWidget( readbackLabel );
-            }
-
-            writeButton->setAutoDefault( false );
-            writeButton->setEnabled( true );  // Valid if no PVs. When PVs are set button is disabled to reflect initial disconnected state
-            writeButton->setText( "--" );
-
-            // Use push button signals
-            QObject::connect( writeButton, SIGNAL( clicked() ), this, SLOT( userClicked() ) );
-        }
-
-    }
-    else
-    {
-        if( writeButton )
-        {
-            delete writeButton;
-            writeButton = NULL;
-        }
-    }
-
-    // Create the label if it is required and not there
-    // Delete the label if it is not required and is present
-    if( presentationOption == PRESENTATION_BUTTON_AND_LABEL ||
-        presentationOption == PRESENTATION_LABEL_ONLY )
-    {
-        if( !readbackLabel )
-        {
-            readbackLabel = new QLabel();
-            readbackLabel->setParent( this );
-            readbackLabel->setAlignment( Qt::AlignCenter);
-            readbackLabel->setSizePolicy( QSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding) );
+         // If a label is already present, and will still be required,
+         // Ensure the button appears to the left of the label
+         if( presentationOption == PRESENTATION_BUTTON_AND_LABEL && readbackLabel )
+         {
+            layout->removeWidget( readbackLabel );
             layout->addWidget( readbackLabel );
-            readbackLabel->setEnabled( false );  // Reflects initial disconnected state
-            readbackLabel->setText( "--" );
-        }
+         }
 
-    }
-    else
-    {
-        if( readbackLabel )
-        {
-            delete readbackLabel;
-            readbackLabel = NULL;
-        }
-    }
+         writeButton->setAutoDefault( false );
+         writeButton->setEnabled( true );  // Valid if no PVs. When PVs are set button is disabled to reflect initial disconnected state
+         writeButton->setText( "--" );
+
+         // Use push button signals
+         QObject::connect( writeButton, SIGNAL( clicked() ), this, SLOT( userClicked() ) );
+      }
+
+   }
+   else
+   {
+      if( writeButton )
+      {
+         delete writeButton;
+         writeButton = NULL;
+      }
+   }
+
+   // Create the label if it is required and not there
+   // Delete the label if it is not required and is present
+   if( presentationOption == PRESENTATION_BUTTON_AND_LABEL ||
+       presentationOption == PRESENTATION_LABEL_ONLY )
+   {
+      if( !readbackLabel )
+      {
+         readbackLabel = new QLabel();
+         readbackLabel->setParent( this );
+         readbackLabel->setAlignment( Qt::AlignCenter);
+         readbackLabel->setSizePolicy( QSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding) );
+         layout->addWidget( readbackLabel );
+         readbackLabel->setEnabled( false );  // Reflects initial disconnected state
+         readbackLabel->setText( "--" );
+      }
+
+   }
+   else
+   {
+      if( readbackLabel )
+      {
+         delete readbackLabel;
+         readbackLabel = NULL;
+      }
+   }
 
 }
 
@@ -939,64 +957,67 @@ void QEPeriodic::updatePresentationOptions()
 // Drag and Drop
 void QEPeriodic::setDrop( QVariant drop )
 {
-    QStringList PVs = drop.toString().split( ' ' );
-    for( int i = 0; i < PVs.size() && i < QEPERIODIC_NUM_VARIABLES; i++ )
-    {
-        setVariableName( PVs[i], i );
-        establishConnection( i );
-    }
+   QStringList PVs = drop.toString().split( ' ' );
+   for( int i = 0; i < PVs.size() && i < QEPERIODIC_NUM_VARIABLES; i++ )
+   {
+      setVariableName( PVs[i], i );
+      establishConnection( i );
+   }
 }
 
+//------------------------------------------------------------------------------
 QVariant QEPeriodic::getDrop()
 {
-    if( isDraggingVariable() )
-        return QVariant( copyVariable() );
-    else
-        return copyData();
+   if( isDraggingVariable() )
+      return QVariant( copyVariable() );
+   else
+      return copyData();
 }
 
 //==============================================================================
 // Copy / Paste
 QString QEPeriodic::copyVariable()
 {
-    QString text;
-    for( int i = 0; i < QEPERIODIC_NUM_VARIABLES; i++ )
-    {
-        QString pv = getSubstitutedVariableName(i);
-        if( !pv.isEmpty() )
-        {
-            if( !text.isEmpty() )
-                text.append( " " );
-            text.append( pv );
-        }
-    }
+   QString text;
+   for( int i = 0; i < QEPERIODIC_NUM_VARIABLES; i++ )
+   {
+      QString pv = getSubstitutedVariableName(i);
+      if( !pv.isEmpty() )
+      {
+         if( !text.isEmpty() )
+            text.append( " " );
+         text.append( pv );
+      }
+   }
 
-    return text;
-//    return getSubstitutedVariableName(0);
+   return text;
+   //    return getSubstitutedVariableName(0);
 }
 
+//------------------------------------------------------------------------------
 QVariant QEPeriodic::copyData()
 {
-    if( readbackLabel )
-    {
-        return QVariant( readbackLabel->text() );
-    }
-    else if( writeButton )
-    {
-        return QVariant( writeButton->text() );
-    }
-    else
-    {
-        return QVariant( QString( "--" ));
-    }
+   if( readbackLabel )
+   {
+      return QVariant( readbackLabel->text() );
+   }
+   else if( writeButton )
+   {
+      return QVariant( writeButton->text() );
+   }
+   else
+   {
+      return QVariant( QString( "--" ));
+   }
 }
 
+//------------------------------------------------------------------------------
 void QEPeriodic::paste( QVariant v )
 {
-    if( getAllowDrop() )
-    {
-        setDrop( v );
-    }
+   if( getAllowDrop() )
+   {
+      setDrop( v );
+   }
 }
 
 //==============================================================================
@@ -1005,340 +1026,386 @@ void QEPeriodic::paste( QVariant v )
 // subscribe
 void QEPeriodic::setSubscribe( bool subscribeIn )
 {
-    subscribe = subscribeIn;
-    emit requestResend();
-}
-bool QEPeriodic::getSubscribe() const
-{
-    return subscribe;
+   subscribe = subscribeIn;
+   emit requestResend();
 }
 
+//------------------------------------------------------------------------------
+bool QEPeriodic::getSubscribe() const
+{
+   return subscribe;
+}
+
+//------------------------------------------------------------------------------
 // presentation options
 void QEPeriodic::setPresentationOption( presentationOptions presentationOptionIn )
 {
-    presentationOption = presentationOptionIn;
-    updatePresentationOptions();
-    emit requestResend();
-}
-QEPeriodic::presentationOptions QEPeriodic::getPresentationOption() const
-{
-    return presentationOption;
+   presentationOption = presentationOptionIn;
+   updatePresentationOptions();
+   emit requestResend();
 }
 
+//------------------------------------------------------------------------------
+QEPeriodic::presentationOptions QEPeriodic::getPresentationOption() const
+{
+   return presentationOption;
+}
+
+//------------------------------------------------------------------------------
 // variable 1 type
 void QEPeriodic::setVariableType1( variableTypes variableType1In )
 {
-    variableType1 = variableType1In;
-    emit requestResend();
-}
-QEPeriodic::variableTypes QEPeriodic::getVariableType1() const
-{
-    return variableType1;
+   variableType1 = variableType1In;
+   emit requestResend();
 }
 
+//------------------------------------------------------------------------------
+QEPeriodic::variableTypes QEPeriodic::getVariableType1() const
+{
+   return variableType1;
+}
+
+//------------------------------------------------------------------------------
 // variable 2 type
 void QEPeriodic::setVariableType2( variableTypes variableType2In )
 {
-    variableType2 = variableType2In;
-    emit requestResend();
-}
-QEPeriodic::variableTypes QEPeriodic::getVariableType2() const
-{
-    return variableType2;
+   variableType2 = variableType2In;
+   emit requestResend();
 }
 
+//------------------------------------------------------------------------------
+QEPeriodic::variableTypes QEPeriodic::getVariableType2() const
+{
+   return variableType2;
+}
+
+//------------------------------------------------------------------------------
 // variable 1 tolerance
 void QEPeriodic::setVariableTolerance1( double variableTolerance1In )
 {
-    variableTolerance1 = variableTolerance1In;
-    emit requestResend();
-}
-double QEPeriodic::getVariableTolerance1() const
-{
-    return variableTolerance1;
+   variableTolerance1 = variableTolerance1In;
+   emit requestResend();
 }
 
+//------------------------------------------------------------------------------
+double QEPeriodic::getVariableTolerance1() const
+{
+   return variableTolerance1;
+}
+
+//------------------------------------------------------------------------------
 // variable 2 tolerance
 void QEPeriodic::setVariableTolerance2( double variableTolerance2In )
 {
-    variableTolerance2 = variableTolerance2In;
-    emit requestResend();
+   variableTolerance2 = variableTolerance2In;
+   emit requestResend();
 }
+
+//------------------------------------------------------------------------------
+//
 double QEPeriodic::getVariableTolerance2() const
 {
-    return variableTolerance2;
+   return variableTolerance2;
 }
 
+//------------------------------------------------------------------------------
 // User Info Source option
-void QEPeriodic::setUserInfoSourceOption( userInfoSourceOptions userInfoSourceOptionIn )
+void QEPeriodic::setUserInfoSourceOption( QE::SourceOptions userInfoSourceOptionIn )
 {
-    // Do nothing if no change
-    if( userInfoSourceOption == userInfoSourceOptionIn )
-    {
-        return;
-    }
+   // Do nothing if no change
+   if( userInfoSourceOption == userInfoSourceOptionIn )
+   {
+      return;
+   }
 
-    // Save the new option
-    userInfoSourceOption = userInfoSourceOptionIn;
+   // Save the new option
+   userInfoSourceOption = userInfoSourceOptionIn;
 
-    // Set the user info from the appropriate source
-    switch( userInfoSourceOption )
-    {
-        case QEPeriodic::USER_INFO_SOURCE_TEXT:
-            setUserInfo( userInfoText );
-            break;
+   // Set the user info from the appropriate source
+   switch( userInfoSourceOption )
+   {
+      case QE::SourceText:
+         setUserInfo( userInfoText );
+         break;
 
-        case QEPeriodic::USER_INFO_SOURCE_FILE:
-            readUserInfoFile();
-    }
+      case QE::SourceFile:
+         readUserInfoFile();
+         break;
+   }
 }
 
-QEPeriodic::userInfoSourceOptions QEPeriodic::getUserInfoSourceOption() const
+//------------------------------------------------------------------------------
+//
+QE::SourceOptions QEPeriodic::getUserInfoSourceOption() const
 {
-    return userInfoSourceOption;
+   return userInfoSourceOption;
 }
 
 
-
+//------------------------------------------------------------------------------
 // User info file text.
 // Save the text, and if using the text as the source of the user information, update it from the text
 void QEPeriodic::setUserInfoText( QString userInfoTextIn )
 {
-    userInfoText = userInfoTextIn;
-    if( userInfoSourceOption == QEPeriodic::USER_INFO_SOURCE_TEXT )
-    {
-        setUserInfo( userInfoText );
-    }
-}
-QString QEPeriodic::getUserInfoText() const
-{
-    return userInfoText;
+   userInfoText = userInfoTextIn;
+   if( userInfoSourceOption == QE::SourceText )
+   {
+      setUserInfo( userInfoText );
+   }
 }
 
+//------------------------------------------------------------------------------
+//
+QString QEPeriodic::getUserInfoText() const
+{
+   return userInfoText;
+}
+
+//------------------------------------------------------------------------------
 // User info file name.
 // Save the filename, and if using the file as the source of the user information, update it from the file
 void QEPeriodic::setUserInfoFile( QString userInfoFileIn )
 {
-    // Save the filename
-    userInfoFile = userInfoFileIn;
-    if( userInfoSourceOption == QEPeriodic::USER_INFO_SOURCE_FILE )
-    {
-        readUserInfoFile();
-    }
-}
-QString QEPeriodic::getUserInfoFile() const
-{
-    return userInfoFile;
+   // Save the filename
+   userInfoFile = userInfoFileIn;
+   if( userInfoSourceOption == QE::SourceFile )
+   {
+      readUserInfoFile();
+   }
 }
 
+//------------------------------------------------------------------------------
+//
+QString QEPeriodic::getUserInfoFile() const
+{
+   return userInfoFile;
+}
+
+//------------------------------------------------------------------------------
 // Colourise user element selection dialog.
 void QEPeriodic::setColourised (const bool colouriseIn)
 {
-    this->colourise = colouriseIn;
-}
-bool QEPeriodic::isColourised () const
-{
-    return this->colourise;
+   this->colourise = colouriseIn;
 }
 
+//------------------------------------------------------------------------------
+//
+bool QEPeriodic::isColourised () const
+{
+   return this->colourise;
+}
+
+//------------------------------------------------------------------------------
 // Parse and use an XML string representing the widget's user info.
 // The user info includes attributes for each element in the table such as
 // if the element is selectable, and what the user defined values are for an element.
 void QEPeriodic::setUserInfo( QString inStr )
 {
-    QXmlStreamReader xml( inStr );
+   QXmlStreamReader xml( inStr );
 
-    // Set all element info to default as only non default is saved in the XML
-    for( int i = 0; i < NUM_ELEMENTS; i++ )
-    {
-        userInfo[i].enable = false;
-        userInfo[i].value1 = 0.0;
-        userInfo[i].value2 = 0.0;
-        userInfo[i].elementText.clear();
-    }
+   // Set all element info to default as only non default is saved in the XML
+   for( int i = 0; i < NUM_ELEMENTS; i++ )
+   {
+      userInfo[i].enable = false;
+      userInfo[i].value1 = 0.0;
+      userInfo[i].value2 = 0.0;
+      userInfo[i].elementText.clear();
+   }
 
-    // Step over initial document start
-    if( xml.readNext() == QXmlStreamReader::StartDocument )
-    {
-        // Parse all elements
-        while (!xml.atEnd())
-        {
-            // Ignore all but 'elements' elements
-            if( xml.readNext() == QXmlStreamReader::StartElement &&
-                xml.name().compare( QString( "elements" ) ) == 0 )
+   // Step over initial document start
+   if( xml.readNext() == QXmlStreamReader::StartDocument )
+   {
+      // Parse all elements
+      while (!xml.atEnd())
+      {
+         // Ignore all but 'elements' elements
+         if( xml.readNext() == QXmlStreamReader::StartElement &&
+             xml.name().compare( QString( "elements" ) ) == 0 )
+         {
+            // Found an 'elements' element
+            // Parse all elements in the 'elements' element
+            while (!xml.atEnd())
             {
-                // Found an 'elements' element
-                // Parse all elements in the 'elements' element
-                while (!xml.atEnd())
-                {
-                    // Ignore all but 'element' elements
-                    if( xml.readNext() == QXmlStreamReader::StartElement &&
-                        xml.name().compare( QString( "element" ) ) == 0 )
-                    {
+               // Ignore all but 'element' elements
+               if( xml.readNext() == QXmlStreamReader::StartElement &&
+                   xml.name().compare( QString( "element" ) ) == 0 )
+               {
 
-                        // Found an 'element' element, get any attributes
-                        bool ok;
-                        QXmlStreamAttributes attributes = xml.attributes();
+                  // Found an 'element' element, get any attributes
+                  bool ok;
+                  QXmlStreamAttributes attributes = xml.attributes();
 
-                        // Only use the element if it includes a valid element number attribute
-                        int i = attributes.value( "number" ).toString().toInt( &ok );
-                        if( i >= 1 && i <= NUM_ELEMENTS )
-                        {
-                            // Element number is good, so extract any other attributes.
-                            // Note, the presence of each attribute is not checked.
-                            // If not present or valid then the returned 0.0 or empty strings are used
-                            i--;
-                            if( attributes.value( "enable" ).toString().compare( QString( "yes" ) ) == 0 )
-                                userInfo[i].enable = true;
-                            else
-                                userInfo[i].enable = false;
-                            userInfo[i].value1 = attributes.value( "value1" ).toString().toDouble( &ok );
-                            userInfo[i].value2 = attributes.value( "value2" ).toString().toDouble( &ok );
-                            userInfo[i].elementText = attributes.value( "text" ).toString();
-                        }
-                    }
-                }
+                  // Only use the element if it includes a valid element number attribute
+                  int i = attributes.value( "number" ).toString().toInt( &ok );
+                  if( i >= 1 && i <= NUM_ELEMENTS )
+                  {
+                     // Element number is good, so extract any other attributes.
+                     // Note, the presence of each attribute is not checked.
+                     // If not present or valid then the returned 0.0 or empty strings are used
+                     i--;
+                     if( attributes.value( "enable" ).toString().compare( QString( "yes" ) ) == 0 )
+                        userInfo[i].enable = true;
+                     else
+                        userInfo[i].enable = false;
+                     userInfo[i].value1 = attributes.value( "value1" ).toString().toDouble( &ok );
+                     userInfo[i].value2 = attributes.value( "value2" ).toString().toDouble( &ok );
+                     userInfo[i].elementText = attributes.value( "text" ).toString();
+                  }
+               }
             }
-        }
-    }
+         }
+      }
+   }
 
-//    if (xml.hasError()) {
-//        qDebug() << xml.errorString();
-//    }
+   //    if (xml.hasError()) {
+   //        qDebug() << xml.errorString();
+   //    }
 
-    emit requestResend();
+   emit requestResend();
 }
 
+//------------------------------------------------------------------------------
 // Return an XML string representing the widget's user info.
 // the user info includes attributes for each element in the table such as
 // if the element is selectable, and what the user defined values are for an element.
 QString QEPeriodic::getUserInfo() const
 {
-    QString outStr;
-    QXmlStreamWriter xml( &outStr );
-    xml.writeStartElement("elements");
-    for( int i = 0; i < NUM_ELEMENTS; i++ )
-    {
-        // Only write out an element if anything is not the default
-        if( userInfo[i].enable != false ||
-            userInfo[i].value1 != 0.0 ||
-            userInfo[i].value2 != 0.0 ||
-            userInfo[i].elementText.isEmpty() == false )
-        {
-            // Write an element
-            xml.writeStartElement("element");
-            {
-                // Always include the element number attribute
-                xml.writeAttribute( "number", QString::number( i+1 ) );
-                if( userInfo[i].enable )
-                    xml.writeAttribute( "enable", "yes" );
+   QString outStr;
+   QXmlStreamWriter xml( &outStr );
+   xml.writeStartElement("elements");
+   for( int i = 0; i < NUM_ELEMENTS; i++ )
+   {
+      // Only write out an element if anything is not the default
+      if( userInfo[i].enable != false ||
+          userInfo[i].value1 != 0.0 ||
+          userInfo[i].value2 != 0.0 ||
+          userInfo[i].elementText.isEmpty() == false )
+      {
+         // Write an element
+         xml.writeStartElement("element");
+         {
+            // Always include the element number attribute
+            xml.writeAttribute( "number", QString::number( i+1 ) );
+            if( userInfo[i].enable )
+               xml.writeAttribute( "enable", "yes" );
 
-                // Include the value1 attribute if not the default
-                if( userInfo[i].value1 != 0.0 )
-                    xml.writeAttribute( "value1", QString::number( userInfo[i].value1 ));
+            // Include the value1 attribute if not the default
+            if( userInfo[i].value1 != 0.0 )
+               xml.writeAttribute( "value1", QString::number( userInfo[i].value1 ));
 
-                // Include the value2 attribute if not the default
-                if( userInfo[i].value2 != 0.0 )
-                    xml.writeAttribute( "value2", QString::number( userInfo[i].value2 ));
+            // Include the value2 attribute if not the default
+            if( userInfo[i].value2 != 0.0 )
+               xml.writeAttribute( "value2", QString::number( userInfo[i].value2 ));
 
-                // Include the elementText attribute if not the default
-                if( userInfo[i].elementText.isEmpty() == false )
-                    xml.writeAttribute( "text", userInfo[i].elementText );
-            }
-            xml.writeEndElement();
-        }
-    }
-    xml.writeEndElement();
+            // Include the elementText attribute if not the default
+            if( userInfo[i].elementText.isEmpty() == false )
+               xml.writeAttribute( "text", userInfo[i].elementText );
+         }
+         xml.writeEndElement();
+      }
+   }
+   xml.writeEndElement();
 
-    return outStr;
+   return outStr;
 }
 
-// The user info has changed (from the user info setup dialog), so update the current user info source
+//------------------------------------------------------------------------------
+// The user info has changed (from the user info setup dialog), so update
+// the current user info source
 void QEPeriodic::updateUserInfoSource()
 {
-    // Set the appropriate user info source from the current user info
-    switch( userInfoSourceOption )
-    {
-        // Source is the text property, update the property
-        case QEPeriodic::USER_INFO_SOURCE_TEXT:
-            if (QDesignerFormWindowInterface *formWindow = QDesignerFormWindowInterface::findFormWindow( this ))
-            {
-                formWindow->cursor()->setProperty("userInfo", getUserInfo() );
-            }
-            break;
+   // Set the appropriate user info source from the current user info
+   switch( userInfoSourceOption )
+   {
+      // Source is the text property, update the property.
+      case QE::SourceText:
+         if (QDesignerFormWindowInterface *formWindow = QDesignerFormWindowInterface::findFormWindow( this ))
+         {
+            formWindow->cursor()->setProperty("userInfo", getUserInfo() );
+         }
+         break;
 
-        // Source is a file, update the file
-        case QEPeriodic::USER_INFO_SOURCE_FILE:
-            writeUserInfoFile();
-    }
+         // Source is a file, update the file
+      case QE::SourceFile:
+         writeUserInfoFile();
+         break;
+   }
 
 }
 
+//------------------------------------------------------------------------------
 // Write the user info file
 void QEPeriodic::writeUserInfoFile()
 {
-    // Do nothing if no file name is available
-    if( userInfoFile.isEmpty() )
-    {
-        return;
-    }
+   // Do nothing if no file name is available
+   if( userInfoFile.isEmpty() )
+   {
+      return;
+   }
 
-    // Apply substitutions to the filename
-    QString substitutedFileName = this->substituteThis( userInfoFile );
+   // Apply substitutions to the filename
+   QString substitutedFileName = this->substituteThis( userInfoFile );
 
-    // Find the file
-    QFile* file = QEWidget::findQEFile( substitutedFileName );
-    if( !file )
-    {
-        qDebug() << "Could not find QEPeriodic 'userInfo' file: " << userInfoFile << "(with substitutions applied:" << substitutedFileName << ")";
-        return;
-    }
+   // Find the file
+   QFile* file = QEWidget::findQEFile( substitutedFileName );
+   if( !file )
+   {
+      qDebug() << "Could not find QEPeriodic 'userInfo' file: " << userInfoFile
+               << "(with substitutions applied:" << substitutedFileName << ")";
+      return;
+   }
 
-    // Open the file
-    if( !file->open(QIODevice::WriteOnly | QFile::Truncate ) )
-    {
-        qDebug() << "Could not open QEPeriodic 'userInfo' file for writing: " << userInfoFile << "(with substitutions applied:" << substitutedFileName << ")";
-        return;
-    }
+   // Open the file
+   if( !file->open(QIODevice::WriteOnly | QFile::Truncate ) )
+   {
+      qDebug() << "Could not open QEPeriodic 'userInfo' file for writing: "
+               << userInfoFile << "(with substitutions applied:"
+               << substitutedFileName << ")";
+      return;
+   }
 
-    // Write the file
-    QTextStream out( file );
-    QString contents = getUserInfo();
-    contents.replace(">",">\n" );
-    contents.replace("<element ","  <element " );
-    out << contents;
+   // Write the file
+   QTextStream out( file );
+   QString contents = getUserInfo();
+   contents.replace(">",">\n" );
+   contents.replace("<element ","  <element " );
+   out << contents;
 
-    // Close the file
-    file->close();
+   // Close the file
+   file->close();
 }
 
+//------------------------------------------------------------------------------
 // Read the user info file.
 void QEPeriodic::readUserInfoFile()
 {
-    // Apply substitutions to the filename
-    QString substitutedFileName = this->substituteThis( userInfoFile );
+   // Apply substitutions to the filename
+   QString substitutedFileName = this->substituteThis( userInfoFile );
 
-    // Find the file
-    QFile* file = QEWidget::findQEFile( substitutedFileName );
-    if( !file )
-    {
-        qDebug() << "Could not find QEPeriodic 'userInfo' file: " << userInfoFile << "(with substitutions applied:" << substitutedFileName << ")";
-        return;
-    }
+   // Find the file
+   QFile* file = QEWidget::findQEFile( substitutedFileName );
+   if( !file )
+   {
+      qDebug() << "Could not find QEPeriodic 'userInfo' file: " << userInfoFile
+               << "(with substitutions applied:" << substitutedFileName << ")";
+      return;
+   }
 
-    // Open the file
-    if( !file->open(QIODevice::ReadOnly) )
-    {
-        qDebug() << "Could not open QEPeriodic 'userInfo' file for reading: " << userInfoFile << "(with substitutions applied:" << substitutedFileName << ")";
-        return;
-    }
+   // Open the file
+   if( !file->open(QIODevice::ReadOnly) )
+   {
+      qDebug() << "Could not open QEPeriodic 'userInfo' file for reading: "
+               << userInfoFile << "(with substitutions applied:"
+               << substitutedFileName << ")";
+      return;
+   }
 
-    // Set the user info from the file
-    QTextStream in( file );
-    setUserInfo( in.readAll() );
+   // Set the user info from the file
+   QTextStream in( file );
+   setUserInfo( in.readAll() );
 
-    // Close the file
-    file->close();
+   // Close the file
+   file->close();
 }
 
 // end

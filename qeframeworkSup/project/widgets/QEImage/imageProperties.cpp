@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2018 Australian Synchrotron
+ *  Copyright (c) 2015-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -35,11 +35,11 @@
 /// Construction. Set all image attributes to sensible defaults
 imageProperties::imageProperties()
 {
-    rotation = ROTATION_0;
+    rotation = QE::NoRotation;
     flipVert = false;
     flipHoz = false;
 
-    formatOption = imageDataFormats::MONO;
+    formatOption = QE::Mono;
     bitDepth = 8;
 
     imageDataSize = 0;
@@ -121,7 +121,7 @@ QString imageProperties::getInfoText() const
     // Build the image information string
     QString about;
 
-    about.append( QObject::tr( "\nSize (bytes) of CA data array: %1" ).arg( imageData.count() ));
+    about.append( QObject::tr( "\nSize (bytes) of CA data array: %1" ).arg( imageData.size() ));
     about.append( QObject::tr( "\nSize (bytes) of CA data elements: %1" ).arg( imageDataSize ));
     about.append( QObject::tr( "\nWidth (pixels) taken from dimension variables or width variable: %1" ).arg( imageBuffWidth ));
     about.append( QObject::tr( "\nHeight (pixels) taken from dimension variables or height variable: %1" ).arg( imageBuffHeight ));
@@ -138,9 +138,9 @@ QString imageProperties::getInfoText() const
     else
     {
         int count = 20;
-        if( imageData.count() < count )
+        if( count > imageData.size() )
         {
-            count = imageData.count() ;
+            count = imageData.size() ;
         }
         for( int i = 0; i < count; i++ )
         {
@@ -169,13 +169,13 @@ QString imageProperties::getInfoText() const
 }
 
 // Return the current image format
-imageDataFormats::formatOptions imageProperties::getFormat() const
+QE::ImageFormatOptions imageProperties::getFormat() const
 {
     return formatOption;
 }
 
 // Set the current image format
-void imageProperties::setFormat( imageDataFormats::formatOptions formatIn )
+void imageProperties::setFormat( QE::ImageFormatOptions formatIn )
 {
     // Invalidate any pixel lookup information held
     if( formatOption != formatIn )
@@ -191,7 +191,7 @@ void imageProperties::setFormat( imageDataFormats::formatOptions formatIn )
 // Return true if identified (and the format is set) or false if the text is not recognised.
 bool imageProperties::setFormat( const QString& text )
 {
-    imageDataFormats::formatOptions newFormatOption;
+    QE::ImageFormatOptions newFormatOption;
     const bool result = imageDataFormats::convertToFormatOption (text, newFormatOption);
 
     if( result ) {

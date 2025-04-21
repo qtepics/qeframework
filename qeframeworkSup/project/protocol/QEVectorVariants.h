@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2018 Australian Synchrotron
+ *  Copyright (c) 2018-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -43,9 +43,20 @@
 /// While these variant types and the QEVariants were introduced to support the use
 /// of PV Access, nothing in this class depends on artefacts from pvAccess/pvData.
 ///
+/// These vector types are registered as QVariant types, and can be set/get
+/// like this, using QEInt32Vector as an example:
+///
+///   QEInt32Vector vector;
+///   QVariant variant;
+///
+///   variant = setValue (vector);
+///
+///   vector = qvariant_cast<QEInt32Vector>(variant);
+///   vector = variant.value<QEInt32Vector>();
+///
 // The choice of:   typedef QEVector<float> QFloatVector;
 // instead of:      class   QEFloatVector : QVector<float> { };
-// is currently an arbitary descision and may change.
+// is currently an arbitary decision and may change.
 //
 typedef QVector<double> QEDoubleVector;
 Q_DECLARE_METATYPE (QEDoubleVector)
@@ -71,6 +82,7 @@ typedef QVector<int64_t> QEInt64Vector;
 Q_DECLARE_METATYPE (QEInt64Vector)
 
 // UnSigned
+// Note: these QEUint... , not QEUInt... - diffent from epicsTypes.
 //
 typedef QVector<uint8_t> QEUint8Vector;
 Q_DECLARE_METATYPE (QEUint8Vector)
@@ -84,6 +96,7 @@ Q_DECLARE_METATYPE (QEUint32Vector)
 typedef QVector<uint64_t> QEUint64Vector;
 Q_DECLARE_METATYPE (QEUint64Vector)
 
+// Support/utilitiy class for owb vector variants.
 //
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEVectorVariants {
 public:
@@ -132,11 +145,17 @@ public:
    static QVariantList convertToVariantList (const QVariant& vector, bool& okay);
 
    // Conveniance (and quicker) functions to extract a single element from a vector variant.
-   // If index out of range of variant parameter is not a vector variant then default value is returned.
+   // If index out of range or variant parameter is not a vector variant then default value is returned.
    //
    static double   getDoubleValue  (const QVariant& vector, const int index, const double&   defaultValue);
    static long     getIntegerValue (const QVariant& vector, const int index, const long&     defaultValue);
    static QVariant getVariantValue (const QVariant& vector, const int index, const QVariant& defaultValue);
+
+   // Conveniance functions to replace an element of a vector variant.
+   // If not a vector variant or index out of range or value cannot be converted
+   // to the appropriate element type, the return value is false.
+   //
+   static bool replaceValue (QVariant& vector, const int index, const QVariant& value);
 
    // Register these meta types.
    // Note: This function is public for conveniance only, and is invoked by the
@@ -148,7 +167,9 @@ private:
    explicit QEVectorVariants ();
    ~QEVectorVariants ();
 
-   static QHash<int, OwnTypes> typeMap;  // Maps userType int value to OwnTypes.
+   // Maps QVariant's userType int values to OwnTypes.
+   //
+   static QHash<int, OwnTypes> typeMap;
 };
 
 #endif  // QE_VECTOR_VARIANTS_H

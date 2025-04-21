@@ -41,6 +41,7 @@
 #include <QVariant>
 #include <QScrollArea>
 
+#include <QEEnums.h>
 #include <QCaAlarmInfo.h>
 #include <QEFrameworkLibraryGlobal.h>
 #include <QCaDateTime.h>
@@ -81,8 +82,7 @@ public:
 
    // normal/reverse - default is normal.
    //
-   Q_PROPERTY (QEStripChartNames::VideoModes
-                       videoMode  READ getVideoMode              WRITE videoModeSelected)
+   Q_PROPERTY (QE::VideoModes videoMode  READ getVideoMode       WRITE videoModeSelected)
 
    // manual/dynamic - default is dynamic.
    // Use a restricted range as design time.
@@ -223,7 +223,7 @@ public:
    PropertyChartYRanges getYRangeMode () const;
    void setYRangeMode (const PropertyChartYRanges scale);
 
-   QEStripChartNames::VideoModes getVideoMode () const;
+   QE::VideoModes getVideoMode () const;
    QEStripChartNames::YScaleModes getYScaleMode () const;
 
    // Allow arbitary action to be added to the item menus.
@@ -234,7 +234,7 @@ public:
    void updateItemMenu (const int slot, QAction* action, const bool inUseMenu);
 
 public slots:
-   void videoModeSelected (const QEStripChartNames::VideoModes mode);
+   void videoModeSelected (const QE::VideoModes mode);
    void yRangeSelected (const QEStripChartNames::ChartYRanges scale);
    void yScaleModeSelected (const QEStripChartNames::YScaleModes mode);
    void writeTraceToFile (const int slot);
@@ -252,7 +252,7 @@ protected:
    // Override QWidget functions - call up standard handlers defined in QEDragDrop.
    // Drag and Drop
    void mousePressEvent (QMouseEvent *event)    { this->qcaMousePressEvent (event); }
-   void dragEnterEvent (QDragEnterEvent *event) { this->qcaDragEnterEvent (event, false); }
+   void dragEnterEvent (QDragEnterEvent *event) { this->qcaDragEnterEvent (event);  }
    void dropEvent (QDropEvent *event)           { this->qcaDropEvent (event, true); }
    //
    // This widget uses the default setDrop/getDrop defined in QEWidget.

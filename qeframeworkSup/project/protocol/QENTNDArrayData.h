@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2020 Australian Synchrotron
+ *  Copyright (C) 2018-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -35,9 +35,9 @@
 #include <QStringList>
 #include <QMap>
 #include <QVariant>
+#include <QEEnums.h>
 #include <QEFrameworkLibraryGlobal.h>
 #include <QEPvaCheck.h>
-#include <imageDataFormats.h>
 
 #ifdef QE_INCLUDE_PV_ACCESS
 #include <pv/ntndarray.h>
@@ -48,14 +48,14 @@
 /// This type is registered as a QVariant type, and can be set/get like this:
 ///
 ///   QENTNDArrayData arrayData;
-///   QVariant var;
+///   QVariant variant;
 ///
-///   var.setValue <QENTNDArrayData> (arrayData);       or
-///   var = arrayData.toVariant();
+///   variant.setValue (arrayData);                         or
+///   variant = arrayData.toVariant();                      -- defined in this module
 ///
-///   arrayData = var.value<QENTNDArrayData>();
-///   arrayData = qvariant_cast<QENTNDArrayData>(var);  or
-///   arrayData.assignFromVariant (var);
+///   arrayData = variant.value<QENTNDArrayData>();         or
+///   arrayData = qvariant_cast<QENTNDArrayData>(variant);  or
+///   arrayData.assignFromVariant (variant);                -- defined in this module
 ///
 /// Much of this class was based on ntndArrayConverter out of areaDetector
 ///
@@ -65,6 +65,8 @@ public:
    QENTNDArrayData ();
    QENTNDArrayData (const QENTNDArrayData& other);
    ~QENTNDArrayData ();
+
+   QENTNDArrayData& operator=(const QENTNDArrayData& other);
 
 #ifdef QE_INCLUDE_PV_ACCESS
    // Note: we can only read, as opposed to write, NTNDArray types for now.
@@ -92,7 +94,7 @@ public:
    int getNumberDimensions () const;
    int getDimensionSize (const int dimension) const;  // returns 0 if dimension is out of range
 
-   imageDataFormats::formatOptions getFormat() const;
+   QE::ImageFormatOptions getFormat() const;
    int getBytesPerPixel () const;
    int getWidth () const;
    int getHeight () const;
@@ -140,10 +142,12 @@ private:
    template <typename arrayType>
    void toValue (epics::pvData::PVUnionPtr value);
 
-   imageDataFormats::formatOptions getImageFormat
+   QE::ImageFormatOptions getImageFormat
       (epics::pvData::PVStructureArray::const_svector attrVec) const;
 
 #endif
+
+   void assignOther (const QENTNDArrayData& other);
 
    bool decompressJpeg ();
    bool decompressBlosc ();
@@ -169,9 +173,9 @@ private:
 
    AttributeMaps attributeMap;
 
-   QByteArray data;                         // basic image data
-   QString codecName;                       // the codec nam
-   imageDataFormats::formatOptions format;  // derived from the ColorMode attribute
+   QByteArray data;                 // basic image data
+   QString codecName;               // the codec nam
+   QE::ImageFormatOptions format;   // derived from the ColorMode attribute
    int bitDepth;
    bool isDecompressed;
 };

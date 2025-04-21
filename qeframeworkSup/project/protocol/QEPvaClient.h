@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2023 Australian Synchrotron
+ *  Copyright (C) 2018-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -75,6 +75,7 @@ public:
 
    QString getEgu () const;
    int getPrecision() const;
+   unsigned int hostElementCount () const;
    unsigned int dataElementCount () const;
    double getDisplayLimitHigh () const;
    double getDisplayLimitLow () const;
@@ -92,6 +93,8 @@ public:
    QCaAlarmInfo getAlarmInfo () const;
    QCaDateTime  getTimeStamp () const;
    QString getDescription () const;
+   bool getReadAccess() const;
+   bool getWriteAccess() const;
 
 private:
    void processUpdate (QEPvaClient::Update* update);
@@ -134,25 +137,26 @@ private:
 //------------------------------------------------------------------------------
 // This is essentially a private class, but must be declared in the header
 // file in order to use the meta object compiler (moc) to allow setup of the
-// timeout/aboutToQuit slots.
+// timeout slot.
 //
-class QEPvaClientManager : private QTimer {
+class QEPvaClientManager : private QObject {
    Q_OBJECT
-private:
+public:
    explicit QEPvaClientManager ();
    ~QEPvaClientManager ();
 
-   // Create the singleton QEPvaClientManager instance if needs be.
-   // It is called each time a QCaObject.QEPvaClient is created.
+private:
+   // Initialse the singleton QEPvaClientManager instance if needs be.
+   // It is called each time a QEPvaClient is created.
    // This function is idempotent.
    //
    static void initialise ();
 
+   bool isRunning;
+
 private slots:
    void timeoutHandler ();
-   void aboutToQuitHandler ();
 
-private:
    friend class QEPvaClient;
 };
 

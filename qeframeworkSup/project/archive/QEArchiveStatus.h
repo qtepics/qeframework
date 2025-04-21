@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -50,14 +50,14 @@ public:
    QSize sizeHint () const;
 
 public slots:
-   void reReadAvailablePVs ();     // requests re-read of availble PVs from the CA Archives
+   void reReadAvailablePVs ();     // requests re-read of availble PVs from the Archives
 
 private:
    enum Constants {
-      NumberRows = 40   // maximum.
+      NumberRows = 60      // maximum.
    };
 
-   // Holds reference to each widget
+   // Holds a reference to each widget
    //
    struct Rows {
       QLabel* hostNamePort;
@@ -85,8 +85,10 @@ private:
 
    QPushButton* archiveUpdatePvNamesButton;
    QSpacerItem* horizontalSpacer;
-   QLabel* label6;
+   QLabel* numberJobsLabel;
    QLabel* numberOfJobs;
+   QLabel* totalPVsLabel;
+   QLabel* totalNumberPVs;
 
    void setStatusRowVisible (const int j, const bool visible);
    void createInternalWidgets ();

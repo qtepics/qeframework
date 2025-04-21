@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron
+ *  Copyright (c) 2013-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -116,21 +116,38 @@ void QEArchiveStatus::createInternalWidgets ()
    this->horizontalSpacer = new QSpacerItem (200, 16, QSizePolicy::Expanding, QSizePolicy::Minimum);
    this->horizontalLayout->addItem (this->horizontalSpacer);
 
-   this->label6 = new QLabel (this->updateFrame);
-   this->label6->setFixedSize (236, 13);
-   this->label6->setFont(font1);
-   this->label6->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter);
-   this->label6->setText ("Number of outstanding archiver requests");
-   this->horizontalLayout->addWidget (this->label6);
+   this->numberJobsLabel = new QLabel (this->updateFrame);
+   this->numberJobsLabel->setFixedSize (236, 13);
+   this->numberJobsLabel->setFont(font1);
+   this->numberJobsLabel->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter);
+   this->numberJobsLabel->setText ("Number of outstanding archiver requests");
+   this->horizontalLayout->addWidget (this->numberJobsLabel);
 
    this->numberOfJobs = new QLabel(this->updateFrame);
    this->numberOfJobs->setFixedSize (84, 16);
    this->numberOfJobs->setFont (font2);
    this->numberOfJobs->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
    this->numberOfJobs->setIndent (6);
-   this->numberOfJobs->setStyleSheet (QEUtilities::colourToStyle (QColor("#e0e0e0")));
+   this->numberOfJobs->setStyleSheet (QEUtilities::colourToStyle (QColor(0xe0e0e0)));
    this->numberOfJobs->setText ("-");
    this->horizontalLayout->addWidget (this->numberOfJobs);
+
+   this->totalPVsLabel = new QLabel (this->updateFrame);
+   this->totalPVsLabel->setFixedSize (72, 13);
+   this->totalPVsLabel->setFont (font1);
+   this->totalPVsLabel->setAlignment(Qt::AlignLeading|Qt::AlignRight|Qt::AlignVCenter);
+   this->totalPVsLabel->setText ("Total PVs");
+   this->numberOfJobs->setStyleSheet (QEUtilities::colourToStyle (QColor(0xe0e0e0)));
+   this->horizontalLayout->addWidget (this->totalPVsLabel);
+
+   this->totalNumberPVs = new QLabel (this->updateFrame);
+   this->totalNumberPVs->setFixedSize (72, 16);
+   this->totalNumberPVs->setFont (font2);
+   this->totalNumberPVs->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+   this->totalNumberPVs->setIndent (6);
+   this->totalNumberPVs->setStyleSheet (QEUtilities::colourToStyle (QColor(0xe8e8e8)));
+   this->totalNumberPVs->setText ("-");
+   this->horizontalLayout->addWidget (this->totalNumberPVs);
 
    // Set up the grid frame.
    //
@@ -287,10 +304,11 @@ void QEArchiveStatus::archiveStatus (const QEArchiveAccess::StatusList& statusLi
    this->calcMinimumHeight ();
 
    int outstanding = 0;
+   int totalPVs = 0;
    for (int j = 0; j < QEArchiveStatus::NumberRows; j++ ) {
       QEArchiveStatus::Rows* row = &this->rowList [j];
 
-      if (j <  statusList.count ()) {
+      if (j < statusList.count ()) {
          QEArchiveAccess::Status state = statusList.value (j);
          outstanding += state.pending;
 
@@ -299,6 +317,7 @@ void QEArchiveStatus::archiveStatus (const QEArchiveAccess::StatusList& statusLi
          row->endPoint->setText (QString("%1 ").arg (state.endPoint));
          row->state->setText (QEUtilities::enumToString (QEArchiveInterface::staticMetaObject, QString("States"), state.state));
          row->numberPVs->setText (QString ("%1").arg (state.numberPVs));
+         totalPVs += state.numberPVs;
 
          if (this->archiveType == QEArchiveAccess::CA) {
             row->available->setText (QString ("%1").arg (state.available));
@@ -317,11 +336,13 @@ void QEArchiveStatus::archiveStatus (const QEArchiveAccess::StatusList& statusLi
    } else if (outstanding > 40) {
       styleString = QEUtilities::colourToStyle (QColor ("yellow"));
    } else {
-      styleString = QEUtilities::colourToStyle (QColor ("#d0e0d0"));
+      styleString = QEUtilities::colourToStyle (QColor (0xd0e0d0));
    }
 
    this->numberOfJobs->setText (QString::number (outstanding));
    this->numberOfJobs->setStyleSheet (styleString);
+
+   this->totalNumberPVs->setText(QString::number (totalPVs));
 }
 
 //------------------------------------------------------------------------------

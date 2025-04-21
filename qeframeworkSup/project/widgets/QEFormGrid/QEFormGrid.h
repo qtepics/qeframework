@@ -32,6 +32,7 @@
 #include <QStringList>
 #include <QTimer>
 
+#include <QEEnums.h>
 #include <QEForm.h>
 #include <QEFrame.h>
 
@@ -60,12 +61,6 @@ public:
    ///    2  6  -
    ///    3  7  -
    ///
-   enum GridOrders {
-      RowMajor = 0,
-      ColMajor = 1
-   };
-   Q_ENUM (GridOrders)
-
 
    /// The uiFile loaded into each QEForm element.
    /// Default value: ""
@@ -84,7 +79,7 @@ public:
 
    /// Specifies the gridOrder.
    /// Default value: RowMajor
-   Q_PROPERTY (GridOrders gridOrder    READ getGridOrder        WRITE setGridOrder )
+   Q_PROPERTY (QE::GridOrders gridOrder  READ getGridOrder      WRITE setGridOrder )
 
    /// Margin of the internal QGridLayout object.
    /// Default value: 2.
@@ -160,9 +155,9 @@ public:
 
    /// displayAlarmStateOption is added as a non-designable property here only to hide the implementation present in QEFrame
    ///
-   Q_PROPERTY (DisplayAlarmStateOptions displayAlarmStateOption
-               READ getDisplayAlarmStateOptionProperty
-               WRITE setDisplayAlarmStateOptionProperty DESIGNABLE false)
+   Q_PROPERTY (QE::DisplayAlarmStateOptions displayAlarmStateOption
+               READ getDisplayAlarmStateOption
+               WRITE setDisplayAlarmStateOption DESIGNABLE false)
 
 
    //
@@ -191,8 +186,8 @@ public:
    void setColumns (int n);
    int getColumns ();
 
-   void setGridOrder (GridOrders go);
-   GridOrders getGridOrder ();
+   void setGridOrder (QE::GridOrders go);
+   QE::GridOrders getGridOrder ();
 
    void setMargin (int n);
    int getMargin ();
@@ -247,7 +242,7 @@ private:
 
    int number;
    int columns;
-   GridOrders gridOrder;
+   QE::GridOrders gridOrder;
 
    // Class holds and manages rol, column and slot macro data.
    //
@@ -323,9 +318,5 @@ private slots:
    //
    void setNewUiFile (QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex);
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QEFormGrid::GridOrders)
-#endif
 
 #endif // QE_FORM_GRID_H

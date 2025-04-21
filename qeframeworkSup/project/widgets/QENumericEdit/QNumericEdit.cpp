@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2023 Australian Synchrotron.
+ *  Copyright (c) 2014-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,6 @@
 
 #define DEBUG  qDebug () << "QNumericEdit" << __LINE__ << __FUNCTION__ << "  "
 
-
 //==============================================================================
 // For decimal, this is about 48.9 bits, for the other radix values this is 48 bits exactly.
 // Note: order MUST be consistant with enum Radicies specification.
@@ -53,8 +52,8 @@ QNumericEdit::QNumericEdit (QWidget * parent) : QWidget (parent)
 //
 void QNumericEdit::commonConstructor ()
 {
-   this->fpr.setRadix (QEFixedPointRadix::Decimal);
-   this->fpr.setSeparator (QEFixedPointRadix::None);
+   this->fpr.setRadix (QE::Decimal);
+   this->fpr.setSeparator (QE::NoSeparator);
 
    this->lineEdit = new QLineEdit (this);
    this->lineEdit->setSizePolicy (QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -80,7 +79,8 @@ void QNumericEdit::commonConstructor ()
    this->mLeadingZeros = 3;
    this->mPrecision = 4;
    this->mForceSign = false;
-   this->mNotation = Fixed;
+   this->mWrapValue = false;
+   this->mNotation = QE::Fixed;
    this->minimumMin = this->calcLower ();
    this->maximumMax = this->calcUpper ();
    this->mMinimum = this->minimumMin;
@@ -90,7 +90,7 @@ void QNumericEdit::commonConstructor ()
    //
    this->mValue = 0.1;  // force initial update
    this->internalSetValue (0.0);
-   this->cursor = this->cursorFirst;
+   this->cursorPosition = this->cursorFirst;
    this->emitValueChangeInhibited = false;
 }
 
@@ -114,7 +114,7 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
 {
    const int key = event->key ();
    const double dblRadix = double (this->fpr.getRadixValue ());
-   const int index = this->getCursor ();
+   const int index = this->getCursorPosition ();
 
    QChar qc;
    QChar qk;
@@ -157,7 +157,7 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
 
             int significance = -this->mPrecision;
 
-            if (this->mNotation == Fixed) {
+            if (this->mNotation == QE::Fixed) {
                significance = -this->mPrecision;
                for (int j = index + 1; j <= this->cursorLast; j++) {
                   qc = this->charAt (j);
@@ -166,7 +166,7 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
                   }
                }
 
-            } else if (this->mNotation == Scientific) {
+            } else if (this->mNotation == QE::Scientific) {
                // Exponent size, exluding the 'e' is 3.
                //
                QString expText = this->lineEdit->text().mid (this->cursorLast - 2, 3);
@@ -187,25 +187,25 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
          break;
 
       case Qt::Key_Left:
-         this->setCursor (this->getCursor () - 1);
+         this->setCursorPosition (this->getCursorPosition () - 1);
 
          // If we have moved onto a filler character, then move again.
          //
-         qc = this->charAt (this->getCursor ());
+         qc = this->charAt (this->getCursorPosition ());
          if (!this->isSignOrDigit (qc)) {
-            this->setCursor (this->getCursor () - 1);
+            this->setCursorPosition (this->getCursorPosition () - 1);
          }
          break;
 
 
       case Qt::Key_Right:
-         this->setCursor (this->getCursor () + 1);
+         this->setCursorPosition (this->getCursorPosition () + 1);
 
          // If we have moved onto a filler character, then move again.
          //
-         qc = this->charAt (this->getCursor ());
+         qc = this->charAt (this->getCursorPosition ());
          if (!this->isSignOrDigit (qc)) {
-            this->setCursor (this->getCursor () + 1);
+            this->setCursorPosition (this->getCursorPosition () + 1);
          }
          break;
 
@@ -218,7 +218,7 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
             } else {
                this->internalSetValue (-fabs (this->getValue ()));
             }
-            this->setCursor (this->getCursor () + 1);
+            this->setCursorPosition (this->getCursorPosition () + 1);
 
          } else if (this->cursorOverExpSign ()) {
             QString tryThis = this->lineEdit->text ();
@@ -227,7 +227,7 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
             double newval = this->valueOfImage (tryThis);
 
             this->internalSetValue (newval);
-            this->setCursor (this->getCursor () + 1);
+            this->setCursorPosition (this->getCursorPosition () + 1);
          }
          break;
 
@@ -261,13 +261,13 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
             double newval = this->valueOfImage (tryThis);
 
             this->internalSetValue (newval);
-            this->setCursor (this->getCursor () + 1);
+            this->setCursorPosition (this->getCursorPosition () + 1);
 
             // If we have moved onto a filler character, then move again.
             //
-            qc = this->charAt (this->getCursor ());
+            qc = this->charAt (this->getCursorPosition ());
             if (!this->isSignOrDigit (qc)) {
-               this->setCursor (this->getCursor () + 1);
+               this->setCursorPosition (this->getCursorPosition () + 1);
             }
          }
          break;
@@ -335,7 +335,7 @@ bool QNumericEdit::lineEditMouseReleaseEvent (QMouseEvent* /* event*/ )
       posn = this->lineEdit->cursorPosition ();
    }
 
-   this->setCursor (posn);
+   this->setCursorPosition (posn);
    return true;  //  handled locally
 }
 
@@ -418,7 +418,7 @@ void QNumericEdit::setDigitSelection ()
    // Only set/update selection if/when the widget has focus.
    //
    if (this->lineEdit->hasFocus ()) {
-      int posn = this->getCursor ();
+      int posn = this->getCursorPosition ();
       this->lineEdit->setSelection (posn, 1);
    }
 }
@@ -439,21 +439,21 @@ double QNumericEdit::valueOfImage (const QString& image) const
    intermediate = image.mid (this->cursorFirst, length);
 
    switch (this->mNotation) {
-      case Fixed:
+      case QE::Fixed:
          result = this->fpr.toValue (intermediate, okay);
          if (!okay) {
             result = this->mValue;
          }
          break;
 
-      case Scientific:
+      case QE::Scientific:
          // Remove thousands separators if needs be.
          //
          switch (this->getSeparator ()) {
-            case QEFixedPointRadix::None:       sepChar = "";  break;
-            case QEFixedPointRadix::Comma:      sepChar = ",";  break;
-            case QEFixedPointRadix::Underscore: sepChar = "_";  break;
-            case QEFixedPointRadix::Space:      sepChar = " ";  break;
+            case QE::NoSeparator: sepChar = "";   break;
+            case QE::Comma:       sepChar = ",";  break;
+            case QE::Underscore:  sepChar = "_";  break;
+            case QE::Space:       sepChar = " ";  break;
          }
 
          if (!sepChar.isEmpty ()) {
@@ -465,8 +465,11 @@ double QNumericEdit::valueOfImage (const QString& image) const
             result = this->mValue;
          }
          break;
-   }
 
+      case QE::Automatic:
+         DEBUG << "Unexpected notation";
+         break;
+   }
 
    return result;
 }
@@ -481,22 +484,22 @@ QString QNumericEdit::getFormattedText (const double value) const
    int point;
 
    switch (this->mNotation) {
-      case Fixed:
+      case QE::Fixed:
          result = this->fpr.toString (value, this->showSign (),
                                       this->mLeadingZeros, this->mPrecision);
          break;
 
-      case Scientific:
+      case QE::Scientific:
          signChar = (this->showSign () && (value >= 0.0)) ? "+" : "";
          result = QString ("%1%2").arg (signChar).arg (value, 0, 'e', this->mPrecision);
 
          // Add thousands separators if needs be.
          //
          switch (this->getSeparator ()) {
-            case QEFixedPointRadix::None:       sepChar = "";  break;
-            case QEFixedPointRadix::Comma:      sepChar = ",";  break;
-            case QEFixedPointRadix::Underscore: sepChar = "_";  break;
-            case QEFixedPointRadix::Space:      sepChar = " ";  break;
+            case QE::NoSeparator: sepChar = "";   break;
+            case QE::Comma:       sepChar = ",";  break;
+            case QE::Underscore:  sepChar = "_";  break;
+            case QE::Space:       sepChar = " ";  break;
          }
          if (sepChar.isEmpty ()) break;
 
@@ -510,6 +513,11 @@ QString QNumericEdit::getFormattedText (const double value) const
             if (q >= result.length() - 4) break;
             result.insert (q, sepChar);
          }
+         break;
+
+      default:
+         DEBUG << "Unexpected notation selected";
+         result = "???";
          break;
    }
 
@@ -542,24 +550,24 @@ void QNumericEdit::redisplayText ()
    this->cursorFirst = this->mPrefix.length ();
    this->cursorLast = image.length () - 1 - this->mSuffix.length ();
 
-   this->setCursor (this->cursor);
+   this->setCursorPosition (this->cursorPosition);
 }
 
 //------------------------------------------------------------------------------
 //
-void QNumericEdit::setCursor (const int value)
+void QNumericEdit::setCursorPosition (const int value)
 {
    // Ensure cursor is in range of interest, i.e. excluding prefix/suffix.
    //
-   this->cursor = LIMIT (value, this->cursorFirst, this->cursorLast);
+   this->cursorPosition = LIMIT (value, this->cursorFirst, this->cursorLast);
    this->setDigitSelection ();
 }
 
 //------------------------------------------------------------------------------
 //
-int QNumericEdit::getCursor () const
+int QNumericEdit::getCursorPosition () const
 {
-   return this->cursor;
+   return this->cursorPosition;
 }
 
 //------------------------------------------------------------------------------
@@ -606,24 +614,24 @@ bool QNumericEdit::showSign () const
 //
 bool QNumericEdit::cursorOverSign () const
 {
-   return (this->showSign () && (this->getCursor () == this->cursorFirst));
+   return (this->showSign () && (this->getCursorPosition () == this->cursorFirst));
 }
 
 //------------------------------------------------------------------------------
 //
 bool QNumericEdit::cursorOverExpSign () const
 {
-   return ((this->mNotation == Scientific) &&
-           (this->getCursor () == this->cursorLast - 2));
+   return ((this->mNotation == QE::Scientific) &&
+           (this->getCursorPosition () == this->cursorLast - 2));
 }
 
 //------------------------------------------------------------------------------
 //
 bool QNumericEdit::cursorOverExponent () const
 {
-   return ((this->mNotation == Scientific) &&
-           ((this->getCursor () == this->cursorLast - 1) ||
-            (this->getCursor () == this->cursorLast)));
+   return ((this->mNotation == QE::Scientific) &&
+           ((this->getCursorPosition () == this->cursorLast - 1) ||
+            (this->getCursorPosition () == this->cursorLast)));
 }
 
 //------------------------------------------------------------------------------
@@ -639,14 +647,18 @@ double QNumericEdit::calcUpper () const
 
    switch (this->mNotation) {
 
-      case Fixed:
+      case QE::Fixed:
          a = pow (dblRadix, +this->mLeadingZeros);
          b = pow (dblRadix, -this->mPrecision);
          result =  a - b;
          break;
 
-      case Scientific:
+      case QE::Scientific:
          result = +9.999999999999e+99;
+         break;
+
+      case QE::Automatic:
+         DEBUG << "Unexpected notation";
          break;
 
    }
@@ -723,7 +735,7 @@ QString QNumericEdit::getCleanText () const
 void QNumericEdit::setLeadingZeros (const int value)
 {
    this->mLeadingZeros = LIMIT (value, 0, this->maximumSignificance ());
-   if (this->mNotation == Scientific) this->mLeadingZeros = 1;
+   if (this->mNotation == QE::Scientific) this->mLeadingZeros = 1;
 
    // Reduce precision so as not to exceed max significance if required.
    //
@@ -749,7 +761,7 @@ void QNumericEdit::setPrecision (const int value)
    // Reduce precision so as not to exceed max significance if required.
    //
    this->mLeadingZeros = MIN (this->mLeadingZeros, this->maximumSignificance () - this->mPrecision);
-   if (this->mNotation == Scientific) this->mLeadingZeros = 1;
+   if (this->mNotation == QE::Scientific) this->mLeadingZeros = 1;
 
    this->applyLimits ();
    this->redisplayText ();
@@ -779,13 +791,29 @@ bool QNumericEdit::getForceSign () const
 
 //------------------------------------------------------------------------------
 //
-void QNumericEdit::setNotation (const Notations notationIn )
+void QNumericEdit::setWrapValue (const bool wrapValueIn)
 {
-   this->mNotation = notationIn;
-   if (this->mNotation == Scientific) {
+   this->mWrapValue = wrapValueIn;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QNumericEdit::getWrapValue () const
+{
+   return this->mWrapValue;
+}
+
+//------------------------------------------------------------------------------
+//
+void QNumericEdit::setNotation (const QE::Notations notationIn )
+{
+   // We don't allow Automatic, go with Fixed.
+   //
+   this->mNotation = (notationIn != QE::Automatic) ? notationIn : QE::Fixed;
+   if (this->mNotation == QE::Scientific) {
       // Scientific notation implies decimal notation.
       //
-      this->fpr.setRadix (QEFixedPointRadix::Decimal);
+      this->fpr.setRadix (QE::Decimal);
       this->mLeadingZeros = 1;
    }
    this->redisplayText ();
@@ -793,7 +821,7 @@ void QNumericEdit::setNotation (const Notations notationIn )
 
 //------------------------------------------------------------------------------
 //
-QNumericEdit::Notations QNumericEdit::getNotation () const
+QE::Notations QNumericEdit::getNotation () const
 {
    return this->mNotation;
 }
@@ -842,12 +870,12 @@ double QNumericEdit::getMaximum () const
 
 //------------------------------------------------------------------------------
 //
-void QNumericEdit::setRadix (const QEFixedPointRadix::Radicies value)
+void QNumericEdit::setRadix (const QE::Radicies value)
 {
-   if (value != QEFixedPointRadix::Decimal) {
+   if (value != QE::Decimal) {
       // Not decimal - force fixed point notation.
       //
-      this->setNotation (Fixed);
+      this->setNotation (QE::Fixed);
    }
 
    if (this->fpr.getRadix () != value) {
@@ -860,14 +888,14 @@ void QNumericEdit::setRadix (const QEFixedPointRadix::Radicies value)
 
 //------------------------------------------------------------------------------
 //
-QEFixedPointRadix::Radicies QNumericEdit::getRadix () const
+QE::Radicies QNumericEdit::getRadix () const
 {
    return this->fpr.getRadix ();
 }
 
 //------------------------------------------------------------------------------
 //
-void QNumericEdit::setSeparator (const QEFixedPointRadix::Separators value)
+void QNumericEdit::setSeparator (const QE::Separators value)
 {
    if (this->fpr.getSeparator () != value) {
       this->fpr.setSeparator (value);
@@ -877,7 +905,7 @@ void QNumericEdit::setSeparator (const QEFixedPointRadix::Separators value)
 
 //------------------------------------------------------------------------------
 //
-QEFixedPointRadix::Separators QNumericEdit::getSeparator () const
+QE::Separators QNumericEdit::getSeparator () const
 {
    return this->fpr.getSeparator ();
 }
@@ -895,16 +923,46 @@ void QNumericEdit::internalSetValue (const double value)
    //
    if (!(QEPlatform::isNaN (value) || QEPlatform::isInf (value))) {
 
-      if (this->mNotation == Fixed) {
+      if (this->mNotation == QE::Fixed) {
          // When fixed notation, ensure widget is WYSIWYG
          // int caste truncates towards zero - select signed half.
          //
          const double round = value >= 0.0 ? + 0.5 : -0.5;
-         const qint64 n = (value + (modelSmall * round)) / modelSmall;
+         const qint64 n = static_cast<qint64>((value + (modelSmall * round)) / modelSmall);
          constrainedValue = n * modelSmall;
       }
 
-      constrainedValue = LIMIT (constrainedValue, this->mMinimum, this->mMaximum);
+      if (!this->mWrapValue) {
+         // Simple range constraint.
+         //
+         constrainedValue = LIMIT (constrainedValue, this->mMinimum, this->mMaximum);
+      } else {
+        // The Wrap value property is set.
+        // NOTE: the <  and the >= asymetry - allow for proper modulo working
+        //
+        if ((constrainedValue <  this->mMinimum) ||
+            (constrainedValue >= this->mMaximum)) {
+
+           const double spread = this->mMaximum - this->mMinimum;
+           const double centre = (this->mMaximum + this->mMinimum) / 2.0;
+
+           // Do a potentially large number of spread increments in one go.
+           //
+           const double fwraps = (constrainedValue - centre) / spread;
+
+           // Note: casting truncated towards zero
+           //
+           const qint64 nwraps = static_cast<qint64>(fwraps);
+           constrainedValue = constrainedValue - nwraps * spread;
+
+           // Fine tune for any rounding errors.
+           //
+           if (constrainedValue >= this->mMaximum) constrainedValue -= spread;
+           if (constrainedValue <  this->mMinimum) constrainedValue += spread;
+        } else {
+           // pass - already within constraints.
+        }
+      }
 
       // Exponent limited to two digits.
       // If really really near to zero, then set to zero.

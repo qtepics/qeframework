@@ -33,6 +33,7 @@
 #include <QTreeView>
 #include <QLabel>
 
+#include <QEEnums.h>
 #include <QEWidget.h>
 #include <QEPvLoadSaveModel.h>
 #include <QCaVariableNamePropertyManager.h>
@@ -83,8 +84,11 @@ public:
    // resources directory.
 public slots:
    /// Slot to set the visibility of a QE widget, taking into account the user level.
-   /// Widget will be hidden if hidden by a call this slot, by will only be made visible by a calll to this slot if the user level allows.
-   void setManagedVisible( bool v ){ setRunVisible( v ); }
+   /// Widget will be hidden if hidden by a call this slot, by will only be made
+   /// visible by a calll to this slot if the user level allows.
+   ///
+   void setManagedVisible (bool v) { this->setRunVisible(v); }
+
 public:
    /// variableAsToolTip not applicale to V2 options. 
    /// Class should ensure this option is initialised to false.
@@ -131,22 +135,14 @@ public:
    /// and any Style Sheet strings generated during the display of data.
    Q_PROPERTY(QString userLevelEngineerStyle READ getStyleEngineer WRITE setStyleEngineer)
 
-   /// \enum UserLevels
-   /// User friendly enumerations for #userLevelVisibility and #userLevelEnabled properties - refer to #userLevelVisibility and #userLevelEnabled properties and userLevel enumeration for details.
-   enum UserLevels {
-      User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
-      Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
-      Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
-   };
-   Q_ENUM (UserLevels)
-
    /// Lowest user level at which the widget is visible. Default is 'User'.
    /// Used when designing GUIs that display more and more detail according to the user mode.
    /// The user mode is set application wide through the QELogin widget, or programatically through setUserLevel()
    /// Widgets that are always visible should be visible at 'User'.
    /// Widgets that are only used by scientists managing the facility should be visible at 'Scientist'.
    /// Widgets that are only used by engineers maintaining the facility should be visible at 'Engineer'.
-   Q_PROPERTY(UserLevels userLevelVisibility READ getUserLevelVisibilityProperty WRITE setUserLevelVisibilityProperty)
+   ///
+   Q_PROPERTY(QE::UserLevels userLevelVisibility READ getUserLevelVisibility WRITE setUserLevelVisibility)
 
    /// Lowest user level at which the widget is enabled. Default is 'User'.
    /// Used when designing GUIs that allow access to more and more detail according to the user mode.
@@ -154,12 +150,8 @@ public:
    /// Widgets that are always accessable should be visible at 'User'.
    /// Widgets that are only accessable to scientists managing the facility should be visible at 'Scientist'.
    /// Widgets that are only accessable to engineers maintaining the facility should be visible at 'Engineer'.
-   Q_PROPERTY(UserLevels userLevelEnabled READ getUserLevelEnabledProperty WRITE setUserLevelEnabledProperty)
-
-   UserLevels getUserLevelVisibilityProperty() { return (UserLevels)getUserLevelVisibility(); }            ///< Access function for #userLevelVisibility property - refer to #userLevelVisibility property for details
-   void setUserLevelVisibilityProperty( UserLevels level ) { setUserLevelVisibility( (userLevelTypes::userLevels)level ); }///< Access function for #userLevelVisibility property - refer to #userLevelVisibility property for details
-   UserLevels getUserLevelEnabledProperty() { return (UserLevels)getUserLevelEnabled(); }                  ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
-   void setUserLevelEnabledProperty( UserLevels level ) { setUserLevelEnabled( (userLevelTypes::userLevels)level ); }      ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
+   ///
+   Q_PROPERTY(QE::UserLevels userLevelEnabled READ getUserLevelEnabled WRITE setUserLevelEnabled)
 
    /// displayAlarmStateOption not applicale to V2 options. 
    /// Class should ensure this option is initialised to DISPLAY_ALARM_STATE_NEVER.
@@ -229,7 +221,6 @@ private slots:
 
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
 Q_DECLARE_METATYPE (QEPvLoadSaveButton::Actions)
-Q_DECLARE_METATYPE (QEPvLoadSaveButton::UserLevels)
 #endif
 
 #endif // QE_PV_LOAD_SAVE_BUTTON_H

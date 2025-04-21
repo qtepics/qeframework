@@ -36,7 +36,7 @@
 //
 QEPvWriteOnce::QEPvWriteOnce(const QString& pvNameIn,
                              const QString& valueIn,
-                             const QEStringFormatting::formats formatIn,
+                             const QE::Formats formatIn,
                              QObject* parent) : QObject (parent)
 {
    this->pvName = pvNameIn;
@@ -90,37 +90,37 @@ void QEPvWriteOnce::writeToVariable (qcaobject::QCaObject* qca)
    QVariant pvData;
 
    switch (this->format) {
-      case QEStringFormatting::FORMAT_FLOATING:
+      case QE::Floating:
          pvData = QVariant (double (this->substitutedValue.toDouble (&okay)));
          break;
 
-      case QEStringFormatting::FORMAT_INTEGER:
+      case QE::Integer:
          pvData = QVariant (int (this->substitutedValue.toInt (&okay)));
          break;
 
-      case QEStringFormatting::FORMAT_UNSIGNEDINTEGER:
+      case QE::UnsignedInteger:
          pvData = QVariant (qlonglong (this->substitutedValue.toLongLong (&okay)));
          break;
 
-      case QEStringFormatting::FORMAT_DEFAULT:
+      case QE::Default:
          /// TODO - fix this option, but go with string for now.
-      case QEStringFormatting::FORMAT_STRING:
+      case QE::String:
          pvData = QVariant (this->substitutedValue);
          okay = true;
          break;
 
-      case QEStringFormatting::FORMAT_TIME:
-      case QEStringFormatting::FORMAT_LOCAL_ENUMERATE:
+      case QE::Time:
+      case QE::LocalEnumeration:
          DEBUG << "unhandled format value" << this->format;
          okay = false;
          break;
 
-      case QEStringFormatting::FORMAT_NT_TABLE:
-      case QEStringFormatting::FORMAT_NT_IMAGE:
-      case QEStringFormatting::FORMAT_OPAQUE:
-         DEBUG << "unexpected format value" << this->format;
-         okay = false;
-         break;
+//    case QE::NT_Table:
+//    case QE::NT_Image:
+//    case QE::Opaque:
+//         DEBUG << "unexpected format value" << this->format;
+//         okay = false;
+//         break;
 
       default:
          DEBUG << "erroneous format value" << this->format;

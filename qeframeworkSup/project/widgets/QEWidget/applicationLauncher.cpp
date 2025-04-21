@@ -120,7 +120,7 @@ void processManager::doFinished( int /*exitCode*/, QProcess::ExitStatus /*exitSt
 //
 applicationLauncher::applicationLauncher()
 {
-   this->programStartupOption = PSO_NONE;
+   this->programStartupOption = QE::NoOutput;
 }
 
 //------------------------------------------------------------------------------
@@ -174,8 +174,8 @@ void applicationLauncher::launchCommon( const VariableNameManager* variableNameM
    // Create a new process to run the program
    // (It will be up to the processManager to delete the temporary file if present)
    //
-   processManager* process = new processManager( programStartupOption == PSO_LOGOUTPUT,
-                                                 programStartupOption == PSO_STDOUTPUT,
+   processManager* process = new processManager( programStartupOption == QE::LogOutput,
+                                                 programStartupOption == QE::StdOutput,
                                                  tempFile );
 
    // Connect to caller if a recipient has been provided
@@ -239,7 +239,7 @@ void applicationLauncher::launchCommon( const VariableNameManager* variableNameM
    // Note: we use prepend in reverse order
    // to get, e.g.  xterm  -hold -e  substitutedProgram
    //
-   if( this->programStartupOption == PSO_TERMINAL ) {
+   if( programStartupOption == QE::Terminal ) {
 #ifdef WIN32
       substitutedArguments.prepend( substitutedProgram );
       substitutedArguments.prepend( "start" );
@@ -290,14 +290,14 @@ QStringList applicationLauncher::getArguments() const
 
 //------------------------------------------------------------------------------
 //
-void applicationLauncher::setProgramStartupOption( const programStartupOptions programStartupOptionIn )
+void applicationLauncher::setProgramStartupOption( const QE::ProgramStartupOptions programStartupOptionIn )
 {
    this->programStartupOption = programStartupOptionIn;
 }
 
 //------------------------------------------------------------------------------
 //
-applicationLauncher::programStartupOptions applicationLauncher::getProgramStartupOption() const
+QE::ProgramStartupOptions applicationLauncher::getProgramStartupOption() const
 {
    return this->programStartupOption;
 }

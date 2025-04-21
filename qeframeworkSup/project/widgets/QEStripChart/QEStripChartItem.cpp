@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2023 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -32,6 +32,7 @@
 #include <QColor>
 #include <QColorDialog>
 #include <QFileDialog>
+#include <QMetaType>
 #include <QMimeData>
 #include <QVariantList>
 
@@ -42,6 +43,7 @@
 #include <QEPlatform.h>
 #include <QEGraphic.h>
 #include <QEScaling.h>
+#include <QEVectorVariants.h>
 #include "QEStripChartContextMenu.h"
 #include "QEStripChartStatistics.h"
 
@@ -419,7 +421,7 @@ QString QEStripChartItem::getDescription () const
 QString QEStripChartItem::getCaptionLabel () const
 {
    QString result;
-   QEAbstractDynamicWidget::PVLabelMode labelMode;
+   QE::PVLabelMode labelMode;
    QString substitutedPVName;
 
    switch (this->dataKind) {
@@ -431,7 +433,7 @@ QString QEStripChartItem::getCaptionLabel () const
          substitutedPVName = this->caLabel->getSubstitutedVariableName (0);
 
          switch (labelMode) {
-            case QEAbstractDynamicWidget::useAliasName:
+            case QE::useAliasName:
                if (!this->aliasName.isEmpty() && this->aliasName != "<>") {
                   result = this->aliasName;
                } else {
@@ -439,7 +441,7 @@ QString QEStripChartItem::getCaptionLabel () const
                }
                break;
 
-            case QEAbstractDynamicWidget::useDescription:
+            case QE::useDescription:
                if (!this->description.isEmpty()) {
                   result = this->description;
                } else {
@@ -447,7 +449,7 @@ QString QEStripChartItem::getCaptionLabel () const
                }
                break;
 
-            case QEAbstractDynamicWidget::usePvName:
+            case QE::usePvName:
             default:
                result = substitutedPVName;
                break;
@@ -785,8 +787,7 @@ QCaDataPointList QEStripChartItem::extractPlotPoints (const bool doBuffered) con
 
    for (int i = 0; i < 2; i++) {
       const QCaDataPointList* list = listArray [i];
-      bool isFirst = true;
-      int count = list->count ();
+      const int count = list->count ();
       for (int j = 0; j < count; j++) {
          QCaDataPoint point = list->value (j);
 
@@ -799,17 +800,10 @@ QCaDataPointList QEStripChartItem::extractPlotPoints (const bool doBuffered) con
          if ((t >= -duration) && (t <= 0.0)) {
             // Point time is within current time range of the chart.
             //
-            if (isFirst && (j > 0)) {
-               // do the previous point iff it exists.
-               //
-               result.append (list->value (j - 1));
-            }
-            isFirst = false;
             result.append (point);
          } else if (t > 0.0) {
-            // do one following point, then  skip the rest.
+            // skip the rest.
             //
-            result.append (point);
             break;
          }
       }
@@ -1033,12 +1027,18 @@ void QEStripChartItem::setDataValue (const QVariant& value, QCaAlarmInfo& alarm,
 
    // Do something sensible with array PVs.
    //
-   if (value.type () == QVariant::List) {
+   const QMetaType::Type mtype = QEPlatform::metaType (value);
+   if (mtype == QMetaType::QVariantList) {
       QVariantList list = value.toList ();
-      // Use first element. Consdider some mechanism to all the element to
+      // Use first element. Consider some mechanism to all the element to
       // be selected buy the user.
       //
       input = list.value (0);
+
+   } else if (QEVectorVariants::isVectorVariant (value)) {
+      // Use first element.
+      input = QEVectorVariants::getDoubleValue (value, 0, 0.0);
+
    } else {
       input = value;  // use as is
    }
@@ -1688,7 +1688,7 @@ void QEStripChartItem::generateStatistics ()
    if (this->hostSlotAvailable) {
       // Create component item and associated request.
       //
-      componentHostListItem item (pvStatistics, QEActionRequests::OptionFloatingDockWindow , false, this->getPvName () + " Statistics");
+      componentHostListItem item (pvStatistics, QE::DockFloating , false, this->getPvName () + " Statistics");
 
       // ... and request this hosted by the support application.
       //

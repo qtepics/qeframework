@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/qe/plugin">
+        <file>QEAlarmColourSelection.png</file>
         <file>QAnalogSlider.png</file>
         <file>QBitStatus.png</file>
         <file>QEAnalogIndicator.png</file>
@@ -12,11 +13,13 @@
         <file>QECheckBox.png</file>
         <file>QEComboBox.png</file>
         <file>QEConfiguredLayout.png</file>
+        <file>QEComment.png</file>
         <file>QECorrelation.png</file>
         <file>QEDateTime.png</file>
         <file>QEDescriptionLabel.png</file>
         <file>QEDistribution.png</file>
         <file>QEDynamicFormGrid.png</file>
+        <file>QEExitButton.png</file>
         <file>QEFileBrowser.png</file>
         <file>QEFileImage.png</file>
         <file>QEForm.png</file>

@@ -82,7 +82,7 @@ void QEAnalogProgressBar::setup ()
    this->setNumVariables (1);
 
    // Set up default properties
-   this->setArrayAction (QEStringFormatting::INDEX);
+   this->setArrayAction (QE::Index);
    this->useDbDisplayLimits = false;
    this->alarmSeverityDisplayMode = background;
    this->setAllowDrop (false);

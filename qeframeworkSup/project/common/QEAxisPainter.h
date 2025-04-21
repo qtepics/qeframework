@@ -50,16 +50,8 @@
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAxisPainter : public QWidget {
    Q_OBJECT
 public:
-   /// \enum    Orientations
-   /// The orientation of the axis
-   enum Orientations { 
-       Left_To_Right,      ///< Left to right
-       Top_To_Bottom,      ///< Top to bottom
-       Right_To_Left,      ///< Right to left
-       Bottom_To_Top       ///< Bottom to top
-   };
-   Q_ENUM (Orientations)
-
+   /// \enum    TextPositions
+   /// The test postion with respect to the axis
    enum TextPositions {
        BelowLeft,  ///< Below when Orientation is horizontal, Left when Orientation is vertical
        AboveRight  ///< Above when Orientation is horizontal, Right when Orientation is vertical
@@ -120,8 +112,11 @@ public:
 
    // Set/get axis orientation. Default is Left_To_Right.
    //
-   void setOrientation (const Orientations orientation);
-   Orientations getOrientation () const;
+   void setOrientation (const Qt::Orientations orientation);
+   Qt::Orientations getOrientation () const;
+
+   void setInvertedAppearance (const bool invertedAppearance);
+   bool getInvertedAppearance () const;
 
    // Set/get text position with respect to the axis. Default is BelowLeft.
    //
@@ -219,16 +214,15 @@ private:
    int mRightBottomIndent;
    int mGap;
    bool mAutoFixedSize;
-   Orientations mOrientation;
+   Qt::Orientations mOrientation;
+   bool mInvertedAppearance;
    TextPositions mTextPosition;
    bool mIsLogScale;
    bool mHasAxisLine;
    QEAxisIterator* iterator;
 };
 
-
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QEAxisPainter::Orientations)
 Q_DECLARE_METATYPE (QEAxisPainter::TextPositions)
 #endif
 

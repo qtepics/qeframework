@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2019 Australian Synchrotron.
+ *  Copyright (c) 2014-2025 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -24,19 +24,24 @@
  *    andrew.starritt@synchrotron.org.au
  */
 
-#include "QEGeneralEdit.h"
-
 // In this context, we are a user of the QEFramework library as we are using
 // the moc generated ui_QEGeneralEdit.h file that needs access the meta
 // types to be declared.
 //
+#include <QEFrameworkLibraryGlobal.h>
 #define QE_DECLARE_METATYPE_IS_REQUIRED
 
+#include "QEGeneralEdit.h"
+
 #include <QDebug>
+#include <QMetaType>
 #include <QECommon.h>
+#include <QEPlatform.h>
 #include <QEScaling.h>
+#include <QEVectorVariants.h>
 
 #include <QELabel.h>
+#include <QERadioGroup.h>
 #include <QELineEdit.h>
 #include <QENumericEdit.h>
 #include <ui_QEGeneralEdit.h>
@@ -44,6 +49,7 @@
 #define DEBUG qDebug () << "QEGeneralEdit" << __LINE__ << __FUNCTION__ << "  "
 
 #define PV_VARIABLE_INDEX      0
+
 
 //-----------------------------------------------------------------------------
 // Constructor with no initialisation
@@ -116,7 +122,7 @@ void QEGeneralEdit::commonSetup ()
    // Set up default properties
    //
    this->setAllowDrop (true);
-   this->setDisplayAlarmStateOption (DISPLAY_ALARM_STATE_NEVER);
+   this->setDisplayAlarmStateOption (QE::Never);
 
    this->setMinimumWidth (400);
    this->setMinimumHeight (50);
@@ -282,15 +288,27 @@ void QEGeneralEdit::dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
       this->ui->stringEditWidget->setVariableNameAndSubstitutions ("", "", 0);
 
       QVariant workingValue = value;
-      QVariant::Type type = workingValue.type ();
+      QMetaType::Type mtype = QEPlatform::metaType (value);
 
-      if (type == QVariant::List) {
+      if (mtype == QMetaType::QVariantList) {
          int ai = this->getArrayIndex();
          if (ai >= 0 && ai < value.toList().count() ) {
             // Convert this array element as a scalar update.
             //
-            workingValue =value.toList().value(ai);
-            type = workingValue.type ();
+            workingValue = value.toList().value(ai);
+            mtype = QEPlatform::metaType (workingValue);
+         } else {
+            DEBUG << " Array index out of bounds:" << ai;
+            return; // do nothing
+         }
+      } else if (QEVectorVariants::isVectorVariant (value)) {
+
+         int ai = this->getArrayIndex();
+         if (ai >= 0 && ai < QEVectorVariants::vectorCount (value) ) {
+            // Convert this array element as a scalar update.
+            //
+            workingValue = QEVectorVariants::getDoubleValue (value, ai, 0.0);
+            mtype = QEPlatform::metaType (workingValue);
          } else {
             DEBUG << " Array index out of bounds:" << ai;
             return; // do nothing
@@ -304,17 +322,17 @@ void QEGeneralEdit::dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
       QWidget* inThisPanel = NULL;
       int numElements = 0;
 
-      switch (type) {
+      switch (mtype) {
 
-         case QVariant::String:
+         case QMetaType::QString:
             useThisWidget = this->ui->stringEditWidget;
             inThisPanel = this->ui->stringEditPanel;
             break;
 
-         case QVariant::Int:
-         case QVariant::UInt:
-         case QVariant::LongLong:
-         case QVariant::ULongLong:
+         case QMetaType::Int:
+         case QMetaType::UInt:
+         case QMetaType::LongLong:
+         case QMetaType::ULongLong:
             numElements = qca->getEnumerations().count();
             if (numElements > 0) {
                // represents an enumeration.
@@ -334,7 +352,8 @@ void QEGeneralEdit::dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
             }
             break;
 
-         case QVariant::Double:
+         case QMetaType::Float:
+         case QMetaType::Double:
             {
                int p = qca->getPrecision();
 
@@ -359,7 +378,7 @@ void QEGeneralEdit::dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
             break;
 
          default:
-            DEBUG << " Unexpected type:" << type;
+            DEBUG << " Unexpected type:" << mtype;
             return; // do nothing
       }
 
@@ -465,14 +484,14 @@ QRadioGroup::ButtonStyles QEGeneralEdit::getButtonStyle () const
 
 //------------------------------------------------------------------------------
 //
-void QEGeneralEdit::setButtonOrder (const QRadioGroup::ButtonOrders order)
+void QEGeneralEdit::setButtonOrder (const QE::GridOrders order)
 {
    this->ui->radioGroupWidget->setButtonOrder (order);
 }
 
 //------------------------------------------------------------------------------
 //
-QRadioGroup::ButtonOrders QEGeneralEdit::getButtonOrder () const
+QE::GridOrders QEGeneralEdit::getButtonOrder () const
 {
    return this->ui->radioGroupWidget->getButtonOrder ();
 }

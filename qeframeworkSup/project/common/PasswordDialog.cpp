@@ -1,5 +1,9 @@
-/*
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+/*  PasswordDialog.cpp
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2013-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -13,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2013 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -31,31 +33,40 @@
 
 #include "PasswordDialog.h"
 #include "ui_PasswordDialog.h"
+#include <QEEnums.h>
 #include <ContainerProfile.h>
 
+//------------------------------------------------------------------------------
+//
 PasswordDialog::PasswordDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::PasswordDialog)
 {
     ContainerProfile profile;
 
-    ui->setupUi(this);
+    this->ui->setupUi(this);
 
-    ui->lineEditUser->setText( profile.getUserLevelPassword( userLevelTypes::USERLEVEL_USER ) );
-    ui->lineEditScientist->setText( profile.getUserLevelPassword( userLevelTypes::USERLEVEL_SCIENTIST ) );
-    ui->lineEditEngineer->setText( profile.getUserLevelPassword( userLevelTypes::USERLEVEL_ENGINEER ) );
+    this->ui->lineEditUser->setText( profile.getUserLevelPassword( QE::User ) );
+    this->ui->lineEditScientist->setText( profile.getUserLevelPassword( QE::Scientist ) );
+    this->ui->lineEditEngineer->setText( profile.getUserLevelPassword( QE::Engineer ) );
 }
 
+//------------------------------------------------------------------------------
+//
 PasswordDialog::~PasswordDialog()
 {
-    delete ui;
+    delete this->ui;
 }
 
+//------------------------------------------------------------------------------
+//
 void PasswordDialog::on_buttonBox_accepted()
 {
     ContainerProfile profile;
 
-    profile.setUserLevelPassword( userLevelTypes::USERLEVEL_USER, ui->lineEditUser->text() );
-    profile.setUserLevelPassword( userLevelTypes::USERLEVEL_SCIENTIST, ui->lineEditScientist->text() );
-    profile.setUserLevelPassword( userLevelTypes::USERLEVEL_ENGINEER, ui->lineEditEngineer->text() );
+    profile.setUserLevelPassword( QE::User, this->ui->lineEditUser->text() );
+    profile.setUserLevelPassword( QE::Scientist, this->ui->lineEditScientist->text() );
+    profile.setUserLevelPassword( QE::Engineer, this->ui->lineEditEngineer->text() );
 }
+
+// end

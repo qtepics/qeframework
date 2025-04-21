@@ -1,6 +1,9 @@
 /*  mpeg.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2014-2022 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +17,6 @@
  *
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2014,2017 Australian Synchrotron
  *
  *  Author:
  *    Andrew Rhyder
@@ -34,8 +35,7 @@
 #include <QThread>
 #include <QWidget>
 #include <QByteArray>
-#include "imageDataFormats.h"
-
+#include <QEEnums.h>
 
 #define MAXSTRING 1024    // size of URL string
 
@@ -91,7 +91,7 @@ signals:
                       unsigned long elements,
                       unsigned long width,
                       unsigned long height,
-                      imageDataFormats::formatOptions format,
+                      QE::ImageFormatOptions format,
                       unsigned int depth );
 
 private:

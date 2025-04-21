@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2018-2022 Australian Synchrotron
+ *  Copyright (c) 2018-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -111,10 +111,10 @@ void QELCDNumber::setup ()
 
    // Set up default properties
    //
-   this->setArrayAction (QEStringFormatting::INDEX);
+   this->setArrayAction (QE::Index);
    this->setAllowDrop (false);
 
-   this->lastValue = QVariant (QVariant::Invalid);
+   this->lastValue = QVariant ();
 
    // Use default context menu.
    //
@@ -192,7 +192,7 @@ void QELCDNumber::connectionChanged (QCaConnectionInfo& connectionInfo,
 
    // We can do this on connect as well as disconnect.
    //
-   this->lastValue = QVariant (QVariant::Invalid);
+   this->lastValue = QVariant ();
    this->isFirstUpdate = true;
 
    // Display the connected state
@@ -305,16 +305,16 @@ void QELCDNumber::paste (QVariant drop)
 
 //------------------------------------------------------------------------------
 //
-void QELCDNumber::setNotationProperty (Notations notationIn)
+void QELCDNumber::setNotationProperty (QE::Notations notationIn)
 {
-   this->setNotation (QEStringFormatting::notations (notationIn));
+   this->setNotation (notationIn);
 }
 
 //------------------------------------------------------------------------------
 //
-QELCDNumber::Notations QELCDNumber::getNotationProperty() const
+QE::Notations QELCDNumber::getNotationProperty() const
 {
-   return Notations (this->getNotation());
+   return this->getNotation();
 }
 
 // end

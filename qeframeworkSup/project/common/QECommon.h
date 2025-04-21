@@ -271,6 +271,11 @@ public:
     ///
     static QRect screenGeometry (QWidget* widget);
 
+    // Cribbed from KDM
+    //
+    static void tagObject (QObject* object, const int tag);
+    static int objectTag (const QObject* object, const int defaultValue = -1);
+
     /// Testing only - outputs the widget hierarchy to std out.
     ///
     static void debugWidgetHierarchy (const QWidget* root,

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron
+ *  Copyright (c) 2013-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -40,6 +40,7 @@
 #include <QLabel>
 #include <QProgressBar>
 
+#include <QEEnums.h>
 #include <QCaObject.h>
 #include <QEArchiveAccess.h>
 #include <QEFrame.h>
@@ -169,7 +170,9 @@ private:
       TCM_SHOW_PV_PROPERTIES,
       TCM_ADD_TO_STRIPCHART,
       TCM_ADD_TO_SCRATCH_PAD,
-
+      TCM_ADD_TO_PLOTTER,
+      TCM_ADD_TO_HISTORGRAM,
+      TCM_ADD_TO_TABLE,
       TCM_EDIT_PV_NAME,
       TCM_EDIT_PV_VALUE,
       TCM_NUMBER           // must be last

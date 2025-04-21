@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2023 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -30,14 +30,18 @@
 #include <QApplication>
 #include <QDebug>
 #include <QByteArray>
+#include <QMetaType>
 #include <QECommon.h>
+#include <QEAdaptationParameters.h>
+#include <QEPlatform.h>
 #include <QEPvNameUri.h>
-#include <QEBaseClient.h>
+#include <QENullClient.h>
 #include <QECaClient.h>
 #include <QEPvaClient.h>
 #include <QEStringFormatting.h>
 #include <QEIntegerFormatting.h>
 #include <QEFloatingFormatting.h>
+#include <QEVectorVariants.h>
 
 #define DEBUG qDebug () << "QCaObject" << __LINE__ << __FUNCTION__ << "  "
 
@@ -107,15 +111,15 @@ void QCaObject::initialise( const QString& newRecordName,
                             SignalsToSendFlags signalsToSendIn,
                             priorities priorityIn )
 {
+   // Ensure client object pointer is null.
+   //
+   this->client = NULL;
+
    // Allocate a new object identity for this QCaObject.
    // We do not worry about wrap arround.
    //
    this->objectIdentity = ++QCaObject::nextObjectIdentity;
 
-   // Ensure client object pointers are null.
-   //
-   this->caClient = NULL;
-   this->pvaClient = NULL;
    this->arrayIndex = 0;
 
    // Note the record required name and associated index.
@@ -132,36 +136,50 @@ void QCaObject::initialise( const QString& newRecordName,
    const bool decodeOkay = uri.decodeUri (newRecordName, /* strict=> */ false);
    if (!decodeOkay) {
       DEBUG << "PV protocol identification failed for:" << newRecordName;
+      // See comment below
+      this->client = new QENullClient (newRecordName, this);
       return;
    }
 
    const QEPvNameUri::Protocol protocol = uri.getProtocol ();
    const QString pvName = uri.getPvName ();
 
+   QECaClient* caClient;
+
    switch (protocol) {
 
       case QEPvNameUri::ca:
-         this->caClient = new QECaClient (pvName, this);
-         this->caClient->setPriority (int (priorityIn));
-         QObject::connect (this->caClient, SIGNAL (connectionUpdated (const bool)),
-                           this,           SLOT   (connectionUpdate  (const bool)));
-         QObject::connect (this->caClient, SIGNAL (dataUpdated (const bool)),
-                           this,           SLOT   (dataUpdate  (const bool)));
-         QObject::connect (this->caClient, SIGNAL (putCallbackComplete    (const bool)),
-                           this,           SLOT   (putCallbackNotifcation (const bool)));
+         this->client = caClient = new QECaClient (pvName, this);
+         caClient->setPriority (int (priorityIn));
+         QObject::connect (this->client, SIGNAL (connectionUpdated (const bool)),
+                           this,         SLOT   (connectionUpdate  (const bool)));
+         QObject::connect (this->client, SIGNAL (dataUpdated (const bool)),
+                           this,         SLOT   (dataUpdate  (const bool)));
+         QObject::connect (this->client, SIGNAL (putCallbackComplete    (const bool)),
+                           this,         SLOT   (putCallbackNotifcation (const bool)));
          break;
 
       case QEPvNameUri::pva:
-         this->pvaClient = new QEPvaClient (pvName, this);
-         QObject::connect (this->pvaClient, SIGNAL (connectionUpdated (const bool)),
-                           this,            SLOT   (connectionUpdate  (const bool)));
-         QObject::connect (this->pvaClient, SIGNAL (dataUpdated (const bool)),
-                           this,            SLOT   (dataUpdate  (const bool)));
+         this->client = new QEPvaClient (pvName, this);
+         QObject::connect (this->client, SIGNAL (connectionUpdated (const bool)),
+                           this,         SLOT   (connectionUpdate  (const bool)));
+         QObject::connect (this->client, SIGNAL (dataUpdated (const bool)),
+                           this,         SLOT   (dataUpdate  (const bool)));
+         QObject::connect (this->client, SIGNAL (putCallbackComplete    (const bool)),
+                           this,         SLOT   (putCallbackNotifcation (const bool)));
          break;
 
       default:
          DEBUG << "Unknown protocol" << protocol << int (protocol);
-         return;
+         // By having a null client, it saves the need to have code like, e.g.:
+         //
+         //   if (this->client) result = this->client->getEgu();
+         //
+         // every where. We can always do:
+         //
+         //   result = this->client->getEgu();
+         //
+         this->client = new QENullClient (pvName, this);
    }
 
    // Setup any the mechanism to handle messages to the user, if supplied
@@ -181,8 +199,9 @@ QCaObject::~QCaObject()
 {
    // NOTE: we call closeChannel before the client destructor so that the overriden
    // connectionUpdate still gets invoked.
-   if (this->caClient) this->caClient->closeChannel ();
-   if (this->pvaClient) this->pvaClient->closeChannel ();
+   // Note: closeChannel and openChannel are now dispatching
+   //
+   if (this->client) this->client->closeChannel ();
 
    QCaObject::totalChannelCount--;
    QCaObject::connectedCount = LIMIT (QCaObject::connectedCount, 0, QCaObject::totalChannelCount);
@@ -191,16 +210,30 @@ QCaObject::~QCaObject()
 
 //------------------------------------------------------------------------------
 //
+QECaClient* QCaObject::asCaClient () const
+{
+   return qobject_cast <QECaClient*>(this->client);
+}
+
+//------------------------------------------------------------------------------
+//
+QEPvaClient* QCaObject::asPvaClient () const
+{
+   return qobject_cast <QEPvaClient*>(this->client);
+}
+
+//------------------------------------------------------------------------------
+//
 bool QCaObject::isCaChannel () const
 {
-    return (this->caClient != NULL);
+   return (this->client->getType() == QEBaseClient::CAType);
 }
 
 //------------------------------------------------------------------------------
 //
 bool QCaObject::isPvaChannel () const
 {
-    return (this->pvaClient != NULL);
+   return (this->client->getType() == QEBaseClient::PVAType);
 }
 
 //------------------------------------------------------------------------------
@@ -217,19 +250,6 @@ QCaObject::SignalsToSendFlags QCaObject::getSignalsToSend () const
    return this->signalsToSend;
 }
 
-
-//------------------------------------------------------------------------------
-// Simple function call selection with optional arguments.
-//
-#define RESULT_SELECT(cafunc, pvafunc, ...) {                                  \
-   if (this->caClient) {                                                       \
-      result = this->caClient->cafunc (__VA_ARGS__);                           \
-   } else if (this->pvaClient)  {                                              \
-      result = this->pvaClient->pvafunc (__VA_ARGS__);                         \
-   }                                                                           \
-}
-
-
 //------------------------------------------------------------------------------
 // Clear channel connection state - and signal "initial" change of state
 // Note: was original in setChannelExpired
@@ -242,7 +262,6 @@ void QCaObject::clearConnectionState()
    //  The connection has gone from 'no connection' to 'not connectet yet')
    //
    QCaConnectionInfo connectionInfo( QCaConnectionInfo::NEVER_CONNECTED,
-                                     QCaConnectionInfo::LINK_DOWN,
                                      this->getRecordName() );
 
    emit connectionChanged( connectionInfo, variableIndex );
@@ -252,56 +271,31 @@ void QCaObject::clearConnectionState()
 //
 bool QCaObject::subscribe()
 {
-   bool result = false;
-   if (this->caClient) {
-      this->clearConnectionState();
-      this->caClient->setReadMode (ACAI::Subscribe);
-      result = this->caClient->openChannel ();
-   } else if (this->pvaClient) {
-      result = this->pvaClient->openChannel (QEPvaClient::Monitor | QEPvaClient::Write);
-   }
-   return result;
+   this->clearConnectionState();
+   return this->client->openChannel (QEBaseClient::Monitor | QEBaseClient::Write);
 }
 
 //------------------------------------------------------------------------------
 //
 bool QCaObject::singleShotRead()
 {
-   bool result = false;
-   if (this->caClient) {
-      this->clearConnectionState();
-      this->caClient->setReadMode (ACAI::SingleRead);
-      result = this->caClient->openChannel ();
-   } else if (this->pvaClient) {
-      result = this->pvaClient->openChannel (QEPvaClient::Read | QEPvaClient::Write);
-   }
-   return result;
+   this->clearConnectionState();
+   return this->client->openChannel (QEBaseClient::Read | QEBaseClient::Write);
 }
 
 //------------------------------------------------------------------------------
 //
 bool QCaObject::connectChannel()
 {
-   bool result = false;
-   if (this->caClient) {
-      this->clearConnectionState();
-      this->caClient->setReadMode (ACAI::NoRead);
-      result = this->caClient->openChannel ();
-   } else if (this->pvaClient) {
-      result = this->pvaClient->openChannel (QEPvaClient::Write);
-   }
-   return result;
+   this->clearConnectionState();
+   return this->client->openChannel (QEBaseClient::Write);
 }
 
 //------------------------------------------------------------------------------
 //
 void QCaObject::closeChannel()
 {
-   if (this->caClient) {
-      this->caClient->closeChannel();
-   } else if (this->pvaClient) {
-      this->pvaClient->closeChannel();
-   }
+   this->client->closeChannel();
 }
 
 //------------------------------------------------------------------------------
@@ -310,9 +304,7 @@ void QCaObject::closeChannel()
 //
 bool QCaObject::dataTypeKnown() const
 {
-   bool result = false;
-   RESULT_SELECT (isConnected, getIsConnected);
-   return result;
+   return this->client->getIsConnected();
 }
 
 //------------------------------------------------------------------------------
@@ -330,11 +322,7 @@ unsigned int QCaObject::getVariableIndex () const
 void QCaObject::setUserMessage( UserMessage* userMessageIn )
 {
    this->userMessage = userMessageIn;
-   if (this->caClient) {
-      this->caClient->setUserMessage (userMessageIn);
-   } else if (this->pvaClient) {
-      this->pvaClient->setUserMessage (userMessageIn);
-   }
+   this->client->setUserMessage (userMessageIn);
 }
 
 //------------------------------------------------------------------------------
@@ -344,8 +332,9 @@ void QCaObject::setUserMessage( UserMessage* userMessageIn )
 //
 void  QCaObject::setRequestedElementCount( unsigned int elementCount )
 {
-   if (this->caClient) {
-      this->caClient->setRequestCount (elementCount);
+   QECaClient* caClient = this->asCaClient();
+   if (caClient) {
+      caClient->setRequestCount (elementCount);
    }
 }
 
@@ -354,9 +343,7 @@ void  QCaObject::setRequestedElementCount( unsigned int elementCount )
 //
 bool  QCaObject::getChannelIsConnected () const
 {
-   bool result = false;
-   RESULT_SELECT (isConnected, getIsConnected);
-   return result;
+   return this->client->getIsConnected();
 }
 
 //------------------------------------------------------------------------------
@@ -364,9 +351,7 @@ bool  QCaObject::getChannelIsConnected () const
 //
 bool  QCaObject::getDataIsAvailable() const
 {
-   bool result = false;
-   RESULT_SELECT (dataIsAvailable, dataIsAvailable);
-   return result;
+   return this->client->dataIsAvailable();
 }
 
 //------------------------------------------------------------------------------
@@ -544,7 +529,7 @@ QCaObject::ObjectIdentity QCaObject::getObjectIdentity () const
 //------------------------------------------------------------------------------
 // Return the record name (technically the process variable name).
 //
-QString  QCaObject::getRecordName() const
+QString QCaObject::getRecordName() const
 {
    return this->recordName;
 }
@@ -552,15 +537,9 @@ QString  QCaObject::getRecordName() const
 //------------------------------------------------------------------------------
 // Return the engineering units, if any
 //
-QString  QCaObject::getEgu() const
+QString QCaObject::getEgu() const
 {
-   QString result = "";
-   if (this->caClient) {
-      result = QString::fromStdString (this->caClient->units());
-   } else if (this->pvaClient) {
-      result =  this->pvaClient->getEgu ();
-   }
-   return result;
+   return this->client->getEgu ();
 }
 
 //------------------------------------------------------------------------------
@@ -568,33 +547,24 @@ QString  QCaObject::getEgu() const
 //
 QString  QCaObject::getHostName() const
 {
-   QString result = "";
-   if (this->caClient) {
-      result = QString::fromStdString (this->caClient->hostName());
-   } else if (this->pvaClient) {
-      result =  this->pvaClient->getRemoteAddress ();
-   }
-   return result;
+   return this->client->getRemoteAddress ();
 }
 
 //------------------------------------------------------------------------------
 // Get the read access of the current connection.
 //
-bool  QCaObject::getReadAccess() const
+bool QCaObject::getReadAccess() const
 {
-   if (this->caClient)
-      return this->caClient->readAccess();
-   return false;
+   return this->client->getReadAccess();
 }
 
 //------------------------------------------------------------------------------
 // Get the write access of the current connection.
+// This is deternmined by the clinet and anp specified adaptation parameter.
 //
-bool  QCaObject::getWriteAccess() const
+bool QCaObject::getWriteAccess() const
 {
-   if (this->caClient)
-      return this->caClient->writeAccess();
-   return false;
+   return this->client->getWriteAccess() && this->writeEnabled();
 }
 
 //------------------------------------------------------------------------------
@@ -602,23 +572,30 @@ bool  QCaObject::getWriteAccess() const
 //
 QString QCaObject::getFieldType() const
 {
-   QString result = "";
-   if (this->caClient) {
-      result = QString::fromStdString (ACAI::clientFieldTypeImage (this->caClient->hostFieldType()));
-   } else if (this->pvaClient) {
-      result = this->pvaClient->getId ();
-   }
-   return result;
+   return this->client->getId ();
 }
 
 //------------------------------------------------------------------------------
-// Return the PV native element count
+// Return the PV native/host element count
 //
+unsigned long QCaObject::getHostElementCount() const
+{
+   return this->client->hostElementCount ();
+}
+
+//------------------------------------------------------------------------------
+// Return the element count of number elements requested.
+//
+unsigned long QCaObject::getDataElementCount() const
+{
+   return this->client->dataElementCount ();
+}
+
+//------------------------------------------------------------------------------
+// Obsolete
 unsigned long QCaObject::getElementCount() const
 {
-   unsigned long result = 0;
-   RESULT_SELECT (hostElementCount, dataElementCount);
-   return result;
+   return this->getHostElementCount();
 }
 
 //------------------------------------------------------------------------------
@@ -643,20 +620,18 @@ int QCaObject::getArrayIndex() const
 //
 QStringList QCaObject::getEnumerations() const
 {
-   QStringList result;
-   RESULT_SELECT (getEnumerations, getEnumerations);
-   return result;
+   return this->client->getEnumerations ();
 }
 
 //------------------------------------------------------------------------------
 // Return the precision, if any
+// TODO: consider changing getPrecision to return int
 //
 unsigned int QCaObject::getPrecision() const
 {
-   int result = 0;
-   RESULT_SELECT (precision, getPrecision);
+   int result = this->client->getPrecision();
    if (result < 0) result = 0;
-   return unsigned (result);   // TODO: consider changing getPrecision to return int
+   return unsigned (result);
 }
 
 //------------------------------------------------------------------------------
@@ -664,9 +639,7 @@ unsigned int QCaObject::getPrecision() const
 //
 double  QCaObject::getDisplayLimitUpper() const
 {
-   double result = 0.0;
-   RESULT_SELECT (upperDisplayLimit, getDisplayLimitHigh);
-   return result;
+   return this->client->getDisplayLimitHigh();
 }
 
 //------------------------------------------------------------------------------
@@ -674,9 +647,7 @@ double  QCaObject::getDisplayLimitUpper() const
 //
 double  QCaObject::getDisplayLimitLower() const
 {
-   double result = 0.0;
-   RESULT_SELECT (lowerDisplayLimit, getDisplayLimitLow);
-   return result;
+   return this->client->getDisplayLimitLow();
 }
 
 //------------------------------------------------------------------------------
@@ -684,9 +655,7 @@ double  QCaObject::getDisplayLimitLower() const
 //
 double  QCaObject::getAlarmLimitUpper() const
 {
-   double result = 0.0;
-   RESULT_SELECT (upperAlarmLimit, getHighAlarmLimit);
-   return result;
+   return this->client->getHighAlarmLimit();
 }
 
 //------------------------------------------------------------------------------
@@ -694,9 +663,7 @@ double  QCaObject::getAlarmLimitUpper() const
 //
 double  QCaObject::getAlarmLimitLower() const
 {
-   double result = 0.0;
-   RESULT_SELECT (lowerAlarmLimit, getLowAlarmLimit);
-   return result;
+   return this->client->getLowAlarmLimit();
 }
 
 //------------------------------------------------------------------------------
@@ -704,9 +671,7 @@ double  QCaObject::getAlarmLimitLower() const
 //
 double  QCaObject::getWarningLimitUpper() const
 {
-   double result = 0.0;
-   RESULT_SELECT (upperWarningLimit, getHighWarningLimit);
-   return result;
+   return this->client->getHighWarningLimit();
 }
 
 //------------------------------------------------------------------------------
@@ -714,9 +679,7 @@ double  QCaObject::getWarningLimitUpper() const
 //
 double  QCaObject::getWarningLimitLower() const
 {
-   double result = 0.0;
-   RESULT_SELECT (lowerWarningLimit, getLowWarningLimit);
-   return result;
+   return this->client->getLowWarningLimit();
 }
 
 //------------------------------------------------------------------------------
@@ -724,9 +687,7 @@ double  QCaObject::getWarningLimitLower() const
 //
 double  QCaObject::getControlLimitUpper() const
 {
-   double result = 0.0;
-   RESULT_SELECT (upperControlLimit, getControlLimitHigh);
-   return result;
+   return this->client->getControlLimitHigh();
 }
 
 //------------------------------------------------------------------------------
@@ -734,9 +695,7 @@ double  QCaObject::getControlLimitUpper() const
 //
 double  QCaObject::getControlLimitLower() const
 {
-   double result = 0.0;
-   RESULT_SELECT (lowerControlLimit, getControlLimitLow);
-   return result;
+   return this->client->getControlLimitLow();
 }
 
 //------------------------------------------------------------------------------
@@ -751,8 +710,9 @@ double  QCaObject::getControlLimitLower() const
 //
 void QCaObject::enableWriteCallbacks( bool enable )
 {
-   if (this->caClient)
-      this->caClient->setUsePutCallback( enable );
+   QECaClient* caClient = this->asCaClient();
+   if (caClient)
+      caClient->setUsePutCallback( enable );
 }
 
 //------------------------------------------------------------------------------
@@ -760,8 +720,9 @@ void QCaObject::enableWriteCallbacks( bool enable )
 //
 bool QCaObject::isWriteCallbacksEnabled() const
 {
-   if (this->caClient)
-      return this->caClient->usePutCallback();
+   QECaClient* caClient = this->asCaClient();
+   if (caClient)
+      return caClient->getUsePutCallback();
 
    return false;
 }
@@ -771,9 +732,7 @@ bool QCaObject::isWriteCallbacksEnabled() const
 //
 QCaAlarmInfo QCaObject::getAlarmInfo() const
 {
-   QCaAlarmInfo result;
-   RESULT_SELECT (getAlarmInfo, getAlarmInfo);
-   return result;
+   return this->client->getAlarmInfo ();
 }
 
 //------------------------------------------------------------------------------
@@ -781,9 +740,7 @@ QCaAlarmInfo QCaObject::getAlarmInfo() const
 //
 QCaDateTime  QCaObject::getDateTime () const
 {
-   QCaDateTime result;
-   RESULT_SELECT (getTimeStamp, getTimeStamp);
-   return result;
+   return this->client->getTimeStamp ();
 }
 
 //------------------------------------------------------------------------------
@@ -791,9 +748,7 @@ QCaDateTime  QCaObject::getDateTime () const
 //
 QString QCaObject::getDescription () const
 {
-   QString result;
-   RESULT_SELECT (getDescription, getDescription);
-   return result;
+   return this->client->getDescription ();
 }
 
 //------------------------------------------------------------------------------
@@ -804,10 +759,12 @@ void QCaObject::connectionUpdate (const bool isConnected)
    QCaConnectionInfo connectionInfo;
 
    if (isConnected) {
-      connectionInfo = QCaConnectionInfo( QCaConnectionInfo::CONNECTED, QCaConnectionInfo::LINK_UP, this->recordName );
+      connectionInfo = QCaConnectionInfo( QCaConnectionInfo::CONNECTED,
+                                          this->recordName );
       QCaObject::connectedCount++;
    } else {
-      connectionInfo = QCaConnectionInfo( QCaConnectionInfo::CLOSED, QCaConnectionInfo::LINK_DOWN, this->recordName );
+      connectionInfo = QCaConnectionInfo( QCaConnectionInfo::CLOSED,
+                                          this->recordName );
       QCaObject::connectedCount--;
    }
 
@@ -833,15 +790,10 @@ void QCaObject::dataUpdate (const bool firstUpdateIn)
    QCaAlarmInfo alarmInfo;
    QCaDateTime timeStamp;
 
-   if (this->caClient) {
-      alarmInfo = this->caClient->getAlarmInfo ();
-      timeStamp = this->caClient->getTimeStamp ();
-   } else if (this->pvaClient) {
-      alarmInfo = this->pvaClient->getAlarmInfo ();
-      timeStamp = this->pvaClient->getTimeStamp ();
-   } else {
-       return;
-   }
+   if (!this->client) return;   // sanity check
+
+   alarmInfo = this->client->getAlarmInfo ();
+   timeStamp = this->client->getTimeStamp ();
 
    this->firstUpdate = firstUpdateIn;
 
@@ -862,8 +814,9 @@ void QCaObject::dataUpdate (const bool firstUpdateIn)
       if (number > 0) {
          QByteArray byteArrayValue = this->getByteArray ();
          unsigned long dataSize = 0;
-         if (this->caClient) {
-            dataSize = this->caClient->dataElementSize ();
+         QECaClient* caClient = this->asCaClient();
+         if (caClient) {
+            dataSize = caClient->getDataElementSize ();
          }
          emit dataChanged (byteArrayValue, dataSize, alarmInfo, timeStamp, this->variableIndex);
       }
@@ -883,9 +836,7 @@ void QCaObject::putCallbackNotifcation( const bool isSuccessful )
 //
 QVariant QCaObject::getVariant () const
 {
-   QVariant result = QVariant (QVariant::Invalid);  // default
-   RESULT_SELECT (getPvData, getPvData);
-   return result;
+   return this->client->getPvData ();
 }
 
 //------------------------------------------------------------------------------
@@ -894,14 +845,15 @@ QByteArray QCaObject::getByteArray() const
 {
    QByteArray result;
 
-   if (this->caClient) {
+   // Doesn't apply to pva data yet - return an empty array.
+   //
+   QECaClient* caClient = this->asCaClient();
+   if (caClient) {
       size_t count = 0;
-      const char* rawData = (const char *) this->caClient->rawDataPointer(count);
+      const char* rawData = (const char *) caClient->getRawDataPointer(count);
       result.append (rawData, (int) count);
-   } else if (this->pvaClient) {
-      // Doesn't apply to pvdata yet
    }
-   return  result;
+   return result;
 }
 
 //------------------------------------------------------------------------------
@@ -912,14 +864,18 @@ void QCaObject::getLastData( bool& isDefinedOut, QVariant& valueOut,
 {
    isDefinedOut = this->getDataIsAvailable ();
    valueOut = this->getVariant();
+   alarmInfoOut = this->client->getAlarmInfo ();
+   timeStampOut = this->client->getTimeStamp ();
+}
 
-   if (this->caClient) {
-      alarmInfoOut = this->caClient->getAlarmInfo ();
-      timeStampOut = this->caClient->getTimeStamp ();
-   } else if (this->pvaClient) {
-      alarmInfoOut = this->pvaClient->getAlarmInfo ();
-      timeStampOut = this->pvaClient->getTimeStamp ();
-   }
+//------------------------------------------------------------------------------
+//
+bool QCaObject::writeEnabled() const
+{
+   QEAdaptationParameters ap ("QE_");
+
+   const bool read_only = ap.getBool ("read_only");  // default is false
+   return !read_only;
 }
 
 //------------------------------------------------------------------------------
@@ -927,40 +883,60 @@ void QCaObject::getLastData( bool& isDefinedOut, QVariant& valueOut,
 //
 bool QCaObject::writeData( const QVariant& value )
 {
-   bool result = false;
-   if (this->caClient) {
-      result = this->caClient->putPvData (value);
-   } else if (this->pvaClient) {
-      result = this->pvaClient->putPvData (value);
-   }
-
-   return result;
+   if (!this->client) return false;   // sanity check
+   if (!this->writeEnabled()) return false;
+   return this->client->putPvData (value);
 }
 
 //------------------------------------------------------------------------------
 // Update current data [arrayIndex] with new element value and write to channel.
 // Returns false if the array index is out of range.
 //
-bool QCaObject::writeDataElement( const QVariant& elementValue )
+bool QCaObject::writeDataElement (const QVariant& elementValue)
 {
-   QVariant lastVariantValue = this->getVariant ();
+   const QVariant lastValue = this->getVariant ();
+   const QMetaType::Type ltype = QEPlatform::metaType (lastValue);
+   const bool isVectorVariant = QEVectorVariants::isVectorVariant (lastValue);
+   const bool isVariantList = (ltype == QMetaType::QVariantList);
+   const bool isStringList = (ltype == QMetaType::QStringList);
 
-   bool result;
+   bool result = false;
 
-   if( lastVariantValue.type() == QVariant::List ) {
-      QVariantList valueList = lastVariantValue.toList ();
-      if( ( this->arrayIndex >= 0 ) && ( this->arrayIndex < valueList.size() ) )
-      {
-         valueList.replace( this->arrayIndex, elementValue );  // replace with new value
-         result = writeData( valueList );
-      } else {
-         result = false;
+   if (isVectorVariant) {
+      const int count = QEVectorVariants::vectorCount (lastValue);
+      if ((this->arrayIndex >= 0) && (this->arrayIndex < count)) {
+         QVariant vector = lastValue;
+         result = QEVectorVariants::replaceValue (vector, this->arrayIndex, elementValue);
+         if (result) {
+            result = this->writeData (vector);
+         } else {
+            DEBUG << "update of [" << this->arrayIndex << "] with value:"
+                  << elementValue << "failed (of range)";
+         }
       }
-   } else {
-      if( this->arrayIndex == 0 ) {
-         result = writeData( elementValue );       // not an array - write as scalar
-      } else {
-         result = false;
+
+   } else if (isStringList) {
+      QStringList stringList = lastValue.toStringList();
+      const int count = stringList.size();
+      if ((this->arrayIndex >= 0) && (this->arrayIndex < count)) {
+         stringList.replace (this->arrayIndex, elementValue.toString());
+         QVariant value = QVariant (stringList);
+         result = this->writeData (value);
+      }
+
+   } else if (isVariantList) {
+      QVariantList valueList = lastValue.toList ();
+      const int count = valueList.size();
+      if ((this->arrayIndex >= 0) && (this->arrayIndex < count)) {
+         valueList.replace (this->arrayIndex, elementValue);  // replace with new value
+         result = this->writeData (valueList);
+      }
+
+   } else  {
+      // The value is a scalar type.
+      //
+      if (this->arrayIndex == 0) {
+         result = this->writeData (elementValue);       // not an array - write as scalar
       }
    }
    return result;

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2022 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -29,6 +29,8 @@
 #include <QVariant>
 #include <ui_QEStripChartAdjustPVDialog.h>
 #include <QDebug>
+
+#define DEBUG  qDebug () << "QEStripChartAdjustPVDialog" << __LINE__ <<  __FUNCTION__  << "  "
 
 //------------------------------------------------------------------------------
 //
@@ -210,7 +212,8 @@ void QEStripChartAdjustPVDialog::lowerButtonClicked (bool)
 {
    double min;
    double max;
-   bool okay = this->plotted.getMinMax (min, max);
+   //bool okay =
+   this->plotted.getMinMax (min, max);
    double delta = max - min;
 
    // useSelectedRange map to chartMinMax, so we compensate.
@@ -225,7 +228,8 @@ void QEStripChartAdjustPVDialog::centreButtonClicked (bool)
 {
    double min;
    double max;
-   bool okay = this->plotted.getMinMax (min, max);
+   //bool okay =
+   this->plotted.getMinMax (min, max);
    double delta = max - min;
 
    // useSelectedRange map to chartMinMax, so we compensate.
@@ -240,7 +244,8 @@ void QEStripChartAdjustPVDialog::upperButtonClicked (bool)
 {
    double min;
    double max;
-   bool okay = this->plotted.getMinMax (min, max);
+   // bool okay =
+   this->plotted.getMinMax (min, max);
    double delta = max - min;
 
    // useSelectedRange map to chartMinMax, so we compensate.
@@ -254,13 +259,6 @@ void QEStripChartAdjustPVDialog::upperButtonClicked (bool)
 //
 void QEStripChartAdjustPVDialog::on_buttonBox_accepted ()
 {
-   QVariant varOrigin (QVariant::String);
-   QVariant varSlope (QVariant::String);
-   QVariant varOffset (QVariant::String);
-   double d, m, c;
-
-   bool ok1, ok2, ok3;
-
    if (this->returnIsMasked) {
       this->returnIsMasked = false;
       return;
@@ -268,14 +266,10 @@ void QEStripChartAdjustPVDialog::on_buttonBox_accepted ()
 
    // Extract and validate user entry.
    //
-   varOrigin = this->ui->originEdit->text ();
-   d = varOrigin.toDouble (&ok1);
-
-   varSlope = this->ui->slopeEdit->text ();
-   m = varSlope.toDouble (&ok2);
-
-   varSlope = this->ui->offsetEdit->text ();
-   c = varSlope.toDouble (&ok3);
+   bool ok1, ok2, ok3;
+   double d = this->ui->originEdit->text ().toDouble (&ok1);
+   double m = this->ui->slopeEdit->text ().toDouble (&ok2);
+   double c = this->ui->offsetEdit->text ().toDouble (&ok3);
 
    if (ok1 && ok2 && ok3) {
       // All okay - assign values to object.

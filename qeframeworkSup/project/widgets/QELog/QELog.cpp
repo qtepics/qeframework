@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at
  *  the Australian Synchrotron.
  *
- *  Copyright (c) 2012-2022 Australian Synchrotron
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -79,8 +79,8 @@ QELog::UserMessageReceiver::UserMessageReceiver () : UserMessage ()
 
    // Grab any and all messages.
    //
-   this->setFormFilter (MESSAGE_FILTER_ANY);
-   this->setSourceFilter (MESSAGE_FILTER_ANY);
+   this->setFormFilter (QE::Any);
+   this->setSourceFilter (QE::Any);
 }
 
 //------------------------------------------------------------------------------
@@ -163,6 +163,7 @@ void QELog::createUserMessageReceiver ()
 // =============================================================================
 //  QELOG METHODS
 // =============================================================================
+//
 QELog::QELog (QWidget* parent) : QEFrame (parent)
 {
    QFont qFont;
@@ -231,13 +232,13 @@ QELog::QELog (QWidget* parent) : QEFrame (parent)
    this->setWarningColor (QColor (255, 160, 0));
    this->setErrorColor (QColor (255, 0, 0));
    this->setScrollToBottom (true);
-   this->setOptionsLayout (Bottom);
+   this->setOptionsLayout (QE::Bottom);
 
    this->clearLog ();
 
    // Set up the UserMessage class to match on any messages from widgets on the same form by default
-   this->setFormFilter (MESSAGE_FILTER_MATCH);
-   this->setSourceFilter (MESSAGE_FILTER_NONE);
+   this->setFormFilter (QE::Match);
+   this->setSourceFilter (QE::None);
 
    // Set the form ID to use when matching the form of received message
    this->setChildFormId (this->getFormId ());
@@ -370,7 +371,7 @@ bool QELog::getShowSave () const
 
 //------------------------------------------------------------------------------
 //
-void QELog::setOptionsLayout (optionsLayoutProperty pValue)
+void QELog::setOptionsLayout (QE::LayoutOptions pValue)
 {
    QLayout* qLayoutMain;
    QLayout* qLayoutChild;
@@ -380,8 +381,8 @@ void QELog::setOptionsLayout (optionsLayoutProperty pValue)
    const int m = this->mainLayoutMargin;
 
    switch (pValue) {
-      case Top:
-         this->optionsLayout = Top;
+      case QE::Top:
+         this->optionsLayout = QE::Top;
          qLayoutMain = new QVBoxLayout (this);
          qLayoutMain->setContentsMargins (m, m, m, m);
          qLayoutChild = new QHBoxLayout ();
@@ -396,8 +397,8 @@ void QELog::setOptionsLayout (optionsLayoutProperty pValue)
          qLayoutMain->addWidget (qTableWidgetLog);
          break;
 
-      case Bottom:
-         this->optionsLayout = Bottom;
+      case QE::Bottom:
+         this->optionsLayout = QE::Bottom;
          qLayoutMain = new QVBoxLayout (this);
          qLayoutMain->setContentsMargins (m, m, m, m);
          qLayoutChild = new QHBoxLayout ();
@@ -412,8 +413,8 @@ void QELog::setOptionsLayout (optionsLayoutProperty pValue)
          qLayoutMain->addItem (qLayoutChild);
          break;
 
-      case Left:
-         this->optionsLayout = Left;
+      case QE::Left:
+         this->optionsLayout = QE::Left;
          qLayoutMain = new QHBoxLayout (this);
          qLayoutMain->setContentsMargins (m, m, m, m);
          qLayoutChild = new QVBoxLayout ();
@@ -426,8 +427,8 @@ void QELog::setOptionsLayout (optionsLayoutProperty pValue)
          qLayoutMain->addWidget (qTableWidgetLog);
          break;
 
-      case Right:
-         this->optionsLayout = Right;
+      case QE::Right:
+         this->optionsLayout = QE::Right;
          qLayoutMain = new QHBoxLayout (this);
          qLayoutMain->setContentsMargins (m, m, m, m);
          qLayoutChild = new QVBoxLayout ();
@@ -443,7 +444,7 @@ void QELog::setOptionsLayout (optionsLayoutProperty pValue)
 
 //------------------------------------------------------------------------------
 //
-QELog::optionsLayoutProperty QELog::getOptionsLayout () const
+QE::LayoutOptions QELog::getOptionsLayout () const
 {
    return this->optionsLayout;
 }
@@ -746,30 +747,30 @@ int QELog::getMargin () const
 
 //------------------------------------------------------------------------------
 //
-QELog::MessageFilterOptions QELog::getMessageFormFilter () const
+QE::MessageFilterOptions QELog::getMessageFormFilter () const
 {
-   return MessageFilterOptions (this->getFormFilter ());
+   return this->getFormFilter ();
 }
 
 //------------------------------------------------------------------------------
 //
-void QELog::setMessageFormFilter (MessageFilterOptions messageFormFilter)
+void QELog::setMessageFormFilter (QE::MessageFilterOptions messageFormFilter)
 {
-   this->setFormFilter (message_filter_options (messageFormFilter));
+   this->setFormFilter (messageFormFilter);
 }
 
 //------------------------------------------------------------------------------
 //
-QELog::MessageFilterOptions QELog::getMessageSourceFilter () const
+QE::MessageFilterOptions QELog::getMessageSourceFilter () const
 {
-   return MessageFilterOptions (this->getSourceFilter ());
+   return this->getSourceFilter ();
 }
 
 //------------------------------------------------------------------------------
 //
-void QELog::setMessageSourceFilter (MessageFilterOptions messageSourceFilter)
+void QELog::setMessageSourceFilter (QE::MessageFilterOptions messageSourceFilter)
 {
-   this->setSourceFilter (message_filter_options (messageSourceFilter));
+   this->setSourceFilter (messageSourceFilter);
 }
 
 //------------------------------------------------------------------------------

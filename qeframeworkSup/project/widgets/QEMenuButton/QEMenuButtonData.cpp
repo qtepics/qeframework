@@ -30,94 +30,90 @@
 
 #define DEBUG  qDebug () << "QEMenuButtonData" << __FUNCTION__ << __LINE__ << ":"
 
-
-typedef applicationLauncher::programStartupOptions  PSO;
-typedef QEStringFormatting::formats                 SFF;
-typedef QEActionRequests::Options                   ARO;
-
-static QEOneToOne<applicationLauncher::programStartupOptions, QString> startOptionsEnums;
-static QEOneToOne<QEStringFormatting::formats,                QString> valueFormatEnums;
-static QEOneToOne<QEActionRequests::Options,                  QString> actionOptionsEnums;
+static QEOneToOne<QE::ProgramStartupOptions, QString> startOptionsEnums;
+static QEOneToOne<QE::Formats,               QString> valueFormatEnums;
+static QEOneToOne<QE::CreationOptions,       QString> actionOptionsEnums;
 
 
 // Initializes the environment. Automatically called on program start.
+// Shame we didn't use the moc convertion
 //
 bool QEMenuButtonData::elaborate ()
 {
    qRegisterMetaType<QEMenuButtonData> ("QEMenuButtonData");
 
-   startOptionsEnums.insertF (applicationLauncher::PSO_NONE,      "None");
-   startOptionsEnums.insertF (applicationLauncher::PSO_TERMINAL,  "Terminal");
-   startOptionsEnums.insertF (applicationLauncher::PSO_LOGOUTPUT, "LogOut");
-   startOptionsEnums.insertF (applicationLauncher::PSO_STDOUTPUT, "StdOut");
+   startOptionsEnums.insertF (QE::NoOutput,          "None");
+   startOptionsEnums.insertF (QE::Terminal,          "Terminal");
+   startOptionsEnums.insertF (QE::LogOutput,         "LogOut");
+   startOptionsEnums.insertF (QE::StdOutput,         "StdOut");
 
-   valueFormatEnums.insertF (QEStringFormatting::FORMAT_DEFAULT,          "Default");
-   valueFormatEnums.insertF (QEStringFormatting::FORMAT_FLOATING,         "Floating");
-   valueFormatEnums.insertF (QEStringFormatting::FORMAT_INTEGER,          "Integer");
-   valueFormatEnums.insertF (QEStringFormatting::FORMAT_UNSIGNEDINTEGER,  "UnsignedInteger");
-   valueFormatEnums.insertF (QEStringFormatting::FORMAT_TIME,             "Time");
-   valueFormatEnums.insertF (QEStringFormatting::FORMAT_LOCAL_ENUMERATE,  "LocalEnumeration");
-   valueFormatEnums.insertF (QEStringFormatting::FORMAT_STRING,           "String");
+   valueFormatEnums.insertF (QE::Default,            "Default");
+   valueFormatEnums.insertF (QE::Floating,           "Floating");
+   valueFormatEnums.insertF (QE::Integer,            "Integer");
+   valueFormatEnums.insertF (QE::UnsignedInteger,    "UnsignedInteger");
+   valueFormatEnums.insertF (QE::Time,               "Time");
+   valueFormatEnums.insertF (QE::LocalEnumeration,   "LocalEnumeration");
+   valueFormatEnums.insertF (QE::String,             "String");
 
-   actionOptionsEnums.insertF (QEActionRequests::OptionOpen,                   "Open");
-   actionOptionsEnums.insertF (QEActionRequests::OptionNewTab,                 "NewTab");
-   actionOptionsEnums.insertF (QEActionRequests::OptionNewWindow,              "NewWindow");
-   actionOptionsEnums.insertF (QEActionRequests::OptionTopDockWindow,          "TopDockWindow");
-   actionOptionsEnums.insertF (QEActionRequests::OptionBottomDockWindow,       "BottomDockWindow");
-   actionOptionsEnums.insertF (QEActionRequests::OptionLeftDockWindow,         "LeftDockWindow");
-   actionOptionsEnums.insertF (QEActionRequests::OptionRightDockWindow,        "RightDockWindow");
-   actionOptionsEnums.insertF (QEActionRequests::OptionTopDockWindowTabbed,    "TopDockWindowTabbed");
-   actionOptionsEnums.insertF (QEActionRequests::OptionBottomDockWindowTabbed, "BottomDockWindowTabbed");
-   actionOptionsEnums.insertF (QEActionRequests::OptionLeftDockWindowTabbed,   "LeftDockWindowTabbed");
-   actionOptionsEnums.insertF (QEActionRequests::OptionRightDockWindowTabbed,  "RightDockWindowTabbed");
-   actionOptionsEnums.insertF (QEActionRequests::OptionFloatingDockWindow,     "FloatingDockWindow");
+   actionOptionsEnums.insertF (QE::Open,             "Open");
+   actionOptionsEnums.insertF (QE::NewTab,           "NewTab");
+   actionOptionsEnums.insertF (QE::NewWindow,        "NewWindow");
+   actionOptionsEnums.insertF (QE::DockTop,          "TopDockWindow");
+   actionOptionsEnums.insertF (QE::DockBottom,       "BottomDockWindow");
+   actionOptionsEnums.insertF (QE::DockLeft,         "LeftDockWindow");
+   actionOptionsEnums.insertF (QE::DockRight,        "RightDockWindow");
+   actionOptionsEnums.insertF (QE::DockTopTabbed,    "TopDockWindowTabbed");
+   actionOptionsEnums.insertF (QE::DockBottomTabbed, "BottomDockWindowTabbed");
+   actionOptionsEnums.insertF (QE::DockLeftTabbed,   "LeftDockWindowTabbed");
+   actionOptionsEnums.insertF (QE::DockRightTabbed,  "RightDockWindowTabbed");
+   actionOptionsEnums.insertF (QE::DockFloating,     "FloatingDockWindow");
 
    return true;
 }
 
-const bool  QEMenuButtonData::elaborated = QEMenuButtonData::elaborate ();
+const bool QEMenuButtonData::elaborated = QEMenuButtonData::elaborate ();
 
 //------------------------------------------------------------------------------
 //
-QString QEMenuButtonData::psoToString (const applicationLauncher::programStartupOptions value)
+QString QEMenuButtonData::psoToString (const QE::ProgramStartupOptions value)
 {
    return startOptionsEnums.valueF (value, "");
 }
 
 //------------------------------------------------------------------------------
 //
-applicationLauncher::programStartupOptions QEMenuButtonData::stringToPso (const QString& image)
+QE::ProgramStartupOptions QEMenuButtonData::stringToPso (const QString& image)
 {
-   return startOptionsEnums.valueI (image, applicationLauncher::PSO_NONE);
+   return startOptionsEnums.valueI (image, QE::NoOutput);
 }
 
 //------------------------------------------------------------------------------
 //
-QString QEMenuButtonData::optionToString (const QEActionRequests::Options  value)
+QString QEMenuButtonData::optionToString (const QE::CreationOptions  value)
 {
    return actionOptionsEnums.valueF (value, "");
 }
 
 //------------------------------------------------------------------------------
 //
-QEActionRequests::Options QEMenuButtonData::stringToOption (const QString& image)
+QE::CreationOptions QEMenuButtonData::stringToOption (const QString& image)
 {
-    return actionOptionsEnums.valueI (image, QEActionRequests::OptionOpen);
+    return actionOptionsEnums.valueI (image, QE::Open);
 }
 
 
 //------------------------------------------------------------------------------
 //
-QString QEMenuButtonData::formatToString (const QEStringFormatting::formats  value)
+QString QEMenuButtonData::formatToString (const QE::Formats value)
 {
    return valueFormatEnums.valueF (value, "");
 }
 
 //------------------------------------------------------------------------------
 //
-QEStringFormatting::formats QEMenuButtonData::stringToFormat (const QString& image)
+QE::Formats QEMenuButtonData::stringToFormat (const QString& image)
 {
-   return valueFormatEnums.valueI (image, QEStringFormatting::FORMAT_DEFAULT);
+   return valueFormatEnums.valueI (image, QE::Default);
 }
 
 //------------------------------------------------------------------------------
@@ -144,16 +140,16 @@ QEMenuButtonData::QEMenuButtonData ()
 
    this->programName = "";
    this->programArguments.clear ();
-   this->programStartupOption = applicationLauncher::PSO_NONE;
+   this->programStartupOption = QE::NoOutput;
 
    this->uiFilename = "";
    this->prioritySubstitutions = "";
    this->customisationName = "";
-   this->creationOption = QEActionRequests::OptionOpen;
+   this->creationOption = QE::Open;
 
    this->variable = "";
    this->variableValue = "0";
-   this->format = QEStringFormatting::FORMAT_DEFAULT;
+   this->format = QE::Default;
 }
 
 //------------------------------------------------------------------------------
@@ -213,16 +209,16 @@ QDataStream& operator>> (QDataStream& stream, QEMenuButtonData& that)
 
    stream >> that.programName;
    stream >> that.programArguments;
-   stream >> e; that.programStartupOption = applicationLauncher::programStartupOptions (e);
+   stream >> e; that.programStartupOption = QE::ProgramStartupOptions (e);
 
    stream >> that.uiFilename;
    stream >> that.prioritySubstitutions;
-   stream >> e; that.creationOption = QEActionRequests::Options (e);
+   stream >> e; that.creationOption = QE::CreationOptions (e);
    stream >> that.customisationName;
 
    stream >> that.variable;
    stream >> that.variableValue;
-   stream >> e; that.format = QEStringFormatting::formats (e);
+   stream >> e; that.format = QE::Formats (e);
 
    return stream;
 }

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2022 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -46,10 +46,12 @@
 #include <QString>
 #include <QDir>
 #include <QFileInfo>
+#include <QMetaType>
 #include <QVBoxLayout>
 #include <QPainter>
 #include <QEScaling.h>
 #include <ContainerProfile.h>
+#include <QEPlatform.h>
 #include <QEWidget.h>
 #include <macroSubstitution.h>
 
@@ -138,8 +140,8 @@ void QEForm::commonInit( const bool alertIfUINoFoundIn, const bool loadManuallyI
    this->resizeContents = true;
 
    // Set up the UserMessage class
-   this->setFormFilter( MESSAGE_FILTER_MATCH );
-   this->setSourceFilter( MESSAGE_FILTER_NONE );
+   this->setFormFilter( QE::Match );
+   this->setSourceFilter( QE::None );
    this->childMessageFormId = getNextMessageFormId();
    this->setChildFormId( childMessageFormId );
 
@@ -648,7 +650,8 @@ void QEForm::setupWindowTitle( QString filename )
    {
       QVariant windowTitleV = ui->property( "windowTitle" );
 
-      if( windowTitleV.isValid() && windowTitleV.type() == QVariant::String )
+      const QMetaType::Type mtype = QEPlatform::metaType( windowTitleV );
+      if( windowTitleV.isValid() && mtype == QMetaType::QString )
       {
          QString windowTitle = windowTitleV.toString();
          if( !windowTitle.isEmpty() )
@@ -1084,30 +1087,42 @@ QString QEForm::getVariableNameSubstitutionsProperty() const
 
 //------------------------------------------------------------------------------
 //
-void QEForm::setMessageFormFilter( MessageFilterOptions messageFormFilter )
+void QEForm::setMessageFormFilter( QE::MessageFilterOptions messageFormFilter )
 {
-   this->setFormFilter( (message_filter_options)messageFormFilter );
+   // Don't allow Any
+   // This would allow QEForm widgets to get into a message resend loop.
+   // Alas the any option is exposed in designer now.
+   //
+   if (messageFormFilter == QE::Any)
+      messageFormFilter = QE::Match;
+   this->setFormFilter( messageFormFilter );
 }
 
 //------------------------------------------------------------------------------
 //
-QEForm::MessageFilterOptions QEForm::getMessageFormFilter() const
+QE::MessageFilterOptions QEForm::getMessageFormFilter() const
 {
-   return (MessageFilterOptions)this->getFormFilter();
+   return this->getFormFilter();
 }
 
 //------------------------------------------------------------------------------
 //
-void QEForm::setMessageSourceFilter( MessageFilterOptions messageSourceFilter )
+void QEForm::setMessageSourceFilter( QE::MessageFilterOptions messageSourceFilter )
 {
-   this->setSourceFilter( (message_filter_options)messageSourceFilter );
+   // Don't allow Any
+   // This would allow QEForm widgets to get into a message resend loop.
+   // Alas the any option is exposed in designer now.
+   //
+   if (messageSourceFilter == QE::Any)
+      messageSourceFilter = QE::None;
+   this->setSourceFilter(messageSourceFilter);
 }
 
 //------------------------------------------------------------------------------
 //
-QEForm::MessageFilterOptions QEForm::getMessageSourceFilter() const
+QE::MessageFilterOptions QEForm::getMessageSourceFilter() const
 {
-   return (MessageFilterOptions)this->getSourceFilter();
+   return this->getSourceFilter();
 }
 
 // end

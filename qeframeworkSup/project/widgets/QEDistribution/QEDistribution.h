@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2019 Australian Synchrotron.
+ *  Copyright (c) 2019-2022 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -38,6 +38,7 @@
 #include <QVBoxLayout>
 
 #include <QEArchiveAccess.h>
+#include <QEEnums.h>
 #include <QECommon.h>
 #include <QCaDataPoint.h>
 #include <QEAbstractDynamicWidget.h>

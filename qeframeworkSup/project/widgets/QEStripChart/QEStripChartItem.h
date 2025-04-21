@@ -38,6 +38,7 @@
 #include <QString>
 #include <QWidget>
 
+#include <QEEnums.h>
 #include <QCaAlarmInfo.h>
 #include <QCaConnectionInfo.h>
 #include <QCaDataPoint.h>

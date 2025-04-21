@@ -1,10 +1,10 @@
-# QEWidgets.pri
+# QEWidget.pri
 #
 # This file is part of the EPICS QT Framework, initially developed at
 # the Australian Synchrotron. This file is included into and as part
 # of the overall framework.pro project file.
 #
-# Copyright (c) 2017-2022 Australian Synchrotron
+# Copyright (c) 2017-2024 Australian Synchrotron
 #
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,7 @@
 # Author:
 #   Andrew Starritt
 # Contact details:
-#   andrew.starritt@synchrotron.org.au
+#   andrews@ansto.gov.au
 #
 
 INCLUDEPATH += $$PWD
@@ -54,9 +54,6 @@ SOURCES += $$PWD/QEToolTip.cpp
 
 HEADERS += $$PWD/QEWidget.h
 SOURCES += $$PWD/QEWidget.cpp
-
-HEADERS += $$PWD/QEWidgetProperties.h
-SOURCES += $$PWD/QEWidgetProperties.cpp
 
 HEADERS += $$PWD/UserMessage.h
 SOURCES += $$PWD/UserMessage.cpp

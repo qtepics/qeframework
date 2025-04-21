@@ -42,6 +42,7 @@
 #include <QVector>
 #include <QWidget>
 
+#include <QEEnums.h>
 #include <QEFrameworkLibraryGlobal.h>
 #include <QCaAlarmInfo.h>
 #include <QCaDateTime.h>
@@ -77,16 +78,7 @@ public:
    Q_PROPERTY (bool toolBarIsVisible   READ getToolBarVisible    WRITE setToolBarVisible)
    Q_PROPERTY (bool pvItemsIsVisible   READ getPvItemsVisible    WRITE setPvItemsVisible)
    Q_PROPERTY (bool statusIsVisible    READ getStatusVisible     WRITE setStatusVisible)
-
-   // normal/reverse - default is normal.
-   // Keep same enum names as strip chart
-   enum VideoModes {
-      normal,          // white background
-      reverse          // black backgound
-   };
-   Q_ENUM (VideoModes)
-
-   Q_PROPERTY (VideoModes videoMode    READ getVideoMode         WRITE setVideoMode)
+   Q_PROPERTY (QE::VideoModes videoMode  READ getVideoMode       WRITE setVideoMode)
 
    // Default is false - i.e. linear
    Q_PROPERTY (bool xLogarithmic       READ getXLogarithmic      WRITE setXLogarithmic)
@@ -282,8 +274,8 @@ public:
    void setAxisEnableY (bool axisEnableY);
    bool getAxisEnableY () const;
 
-   void setVideoMode (const VideoModes mode);
-   VideoModes getVideoMode () const;
+   void setVideoMode (const QE::VideoModes mode);
+   QE::VideoModes getVideoMode () const;
 
    void setXLogarithmic (bool visible);
    bool getXLogarithmic () const;
@@ -410,6 +402,10 @@ public slots:
    //
    void setPlotterEntry (const int slot, const QString& pvName, const QString& alias);
 
+   // Handles all context menu and tool bar actions.
+   //
+   void menuSelected (const QEPlotterNames::MenuActions action, const int slot);
+
 public:
    QStringList getDataPvNameSet () const;
    QStringList getAliasNameSet () const;
@@ -439,7 +435,7 @@ protected:
    // Drag and drop
    //
    void mousePressEvent (QMouseEvent *event)    { qcaMousePressEvent (event); }
-   void dragEnterEvent (QDragEnterEvent *event) { qcaDragEnterEvent (event, false); }
+   void dragEnterEvent (QDragEnterEvent *event) { qcaDragEnterEvent (event);  }
    void dropEvent (QDropEvent *event)           { qcaDropEvent (event, true); }
    // This widget uses the setDrop/getDrop defined in QEWidget.
 
@@ -713,10 +709,6 @@ private slots:
    void generalContextMenuRequested (const QPoint& pos);
    void itemContextMenuRequested (const QPoint& pos);
 
-   // Handles all context menu and tool bar actions.
-   //
-   void menuSelected (const QEPlotterNames::MenuActions action, const int slot);
-
    // Handles signals from the plot object.
    //
    void plotMouseMove  (const QPointF& posn);
@@ -728,9 +720,5 @@ private slots:
 
    friend class DataSets;
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QEPlotter::VideoModes)
-#endif
 
 #endif // QE_PLOTTER_H

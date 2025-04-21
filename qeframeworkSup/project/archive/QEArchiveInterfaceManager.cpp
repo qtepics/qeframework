@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2021-2023 Australian Synchrotron
+ *  Copyright (c) 2021-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -368,10 +368,11 @@ void QEArchiveInterfaceManager::pvNamesResponse (
    } else {
       this->state = QEArchiveInterface::Error;
 
+      QString archiveName = QEArchiveManager::getArchiveNameFromIndex (archive.nameIndex);
       QString message;
       message = QString ("PV names failure from %1 (%2)")
             .arg (this->getName ())
-            .arg (archive.name);
+            .arg (archiveName);
 
       this->sendMessage (message, message_types (MESSAGE_TYPE_ERROR));
       DEBUG << message;

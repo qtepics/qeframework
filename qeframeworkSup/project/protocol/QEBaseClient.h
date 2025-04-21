@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2023 Australian Synchrotron
+ *  Copyright (C) 2018-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -67,7 +67,6 @@ public:
                           QObject* parent);
    ~QEBaseClient ();
 
-
    // Setup the user message mechanism.
    // After calling this method the client can report errors to the user.
    //
@@ -79,12 +78,38 @@ public:
 
    // Sub classes must provide these.
    //
+   virtual bool openChannel (const ChannelModesFlags modes) = 0;
+   virtual void closeChannel () = 0;
+
    virtual QVariant getPvData () const = 0;
    virtual bool putPvData (const QVariant& value) = 0;
+
+   virtual bool getIsConnected () const = 0;
+   virtual bool dataIsAvailable () const = 0;
+
+   virtual QString getId () const = 0;
+   virtual QString getRemoteAddress() const = 0;
+
+   virtual QString getEgu () const = 0;
+   virtual int getPrecision() const = 0;
+   virtual unsigned int hostElementCount () const = 0;
+   virtual unsigned int dataElementCount () const = 0;
+   virtual double getDisplayLimitHigh () const = 0;
+   virtual double getDisplayLimitLow () const = 0;
+   virtual double getHighAlarmLimit () const = 0;
+   virtual double getLowAlarmLimit () const = 0;
+   virtual double getHighWarningLimit () const = 0;
+   virtual double getLowWarningLimit () const = 0;
+   virtual double getControlLimitHigh () const = 0;
+   virtual double getControlLimitLow () const = 0;
+   virtual double getMinStep () const = 0;
+
    virtual QStringList getEnumerations() const = 0;
    virtual QCaAlarmInfo getAlarmInfo () const = 0;
    virtual QCaDateTime  getTimeStamp () const = 0;
    virtual QString getDescription () const = 0;
+   virtual bool getReadAccess() const = 0;    // true indicates readable
+   virtual bool getWriteAccess() const = 0;   // true indicates writeable
 
 signals:
    // Sub classes may emit these signals.

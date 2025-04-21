@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -26,155 +26,146 @@
 
 // String wrapper for QCaObject variant data.
 
-#include <QEString.h>
+#include "QEString.h"
 #include <QDebug>
 
 #define DEBUG qDebug() << "QEString" << __LINE__ << __FUNCTION__ << "  "
 
-
-/*
-
-*/
-QEString::QEString( QString recordName, QObject* eventObject,
-                      QEStringFormatting* newStringFormat,
-                      unsigned int variableIndexIn ) : QCaObject( recordName, eventObject, variableIndexIn ) {
-    initialise( newStringFormat );
-}
-
-QEString::QEString( QString recordName, QObject* eventObject,
-                      QEStringFormatting* newStringFormat,
-                      unsigned int variableIndexIn, UserMessage* userMessageIn ) : QCaObject( recordName, eventObject, variableIndexIn, userMessageIn ) {
-    initialise( newStringFormat );
-}
-/*
-    Stream the QCaObject data through this class to generate textual data
-    updates.
-*/
-void QEString::initialise( QEStringFormatting* newStringFormat ) {
-    stringFormat = newStringFormat;
-
-    QObject::connect( this, SIGNAL( connectionChanged(  QCaConnectionInfo&, const unsigned int& ) ),
-                      this, SLOT( forwardConnectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
-
-    QObject::connect( this, SIGNAL( dataChanged( const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
-                      this, SLOT( convertVariant( const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-}
-
-/*
-    Take a new text value and write it to the database.
-    The type of data formatted (text, floating, integer, etc) will be determined by the record data type,
-    How the text is parsed will be determined by the string formatting.
-    For example, assume the record is a floating point record and the text is formatted as an integer.
-    The string is parsed as in integer (123 is OK, 123.456 would fail), then converted to a floating point number.
-    The above example is pedantic
-    if the string formatting
-*/
-bool QEString::writeString( const QString &data, QString& message )
+//------------------------------------------------------------------------------
+//
+QEString::QEString (QString pvName, QObject* eventObject,
+                    QEStringFormatting* newStringFormat,
+                    unsigned int variableIndexIn) :
+   QCaObject (pvName, eventObject, variableIndexIn)
 {
-    bool ok = false;
-    QVariant formattedData = stringFormat->formatValue( data, ok );
-    if( ok )
-    {
-        writeData( formattedData );
-    }
-    else
-    {
-        message = QString( "Write failed, unabled to format: '" ).append( data ).append( "'." );
-    }
-    return ok;
+   this->initialise (newStringFormat);
 }
 
-void QEString::writeString( const QString &data )
+//------------------------------------------------------------------------------
+//
+QEString::QEString (QString pvName, QObject* eventObject,
+                    QEStringFormatting* newStringFormat,
+                    unsigned int variableIndexIn, UserMessage* userMessageIn) :
+   QCaObject (pvName, eventObject, variableIndexIn, userMessageIn)
 {
-    QString message;
-    bool ok = writeString( data, message );
-    if( !ok )
-    {
-        qDebug() << message;
-    }
+   this->initialise (newStringFormat);
 }
 
-/*
-    Take a new string value, insert into array data updating the arrayIndex slot, and write whole array to the database.
-    Formatting as per writeString.
-*/
-bool QEString::writeStringElement( const QString &data, QString& message )
+//------------------------------------------------------------------------------
+// Stream the QCaObject data through this class to generate textual data
+// updates.
+//
+void QEString::initialise (QEStringFormatting* newStringFormat)
+{
+   this->stringFormat = newStringFormat;
+
+   QObject::connect (this, SIGNAL  (dataChanged (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
+                     this, SLOT (convertVariant (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+}
+
+//------------------------------------------------------------------------------
+// Take a new text value and write it to the database.
+// The type of data formatted (text, floating, integer, etc) will be determined by the record data type,
+// How the text is parsed will be determined by the string formatting.
+// For example, assume the record is a floating point record and the text is formatted as an integer.
+// The string is parsed as in integer (123 is OK, 123.456 would fail), then converted to a floating point number.
+// The above example is pedantic
+// if the string formatting
+//
+bool QEString::writeString (const QString &data, QString& message)
 {
    bool ok = false;
-   QVariant elementValue = stringFormat->formatValue( data, ok );
-   if( ok )
-   {
-       writeDataElement( elementValue );
+   QVariant formattedData = stringFormat->formatValue (data, ok);
+   if (ok) {
+      this->writeData (formattedData);
+   } else {
+      message = QString ("Write failed, unabled to format: '").append (data).append ("'.");
    }
-   else
-   {
-       message = QString( "Write element failed, unabled to format:'" ).append( data ).append( "'." );
+   return ok;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEString::writeString (const QString &data)
+{
+   QString message;
+   bool ok = this->writeString (data, message);
+   if (!ok) {
+      qDebug() << message;
+   }
+}
+
+//------------------------------------------------------------------------------
+// Take a new string value, insert into array data updating the arrayIndex slot,
+// and write whole array to the database.
+// Formatting as per writeString.
+//
+bool QEString::writeStringElement (const QString &data, QString& message)
+{
+   bool ok = false;
+   QVariant elementValue = this->stringFormat->formatValue (data, ok);
+   if (ok) {
+      this->writeDataElement (elementValue);
+   } else {
+      message = QString ("Write element failed, unabled to format:'").append (data).append ("'.");
    }
    return ok;
 
 }
 
-void QEString::writeStringElement( const QString& data )
+//------------------------------------------------------------------------------
+//
+void QEString::writeStringElement (const QString& data)
 {
-    QString message;
-    bool ok = writeStringElement( data, message );
-    if( !ok )
-    {
-        qDebug() << message;
-    }
+   QString message;
+   bool ok = this->writeStringElement (data, message);
+   if (!ok) {
+      qDebug() << message;
+   }
 }
 
-/*
-    Take a new string array and write it to the database.
-*/
-bool QEString::writeString( const QVector<QString> &data, QString& message )
+//------------------------------------------------------------------------------
+// Take a new string array and write it to the database.
+//
+bool QEString::writeString (const QVector<QString> &data, QString& message)
 {
    bool ok = false;
-   QVariant arrayValue = stringFormat->formatValue( data, ok );
-   if( ok )
-   {
-       writeData( arrayValue );
-   }
-   else
-   {
-      message = QString( "Write element failed, unabled to format string array." );
+   QVariant arrayValue = this->stringFormat->formatValue (data, ok);
+   if (ok) {
+      writeData (arrayValue);
+   } else {
+      message = QString ("Write element failed, unabled to format string array.");
    }
 
    return ok;
 }
 
-void QEString::writeString( const QVector<QString>& data )
+//------------------------------------------------------------------------------
+//
+void QEString::writeString (const QVector<QString>& data)
 {
-    QString message;
-    bool ok = writeString( data, message );
-    if( !ok )
-    {
-        qDebug() << message;
-    }
+   QString message;
+   bool ok = this->writeString (data, message);
+   if (!ok) {
+      qDebug() << message;
+   }
 }
 
-/*
-    Take a new value from the database and emit a string,formatted
-    as directed by the set of formatting information held by this class
-*/
-void QEString::convertVariant( const QVariant& value, QCaAlarmInfo& alarmInfo,
-                               QCaDateTime& timeStamp, const unsigned int& variableIndex ) {
+//------------------------------------------------------------------------------
+// Take a new value from the database and emit a string,formatted
+// as directed by the set of formatting information held by this class
+//
+void QEString::convertVariant (const QVariant& value, QCaAlarmInfo& alarmInfo,
+                               QCaDateTime& timeStamp, const unsigned int& variableIndex)
+{
+   // Set up variable details used by some formatting options
+   this->stringFormat->setDbEgu (getEgu());
+   this->stringFormat->setDbEnumerations (getEnumerations());
+   this->stringFormat->setDbPrecision (getPrecision());
 
-    // Set up variable details used by some formatting options
-    stringFormat->setDbEgu( getEgu() );
-    stringFormat->setDbEnumerations( getEnumerations() );
-    stringFormat->setDbPrecision( getPrecision() );
-
-    // Format the data and send it
-    const QString formatted = stringFormat->formatString( value, getArrayIndex () );
-    emit stringChanged( formatted, alarmInfo, timeStamp, variableIndex );
-}
-
-/*
-    Re send connection change and with variableIndex - depricated.
-*/
-void QEString::forwardConnectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex) {
-    emit stringConnectionChanged( connectionInfo, variableIndex );
+   // Format the data and send it
+   const QString formatted = this->stringFormat->formatString (value, getArrayIndex ());
+   emit stringChanged (formatted, alarmInfo, timeStamp, variableIndex);
 }
 
 // end

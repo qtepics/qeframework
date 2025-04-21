@@ -86,13 +86,6 @@ public:
 
    Q_ENUM (StateModes)
 
-   enum VideoModes {
-      normal,          // white background
-      reverse          // black backgound
-   };
-
-   Q_ENUM (VideoModes)
-
    enum YScaleModes {
       linear,          // lineary Y scale
       log              // log Y scale - limited to -20
@@ -201,7 +194,6 @@ Q_DECLARE_METATYPE (QEStripChartNames::ChartTimeModes)
 Q_DECLARE_METATYPE (QEStripChartNames::ChartYRanges)
 Q_DECLARE_METATYPE (QEStripChartNames::PlayModes)
 Q_DECLARE_METATYPE (QEStripChartNames::StateModes)
-Q_DECLARE_METATYPE (QEStripChartNames::VideoModes)
 Q_DECLARE_METATYPE (QEStripChartNames::YScaleModes)
 Q_DECLARE_METATYPE (QEStripChartNames::LineDrawModes)
 Q_DECLARE_METATYPE (QEStripChartNames::LinePlotModes)

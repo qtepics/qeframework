@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron
+ *  Copyright (c) 2013-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -35,18 +35,18 @@
 #include <QVariantList>
 
 #include <QECommon.h>
+#include <QEPlatform.h>
 #include <QESettings.h>
 
 #include "QEPvLoadSave.h"
 #include "QEPvLoadSaveItem.h"
 #include "QEPvLoadSaveModel.h"
 
-
 #define DEBUG qDebug() << "QEPvLoadSaveUtilities" << __LINE__ << __FUNCTION__ << "  "
 
 // Special none values.
 //
-static const QVariant nilValue (QVariant::Invalid);
+static const QVariant nilValue = QVariant();
 
 // XML tag/attribute names
 //
@@ -70,21 +70,21 @@ QVariant QEPvLoadSaveUtilities::convert (const QString& valueImage)
 {
    QVariant result = nilValue;
 
-   int iv;
-   double dv;
+   int intValue;
+   double doubleValue;
    bool okay;
 
-   iv = valueImage.toInt (&okay);
+   intValue = valueImage.toInt (&okay);
    if (okay) {
       // The image can be represented as an integer - use integer variant.
       //
-      result = QVariant (iv);
+      result = QVariant (intValue);
    } else {
-      dv = valueImage.toDouble (&okay);
+      doubleValue = valueImage.toDouble (&okay);
       if (okay) {
          // The image can be represented as a double - use double variant.
          //
-         result = QVariant (dv);
+         result = QVariant (doubleValue);
       } else {
          // Default - store as is i.e. string.
          //
@@ -105,7 +105,6 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readXmlScalerPv (const QDomElement pvEl
                                                           QEPvLoadSaveGroup* parent)
 {
    QEPvLoadSaveItem* result = NULL;
-   QVariant value (QVariant::Invalid);
 
    QString setPointPvName = macroList.substitute (pvElement.attribute (nameAttribute, ""));
    QString readBackPvName = macroList.substitute (pvElement.attribute (readBackNameAttribute, ""));
@@ -118,7 +117,7 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readXmlScalerPv (const QDomElement pvEl
       return result;
    }
 
-   value = QEPvLoadSaveUtilities::convert (valueImage);
+   QVariant value = QEPvLoadSaveUtilities::convert (valueImage);
    result = new QEPvLoadSaveLeaf (setPointPvName, readBackPvName, archiverPvName, value, parent);
 
    return result;
@@ -218,20 +217,21 @@ void QEPvLoadSaveUtilities::readXmlGroup (const QDomElement groupElement,
 //------------------------------------------------------------------------------
 //
 QEPvLoadSaveItem* QEPvLoadSaveUtilities::readTree (const QString& filename,
-                                                   const QString& macroString)
+                                                   const QString& macroString,
+                                                   QString& errorMessage)
 {
-   QEPvLoadSaveGroup* result = NULL;
    macroSubstitutionList macroList (macroString);
+   errorMessage = "n/a";
 
    if (filename.isEmpty()) {
-      qWarning () << __FUNCTION__ << " null file filename";
-      return result;
+      errorMessage = "null file filename";
+      return NULL;
    }
 
    QFile file (filename);
    if (!file.open (QIODevice::ReadOnly)) {
-      qWarning () << __FUNCTION__ << filename  << " file open (read) failed";
-      return result;
+      errorMessage = QString("file %1 open (read) failed").arg (filename);
+      return NULL;
    }
 
    QDomDocument doc;
@@ -239,11 +239,15 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readTree (const QString& filename,
    int errorLine;
    int errorCol;
 
-   if (!doc.setContent (&file, &errorText, &errorLine, &errorCol)) {
-      qWarning () << QString ("%1:%2:%3").arg (filename).arg (errorLine).arg (errorCol)
-                  << " set content failed " << errorText;
+   const bool loadStatus = doc.setContent (&file, &errorText, &errorLine, &errorCol);
+   if (!loadStatus) {
+      errorMessage = QString ("%1:%2:%3 set content failed: %4")
+                             .arg (filename)
+                             .arg (errorLine)
+                             .arg (errorCol)
+                             .arg (errorText);
       file.close ();
-      return result;
+      return NULL;
    }
 
    QDomElement docElem = doc.documentElement ();
@@ -255,8 +259,10 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readTree (const QString& filename,
    // Examine top level tag name - is this the tag we expect.
    //
    if (docElem.tagName () != fileTagName) {
-      qWarning () << filename  << " unexpected tag name " << docElem.tagName ();
-      return result;
+      errorMessage = QString ("file %1 unexpected tag <%2>")
+                             .arg (filename)
+                             .arg (docElem.tagName ());
+      return NULL;
    }
 
    QString versionImage = docElem.attribute (versionAttribute).trimmed ();
@@ -267,8 +273,10 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readTree (const QString& filename,
       // A version has been specified - we must ensure it is sensible.
       //
       if (!versionOkay) {
-         qWarning () << filename  << " invalid version string " << versionImage << " (integer expected)";
-         return result;
+         errorMessage = QString ("file %1 invalid version %2 (integer expected)")
+                                .arg (filename)
+                                .arg (versionImage);
+         return NULL;
       }
 
    } else {
@@ -278,13 +286,15 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readTree (const QString& filename,
    }
 
    if (version != 1) {
-      qWarning () << filename  << " unexpected version specified " << versionImage << " (out of range)";
-      return result;
+      errorMessage = QString ("file %1 unexpected version specified %2 (out of range)")
+                             .arg (filename)
+                             .arg (versionImage);
+      return NULL;
    }
 
    // Create the root item.
    //
-   result = new QEPvLoadSaveGroup ("ROOT", NULL);
+   QEPvLoadSaveGroup* result = new QEPvLoadSaveGroup ("ROOT", NULL);
 
    // Parse XML using Qt's Document Object Model.
    //
@@ -293,9 +303,8 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readTree (const QString& filename,
    return result;
 }
 
-
 //------------------------------------------------------------------------------
-//QEPvLoadSaveLeaf
+// QEPvLoadSaveLeaf
 void QEPvLoadSaveUtilities::writeXmlScalerPv (const QEPvLoadSaveItem* itemIn,
                                               QDomElement& pvElement)
 {
@@ -305,24 +314,28 @@ void QEPvLoadSaveUtilities::writeXmlScalerPv (const QEPvLoadSaveItem* itemIn,
 
    if (!item) return;  // Sainity check.
 
-   QString basePvName;
-   QString otherPvName;
-
-   basePvName = item->getSetPointPvName ();
+   const QString basePvName = item->getSetPointPvName ();
    pvElement.setAttribute (nameAttribute, basePvName);
 
-   otherPvName = item->getReadBackPvName ();
-   if (!otherPvName.isEmpty() && (otherPvName != basePvName)) {
-      pvElement.setAttribute (readBackNameAttribute, otherPvName);
+   const QString readBackPvName = item->getReadBackPvName ();
+   if (!readBackPvName.isEmpty() && (readBackPvName != basePvName)) {
+      pvElement.setAttribute (readBackNameAttribute, readBackPvName);
    }
 
-   otherPvName = item->getArchiverPvName ();
-   if (!otherPvName.isEmpty() && (otherPvName != basePvName)) {
-      pvElement.setAttribute (archiverNameAttribute, otherPvName);
+   const QString archiverPvName = item->getArchiverPvName ();
+   if (!archiverPvName.isEmpty() && (archiverPvName != basePvName)) {
+      pvElement.setAttribute (archiverNameAttribute, archiverPvName);
    }
 
-   QVariant value = item->getNodeValue ();
-   pvElement.setAttribute (valueAttribute, value.toString ());
+   const QVariant value = item->getNodeValue ();
+   const QMetaType::Type mtype = QEPlatform::metaType (value);
+   if (mtype == QMetaType::UChar || mtype == QMetaType::Char) {
+      // Treat as unit 8 as opposed to a character.
+      const int ival = value.toInt();
+      pvElement.setAttribute (valueAttribute, QString::number(ival));
+   } else {
+      pvElement.setAttribute (valueAttribute, value.toString ());
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -335,24 +348,22 @@ void QEPvLoadSaveUtilities::writeXmlArrayPv (const QEPvLoadSaveItem* itemIn,
 
    if (!item) return;  // Sainity check.
 
-   QVariantList valueList = item->getNodeValue ().toList ();
-   QVariant value = valueList.value (0);
-   int n = valueList.size ();
+   // Note: this converts any vector variants to a QVariantList.
+   //
+   const QVariantList valueList = item->getNodeValue ().toList ();
+   const int n = valueList.size ();
 
-   QString basePvName;
-   QString otherPvName;
-
-   basePvName = item->getSetPointPvName ();
+   const QString basePvName = item->getSetPointPvName ();
    arrayElement.setAttribute (nameAttribute, basePvName);
 
-   otherPvName = item->getReadBackPvName ();
-   if (!otherPvName.isEmpty() && (otherPvName != basePvName)) {
-      arrayElement.setAttribute (readBackNameAttribute, otherPvName);
+   const QString readBackPvName = item->getReadBackPvName ();
+   if (!readBackPvName.isEmpty() && (readBackPvName != basePvName)) {
+      arrayElement.setAttribute (readBackNameAttribute, readBackPvName);
    }
 
-   otherPvName = item->getArchiverPvName ();
-   if (!otherPvName.isEmpty() && (otherPvName != basePvName)) {
-      arrayElement.setAttribute (archiverNameAttribute, otherPvName);
+   const QString archiverPvName = item->getArchiverPvName ();
+   if (!archiverPvName.isEmpty() && (archiverPvName != basePvName)) {
+      arrayElement.setAttribute (archiverNameAttribute, archiverPvName);
    }
 
    arrayElement.setAttribute (numberAttribute, QString ("%1").arg (n));
@@ -362,8 +373,15 @@ void QEPvLoadSaveUtilities::writeXmlArrayPv (const QEPvLoadSaveItem* itemIn,
       arrayElement.appendChild (itemElement);
       itemElement.setAttribute (indexAttribute, QString ("%1").arg (j));
 
-      value = valueList.value (j);
-      itemElement.setAttribute (valueAttribute, value.toString ());
+      const QVariant value = valueList.value (j);
+      const QMetaType::Type mtype = QEPlatform::metaType (value);
+      if (mtype == QMetaType::UChar || mtype == QMetaType::Char) {
+         // Treat as unit 8 as opposed to a character.
+         const int ival = value.toInt();
+         itemElement.setAttribute (valueAttribute, QString::number(ival));
+      } else {
+         itemElement.setAttribute (valueAttribute, value.toString ());
+      }
    }
 }
 

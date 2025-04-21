@@ -789,7 +789,7 @@ void QEGraphic::setMarkupData (const QEGraphicNames::Markups markup, const QVari
 //
 QVariant QEGraphic::getMarkupData (const QEGraphicNames::Markups markup) const
 {
-   QVariant result = QVariant (QVariant::Invalid);
+   QVariant result = QVariant ();
    QEGraphicMarkup* graphicMarkup = this->graphicMarkupsSet->value (markup, NULL);
    if (graphicMarkup && graphicMarkup->isInUse ()) {
       result = graphicMarkup->getData ();

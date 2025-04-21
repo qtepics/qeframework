@@ -89,13 +89,13 @@
          <bool>false</bool>
         </property>
         <property name="separator" stdset="0">
-         <enum>QELabel::Comma</enum>
+         <enum>QE::Comma</enum>
         </property>
         <property name="notation" stdset="0">
-         <enum>QELabel::Automatic</enum>
+         <enum>QE::Automatic</enum>
         </property>
         <property name="arrayAction" stdset="0">
-         <enum>QELabel::Index</enum>
+         <enum>QE::Index</enum>
         </property>
        </widget>
       </item>
@@ -178,7 +178,7 @@
             </size>
            </property>
            <property name="separator">
-            <enum>QEFixedPointRadix::Comma</enum>
+            <enum>QE::Comma</enum>
            </property>
            <property name="leadingZeros">
             <number>6</number>

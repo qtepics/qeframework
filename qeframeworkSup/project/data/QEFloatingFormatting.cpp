@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2023 Australian Synchrotron
+ *  Copyright (c) 2009-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +28,8 @@
 
 #include "QEFloatingFormatting.h"
 #include <QDebug>
+#include <QMetaType>
+#include <QEPlatform.h>
 #include <QEVectorVariants.h>
 
 #define DEBUG qDebug () << "QEFloatingFormatting" << __LINE__ << __FUNCTION__ << "  "
@@ -88,7 +90,8 @@ double QEFloatingFormatting::formatFloating( const QVariant &value,
    // If the value is a list, get the specified item from the list.
    // Otherwise, just use the value as is.
    //
-   if( value.type() == QVariant::List )
+   const QMetaType::Type vtype = QEPlatform::metaType (value);
+   if( vtype == QMetaType::QVariantList )
    {
       const QVariantList list = value.toList();
 
@@ -124,7 +127,8 @@ QVector<double> QEFloatingFormatting::formatFloatingArray( const QVariant &value
    // If the value is a list, populate a list, converting each of the
    // items to a double.
    //
-   if( value.type() == QVariant::List )
+   const QMetaType::Type vtype = QEPlatform::metaType (value);
+   if( vtype == QMetaType::QVariantList )
    {
       const QVariantList list = value.toList();
       for( int i=0; i < list.count(); i++ )

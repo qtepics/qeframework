@@ -29,6 +29,7 @@
 
 #include <QTableWidget>
 #include <QPushButton>
+#include <QEEnums.h>
 #include <QEWidget.h>
 #include <QELineEdit.h>
 
@@ -70,7 +71,7 @@ protected:
    QString fileFilter;
    bool showFileExtension;
    bool fileDialogDirectoriesOnly;
-   int optionsLayout;
+   QE::LayoutOptions optionsLayout;
 
 public:
    explicit QEFileBrowser(QWidget *pParent = 0);
@@ -115,8 +116,8 @@ public:
    void setFileDialogDirectoriesOnly(bool pValue);
    bool getFileDialogDirectoriesOnly();
 
-   void setOptionsLayout(int pValue);
-   int getOptionsLayout();
+   void setOptionsLayout(QE::LayoutOptions pValue);
+   QE::LayoutOptions getOptionsLayout();
 
    void updateTable();
 
@@ -165,24 +166,7 @@ public:
    Q_PROPERTY(QString fileFilter READ getFileFilter WRITE setFileFilter)
 
    /// Change the order of the widgets. Valid orders are: TOP, BOTTOM, LEFT and RIG
-   enum optionsLayoutProperty
-   {
-      Top,
-      Bottom,
-      Left,
-      Right
-   };
-   Q_ENUM(optionsLayoutProperty)
-   Q_PROPERTY(optionsLayoutProperty optionsLayout READ getOptionsLayoutProperty WRITE setOptionsLayoutProperty)
-
-   void setOptionsLayoutProperty(optionsLayoutProperty pOptionsLayout)
-   {
-      setOptionsLayout((optionsLayoutProperty) pOptionsLayout);
-   }
-   optionsLayoutProperty getOptionsLayoutProperty()
-   {
-      return (optionsLayoutProperty) getOptionsLayout();
-   }
+   Q_PROPERTY(QE::LayoutOptions optionsLayout READ getOptionsLayout WRITE setOptionsLayout)
 
    // BEGIN-STANDARD-V2-PROPERTIES ===================================================
    // Standard properties
@@ -239,22 +223,14 @@ public:
    /// and any Style Sheet strings generated during the display of data.
    Q_PROPERTY(QString userLevelEngineerStyle READ getStyleEngineer WRITE setStyleEngineer)
 
-   /// \enum UserLevels
-   /// User friendly enumerations for #userLevelVisibility and #userLevelEnabled properties - refer to #userLevelVisibility and #userLevelEnabled properties and userLevel enumeration for details.
-   enum UserLevels {
-      User      = userLevelTypes::USERLEVEL_USER,          ///< Refer to USERLEVEL_USER for details
-      Scientist = userLevelTypes::USERLEVEL_SCIENTIST,     ///< Refer to USERLEVEL_SCIENTIST for details
-      Engineer  = userLevelTypes::USERLEVEL_ENGINEER       ///< Refer to USERLEVEL_ENGINEER for details
-   };
-   Q_ENUM (UserLevels)
-
    /// Lowest user level at which the widget is visible. Default is 'User'.
    /// Used when designing GUIs that display more and more detail according to the user mode.
    /// The user mode is set application wide through the QELogin widget, or programatically through setUserLevel()
    /// Widgets that are always visible should be visible at 'User'.
    /// Widgets that are only used by scientists managing the facility should be visible at 'Scientist'.
    /// Widgets that are only used by engineers maintaining the facility should be visible at 'Engineer'.
-   Q_PROPERTY(UserLevels userLevelVisibility READ getUserLevelVisibilityProperty WRITE setUserLevelVisibilityProperty)
+   ///
+   Q_PROPERTY(QE::UserLevels userLevelVisibility READ getUserLevelVisibility WRITE setUserLevelVisibility)
 
    /// Lowest user level at which the widget is enabled. Default is 'User'.
    /// Used when designing GUIs that allow access to more and more detail according to the user mode.
@@ -262,12 +238,8 @@ public:
    /// Widgets that are always accessable should be visible at 'User'.
    /// Widgets that are only accessable to scientists managing the facility should be visible at 'Scientist'.
    /// Widgets that are only accessable to engineers maintaining the facility should be visible at 'Engineer'.
-   Q_PROPERTY(UserLevels userLevelEnabled READ getUserLevelEnabledProperty WRITE setUserLevelEnabledProperty)
-
-   UserLevels getUserLevelVisibilityProperty() { return (UserLevels)getUserLevelVisibility(); }            ///< Access function for #userLevelVisibility property - refer to #userLevelVisibility property for details
-   void setUserLevelVisibilityProperty( UserLevels level ) { setUserLevelVisibility( (userLevelTypes::userLevels)level ); }///< Access function for #userLevelVisibility property - refer to #userLevelVisibility property for details
-   UserLevels getUserLevelEnabledProperty() { return (UserLevels)getUserLevelEnabled(); }                  ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
-   void setUserLevelEnabledProperty( UserLevels level ) { setUserLevelEnabled( (userLevelTypes::userLevels)level ); }      ///< Access function for #userLevelEnabled property - refer to #userLevelEnabled property for details
+   ///
+   Q_PROPERTY(QE::UserLevels userLevelEnabled READ getUserLevelEnabled WRITE setUserLevelEnabled)
 
    /// displayAlarmStateOption not applicale to V2 options.
    /// Class should ensure this option is initialised to DISPLAY_ALARM_STATE_NEVER.
@@ -292,10 +264,5 @@ signals:
    void selected(QString pFilename);
 
 };
-
-#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QEFileBrowser::optionsLayoutProperty)
-Q_DECLARE_METATYPE (QEFileBrowser::UserLevels)
-#endif
 
 #endif // QE_FILE_BROWSER_H

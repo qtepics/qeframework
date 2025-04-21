@@ -4,6 +4,8 @@
 # the Australian Synchrotron. This file is included into and as part
 # of the overall framework.pro project file.
 #
+# Copyright (c) 2017-2024 Australian Synchrotron
+#
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -17,27 +19,24 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (c) 2017 Australian Synchrotron
-#
 # Author:
 #   Andrew Starritt
 # Contact details:
-#   andrew.starritt@synchrotron.org.au
+#   andrews@ansto.gov.au
 #
 
-HEADERS += \
-    widgets/QEButton/QEGenericButton.h \
-    widgets/QEButton/QEPushButton.h \
-    widgets/QEButton/QERadioButton.h \
-    widgets/QEButton/QECheckBox.h
+INCLUDEPATH += $$PWD
 
-SOURCES += \
-    widgets/QEButton/QEGenericButton.cpp \
-    widgets/QEButton/QEPushButton.cpp \
-    widgets/QEButton/QERadioButton.cpp \
-    widgets/QEButton/QECheckBox.cpp
+HEADERS += $$PWD/QECheckBox.h
+SOURCES += $$PWD/QECheckBox.cpp
 
-INCLUDEPATH += \
-    widgets/QEButton
+HEADERS += $$PWD/QEGenericButton.h
+SOURCES += $$PWD/QEGenericButton.cpp
+
+HEADERS += $$PWD/QEPushButton.h
+SOURCES += $$PWD/QEPushButton.cpp
+
+HEADERS += $$PWD/QERadioButton.h
+SOURCES += $$PWD/QERadioButton.cpp
 
 # end

@@ -1,9 +1,9 @@
 /*  QEDragDrop.cpp
  *
- *  Copyright (c) 2012-2022 Australian Synchrotron
- *
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2012-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -41,7 +41,7 @@
 
   To make use of the common QE drag drop support provided by this class, the above functions can be
   defined to simply call the equivelent drag/drop functions defined in this class as follows:
-        void dragEnterEvent(QDragEnterEvent *event) { qcaDragEnterEvent( event [,allowSelfDrop] ); }
+        void dragEnterEvent(QDragEnterEvent *event) { qcaDragEnterEvent( event ); }
         void dropEvent(QDropEvent *event)           { qcaDropEvent( event [,allText] ); }
         void mousePressEvent(QMouseEvent *event)    { qcaMousePressEvent( event ); }
 
@@ -59,6 +59,7 @@
 
 #include <QEDragDrop.h>
 #include <QDebug>
+#include <QMetaType>
 #include <QWidget>
 #include <QEWidget.h>
 #include <QMimeData>
@@ -66,6 +67,7 @@
 #include <QClipboard>
 #include <QApplication>
 #include <QECommon.h>
+#include <QEPlatform.h>
 #include <QGraphicsOpacityEffect>
 #include <QLinearGradient>
 
@@ -117,22 +119,18 @@ void QEDragDrop::setDragDropConsumer( QObject* consumer )
     }
 }
 
+//------------------------------------------------------------------------------
 // Start a 'drag'
-void QEDragDrop::qcaDragEnterEvent(QDragEnterEvent *event, const bool allowSelfDrop)
+//
+void QEDragDrop::qcaDragEnterEvent(QDragEnterEvent *event)
 {
-
     // Flag a move is starting (never a copy)
-    if (event->mimeData()->hasText())
+    // Must have non-empty text
+    if (event->mimeData()->hasText() && (!event->mimeData()->text().isEmpty()))
     {
         if ( event->source() == owner )
         {
-            if( allowSelfDrop )
-            {
-                event->setDropAction( Qt::MoveAction );
-                event->accept();
-            } else {
-                event->ignore();
-            }
+            event->ignore();
         } else {
             event->acceptProposedAction();
         }
@@ -141,7 +139,9 @@ void QEDragDrop::qcaDragEnterEvent(QDragEnterEvent *event, const bool allowSelfD
     }
 }
 
+//------------------------------------------------------------------------------
 // Perform a 'drop'
+//
 void QEDragDrop::qcaDropEvent(QDropEvent *event, const bool allText)
 {
     // If no text available, do nothing
@@ -193,6 +193,7 @@ void QEDragDrop::qcaDropEvent(QDropEvent *event, const bool allText)
 }
 
 
+//------------------------------------------------------------------------------
 // Prepare to drag and/or intercept other mouse press events.
 //
 void QEDragDrop::qcaMousePressEvent(QMouseEvent* event)
@@ -252,6 +253,7 @@ void QEDragDrop::qcaMousePressEvent(QMouseEvent* event)
     }
 }
 
+//------------------------------------------------------------------------------
 // Prepare to drag.
 //
 void QEDragDrop::initiateDragDrop (QMouseEvent* event)
@@ -260,16 +262,18 @@ void QEDragDrop::initiateDragDrop (QMouseEvent* event)
     QPoint hotSpot = event->pos();
 
     // Set up the transfer data
+
     QMimeData *mimeData = new QMimeData;
     QVariant dropData = getDrop();
-    switch( dropData.type() )
+    const QMetaType::Type mtype = QEPlatform::metaType (dropData);
+    switch( mtype )
     {
         default:
-        case QVariant::String:
+        case QMetaType::QString:
             mimeData->setText( dropData.toString() );
             break;
 
-        case QVariant::Image:
+        case QMetaType::QImage:
             mimeData->setImageData( dropData );
             break;
     }
@@ -279,7 +283,9 @@ void QEDragDrop::initiateDragDrop (QMouseEvent* event)
                        + " " + QByteArray::number( hotSpot.y()) );
 
     // Determine the size of the copy of the object that is dragged
-    // It will be the full size unless it exceeds a maximum height or width, in which case it is scaled
+    // It will be the full size unless it exceeds a maximum height or width,
+    // in which case it is scaled.
+    //
     QSize pixSize = owner->size();
     double widthScale = (double)(pixSize.width())/100.0;
     double heightScale = (double)(pixSize.height())/50.0;
@@ -304,6 +310,8 @@ void QEDragDrop::initiateDragDrop (QMouseEvent* event)
     drag->exec( Qt::CopyAction, Qt::CopyAction );
 }
 
+//------------------------------------------------------------------------------
+//
 void QEDragDrop::postPvInformation()
 {
     if( !qew ) return;
@@ -317,6 +325,8 @@ void QEDragDrop::postPvInformation()
     qew->sendMessage( pvName, mt );
 }
 
+//------------------------------------------------------------------------------
+//
 void QEDragDrop::examinePVProperties()
 {
     if( !qew ) return;
@@ -327,6 +337,8 @@ void QEDragDrop::examinePVProperties()
     if( !pvName.isEmpty() ) object->sendRequestAction( request );
 }
 
+//------------------------------------------------------------------------------
+//
 void QEDragDrop::plotInStripChart()
 {
     if( !qew ) return;
@@ -337,13 +349,17 @@ void QEDragDrop::plotInStripChart()
     if( !pvName.isEmpty() ) object->sendRequestAction( request );
 }
 
+//------------------------------------------------------------------------------
 // allow drop (Enable/disable as a drop site for drag and drop)
+//
 void QEDragDrop::setAllowDrop( bool allowDropIn )
 {
     allowDrop = allowDropIn;
     owner->setAcceptDrops( allowDrop );
 }
 
+//------------------------------------------------------------------------------
+//
 bool QEDragDrop::getAllowDrop() const
 {
     return allowDrop;

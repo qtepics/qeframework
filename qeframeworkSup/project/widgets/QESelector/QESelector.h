@@ -35,6 +35,7 @@
 #include <QWidget>
 
 #include <QECommon.h>
+#include <QEEnums.h>
 #include <QEString.h>
 #include <QEStringFormatting.h>
 
@@ -94,19 +95,16 @@ public:
 
    // Start of QESelector specific properties.
    //
-   enum SourceOptions {
-      stringListSource,     // use the string list - default
-      textFileSource        // use a configuration text file
-   };
-   Q_ENUM (SourceOptions)
-
-   Q_PROPERTY (SourceOptions source    READ getSource          WRITE setSource)
+   Q_PROPERTY (QE::SourceOptions source READ getSource          WRITE setSource)
 
    // StringList mode
-   Q_PROPERTY (QStringList stringList  READ getStringList      WRITE setStringList)
+   Q_PROPERTY (QStringList stringList   READ getStringList      WRITE setStringList)
 
    // Text File mode
    Q_PROPERTY (QString sourceFilename   READ getSourceFilename  WRITE setSourceFilename)
+
+   // Maximum items visible in the undelying combo box
+   Q_PROPERTY (int maxVisibleItems      READ maxVisibleItems    WRITE setMaxVisibleItems)
 
    enum Delimiters {
       NoDelimiter = 0,
@@ -114,8 +112,6 @@ public:
       CommaDelimiter
    };
    Q_ENUM (Delimiters)
-
-   Q_PROPERTY (int maxVisibleItems   READ maxVisibleItems  WRITE setMaxVisibleItems)
 
    Q_PROPERTY (Delimiters delimiter  READ  getDelimiter    WRITE setDelimiter)
 
@@ -141,8 +137,8 @@ public:
    explicit QESelector (const QString& variableName, QWidget* parent = 0);
    virtual ~QESelector ();
 
-   void setSource (const SourceOptions infoSource);
-   SourceOptions getSource() const;
+   void setSource (const QE::SourceOptions infoSource);
+   QE::SourceOptions getSource() const;
 
    void setStringList (const QStringList& userInfoList);
    QStringList getStringList () const;
@@ -224,7 +220,7 @@ private:
    QHBoxLayout* layout;          // holds the interbnal widget - any layout type will do
    QEStringFormatting formatting;
 
-   SourceOptions infoSource;
+   QE::SourceOptions infoSource;
    QStringList userInfoList;
    QStringList fileInfoList;
    QStringList* infoList;        // reference none of the above
@@ -249,7 +245,6 @@ private slots:
 };
 
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
-Q_DECLARE_METATYPE (QESelector::SourceOptions)
 Q_DECLARE_METATYPE (QESelector::Delimiters)
 #endif
 

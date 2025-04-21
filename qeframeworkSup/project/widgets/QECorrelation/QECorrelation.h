@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2018-2024 Australian Synchrotron
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -16,8 +18,6 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2018 Australian Synchrotron
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
@@ -28,13 +28,17 @@
 #define QE_CORRELATION_H
 
 #include <QHBoxLayout>
+#include <QLabel>
+#include <QPushButton>
 #include <QTimer>
 #include <QVector>
 #include <QWidget>
 
+#include <QEEnums.h>
 #include <QCaVariableNamePropertyManager.h>
 #include <QEAbstractDynamicWidget.h>
 #include <QEFrame.h>
+#include <QELabel.h>
 #include <QEArchiveAccess.h>
 #include <QEFloatingArray.h>
 #include <QEFrameworkLibraryGlobal.h>
@@ -71,6 +75,10 @@ public:
    Q_PROPERTY (bool yLogarithmic     READ getYLogarithmic    WRITE setYLogarithmic)
 
 public:
+   enum Constants {
+      NUMBER_OF_ITEMS = 2
+   };
+
    explicit QECorrelation (QWidget *parent = 0);
    explicit QECorrelation (const QString& xVariableName,
                            QWidget *parent = 0);
@@ -112,19 +120,18 @@ public:
    void clearAllPvNames ();
 
 protected:
-   bool eventFilter (QObject *obj, QEvent *event);
+   bool eventFilter (QObject* watched, QEvent* event);
 
    // Implementation of QEWidget's virtual funtions
    //
    qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
    void establishConnection (unsigned int variableIndex);
 
-   // Drag and Drop - no drop to self.
+   // We hande drag/drop internally
    //
-   void mousePressEvent (QMouseEvent *event)    { qcaMousePressEvent (event); }
-   void dragEnterEvent (QDragEnterEvent *event) { qcaDragEnterEvent (event, false); }
-   void dragMoveEvent (QDragMoveEvent *event);  // we do a special to avoid self drop.
-   void dropEvent (QDropEvent *event)           { qcaDropEvent (event, true); }
+   void mousePressEvent (QMouseEvent *event);
+   void dragEnterEvent (QDragEnterEvent *event);
+   void dropEvent (QDropEvent *event);
    //
    // This widget uses the setDrop/getDrop defined in QEWidget.
 
@@ -161,6 +168,7 @@ private:
    int tickTimerCount;
    bool replotIsRequired;
    bool isReverse;
+   bool disllowOneEnter;   // Mitigate drag drop feature
 
    // Essentially QVector<double> with extra functionality.
    //
@@ -180,7 +188,7 @@ private:
    double yMin;
    double yMax;
 
-   enum PlotModes { pmDots = 1, pmLines };
+   enum PlotModes { pmDots = 10, pmLines };  // avoid any potential x/y tag mixup
    enum ScaleModes { smDynamic, smManual, smData };
 
    PlotModes plotMode;
@@ -191,6 +199,15 @@ private:
    QAction* pasteAction;
    QAction* clearAction;
    int actionTag;
+
+   struct DataSets {
+      QWidget* frame;
+      QPushButton* letterButton;
+      QLabel* pvName;
+      QELabel* value;
+   };
+
+   DataSets items [NUMBER_OF_ITEMS];
 
    void setup ();
    void setReadOut (const QString status);
@@ -203,8 +220,10 @@ private:
    //
    void setPvName (const int instance, const QString& pvName);
    QString getPvName (const int instance) const;
-
-   bool processDropEvent (const int tag, QDropEvent* event);
+   bool isInUse (const int instance) const;   // X/Y slot in use
+   bool isDropAllowed () const;               // any drop at all
+   bool isEventOk (QDropEvent* event) const;  // not from self and mime data has non-empty text
+   bool processDropEvent (const int slot, QDropEvent* event);
 
    // Move to QEUtilities ??
    //
@@ -212,9 +231,9 @@ private:
    static int  getTag (const QWidget* widget, const int defaultValue = -1);
 
 private slots:
-   void setNewVariableName (QString variableName,
-                            QString variableNameSubstitutions,
-                            unsigned int variableIndex);
+   void setNewVariableName (QString pvName,
+                            QString substitutions,
+                            unsigned int vi);
 
    void sampleTimeout ();
    void reDrawTimeout ();

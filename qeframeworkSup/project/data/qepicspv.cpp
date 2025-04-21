@@ -1,8 +1,9 @@
 /*  qepicspv.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2018 Australian Synchrotron
+ *  Copyright (c) 2011-2024 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -33,7 +34,9 @@
 
 #include "qepicspv.h"
 #include "QCaObject.h"
+#include <QEPlatform.h>
 
+#include <QMetaType>
 #include <QTime>
 #include <QTimer>
 #include <QCoreApplication>
@@ -47,6 +50,8 @@ const bool QEpicsPV::inited = QEpicsPV::init();
 
 unsigned QEpicsPV::debugLevel = 0;
 
+//------------------------------------------------------------------------------
+//
 bool QEpicsPV::init() {
   qRegisterMetaType<QCaConnectionInfo>("QCaConnectionInfo&");
   qRegisterMetaType<QCaAlarmInfo>("QCaAlarmInfo&");
@@ -56,10 +61,14 @@ bool QEpicsPV::init() {
   return true;
 }
 
+//------------------------------------------------------------------------------
+//
 void QEpicsPV::setDebugLevel(unsigned level){
   debugLevel = level;
 }
 
+//------------------------------------------------------------------------------
+//
 QEpicsPV::QEpicsPV(const QString & _pvName, QObject *parent) :
     QObject(parent),
     qCaField(0),
@@ -71,6 +80,8 @@ QEpicsPV::QEpicsPV(const QString & _pvName, QObject *parent) :
   setPV(pvName);
 }
 
+//------------------------------------------------------------------------------
+//
 QEpicsPV::QEpicsPV(QObject *parent) :
     QObject(parent),
     qCaField(0),
@@ -82,11 +93,15 @@ QEpicsPV::QEpicsPV(QObject *parent) :
 }
 
 
+//------------------------------------------------------------------------------
+//
 QEpicsPV::~QEpicsPV(){
   setPV();
 }
 
 
+//------------------------------------------------------------------------------
+//
 void QEpicsPV::setPV(const QString & _pvName) {
   pvName = _pvName;
   if (qCaField) {
@@ -117,31 +132,39 @@ void QEpicsPV::setPV(const QString & _pvName) {
 
 }
 
+//------------------------------------------------------------------------------
+//
 const QString & QEpicsPV::pv() const {
   return pvName;
 }
 
 
+//------------------------------------------------------------------------------
+//
 bool QEpicsPV::isConnected() const {
   return qCaField && ((QCaObject *) qCaField) -> getChannelIsConnected();
 }
 
+//------------------------------------------------------------------------------
+//
 const QVariant & QEpicsPV::get() const {
   return lastData;
 }
 
+//------------------------------------------------------------------------------
+//
 void QEpicsPV::needUpdated() const {
   updated = false;
 }
 
+//------------------------------------------------------------------------------
+//
 const QVariant & QEpicsPV::getUpdated(int delay) const {
 
   if ( ! isConnected() )
     return badData;
   if ( updated )
     return lastData;
-
-
 
   if (delay < 0) delay = 0;
 
@@ -158,11 +181,10 @@ const QVariant & QEpicsPV::getUpdated(int delay) const {
   if(tT.isActive()) tT.stop();
 
   return updated ? lastData : badData ;
-
 }
 
-
-
+//------------------------------------------------------------------------------
+//
 const QVariant & QEpicsPV::getReady(int delay) const {
 
   if ( ! qCaField )
@@ -187,12 +209,11 @@ const QVariant & QEpicsPV::getReady(int delay) const {
   }
 
   return lastData.isValid()  ?  get()  :  getUpdated(delay);
-
 }
 
 
-
-
+//------------------------------------------------------------------------------
+//
 QVariant QEpicsPV::get(const QString & _pvName, int delay) {
   if (_pvName.isEmpty())
     return badData;
@@ -202,8 +223,10 @@ QVariant QEpicsPV::get(const QString & _pvName, int delay) {
   return  ret;
 }
 
-const QVariant & QEpicsPV::set(QVariant value, int delay) {
-
+//------------------------------------------------------------------------------
+//
+const QVariant & QEpicsPV::set(QVariant value, int delay)
+{
   if ( debugLevel > 0 )
     qDebug() << "QEpicsPV DEBUG: SET" << this << isConnected() << pv() << get() << value << getEnum();
 
@@ -232,20 +255,25 @@ const QVariant & QEpicsPV::set(QVariant value, int delay) {
       }
       value = val;
     }
-  } else if ( get().type() != value.type()  && ! value.convert(get().type()) ) {
-    qDebug() << "QEpicsPV. Error. Could not convert type QVariant from" << value.typeName()
-        << "to" << get().typeName() << "to set the PV" << pv();
-    return badData;
+  } else {
+     const QMetaType::Type lastMtype = QEPlatform::metaType (this->get());
+     const QMetaType::Type currMtype = QEPlatform::metaType (value);
+
+     if ((lastMtype != currMtype) && !value.convert(lastMtype) ) {
+        qDebug() << "QEpicsPV. Error. Could not convert type QVariant from" << value.typeName()
+                 << "to" << get().typeName() << "to set the PV" << pv();
+        return badData;
+     }
   }
 
   ((QCaObject *) qCaField) -> writeData(value);
 
   return delay >= 0  ?  getUpdated(delay)  :  get();
-
 }
 
 
-
+//------------------------------------------------------------------------------
+//
 QVariant QEpicsPV::set(QString & _pvName, const QVariant & value, int delay) {
   if (_pvName.isEmpty())
     return badData;
@@ -256,6 +284,8 @@ QVariant QEpicsPV::set(QString & _pvName, const QVariant & value, int delay) {
 }
 
 
+//------------------------------------------------------------------------------
+//
 void QEpicsPV::updateValue(const QVariant & data){
 
   if ( debugLevel > 0 )
@@ -277,6 +307,8 @@ void QEpicsPV::updateValue(const QVariant & data){
 }
 
 
+//------------------------------------------------------------------------------
+//
 void QEpicsPV::updateConnection() {
   if ( debugLevel > 0 )
     qDebug() << "QEpicsPV DEBUG: CON" << this << pv() << isConnected();
@@ -291,6 +323,8 @@ void QEpicsPV::updateConnection() {
   emit connectionChanged(isConnected());
 }
 
+//------------------------------------------------------------------------------
+//
 const QStringList & QEpicsPV::getEnum() const {
   return theEnum;
 }

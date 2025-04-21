@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2023 Australian Synchrotron.
+ *  Copyright (c) 2014-2024 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -49,8 +49,8 @@ QEScalarHistogram::QEScalarHistogram (QWidget * parent) :
    //
    this->histogram->setAutoScale (true);
    this->setReadoutPrecision (6);
-   this->setFormat (QEStringFormatting::FORMAT_DEFAULT);
-   this->setNotation (QEStringFormatting::NOTATION_AUTOMATIC);
+   this->setFormat (QE::Default);
+   this->setNotation (QE::Automatic);
    this->setUseDbPrecision (false);
    this->setAddUnits (true);
 
@@ -364,30 +364,30 @@ int QEScalarHistogram::getReadoutPrecision () const
 
 //------------------------------------------------------------------------------
 //
-void QEScalarHistogram::setReadoutFormat (const Formats formatIn)
+void QEScalarHistogram::setReadoutFormat (const QE::Formats formatIn)
 {
-   this->setFormat (QEStringFormatting::formats (formatIn));
+   this->setFormat (formatIn);
 }
 
 //------------------------------------------------------------------------------
 //
-QEScalarHistogram::Formats QEScalarHistogram::getReadoutFormat() const
+QE::Formats QEScalarHistogram::getReadoutFormat() const
 {
-   return Formats (this->getFormat());
+   return this->getFormat();
 }
 
 //------------------------------------------------------------------------------
 //
-void QEScalarHistogram::setReadoutNotation (const Notations notationIn)
+void QEScalarHistogram::setReadoutNotation (const QE::Notations notationIn)
 {
-   this->setNotation (QEStringFormatting::notations (notationIn));
+   this->setNotation (notationIn);
 }
 
 //------------------------------------------------------------------------------
 //
-QEScalarHistogram::Notations QEScalarHistogram::getReadoutNotation () const
+QE::Notations QEScalarHistogram::getReadoutNotation () const
 {
-   return Notations (this->getNotation());
+   return this->getNotation();
 }
 
 //------------------------------------------------------------------------------
@@ -447,7 +447,7 @@ QString QEScalarHistogram::copyVariable ()
 //
 QVariant QEScalarHistogram::copyData ()
 {
-   QVariant result (QVariant::Invalid);
+   QVariant result;
    qcaobject::QCaObject* qca = NULL;
 
    if (this->selectedChannel >= 0) {
