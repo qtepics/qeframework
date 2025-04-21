@@ -1,7 +1,6 @@
-# $File: //ASP/tec/gui/qeframework/trunk/qepluginApp/Makefile $
-# $Revision: #2 $
-# $DateTime: 2024/02/09 15:18:38 $
-# Last checked in by: $Author: starritt $
+# File: qepluginApp/Makefile
+# DateTime: Mon Apr 21 18:59:51 2025
+# Last checked in by: starritt
 #
 # This make file is the bridge beween the EPICS build system and the Qt project qmake/make paradigm.
 # It makes the PLUGIN library.
