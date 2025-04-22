@@ -1,7 +1,6 @@
-# $File: //ASP/tec/gui/qeframework/trunk/Makefile $
-# $Revision: #2 $
-# $DateTime: 2018/04/19 13:50:10 $
-# Last checked in by: $Author: starritt $
+# File: Makefile
+# DateTime: Mon Apr 21 18:59:50 2025
+# Last checked in by: starritt
 #
 # Makefile at top of application tree for QE Framework
 

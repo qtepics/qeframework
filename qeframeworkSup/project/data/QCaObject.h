@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2024 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -33,6 +33,7 @@
 #include <QVariant>
 
 #include <UserMessage.h>
+#include <QEEnums.h>
 #include <QCaAlarmInfo.h>
 #include <QCaDateTime.h>
 #include <QCaConnectionInfo.h>
@@ -158,7 +159,12 @@ public:
    // The scalar functions honour arrayIndex.
    //
    bool getDataIsAvailable () const;
-   QString getStringValue () const;   // note: raw string conversion, no units, precision or other QEString formatting
+
+   // note: apart for array action, this provides a raw string conversion,
+   // i.e. no units, precision or other QEString formatting
+   //
+   QString getStringValue (const QE::ArrayActions arrayAction = QE::Index) const;
+
    bool getBooleanValue () const;     // 0 values are false, non-zero are true, non-numeric are undefined.
    long getIntegerValue () const;
    double getFloatingValue () const;

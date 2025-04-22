@@ -357,11 +357,12 @@ bool  QCaObject::getDataIsAvailable() const
 //------------------------------------------------------------------------------
 // Return the current value as string
 //
-QString  QCaObject::getStringValue() const
+QString  QCaObject::getStringValue (const QE::ArrayActions arrayAction) const
 {
    QEStringFormatting formatter;
-   QString result;
-   result = formatter.formatString (this->getVariant(), this->arrayIndex);
+   formatter.setArrayAction (arrayAction);
+   QVariant data = this->getVariant();
+   QString result = formatter.formatString (data, this->arrayIndex);
    return result;
 }
 

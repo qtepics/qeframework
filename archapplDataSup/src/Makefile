@@ -1,7 +1,6 @@
-# $File: //ASP/tec/gui/qeframework/trunk/archapplDataSup/src/Makefile $
-# $Revision: #6 $
-# $DateTime: 2023/01/17 12:53:36 $
-# Last checked in by: $Author: starritt $
+# File: archapplDataSup/src/Makefile
+# DateTime: Mon Apr 21 18:59:50 2025
+# Last checked in by: starritt
 #
 # Makefile to build a library that parses Google Protocol Buffers data recieved from Archiver Appliance
 #
