@@ -349,9 +349,17 @@ bool  QCaObject::getChannelIsConnected () const
 //------------------------------------------------------------------------------
 // Indicates if last data is defined/meaningful.
 //
-bool  QCaObject::getDataIsAvailable() const
+bool QCaObject::getDataIsAvailable() const
 {
    return this->client->dataIsAvailable();
+}
+
+//------------------------------------------------------------------------------
+// Indicates if last data is defined/meaningful.
+//
+bool QCaObject::getIsMataDataUpdate () const
+{
+   return this->isFirstMetaUpdate;
 }
 
 //------------------------------------------------------------------------------
@@ -796,7 +804,7 @@ void QCaObject::dataUpdate (const bool firstUpdateIn)
    alarmInfo = this->client->getAlarmInfo ();
    timeStamp = this->client->getTimeStamp ();
 
-   this->firstUpdate = firstUpdateIn;
+   this->isFirstMetaUpdate = firstUpdateIn;
 
    if (this->signalsToSend & SIG_VARIANT) {
       // Only form variant and emit signal if at least one receiver.
