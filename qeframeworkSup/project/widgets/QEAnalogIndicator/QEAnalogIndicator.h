@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2024 Australian Synchrotron
+ *  Copyright (c) 2011-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -47,7 +47,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAnalogIndicator : public QWidget
 
 public:
    /// \enum    Modes
-   /// The type of analog indicator used to represent the value
+   /// The type of analog indicator used to represent the value.
    enum Modes {
       Bar,       ///< Bar (solid bar from minimum up to current value)
       Scale,     ///< Scale (diamond marker tracks current value)
@@ -58,9 +58,11 @@ public:
    /// Current indicated value.
    ///
    Q_PROPERTY (double value             READ getValue               WRITE setValue)
+
    /// Minimum indicated value.
    ///
    Q_PROPERTY (double minimum           READ getMinimum             WRITE setMinimum)
+
    /// Maximum indicated value.
    ///
    Q_PROPERTY (double maximum           READ getMaximum             WRITE setMaximum)
@@ -108,6 +110,10 @@ public:
    /// Typical meters are 180 deg and 270 deg
    Q_PROPERTY (int    spanAngle         READ getSpanAngle           WRITE setSpanAngle)
 
+   /// animationTime in seconmds, 0.0 implies instantaneously.
+   /// Default: 0.0
+   Q_PROPERTY(double animationTime      READ getAnimationTime       WRITE setAnimationTime)
+
    /// Border colour
    ///
    Q_PROPERTY (QColor borderColour      READ getBorderColour        WRITE setBorderColour)
@@ -127,60 +133,85 @@ public:
    /// Alternative to isEnabled. Default is true.
    Q_PROPERTY (bool   isActive          READ getIsActive            WRITE setIsActive)
 
-private:
-   // class member variable names start with m so as not to clash with
-   // the propery names.
+public:
+   /// Constructor
+   QEAnalogIndicator (QWidget* parent = 0);
+
+   /// Destructor
+   virtual ~QEAnalogIndicator() {}
+
+   /// Size hint
+   virtual QSize sizeHint () const;
+
+   // property access functions: value and range are also slots
    //
-   QColor mBorderColour;
-   QColor mForegroundColour;
-   QColor mBackgroundColour;
-   QColor mFontColour;
-   double mMinimum;
-   double mMaximum;
-   double mValue;
-   Qt::Orientation mOrientation;
-   bool mInvertedAppearance;
-   enum Modes mMode;
-   bool mIsActive;          // i.e. is connected in CA speak
-   int mCentreAngle;
-   int mSpanAngle;
-   bool mShowText;
-   bool mShowScale;
-   bool mLogScale;
-   double mMinorInterval;
-   int mMajorMinorRatio;
-   int mLogScaleInterval;
+public slots:
+   void setValue   (const double value);
+   void setValue   (const int value);                     // overloaded form
+public:
+   double getValue () const;                              ///< Access function for #value property - refer to #value property for details
 
-   void paintEvent (QPaintEvent *event);
+   void setMinimum (const double value);                  ///< Access function for #minimum - refer to #minimum property for details
+   double getMinimum () const;                            ///< Access function for #minimum - refer to #minimum property for details
 
-   bool isLeftRight () const;
-   void drawOutline (QPainter & painter, QRect &outline);
-   void drawAxis    (QPainter & painter, QRect &axis);
+   void setMaximum (const double value);                  ///< Access function for #maximum - refer to #maximum property for details
+   double getMaximum () const;                            ///< Access function for #maximum - refer to #maximum property for details
 
-   void drawBar     (QPainter & painter, QRect &area, const double fraction);
-   void drawMarker  (QPainter & painter, QRect &area, const double fraction);
-   void drawMeter   (QPainter & painter, QRect &area, const double fraction);
+   void setOrientation (const Qt::Orientation value);     ///< Access function for #orientation - refer to #orientation property for details
+   Qt::Orientation getOrientation () const;               ///< Access function for #orientation - refer to #orientation property for details
 
-   // Like painter drawText, but centred on textCentre.
-   // (drawText aligns bottom left corner on given point).
-   //
-   void drawText (QPainter & painter, QPoint & textCentre, QString & text, const int pointSize = 0);
+   void setInvertedAppearance (const bool value);         ///< Access function for #invertedAppearance - refer to #invertedAppearance property for details
+   bool getInvertedAppearance () const;                   ///< Access function for #invertedAppearance - refer to #invertedAppearance property for details
 
-   // In left right mode text centred on x, just below y.
-   // In top bottom mode text centred on y, just to right of x.
-   //
-   void drawAxisText (QPainter & painter, QPoint & textCentre, QString & text, const int pointSize = 0);
+   void setMode (const enum Modes mode);                  ///< Access function for #mode - refer to #mode property for details
+   enum Modes getMode () const;                           ///< Access function for #mode - refer to #mode property for details
 
-   // Value iterator.
-   // itc is the iterator control value.
-   //
-   bool firstValue (int & itc, double & value, bool & isMajor);
-   bool nextValue  (int & itc, double & value, bool & isMajor);
+   void setCentreAngle (const int angle);                 ///< Access function for #centreAngle - refer to #centreAngle property for details
+   int getCentreAngle () const;                           ///< Access function for #centreAngle - refer to #centreAngle property for details
 
-   double calcFraction (const double value);
+   void setSpanAngle (const int angle);                   ///< Access function for #spanAngle - refer to #spanAngle property for details
+   int getSpanAngle () const;                             ///< Access function for #spanAngle - refer to #spanAngle property for details
+
+   void setAnimationTime (const double time);             ///< Access function for #animationTime - refer to #animationTime property for details
+   double getAnimationTime () const;                      ///< Access function for #animationTime - refer to #animationTime property for details
+
+   void setMinorInterval (const double value);            ///< Access function for #minorInterval - refer to #minorInterval property for details
+   double getMinorInterval () const;                      ///< Access function for #minorInterval - refer to #minorInterval property for details
+
+   void setMajorInterval (const double interval);         ///< Access function for #majorInterval - refer to #majorInterval property for details
+   double getMajorInterval () const;                      ///< Access function for #majorInterval - refer to #majorInterval property for details
+
+   void setLogScaleInterval (const int interval);         ///< Access function for #logScaleInterval - refer to #logScaleInterval property for details
+   int getLogScaleInterval () const;                      ///< Access function for #logScaleInterval - refer to #logScaleInterval property for details
+
+   void setBorderColour (const QColor colour);            ///< Access function for #borderColour - refer to #borderColour property for details
+   QColor getBorderColour () const;                       ///< Access function for #borderColour - refer to #borderColour property for details
+
+   void setForegroundColour (const QColor colour);        ///< Access function for #foregroundColour - refer to #foregroundColour property for details
+   QColor getForegroundColour () const;                   ///< Access function for #foregroundColour - refer to #foregroundColour property for details
+
+   void setBackgroundColour (const QColor colour);        ///< Access function for #backgroundColour - refer to #backgroundColour property for details
+   QColor getBackgroundColour () const;                   ///< Access function for #backgroundColour - refer to #backgroundColour property for details
+
+   void setFontColour (const QColor colour);              ///< Access function for #fontColour - refer to #fontColour property for details
+   QColor getFontColour () const;                         ///< Access function for #fontColour - refer to #fontColour property for details
+
+   void setShowText (const bool showText);                ///< Access function for #showText - refer to #showText property for details
+   bool getShowText () const;                             ///< Access function for #showText - refer to #showText property for details
+
+   void setShowScale (const bool showScale);              ///< Access function for #showScale - refer to #showScale property for details
+   bool getShowScale () const;                            ///< Access function for #showScale - refer to #showScale property for details
+
+   void setLogScale (const bool logScale);                ///< Access function for #logScale - refer to #logScale property for details
+   bool getLogScale () const;                             ///< Access function for #logScale - refer to #logScale property for details
+
+public slots:
+   void setRange (const double minimumIn, const double maximumIn);
 
 protected:
-   // Note: the getXxxxColour functions (line 190-ish) gets the Xxxx property colour.
+   void paintEvent (QPaintEvent* event);
+
+   // Note: the getXxxxColour functions (line 220-ish) gets the Xxxx property colour.
    // The getXxxxPaintColour functions return actual colour to for drawing the widget.
    // This may be overridden by a derived class.
    //
@@ -207,74 +238,64 @@ protected:
    void setIsActive (const bool value);
    bool getIsActive () const;
 
-public:
-   /// Constructor
-   QEAnalogIndicator (QWidget * parent = 0);
-   /// Destructor
-   virtual ~QEAnalogIndicator() {}
-
-   /// Size hint
-   virtual QSize sizeHint () const;
-
-   // property access functions.
+private:
+   // class member variable names start with m so as not to clash with
+   // the propery names.
    //
-   double getValue () const;                                   ///< Access function for #value property - refer to #value property for details
+   QColor mBorderColour;
+   QColor mForegroundColour;
+   QColor mBackgroundColour;
+   QColor mFontColour;
+   double mMinimum;
+   double mMaximum;
+   double paintValue;
+   double targetValue;
+   double sourceValue;
+   int updateCounter;
+   Qt::Orientation mOrientation;
+   bool mInvertedAppearance;
+   enum Modes mMode;
+   bool mIsActive;          // i.e. is connected in CA speak
+   int mCentreAngle;
+   int mSpanAngle;
+   double mAnimationTime;
+   bool mShowText;
+   bool mShowScale;
+   bool mLogScale;
+   double mMinorInterval;
+   int mMajorMinorRatio;
+   int mLogScaleInterval;
 
-   void setMinimum (const double value);                       ///< Access function for #minimum - refer to #minimum property for details
-   double getMinimum () const;                                 ///< Access function for #minimum - refer to #minimum property for details
+   bool isLeftRight () const;
+   void drawOutline (QPainter& painter, const QRect& outline);
+   void drawAxis    (QPainter& painter, const QRect& axis);
 
-   void setMaximum (const double value);                       ///< Access function for #maximum - refer to #maximum property for details
-   double getMaximum () const;                                 ///< Access function for #maximum - refer to #maximum property for details
+   void drawBar     (QPainter& painter, const QRect& area, const double fraction);
+   void drawMarker  (QPainter& painter, const QRect& area, const double fraction);
+   void drawMeter   (QPainter& painter, const QRect& area, const double fraction);
 
-   void setOrientation (const Qt::Orientation value);          ///< Access function for #orientation - refer to #orientation property for details
-   Qt::Orientation getOrientation () const;                    ///< Access function for #orientation - refer to #orientation property for details
+   // Like painter drawText, but centred on textCentre.
+   // (drawText aligns bottom left corner on given point).
+   //
+   void drawText (QPainter& painter, const QPoint& textCentre,
+                  const QString& text, const int pointSize = 0);
 
-   void setInvertedAppearance (const bool value);              ///< Access function for #invertedAppearance - refer to #invertedAppearance property for details
-   bool getInvertedAppearance () const;                        ///< Access function for #invertedAppearance - refer to #invertedAppearance property for details
+   // In left right mode text centred on x, just below y.
+   // In top bottom mode text centred on y, just to right of x.
+   //
+   void drawAxisText (QPainter& painter, const QPoint& textCentre,
+                      const QString& text, const int pointSize = 0);
 
-   void setMode (const enum Modes value);                      ///< Access function for #mode - refer to #mode property for details
-   enum Modes getMode () const;                                ///< Access function for #mode - refer to #mode property for details
+   // Value iterator.
+   // itc is the iterator control value.
+   //
+   bool firstValue (int& itc, double& value, bool& isMajor);
+   bool nextValue  (int& itc, double& value, bool& isMajor);
 
-   void setCentreAngle (const int value);                      ///< Access function for #centreAngle - refer to #centreAngle property for details
-   int getCentreAngle () const;                                ///< Access function for #centreAngle - refer to #centreAngle property for details
+   double calcFraction (const double value);
 
-   void setSpanAngle (const int value);                        ///< Access function for #spanAngle - refer to #spanAngle property for details
-   int getSpanAngle () const;                                  ///< Access function for #spanAngle - refer to #spanAngle property for details
-
-   void setMinorInterval (const double value);                 ///< Access function for #minorInterval - refer to #minorInterval property for details
-   double getMinorInterval () const;                           ///< Access function for #minorInterval - refer to #minorInterval property for details
-
-   void setMajorInterval (const double value);                 ///< Access function for #majorInterval - refer to #majorInterval property for details
-   double getMajorInterval () const;                           ///< Access function for #majorInterval - refer to #majorInterval property for details
-
-   void setLogScaleInterval (const int value);                 ///< Access function for #logScaleInterval - refer to #logScaleInterval property for details
-   int getLogScaleInterval () const;                           ///< Access function for #logScaleInterval - refer to #logScaleInterval property for details
-
-   void setBorderColour (const QColor value);                  ///< Access function for #borderColour - refer to #borderColour property for details
-   QColor getBorderColour () const;                            ///< Access function for #borderColour - refer to #borderColour property for details
-
-   void setForegroundColour (const QColor value);              ///< Access function for #foregroundColour - refer to #foregroundColour property for details
-   QColor getForegroundColour () const;                        ///< Access function for #foregroundColour - refer to #foregroundColour property for details
-
-   void setBackgroundColour (const QColor value);              ///< Access function for #backgroundColour - refer to #backgroundColour property for details
-   QColor getBackgroundColour () const;                        ///< Access function for #backgroundColour - refer to #backgroundColour property for details
-
-   void setFontColour (const QColor value);                    ///< Access function for #fontColour - refer to #fontColour property for details
-   QColor getFontColour () const;                              ///< Access function for #fontColour - refer to #fontColour property for details
-
-   void setShowText (const bool value);                        ///< Access function for #showText - refer to #showText property for details
-   bool getShowText () const;                                  ///< Access function for #showText - refer to #showText property for details
-
-   void setShowScale (const bool value);                       ///< Access function for #showScale - refer to #showScale property for details
-   bool getShowScale () const;                                 ///< Access function for #showScale - refer to #showScale property for details
-
-   void setLogScale (const bool value);                        ///< Access function for #logScale - refer to #logScale property for details
-   bool getLogScale () const;                                  ///< Access function for #logScale - refer to #logScale property for details
-
-public slots:
-   void setRange   (const double MinimumIn, const double MaximumIn);
-   void setValue   (const double ValueIn);
-   void setValue   (const int value);                          // overloaded form
+private slots:
+   void updatePaintValue ();
 };
 
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
