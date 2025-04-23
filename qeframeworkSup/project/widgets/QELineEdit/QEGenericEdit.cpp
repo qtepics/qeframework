@@ -424,6 +424,7 @@ void QEGenericEdit::setDrop( QVariant drop )
 
       case QE::DropToTextAndWrite:
          setText(drop.toString());
+         writeNow();
          break;
 
       default:
