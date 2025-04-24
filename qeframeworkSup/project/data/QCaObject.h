@@ -160,6 +160,11 @@ public:
    //
    bool getDataIsAvailable () const;
 
+   // Indicztes if this is a meta data update,
+   // The first post connection update is always a meta data update.
+   //
+   bool getIsMataDataUpdate () const;
+
    // note: apart for array action, this provides a raw string conversion,
    // i.e. no units, precision or other QEString formatting
    //
@@ -228,7 +233,7 @@ private:
    UserMessage* userMessage;
    SignalsToSendFlags signalsToSend;
    int arrayIndex;
-   bool firstUpdate;
+   bool isFirstMetaUpdate;
 
    // This can be one of QECaClient, QEPvaClient or QENullClient.
    //

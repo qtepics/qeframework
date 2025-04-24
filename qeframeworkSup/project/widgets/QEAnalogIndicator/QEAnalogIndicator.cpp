@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2023 Australian Synchrotron
+ *  Copyright (c) 2011-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -32,6 +32,7 @@
 #include <QPen>
 #include <QPoint>
 #include <QPolygon>
+#include <QTimer>
 #include <QECommon.h>
 
 #define  _USE_MATH_DEFINES
@@ -39,9 +40,9 @@
 
 #define DEBUG qDebug () << "QEAnalogIndicator" << __LINE__ << __FUNCTION__ << "  "
 
-#define MINIMUM_SPAN        0.000001
-#define RADIANS_PER_DEGREE  (M_PI / 180.0)
-
+static const double minimumSpan = 0.000001;
+static const double radiansPerDegree = M_PI / 180.0;
+static const double animationInterval = 0.02;    // 20 mSec
 
 //------------------------------------------------------------------------------
 // Constructor with no initialisation
@@ -65,12 +66,17 @@ QEAnalogIndicator::QEAnalogIndicator (QWidget *parent) : QWidget (parent)
    this->mShowText = true;
    this->mShowScale = false;
    this->mLogScale = false;
-   this->mValue = 0.0;
    this->mCentreAngle = 0;
    this->mSpanAngle = 180;
+   this->mAnimationTime = 0.0;
    this->mIsActive = true;
 
-   // Do thsi only once, not on paintEvent as it caises another paint event.
+   this->paintValue = 0.0;
+   this->targetValue = 0.0;
+   this->sourceValue = 0.0;
+   this->updateCounter = 0;
+
+   // Do this only once, not on paintEvent as it causes another paint event.
    //
    this->setAutoFillBackground (false);
    this->setBackgroundRole (QPalette::NoRole);
@@ -107,7 +113,7 @@ double QEAnalogIndicator::calcFraction (const double x)
 
 //------------------------------------------------------------------------------
 //
-bool QEAnalogIndicator::firstValue (int & itc, double & value, bool & isMajor)
+bool QEAnalogIndicator::firstValue (int& itc, double& value, bool& isMajor)
 {
    double real;
    bool result;
@@ -133,7 +139,7 @@ bool QEAnalogIndicator::firstValue (int & itc, double & value, bool & isMajor)
 
 //------------------------------------------------------------------------------
 //
-bool QEAnalogIndicator::nextValue  (int & itc, double & value, bool & isMajor)
+bool QEAnalogIndicator::nextValue (int& itc, double& value, bool& isMajor)
 {
    const int fs = 9;
 
@@ -170,7 +176,8 @@ bool QEAnalogIndicator::nextValue  (int & itc, double & value, bool & isMajor)
 QColor QEAnalogIndicator::getBorderPaintColour () const
 {
    return (this->isEnabled() && this->getIsActive ())
-         ? this->mBorderColour : QEUtilities::blandColour (this->mBorderColour);
+         ? this->mBorderColour
+         : QEUtilities::blandColour (this->mBorderColour);
 }
 
 //------------------------------------------------------------------------------
@@ -178,7 +185,8 @@ QColor QEAnalogIndicator::getBorderPaintColour () const
 QColor QEAnalogIndicator::getBackgroundPaintColour () const
 {
    return (this->isEnabled() && this->getIsActive ())
-         ? this->mBackgroundColour : QEUtilities::blandColour (this->mBackgroundColour);
+         ? this->mBackgroundColour
+         : QEUtilities::blandColour (this->mBackgroundColour);
 }
 
 //------------------------------------------------------------------------------
@@ -186,16 +194,17 @@ QColor QEAnalogIndicator::getBackgroundPaintColour () const
 QColor QEAnalogIndicator::getForegroundPaintColour () const
 {
    return (this->isEnabled() && this->getIsActive ())
-         ? this->mForegroundColour : QEUtilities::blandColour (this->mForegroundColour);
+         ? this->mForegroundColour
+         : QEUtilities::blandColour (this->mForegroundColour);
 }
-
 
 //------------------------------------------------------------------------------
 //
 QColor QEAnalogIndicator::getFontPaintColour () const
 {
    return (this->isEnabled() && this->getIsActive ())
-         ? this->mFontColour : QEUtilities::blandColour (this->mFontColour);
+         ? this->mFontColour
+         : QEUtilities::blandColour (this->mFontColour);
 }
 
 //------------------------------------------------------------------------------
@@ -207,7 +216,7 @@ bool QEAnalogIndicator::isLeftRight () const
 
 //------------------------------------------------------------------------------
 // Consider using QEAxisPainter
-void QEAnalogIndicator::drawAxis  (QPainter & painter, QRect & axis)
+void QEAnalogIndicator::drawAxis (QPainter& painter, const QRect& axis)
 {
    QPen pen;
    QBrush brush;
@@ -359,7 +368,7 @@ void QEAnalogIndicator::drawAxis  (QPainter & painter, QRect & axis)
 
 //------------------------------------------------------------------------------
 //
-void QEAnalogIndicator::drawOutline (QPainter & painter, QRect & outline)
+void QEAnalogIndicator::drawOutline (QPainter& painter, const QRect& outline)
 {
    QPen pen;
    QBrush brush;
@@ -377,7 +386,7 @@ void QEAnalogIndicator::drawOutline (QPainter & painter, QRect & outline)
 
 //------------------------------------------------------------------------------
 //
-void QEAnalogIndicator::drawBar (QPainter & painter, QRect &area,
+void QEAnalogIndicator::drawBar (QPainter& painter, const QRect& area,
                                  const double fraction)
 {
    int temp;
@@ -440,7 +449,8 @@ void QEAnalogIndicator::drawBar (QPainter & painter, QRect &area,
 
 //------------------------------------------------------------------------------
 //
-void QEAnalogIndicator::drawMarker (QPainter & painter, QRect &area, const double fraction)
+void QEAnalogIndicator::drawMarker (QPainter& painter, const QRect& area,
+                                    const double fraction)
 {
    int span;
    int cx, cy;
@@ -544,7 +554,8 @@ void QEAnalogIndicator::drawMarker (QPainter & painter, QRect &area, const doubl
 
 //------------------------------------------------------------------------------
 //
-void QEAnalogIndicator::drawMeter (QPainter & painter, QRect &area, const double fraction)
+void QEAnalogIndicator::drawMeter (QPainter& painter, const QRect& area,
+                                   const double fraction)
 {
    // Macro function to create a point based on centre positon, radius and direction (s, c).
    //
@@ -582,8 +593,8 @@ void QEAnalogIndicator::drawMeter (QPainter & painter, QRect &area, const double
    minS = maxS = minC = maxC = 0.0;
    angle = lowerAngle;
    while (true) {
-      s = sin (angle * RADIANS_PER_DEGREE);
-      c = cos (angle * RADIANS_PER_DEGREE);
+      s = sin (angle * radiansPerDegree);
+      c = cos (angle * radiansPerDegree);
 
       minS = MIN (minS, s);
       maxS = MAX (maxS, s);
@@ -720,8 +731,8 @@ void QEAnalogIndicator::drawMeter (QPainter & painter, QRect &area, const double
       f = this->calcFraction (value);
 
       angle = lowerAngle +  f * (upperAngle - lowerAngle);
-      s = sin (angle * RADIANS_PER_DEGREE);
-      c = cos (angle * RADIANS_PER_DEGREE);
+      s = sin (angle * radiansPerDegree);
+      c = cos (angle * radiansPerDegree);
 
       if (isMajor) {
          p1 = RPOINT (0.94);
@@ -746,8 +757,8 @@ void QEAnalogIndicator::drawMeter (QPainter & painter, QRect &area, const double
    }
 
    angle = lowerAngle + fraction *(upperAngle - lowerAngle);
-   s = sin (angle * RADIANS_PER_DEGREE);
-   c = cos (angle * RADIANS_PER_DEGREE);
+   s = sin (angle * radiansPerDegree);
+   c = cos (angle * radiansPerDegree);
 
    pen.setColor (this->getForegroundPaintColour ());
    p1 = RPOINT (0.0);
@@ -777,7 +788,8 @@ void QEAnalogIndicator::drawMeter (QPainter & painter, QRect &area, const double
 
 //------------------------------------------------------------------------------
 //
-void QEAnalogIndicator::drawText (QPainter & painter, QPoint & textCentre, QString & text, const int pointSize)
+void QEAnalogIndicator::drawText (QPainter& painter, const QPoint& textCentre,
+                                  const QString& text, const int pointSize)
 {
    QFont pf (this->font ());
 
@@ -807,7 +819,8 @@ void QEAnalogIndicator::drawText (QPainter & painter, QPoint & textCentre, QStri
 
 //------------------------------------------------------------------------------
 //
-void QEAnalogIndicator::drawAxisText (QPainter & painter, QPoint & textCentre, QString & text, const int pointSize)
+void QEAnalogIndicator::drawAxisText (QPainter& painter, const QPoint& textCentre,
+                                      const QString& text, const int pointSize)
 {
    QFont pf (this->font ());
 
@@ -842,7 +855,7 @@ void QEAnalogIndicator::drawAxisText (QPainter & painter, QPoint & textCentre, Q
 
 //------------------------------------------------------------------------------
 //
-void QEAnalogIndicator::paintEvent (QPaintEvent * /* event - make warning go away */)
+void QEAnalogIndicator::paintEvent (QPaintEvent* /* event - make warning go away */)
 {
    QPainter painter (this);
 
@@ -924,7 +937,7 @@ void QEAnalogIndicator::paintEvent (QPaintEvent * /* event - make warning go awa
 
    // Calculate the fractional scale and constrain to be in range.
    //
-   fraction = this->calcFraction (this->mValue);
+   fraction = this->calcFraction (this->paintValue);
 
 
    // Now lets get drawing.
@@ -980,7 +993,7 @@ QString QEAnalogIndicator::getTextImage () const
 {
    QString result;
 
-   result = QString::asprintf ("%+0.7g", this->mValue);
+   result = QString::asprintf ("%+0.7g", this->targetValue);
    return result;
 }
 
@@ -1040,11 +1053,11 @@ double QEAnalogIndicator::getMajorInterval () const
 
 //------------------------------------------------------------------------------
 //
-void QEAnalogIndicator::setRange (const double MinimumIn,
-                                  const double MaximumIn)
+void QEAnalogIndicator::setRange (const double minimumIn,
+                                  const double maximumIn)
 {
-   this->setMinimum (MinimumIn);
-   this->setMaximum (MaximumIn);
+   this->setMinimum (minimumIn);
+   this->setMaximum (maximumIn);
 }
 
 //------------------------------------------------------------------------------
@@ -1052,6 +1065,66 @@ void QEAnalogIndicator::setRange (const double MinimumIn,
 void QEAnalogIndicator::setValue (const int valueIn)
 {
    this->setValue (double (valueIn));
+}
+
+//------------------------------------------------------------------------------
+//
+void QEAnalogIndicator::setValue (const double value)
+{
+   if (this->targetValue != value) {
+      // Target changed
+      this->targetValue = value;              // save new target
+      this->sourceValue = this->paintValue;   // save where we are
+
+      if (this->mAnimationTime <= animationInterval) {
+         // No animation per se
+         //
+         this->paintValue = this->targetValue;
+         this->update ();
+      } else {
+         this->updateCounter = 0;
+         QTimer::singleShot(1, this, SLOT(updatePaintValue ()));
+      }
+   }
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QEAnalogIndicator::updatePaintValue ()
+{
+   // Animation time is for the full span, so scale by delta
+   // so that we get uniform speed.
+   //
+   const double fullSpan = this->mMaximum - this->mMinimum;
+   const double delta = this->targetValue - this->sourceValue;
+   const double numberUpdates =
+         (this->mAnimationTime * ABS(delta)) /
+         (animationInterval    * fullSpan);
+
+   // Calculate the fraction of where we ate now at.
+   //
+   this->updateCounter++;
+   const double frac = double(this->updateCounter) / numberUpdates;
+
+   if (frac >= 1.0) {
+      // All done
+      this->paintValue = this->targetValue;
+   } else {
+      // Calculate fractional value and also re-schedule next paint.
+      //
+      this->paintValue = this->sourceValue + frac*delta;
+      const int mSec = int (1000.0 * animationInterval);
+      QTimer::singleShot (mSec, this, SLOT (updatePaintValue ()));
+   }
+
+   this->update ();   // Trigger current paint.
+}
+
+//------------------------------------------------------------------------------
+//
+double QEAnalogIndicator::getValue () const
+{
+   return this->targetValue;
 }
 
 //------------------------------------------------------------------------------
@@ -1063,7 +1136,7 @@ void QEAnalogIndicator::setMinimum (const double minimum)
 
    // Ensure consistant.
    //
-   this->mMaximum = MAX (this->mMaximum, this->mMinimum + MINIMUM_SPAN);
+   this->mMaximum = MAX (this->mMaximum, this->mMinimum + minimumSpan);
    this->update();
 }
 
@@ -1082,7 +1155,7 @@ void QEAnalogIndicator::setMaximum (const double maximum)
 
    // Ensure consistant.
    //
-   this->mMinimum = MIN (this->mMinimum, this->mMaximum - MINIMUM_SPAN);
+   this->mMinimum = MIN (this->mMinimum, this->mMaximum - minimumSpan);
    this->update ();
 }
 
@@ -1123,6 +1196,8 @@ PROPERTY_ACCESS (int, CentreAngle, LIMIT (value, -180, +180) )
 
 PROPERTY_ACCESS (int, SpanAngle, LIMIT (value, 15, 350) )
 
+PROPERTY_ACCESS (double, AnimationTime, LIMIT (value, 0.0, 10.0) )
+
 PROPERTY_ACCESS (int, LogScaleInterval, LIMIT (value, 1, 10) )
 
 PROPERTY_ACCESS (QColor, BorderColour, value)
@@ -1138,8 +1213,6 @@ PROPERTY_ACCESS (bool, ShowText, value)
 PROPERTY_ACCESS (bool, ShowScale, value)
 
 PROPERTY_ACCESS (bool, LogScale, value)
-
-PROPERTY_ACCESS (double, Value, value)
 
 PROPERTY_ACCESS (bool, IsActive, value)
 
