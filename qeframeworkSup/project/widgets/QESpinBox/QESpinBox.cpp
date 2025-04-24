@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2018 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -83,6 +83,7 @@ void QESpinBox::setup() {
    setAllowDrop( false );
    addUnitsAsSuffix = false;
    useDbPrecisionForDecimal = true;
+   autoScaleSpinBox = true;
 
    // Set the initial state
    lastValue = 0.0;
@@ -148,6 +149,14 @@ QMenu* QESpinBox::getDefaultContextMenu()
    return menu;
 }
 
+//------------------------------------------------------------------------------
+//
+void QESpinBox::useNewVariableNameProperty( QString pvName,
+                                            QString substitutions,
+                                            unsigned int variableIndex )
+{
+   setVariableNameAndSubstitutions(pvName, substitutions, variableIndex);
+}
 
 /*
     Implementation of QEWidget's virtual funtion to create the specific type of QCaObject required.
@@ -241,14 +250,16 @@ void QESpinBox::setValueIfNoFocus( const double& value, QCaAlarmInfo& alarmInfo,
    // Save the last database value
    lastValue = value;
 
-   // Set the limits and step size
-   QEFloating* qca = (QEFloating*)getQcaItem(PV_VARIABLE_INDEX);
-   double upper = qca->getControlLimitUpper();
-   double lower = qca->getControlLimitLower();
-   if( upper != lower)
-   {
-      setMaximum( qca->getControlLimitUpper() );
-      setMinimum( qca->getControlLimitLower() );
+   QEFloating* qca = qobject_cast<QEFloating*>(this->getQcaItem( PV_VARIABLE_INDEX ));
+   if (qca && this->autoScaleSpinBox) {
+      // Set the limits and step size
+      double upper = qca->getControlLimitUpper();
+      double lower = qca->getControlLimitLower();
+      if( upper != lower)
+      {
+         setMaximum( qca->getControlLimitUpper() );
+         setMinimum( qca->getControlLimitLower() );
+      }
    }
 
    // Do nothing more if doing a single shot read (done when not subscribing to get range values)
@@ -415,6 +426,20 @@ void QESpinBox::setAddUnitsAsSuffix( bool addUnitsAsSuffixIn )
    addUnitsAsSuffix = addUnitsAsSuffixIn;
    qcaobject::QCaObject* qca = (QEFloating*)getQcaItem(PV_VARIABLE_INDEX);
    setSuffixEgu( qca );
+}
+
+//------------------------------------------------------------------------------
+//
+void QESpinBox::setAutoScale (const bool autoScaleIn)
+{
+   this->autoScaleSpinBox = autoScaleIn;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QESpinBox::getAutoScale () const
+{
+   return this->autoScaleSpinBox;
 }
 
 // useDbPrecision

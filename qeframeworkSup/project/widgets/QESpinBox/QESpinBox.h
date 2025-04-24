@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2024 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -63,6 +63,10 @@ public:
    void setAddUnitsAsSuffix( bool addUnitsAsSuffixIn );
    bool getAddUnitsAsSuffix() const;
 
+   // Auto scale control
+   void setAutoScale (const bool autoScaleIn);
+   bool getAutoScale () const;
+
    // useDbPrecision (as spinbox 'decimals')
    void setUseDbPrecisionForDecimals( bool useDbPrecisionForDecimalIn );
    bool getUseDbPrecisionForDecimals() const;
@@ -88,6 +92,7 @@ protected:
    QEFloatingFormatting floatingFormatting;
    bool writeOnChange;                     // Write changed value to database when user changes a value
    bool addUnitsAsSuffix;
+   bool autoScaleSpinBox;
    bool useDbPrecisionForDecimal;
 
    bool eventFilter (QObject *obj, QEvent *event);
@@ -99,11 +104,9 @@ private slots:
    void setValueIfNoFocus( const double& value, QCaAlarmInfo&, QCaDateTime&, const unsigned int& );
    void userValueChanged( double value );
 
-private slots:
-   void useNewVariableNameProperty( QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex )// !! move into Standard Properties section??
-   {
-      setVariableNameAndSubstitutions(variableNameIn, variableNameSubstitutionsIn, variableIndex);
-   }
+   void useNewVariableNameProperty( QString pvName,
+                                    QString substitutions,
+                                    unsigned int variableIndex );
 
 signals:
    // Note, the following signals are common to many QE widgets,
@@ -315,6 +318,12 @@ public:
 public:
    //=================================================================================
    Q_PROPERTY(bool writeOnChange READ getWriteOnChange WRITE setWriteOnChange)
+
+   // If true (default), display and editing of numbers using the PV's precision and control
+   // limits supplied with the data. If false, the precision, leadingZeros, minimum and maximum
+   // propertie values are used.
+   //
+   Q_PROPERTY (bool autoScale          READ getAutoScale        WRITE setAutoScale)
 
    // Note, this useDbPrecision property is normally part of the standard 'string properties' set.
    //       The normal get and set methods are QEStringFormatting::getUseDbPrecision() and QEStringFormatting::setUseDbPrecision().
