@@ -1105,7 +1105,7 @@ void QEStripChartItem::setArchiveData (const QObject* userData, const bool okay,
          }
       }
 
-      QString message = QString ("%1: %2 out of %3 points valid")
+      QString message = tr ("%1: %2 out of %3 points valid")
             .arg (pvName).arg (validCount).arg(count);
       this->chart->setReadOut (message);
 
@@ -1991,9 +1991,9 @@ void QEStripChartItem::contextMenuSelected (const QEStripChartNames::ContextMenu
    // Set tool top depending on current scaling.
    //
    if (this->scaling.isScaled()) {
-      this->pvName->setToolTip (scaledTip);
+      this->pvName->setToolTip (tr(scaledTip.toStdString().c_str()));
    } else {
-      this->pvName->setToolTip (regularTip);
+      this->pvName->setToolTip (tr(regularTip.toStdString().c_str()));
    }
 }
 

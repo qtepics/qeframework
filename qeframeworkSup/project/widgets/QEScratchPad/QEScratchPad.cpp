@@ -81,23 +81,23 @@ void QEScratchPad::createInternalWidgets ()
 
    this->titleFrame->setFixedHeight (titleFrameHeight);
 
-   this->titlePvName = new QLabel ("PV Name", this->titleFrame);
+   this->titlePvName = new QLabel (tr("PV Name"), this->titleFrame);
    this->titlePvName->setIndent (indent);
 
-   this->titleRecordType = new QLabel ("Record Type", this->titleFrame);
+   this->titleDescription = new QLabel (tr("Description"), this->titleFrame);
    this->titleRecordType->setFixedWidth (rtypWidth);
    this->titleRecordType->setIndent (indent);
 
-   this->titleDescription = new QLabel ("Description", this->titleFrame);
+   this->titleDescription = new QLabel (tr("Description"), this->titleFrame);
    this->titleDescription->setIndent (indent);
 
-   this->titleValue = new QLabel ("Value", this->titleFrame);
+   this->titleValue = new QLabel (tr("Value"), this->titleFrame);
    this->titleValue->setIndent (indent);
 
    this->loadButton = new QPushButton (this->titleFrame);
    this->loadButton->setIcon (QIcon (":/qe/stripchart/open_file.png"));
    this->loadButton->setFocusPolicy (Qt::NoFocus);
-   this->loadButton->setToolTip (" Load scratch pad configuration ");
+   this->loadButton->setToolTip (tr(" Load scratch pad configuration "));
    this->loadButton->setFixedSize (26, 26);
    // We discard the signal bool parameter
    QObject::connect (this->loadButton, SIGNAL (clicked ()),
@@ -106,7 +106,7 @@ void QEScratchPad::createInternalWidgets ()
    this->saveButton = new QPushButton (this->titleFrame);
    this->saveButton->setIcon (QIcon (":/qe/stripchart/save_file.png"));
    this->saveButton->setFocusPolicy (Qt::NoFocus);
-   this->saveButton->setToolTip (" Save scratch pad configuration ");
+   this->saveButton->setToolTip (tr(" Save scratch pad configuration "));
    this->saveButton->setFixedSize (26, 26);
    QObject::connect (this->saveButton, SIGNAL (clicked ()),
                      this, SLOT (saveWidgetConfiguration ()));
@@ -962,13 +962,13 @@ QMenu* QEScratchPad::buildContextMenu ()
 
    menu->addSeparator ();
 
-   action = new QAction ("Sort By PV Name", menu);
+   action = new QAction (tr("Sort By PV Name"), menu);
    action->setCheckable (false);
    action->setEnabled (n >= 2);   // need two or more to tango.
    action->setData (QEScratchPadMenu::SCRATCHPAD_SORT_PV_NAMES);
    menu->addAction (action);
 
-   action = new QAction ("Clear All", menu);
+   action = new QAction (tr("Clear All"), menu);
    action->setCheckable (false);
    action->setEnabled (n >= 1);
    action->setData (QEScratchPadMenu::SCRATCHPAD_CLEAR_ALL);

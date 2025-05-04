@@ -120,10 +120,10 @@ void QEPvLoadSaveButton::userClicked(bool)
       // If it has simply reset the values.
       //
       if (this->showProgressDialog) {
-         QString labelText = getAction() == SaveToFile ? "Saving PV values to file ..." : "Applying PV values to the system...";
+         QString labelText = getAction() == SaveToFile ? tr("Saving PV values to file ...") : tr("Applying PV values to the system...");
          if (this->progressDialog == NULL) {
-            this->progressDialog = new QProgressDialog(labelText, "Abort", 0, MAX (1, model->leafCount ()), this);
-            this->progressDialog->setWindowTitle("Load/Save Progress");
+            this->progressDialog = new QProgressDialog(labelText, tr("Abort"), 0, MAX (1, model->leafCount ()), this);
+            this->progressDialog->setWindowTitle(tr("Load/Save Progress"));
             this->progressDialog->setWindowModality(Qt::WindowModal);
             this->progressDialog->setMinimumDuration(0);
             this->progressDialog->setAutoClose(false);
@@ -132,7 +132,7 @@ void QEPvLoadSaveButton::userClicked(bool)
             this->progressDialog->setMinimumWidth(300);
          } else {
             this->progressDialog->setLabelText(labelText);
-            this->progressDialog->setCancelButtonText("Abort");
+            this->progressDialog->setCancelButtonText(tr("Abort"));
             this->progressDialog->setRange(0,MAX (1, model->leafCount ()));
             this->progressDialog->setValue(0);
             this->progressDialog->open();
@@ -182,19 +182,19 @@ bool QEPvLoadSaveButton::actionIsPermitted (Actions action)
          message = this->getConfirmText();
       } else {
          if (action == LoadToPVs) {
-            message = "You are about to write to one or more system Process\n"
+            message = tr("You are about to write to one or more system Process\n"
                   "Variables. This may adversely affect the operation of\n"
                   "the system. Are you sure you wish to processed?\n"
-                  "Click OK to proceed or Cancel for no change.";
+                  "Click OK to proceed or Cancel for no change.");
          } else if (action == SaveToFile) {
-            message = "You are about to save the values of oneor more system\n"
+            message = tr("You are about to save the values of oneor more system\n"
                   "Process Variables. This will override any previously\n"
                   "saved values in the file. Are you sure you wish to processed?\n"
-                  "Click OK to proceed or Cancel for no change.";
+                  "Click OK to proceed or Cancel for no change.");
          }
       }
       int confirm = QMessageBox::warning
-               (this, QString("PV %1 Confirmation").arg(action == LoadToPVs ? "Load" : "Save"), message,
+               (this, tr("PV %1 Confirmation").arg(action == LoadToPVs ? tr("Load") : tr("Save")), message,
                 QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel);
       result = (confirm == QMessageBox::Ok);
    } else {
@@ -213,11 +213,11 @@ void QEPvLoadSaveButton::acceptActionComplete (const QEPvLoadSaveItem*,
       int v = this->progressDialog->value () + 1;
       this->progressDialog->setValue (v);
       int n = this->progressDialog->maximum();
-      QString status = QString ("Processed %2 of %3 items")
+      QString status = tr ("Processed %1 of %2 items")
             .arg (v).arg (n);
       this->progressDialog->setLabelText (status);
       if (v == n) {
-         this->progressDialog->setCancelButtonText("Done");
+         this->progressDialog->setCancelButtonText(tr("Done"));
       }
       QApplication::processEvents();
    }

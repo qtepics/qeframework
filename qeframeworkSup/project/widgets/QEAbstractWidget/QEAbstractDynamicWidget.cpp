@@ -190,12 +190,12 @@ QMenu* QEAbstractDynamicWidget::buildContextMenu ()
 
    menu->addSeparator ();
 
-   action = new QAction ("Load Configuration", menu);
+   action = new QAction (tr("Load Configuration"), menu);
    action->setCheckable (false);
    action->setData (ADWCM_LOAD_WIDGET_CONFIG);
    menu->addAction (action);
 
-   action = new QAction ("Save Configuration", menu);
+   action = new QAction (tr("Save Configuration"), menu);
    action->setCheckable (false);
    action->setData (ADWCM_SAVE_WIDGET_CONFIG);
    menu->addAction (action);
@@ -214,19 +214,19 @@ void QEAbstractDynamicWidget::addPVLabelModeContextMenu (QMenu* menu)
 
    menu->addSeparator ();
 
-   action = new QAction ("Use PV Names", menu);
+   action = new QAction (tr("Use PV Names"), menu);
    action->setCheckable (true);
    action->setChecked (this->pvLabelMode == QE::usePvName);
    action->setData (ADWCM_SELECT_USE_PV_NAME);
    menu->addAction (action);
 
-   action = new QAction ("Use Alias Names (if available)", menu);
+   action = new QAction (tr("Use Alias Names (if available)"), menu);
    action->setCheckable (true);
    action->setChecked (this->pvLabelMode == QE::useAliasName);
    action->setData (ADWCM_SELECT_USE_ALIAS_NAME);
    menu->addAction (action);
 
-   action = new QAction ("Use Descriptions (if available)", menu);
+   action = new QAction (tr("Use Descriptions (if available)"), menu);
    action->setCheckable (true);
    action->setChecked (this->pvLabelMode == QE::useDescription);
    action->setData (ADWCM_SELECT_USE_DESCRIPTION);
@@ -341,8 +341,8 @@ void QEAbstractDynamicWidget::saveNamedWidetConfiguration (const QString& filena
 void QEAbstractDynamicWidget::loadWidgetConfiguration ()
 {
    QString filename = QFileDialog::getOpenFileName
-         (this,"Select configuration input file", this->getDefaultDir (),
-          "Config Files(*.xml);;All files (*)");
+         (this,tr("Select configuration input file"), this->getDefaultDir (),
+          tr("Config Files(*.xml);;All files (*)"));
 
    // Idf user clicks on Cancel, an empty file name is returned.
    // This is handled by the loadNamedWidetConfiguration function.
@@ -358,8 +358,8 @@ void QEAbstractDynamicWidget::saveWidgetConfiguration ()
    // overwrite confirmation here.
    //
    QString filename = QFileDialog::getSaveFileName
-         (this, "Select configuration output file", this->getDefaultDir (),
-          "Config Files(*.xml)", 0, QFileDialog::DontConfirmOverwrite);
+         (this, tr("Select configuration output file"), this->getDefaultDir (),
+          tr("Config Files(*.xml)"), 0, QFileDialog::DontConfirmOverwrite);
 
    // Ensure name ends with .xml iff a name has been specified.
    //

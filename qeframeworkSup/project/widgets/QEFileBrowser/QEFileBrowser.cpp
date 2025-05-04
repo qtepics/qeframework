@@ -54,24 +54,24 @@ QEFileBrowser::QEFileBrowser(QWidget *pParent):QWidget(pParent), QEWidget( this 
    qPushButtonRefresh = new QPushButton(this);
    qTableWidgetFileBrowser = new _QTableWidgetFileBrowser(this);
 
-   qeLineEditDirectoryPath->setToolTip("Specify the directory where to browse for files");
+   qeLineEditDirectoryPath->setToolTip(tr("Specify the directory where to browse for files"));
    QObject::connect(qeLineEditDirectoryPath, SIGNAL(textChanged(QString)),
                     this, SLOT(lineEditDirectoryPathChanged(QString)));
 
    qPushButtonDirectoryBrowser->setText("...");
-   qPushButtonDirectoryBrowser->setToolTip("Browse for a directory");
+   qPushButtonDirectoryBrowser->setToolTip(tr("Browse for a directory"));
    QObject::connect(qPushButtonDirectoryBrowser, SIGNAL(clicked()),
                     this, SLOT(buttonDirectoryBrowserClicked()));
 
-   qPushButtonRefresh->setText("Refresh");
-   qPushButtonRefresh->setToolTip("Refresh file browse result");
+   qPushButtonRefresh->setText(tr("Refresh"));
+   qPushButtonRefresh->setToolTip(tr("Refresh file browse result"));
    QObject::connect(qPushButtonRefresh, SIGNAL(clicked()), this, SLOT(buttonRefreshClicked()));
 
    qTableWidgetFileBrowser->setColumnCount(3);
-   qTableWidgetFileBrowser->setHorizontalHeaderItem(0, new QTableWidgetItem("Time"));
-   qTableWidgetFileBrowser->setHorizontalHeaderItem(1, new QTableWidgetItem("Size"));
-   qTableWidgetFileBrowser->setHorizontalHeaderItem(2, new QTableWidgetItem("Filename"));
-   qTableWidgetFileBrowser->setToolTip("Files contained in the specified directory");
+   qTableWidgetFileBrowser->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("Time")));
+   qTableWidgetFileBrowser->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("Size")));
+   qTableWidgetFileBrowser->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Filename")));
+   qTableWidgetFileBrowser->setToolTip(tr("Files contained in the specified directory"));
    qTableWidgetFileBrowser->setEditTriggers(QAbstractItemView::NoEditTriggers);
    qTableWidgetFileBrowser->setSelectionBehavior(QAbstractItemView::SelectRows);
    qTableWidgetFileBrowser->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -352,11 +352,11 @@ void QEFileBrowser::buttonDirectoryBrowserClicked()
 
    if (fileDialogDirectoriesOnly)
    {
-      result = QFileDialog::getExistingDirectory(this, "Select directory", qeLineEditDirectoryPath->text(), QFileDialog::ShowDirsOnly);
+      result = QFileDialog::getExistingDirectory(this, tr("Select directory"), qeLineEditDirectoryPath->text(), QFileDialog::ShowDirsOnly);
    }
    else
    {
-      result = QFileDialog::getOpenFileName(this, "Select file", qeLineEditDirectoryPath->text());
+      result = QFileDialog::getOpenFileName(this, tr("Select file"), qeLineEditDirectoryPath->text());
    }
 
    if (!result.isEmpty())
@@ -423,7 +423,7 @@ void QEFileBrowser::updateTable()
       qTableWidgetItem = new QTableWidgetItem(fileList.at(i).lastModified().toString("yyyy/MM/dd - hh:mm:ss"));
       qTableWidgetFileBrowser->setItem(j, 0, qTableWidgetItem);
 
-      qTableWidgetItem = new QTableWidgetItem(QString::number(fileList.at(i).size()) + " bytes");
+      qTableWidgetItem = new QTableWidgetItem(QString::number(fileList.at(i).size()) + tr(" bytes"));
       qTableWidgetFileBrowser->setItem(j, 1, qTableWidgetItem);
 
       if (showFileExtension)

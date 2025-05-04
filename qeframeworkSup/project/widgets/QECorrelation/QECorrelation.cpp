@@ -169,16 +169,16 @@ void QECorrelation::setup ()
    this->contextMenu = new QMenu (this);
 
    QAction* action;
-   action = new QAction ("Add/Edit PV Name ", this->contextMenu);
+   action = new QAction (tr("Add/Edit PV Name "), this->contextMenu);
    action->setData (QVariant (int (maAddEdit)));
    this->contextMenu->addAction (action);
 
-   action = new QAction ("Paste PV Name ", this->contextMenu );
+   action = new QAction (tr("Paste PV Name "), this->contextMenu );
    action->setData (QVariant (int (maPaste)));
    this->contextMenu->addAction (action);
    this->pasteAction = action;  // save a reference.
 
-   action = new QAction ("Clear ", this->contextMenu );
+   action = new QAction (tr("Clear "), this->contextMenu );
    action->setData (QVariant (int (maClear)));
    this->contextMenu->addAction (action);
    this->clearAction = action;  // save a reference.

@@ -374,7 +374,7 @@ void QEToolTip::displayToolTip ()
       }
 
       if (count == 0) {
-         toolTip = "No variables defined";
+         toolTip = QObject::tr("No variables defined");
       }
 
       if (toolTipCustom.size ()) {

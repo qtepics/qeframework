@@ -415,7 +415,7 @@ void QEPvLoadSaveModel::selectionChanged (const QItemSelection& selected, const 
       this->selectedItem = item;
       if (item) {
          int count = item->leafCount ();
-         QString text = "selected ";
+         QString text = tr("selected ");
          if (item->getIsPV ()) {
             text.append (item->getNodeName ());
          } else {
@@ -622,9 +622,9 @@ QVariant QEPvLoadSaveModel::headerData (int section, Qt::Orientation orientation
    if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
        switch (kind) {
           case QEPvLoadSaveCommon::NodeName:  return QVariant (this->heading);
-          case QEPvLoadSaveCommon::LoadSave:  return QVariant ("load/save");
-          case QEPvLoadSaveCommon::Live:      return QVariant ("live");
-          case QEPvLoadSaveCommon::Delta:     return QVariant ("delta");
+          case QEPvLoadSaveCommon::LoadSave:  return QVariant (tr("load/save"));
+          case QEPvLoadSaveCommon::Live:      return QVariant (tr("live"));
+          case QEPvLoadSaveCommon::Delta:     return QVariant (tr("delta"));
           default: return QVariant ("");
        }
    }

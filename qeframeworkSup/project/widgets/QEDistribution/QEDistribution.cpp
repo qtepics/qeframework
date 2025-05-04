@@ -138,16 +138,16 @@ void QEDistribution::setup()
    this->contextMenu = new QMenu (this);
 
    QAction* action;
-   action = new QAction ("Add/Edit PV Name ", this->contextMenu);
+   action = new QAction (tr("Add/Edit PV Name "), this->contextMenu);
    action->setData (QVariant (int (maAddEdit)));
    this->contextMenu->addAction (action);
 
-   action = new QAction ("Paste PV Name ", this->contextMenu );
+   action = new QAction (tr("Paste PV Name "), this->contextMenu );
    action->setData (QVariant (int (maPaste)));
    this->contextMenu->addAction (action);
    this->pasteAction = action;  // save a reference.
 
-   action = new QAction ("Clear ", this->contextMenu );
+   action = new QAction (tr("Clear "), this->contextMenu );
    action->setData (QVariant (int (maClear)));
    this->contextMenu->addAction (action);
    this->clearAction = action;  // save a reference.
@@ -1158,7 +1158,7 @@ void QEDistribution::createWidgets()
 
    this->pvNameLabel = new QLabel (this->resize_frame);
    this->pvNameLabel->setGeometry (QRect (left, 8, 420, 16)); left += 420 + sg;
-   this->pvNameLabel->setText ("NAME...");
+   this->pvNameLabel->setText (tr("NAME..."));
    this->pvNameLabel->setFont (font1);
    this->pvNameLabel->setStyleSheet (QEUtilities::colourToStyle (QColor (155, 205, 255)));
    this->pvNameLabel->setIndent (6);
@@ -1170,16 +1170,16 @@ void QEDistribution::createWidgets()
    this->valueLabel->setStyleSheet (QEUtilities::offBackgroundStyle ());
 
    this->resetButton = new QPushButton (this->resize_frame);
-   this->resetButton->setToolTip (" Reset/clear all data ");
-   this->resetButton->setText ("Reset");
+   this->resetButton->setToolTip (tr(" Reset/clear all data "));
+   this->resetButton->setText (tr("Reset"));
    this->resetButton->setGeometry (QRect (left, 7, 52, 20)); left += 52 + sg;
    this->resetButton->setFont (font0);
    this->resetButton->setFocusPolicy (Qt::NoFocus);
    this->resetButton->setStyleSheet (QEUtilities::colourToStyle (QColor (255, 255, 128)));
 
    this->gaussianBox = new QCheckBox (this->resize_frame);
-   this->gaussianBox->setToolTip (" Show/hide gaussian curve ");
-   this->gaussianBox->setText ("gaussian");
+   this->gaussianBox->setToolTip (tr(" Show/hide gaussian curve "));
+   this->gaussianBox->setText (tr("gaussian"));
    this->gaussianBox->setGeometry (QRect (left, 7, 72, 20)); left += 72 + sg;
    this->gaussianBox->setFont (font0);
    this->gaussianBox->setFocusPolicy (Qt::NoFocus);
@@ -1189,7 +1189,7 @@ void QEDistribution::createWidgets()
    left = 8;
 
    this->label_1 = new QLabel (this->resize_frame);
-   this->label_1->setText ("Number:");
+   this->label_1->setText (tr("Number:"));
    this->label_1->setGeometry (QRect (left, 32, 52, 16));
    left += 52 + sg;
    this->label_1->setFont (font2);
@@ -1202,7 +1202,7 @@ void QEDistribution::createWidgets()
    this->countValueLabel->setIndent (6);
 
    this->label_2 = new QLabel (this->resize_frame);
-   this->label_2->setText ("Mean:");
+   this->label_2->setText (tr("Mean:"));
    this->label_2->setGeometry (QRect (left, 32, 36, 16));
    left += 36 + sg;
    this->label_2->setFont (font2);
@@ -1215,7 +1215,7 @@ void QEDistribution::createWidgets()
    this->meanValueLabel->setIndent (6);
 
    this->label_4 = new QLabel (this->resize_frame);
-   this->label_4->setText ("Min:");
+   this->label_4->setText (tr("Min:"));
    this->label_4->setGeometry (QRect (left, 32, 28, 16)); left += 28 + sg;
    this->label_4->setFont (font2);
 
@@ -1227,7 +1227,7 @@ void QEDistribution::createWidgets()
    this->minValueLabel->setIndent (6);
 
    this->label_5 = new QLabel (this->resize_frame);
-   this->label_5->setText ("Max:");
+   this->label_5->setText (tr("Max:"));
    this->label_5->setGeometry (QRect (left, 32, 28, 16)); left += 28 + sg;
    this->label_5->setFont (font2);
 
@@ -1239,7 +1239,7 @@ void QEDistribution::createWidgets()
    this->maxValueLabel->setIndent (6);
 
    this->label_6 = new QLabel (this->resize_frame);
-   this->label_6->setText ("Std Dev:");
+   this->label_6->setText (tr("Std Dev:"));
    this->label_6->setGeometry (QRect (left, 32, 48, 16)); left += 48 + sg;
    this->label_6->setFont (font2);
 

@@ -230,7 +230,7 @@ QMenu* contextMenu::buildContextMenu()
 
    // Add QE context menu
    QAction* a;
-   QString names = (numberOfItems >= 2) ? "names " : "name ";
+   QString names = (numberOfItems >= 2) ? QObject::tr("names ") : QObject::tr("name ");
 
    // Add menu options that require the application to provide support such as launch a strip chart.
    if( hasConsumer )
@@ -239,19 +239,19 @@ QMenu* contextMenu::buildContextMenu()
 
       if( menuSet.contains( CM_SHOW_PV_PROPERTIES ))
       {
-         a = new QAction( "Examine Properties",     menu ); a->setCheckable( false ); a->setData( CM_SHOW_PV_PROPERTIES ); menu->addAction( a );
+         a = new QAction( QObject::tr("Examine Properties"),     menu ); a->setCheckable( false ); a->setData( CM_SHOW_PV_PROPERTIES ); menu->addAction( a );
          addSeparator = true;
       }
 
       if( menuSet.contains( CM_ADD_TO_STRIPCHART ))
       {
-         a = new QAction( "Plot in StripChart",     menu ); a->setCheckable( false ); a->setData( CM_ADD_TO_STRIPCHART );  menu->addAction( a );
+         a = new QAction( QObject::tr("Plot in StripChart"),     menu ); a->setCheckable( false ); a->setData( CM_ADD_TO_STRIPCHART );  menu->addAction( a );
          addSeparator = true;
       }
 
       if( menuSet.contains( CM_ADD_TO_SCRATCH_PAD ))
       {
-         a = new QAction( "Show in Scratch Pad",    menu ); a->setCheckable( false ); a->setData( CM_ADD_TO_SCRATCH_PAD ); menu->addAction( a );
+         a = new QAction( QObject::tr("Show in Scratch Pad"),    menu ); a->setCheckable( false ); a->setData( CM_ADD_TO_SCRATCH_PAD ); menu->addAction( a );
          addSeparator = true;
       }
 
@@ -260,19 +260,19 @@ QMenu* contextMenu::buildContextMenu()
 
          if( menuSet.contains( CM_ADD_TO_PLOTTER ))
          {
-            a = new QAction( "Show in Plotter",    menu ); a->setCheckable( false ); a->setData( CM_ADD_TO_PLOTTER ); menu->addAction( a );
+            a = new QAction( QObject::tr("Show in Plotter"),    menu ); a->setCheckable( false ); a->setData( CM_ADD_TO_PLOTTER ); menu->addAction( a );
             addSeparator = true;
          }
 
          if( menuSet.contains( CM_SHOW_AS_HISTOGRAM ))
          {
-            a = new QAction( "Show as Historgram", menu ); a->setCheckable( false ); a->setData( CM_SHOW_AS_HISTOGRAM ); menu->addAction( a );
+            a = new QAction( QObject::tr("Show as Historgram"), menu ); a->setCheckable( false ); a->setData( CM_SHOW_AS_HISTOGRAM ); menu->addAction( a );
             addSeparator = true;
          }
 
          if( menuSet.contains( CM_ADD_TO_TABLE ))
          {
-            a = new QAction( "Show in Table",      menu ); a->setCheckable( false ); a->setData( CM_ADD_TO_TABLE ); menu->addAction( a );
+            a = new QAction( QObject::tr("Show in Table"),      menu ); a->setCheckable( false ); a->setData( CM_ADD_TO_TABLE ); menu->addAction( a );
             addSeparator = true;
          }
       }
@@ -285,19 +285,19 @@ QMenu* contextMenu::buildContextMenu()
 
    if( menuSet.contains( CM_COPY_VARIABLE ))
    {
-      a = new QAction( "Copy variable " + names, menu ); a->setCheckable( false ); a->setData( CM_COPY_VARIABLE );      menu->addAction( a );
+      a = new QAction( QObject::tr("Copy variable %1").arg(names), menu ); a->setCheckable( false ); a->setData( CM_COPY_VARIABLE );      menu->addAction( a );
       addSeparator = true;
    }
 
    if( menuSet.contains( CM_COPY_DATA ))
    {
-      a = new QAction( "Copy data",              menu ); a->setCheckable( false ); a->setData( CM_COPY_DATA );          menu->addAction( a );
+      a = new QAction( QObject::tr("Copy data"),              menu ); a->setCheckable( false ); a->setData( CM_COPY_DATA );          menu->addAction( a );
       addSeparator = true;
    }
 
    if( menuSet.contains( CM_PASTE ))
    {
-      a = new QAction( "Paste to variable " + names, menu ); a->setCheckable( false ); a->setData( CM_PASTE );          menu->addAction( a );
+      a = new QAction( QObject::tr("Paste to variable %1").arg(names), menu ); a->setCheckable( false ); a->setData( CM_PASTE );          menu->addAction( a );
 
       QClipboard *cb = QApplication::clipboard();
       a->setEnabled( qew->getAllowDrop() && !cb->text().isEmpty() );
@@ -310,14 +310,14 @@ QMenu* contextMenu::buildContextMenu()
 
    if( menuSet.contains( CM_DRAG_VARIABLE ))
    {
-      a = new QAction( "Drag variable " + names, menu ); a->setCheckable( true );  a->setData( CM_DRAG_VARIABLE );      menu->addAction( a );
+      a = new QAction( QObject::tr("Drag variable %1").arg(names), menu ); a->setCheckable( true );  a->setData( CM_DRAG_VARIABLE );      menu->addAction( a );
       a->setChecked( draggingVariable );
       addSeparator = true;
    }
 
    if( menuSet.contains( CM_DRAG_DATA ))
    {
-      a = new QAction( "Drag data",              menu ); a->setCheckable( true );  a->setData( CM_DRAG_DATA );          menu->addAction( a );
+      a = new QAction( QObject::tr("Drag data"),              menu ); a->setCheckable( true );  a->setData( CM_DRAG_DATA );          menu->addAction( a );
       a->setChecked( !draggingVariable );
       addSeparator = true;
    }
@@ -326,13 +326,13 @@ QMenu* contextMenu::buildContextMenu()
    if( ( qew->getUserLevel() >= editPvUserLevel ) && menuSet.contains( CM_GENERAL_PV_EDIT ))
    {
       if( addSeparator ) menu->addSeparator();
-      a = new QAction( "Edit PV", menu );
+      a = new QAction( QObject::tr("Edit PV"), menu );
       a->setCheckable( false );
       a->setData( CM_GENERAL_PV_EDIT );
       menu->addAction( a );
    }
 
-   menu->setTitle( "Use..." );
+   menu->setTitle( QObject::tr("Use...") );
 
    QObject::connect( menu, SIGNAL( triggered ( QAction* ) ),
                      object, SLOT( contextMenuTriggeredSlot( QAction* )) );

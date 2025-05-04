@@ -152,18 +152,18 @@ QEPvLoadSave::Halves::Halves (const Sides sideIn, QEPvLoadSave* ownerIn, QBoxLay
          iconPathName.append (buttonSpecs[j].captionOrIcon);
          button->setIcon (QIcon (iconPathName));
       } else {
-         button->setText (buttonSpecs[j].captionOrIcon);
+         button->setText (tr(buttonSpecs[j].captionOrIcon.toStdString().c_str()));
       }
 
       button->setFocusPolicy (Qt::NoFocus);
-      button->setToolTip (buttonSpecs[j].toolTip);
+      button->setToolTip (tr(buttonSpecs[j].toolTip.toStdString().c_str()));
       gap = buttonSpecs[j].gap;
 
       if (gap == NL) {
          // There is only one "newline".
          //
          if (this->side == LeftSide) {
-            this->checkBox = new QCheckBox ("Show 2nd tree", this->header);
+            this->checkBox = new QCheckBox (tr("Show 2nd tree"), this->header);
             this->checkBox->setGeometry (left + 2, top, 120, 26);
             this->checkBox->setFocusPolicy (Qt::NoFocus);
 
@@ -193,8 +193,8 @@ QEPvLoadSave::Halves::Halves (const Sides sideIn, QEPvLoadSave* ownerIn, QBoxLay
 
    this->macroString = new QLineEdit (this->header);
    this->macroString->setGeometry (4, top + 32, 444, 23);
-   this->macroString->setToolTip (" Define macro substitions - applies to PV names, \n"
-                                  " group names and values when loaded from a file. ");
+   this->macroString->setToolTip (tr(" Define macro substitions - applies to PV names, \n"
+                                  " group names and values when loaded from a file. "));
 
    this->tree = new QTreeView (this->header);
 
@@ -389,7 +389,7 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    this->loadSaveStatusFrame->setFixedHeight (76);
    this->overallLayout->addWidget (this->loadSaveStatusFrame);
 
-   this->loadSaveTitle = new QLabel ("Transfer to/from System or from Archive", this->loadSaveStatusFrame);
+   this->loadSaveTitle = new QLabel (tr("Transfer to/from System or from Archive"), this->loadSaveStatusFrame);
    QFont tf = this->loadSaveTitle->font ();
    tf.setPointSize (8);
    this->loadSaveTitle->setFont (tf);
@@ -402,7 +402,7 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    this->progressStatus->setGeometry (12, 54, 400, 16);
 
    this->abortButton = new QPushButton (this->loadSaveStatusFrame);
-   this->abortButton->setText ("Abort");
+   this->abortButton->setText (tr("Abort"));
    this->abortButton->setGeometry (424, 24, 80, 26);
    this->abortButton->setStyleSheet (abortDisabledStyle);
    this->abortButton->setEnabled (false);
@@ -436,25 +436,26 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    // TODO - leverage of standard context menu if we can.
    //
    this->treeContextMenu = new QMenu (this);
-   this->createAction (this->treeContextMenu, "Create Root",          false, TCM_CREATE_ROOT);
-   this->createAction (this->treeContextMenu, "Add Group...",         false, TCM_ADD_GROUP);
-   this->createAction (this->treeContextMenu, "Rename Group...",      false, TCM_RENAME_GROUP);
-   this->createAction (this->treeContextMenu, "Add PV...",            false, TCM_ADD_PV);
-   this->createAction (this->treeContextMenu, "Examine Properties",   false, TCM_SHOW_PV_PROPERTIES);
-   this->createAction (this->treeContextMenu, "Plot in StripChart",   false, TCM_ADD_TO_STRIPCHART);
-   this->createAction (this->treeContextMenu, "Show in Scatch Pad",   false, TCM_ADD_TO_SCRATCH_PAD);
+
+   this->createAction (this->treeContextMenu, tr("Create Root"),          false, TCM_CREATE_ROOT);
+   this->createAction (this->treeContextMenu, tr("Add Group..."),         false, TCM_ADD_GROUP);
+   this->createAction (this->treeContextMenu, tr("Rename Group..."),      false, TCM_RENAME_GROUP);
+   this->createAction (this->treeContextMenu, tr("Add PV..."),            false, TCM_ADD_PV);
+   this->createAction (this->treeContextMenu, tr("Examine Properties"),   false, TCM_SHOW_PV_PROPERTIES);
+   this->createAction (this->treeContextMenu, tr("Plot in StripChart"),   false, TCM_ADD_TO_STRIPCHART);
+   this->createAction (this->treeContextMenu, tr("Show in Scatch Pad"),   false, TCM_ADD_TO_SCRATCH_PAD);
 
    // Array PV releated.
    //
-   this->createAction (this->treeContextMenu, "Show in Plotter",      false, TCM_ADD_TO_PLOTTER);
-   this->createAction (this->treeContextMenu, "Show in Historgram",   false, TCM_ADD_TO_HISTORGRAM);
-   this->createAction (this->treeContextMenu, "Show in Table",        false, TCM_ADD_TO_TABLE);
+   this->createAction (this->treeContextMenu, tr("Show in Plotter"),      false, TCM_ADD_TO_PLOTTER);
+   this->createAction (this->treeContextMenu, tr("Show in Historgram"),   false, TCM_ADD_TO_HISTORGRAM);
+   this->createAction (this->treeContextMenu, tr("Show in Table"),        false, TCM_ADD_TO_TABLE);
 
    this->treeContextMenu->addSeparator ();
-   this->createAction (this->treeContextMenu, "Edit PV Name...",      false, TCM_EDIT_PV_NAME);
-   this->createAction (this->treeContextMenu, "Edit PV Value...",     false, TCM_EDIT_PV_VALUE);
-   this->createAction (this->treeContextMenu, "Copy variable name",   false, TCM_COPY_VARIABLE);
-   this->createAction (this->treeContextMenu, "Copy data",            false, TCM_COPY_DATA);
+   this->createAction (this->treeContextMenu, tr("Edit PV Name..."),      false, TCM_EDIT_PV_NAME);
+   this->createAction (this->treeContextMenu, tr("Edit PV Value..."),     false, TCM_EDIT_PV_VALUE);
+   this->createAction (this->treeContextMenu, tr("Copy variable name"),   false, TCM_COPY_VARIABLE);
+   this->createAction (this->treeContextMenu, tr("Copy data"),            false, TCM_COPY_DATA);
 
    QObject::connect (this->treeContextMenu, SIGNAL (triggered        (QAction*)),
                      this,                  SLOT   (treeMenuSelected (QAction*)));
@@ -637,7 +638,7 @@ void QEPvLoadSave::acceptActionComplete (const QEPvLoadSaveItem*,
       int v = this->progressBar->value () + 1;
       this->progressBar->setValue (v);
       int n = this->progressBar->maximum();
-      QString status = QString ("%1: Processed %2 of %3 items")
+      QString status = QString (tr("%1: Processed %2 of %3 items"))
             .arg (this->loadSaveAction)
             .arg (v).arg (n);
       this->progressStatus->setText (status);
@@ -811,7 +812,7 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          break;
 
       case TCM_ADD_GROUP:
-         this->groupNameDialog->setWindowTitle ("QEPvLoadSave - Add Group");
+         this->groupNameDialog->setWindowTitle (tr("QEPvLoadSave - Add Group"));
          this->groupNameDialog->setGroupName ("");
          n = this->groupNameDialog->exec (tree);
          if (n == 1) {
@@ -821,7 +822,7 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          break;
 
       case TCM_RENAME_GROUP:
-         this->groupNameDialog->setWindowTitle ("QEPvLoadSave - Rename Group");
+         this->groupNameDialog->setWindowTitle (tr("QEPvLoadSave - Rename Group"));
          this->groupNameDialog->setGroupName (nodeName);
          n = this->groupNameDialog->exec (tree);
          if (n == 1) {
@@ -831,7 +832,7 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          break;
 
       case TCM_ADD_PV:
-         this->pvNameSelectDialog->setWindowTitle ("QEPvLoadSave - Add PV");
+         this->pvNameSelectDialog->setWindowTitle (tr("QEPvLoadSave - Add PV"));
          this->pvNameSelectDialog->setPvNames ("", "", "");
          n = this->pvNameSelectDialog->exec (tree);
          if (n == 1) {
@@ -847,7 +848,7 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
       case TCM_EDIT_PV_NAME:
          leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
-            this->pvNameSelectDialog->setWindowTitle ("QEPvLoadSave - edit PV");
+            this->pvNameSelectDialog->setWindowTitle (tr("QEPvLoadSave - edit PV"));
             this->pvNameSelectDialog->setPvNames (leaf->getSetPointPvName(),
                                                   leaf->getReadBackPvName(),
                                                   leaf->getArchiverPvName());
@@ -984,11 +985,11 @@ bool QEPvLoadSave::pvWriteIsPermitted ()
    bool result;
    if (this->confirmRequired) {
       int confirm = QMessageBox::warning
-            (this, "PV Write Confirmation",
-             "You are about to write to one or more system Process\n"
+            (this, tr("PV Write Confirmation"),
+             tr("You are about to write to one or more system Process\n"
              "Variables. This may adversely affect the operation of\n"
              "the system. Are you sure you wish to processed?\n"
-             "Click OK to proceed or Cancel for no change.",
+             "Click OK to proceed or Cancel for no change."),
              QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel);
       result = (confirm == QMessageBox::Ok);
    } else {
@@ -1007,7 +1008,7 @@ void QEPvLoadSave::writeAllClicked (bool)
    const int number =  model->leafCount ();
    if (number > 0) {
       if (this->pvWriteIsPermitted ()) {
-         this->loadSaveAction = "Apply";
+         this->loadSaveAction = tr("Apply");
          this->progressBar->setMaximum (MAX (1, number));
          this->progressBar->setValue (0);
          this->abortButton->setStyleSheet (abortEnabledStyle);
@@ -1024,7 +1025,7 @@ void QEPvLoadSave::readAllClicked (bool)
    VERIFY_SENDER;
    QEPvLoadSaveModel* model = this->half [side]->model;
 
-   this->loadSaveAction = "Extract";
+   this->loadSaveAction = tr("Extract");
    this->progressBar->setMaximum (MAX (1, model->leafCount ()));
    this->progressBar->setValue (0);
    this->abortButton->setStyleSheet (abortEnabledStyle);
@@ -1042,7 +1043,7 @@ void QEPvLoadSave::writeSubsetClicked (bool)
    const int number = item ? item->leafCount() : 0;
    if (number > 0) {
       if (this->pvWriteIsPermitted ()) {
-         this->loadSaveAction = "Apply";
+         this->loadSaveAction = tr("Apply");
          this->progressBar->setMaximum (MAX (1, number));
          this->progressBar->setValue (0);
          this->abortButton->setStyleSheet (abortEnabledStyle);
@@ -1060,7 +1061,7 @@ void QEPvLoadSave::readSubsetClicked (bool)
 
    QEPvLoadSaveItem* item = this->half [side]->model->getSelectedItem ();
    if (item) {
-      this->loadSaveAction = "Extract";
+      this->loadSaveAction = tr("Extract");
       this->progressBar->setMaximum (MAX (1, item->leafCount ()));
       this->progressBar->setValue (0);
       this->abortButton->setStyleSheet (abortEnabledStyle);
@@ -1092,7 +1093,7 @@ void QEPvLoadSave::archiveTimeClicked (bool)
          //
          QDateTime selectedDataTime = this->archiveTimeDialog->getDateTime ();
 
-         this->loadSaveAction = "Read Archive";
+         this->loadSaveAction = tr("Read Archive");
          this->progressBar->setMaximum (MAX (1, number));
          this->progressBar->setValue (0);
          this->abortButton->setStyleSheet (abortEnabledStyle);
@@ -1167,8 +1168,8 @@ void QEPvLoadSave::loadClicked (bool)
 
    filename = QFileDialog::getOpenFileName
          (this,
-          "Select input file", this->getDefaultDir (),
-          "PV Config Files(*.xml);;All files (*.*)");
+          tr("Select input file"), this->getDefaultDir (),
+          tr("PV Config Files(*.xml);;All files (*.*)"));
 
    if (!filename.isEmpty()) {
       this->half [side]->open (filename);
@@ -1198,9 +1199,9 @@ void QEPvLoadSave::saveClicked (bool)
          .arg (timeNow.toString ("yyyyMMdd_hhmm"));
 
    filename = QFileDialog::getSaveFileName
-         (this, "Select output file",
+         (this, tr("Select output file"),
           defaultDir + defaultName,
-          "PV Config Files(*.xml)");
+          tr("PV Config Files(*.xml)"));
 
    // Ensure file has xml extension
    //
@@ -1301,7 +1302,7 @@ void QEPvLoadSave::abortClicked (bool)
    this->half [0]->model->abortAction ();
    this->half [1]->model->abortAction ();
 
-   QString title = this->loadSaveAction + " failures";
+   QString title = this->loadSaveAction + tr(" failures");
    if (this->hostSlotAvailable) {
       // If the graphicalCompare widget already visible - skip this part
       //

@@ -139,19 +139,19 @@ void QAnalogSlider::commonSetup ()
    this->saveButton->setFixedSize (buttonSize, buttonSize);
    this->saveButton->setStyleSheet (QEUtilities::colourToStyle (QColor (0x00C000)));
    this->saveButton->setFocusPolicy (Qt::NoFocus);
-   this->saveButton->setToolTip (" save current value ");
+   this->saveButton->setToolTip (tr(" save current value "));
 
    this->revertButton = new QPushButton ("R", this->labelFrame);
    this->revertButton->setFixedSize (buttonSize, buttonSize);
    this->revertButton->setStyleSheet (QEUtilities::colourToStyle (QColor (0x40A0FF)));
    this->revertButton->setFocusPolicy (Qt::NoFocus);
-   this->revertButton->setToolTip (" revert to saved value ");
+   this->revertButton->setToolTip (tr(" revert to saved value "));
 
    this->applyButton = new QPushButton ("A", this->labelFrame);
    this->applyButton->setFixedSize (buttonSize, buttonSize);
    this->applyButton->setStyleSheet (QEUtilities::colourToStyle (QColor (0x80E880)));
    this->applyButton->setFocusPolicy (Qt::NoFocus);
-   this->applyButton->setToolTip (" apply value ");
+   this->applyButton->setToolTip (tr(" apply value "));
 
    this->labelLayout->addWidget (this->saveButton);
    this->labelLayout->addWidget (this->revertButton);

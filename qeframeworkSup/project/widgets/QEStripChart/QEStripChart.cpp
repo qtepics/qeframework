@@ -295,7 +295,7 @@ void QEStripChart::createInternalWidgets ()
    this->toolBarResize = new QEResizeableFrame (QEResizeableFrame::BottomEdge, 8, 8 + this->toolBar->designHeight (), this);
    this->toolBarResize->setFixedHeight (8 + this->toolBar->designHeight ());
    this->toolBarResize->setFrameShape (QFrame::Panel);
-   this->toolBarResize->setGrabberToolTip ("Re size tool bar display area");
+   this->toolBarResize->setGrabberToolTip (tr("Re size tool bar display area"));
    this->toolBarResize->setWidget (this->toolBar);
 
    // Create PV frame and PV name labels and associated CA labels.
@@ -331,7 +331,7 @@ void QEStripChart::createInternalWidgets ()
    this->pvResizeFrame = new QEResizeableFrame (QEResizeableFrame::BottomEdge, 18, PV_SCROLL_HEIGHT + 8, this);
    this->pvResizeFrame->setFixedHeight (PV_DEFAULT_HEIGHT + 8);
    this->pvResizeFrame->setFrameShape (QFrame::Panel);
-   this->pvResizeFrame->setGrabberToolTip ("Re size PV display area");
+   this->pvResizeFrame->setGrabberToolTip (tr("Re size PV display area"));
    this->pvResizeFrame->setWidget (this->pvScrollArea);
 
    // Create plotting frame and plot area.
@@ -399,7 +399,7 @@ void QEStripChart::createInternalWidgets ()
    this->yScaleMode = QEStripChartNames::linear;
    this->chartTimeMode = QEStripChartNames::tmRealTime;
    this->timeScale = 1.0;
-   this->timeUnits = "secs";
+   this->timeUnits = tr("secs");
 
    this->setNormalBackground (true);
 }
@@ -571,22 +571,22 @@ void QEStripChart::plotData ()
    d = this->getDuration ();
    if (d <= 1.0) {
       this->timeScale = 0.001;
-      this->timeUnits = "mSec";
+      this->timeUnits = tr("mSec");
    } else if (d <= 60.0) {           // <= a minute
       this->timeScale = 1.0;
-      this->timeUnits = "secs";
+      this->timeUnits = tr("secs");
    } else if (d <= 3600.0) {         // <= an hour
       this->timeScale = 60.0;
-      this->timeUnits = "mins";
+      this->timeUnits = tr("mins");
    } else if (d <= oneDay) {         // <= a day
       this->timeScale = 3600.0;
-      this->timeUnits = "hrs";
+      this->timeUnits = tr("hrs");
    } else  if (d <= 100.0*oneDay) {  // <= a 100 days
       this->timeScale = oneDay;
-      this->timeUnits = "days";
+      this->timeUnits = tr("days");
    } else {
       this->timeScale = 7.0*oneDay;
-      this->timeUnits = "weeks";
+      this->timeUnits = tr("weeks");
    }
 
    // Get embedded canvas geometry and draw in time units.
@@ -646,7 +646,7 @@ void QEStripChart::plotData ()
    zoneTLA = QEUtilities::getTimeZoneTLA (this->timeZoneSpec, dt);
 
    times.append (dt.toString (format)).append (" ").append (zoneTLA);
-   times.append (" to ");
+   times.append (tr(" to "));
 
    dt = this->getEndDateTime ().toTimeSpec (this->timeZoneSpec);
    zoneTLA = QEUtilities::getTimeZoneTLA (this->timeZoneSpec, dt);
@@ -1072,7 +1072,7 @@ QEStripChart::QEStripChart (QWidget * parent) : QEAbstractDynamicWidget (parent)
    this->timeZoneSpec = Qt::LocalTime;
    this->duration = 600;     // ten minutes.
    this->timeScale = 60.0;   // minutes
-   this->timeUnits = "mins";
+   this->timeUnits = tr("mins");
 
    this->enableConextMenu = true;
    this->toolBarIsVisible = true;
@@ -1784,14 +1784,14 @@ QMenu* QEStripChart::buildContextMenu ()
 
    menu->addSeparator ();
 
-   action = new QAction ("Show/Hide Tool Bar", menu);
+   action = new QAction (tr("Show/Hide Tool Bar"), menu);
    action->setCheckable (true);
    action->setChecked(this->toolBarIsVisible);
    action->setEnabled (this->enableConextMenu);
    action->setData (QEStripChartNames::SCCM_SHOW_HIDE_TOOLBAR);
    menu->addAction (action);
 
-   action = new QAction ("Show/Hide PV Items", menu);
+   action = new QAction (tr("Show/Hide PV Items"), menu);
    action->setCheckable (true);
    action->setChecked(this->pvItemsIsVisible);
    action->setEnabled (this->enableConextMenu);
