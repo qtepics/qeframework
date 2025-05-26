@@ -4,6 +4,7 @@ O.linux-x86/
 O.windows-x64/
 O.win32-x86/
 O.win32-x86-mingw/
+O.windows-x64-mingw/
 bin/
 lib/
 include/
