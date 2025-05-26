@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2024 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -155,7 +155,7 @@ qcaobject::QCaObject* QEWidget::createConnection( unsigned int variableIndex ) {
 // Note, the color is determined by the alarmInfo class, but since that class is used in non
 // gui applications, it can't return a QColor
 //
-QColor QEWidget::getColor( QCaAlarmInfo& alarmInfo, int saturation )
+QColor QEWidget::getColor( const QCaAlarmInfo& alarmInfo, int saturation )
 {
    QColor result(alarmInfo.getColorName());
 
@@ -177,7 +177,8 @@ void QEWidget::processConnectionInfo (bool isConnected, const unsigned int )
 
 // Provides default (and consistant) alarm handling for all QE widgets.
 //
-void QEWidget::processAlarmInfo( QCaAlarmInfo& alarmInfo, const unsigned int variableIndex )
+void QEWidget::processAlarmInfo( const QCaAlarmInfo& alarmInfo,
+                                 const unsigned int variableIndex )
 {
    // Gather the current info
    QCaAlarmInfo::Severity severity = alarmInfo.getSeverity();

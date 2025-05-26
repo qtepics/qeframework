@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2024 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -251,7 +251,7 @@ public:
     /// Static method to return a colour to update the widget's look to reflect the current alarm state
     /// Note, the color is determined by the alarmInfo class, but since that class is used in non
     /// gui applications, it can't return a QColor
-    static QColor getColor( QCaAlarmInfo& alarmInfo, const int saturation );
+    static QColor getColor( const QCaAlarmInfo& alarmInfo, const int saturation );
 
     /// This convenience function updates the connection style and also clears/re-initialises
     /// the last saved severity and display alarm info state, as used by processAlarmInfo.
@@ -261,7 +261,8 @@ public:
     /// This convenience function updates the alarm tool tip, and alarm status style if the displayAlarmState
     /// property is set to true - assumes the widget uses standard properties. This function is perhaps
     /// most usefull for single-variable widgets.
-    void processAlarmInfo( QCaAlarmInfo& alarmInfo, const unsigned int variableIndex = 0 );
+    ///
+    void processAlarmInfo( const QCaAlarmInfo& alarmInfo, const unsigned int variableIndex = 0 );
 
     /// Virtual function that may be implimented by users of QEWidget to update variable names and macro substitutions.
     /// A default is provided that is suitible in most cases.
