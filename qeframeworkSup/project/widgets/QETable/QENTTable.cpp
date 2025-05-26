@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2018-2022 Australian Synchrotron.
+ *  Copyright (c) 2018-2025 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -315,10 +315,6 @@ void QENTTable::connectionChanged (QCaConnectionInfo& connectionInfo,
    //
    this->isConnected = connectionInfo.isChannelConnected ();
 
-   // More trob. than it's worth to check if this is a connect or disconnect.
-   //
-   this->isFirstUpdate = true;
-
    // Enable internal widget iff connected.
    // Container widget remains enabled, so menues etc. still work.
    //
@@ -351,12 +347,16 @@ void QENTTable::tableDataChanged (const QVariant& value,
       return;
    }
 
+   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   if (!qca) return;  // sanity check
+
+   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
+
    if (!this->tableData->assignFromVariant (value)) {
-      if (this->isFirstUpdate) {
-         DEBUG << "PV" << this->getSubstitutedVariableName (variableIndex)
-               << "does not provides NTTable data";
+      if (isMetaDataUpdate) {
+         QString pvname = this->getSubstitutedVariableName (variableIndex);
+         DEBUG << "PV" << pvname << "does not provides NTTable data";
       }
-      this->isFirstUpdate = false;
       return;
    }
 
@@ -370,10 +370,6 @@ void QENTTable::tableDataChanged (const QVariant& value,
    //
    emit this->dbValueChanged (value);
    emit this->dbValueChanged (*this->tableData);
-
-   // First update is now over
-   //
-   this->isFirstUpdate = false;
 }
 
 //---------------------------------------------------------------------------------

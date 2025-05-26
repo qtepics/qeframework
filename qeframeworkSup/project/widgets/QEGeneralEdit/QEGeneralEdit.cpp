@@ -250,8 +250,6 @@ void QEGeneralEdit::connectionChanged (QCaConnectionInfo& connectionInfo,
    //
    this->updateToolTipConnection (isConnected);
 
-   this->isFirstUpdate = true;
-
    // Signal channel connection change to any (Link) widgets.
    // using signal dbConnectionChanged.
    //
@@ -269,9 +267,14 @@ void QEGeneralEdit::dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
       return;
    }
 
-   qcaobject::QCaObject* qca = this->getQcaItem (0);
+   // Get the associate channel object.
+   //
+   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   if (!qca) return;   // sanity check
 
-   if (qca && this->isFirstUpdate) {
+   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
+
+   if (isMetaDataUpdate) {
       const QString pvName = this->getSubstitutedVariableName (0).trimmed ();
 
       this->ui->valueLabel->setVariableNameAndSubstitutions (pvName, "", 0);
@@ -403,8 +406,6 @@ void QEGeneralEdit::dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
          this->setMinimumSize (newWidth, newHeight);
          this->setMaximumSize (QWIDGETSIZE_MAX, newHeight);
       }
-
-      this->isFirstUpdate = false;
    }
 
    // Invoke common alarm handling processing.

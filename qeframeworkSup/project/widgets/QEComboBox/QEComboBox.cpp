@@ -188,12 +188,6 @@ void QEComboBox::connectionChanged( QCaConnectionInfo& connectionInfo, const uns
    // Note the connected state
    isConnected = connectionInfo.isChannelConnected();
 
-   // Note if first update has arrived (ok to set repeatedly)
-   if( isConnected )
-   {
-      isFirstUpdate = true;
-   }
-
    // Display the connected state
    updateToolTipConnection( isConnected,variableIndex );
    processConnectionInfo( isConnected, variableIndex );
@@ -230,13 +224,25 @@ void QEComboBox::connectionChanged( QCaConnectionInfo& connectionInfo, const uns
 // See  QEComboBox::dynamicSetup() for details.
 //
 void QEComboBox::setValueIfNoFocus( const long& value,QCaAlarmInfo& alarmInfo,
-                                    QCaDateTime&, const unsigned int& )
+                                    QCaDateTime&, const unsigned int& variableIndex)
 {
+   if (variableIndex != PV_VARIABLE_INDEX) {
+      DEBUG << "unexpected variableIndex" << variableIndex;
+      return;
+   }
+
+   // Associated qca object - avoid any segmentation fault.
+   //
+   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   if (!qca) return;   // sanity check
+
+   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
+
    // If and only if first update (for this connection) then use enumeration
    // values to populate the combo box.
    // If not subscribing, there will still be an initial update to get enumeration values.
    //
-   if( isFirstUpdate )
+   if( isMetaDataUpdate )
    {
       setComboBoxText ();
    }
@@ -273,7 +279,7 @@ void QEComboBox::setValueIfNoFocus( const long& value,QCaAlarmInfo& alarmInfo,
    // to restrict updates. Allow if the form designer has specifically allowed
    // updates while the widget has focus.
    //
-   if( isAllowFocusUpdate || !hasFocus() || isFirstUpdate )
+   if( isAllowFocusUpdate || !hasFocus() || isMetaDataUpdate )
    {
       setCurrentIndex( index );
 
@@ -283,9 +289,6 @@ void QEComboBox::setValueIfNoFocus( const long& value,QCaAlarmInfo& alarmInfo,
 
    // Invoke common alarm handling processing.
    processAlarmInfo( alarmInfo );
-
-   // First (and subsequent) update is now over
-   isFirstUpdate = false;
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged.

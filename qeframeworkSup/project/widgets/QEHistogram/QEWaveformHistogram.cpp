@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2024 Australian Synchrotron.
+ *  Copyright (c) 2014-2025 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -58,7 +58,6 @@ QEWaveformHistogram::QEWaveformHistogram (QWidget* parent) :
    this->setUseDbPrecision (false);
    this->setAddUnits (true);
    this->useFullLengthArraySubscriptions = false;  // go with modern behaviour by default.
-   this->isFirstUpdate = true;
 
    // Set up data
    //
@@ -176,10 +175,6 @@ void QEWaveformHistogram::connectionChanged (QCaConnectionInfo & connectionInfo,
       this->histogram->setColour (j, QColor (0xe8e8e8));
    }
 
-   // More trob. than it's worth to check if this is a connect or disconnect.
-   //
-   this->isFirstUpdate = true;
-
    // Signal a channel connection change to any widgets using the
    // dbConnectionChanged signal.
    //
@@ -241,6 +236,13 @@ void QEWaveformHistogram::setChannelArrayValue (const QVector<double>& value,
       return;
    }
 
+   // Associated qca object - avoid any segmentation fault.
+   //
+   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   if (!qca) return;   // sanity check
+
+   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
+
    this->histogram->setValues (value);
 
    const int n =this->histogram->count ();
@@ -255,9 +257,9 @@ void QEWaveformHistogram::setChannelArrayValue (const QVector<double>& value,
       }
    }
 
-   // First update (for this connection).
+   // First/meta update (for this connection).
    //
-   if (this->isFirstUpdate) {
+   if (isMetaDataUpdate) {
       this->updateHistogramScale ();
    }
 

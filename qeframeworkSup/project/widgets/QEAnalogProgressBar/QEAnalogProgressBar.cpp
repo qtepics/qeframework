@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2019 Australian Synchrotron
+ *  Copyright (c) 2011-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -163,15 +163,8 @@ void QEAnalogProgressBar::establishConnection (unsigned int variableIndex)
 void QEAnalogProgressBar::connectionChanged (QCaConnectionInfo& connectionInfo,
                                              const unsigned int& variableIndex)
 {
-   bool isConnected;
-
    // Note the connected state
-   isConnected = connectionInfo.isChannelConnected ();
-
-   // Note if first update has arrived (ok to set repeatedly)
-   if (isConnected) {
-      this->isFirstUpdate = true;
-   }
+   const bool isConnected = connectionInfo.isChannelConnected ();
 
    // Display the connected state
    this->updateToolTipConnection (isConnected, variableIndex);
@@ -365,8 +358,12 @@ void QEAnalogProgressBar::setProgressBarValue (const double& value,
 
    // Associated qca object - avoid the segmentation fault.
    //
-   qcaobject::QCaObject* qca = this->getQcaItem (PV_VARIABLE_INDEX);
-   if (this->isFirstUpdate && qca) {
+   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   if (!qca) return;   // sanity check
+
+   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
+
+   if (isMetaDataUpdate) {
 
       // Set up variable details used by some formatting options
       //
@@ -412,10 +409,6 @@ void QEAnalogProgressBar::setProgressBarValue (const double& value,
    // of the dbValueChanged signals declared in header file.
    //
    this->emitDbValueChanged (variableIndex);
-
-   // This update is over, clear first update flag.
-   //
-   this->isFirstUpdate = false;
 }
 
 //------------------------------------------------------------------------------

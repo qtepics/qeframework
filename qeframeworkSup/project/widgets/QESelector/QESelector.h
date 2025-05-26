@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2021-2024 Australian Synchrotron
+ *  Copyright (c) 2021-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -223,12 +223,10 @@ private:
    QE::SourceOptions infoSource;
    QStringList userInfoList;
    QStringList fileInfoList;
-   QStringList* infoList;        // reference none of the above
    QString userInfoFile;         // info file name
    Delimiters delimiter;
    bool writeOnChange;           // write value to database when user changes value
    bool isAllowFocusUpdate;
-   bool isFirstUpdate;
 
 private slots:
    void connectionChanged (QCaConnectionInfo& connectionInfo,

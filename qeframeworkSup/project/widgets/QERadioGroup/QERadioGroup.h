@@ -257,7 +257,6 @@ private:
 
    bool useDbEnumerations;
    int  currentIndex;
-   bool isFirstUpdate;
    QEIntegerFormatting integerFormatting;
    QELocalEnumeration localEnumerations;
 

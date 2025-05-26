@@ -89,7 +89,9 @@ public:
 
    // This function creates xml file.
    //
-   static bool writeTree (const QString& filename, const QEPvLoadSaveItem* root);
+   static bool writeTree (const QString& filename,
+                          const QEPvLoadSaveItem* root,
+                          QString& errorMessage);
 
    // Merges three PV names into a single node name.
    // E.g  "FRED.VAL", "FRED.RBV", "FRED.RBV" => "FRED.{w:VAL;ra:RBV;}"

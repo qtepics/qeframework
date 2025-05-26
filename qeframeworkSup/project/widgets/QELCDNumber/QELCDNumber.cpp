@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2018-2024 Australian Synchrotron
+ *  Copyright (c) 2018-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -193,7 +193,6 @@ void QELCDNumber::connectionChanged (QCaConnectionInfo& connectionInfo,
    // We can do this on connect as well as disconnect.
    //
    this->lastValue = QVariant ();
-   this->isFirstUpdate = true;
 
    // Display the connected state
    this->updateToolTipConnection (isConnected, variableIndex);
@@ -221,12 +220,12 @@ void QELCDNumber::setPvValue (const double& value,
 
    // Associated qca object - avoid the segmentation fault.
    //
-   qcaobject::QCaObject* qca = getQcaItem (PV_VARIABLE_INDEX);
-   if (!qca)
-      return;
+   qcaobject::QCaObject* qca = getQcaItem (variableIndex);
+   if (!qca) return;   // sanity check
 
-   if (this->isFirstUpdate) {
+   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
 
+   if (isMetaDataUpdate) {
       // Set up variable details used by some formatting options
       //
       this->stringFormatting.setAddUnits (false);   // strictly numeric
@@ -264,10 +263,6 @@ void QELCDNumber::setPvValue (const double& value,
    // of the dbValueChanged signals declared in header file.
    //
    this->emitDbValueChanged (variableIndex);
-
-   // This update is over, clear first update flag.
-   //
-   this->isFirstUpdate = false;
 }
 
 //------------------------------------------------------------------------------

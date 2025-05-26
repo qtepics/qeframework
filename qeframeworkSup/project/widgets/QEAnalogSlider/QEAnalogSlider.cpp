@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2020 Australian Synchrotron.
+ *  Copyright (c) 2013-2025 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -329,10 +329,6 @@ void QEAnalogSlider::mainConnectionChanged (QCaConnectionInfo& connectionInfo,
    //
    this->setIsActive (this->isConnected);
 
-   // More troub. than worth to figure out if this is connect/disconnect.
-   //
-   this->isFirstUpdate = true;
-
    if (this->isConnected) {
       QEAxisPainter* ap = this->getAxisPainter ();
       ap->setMarkerVisible (SET_POINT_MARKER, false);
@@ -374,16 +370,19 @@ void QEAnalogSlider::floatingChanged (const double& value,
                                       QCaDateTime&,
                                       const unsigned int& variableIndex)
 {
-   qcaobject::QCaObject* qca = NULL;
-
    if (variableIndex != SET_POINT_VARIABLE_INDEX) {
       DEBUG << "unexpected variableIndex" << variableIndex;
       return;
    }
 
-   if (this->isFirstUpdate) {
-      qca = this->getQcaItem (variableIndex);
+   // Associated qca object - avoid the segmentation fault.
+   //
+   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   if (!qca) return;   // sanity check
 
+   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
+
+   if (isMetaDataUpdate && (variableIndex == SET_POINT_VARIABLE_INDEX)) {
       // Determine auto scaling values based on the PV's meta data.
       //
       this->calculateAutoValues (qca);

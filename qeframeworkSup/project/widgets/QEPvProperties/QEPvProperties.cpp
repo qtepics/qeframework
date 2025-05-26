@@ -976,7 +976,8 @@ void QEPvProperties::setRecordTypeValue (const QString& rtypeValue,
 
 //------------------------------------------------------------------------------
 //
-void QEPvProperties::setValueConnection (QCaConnectionInfo& connectionInfo, const unsigned int&)
+void QEPvProperties::setValueConnection (QCaConnectionInfo& connectionInfo,
+                                         const unsigned int&)
 {
    qcaobject::QCaObject *qca;
 
@@ -996,7 +997,6 @@ void QEPvProperties::setValueConnection (QCaConnectionInfo& connectionInfo, cons
       qca = this->getQcaItem (0);
       if (qca) {
          this->hostName->setText (qca->getHostName());
-         this->isFirstUpdate = true;
       }
    }
 }
@@ -1006,9 +1006,8 @@ void QEPvProperties::setValueConnection (QCaConnectionInfo& connectionInfo, cons
 void QEPvProperties::setValueValue (const QVariant& value,
                                     QCaAlarmInfo& alarmInfo,
                                     QCaDateTime& dateTime,
-                                    const unsigned int&)
+                                    const unsigned int& variableIndex)
 {
-   qcaobject::QCaObject *qca;
    QStringList enumerations;
    QLabel *enumLabel;
    QLabel *enumLast;
@@ -1021,9 +1020,13 @@ void QEPvProperties::setValueValue (const QVariant& value,
 
    // We "know" that the only/main channel is the 1st (slot 0) channel.
    //
-   qca = this->getQcaItem (0);
-   if (this->isFirstUpdate && qca) {
-      // First update - fill in some of the meta data.
+   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   if (!qca) return;   // sanity check
+
+   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
+
+   if (isMetaDataUpdate) {
+      // First/meta update - fill in some of the meta data.
       //
       this->fieldType->setText (qca->getFieldType ());
 
@@ -1097,8 +1100,6 @@ void QEPvProperties::setValueValue (const QVariant& value,
       //
       this->enumerationResize->setAllowedMaximum (ENUMERATIONS_MIN_HEIGHT + h);
       this->enumerationResize->setFixedHeight (ENUMERATIONS_MIN_HEIGHT + h);
-
-      this->isFirstUpdate = false;
    }
 
    // Update internal label.

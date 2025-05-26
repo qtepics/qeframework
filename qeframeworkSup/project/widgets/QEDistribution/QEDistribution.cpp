@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2019-2023 Australian Synchrotron.
+ *  Copyright (c) 2019-2025 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -126,8 +126,6 @@ void QEDistribution::setup()
    // Create forms/dialogs.
    //
    this->pvNameSelectDialog = new QEPVNameSelectDialog (this);
-
-   this->isFirstUpdate = false;
 
    // Reset all the distribution related data
    //
@@ -863,8 +861,6 @@ void QEDistribution::connectionChanged (QCaConnectionInfo& connectionInfo,
 
    this->valueLabel->setEnabled (isConnected);
 
-   this->isFirstUpdate = true;  // more trob. than it's worth to check if connect or disconnect.
-
    // Signal channel connection change to any (Link) widgets.
    // using signal dbConnectionChanged.
    //
@@ -878,10 +874,12 @@ void QEDistribution::setPvValue (const double& value, QCaAlarmInfo& alarmInfo,
 {
    if (pvi != PV_VARIABLE_INDEX) return;  // sanity check
 
-   qcaobject::QCaObject* qca = this->getQcaItem (PV_VARIABLE_INDEX);
+   qcaobject::QCaObject* qca = this->getQcaItem (pvi);
    if (!qca) return;  // sanity check
 
-   if (this->isFirstUpdate) {
+   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
+
+   if (isMetaDataUpdate) {
       this->stringFormatting.setArrayAction (QE::Index);
       this->stringFormatting.setDbEgu (qca->getEgu ());
       this->stringFormatting.setDbEnumerations (qca->getEnumerations ());
@@ -915,8 +913,6 @@ void QEDistribution::setPvValue (const double& value, QCaAlarmInfo& alarmInfo,
    // using one of the dbValueChanged signals declared in header file.
    //
    this->emitDbValueChanged (pvi);
-
-   this->isFirstUpdate = false;
 }
 
 //------------------------------------------------------------------------------

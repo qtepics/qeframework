@@ -290,8 +290,6 @@ void QESimpleShape::connectionChanged (QCaConnectionInfo & connectionInfo,
       this->processConnectionInfo (isConnected, variableIndex);
       this->setIsActive (isConnected);
 
-      this->isFirstUpdate = true;  // more trob. than it's worth to check if connect or disconnect.
-
       // Signal channel connection change to any (Link) widgets.
       // using signal dbConnectionChanged.
       //
@@ -313,23 +311,22 @@ void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo& 
 {
    ASSERT_PV_INDEX (variableIndex, return);
 
-   qcaobject::QCaObject* qca;
    QColor selectedEdgeColour;
    int channelValue;
 
    // Associated qca object - avoid the segmentation fault.
    //
-   qca = this->getQcaItem (variableIndex);
-   if (!qca) {
-      return;
-   }
+   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   if (!qca) return;   // sanity check
+
+   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
 
    switch (variableIndex) {
 
       case MAIN_PV_INDEX:
          // Set up variable details used by some formatting options.
          //
-         if (this->isFirstUpdate) {
+         if (isMetaDataUpdate) {
             this->stringFormatting.setArrayAction (QE::Index);
             this->stringFormatting.setDbEgu (qca->getEgu ());
             this->stringFormatting.setDbEnumerations (qca->getEnumerations ());
@@ -375,10 +372,6 @@ void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo& 
          // Update the value in parent class.
          //
          this->setValue (channelValue);
-
-         // This update is over, clear first update flag.
-         //
-         this->isFirstUpdate = false;
          break;
 
       case EDGE_PV_INDEX:

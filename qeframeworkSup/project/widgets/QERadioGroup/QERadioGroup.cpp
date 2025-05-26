@@ -300,7 +300,6 @@ void QERadioGroup::connectionChanged (QCaConnectionInfo& connectionInfo,
 
    // more trob. than it's worth to check if this is a connect or disconnect.
    //
-   this->isFirstUpdate = true;
    this->currentIndex = -1;
 
    // Set cursor to indicate access mode.
@@ -329,11 +328,17 @@ void QERadioGroup::valueUpdate (const long &value,
       return;
    }
 
-   // If and only iff first update (for this connection) then use enumeration
+   // Get the associate channel object.
+   //
+   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   if (!qca) return;   // sanity check
+
+   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
+
+   // If and only iff first/meta update (for this connection) then use enumeration
    // values to re-populate the radio group.
    //
-   if (this->isFirstUpdate) {
-      this->isFirstUpdate = false;
+   if (isMetaDataUpdate) {
       this->setRadioGroupText ();
    }
 

@@ -377,7 +377,6 @@ private:
    QE::DisplayAlarmStateOptions edgeAlarmState;
    bool mainUsesStyleAlarmColours;
    bool edgeUsesStyleAlarmColours;
-   bool isFirstUpdate;
    QColor fillColour;
 
 private slots:

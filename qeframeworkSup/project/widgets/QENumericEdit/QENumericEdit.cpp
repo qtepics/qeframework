@@ -115,7 +115,6 @@ void QENumericEdit::commonSetup ()
 
    // Clear flags and ensure valid last value stored.
    //
-   this->isFirstUpdate = false;
    this->isConnected = false;
    this->messageDialogPresent = false;
    this->isModified = false;
@@ -459,10 +458,6 @@ void QENumericEdit::connectionChanged (QCaConnectionInfo& connectionInfo,
    //
    this->isConnected = connectionInfo.isChannelConnected ();
 
-   // More trob. than it's worth to check if this is a connect or disconnect.
-   //
-   this->isFirstUpdate = true;
-
    // Enable internal widget iff connected.
    // Container widget remains enabled, so menues etc. still work.
    //
@@ -495,9 +490,16 @@ void QENumericEdit::externalValueUpdate (const double& value,
       return;
    }
 
-   // Check first update (per connection)
+   // Get the associate channel object.
    //
-   if (this->isFirstUpdate) {
+   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   if (!qca) return;   // sanity check
+
+   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
+
+   // Check first/meta data update
+   //
+   if (isMetaDataUpdate) {
 
       // Check for auto scale and add units.
       //
@@ -536,7 +538,7 @@ void QENumericEdit::externalValueUpdate (const double& value,
    // Make hasFocus a QNumericEdit method
    //
    if (this->internalWidget->lineEdit->hasFocus ()) {
-      allowUpdate = this->allowFocusUpdate || !this->isModified || this->isFirstUpdate;
+      allowUpdate = this->allowFocusUpdate || !this->isModified || isMetaDataUpdate;
    } else {
       // No focus - but maybe confirmation dialog present.
       allowUpdate = !this->messageDialogPresent;
@@ -562,10 +564,6 @@ void QENumericEdit::externalValueUpdate (const double& value,
    QString formattedText;
    formattedText = this->internalWidget->getFormattedText (value);
    this->emitDbValueChanged (formattedText, PV_VARIABLE_INDEX);
-
-   // First update is now over
-   //
-   this->isFirstUpdate = false;
 }
 
 //------------------------------------------------------------------------------
@@ -643,8 +641,13 @@ void QENumericEdit::calculateAutoValues ()
 void QENumericEdit::internalValueChanged (const double)
 {
    this->isModified = true;
+
+   qcaobject::QCaObject* qca = this->getQcaItem (PV_VARIABLE_INDEX);
+   if (!qca) return;   // sanity check
+   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
+
    // GUI-320
-   if (this->writeOnChange && !this->isFirstUpdate) {
+   if (this->writeOnChange && !isMetaDataUpdate) {
       this->writeNow ();
    }
 }

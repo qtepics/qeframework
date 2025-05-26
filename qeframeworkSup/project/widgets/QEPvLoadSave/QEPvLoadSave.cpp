@@ -305,9 +305,13 @@ void QEPvLoadSave::Halves::save (const QString& configurationFile)
    }
 
    QEPvLoadSaveItem* rootItem = this->model->getRootItem ();
-   okay = QEPvLoadSaveUtilities::writeTree (configurationFile, rootItem);
+   QString errorMessage;
+   okay = QEPvLoadSaveUtilities::writeTree (configurationFile, rootItem, errorMessage);
    if (okay) {
       this->model->setHeading (configurationFile);
+   } else {
+      message_types mt (MESSAGE_TYPE_WARNING, MESSAGE_KIND_STANDARD);
+      this->owner->sendMessage (errorMessage, mt);
    }
 }
 

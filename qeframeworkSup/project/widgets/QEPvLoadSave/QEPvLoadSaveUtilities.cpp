@@ -430,8 +430,12 @@ void QEPvLoadSaveUtilities::writeXmlGroup (const QEPvLoadSaveItem* groupIn,
 
 //------------------------------------------------------------------------------
 //
-bool QEPvLoadSaveUtilities::writeTree (const QString& filename, const QEPvLoadSaveItem* root)
+bool QEPvLoadSaveUtilities::writeTree (const QString& filename,
+                                       const QEPvLoadSaveItem* root,
+                                       QString& errorMessage)
 {
+   errorMessage = "n/a";
+
    if (filename.isEmpty () || !root) {
       qWarning () << __FUNCTION__ << "null filename and/or root node specified";
       return false;
@@ -450,7 +454,9 @@ bool QEPvLoadSaveUtilities::writeTree (const QString& filename, const QEPvLoadSa
 
    QFile file (filename);
    if (!file.open (QIODevice::WriteOnly)) {
-      qDebug() << "Could not save configuration " << filename;
+      QString message = QString ("PV Load/Save: could not open: %1").arg (filename);
+      errorMessage = message;
+      DEBUG << message;
       return false;
    }
 

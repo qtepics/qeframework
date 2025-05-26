@@ -167,7 +167,8 @@ qcaobject::QCaObject* QESpinBox::createQcaItem( unsigned int variableIndex ) {
    qcaobject::QCaObject* result = NULL;
 
    // Create the item as a QEFloating
-   result = new QEFloating( getSubstitutedVariableName( variableIndex ), this, &floatingFormatting, variableIndex );
+   result = new QEFloating( getSubstitutedVariableName( variableIndex ), this,
+                            &floatingFormatting, variableIndex );
 
    // Apply currently defined array index/elements request values.
    setSingleVariableQCaProperties( result );
@@ -177,7 +178,8 @@ qcaobject::QCaObject* QESpinBox::createQcaItem( unsigned int variableIndex ) {
 
 /*
     Start updating.
-    Implementation of VariableNameManager's virtual funtion to establish a connection to a PV as the variable name has changed.
+    Implementation of VariableNameManager's virtual funtion to establish a
+    connection to a PV as the variable name has changed.
     This function may also be used to initiate updates when loaded as a plugin.
 */
 void QESpinBox::establishConnection( unsigned int variableIndex ) {
@@ -186,7 +188,8 @@ void QESpinBox::establishConnection( unsigned int variableIndex ) {
    // If successfull, the QCaObject object that will supply data update signals will be returned
    qcaobject::QCaObject* qca = createConnection( variableIndex );
 
-   // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots
+   // If a QCaObject object is now available to supply data update signals,
+   // connect it to the appropriate slots
    if(  qca ) {
       setValue( 0 );
       QObject::connect( qca,  SIGNAL( floatingChanged( const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
@@ -221,8 +224,8 @@ void QESpinBox::connectionChanged( QCaConnectionInfo& connectionInfo,
    // variable when it is time to do a write.
    if( isConnected && !subscribe )
    {
-      QEFloating* qca = (QEFloating*)getQcaItem(PV_VARIABLE_INDEX);
-      qca->singleShotRead();
+      qcaobject::QCaObject* qca = getQcaItem(PV_VARIABLE_INDEX);
+      if (qca) qca->singleShotRead();
       ignoreSingleShotRead = true;
    }
 
@@ -248,10 +251,14 @@ void QESpinBox::setValueIfNoFocus( const double& value, QCaAlarmInfo& alarmInfo,
                                    QCaDateTime&, const unsigned int& variableIndex) {
 
    // Save the last database value
-   lastValue = value;
+   //
+   this->lastValue = value;
 
-   QEFloating* qca = qobject_cast<QEFloating*>(this->getQcaItem( PV_VARIABLE_INDEX ));
-   if (qca && this->autoScaleSpinBox) {
+   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   if (!qca) return;   // sanity check
+   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
+
+   if (isMetaDataUpdate && this->autoScaleSpinBox) {
       // Set the limits and step size
       double upper = qca->getControlLimitUpper();
       double lower = qca->getControlLimitLower();
@@ -303,7 +310,7 @@ void QESpinBox::userValueChanged( double value )
    }
 
    // Get the variable to write to
-   QEFloating* qca = (QEFloating*)getQcaItem(PV_VARIABLE_INDEX);
+   QEFloating* qca = qobject_cast<QEFloating*>(getQcaItem(PV_VARIABLE_INDEX));
 
    // If a QCa object is present (if there is a variable to write to)
    // then write the value
@@ -322,7 +329,7 @@ void QESpinBox::userValueChanged( double value )
 void QESpinBox::writeNow()
 {
    // Get the variable to write to
-   QEFloating* qca = (QEFloating*)getQcaItem(PV_VARIABLE_INDEX);
+   QEFloating* qca = qobject_cast<QEFloating*>(getQcaItem(PV_VARIABLE_INDEX));
 
    // If a QCa object is present (if there is a variable to write to)
    // then write the value
@@ -424,7 +431,7 @@ bool QESpinBox::getAddUnitsAsSuffix() const
 void QESpinBox::setAddUnitsAsSuffix( bool addUnitsAsSuffixIn )
 {
    addUnitsAsSuffix = addUnitsAsSuffixIn;
-   qcaobject::QCaObject* qca = (QEFloating*)getQcaItem(PV_VARIABLE_INDEX);
+   qcaobject::QCaObject* qca = getQcaItem(PV_VARIABLE_INDEX);
    setSuffixEgu( qca );
 }
 
@@ -449,7 +456,7 @@ bool QESpinBox::getAutoScale () const
 void QESpinBox::setUseDbPrecisionForDecimals( bool useDbPrecisionForDecimalIn )
 {
    useDbPrecisionForDecimal = useDbPrecisionForDecimalIn;
-   qcaobject::QCaObject* qca = (QEFloating*)getQcaItem(PV_VARIABLE_INDEX);
+   qcaobject::QCaObject* qca = getQcaItem(PV_VARIABLE_INDEX);
    setDecimalsFromPrecision( qca );
 }
 

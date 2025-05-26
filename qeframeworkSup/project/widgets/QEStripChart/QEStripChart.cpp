@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2023 Australian Synchrotron.
+ *  Copyright (c) 2012-2025 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -593,9 +593,9 @@ void QEStripChart::plotData ()
    // Maybe we could draw "on top of" axis.
    //
    QRect canGeo = this->plotArea->getEmbeddedQwtPlot ()->canvas()->geometry();
-   QPoint pixpos = QPoint (canGeo.width()/2, canGeo.height () - 8);
+   QPoint pixpos = QPoint (canGeo.width()/2, canGeo.height () - 10);
 
-   pen.setColor (clBlack);
+   pen.setColor (this->isNormalVideo ? clBlack : clWhite);
    pen.setStyle (Qt::SolidLine);
    pen.setWidth (1);
 

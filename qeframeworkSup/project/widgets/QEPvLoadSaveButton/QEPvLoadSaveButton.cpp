@@ -156,9 +156,17 @@ void QEPvLoadSaveButton::userClicked(bool)
 void QEPvLoadSaveButton::delayedSaveToFile () {
    QString configurationFile = this->getConfigurationFile();
    this->model->extractPVData ();
-   if (QEPvLoadSaveUtilities::writeTree (configurationFile, this->rootItem)) {
+   QString errorMessage;
+   bool status = QEPvLoadSaveUtilities::writeTree (configurationFile,
+                                                   this->rootItem,
+                                                   errorMessage);
+   if (status) {
       this->model->setHeading (configurationFile);
+   } else {
+      message_types mt (MESSAGE_TYPE_WARNING, MESSAGE_KIND_STANDARD);
+      this->sendMessage (errorMessage, mt);
    }
+
    if (!this->showProgressDialog) {
       this->setEnabled(true);
    }

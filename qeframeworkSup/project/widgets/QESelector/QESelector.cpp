@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2021-2023 Australian Synchrotron
+ *  Copyright (c) 2021-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -93,7 +93,6 @@ void QESelector::commonSetup()
    this->userInfoList.clear();
    this->fileInfoList.clear();
    this->infoSource = QE::SourceText;
-   this->infoList = &this->userInfoList;
    this->delimiter = SpaceDelimiter;
    this->internalWidget->addItem (EMPTY_TEXT);
    this->subscribe = true;
@@ -140,7 +139,22 @@ void QESelector::updateDropDownList ()
 {
    this->internalWidget->clear();
    this->internalWidget->addItem (EMPTY_TEXT);
-   this->internalWidget->addItems (*this->infoList);
+
+   const QE::SourceOptions source = this->getSource ();
+   switch (source) {
+
+      case QE::SourceText:
+         this->internalWidget->addItems (this->userInfoList);
+         break;
+
+      case QE::SourceFile:
+         this->internalWidget->addItems (this->fileInfoList);
+         break;
+
+      default:
+         DEBUG << "Invalid source option " << source;
+         break;
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -150,13 +164,6 @@ void QESelector::updateDropDownList ()
 void QESelector::setSource (const QE::SourceOptions infoSourceIn)
 {
    this->infoSource = infoSourceIn;
-
-   // Update the reference.
-   //
-   this->infoList = (this->infoSource == QE::SourceText) ?
-            &this->userInfoList :
-            &this->fileInfoList;
-
    this->updateDropDownList();
 }
 
@@ -172,9 +179,7 @@ QE::SourceOptions QESelector::getSource () const
 void QESelector::setStringList (const QStringList& valueListIn)
 {
    this->userInfoList = valueListIn;
-   if (this->infoSource == QE::SourceText) {
-      this->updateDropDownList();
-   }
+   this->updateDropDownList();
 }
 
 //------------------------------------------------------------------------------
@@ -192,10 +197,7 @@ void QESelector::setSourceFilename (const QString& userInfoFileIn)
 
    // Read file.
    this->fileInfoList = QESelector::readList (userInfoFileIn);
-
-   if (this->infoSource == QE::SourceText) {
-      this->updateDropDownList();
-   }
+   this->updateDropDownList();
 }
 
 //------------------------------------------------------------------------------
@@ -368,10 +370,6 @@ void QESelector::connectionChanged (QCaConnectionInfo& connectionInfo,
    //
    bool isConnected = connectionInfo.isChannelConnected ();
 
-   // More toub. than worth to check if this a connect or a disconnect.
-   //
-   this->isFirstUpdate = true;
-
    // Display the connected state
    // Note: only one/first "variable" is a PV. Modify the tool tip class object
    //       to only display actual PV name and connection status.
@@ -404,13 +402,20 @@ void QESelector::valueUpdate (const QString& text,
       return;
    }
 
+   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   if (!qca) return;  // sanity check
+
+   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
+
    bool found = false;
    if (text.isEmpty()) {
-      this->internalWidget->setCurrentIndex(0);
+      this->internalWidget->setCurrentIndex (0);
       found = true;
    } else {
-      for (int j = 0; j < this->infoList->count(); j++) {
-         QString option = this->infoList->value(j);
+      const QStringList infoList = this->infoSource == QE::SourceText ? this->userInfoList : this->fileInfoList;
+
+      for (int j = 0; j < infoList.count(); j++) {
+         QString option = infoList.value(j);
          option = this->extractValue (option);
          if (text == option) {
             // Found it
@@ -423,7 +428,7 @@ void QESelector::valueUpdate (const QString& text,
             // form designer has specifically allowed updates while the widget
             // has focus.
             //
-            if (this->isAllowFocusUpdate || !this->hasFocus() || this->isFirstUpdate) {
+            if (this->isAllowFocusUpdate || !this->hasFocus() || isMetaDataUpdate) {
 
                // recall 0th entry used for null text
                this->internalWidget->setCurrentIndex(j + 1);
@@ -441,10 +446,6 @@ void QESelector::valueUpdate (const QString& text,
    // Invoke common alarm handling processing.
    //
    this->processAlarmInfo (alarmInfo, variableIndex);
-
-   // First (and subsequent) update is now over
-   //
-   this->isFirstUpdate = false;
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged. Because the write underying QComboBox may not have

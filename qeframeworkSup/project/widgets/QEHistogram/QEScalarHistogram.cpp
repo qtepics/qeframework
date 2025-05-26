@@ -56,10 +56,6 @@ QEScalarHistogram::QEScalarHistogram (QWidget * parent) :
 
    this->mScaleMode = Manual;
 
-   for (int j = 0; j < ARRAY_LENGTH (this->isFirstUpdate); j++) {
-      this->isFirstUpdate [j] = true;
-   }
-
    // Set up data
    //
    this->setNumVariables (ARRAY_LENGTH (this->vnpm));
@@ -176,10 +172,6 @@ void QEScalarHistogram::connectionChanged (QCaConnectionInfo & connectionInfo,
    //
    this->histogram->setColour ((int) variableIndex, disconnectedColour);
    this->histogram->setValue ((int) variableIndex, this->getMaximum());
-
-   // More trob. than it's worth to check if this is a connect or disconnect.
-   //
-   this->isFirstUpdate [variableIndex] = true;
 }
 
 //------------------------------------------------------------------------------
@@ -250,6 +242,13 @@ void QEScalarHistogram::setChannelValue (const double& value,
       return;
    }
 
+   // Associated qca object - avoid any segmentation fault.
+   //
+   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   if (!qca) return;   // sanity check
+
+   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
+
    QColor colour;
 
    if (this->getUseAlarmState (alarmInfo)) {
@@ -268,9 +267,9 @@ void QEScalarHistogram::setChannelValue (const double& value,
    this->histogram->setColour ((int) variableIndex, colour);
    this->histogram->setValue ((int) variableIndex, displayValue);
 
-   // First update (for this connection).
+   // First/meta update (for this connection).
    //
-   if (this->isFirstUpdate [variableIndex]) {
+   if (isMetaDataUpdate) {
       this->updateHistogramScale ();
    }
 
