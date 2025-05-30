@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2024 Australian Synchrotron.
+ *  Copyright (c) 2014-2025 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -27,7 +27,7 @@
 #ifndef QE_ABSTRACT_WIDGET_H
 #define QE_ABSTRACT_WIDGET_H
 
-#include <QWidget>
+#include <QFrame>
 #include <QEEnums.h>
 #include <QEWidget.h>
 #include <QEFrameworkLibraryGlobal.h>
@@ -41,7 +41,7 @@
 // consider inheriting from QEAbstractWidget.
 //
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEAbstractWidget :
-      public QWidget, public QEWidget {
+      public QFrame, public QEWidget {
 
 Q_OBJECT
 

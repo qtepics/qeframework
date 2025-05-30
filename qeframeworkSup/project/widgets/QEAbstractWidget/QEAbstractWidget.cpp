@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014  Australian Synchrotron
+ *  Copyright (c) 2014-2025  Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -32,8 +32,14 @@
 
 //------------------------------------------------------------------------------
 //
-QEAbstractWidget::QEAbstractWidget (QWidget *parent) : QWidget (parent), QEWidget (this)
+QEAbstractWidget::QEAbstractWidget (QWidget* parent) :
+   QFrame (parent), QEWidget (this)
 {
+   // The default is as if just a plain widget container.
+   //
+   this->setFrameShape (QFrame::NoFrame);
+   this->setFrameShadow (QFrame::Plain);
+
    // This is not an EPICS aware widget.
    //
    this->setVariableAsToolTip (false);
