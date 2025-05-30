@@ -34,7 +34,7 @@
 
 #include <QECommon.h>
 #include <QEEnums.h>
-#include <QEFrame.h>
+#include <QEAbstractWidget.h>
 #include <QEWidget.h>
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
@@ -46,24 +46,13 @@
 /// This class provides an EPICS aware extention to the QLCDNumber widget.
 ///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QELCDNumber :
-      public QEFrame,
+      public QEAbstractWidget,
       public QESingleVariableMethods,
       public QEStringFormattingMethods
 {
    Q_OBJECT
 
-   // Some QEFrame properties are really not applicable to this widget.
-   // These are re-declared as DESIGNABLE false.
-   //
-   Q_PROPERTY (bool scaledContents READ getScaledContents  WRITE setScaledContents  DESIGNABLE false)
-   Q_PROPERTY (QPixmap pixmap0     READ getPixmap0Property WRITE setPixmap0Property DESIGNABLE false)
-   Q_PROPERTY (QPixmap pixmap1     READ getPixmap1Property WRITE setPixmap1Property DESIGNABLE false)
-   Q_PROPERTY (QPixmap pixmap2     READ getPixmap2Property WRITE setPixmap2Property DESIGNABLE false)
-   Q_PROPERTY (QPixmap pixmap3     READ getPixmap3Property WRITE setPixmap3Property DESIGNABLE false)
-   Q_PROPERTY (QPixmap pixmap4     READ getPixmap4Property WRITE setPixmap4Property DESIGNABLE false)
-   Q_PROPERTY (QPixmap pixmap5     READ getPixmap5Property WRITE setPixmap5Property DESIGNABLE false)
-   Q_PROPERTY (QPixmap pixmap6     READ getPixmap6Property WRITE setPixmap6Property DESIGNABLE false)
-   Q_PROPERTY (QPixmap pixmap7     READ getPixmap7Property WRITE setPixmap7Property DESIGNABLE false)
+   typedef QEAbstractWidget ParentWidgetClass;
 
    // BEGIN-SINGLE-VARIABLE-V2-PROPERTIES ===============================================
    // Single Variable properties

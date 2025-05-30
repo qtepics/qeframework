@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2020-2024 Australian Synchrotron.
+ *  Copyright (c) 2020-2025 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -50,7 +50,7 @@ static const double minSpan = 1.0e-3;   /// duplicate
 // Constructor with no initialisation
 //
 QEAbstract2DData::QEAbstract2DData (QWidget* parent) :
-   QEFrame (parent)
+   QEAbstractWidget (parent)
 {
    this->commonSetup ();
 }
@@ -60,7 +60,7 @@ QEAbstract2DData::QEAbstract2DData (QWidget* parent) :
 //
 QEAbstract2DData::QEAbstract2DData (const QString& dataVariableName,
                                     QWidget* parent) :
-   QEFrame (parent)
+   QEAbstractWidget (parent)
 {
    this->commonSetup ();
    this->setVariableName (dataVariableName, DATA_PV_INDEX);
@@ -72,7 +72,7 @@ QEAbstract2DData::QEAbstract2DData (const QString& dataVariableName,
 QEAbstract2DData::QEAbstract2DData (const QString& dataVariableName,
                                     const QString& widthVariableName,
                                     QWidget* parent) :
-   QEFrame (parent)
+   ParentWidgetClass (parent)
 {
    this->commonSetup ();
    this->setVariableName (dataVariableName, DATA_PV_INDEX);

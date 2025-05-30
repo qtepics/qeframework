@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2023 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -288,7 +288,8 @@ void QEPlot::Trace::setArchiveData (const QCaDataPointList& archiveData)
 //==============================================================================
 // Constructor with no initialisation
 //
-QEPlot::QEPlot (QWidget* parent) : QEFrame (parent)
+QEPlot::QEPlot (QWidget* parent) :
+   ParentWidgetClass (parent)
 {
    this->setup ();
 }
@@ -296,7 +297,8 @@ QEPlot::QEPlot (QWidget* parent) : QEFrame (parent)
 //------------------------------------------------------------------------------
 // Constructor with known variable
 //
-QEPlot::QEPlot (const QString& variableNameIn, QWidget* parent) : QEFrame (parent)
+QEPlot::QEPlot (const QString& variableNameIn, QWidget* parent) :
+   ParentWidgetClass (parent)
 {
    this->setup ();
    this->setVariableName (variableNameIn, 0);

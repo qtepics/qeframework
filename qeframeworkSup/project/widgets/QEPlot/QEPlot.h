@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2024 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -28,7 +28,7 @@
 
 #include <QEEnums.h>
 #include <QEWidget.h>
-#include <QEFrame.h>
+#include <QEAbstractWidget.h>
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QEInteger.h>
@@ -51,23 +51,12 @@ class QEGraphic;
 ///
 /// NOTE: Mixing scalar and array PVs is not recomended.
 ///
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlot : public QEFrame {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPlot :
+      public QEAbstractWidget
+{
    Q_OBJECT
-public:
-   // Some QEFrame properties are really not applicable to this widget hierarchy.
-   // These are re-declared as DESIGNABLE false.
-   // Consider spliting QEFrame into QEFrame (basic) and QEPixmapFrame - keep that for 3.8
-   //
-   Q_PROPERTY (bool scaledContents READ getScaledContents  WRITE setScaledContents  DESIGNABLE false)
-   Q_PROPERTY (QPixmap pixmap0     READ getPixmap0Property WRITE setPixmap0Property DESIGNABLE false)
-   Q_PROPERTY (QPixmap pixmap1     READ getPixmap1Property WRITE setPixmap1Property DESIGNABLE false)
-   Q_PROPERTY (QPixmap pixmap2     READ getPixmap2Property WRITE setPixmap2Property DESIGNABLE false)
-   Q_PROPERTY (QPixmap pixmap3     READ getPixmap3Property WRITE setPixmap3Property DESIGNABLE false)
-   Q_PROPERTY (QPixmap pixmap4     READ getPixmap4Property WRITE setPixmap4Property DESIGNABLE false)
-   Q_PROPERTY (QPixmap pixmap5     READ getPixmap5Property WRITE setPixmap5Property DESIGNABLE false)
-   Q_PROPERTY (QPixmap pixmap6     READ getPixmap6Property WRITE setPixmap6Property DESIGNABLE false)
-   Q_PROPERTY (QPixmap pixmap7     READ getPixmap7Property WRITE setPixmap7Property DESIGNABLE false)
 
+public:
    enum Constants {
       QEPLOT_NUM_PLOTS = 8,      // Maximum number of data/size variables.
       QEPLOT_NUM_VARIABLES = 16  // Maximum number of variables.
@@ -226,7 +215,7 @@ public:
                                              WRITE setVariableNameSubstitutionsProperty)
 
 public:
-   typedef QEFrame ParentWidgetClass;
+   typedef QEAbstractWidget ParentWidgetClass;
 
    // QEPlot Widget Context Menu values
    //

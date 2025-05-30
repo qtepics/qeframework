@@ -39,7 +39,7 @@
 // Constructor with no initialisation
 //
 QELCDNumber::QELCDNumber (QWidget * parent):
-   QEFrame (parent),
+   ParentWidgetClass (parent),
    QESingleVariableMethods (this, PV_VARIABLE_INDEX),
    QEStringFormattingMethods ()
 {
@@ -51,7 +51,7 @@ QELCDNumber::QELCDNumber (QWidget * parent):
 //
 QELCDNumber::QELCDNumber (const QString & variableNameIn,
                           QWidget * parent) :
-   QEFrame (parent),
+   ParentWidgetClass (parent),
    QESingleVariableMethods (this, PV_VARIABLE_INDEX),
    QEStringFormattingMethods ()
 {
