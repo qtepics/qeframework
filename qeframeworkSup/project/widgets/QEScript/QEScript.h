@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2024 Australian Synchrotron
+ *  Copyright (c) 2012-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -296,8 +296,11 @@ public:
    // resources directory.
 public slots:
    /// Slot to set the visibility of a QE widget, taking into account the user level.
-   /// Widget will be hidden if hidden by a call this slot, by will only be made visible by a calll to this slot if the user level allows.
-   void setManagedVisible( bool v ){ setRunVisible( v ); }
+   /// Widget will be hidden if hidden by a call this slot, by will only be made
+   /// visible by a calll to this slot if the user level allows.
+   ///
+   void setManagedVisible (bool v) { this->setRunVisible(v); }
+
 public:
    /// variableAsToolTip not applicale to V2 options.
    /// Class should ensure this option is initialised to false.
