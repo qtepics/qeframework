@@ -16,5 +16,6 @@
         <file>save_file.png</file>
         <file>select_date_times.png</file>
         <file>select_time.png</file>
+        <file>write_all.png</file>
     </qresource>
 </RCC>
