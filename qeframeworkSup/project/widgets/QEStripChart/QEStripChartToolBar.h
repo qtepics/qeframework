@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2024 Australian Synchrotron
+ *  Copyright (c) 2013-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  *
  */
 
@@ -68,6 +68,7 @@ signals:
    void selectDuration ();
    void timeZoneSelected (const Qt::TimeSpec timeSpec);
    void playModeSelected (const QEStripChartNames::PlayModes mode);
+   void writeAllSelected ();
    void readArchiveSelected ();
    void loadSelected ();
    void saveAsSelected ();
@@ -105,6 +106,7 @@ private slots:
    void forwardClicked (bool checked = false);
    void backwardClicked (bool checked = false);
    void selectTimeClicked (bool checked = false);
+   void writeAllClicked (bool checked = false);
    void readArchiveClicked (bool checked = false);
 
    void localTimeClicked (bool checked = false);
@@ -113,7 +115,6 @@ private slots:
    void predefinedSelected (int index);
    void loadClicked (bool checked = false);
    void saveAsClicked (bool checked = false);
-
 };
 
 #endif  // QE_STRIP_CHART_TOOLBAR_H

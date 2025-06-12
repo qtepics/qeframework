@@ -22,67 +22,70 @@
 # Author:
 #   Andrew Starritt
 # Contact details:
-#   andrew.starritt@synchrotron.org.au
+#   andrews@ansto.gov.au
 #
 
-OTHER_FILES += \
-    widgets/QEStripChart/archive.png \
-    widgets/QEStripChart/go_back.png \
-    widgets/QEStripChart/go_fwd.png \
-    widgets/QEStripChart/linear_scale.png \
-    widgets/QEStripChart/log_scale.png \
-    widgets/QEStripChart/normal_video.png \
-    widgets/QEStripChart/open_file.png \
-    widgets/QEStripChart/page_backward.png \
-    widgets/QEStripChart/page_forward.png \
-    widgets/QEStripChart/pause.png \
-    widgets/QEStripChart/play.png \
-    widgets/QEStripChart/powered_by_asp.png \
-    widgets/QEStripChart/reverse_video.png  \
-    widgets/QEStripChart/save_file.png \
-    widgets/QEStripChart/select_date_times.png \
-    widgets/QEStripChart/select_time.png \
-    widgets/QEStripChart/write_all.png
+INCLUDEPATH += $$PWD
 
-RESOURCES += \
-    widgets/QEStripChart/QEStripChart.qrc
+HEADERS += $$PWD/QEStripChart.h
+SOURCES += $$PWD/QEStripChart.cpp
 
-HEADERS += \
-    widgets/QEStripChart/QEStripChart.h \
-    widgets/QEStripChart/QEStripChartState.h \
-    widgets/QEStripChart/QEStripChartAdjustPVDialog.h \
-    widgets/QEStripChart/QEStripChartContextMenu.h \
-    widgets/QEStripChart/QEStripChartDurationDialog.h \
-    widgets/QEStripChart/QEStripChartItem.h \
-    widgets/QEStripChart/QEStripChartNames.h \
-    widgets/QEStripChart/QEStripChartRangeDialog.h \
-    widgets/QEStripChart/QEStripChartTimeDialog.h \
-    widgets/QEStripChart/QEStripChartToolBar.h \
-    widgets/QEStripChart/QEStripChartUtilities.h \
-    widgets/QEStripChart/QEStripChartStatistics.h
+HEADERS += $$PWD/QEStripChartAdjustPVDialog.h
+SOURCES += $$PWD/QEStripChartAdjustPVDialog.cpp
+FORMS   += $$PWD/QEStripChartAdjustPVDialog.ui
 
-SOURCES += \
-    widgets/QEStripChart/QEStripChart.cpp \
-    widgets/QEStripChart/QEStripChartState.cpp \
-    widgets/QEStripChart/QEStripChartAdjustPVDialog.cpp \
-    widgets/QEStripChart/QEStripChartContextMenu.cpp \
-    widgets/QEStripChart/QEStripChartDurationDialog.cpp \
-    widgets/QEStripChart/QEStripChartItem.cpp \
-    widgets/QEStripChart/QEStripChartNames.cpp \
-    widgets/QEStripChart/QEStripChartRangeDialog.cpp \
-    widgets/QEStripChart/QEStripChartTimeDialog.cpp \
-    widgets/QEStripChart/QEStripChartToolBar.cpp \
-    widgets/QEStripChart/QEStripChartUtilities.cpp \
-    widgets/QEStripChart/QEStripChartStatistics.cpp
+HEADERS += $$PWD/QEStripChartContextMenu.h
+SOURCES += $$PWD/QEStripChartContextMenu.cpp
 
-INCLUDEPATH += \
-    widgets/QEStripChart
+HEADERS += $$PWD/QEStripChartDurationDialog.h
+SOURCES += $$PWD/QEStripChartDurationDialog.cpp
+FORMS   += $$PWD/QEStripChartDurationDialog.ui
 
-FORMS += \
-    widgets/QEStripChart/QEStripChartAdjustPVDialog.ui \
-    widgets/QEStripChart/QEStripChartDurationDialog.ui \
-    widgets/QEStripChart/QEStripChartRangeDialog.ui \
-    widgets/QEStripChart/QEStripChartTimeDialog.ui \
-    widgets/QEStripChart/QEStripChartStatistics.ui
+HEADERS += $$PWD/QEStripChartItem.h
+SOURCES += $$PWD/QEStripChartItem.cpp
+
+HEADERS += $$PWD/QEStripChartNames.h
+SOURCES += $$PWD/QEStripChartNames.cpp
+
+HEADERS += $$PWD/QEStripChartRangeDialog.h
+SOURCES += $$PWD/QEStripChartRangeDialog.cpp
+FORMS   += $$PWD/QEStripChartRangeDialog.ui
+
+HEADERS += $$PWD/QEStripChartState.h
+SOURCES += $$PWD/QEStripChartState.cpp
+
+HEADERS += $$PWD/QEStripChartStatistics.h
+SOURCES += $$PWD/QEStripChartStatistics.cpp
+FORMS   += $$PWD/QEStripChartStatistics.ui
+
+HEADERS += $$PWD/QEStripChartTimeDialog.h
+SOURCES += $$PWD/QEStripChartTimeDialog.cpp
+FORMS   += $$PWD/QEStripChartTimeDialog.ui
+
+HEADERS += $$PWD/QEStripChartToolBar.h
+SOURCES += $$PWD/QEStripChartToolBar.cpp
+
+HEADERS += $$PWD/QEStripChartUtilities.h
+SOURCES += $$PWD/QEStripChartUtilities.cpp
+
+OTHER_FILES += $$PWD/archive.png
+OTHER_FILES += $$PWD/go_back.png
+OTHER_FILES += $$PWD/go_fwd.png
+OTHER_FILES += $$PWD/linear_scale.png
+OTHER_FILES += $$PWD/log_scale.png
+OTHER_FILES += $$PWD/normal_video.png
+OTHER_FILES += $$PWD/open_file.png
+OTHER_FILES += $$PWD/page_backward.png
+OTHER_FILES += $$PWD/page_forward.png
+OTHER_FILES += $$PWD/pause.png
+OTHER_FILES += $$PWD/play.png
+OTHER_FILES += $$PWD/powered_by_asp.png
+OTHER_FILES += $$PWD/reverse_video.png
+OTHER_FILES += $$PWD/save_file.png
+OTHER_FILES += $$PWD/select_date_times.png
+OTHER_FILES += $$PWD/select_time.png
+OTHER_FILES += $$PWD/write_all.png
+
+RESOURCES   += $$PWD/QEStripChart.qrc
 
 # end

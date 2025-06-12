@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  *
  */
 
@@ -36,6 +36,7 @@
 #include <QPoint>
 #include <QPushButton>
 #include <QString>
+#include <QVector>
 #include <QWidget>
 
 #include <QEEnums.h>
@@ -152,6 +153,12 @@ public:
    // Initiates the dialog to write the trace to file.
    //
    void writeTraceToFile ();
+
+   static void writeListToFile (QEStripChart* chart,
+                                const QVector<QEStripChartItem*>& itemList,
+                                const QString& filename,
+                                const double interval,
+                                const bool isCSV);
 
    QCaVariableNamePropertyManager pvNameProperyManager;
 

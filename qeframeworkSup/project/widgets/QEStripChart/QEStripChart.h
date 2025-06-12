@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2024 Australian Synchrotron
+ *  Copyright (c) 2012-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #ifndef QE_STRIP_CHART_H
@@ -448,6 +448,8 @@ private slots:
    void selectDuration ();
    void timeZoneSelected (const Qt::TimeSpec timeZoneSpec);
    void playModeSelected (const QEStripChartNames::PlayModes mode);
+
+   void writeAllSelected ();
    void readArchiveSelected ();
 
    // From the QEGraphic plot object.

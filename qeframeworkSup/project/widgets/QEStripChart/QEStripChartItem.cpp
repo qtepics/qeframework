@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #include "QEStripChartItem.h"
@@ -1669,6 +1669,152 @@ void QEStripChartItem::writeTraceToFile ()
    dataPoints.toStream (ts, true, true);
 
    file.close ();
+}
+
+//------------------------------------------------------------------------------
+// static
+void QEStripChartItem::writeListToFile (QEStripChart* chart,
+                                        const QVector<QEStripChartItem*>& itemList,
+                                        const QString& filename, const double interval,
+                                        const bool isCSV)
+{
+   if (!chart) return;  // sanity check
+   if (itemList.size() == 0) return;  // nothing too see here.
+
+   const QDateTime startTime = chart->getStartDateTime();
+   const QDateTime endTime = chart->getEndDateTime();
+
+   struct ItemInfo {
+      QEStripChartItem* chartItem;
+      QCaDataPointList dataPoints;
+   };
+
+   QVector<ItemInfo> itemInfoList;
+
+   for (QEStripChartItem* item : itemList) {
+       if (item && item->isInUse()) {
+          ItemInfo itemInfo;
+          itemInfo.chartItem = item;
+          QCaDataPointList dataPoints = item->extractPlotPoints (false);
+          if (dataPoints.count() == 0) break;
+          itemInfo.dataPoints = dataPoints;
+          itemInfoList.append(itemInfo);
+       }
+   }
+
+   const int number = itemInfoList.size();
+
+   // Find earliest time for item that is displayed on the chart,
+   // together with associated node and position.
+   //
+   QCaDateTime firstTime = endTime.addSecs (10);
+
+   for (int p = 0; p < number; ++p) {
+       firstTime = MIN (firstTime, itemInfoList[p].dataPoints.first().datetime);
+   }
+   firstTime = MAX(firstTime, startTime);
+
+
+   // Create initial virtual a point so that all chart items start at
+   // the "same time"
+   //
+   QCaDataPoint point;
+   point.value = 0;
+   point.datetime = firstTime;
+   point.alarm = QCaAlarmInfo (0, INVALID_ALARM);
+
+   for (int p = 0; p < number; ++p) {
+      // Resample points - discard un-resampled data.
+      //
+      itemInfoList[p].dataPoints.prepend (point);
+      QCaDataPointList tempList;
+      tempList.resample (itemInfoList[p].dataPoints, MAX(interval, 0.1), endTime);
+      itemInfoList[p].dataPoints = tempList;
+   }
+
+   // Create file output object.
+   //
+   QFile file (filename);
+   if (!file.open (QIODevice::WriteOnly | QIODevice::Text)) {
+       QString message = QString ("Write all to file: could not open: %1").arg(filename);
+       message_types mt (MESSAGE_TYPE_WARNING, MESSAGE_KIND_STANDARD);
+       chart->sendMessage (message, mt);
+       DEBUG << message;
+       return;
+
+   }
+   QTextStream out (&file);
+
+   const int outputPoints = itemInfoList[0].dataPoints.count();
+
+   if (isCSV) {
+      // Output in csv format.
+      //
+#define P(zz)   '"' << zz <<  '"'
+#define Q(zz)   ",\"" << zz <<  '"'
+
+      out << P("number")
+          << Q("datetime")
+          << Q("rel.time");
+
+      for (int p = 0; p < number; ++p) {
+         out << Q(itemInfoList[p].chartItem->getPvName());
+      }
+      out << "\n";
+
+      for (int j = 0; j < outputPoints; ++j) {
+         QCaDateTime jthTime = itemInfoList[0].dataPoints.value(j).datetime;
+         double relativeTime = firstTime.secondsTo (jthTime);
+
+         out << P(QString::number(j+1))
+             << Q(jthTime.toString())
+             << Q(QString::number (relativeTime, 'f', 3));
+
+         for (int p = 0; p < number; ++p) {
+            double value = itemInfoList[p].dataPoints.value(j).value;
+            out << Q(QString::number(value, 'g', 7));
+         }
+         out << "\n";
+
+         if (jthTime >= endTime) break;
+      }
+
+#undef P
+#undef Q
+
+   } else {
+      // Output in plain text format.
+      //
+      out << "# " << startTime.toString() << " to " << endTime.toString() << "\n#\n";
+      for (int p = 0; p < number; ++p) {
+         out << "# " << p + 1 << "  " << itemInfoList[p].chartItem->getPvName() << "\n";
+      }
+      out << "#\n";
+
+      for (int j = 0; j < outputPoints; ++j) {
+         //     if (j % 1000 == 0) {
+         //         QCoreApplication::processEvents();
+         //     }
+
+         QCaDateTime jthTime = itemInfoList[0].dataPoints.value(j).datetime;
+         double relativeTime = firstTime.secondsTo (jthTime);
+
+         out << QString::number(j + 1).rightJustified (5)
+             << "   " << jthTime.toString()
+             << QString::number (relativeTime, 'f', 3).rightJustified (10) << " ";
+
+         for (int p = 0; p < number; ++p) {
+            double value = itemInfoList[p].dataPoints.value(j).value;
+            out << QString::number(value, 'g', 7).rightJustified (14) << " ";
+         }
+         out << "\n";
+
+         if (jthTime >= endTime) break;
+      }
+
+      out << "\n# end\n";
+   }
+   file.close();
 }
 
 //------------------------------------------------------------------------------

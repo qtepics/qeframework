@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2023 Australian Synchrotron
+ *  Copyright (c) 2013-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  *
  */
 
@@ -46,7 +46,7 @@
 
 #define DEBUG qDebug () << "QEStripChartToolBar:" << __LINE__ << __FUNCTION__ << " "
 
-#define NUMBER_OF_BUTTONS  34
+#define NUMBER_OF_BUTTONS  35
 #define ICW                26         // standard icon width
 #define ICH                26         // standard icon height
 #define DBW                28         // duration button width
@@ -65,7 +65,6 @@
 #define CONFIGURATION_TAB  1
 #define MARKERS_TAB        2
 #define NUMBER_OF_TABS     3
-
 
 #define SELECT_FILE        "--- select configuration file ---"
 
@@ -123,7 +122,8 @@ static const struct QEStripChartPushButtonSpecifications buttonSpecs [NUMBER_OF_
    { 8,   40,  0, false, localZone,                         QString ("Use local time"),               SLOT (localTimeClicked (bool))        },
    { 0,   40,  0, false, QString ("UTC"),                   QString ("Use UTC (GMT) time"),           SLOT (utcTimeClicked (bool))          },
 
-   { 8,   ICW, 0, true,  QString ("archive.png"),           QString ("Extract data from archive(s)"), SLOT (readArchiveClicked (bool))      },
+   { 8,   ICW, 0, true,  QString ("write_all.png"),         QString ("Write all traces"),             SLOT (writeAllClicked (bool))         },
+   { 0,   ICW, 0, true,  QString ("archive.png"),           QString ("Extract data from archive(s)"), SLOT (readArchiveClicked (bool))      },
 
    { 8,   ICW, 0, true,  QString ("select_date_times.png"), QString ("Set chart start/end time"),     SLOT (selectTimeClicked (bool))       },
    { 0,   ICW, 0, true,  QString ("play.png"),              QString ("Play - Real time"),             SLOT (playClicked (bool))             },
@@ -669,6 +669,13 @@ void QEStripChartToolBar::backwardClicked (bool)
 void QEStripChartToolBar::selectTimeClicked (bool)
 {
    emit this->playModeSelected (QEStripChartNames::selectTimes);
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChartToolBar::writeAllClicked (bool)
+{
+   emit this->writeAllSelected ();
 }
 
 //------------------------------------------------------------------------------

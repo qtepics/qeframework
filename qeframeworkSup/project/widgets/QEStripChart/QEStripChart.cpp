@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #include "QEStripChart.h"
@@ -276,6 +276,9 @@ void QEStripChart::createInternalWidgets ()
 
    QObject::connect (this->toolBar, SIGNAL (timeZoneSelected (const Qt::TimeSpec)),
                      this,          SLOT   (timeZoneSelected (const Qt::TimeSpec)));
+
+   QObject::connect (this->toolBar, SIGNAL (writeAllSelected  ()),
+                     this,          SLOT   (writeAllSelected  ()));
 
    QObject::connect (this->toolBar, SIGNAL (readArchiveSelected  ()),
                      this,          SLOT   (readArchiveSelected  ()));
@@ -1627,6 +1630,39 @@ void QEStripChart::zoomInOut (const QPointF& about, const int zoomAmount)
       this->setYRange (newMin, newMax);
       this->pushState ();
    }
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChart::writeAllSelected ()
+{
+   QString defaultPath = this->getDefaultDir ();
+
+   // Launch the dialog
+   //
+   QString filename = QFileDialog::getSaveFileName
+         (this, "Select output all trace file", defaultPath,
+          "Text files(*.txt);;CSV files(*.csv);;All files(*.*)");
+
+   if (filename.isEmpty ()) {
+      return;
+   }
+
+   bool isCsv = filename.endsWith(".csv");
+
+   QVector<QEStripChartItem*> itemList;
+   itemList.reserve (NUMBER_OF_PVS);
+
+   // Create a set of QEStripChartItem items.
+   //
+   for (int slot = 0; slot < NUMBER_OF_PVS; slot++) {
+      QEStripChartItem* item = this->getItem (slot);
+      if (item && item->isInUse()) {
+         itemList.append (item);
+      }
+   }
+
+   QEStripChartItem::writeListToFile (this, itemList, filename, 1.0, isCsv);
 }
 
 //------------------------------------------------------------------------------
