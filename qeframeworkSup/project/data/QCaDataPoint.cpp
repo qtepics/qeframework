@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2024 Australian Synchrotron
+ *  Copyright (c) 2012-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #include "QCaDataPoint.h"
@@ -244,6 +244,13 @@ void QCaDataPointList::append (const QCaDataPoint& other)
 
 //------------------------------------------------------------------------------
 //
+void QCaDataPointList::prepend (const QCaDataPoint& other)
+{
+   this->data.prepend (other);
+}
+
+//------------------------------------------------------------------------------
+//
 void  QCaDataPointList::append (const QCaDataPointList& other)
 {
    for (int j = 0; j < other.count(); j++) {
@@ -270,6 +277,13 @@ int QCaDataPointList::count () const
 QCaDataPoint QCaDataPointList::value (const int j) const
 {
    return this->data.value (j);
+}
+
+//------------------------------------------------------------------------------
+//
+QCaDataPoint QCaDataPointList::first () const
+{
+   return this->data.first ();
 }
 
 //------------------------------------------------------------------------------

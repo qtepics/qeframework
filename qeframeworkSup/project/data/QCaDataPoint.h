@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2024 Australian Synchrotron
+ *  Copyright (c) 2013-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #ifndef QE_DATA_POINT_H
@@ -91,6 +91,7 @@ public:
    void removeFirst ();
    void append (const QCaDataPointList& other);
    void append (const QCaDataPoint& other);
+   void prepend (const QCaDataPoint& other);
    void replace (const int i, const QCaDataPoint& t);
    int count () const;
 
@@ -99,6 +100,7 @@ public:
    void removeFirstItems (const int n);
 
    QCaDataPoint value (const int j) const;
+   QCaDataPoint first () const;
    QCaDataPoint last () const;
 
    // Truncates the list at the given position index.
