@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2022 Australian Synchrotron
+ *  Copyright (c) 2011-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -25,72 +25,82 @@
  */
 
 #include "managePixmaps.h"
+#include <QDebug>
 #include <QECommon.h>
 
+#define DEBUG qDebug () << "managePixmaps" << __LINE__ << __FUNCTION__ << "  "
+
+//------------------------------------------------------------------------------
 // constructor
-managePixmaps::managePixmaps()
+QEManagePixmaps::QEManagePixmaps()
 {
-    // Initialy set all pixmaps to a blank pixmap
-    QPixmap blank;
-    for( int i = 0; i < NUM_PIXMAPS_MANAGED; i++)
-    {
-        pixmaps.append( blank );
-    }
+   // Initialy set all pixmaps to a blank pixmap
+   //
+   for (int i = 0; i < NUM_PIXMAPS_MANAGED; i++) {
+      static QPixmap blank;
+      this->pixmaps.append (blank);
+   }
 }
 
+//------------------------------------------------------------------------------
 // place holder destructor
-managePixmaps::~managePixmaps() { }
+QEManagePixmaps::~QEManagePixmaps() { }
 
+//------------------------------------------------------------------------------
 // place holder function intended to be overiden by sub class if required.
-void managePixmaps::pixmapUpdated( const int ) { }
+//
+void QEManagePixmaps::pixmapUpdated (const int) { }
 
-void managePixmaps::setDataPixmap( const QPixmap& pixmap, const int index )
+//------------------------------------------------------------------------------
+//
+void QEManagePixmaps::setDataPixmap (const QPixmap& pixmap, const int index)
 {
-    // Sanity check
-    if( index < 0 || index >= pixmaps.count() )
-        return;
+   // Sanity check
+   if ((index < 0) || (index >= this->pixmaps.count())) return;
 
-    // Save the pixmap
-    pixmaps[index] = pixmap;
+   // Save the pixmap
+   this->pixmaps[index] = pixmap;
 
-    // Call virtual pixmapUpdated function to allow sub-classes to take any
-    // required action if/wghen a pix map changes.
-    //
-    pixmapUpdated( index );
+   // Call virtual pixmapUpdated function to allow sub-classes to take any
+   // required action if/wghen a pix map changes.
+   //
+   this->pixmapUpdated (index);
 }
 
-QPixmap managePixmaps::getDataPixmap( const int index ) const
+//------------------------------------------------------------------------------
+//
+QPixmap QEManagePixmaps::getDataPixmap (const int index) const
 {
-    QPixmap blank;
-    return pixmaps.value( index, blank );
+   static QPixmap blank;
+   return this->pixmaps.value (index, blank);
 }
 
-QPixmap managePixmaps::getDataPixmap( const QString& text ) const
+//------------------------------------------------------------------------------
+//
+QPixmap QEManagePixmaps::getDataPixmap( const QString& text ) const
 {
-    QStringList list = QEUtilities::split (text.simplified());
+   const QStringList list = QEUtilities::split (text.simplified());
 
-    // Attempt to interpret the text as a floating point number
-    bool ok = false;
-    double dValue = 0.0;
+   // Attempt to interpret the text as a floating point number
+   bool ok = false;
+   double dValue = 0.0;
 
-    if( list.count() )
-        dValue = list[0].toDouble( &ok );
+   if (list.count() >= 1)
+      dValue = list[0].toDouble (&ok);
 
-    // Convert any resultant floating point number to a pixmap index
-    int iValue = (int)dValue;
+   // Convert any resultant floating point number to a pixmap index.
+   //
+   int iValue = int (dValue);
 
-    // If the text was interpreted as a floating point number, select and return the pixmap
-    if( ok )
-    {
-        return getDataPixmap( iValue );
-    }
-
-    // If the text could not be interpreted as a floating point number, return a blank pixmap
-    else
-    {
-        QPixmap blank;
-        return blank;
-    }
+   // If the text was interpreted as a floating point number, select and return the pixmap.
+   if (ok) {
+      return getDataPixmap( iValue );
+   } else {
+      // The text could not be interpreted as a floating point number, return a blank pixmap.
+      //
+      static QPixmap blank;
+      return blank;
+   }
 }
 
 // end

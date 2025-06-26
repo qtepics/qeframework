@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2011-2021 Australian Synchrotron
+ *  Copyright (c) 2011-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,30 +31,32 @@
 #include <QPixmap>
 #include <QEFrameworkLibraryGlobal.h>
 
-#define NUM_PIXMAPS_MANAGED 8
-
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT managePixmaps {
-
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEManagePixmaps {
 public:
-   explicit managePixmaps();
-   virtual ~managePixmaps();
+   enum Constants {
+      // A bit arbitary, however is in line with mbbi/mbbo records.
+      NUM_PIXMAPS_MANAGED = 16
+   };
+
+   explicit QEManagePixmaps();
+   virtual ~QEManagePixmaps();
 
     // Property convenience functions
 
     // Pixmaps
-    void setDataPixmap( const QPixmap& Pixmap, const int index );
-    QPixmap getDataPixmap( const int index ) const;
+    void setDataPixmap (const QPixmap& Pixmap, const int index);
+    QPixmap getDataPixmap (const int index ) const;
 
-    // Treat string as testual representation of numeric index value.
+    // Treat string as textual representation of numeric index value.
     //
-    QPixmap getDataPixmap( const QString& value ) const;
+    QPixmap getDataPixmap (const QString& value) const;
 
     // Access function for pixmap properties.
     // Currently used by QELabel, QEPushButton etc. and QEFrame.
     //
-#define PIXMAP_ACCESS(n)                                                                   \
-    void setPixmap##n##Property( const QPixmap& pixmap ) { setDataPixmap( pixmap, n ); }   \
-    QPixmap getPixmap##n##Property() const { return getDataPixmap( n ); }
+#define PIXMAP_ACCESS(n)                                                                 \
+    void setPixmap##n##Property (const QPixmap& pixmap) { setDataPixmap (pixmap, n); }   \
+    QPixmap getPixmap##n##Property() const { return getDataPixmap (n); }
 
 
     PIXMAP_ACCESS (0)
@@ -65,12 +67,20 @@ public:
     PIXMAP_ACCESS (5)
     PIXMAP_ACCESS (6)
     PIXMAP_ACCESS (7)
+    PIXMAP_ACCESS (8)
+    PIXMAP_ACCESS (9)
+    PIXMAP_ACCESS (10)
+    PIXMAP_ACCESS (11)
+    PIXMAP_ACCESS (12)
+    PIXMAP_ACCESS (13)
+    PIXMAP_ACCESS (14)
+    PIXMAP_ACCESS (15)
 
 #undef PIXMAP_ACCESS
 
 protected:
     // Called when a specific pix map is updated.
-    virtual void pixmapUpdated( const int index );
+    virtual void pixmapUpdated (const int index);
 
 private:
     QList<QPixmap> pixmaps;
