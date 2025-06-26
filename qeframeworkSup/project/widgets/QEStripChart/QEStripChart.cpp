@@ -1642,7 +1642,7 @@ void QEStripChart::writeAllSelected ()
    //
    QString filename = QFileDialog::getSaveFileName
          (this, "Select output all trace file", defaultPath,
-          "Text files(*.txt);;CSV files(*.csv);;All files(*.*)");
+          "CSV files(*.csv);;Text files(*.txt);;All files(*.*)");
 
    if (filename.isEmpty ()) {
       return;

@@ -244,6 +244,7 @@ QEStripChartToolBar::OwnTabWidget::OwnTabWidget (QEStripChartToolBar* parent) : 
          iconPathName = ":/qe/stripchart/";
          iconPathName.append (buttonSpecs[j].captionOrIcon);
          button->setIcon (QIcon (iconPathName));
+         button->setIconSize (QSize(18, 18));
       } else {
          button->setText (buttonSpecs[j].captionOrIcon);
       }

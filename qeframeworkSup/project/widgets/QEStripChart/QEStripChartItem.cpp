@@ -1763,16 +1763,20 @@ void QEStripChartItem::writeListToFile (QEStripChart* chart,
       out << "\n";
 
       for (int j = 0; j < outputPoints; ++j) {
-         QCaDateTime jthTime = itemInfoList[0].dataPoints.value(j).datetime;
-         double relativeTime = firstTime.secondsTo (jthTime);
+         const QCaDateTime jthTime = itemInfoList[0].dataPoints.value(j).datetime;
+         const double relativeTime = firstTime.secondsTo (jthTime);
 
          out << P(QString::number(j+1))
              << Q(jthTime.toString())
              << Q(QString::number (relativeTime, 'f', 3));
 
          for (int p = 0; p < number; ++p) {
-            double value = itemInfoList[p].dataPoints.value(j).value;
-            out << Q(QString::number(value, 'g', 7));
+            const QCaDataPoint point = itemInfoList[p].dataPoints.value(j);
+            if (point.isDisplayable()) {
+               out << Q(QString::number(point.value, 'g', 7));
+            } else {
+               out << Q("nil");
+            }
          }
          out << "\n";
 
@@ -1783,29 +1787,34 @@ void QEStripChartItem::writeListToFile (QEStripChart* chart,
 #undef Q
 
    } else {
-      // Output in plain text format.
+      // Output in plain text format - keelp aligned AFARP with above.
       //
       out << "# " << startTime.toString() << " to " << endTime.toString() << "\n#\n";
       for (int p = 0; p < number; ++p) {
          out << "# " << p + 1 << "  " << itemInfoList[p].chartItem->getPvName() << "\n";
       }
       out << "#\n";
+      out << "# num   date-time                   rel.time      PV values\n";
 
       for (int j = 0; j < outputPoints; ++j) {
          //     if (j % 1000 == 0) {
          //         QCoreApplication::processEvents();
          //     }
 
-         QCaDateTime jthTime = itemInfoList[0].dataPoints.value(j).datetime;
-         double relativeTime = firstTime.secondsTo (jthTime);
+         const QCaDateTime jthTime = itemInfoList[0].dataPoints.value(j).datetime;
+         const double relativeTime = firstTime.secondsTo (jthTime);
 
          out << QString::number(j + 1).rightJustified (5)
              << "   " << jthTime.toString()
-             << QString::number (relativeTime, 'f', 3).rightJustified (10) << " ";
+             << QString::number (relativeTime, 'f', 3).rightJustified (12);
 
          for (int p = 0; p < number; ++p) {
-            double value = itemInfoList[p].dataPoints.value(j).value;
-            out << QString::number(value, 'g', 7).rightJustified (14) << " ";
+            const QCaDataPoint point = itemInfoList[p].dataPoints.value(j);
+            if (point.isDisplayable()) {
+               out  << " " << QString::number(point.value, 'g', 7).rightJustified (14);
+            } else {
+               out  << " " << QString("nil").rightJustified (14);
+            }
          }
          out << "\n";
 
