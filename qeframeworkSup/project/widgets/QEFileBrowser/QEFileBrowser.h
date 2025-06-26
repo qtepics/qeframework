@@ -21,7 +21,7 @@
  *  Author:
  *    Ricardo Fernandes
  *  Contact details:
- *    ricardo.fernandes@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #ifndef QE_FILE_BROWSER_H
@@ -52,7 +52,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFileBrowser:
    ///
    Q_PROPERTY(QString variable READ getVariableName WRITE setVariableName)
 
-   /// Macro substitutions. The default is no substitutions.
+   /// Default macro substitutions. The default is no substitutions.
    /// The format is NAME1=VALUE1[,] NAME2=VALUE2...
    /// Values may be quoted strings. For example, 'PUMP=PMP3, NAME = "My Pump"'
    /// These substitutions are applied to variable names for all QE widgets.
@@ -99,9 +99,16 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFileBrowser:
    Q_PROPERTY(bool showFileExtension READ getShowFileExtension WRITE setShowFileExtension)
 
    /// Enable/disable the browsing of directories-only when opening the
-   /// dialog window.
+   /// dialog window. The default is true.
    ///
    Q_PROPERTY(bool fileDialogDirectoriesOnly READ getFileDialogDirectoriesOnly WRITE setFileDialogDirectoriesOnly)
+
+   /// Specifies if the selected can be created.
+   /// When false, this is the equivilent to open and is the default.
+   /// When true, this is the equivilent to save.
+   /// Only applicable when fileDialogDirectoriesOnly is set true.
+   ///
+   Q_PROPERTY(bool fileCreationAllowed READ getFileCreationAllowed WRITE setFileCreationAllowed )
 
    /// Specify which files to browse. To specify more than one filter,
    /// please separate them with a ";".
@@ -158,10 +165,13 @@ public:
    void setFileFilter (const QString& fileFilter);
    QString getFileFilter() const;
 
-   void setFileDialogDirectoriesOnly(bool directoriesOnly);
-   bool getFileDialogDirectoriesOnly() const;
+   void setFileDialogDirectoriesOnly (const bool directoriesOnly);
+   bool getFileDialogDirectoriesOnly () const;
 
-   void setOptionsLayout (QE::LayoutOptions layout);
+   void setFileCreationAllowed (const bool fileCreationAllowed);
+   bool getFileCreationAllowed () const;
+
+   void setOptionsLayout (const QE::LayoutOptions layout);
    QE::LayoutOptions getOptionsLayout() const;
 
    void setMargin(const int margin);
@@ -187,6 +197,7 @@ protected:
    QString m_fileFilter;
    bool m_showFileExtension;
    bool m_fileDialogDirectoriesOnly;
+   bool m_fileCreationAllowed;
    int m_margin;
    QE::LayoutOptions m_optionsLayout;
 
@@ -197,10 +208,10 @@ protected:
 private:
 
 private slots:
-   void lineEditDirectoryPathChanged (QString);
-   void buttonDirectoryBrowserClicked();
-   void buttonRefreshClicked();
-   void itemActivated(QTableWidgetItem *);
+   void onDirectoryPathChanged (const QString&);
+   void onDirectoryBrowseClicked ();
+   void onRefreshClicked ();
+   void itemActivated (QTableWidgetItem*);
 };
 
 #endif // QE_FILE_BROWSER_H

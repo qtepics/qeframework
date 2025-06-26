@@ -21,7 +21,7 @@
  *  Author:
  *    Ricardo Fernandes
  *  Contact details:
- *    ricardo.fernandes@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #include "QEFileBrowser.h"
@@ -75,19 +75,19 @@ QEFileBrowser::QEFileBrowser (QWidget* parent):
    this->browserTable = new QEFileBrowser::QEOwnTable (this);
 
    this->directoryPathEdit->setToolTip("Specify the directory where to browse for files");
-   QObject::connect(this->directoryPathEdit, SIGNAL(textChanged(QString)),
-                    this, SLOT(lineEditDirectoryPathChanged(QString)));
+   QObject::connect(this->directoryPathEdit, SIGNAL(textChanged(const QString&)),
+                    this,           SLOT(onDirectoryPathChanged(const QString&)));
 
    this->directoryBrowserButton->setText("...");
-   this->directoryBrowserButton->setToolTip("Browse for a directory");
+   this->directoryBrowserButton->setToolTip("Browse for a directory/file");
    QObject::connect(this->directoryBrowserButton, SIGNAL(clicked()),
-                    this, SLOT(buttonDirectoryBrowserClicked()));
-   this->directoryBrowserButton->setFixedWidth(44);
+                    this, SLOT (onDirectoryBrowseClicked()));
+   this->directoryBrowserButton->setFixedWidth (44);
 
    this->refreshButton->setText("Refresh");
    this->refreshButton->setToolTip("Refresh file browse result");
    QObject::connect(this->refreshButton, SIGNAL(clicked()),
-                    this, SLOT(buttonRefreshClicked()));
+                    this, SLOT(onRefreshClicked()));
 
    this->browserTable->setColumnCount(3);
    this->browserTable->setHorizontalHeaderItem(0, new QTableWidgetItem("Time"));
@@ -98,12 +98,13 @@ QEFileBrowser::QEFileBrowser (QWidget* parent):
    this->browserTable->setSelectionBehavior(QAbstractItemView::SelectRows);
    this->browserTable->setSelectionMode(QAbstractItemView::SingleSelection);
    this->browserTable->verticalHeader()->hide();
-   QObject::connect(this->browserTable, SIGNAL(itemActivated(QTableWidgetItem *)),
-                    this, SLOT(itemActivated (QTableWidgetItem *)));
+   QObject::connect(this->browserTable, SIGNAL(itemActivated(QTableWidgetItem*)),
+                    this,               SLOT  (itemActivated(QTableWidgetItem*)));
 
    this->setShowFileExtension(true);
    this->setFileFilter("");
    this->setFileDialogDirectoriesOnly(true);
+   this->setFileCreationAllowed(false);
    this->setOptionsLayout(QE::Top);
    this->setMargin(2);
 }
@@ -318,7 +319,7 @@ bool QEFileBrowser::getShowFileExtension() const
 
 //------------------------------------------------------------------------------
 //
-void QEFileBrowser::setFileDialogDirectoriesOnly(bool directoriesOnly)
+void QEFileBrowser::setFileDialogDirectoriesOnly(const bool directoriesOnly)
 {
    this->m_fileDialogDirectoriesOnly = directoriesOnly;
 }
@@ -332,7 +333,21 @@ bool QEFileBrowser::getFileDialogDirectoriesOnly() const
 
 //------------------------------------------------------------------------------
 //
-void QEFileBrowser::setOptionsLayout(QE::LayoutOptions layoutIn)
+void QEFileBrowser::setFileCreationAllowed (const bool fileCreationAllowed)
+{
+   this->m_fileCreationAllowed = fileCreationAllowed;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEFileBrowser::getFileCreationAllowed () const
+{
+   return this->m_fileCreationAllowed;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEFileBrowser::setOptionsLayout (const QE::LayoutOptions layoutIn)
 {
    const int m = this->getMargin();
    QLayout *qLayoutMain;
@@ -340,8 +355,7 @@ void QEFileBrowser::setOptionsLayout(QE::LayoutOptions layoutIn)
 
    delete this->layout();
 
-   switch (layoutIn)
-   {
+   switch (layoutIn) {
       case QE::Top:
          this->m_optionsLayout = QE::Top;
          qLayoutMain = new QVBoxLayout(this);
@@ -422,31 +436,35 @@ int QEFileBrowser::getMargin () const
 
 //------------------------------------------------------------------------------
 //
-void QEFileBrowser::lineEditDirectoryPathChanged(QString)
+void QEFileBrowser::onDirectoryPathChanged(const QString&)
 {
    this->updateTable();
 }
 
 //------------------------------------------------------------------------------
 //
-void QEFileBrowser::buttonDirectoryBrowserClicked()
+void QEFileBrowser::onDirectoryBrowseClicked()
 {
    QString result;
 
-   if (m_fileDialogDirectoriesOnly)
-   {
-      result = QFileDialog::getExistingDirectory(this, "Select directory",
-                                                 this->directoryPathEdit->text(),
-                                                 QFileDialog::ShowDirsOnly);
-   }
-   else
-   {
-      result = QFileDialog::getOpenFileName(this, "Select file",
-                                            this->directoryPathEdit->text());
+   if (this->m_fileDialogDirectoriesOnly) {
+      result = QFileDialog::getExistingDirectory (this, "Select directory",
+                                                  this->directoryPathEdit->text(),
+                                                  QFileDialog::ShowDirsOnly);
+   } else {
+      // this->m_fileFilter
+      if (this->m_fileCreationAllowed) {
+         result = QFileDialog::getSaveFileName (this, "Nominate file",
+                                                this->directoryPathEdit->text(),
+                                                this->m_fileFilter);
+      } else {
+         result = QFileDialog::getOpenFileName (this, "Select file",
+                                                this->directoryPathEdit->text(),
+                                                this->m_fileFilter);
+      }
    }
 
-   if (!result.isEmpty())
-   {
+   if (!result.isEmpty()) {
       this->directoryPathEdit->setText(result);
       this->directoryPathEdit->writeNow();
    }
@@ -454,7 +472,7 @@ void QEFileBrowser::buttonDirectoryBrowserClicked()
 
 //------------------------------------------------------------------------------
 //
-void QEFileBrowser::buttonRefreshClicked()
+void QEFileBrowser::onRefreshClicked()
 {
    this->updateTable();
 }
@@ -523,7 +541,6 @@ void QEFileBrowser::updateTable()
       this->browserTable->setItem(j, 2, qTableWidgetItem);
    }
 }
-
 
 
 // =============================================================================
@@ -600,7 +617,8 @@ void QEFileBrowser::QEOwnTable::refreshSize()
 void QEFileBrowser::QEOwnTable::resizeEvent (QResizeEvent *)
 {
 
-   // TODO: this condition should always be execute when inside Qt Designer
+   // TODO: this condition should always be execute when inside Qt Designer.
+   //
    if (this->initialized == false) {
       this->refreshSize();
       this->initialized = true;
