@@ -1,6 +1,7 @@
 /*  QEPvFrame.cpp
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,12 +16,12 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2016 Australian Synchrotron
+ *  Copyright (c) 2016-2025 Australian Synchrotron
  *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    as-open-source@ansto.gov.au
  */
 
 #include <QDebug>
@@ -185,7 +186,7 @@ void QEPvFrame::pvValueUpdate (const long &value, QCaAlarmInfo & alarmInfo,
    }
 
    // Update QEFrame - select pixmap
-   // Constrain modulo 8 ??? Set -1 if invalid ???
+   // Constrain modulo 16 ??? Set -1 if invalid ???
    //
    this->setSelectPixmap ((int) value);
 

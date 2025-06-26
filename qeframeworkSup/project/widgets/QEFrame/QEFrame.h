@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2012-2024 Australian Synchrotron
+ *  Copyright (c) 2012-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    as-open-source@ansto.gov.au
  */
 
 #ifndef QE_FRAME_H
@@ -44,7 +44,7 @@
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFrame :
       public QFrame,
       public QEWidget,
-      public managePixmaps
+      public QEManagePixmaps
 {
    Q_OBJECT
 
@@ -155,10 +155,6 @@ public:
 
    // QEFrame specific properties.
    //
-   /// Pixmap for frame background. Similar operation to pixmap property for a QLabel.
-   /// Depricated, and is an  alias for pixmap0
-   Q_PROPERTY (QPixmap pixmap READ getPixmap0Property WRITE setPixmap0Property DESIGNABLE false)
-
    /// Flag the pixmap for the background is to be scaled to fit the frame.
    /// Similar operation to scaledContents property for a QLabel.
    Q_PROPERTY (bool scaledContents READ getScaledContents WRITE setScaledContents)
@@ -195,6 +191,37 @@ public:
    /// Pixmap displayed when updateOption property is 'Picture' and data is interpreted as 7.
    ///
    Q_PROPERTY (QPixmap pixmap7 READ getPixmap7Property WRITE setPixmap7Property)
+
+   /// Pixmap displayed when updateOption property is 'Picture' and data is interpreted as 8.
+   ///
+   Q_PROPERTY(QPixmap pixmap8 READ getPixmap8Property WRITE setPixmap8Property)
+
+   /// Pixmap displayed when updateOption property is 'Picture' and data is interpreted as 9.
+   ///
+   Q_PROPERTY(QPixmap pixmap9 READ getPixmap9Property WRITE setPixmap9Property)
+
+   /// Pixmap displayed when updateOption property is 'Picture' and data is interpreted as 10.
+   ///
+   Q_PROPERTY(QPixmap pixmap10 READ getPixmap10Property WRITE setPixmap10Property)
+
+   /// Pixmap displayed when updateOption property is 'Picture' and data is interpreted as 11.
+   ///
+   Q_PROPERTY(QPixmap pixmap11 READ getPixmap11Property WRITE setPixmap11Property)
+   /// Pixmap displayed when updateOption property is 'Picture' and data is interpreted as 12.
+   ///
+   Q_PROPERTY(QPixmap pixmap12 READ getPixmap12Property WRITE setPixmap12Property)
+
+   /// Pixmap displayed when updateOption property is 'Picture' and data is interpreted as 13.
+   ///
+   Q_PROPERTY(QPixmap pixmap13 READ getPixmap13Property WRITE setPixmap13Property)
+
+   /// Pixmap displayed when updateOption property is 'Picture' and data is interpreted as 14.
+   ///
+   Q_PROPERTY(QPixmap pixmap14 READ getPixmap14Property WRITE setPixmap14Property)
+
+   /// Pixmap displayed when updateOption property is 'Picture' and data is interpreted as 15.
+   ///
+   Q_PROPERTY(QPixmap pixmap15 READ getPixmap15Property WRITE setPixmap15Property)
    //
    // End QEFrame specific properties.
 

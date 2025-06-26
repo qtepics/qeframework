@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2023 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
- *    andrew.rhyder@synchrotron.org.au
+ *    as-open-source@ansto.gov.au
  */
 
 /*
@@ -44,6 +44,7 @@
 QELabel::QELabel( QWidget *parent ) :
    QLabel( parent ),
    QEWidget( this ),
+   QEManagePixmaps (),
    QESingleVariableMethods ( this, PV_VARIABLE_INDEX )
 {
    setup();
@@ -55,6 +56,7 @@ QELabel::QELabel( QWidget *parent ) :
 QELabel::QELabel( const QString &variableNameIn, QWidget *parent ) :
    QLabel( parent ),
    QEWidget( this ),
+   QEManagePixmaps (),
    QESingleVariableMethods ( this, PV_VARIABLE_INDEX )
 {
    setup();

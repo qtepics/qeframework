@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2024 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Rhyder
  *  Contact details:
- *    andrew.rhyder@synchrotron.org.au
+ *    as-open-source@ansto.gov.au
  */
 
 #ifndef QE_GENERIC_BUTTON_H
@@ -44,7 +44,7 @@
 ///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEGenericButton :
         public QEWidget,
-        public managePixmaps,
+        public QEManagePixmaps,
         public QESingleVariableMethods,
         public QEStringFormattingMethods
 {
