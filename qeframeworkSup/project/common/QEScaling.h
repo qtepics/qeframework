@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron
+ *  Copyright (c) 2013-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@anstop.gov.au
  *
  */
 
@@ -145,6 +145,10 @@ private:
     //
     static void applyScalingToWidget (QWidget* widget);
 
+    /// Applies scale to a size object.
+    //
+    static QSize scaleSize (const QSize& size);
+
 private:
    int firstMember;    // used in conjection with lastMember to define object size.
 
@@ -201,6 +205,7 @@ private:
 
    // Specials - for particular widget types.
    //
+   QSize iconSize;   // QPushButton
    int indent;  // QLabel, QSimpleShape and QTreeView
    int resizeFrameAllowedMin;
    int resizeFrameAllowedMax;

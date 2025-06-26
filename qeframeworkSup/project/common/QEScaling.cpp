@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2024 Australian Synchrotron
+ *  Copyright (c) 2013-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  *
  */
 
@@ -33,6 +33,7 @@
 #include <QGridLayout>
 #include <QHeaderView>
 #include <QMetaType>
+#include <QPushButton>
 #include <QRegularExpression>
 #include <QSize>
 #include <QTableWidget>
@@ -269,6 +270,11 @@ void QEScaling::extractFromWidget (const QWidget* widget)
       this->indent = shape->getIndent ();
    }
 
+   const QPushButton* button = qobject_cast <const QPushButton*>(widget);
+   if (button) {
+      this->iconSize = button->iconSize();
+   }
+
    const QEResizeableFrame* resizeableFrame = qobject_cast <const QEResizeableFrame*>(widget);
    if (resizeableFrame) {
       this->resizeFrameAllowedMin = resizeableFrame->getAllowedMinimum ();
@@ -371,6 +377,32 @@ void QEScaling::widgetCapture (QWidget* widget)
 
 //------------------------------------------------------------------------------
 // static
+QSize QEScaling::scaleSize (const QSize& size)
+{
+   const int w = size.width ();
+   const int h = size.height ();
+
+   QSize result;
+
+   // QWIDGETSIZE_MAX is the default max size - do not scale nor exceed this value.
+   //
+   if (w == QWIDGETSIZE_MAX) {
+      result.setWidth (w);
+   } else {
+      result.setWidth (MIN (QEScaling::scale (w), QWIDGETSIZE_MAX));
+   }
+
+   if (h == QWIDGETSIZE_MAX) {
+      result.setHeight (h);
+   } else {
+      result.setHeight (MIN (QEScaling::scale (h), QWIDGETSIZE_MAX));
+   }
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// static
 void QEScaling::applyScalingToWidget (QWidget* widget)
 {
    // sainity check.
@@ -407,21 +439,9 @@ void QEScaling::applyScalingToWidget (QWidget* widget)
       if (ss != baseline.styleSheet) widget->setStyleSheet (ss);
    }
 
-   QSize minSize = baseline.minimumSize;
-   QSize maxSize = baseline.maximumSize;
+   const QSize minSize = QEScaling::scaleSize (baseline.minimumSize);
+   const QSize maxSize = QEScaling::scaleSize (baseline.maximumSize);
    QRect geo = baseline.geometry;
-
-   minSize.setWidth  (QEScaling::scale (minSize.width ()));
-   minSize.setHeight (QEScaling::scale (minSize.height ()));
-
-   // QWIDGETSIZE_MAX is the default max size - do not scale nor exceed this value.
-   //
-   if (maxSize.width () != QWIDGETSIZE_MAX) {
-      maxSize.setWidth  (MIN (QEScaling::scale (maxSize.width ()), QWIDGETSIZE_MAX));
-   }
-   if (maxSize.height () != QWIDGETSIZE_MAX) {
-      maxSize.setHeight (MIN (QEScaling::scale (maxSize.height ()), QWIDGETSIZE_MAX));
-   }
 
    geo = QRect (QEScaling::scale (geo.left ()),
                 QEScaling::scale (geo.top ()),
@@ -499,6 +519,11 @@ void QEScaling::applyScalingToWidget (QWidget* widget)
          indent = QEScaling::scale (indent);
          shape->setIndent (indent);
       }
+   }
+
+   QPushButton* button = qobject_cast <QPushButton*>(widget);
+   if (button) {
+      button->setIconSize (QEScaling::scaleSize (baseline.iconSize));
    }
 
    QEResizeableFrame* resizeableFrame = qobject_cast <QEResizeableFrame*>(widget);
