@@ -58,8 +58,9 @@
 #define NEXT_SLOT          1
 #define YSCALE_SLOT        6
 #define TSCALE_SLOT        12
-#define ARCHIVE_SLOT       28
-#define PLAY_SLOT          30
+#define WRITE_ALL          28
+#define ARCHIVE_SLOT       29
+#define PLAY_SLOT          31
 
 #define STANDARD_TAB       0
 #define CONFIGURATION_TAB  1
