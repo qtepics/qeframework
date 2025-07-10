@@ -135,29 +135,29 @@ private:
 };
 
 //------------------------------------------------------------------------------
-// This is essentially a private class, but must be declared in the header
-// file in order to use the meta object compiler (moc) to allow setup of the
-// timeout slot.
+// This is essentially a singleton private class, but must be declared in the
+// header file in order to use the meta object compiler (moc) to allow setup of
+// the timeout slot. It uses the Meyer’s Singleton design pattern.
+// The main purpose of this class to stimulate the underlying library on a
+// regular basis in order to process PVA callbacks do a clean shutdown.
 //
 class QEPvaClientManager : private QObject {
    Q_OBJECT
 public:
-   explicit QEPvaClientManager ();
-   ~QEPvaClientManager ();
-
-private:
    // Initialse the singleton QEPvaClientManager instance if needs be.
    // It is called each time a QEPvaClient is created.
    // This function is idempotent.
    //
    static void initialise ();
 
-   bool isRunning;
+private:
+   // Private - this ensures there can only be one.
+   //
+   explicit QEPvaClientManager ();
+   ~QEPvaClientManager ();
 
 private slots:
    void timeoutHandler ();
-
-   friend class QEPvaClient;
 };
 
 #endif // QE_PVA_CLIENT_H

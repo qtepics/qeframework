@@ -1005,17 +1005,21 @@ void QEPvaClient::processUpdate (QEPvaClient::Update* update)
 //==============================================================================
 // Helper class: QEPvaClientManager
 //==============================================================================
-//
-QEPvaClientManager singleton;
-
-//------------------------------------------------------------------------------
 // static
 void QEPvaClientManager::initialise ()
 {
-   if (singleton.isRunning) return;
-   singleton.isRunning = true;
+   // The singleton object created and seup when first needed, and not before.
+   // Just declaring as a regular static QObject doesn't work as that would
+   // require it to initialise before the construction of the QApplication.
+   //
+   static QEPvaClientManager singleton;
+}
 
-   // Initialise PVA client
+//------------------------------------------------------------------------------
+//
+QEPvaClientManager::QEPvaClientManager () : QObject (NULL)
+{
+   // Initialise PVA client.
    //
    pva::ClientFactory::start();
    pva::ChannelProviderRegistry::shared_pointer providerRegistry = pva::ChannelProviderRegistry::clients();
@@ -1023,32 +1027,13 @@ void QEPvaClientManager::initialise ()
 
    // Schedule first poll event.
    //
-   QTimer::singleShot (1, &singleton, SLOT (timeoutHandler ()));
-}
-
-//------------------------------------------------------------------------------
-//
-QEPvaClientManager::QEPvaClientManager () : QObject (NULL)
-{
-   this->isRunning = false;
-
-   if (this != &singleton) {
-      // Ignore if this is not the singleton object.
-      DEBUG << "This QEPvaClientManager instance is not the singleton";
-      return;
-   }
+   QTimer::singleShot (1, this, SLOT (timeoutHandler ()));
 }
 
 //------------------------------------------------------------------------------
 //
 QEPvaClientManager::~QEPvaClientManager ()
 {
-   if (this != &singleton) {
-      // Ignore, this is not the singleton object.
-      return;
-   }
-
-   this->isRunning = false;
    pva::ClientFactory::stop();
    pvaClientUpdateQueue.clear();
 }
@@ -1057,13 +1042,6 @@ QEPvaClientManager::~QEPvaClientManager ()
 //slot
 void QEPvaClientManager::timeoutHandler ()
 {
-   if (this != &singleton) {
-      // Ignore, this is not the singleton object.
-      return;
-   }
-
-   if (!this->isRunning) return;
-
    while (true) {
       QEPvaClient::Update* item = nullptr;
       bool ok = pvaClientUpdateQueue.dequeue (item);

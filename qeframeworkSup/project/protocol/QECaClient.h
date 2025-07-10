@@ -118,20 +118,15 @@ private slots:
 };
 
 //------------------------------------------------------------------------------
-// This is essentially a private class, but must be declared in the header
-// file in order to use the meta object compiler (moc) to allow setup of the
-// timeout slot.
+// This is essentially a singleton private class, but must be declared in the
+// header file in order to use the meta object compiler (moc) to allow setup of
+// the timeout slot. It uses the Meyer’s Singleton design pattern.
 // The main purpose of this class to stimulate the underlying library on a
-// regular basis in order to process CA callbacks. It also receives the
-// aboutToQuit signal in order to do a clean shutdown.
+// regular basis in order to process CA callbacks do a clean shutdown.
 //
 class QECaClientManager : private QObject {
    Q_OBJECT
 public:
-   explicit QECaClientManager ();
-   ~QECaClientManager ();
-
-private:
    // Initialse the singleton QECaClientManager instance if needs be.
    // It is called each time a QECaClient is created.
    // This function is idempotent.
@@ -139,14 +134,15 @@ private:
    static void initialise ();
 
 private:
-   static void notificationHandlers (const char* notification);
+   // Private - this ensures there can only be one.
+   //
+   explicit QECaClientManager ();
+   ~QECaClientManager ();
 
-   bool isRunning;
+   static void notificationHandlers (const char* notification);
 
 private slots:
    void timeoutHandler ();
-
-   friend class QECaClient;
 };
 
 #endif // QE_CA_CLIENT_H
