@@ -437,6 +437,7 @@ public:
    /// Pixmap displayed when updateOption property is 'Picture' and data is interpreted as 6.
    ///
    Q_PROPERTY(QPixmap pixmap6 READ getPixmap6Property WRITE setPixmap6Property)
+
    /// Pixmap displayed when updateOption property is 'Picture' and data is interpreted as 7.
    ///
    Q_PROPERTY(QPixmap pixmap7 READ getPixmap7Property WRITE setPixmap7Property)
