@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2024 Australian Synchrotron
+ *  Copyright (c) 2013-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #include "QEArchiveStatus.h"
@@ -300,6 +300,16 @@ void QEArchiveStatus::reReadAvailablePVs ()
 //
 void QEArchiveStatus::archiveStatus (const QEArchiveAccess::StatusList& statusList)
 {
+   static const QString stateStyle [] = {
+      QEUtilities::colourToStyle (QColor (0xffc080)),   // Unknown
+      QEUtilities::colourToStyle (QColor (0xe0e0e0)),   // Updating
+      QEUtilities::colourToStyle (QColor (0xa0ffa0)),   // Complete
+      QEUtilities::colourToStyle (QColor (0xffffa0)),   // InComplete
+      QEUtilities::colourToStyle (QColor (0xffa0a0)),   // No_Response
+      QEUtilities::colourToStyle (QColor (0xffa0a0))    // Error
+   };
+
+
    this->inUseCount = statusList.count ();
    this->calcMinimumHeight ();
 
@@ -315,7 +325,9 @@ void QEArchiveStatus::archiveStatus (const QEArchiveAccess::StatusList& statusLi
          // Note the extra space at end - indent only applies as per alignment
          row->hostNamePort->setText (QString ("%1:%2 ").arg (state.hostName).arg (state.portNumber));
          row->endPoint->setText (QString("%1 ").arg (state.endPoint));
-         row->state->setText (QEUtilities::enumToString (QEArchiveInterface::staticMetaObject, QString("States"), state.state));
+         row->state->setText (QEUtilities::enumToString (QEArchiveInterface::staticMetaObject,
+                                                         QString("States"), state.state));
+         row->state->setStyleSheet(stateStyle[state.state]);
          row->numberPVs->setText (QString ("%1").arg (state.numberPVs));
          totalPVs += state.numberPVs;
 
