@@ -319,10 +319,6 @@ protected:
    QVariant copyData ();
    void paste (QVariant s);
 
-   int getPrecision () const;
-   double getMinimum () const;
-   double getMaximum () const;
-
 private:
    void commonSetup ();
    void calculateAutoValues (qcaobject::QCaObject* qca);
@@ -332,17 +328,10 @@ private:
    QEStringFormatting   stringFormatting;
    QESingleVariableMethods* readback;
 
-   bool autoValuesAreDefined;
    bool isConnected;
    bool mContinuousWrite;
    bool mAutoScale;
    bool mAxisAlarmColours;
-
-   // Autoscale values based on PV meta data
-   //
-   double autoMinimum;
-   double autoMaximum;
-   int autoPrecision;
 
 private slots:
    void mainConnectionChanged (QCaConnectionInfo& connectionInfo,

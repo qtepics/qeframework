@@ -30,9 +30,10 @@
 #include <QRadioButton>
 #include <QPushButton>
 #include <QECommon.h>
+#include <QEDisplayRanges.h>
 #include <QEPvPropertiesUtilities.h>
 
-#define DEBUG qDebug () << "QEAnalogSlider" << __LINE__ << __FUNCTION__ << "  "
+#define DEBUG qDebug () << "QEAnalogSlider" << __LINE__ << __FUNCTION__ << " "
 
 #define SET_POINT_VARIABLE_INDEX      0
 #define READ_BACK_VARIABLE_INDEX      1
@@ -106,14 +107,7 @@ void QEAnalogSlider::commonSetup ()
    this->mAutoScale = true;
    this->mContinuousWrite = false;
    this->mAxisAlarmColours = false;
-   this->autoValuesAreDefined = false;
    this->isConnected = false;
-
-   // Define some sensible auto values.
-   //
-   this->autoMinimum = 0.0;
-   this->autoMaximum = 10.0;
-   this->autoPrecision = 1;
 
    this->stringFormatting.setArrayAction (QE::Index);
 
@@ -225,6 +219,7 @@ void QEAnalogSlider::establishConnection (unsigned int variableIndex)
 void QEAnalogSlider::calculateAutoValues (qcaobject::QCaObject* qca)
 {
    if (!qca) return;   // sainity check.
+   if (!this->getAutoScale()) return;   // no auto scaling
 
    // Do the auto scale calculations.
    //
@@ -245,21 +240,31 @@ void QEAnalogSlider::calculateAutoValues (qcaobject::QCaObject* qca)
       ctrlUpp = qca->getDisplayLimitUpper ();
    }
 
-   // If control abd display limits are undefined - use design time limits.
+   // If control and display limits are undefined - forget it.
    //
-   if ((ctrlLow == 0.0) && (ctrlUpp == 0.0)) {
-      ctrlLow = this->getDesignMinimum ();
-      ctrlUpp = this->getDesignMaximum ();
+   if ((ctrlLow == 0.0) && (ctrlUpp == 0.0)) return;
+   if (ctrlUpp < ctrlLow) {
+      DEBUG << "PV" << qca->getRecordName() << " poorly defined limits ignored";
+      return;
    }
 
-   this->autoMinimum = ctrlLow;
-   this->autoMaximum = ctrlUpp;
+   double dummy;  // we are not interested in modified limits here.
+   double major;
 
-   this->autoPrecision = qca->getPrecision ();
-   this->autoValuesAreDefined = true;
+   const QEDisplayRanges displayRange (ctrlLow, ctrlUpp);
+   displayRange.adjustMinMax (10, false, dummy, dummy, major);
+
+   const double minor = major / 5.0;
+   const int precision = qca->getPrecision ();
+
+   // Now we can update the parent widget.
+   //
+   this->setMinimum (ctrlLow);
+   this->setMaximum (ctrlUpp);
+   this->setMinorInterval (minor);
+   this->setMajorInterval (major);
+   this->setPrecision (precision);
 }
-
-#define IS_AUTO (this->mAutoScale && this->isConnected)
 
 //------------------------------------------------------------------------------
 //
@@ -274,27 +279,6 @@ void QEAnalogSlider::calcColourBandList ()
    }
 
    this->setColourBandList (bandList);
-}
-
-//------------------------------------------------------------------------------
-//
-int QEAnalogSlider::getPrecision () const
-{
-   return IS_AUTO ? this->autoPrecision    : this->getDesignPrecision ();
-}
-
-//------------------------------------------------------------------------------
-//
-double QEAnalogSlider::getMinimum () const
-{
-   return IS_AUTO ? this->autoMinimum     : this->getDesignMinimum ();
-}
-
-//------------------------------------------------------------------------------
-//
-double QEAnalogSlider::getMaximum () const
-{
-   return IS_AUTO ? this->autoMaximum     : this->getDesignMaximum ();
 }
 
 

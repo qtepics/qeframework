@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2023 Australian Synchrotron
+ *  Copyright (c) 2015-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -260,27 +260,6 @@ bool QAnalogSlider::getIsActive () const
 
 //------------------------------------------------------------------------------
 //
-int QAnalogSlider::getPrecision () const
-{
-   return this->mPrecision;
-}
-
-//------------------------------------------------------------------------------
-//
-double QAnalogSlider::getMinimum () const
-{
-   return this->mMinimum;
-}
-
-//------------------------------------------------------------------------------
-//
-double QAnalogSlider::getMaximum () const
-{
-   return this->mMaximum;
-}
-
-//------------------------------------------------------------------------------
-//
 void QAnalogSlider::setColourBandList (const QEColourBandList& bandList)
 {
    this->axisPainter->setColourBandList (bandList);
@@ -318,7 +297,7 @@ void QAnalogSlider::setValue (const int value)
 
 //------------------------------------------------------------------------------
 //
-void QAnalogSlider::setDesignPrecision (const int precision)
+void QAnalogSlider::setPrecision (const int precision)
 {
    this->mPrecision = LIMIT (precision, 0, 12);
    this->updateAxisAndSlider ();
@@ -327,14 +306,14 @@ void QAnalogSlider::setDesignPrecision (const int precision)
 
 //------------------------------------------------------------------------------
 //
-int QAnalogSlider::getDesignPrecision () const
+int QAnalogSlider::getPrecision () const
 {
    return this->mPrecision;
 }
 
 //------------------------------------------------------------------------------
 //
-void QAnalogSlider::setDesignMinimum (const double minimum)
+void QAnalogSlider::setMinimum (const double minimum)
 {
    // Ensure in range
    //
@@ -350,14 +329,14 @@ void QAnalogSlider::setDesignMinimum (const double minimum)
 
 //------------------------------------------------------------------------------
 //
-double QAnalogSlider::getDesignMinimum () const
+double QAnalogSlider::getMinimum () const
 {
    return this->mMinimum;
 }
 
 //------------------------------------------------------------------------------
 //
-void QAnalogSlider::setDesignMaximum (const double maximum)
+void QAnalogSlider::setMaximum (const double maximum)
 {
    // Ensure in range
    //
@@ -373,7 +352,7 @@ void QAnalogSlider::setDesignMaximum (const double maximum)
 
 //------------------------------------------------------------------------------
 //
-double QAnalogSlider::getDesignMaximum () const
+double QAnalogSlider::getMaximum () const
 {
    return this->mMaximum;
 }

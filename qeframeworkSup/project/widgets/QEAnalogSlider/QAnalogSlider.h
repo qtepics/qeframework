@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2023 Australian Synchrotron
+ *  Copyright (c) 2015-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -58,13 +58,13 @@ public:
    /// Precision used for the display and editing of numbers. The default is 2.
    /// Strictly speaking, this should be an unsigned int, but the designer int
    /// properties editor much 'nicer'.
-   Q_PROPERTY (int  precision        READ getDesignPrecision  WRITE setDesignPrecision)
+   Q_PROPERTY (int  precision        READ getPrecision  WRITE setPrecision)
 
    /// Speficies the mimimum allowed value.
-   Q_PROPERTY (double minimum        READ getDesignMinimum    WRITE setDesignMinimum)
+   Q_PROPERTY (double minimum        READ getMinimum    WRITE setMinimum)
 
    /// Speficies the maximum allowed value.
-   Q_PROPERTY (double maximum        READ getDesignMaximum    WRITE setDesignMaximum)
+   Q_PROPERTY (double maximum        READ getMaximum    WRITE setMaximum)
 
    /// Minor scale interval.
    /// Only applies for linear scale (not log scale)
@@ -123,14 +123,14 @@ public slots:
 public:
    double getValue () const;
 
-   void setDesignPrecision (const int precision);       ///< Access function for #precision - refer to #precision property for details
-   int getDesignPrecision () const;                     ///< Access function for #precision - refer to #precision property for details
+   void setPrecision (const int precision);       ///< Access function for #precision - refer to #precision property for details
+   int getPrecision () const;                     ///< Access function for #precision - refer to #precision property for details
 
-   void setDesignMinimum (const double minimum);        ///< Access function for #minimum - refer to #minimum property for details
-   double getDesignMinimum () const;                    ///< Access function for #minimum - refer to #minimum property for details
+   void setMinimum (const double minimum);        ///< Access function for #minimum - refer to #minimum property for details
+   double getMinimum () const;                    ///< Access function for #minimum - refer to #minimum property for details
 
-   void setDesignMaximum (const double maximum);        ///< Access function for #maximum - refer to #maximum property for details
-   double getDesignMaximum () const;                    ///< Access function for #maximum - refer to #maximum property for details
+   void setMaximum (const double maximum);        ///< Access function for #maximum - refer to #maximum property for details
+   double getMaximum () const;                    ///< Access function for #maximum - refer to #maximum property for details
 
    void setMinorInterval (const double minorInterval);  ///< Access function for #minorInterval - refer to #minorInterval property for details
    double getMinorInterval () const;                    ///< Access function for #minorInterval - refer to #minorInterval property for details
@@ -182,18 +182,6 @@ protected:
    // internal widget access
    //
    QEAxisPainter* getAxisPainter () { return this->axisPainter; }
-
-   // Allows sub-class to override designer (property) parameters.
-   // Default, i.e. non overriden, functions just returns designer values.
-   //
-   // While this widget has no knowledge of QEAnalogSlider per se, these virtual
-   // functions are included specifically to allow an QEAnalogSlider widget to auto
-   // scale without the need to change design time property values. This allows
-   // toggling between auto scale on/off while still maintaining property values.
-   //
-   virtual int getPrecision () const;
-   virtual double getMinimum () const;
-   virtual double getMaximum () const;
 
    void updateAxisAndSlider ();
 
