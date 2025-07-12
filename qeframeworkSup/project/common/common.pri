@@ -4,7 +4,7 @@
 # the Australian Synchrotron. This file is included into and as part
 # of the overall framework.pro project file.
 #
-# Copyright (c) 2017-2023 Australian Synchrotron
+# Copyright (c) 2017-2025 Australian Synchrotron
 #
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -61,6 +61,7 @@ HEADERS += $$PWD/QEDisplayRanges.h
 SOURCES += $$PWD/QEDisplayRanges.cpp
 
 HEADERS += $$PWD/QEEnums.h
+SOURCES += $$PWD/QEEnums.cpp
 
 HEADERS += $$PWD/QEExpressionEvaluation.h
 SOURCES += $$PWD/QEExpressionEvaluation.cpp

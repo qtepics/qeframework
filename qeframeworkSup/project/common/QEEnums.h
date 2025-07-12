@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2022-2024 Australian Synchrotron
+ *  Copyright (c) 2022-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #ifndef QE_ENUMS_H
@@ -44,12 +44,21 @@
 /// Roughly the eqivilent of qnamespace.h, without the clever namespace/object
 /// compile time selection.
 //
-// Note: these enums will become the master/signgle source of truth definitions.
+// Note: these enums will become the master/single source of truth definitions.
 //
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QE : public QObject
 {
    Q_OBJECT
 public:
+
+   //---------------------------------------------------------------------------
+   // Provides conveniance/utility functions for the enums.
+   //
+#define QE_ENUM_FN(typeName)                                                \
+   static int typeName##Count();                                            \
+   static QString typeName##Image (const typeName enumValue);               \
+   static typeName typeName##Value (const QString& image, bool& okay);
+
 
    //---------------------------------------------------------------------------
    /// \enum MessageFilterOptions
@@ -63,6 +72,7 @@ public:
       None            ///<
    };
    Q_ENUM (MessageFilterOptions)
+   QE_ENUM_FN (MessageFilterOptions)
 
 
    //---------------------------------------------------------------------------
@@ -79,6 +89,7 @@ public:
       Engineer        ///< User level - most privilaged
    };
    Q_ENUM (UserLevels)
+   QE_ENUM_FN (UserLevels)
 
 
    /// \enum DisplayAlarmStateOptions
@@ -93,6 +104,8 @@ public:
       Never           ///< Never display the alarm state
    };
    Q_ENUM (DisplayAlarmStateOptions)
+   QE_ENUM_FN (DisplayAlarmStateOptions)
+
 
    //---------------------------------------------------------------------------
    // String formatting
@@ -111,6 +124,7 @@ public:
       String            ///< Format as a string
    };
    Q_ENUM (Formats)
+   QE_ENUM_FN (Formats)
 
 
    /// \enum Separators
@@ -123,6 +137,7 @@ public:
       Space             ///< Use ' ' as separator, e.g. 123 456.123 456 789
    };
    Q_ENUM (Separators)
+   QE_ENUM_FN (Separators)
 
 
    /// \enum Notations
@@ -135,6 +150,7 @@ public:
       Automatic         ///< Automatic choice of standard or scientific notation
    };
    Q_ENUM (Notations)
+   QE_ENUM_FN (Notations)
 
 
    /// \enum ArrayActions
@@ -152,6 +168,7 @@ public:
                         ///  as the value.
    };
    Q_ENUM (ArrayActions)
+   QE_ENUM_FN (ArrayActions)
 
 
    /// \enum Radicies
@@ -163,6 +180,7 @@ public:
       Binary               ///< base 2
    };
    Q_ENUM (Radicies)
+   QE_ENUM_FN (Radicies)
 
 
    //---------------------------------------------------------------------------
@@ -185,6 +203,8 @@ public:
       TextIconAndState = 7   ///< Data updates will update the button - the lot
    };
    Q_ENUM (UpdateOptions)
+   QE_ENUM_FN (UpdateOptions)
+
 
    /// Specifies how a (control) widget should behave if/when the underlying
    /// record becomes disabled (i.e. DISA and DISV fields become equal).
@@ -195,6 +215,7 @@ public:
       disable           ///< Widget is disabled.
    };
    Q_ENUM (DisabledRecordPolicy)
+   QE_ENUM_FN (DisabledRecordPolicy)
 
 
    /// \enum ProgramStartupOptions
@@ -210,6 +231,7 @@ public:
       StdOutput         ///< Run the program, and send doutput to standard output and standard error
    };
    Q_ENUM (ProgramStartupOptions)
+   QE_ENUM_FN (ProgramStartupOptions)
 
 
    /// \enum CreationOption
@@ -232,6 +254,7 @@ public:
       DockFloating      ///< Open new GUI in a floating dock window
    };
    Q_ENUM (CreationOptions)
+   QE_ENUM_FN (CreationOptions)
 
 
    //---------------------------------------------------------------------------
@@ -246,6 +269,7 @@ public:
       reverse              ///< black backgound
    };
    Q_ENUM (VideoModes)
+   QE_ENUM_FN (VideoModes)
 
 
    //---------------------------------------------------------------------------
@@ -261,6 +285,7 @@ public:
                            ///  otherwise equivalent to DropToText
    };
    Q_ENUM (DropOption)
+   QE_ENUM_FN (DropOption)
 
 
    //---------------------------------------------------------------------------
@@ -276,6 +301,7 @@ public:
       signalText   = 0x0004,  ///< signals row, col and value emited as as text
    };
    Q_ENUM (MouseMoveSignals)
+   QE_ENUM_FN (MouseMoveSignals)
 
    Q_DECLARE_FLAGS (MouseMoveSignalFlags, MouseMoveSignals)
    Q_FLAG (MouseMoveSignalFlags)
@@ -303,6 +329,7 @@ public:
       yuv421            ///< Colour (???)
    };
    Q_ENUM (ImageFormatOptions)
+   QE_ENUM_FN (ImageFormatOptions)
 
    // We don't want this as the last enumeration value as it will
    // "stuff--up" the QEImage format property in designer.
@@ -322,6 +349,7 @@ public:
       Rotate180         ///< Rotate image 180 degrees
    };
    Q_ENUM (RotationOptions)
+   QE_ENUM_FN (RotationOptions)
 
 
    /// \enum PVLabelMode
@@ -334,6 +362,7 @@ public:
       useDescription    ///< display DESCription if defined otherwise display the PV name
    };
    Q_ENUM (PVLabelMode)
+   QE_ENUM_FN (PVLabelMode)
 
 
    //---------------------------------------------------------------------------
@@ -350,6 +379,8 @@ public:
       Right             ///<
    };
    Q_ENUM (LayoutOptions)
+   QE_ENUM_FN (LayoutOptions)
+
 
    // Used by QEPeriodic, QESelector, QEConfiguredLayout, QERecipe, QEScript
    /// \enum    UserInfoSourceOptions
@@ -360,6 +391,8 @@ public:
       SourceFile        ///< User info held in a configuration text file
    };
    Q_ENUM (SourceOptions)
+   QE_ENUM_FN (SourceOptions)
+
 
    //---------------------------------------------------------------------------
    /// \enum    GridOrders
@@ -382,11 +415,17 @@ public:
       colMajor          ///<
    };
    Q_ENUM (GridOrders)
+   QE_ENUM_FN (GridOrders)
 
-   // We allow object to be created to enable use of QEUtilities::enumToString etc.
+private:
+   // The QE object itself is private and just a means to do enum to string
+   // and string to enum conversion using the QE::<typename>Image and
+   // QE::<typeName>Value static methods.
    //
-   explicit QE (QObject* parent = 0) : QObject (parent) {}
-   ~QE () {}
+   explicit QE (QObject* parent = 0);
+   ~QE ();
+
+#undef QE_ENUM_FN
 };
 
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED
