@@ -45,6 +45,8 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESpinBox :
 {
    Q_OBJECT
 
+   typedef QDoubleSpinBox ParentWidget;
+
 public:
    QESpinBox( QWidget *parent = 0 );
    QESpinBox( const QString& variableName, QWidget *parent = 0 );
@@ -75,38 +77,9 @@ public:
    void setAllowFocusUpdate( bool allowFocusUpdate );
    bool getAllowFocusUpdate() const;
 
-public slots:
-   // write the value (of the underlying QDoubleSpinBox object) into the PV immediately
-   void writeNow();
-
-   /// Update the default style applied to this widget.
-   void setDefaultStyle( const QString& style ) { setStyleDefault( style ); }
-
-   /// Slot to set the visibility of a QE widget, taking into account the user level.
-   /// Widget will be hidden if hidden by a call this slot, by will only be made
-   /// visible by a calll to this slot if the user level allows.
-   ///
-   void setManagedVisible( bool v ){ setRunVisible( v ); }
-
-protected:
-   QEFloatingFormatting floatingFormatting;
-   bool writeOnChange;                     // Write changed value to database when user changes a value
-   bool addUnitsAsSuffix;
-   bool autoScaleSpinBox;
-   bool useDbPrecisionForDecimal;
-
-   bool eventFilter (QObject *obj, QEvent *event);
-   void establishConnection( unsigned int variableIndex );
-
-private slots:
-   void connectionChanged( QCaConnectionInfo& connectionInfo,
-                           const unsigned int &variableIndex );
-   void setValueIfNoFocus( const double& value, QCaAlarmInfo&, QCaDateTime&, const unsigned int& );
-   void userValueChanged( double value );
-
-   void useNewVariableNameProperty( QString pvName,
-                                    QString substitutions,
-                                    unsigned int variableIndex );
+   // set/get use auto step size
+   void setAutoStepSize( bool autoStepSize );
+   bool getAutoStepSize() const;
 
 signals:
    // Note, the following signals are common to many QE widgets,
@@ -125,30 +98,35 @@ signals:
 
    // This signal is emitted using the QEEmitter::emitDbConnectionChanged function.
    /// Sent when the widget state updated following a channel connection change
-   /// Applied to provary varible.
+   /// Applied to primary varible.
    void dbConnectionChanged( const bool& isConnected );
 
    /// Internal use only. Used by QEConfiguredLayout to be notified when one of its widgets has written something
-   // Signal a user attempt to change a value. Values are strings as the user sees them
+   // Signal a user attempt to change a value. Values are strings as the user sees them.
+   //
    void userChange( const QString& oldValue, const QString& newValue, const QString& lastValue );
 
-private:
-   void setup();
-   qcaobject::QCaObject* createQcaItem( unsigned int variableIndex );
+public slots:
+   // write the value (of the underlying QDoubleSpinBox object) into the PV immediately
+   void writeNow();
 
-   bool isConnected;
+   /// Update the default style applied to this widget.
+   void setDefaultStyle( const QString& style ) { setStyleDefault( style ); }
 
-   bool programaticValueChange;   // Flag set while the spin box value is being changed programatically (not by the user)
-   bool isAllowFocusUpdate;
-   double lastValue;
-   QString lastUserValue;
-
-   bool ignoreSingleShotRead;
-
-   void setSuffixEgu( qcaobject::QCaObject* qca );
-   void setDecimalsFromPrecision( qcaobject::QCaObject* qca );
+   /// Slot to set the visibility of a QE widget, taking into account the user level.
+   /// Widget will be hidden if hidden by a call this slot, by will only be made
+   /// visible by a calll to this slot if the user level allows.
+   ///
+   void setManagedVisible( bool v ){ setRunVisible( v ); }
 
 protected:
+   // Auto step size
+   void stepBy (int steps) override;
+   bool eventFilter (QObject* watch, QEvent* event);
+
+   qcaobject::QCaObject* createQcaItem( unsigned int variableIndex );
+   void establishConnection( unsigned int variableIndex );
+
    // Drag and Drop
    void dragEnterEvent(QDragEnterEvent *event) { qcaDragEnterEvent( event ); }
    void dropEvent(QDropEvent *event)           { qcaDropEvent( event ); }
@@ -162,6 +140,34 @@ protected:
    void paste (QVariant s);
 
    QMenu* getDefaultContextMenu();                 // Return the Qt default context menu to add to the QE context menu
+
+private:
+   void setup();
+   void setSuffixEgu( qcaobject::QCaObject* qca );
+   void setDecimalsFromPrecision( qcaobject::QCaObject* qca );
+
+   bool programaticValueChange;   // Flag set while the spin box value is being changed programatically (not by the user)
+   bool isAllowFocusUpdate;
+   bool useAutoStepSize;
+   double lastValue;
+   QString lastUserValue;
+   bool ignoreSingleShotRead;
+
+   QEFloatingFormatting floatingFormatting;
+   bool writeOnChange;                     // Write changed value to database when user changes a value
+   bool addUnitsAsSuffix;
+   bool autoScaleSpinBox;
+   bool useDbPrecisionForDecimal;
+
+private slots:
+   void connectionChanged( QCaConnectionInfo& connectionInfo,
+                           const unsigned int &variableIndex );
+   void setValueIfNoFocus( const double& value, QCaAlarmInfo&, QCaDateTime&, const unsigned int& );
+   void userValueChanged( double value );
+
+   void useNewVariableNameProperty( QString pvName,
+                                    QString substitutions,
+                                    unsigned int variableIndex );
 
    // BEGIN-SINGLE-VARIABLE-V2-PROPERTIES ===============================================
    // Single Variable properties
@@ -197,107 +203,107 @@ public:
    //
    // END-SINGLE-VARIABLE-V2-PROPERTIES =================================================
 
-    // BEGIN-STANDARD-PROPERTIES ======================================================
-    // Standard properties
-    // These properties should be identical for every widget using them.
-    // WHEN MAKING CHANGES: Use the update_widget_properties script in the
-    // resources directory.
+   // BEGIN-STANDARD-PROPERTIES ======================================================
+   // Standard properties
+   // These properties should be identical for every widget using them.
+   // WHEN MAKING CHANGES: Use the update_widget_properties script in the
+   // resources directory.
 public:
-    /// Use the variable as the tool tip. Default is true. Tool tip property
-    /// will be overwritten by the variable name.
-    ///
-    Q_PROPERTY(bool variableAsToolTip READ getVariableAsToolTip WRITE setVariableAsToolTip)
+   /// Use the variable as the tool tip. Default is true. Tool tip property
+   /// will be overwritten by the variable name.
+   ///
+   Q_PROPERTY(bool variableAsToolTip READ getVariableAsToolTip WRITE setVariableAsToolTip)
 
-    /// Allow drag/drops operations to this widget. Default is false.
-    /// Any dropped text will be used as a new variable name.
-    ///
-    Q_PROPERTY(bool allowDrop READ getAllowDrop WRITE setAllowDrop)
+   /// Allow drag/drops operations to this widget. Default is false.
+   /// Any dropped text will be used as a new variable name.
+   ///
+   Q_PROPERTY(bool allowDrop READ getAllowDrop WRITE setAllowDrop)
 
-    /// Display the widget. Default is true.
-    /// Setting this property false is usefull if widget is only used to provide
-    /// a signal - for example, when supplying data to a QELink widget.
-    /// Note, when false the widget will still be visible in Qt Designer.
-    ///
-    Q_PROPERTY(bool visible READ getRunVisible WRITE setRunVisible)
+   /// Display the widget. Default is true.
+   /// Setting this property false is usefull if widget is only used to provide
+   /// a signal - for example, when supplying data to a QELink widget.
+   /// Note, when false the widget will still be visible in Qt Designer.
+   ///
+   Q_PROPERTY(bool visible READ getRunVisible WRITE setRunVisible)
 
-    /// Set the ID used by the message filtering system. Default is zero.
-    /// Widgets or applications that use messages from the framework have the option
-    /// of filtering on this ID. For example, by using a unique message source ID
-    /// a QELog widget may be set up to only log messages from a select set of widgets.
-    ///
-    Q_PROPERTY(unsigned int messageSourceId READ getMessageSourceId WRITE setMessageSourceId )
+   /// Set the ID used by the message filtering system. Default is zero.
+   /// Widgets or applications that use messages from the framework have the option
+   /// of filtering on this ID. For example, by using a unique message source ID
+   /// a QELog widget may be set up to only log messages from a select set of widgets.
+   ///
+   Q_PROPERTY(unsigned int messageSourceId READ getMessageSourceId WRITE setMessageSourceId )
 
-    /// Hide style sheet from designer as style calculation by the styleManager
-    /// and not directly setable per se.
-    /// This also stops transient styles being saved to the ui file.
-    Q_PROPERTY(QString styleSheet   READ styleSheet       WRITE setStyleSheet  DESIGNABLE false)
+   /// Hide style sheet from designer as style calculation by the styleManager
+   /// and not directly setable per se.
+   /// This also stops transient styles being saved to the ui file.
+   Q_PROPERTY(QString styleSheet   READ styleSheet       WRITE setStyleSheet  DESIGNABLE false)
 
-    /// Style Sheet string to be applied before, i.e. lower priority than, any other
-    /// style, e.g. alarm style and/or user level style.
-    /// Default is an empty string.
-    ///
-    Q_PROPERTY(QString defaultStyle READ getStyleDefault  WRITE setStyleDefault)
+   /// Style Sheet string to be applied before, i.e. lower priority than, any other
+   /// style, e.g. alarm style and/or user level style.
+   /// Default is an empty string.
+   ///
+   Q_PROPERTY(QString defaultStyle READ getStyleDefault  WRITE setStyleDefault)
 
-    /// Style Sheet string to be applied when the widget is displayed in 'User' mode. Default is an empty string.
-    /// The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
-    /// This Style Sheet string will be applied by the styleManager class.
-    /// Refer to the styleManager class for details about how this Style Sheet
-    /// string will be merged with any pre-existing Style Sheet string
-    /// and any Style Sheet strings generated during the display of data.
-    ///
-    Q_PROPERTY(QString userLevelUserStyle READ getStyleUser WRITE setStyleUser)
+   /// Style Sheet string to be applied when the widget is displayed in 'User' mode. Default is an empty string.
+   /// The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
+   /// This Style Sheet string will be applied by the styleManager class.
+   /// Refer to the styleManager class for details about how this Style Sheet
+   /// string will be merged with any pre-existing Style Sheet string
+   /// and any Style Sheet strings generated during the display of data.
+   ///
+   Q_PROPERTY(QString userLevelUserStyle READ getStyleUser WRITE setStyleUser)
 
-    /// Style Sheet string to be applied when the widget is displayed in 'Scientist' mode. Default is an empty string.
-    /// The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
-    /// This Style Sheet string will be applied by the styleManager class.
-    /// Refer to the styleManager class for details about how this Style Sheet
-    /// string will be merged with any pre-existing Style Sheet string
-    /// and any Style Sheet strings generated during the display of data.
-    ///
-    Q_PROPERTY(QString userLevelScientistStyle READ getStyleScientist WRITE setStyleScientist)
+   /// Style Sheet string to be applied when the widget is displayed in 'Scientist' mode. Default is an empty string.
+   /// The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
+   /// This Style Sheet string will be applied by the styleManager class.
+   /// Refer to the styleManager class for details about how this Style Sheet
+   /// string will be merged with any pre-existing Style Sheet string
+   /// and any Style Sheet strings generated during the display of data.
+   ///
+   Q_PROPERTY(QString userLevelScientistStyle READ getStyleScientist WRITE setStyleScientist)
 
-    /// Style Sheet string to be applied when the widget is displayed in 'Engineer' mode. Default is an empty string.
-    /// The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
-    /// This Style Sheet string will be applied by the styleManager class.
-    /// Refer to the styleManager class for details about how this Style Sheet string
-    /// will be merged with any pre-existing Style Sheet string
-    /// and any Style Sheet strings generated during the display of data.
-    ///
-    Q_PROPERTY(QString userLevelEngineerStyle READ getStyleEngineer WRITE setStyleEngineer)
+   /// Style Sheet string to be applied when the widget is displayed in 'Engineer' mode. Default is an empty string.
+   /// The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
+   /// This Style Sheet string will be applied by the styleManager class.
+   /// Refer to the styleManager class for details about how this Style Sheet string
+   /// will be merged with any pre-existing Style Sheet string
+   /// and any Style Sheet strings generated during the display of data.
+   ///
+   Q_PROPERTY(QString userLevelEngineerStyle READ getStyleEngineer WRITE setStyleEngineer)
 
-    /// Lowest user level at which the widget is visible. Default is 'User'.
-    /// Used when designing GUIs that display more and more detail according to the user mode.
-    /// The user mode is set application wide through the QELogin widget, or programatically through setUserLevel()
-    /// Widgets that are always visible should be visible at 'User'.
-    /// Widgets that are only used by scientists managing the facility should be visible at 'Scientist'.
-    /// Widgets that are only used by engineers maintaining the facility should be visible at 'Engineer'.
-    ///
-    Q_PROPERTY(QE::UserLevels userLevelVisibility READ getUserLevelVisibility WRITE setUserLevelVisibility)
+   /// Lowest user level at which the widget is visible. Default is 'User'.
+   /// Used when designing GUIs that display more and more detail according to the user mode.
+   /// The user mode is set application wide through the QELogin widget, or programatically through setUserLevel()
+   /// Widgets that are always visible should be visible at 'User'.
+   /// Widgets that are only used by scientists managing the facility should be visible at 'Scientist'.
+   /// Widgets that are only used by engineers maintaining the facility should be visible at 'Engineer'.
+   ///
+   Q_PROPERTY(QE::UserLevels userLevelVisibility READ getUserLevelVisibility WRITE setUserLevelVisibility)
 
-    /// Lowest user level at which the widget is enabled. Default is 'User'.
-    /// Used when designing GUIs that allow access to more and more detail according to the user mode.
-    /// The user mode is set application wide through the QELogin widget, or programatically through setUserLevel()
-    /// Widgets that are always accessable should be visible at 'User'.
-    /// Widgets that are only accessable to scientists managing the facility should be visible at 'Scientist'.
-    /// Widgets that are only accessable to engineers maintaining the facility should be visible at 'Engineer'.
-    ///
-    Q_PROPERTY(QE::UserLevels userLevelEnabled READ getUserLevelEnabled WRITE setUserLevelEnabled)
+   /// Lowest user level at which the widget is enabled. Default is 'User'.
+   /// Used when designing GUIs that allow access to more and more detail according to the user mode.
+   /// The user mode is set application wide through the QELogin widget, or programatically through setUserLevel()
+   /// Widgets that are always accessable should be visible at 'User'.
+   /// Widgets that are only accessable to scientists managing the facility should be visible at 'Scientist'.
+   /// Widgets that are only accessable to engineers maintaining the facility should be visible at 'Engineer'.
+   ///
+   Q_PROPERTY(QE::UserLevels userLevelEnabled READ getUserLevelEnabled WRITE setUserLevelEnabled)
 
-    /// If 'Always' (default) widget will indicate the alarm state of any variable data it is displaying, including 'No Alarm'
-    /// If 'WhenInAlarm' widget only indicate the alarm state of any variable data it is displaying if it is 'in alarm' or 'Out of Service'.
-    /// If 'WhenInvalid' widget only indicate the alarm state of any variable data it is in the 'Invalid' alarm state or 'Out of Service'.
-    /// If 'Never' widget will never indicate the alarm state of any variable data it is displaying.
-    /// Typically the background colour is set to indicate the alarm state.
-    /// Note, this property is included in the set of standard properties as it applies to most widgets.
-    /// It will do nothing for widgets that don't display data.
-    ///
-    Q_PROPERTY(QE::DisplayAlarmStateOptions displayAlarmStateOption
-               READ getDisplayAlarmStateOption WRITE setDisplayAlarmStateOption)
+   /// If 'Always' (default) widget will indicate the alarm state of any variable data it is displaying, including 'No Alarm'
+   /// If 'WhenInAlarm' widget only indicate the alarm state of any variable data it is displaying if it is 'in alarm' or 'Out of Service'.
+   /// If 'WhenInvalid' widget only indicate the alarm state of any variable data it is in the 'Invalid' alarm state or 'Out of Service'.
+   /// If 'Never' widget will never indicate the alarm state of any variable data it is displaying.
+   /// Typically the background colour is set to indicate the alarm state.
+   /// Note, this property is included in the set of standard properties as it applies to most widgets.
+   /// It will do nothing for widgets that don't display data.
+   ///
+   Q_PROPERTY(QE::DisplayAlarmStateOptions displayAlarmStateOption
+              READ getDisplayAlarmStateOption WRITE setDisplayAlarmStateOption)
 
-    /// Indicates whether the widget should repond to the underlying PV(s) being declared Out of Service.
-    /// The default oosAware value is most often true, however is false for some widgets.
-    ///
-    Q_PROPERTY(bool oosAware READ getOosAware WRITE setOosAware)
+   /// Indicates whether the widget should repond to the underlying PV(s) being declared Out of Service.
+   /// The default oosAware value is most often true, however is false for some widgets.
+   ///
+   Q_PROPERTY(bool oosAware READ getOosAware WRITE setOosAware)
 
 public:
    // END-STANDARD-PROPERTIES ========================================================
@@ -334,6 +340,11 @@ public:
    //       The normal get and set methods are QEStringFormatting::getAddUnits() and QEStringFormatting::setAddUnits().
    //       In this case, the units are added as the QSpinBox suffix, and not as part of a string.
    Q_PROPERTY(bool addUnits READ getAddUnitsAsSuffix WRITE setAddUnitsAsSuffix)
+
+   // Enables/disabled auto step size.
+   // The default is false, i.e. disabled.
+   //
+   Q_PROPERTY(bool autoStepSize READ getAutoStepSize WRITE setAutoStepSize )
 
    // Make the value property non-designable. This both hides the property value
    // within designer and stops the value from being written to the .ui file.

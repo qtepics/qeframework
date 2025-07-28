@@ -40,7 +40,7 @@
     Create a CA aware spin box with no variable name yet
 */
 QESpinBox::QESpinBox( QWidget *parent ) :
-   QDoubleSpinBox( parent ),
+   ParentWidget( parent ),
    QESingleVariableMethods ( this, PV_VARIABLE_INDEX ),
    QEWidget( this )
 {
@@ -51,7 +51,7 @@ QESpinBox::QESpinBox( QWidget *parent ) :
     Create a CA aware spin box with a variable name already known
 */
 QESpinBox::QESpinBox( const QString &variableNameIn, QWidget *parent ) :
-   QDoubleSpinBox( parent ),
+   ParentWidget( parent ),
    QESingleVariableMethods ( this, PV_VARIABLE_INDEX ),
    QEWidget( this )
 {
@@ -84,11 +84,10 @@ void QESpinBox::setup() {
    addUnitsAsSuffix = false;
    useDbPrecisionForDecimal = true;
    autoScaleSpinBox = true;
+   useAutoStepSize = false;
 
    // Set the initial state
    lastValue = 0.0;
-   isConnected = false;
-
    ignoreSingleShotRead = false;
 
    // Use standard context menu
@@ -130,10 +129,60 @@ bool QESpinBox::eventFilter (QObject *obj, QEvent *event)
    return false;
 }
 
-/*
-   Return the Qt default context of embedded line edit menu.
-   This is added to the QE context menu
-*/
+//------------------------------------------------------------------------------
+// Credit: Christian Nothoff
+//
+void QESpinBox::stepBy (int steps)
+{
+   if (!this->useAutoStepSize) {
+      // Functionality not enabled - just call THE parent method.
+      ParentWidget::stepBy (steps);
+      return;
+   }
+
+   QString line = this->lineEdit ()->text ();
+
+   bool sign = false;
+   double single_step = 1;
+   if (line.contains ("+") || line.contains ("-")) {
+      line.remove (0, 1);
+      sign = true;
+   }
+
+   const QStringList linesplit = line.split (".");
+   const int textLen = linesplit[0].length ();
+   int cursorPos = qMax (lineEdit ()->cursorPosition () + 1 - (sign ? 1 : 0), 1);
+   single_step = pow (10, textLen - cursorPos);
+   if (cursorPos >= textLen + 2)
+      single_step *= 10;
+   if (cursorPos > line.length ()) {
+      single_step *= 10;
+      cursorPos--;
+   }
+
+   this->setSingleStep (single_step);
+   ParentWidget::stepBy (steps);  // call parent method.
+
+   line = this->lineEdit ()->text ();
+   sign = false;
+   if (line.contains ("+") || line.contains ("-")) {
+      line.remove (0, 1);
+      sign = true;
+   }
+
+   const QStringList linesplit_after = line.split (".");
+   const int textLen_after = linesplit_after[0].length ();
+   if (textLen_after < textLen)
+      cursorPos -= 1;
+   if (textLen_after > textLen)
+      cursorPos += 1;
+   this->lineEdit ()->setCursorPosition (cursorPos - 1 + (sign ? 1 : 0));
+}
+
+//------------------------------------------------------------------------------
+// Return the Qt default context of embedded line edit menu.
+// This is added to the QE context menu
+//
 QMenu* QESpinBox::getDefaultContextMenu()
 {
    QMenu* menu = NULL;
@@ -158,10 +207,10 @@ void QESpinBox::useNewVariableNameProperty( QString pvName,
    setVariableNameAndSubstitutions(pvName, substitutions, variableIndex);
 }
 
-/*
-    Implementation of QEWidget's virtual funtion to create the specific type of QCaObject required.
-    For a spin box a QCaObject that streams integers is required.
-*/
+//------------------------------------------------------------------------------
+// Implementation of QEWidget's virtual funtion to create the specific type of QCaObject required.
+// For a spin box a QCaObject that streams real (double) numbers is required.
+//
 qcaobject::QCaObject* QESpinBox::createQcaItem( unsigned int variableIndex ) {
 
    qcaobject::QCaObject* result = NULL;
@@ -176,12 +225,12 @@ qcaobject::QCaObject* QESpinBox::createQcaItem( unsigned int variableIndex ) {
    return result;
 }
 
-/*
-    Start updating.
-    Implementation of VariableNameManager's virtual funtion to establish a
-    connection to a PV as the variable name has changed.
-    This function may also be used to initiate updates when loaded as a plugin.
-*/
+//------------------------------------------------------------------------------
+// Start updating.
+// Implementation of VariableNameManager's virtual funtion to establish a
+// connection to a PV as the variable name has changed.
+// This function may also be used to initiate updates when loaded as a plugin.
+//
 void QESpinBox::establishConnection( unsigned int variableIndex ) {
 
    // Create a connection.
@@ -189,8 +238,8 @@ void QESpinBox::establishConnection( unsigned int variableIndex ) {
    qcaobject::QCaObject* qca = createConnection( variableIndex );
 
    // If a QCaObject object is now available to supply data update signals,
-   // connect it to the appropriate slots
-   if(  qca ) {
+   // connect it to the appropriate slots.
+   if( qca ) {
       setValue( 0 );
       QObject::connect( qca,  SIGNAL( floatingChanged( const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                         this, SLOT( setValueIfNoFocus( const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
@@ -199,16 +248,16 @@ void QESpinBox::establishConnection( unsigned int variableIndex ) {
    }
 }
 
-/*
-    Act on a connection change.
-    Change how the label looks and change the tool tip
-    This is the slot used to recieve connection updates from a QCaObject based class.
- */
+//------------------------------------------------------------------------------
+// Act on a connection change.
+// Change how the label looks and change the tool tip
+// This is the slot used to recieve connection updates from a QCaObject based class.
+//
 void QESpinBox::connectionChanged( QCaConnectionInfo& connectionInfo,
                                    const unsigned int &variableIndex )
 {
    // Note the connected state
-   isConnected = connectionInfo.isChannelConnected();
+   const bool isConnected = connectionInfo.isChannelConnected();
 
    // Display the connected state
    updateToolTipConnection( isConnected );
@@ -298,9 +347,9 @@ void QESpinBox::setValueIfNoFocus( const double& value, QCaAlarmInfo& alarmInfo,
    emitDbValueChanged( variableIndex );
 }
 
-/*
-    The user has changed the spin box.
-*/
+//------------------------------------------------------------------------------
+// The user has changed the spin box.
+//
 void QESpinBox::userValueChanged( double value )
 {
    // If the user is not changing the value, or not writing on change, do nothing
@@ -323,6 +372,7 @@ void QESpinBox::userValueChanged( double value )
    }
 }
 
+//------------------------------------------------------------------------------
 // Write a value immedietly.
 // Used when writeOnChange is false
 // (widget will never write due to the user pressing return or leaving the widget)
@@ -340,6 +390,7 @@ void QESpinBox::writeNow()
    }
 }
 
+//------------------------------------------------------------------------------
 // Set the EGU as the suffix
 void QESpinBox::setSuffixEgu( qcaobject::QCaObject* qca )
 {
@@ -355,6 +406,7 @@ void QESpinBox::setSuffixEgu( qcaobject::QCaObject* qca )
    }
 }
 
+//------------------------------------------------------------------------------
 // Set the spin box decimal places from the data precision if required
 void QESpinBox::setDecimalsFromPrecision( qcaobject::QCaObject* qca )
 {
@@ -373,6 +425,8 @@ void QESpinBox::setDrop( QVariant drop )
    establishConnection( PV_VARIABLE_INDEX );
 }
 
+//------------------------------------------------------------------------------
+//
 QVariant QESpinBox::getDrop()
 {
    return QVariant( getSubstitutedVariableName(PV_VARIABLE_INDEX) );
@@ -385,11 +439,15 @@ QString QESpinBox::copyVariable()
    return getSubstitutedVariableName( PV_VARIABLE_INDEX );
 }
 
+//------------------------------------------------------------------------------
+//
 QVariant QESpinBox::copyData()
 {
    return QVariant( value() );
 }
 
+//------------------------------------------------------------------------------
+//
 void QESpinBox::paste (QVariant s)
 {
    setVariableName( s.toString(), 0 );
@@ -404,21 +462,29 @@ void QESpinBox::setWriteOnChange( bool writeOnChangeIn )
 {
    writeOnChange = writeOnChangeIn;
 }
+
+//------------------------------------------------------------------------------
+//
 bool QESpinBox::getWriteOnChange() const
 {
    return writeOnChange;
 }
 
+//------------------------------------------------------------------------------
 // subscribe
 void QESpinBox::setSubscribe( bool subscribeIn )
 {
    subscribe = subscribeIn;
 }
+
+//------------------------------------------------------------------------------
+//
 bool QESpinBox::getSubscribe() const
 {
    return subscribe;
 }
 
+//------------------------------------------------------------------------------
 // Add units (as suffix).
 // Note, for most widgets with an 'addUnits' property, the property is passed to a
 //       QEStringFormatting class where the units are added to the displayed string.
@@ -449,6 +515,22 @@ bool QESpinBox::getAutoScale () const
    return this->autoScaleSpinBox;
 }
 
+//------------------------------------------------------------------------------
+//
+void QESpinBox::setAutoStepSize( bool autoStepSize )
+{
+   this->useAutoStepSize = autoStepSize;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QESpinBox::getAutoStepSize() const
+{
+   return this->useAutoStepSize;
+}
+
+
+//------------------------------------------------------------------------------
 // useDbPrecision
 // Note, for most widgets with an 'useDbPrecision' property, the property is passed to a
 //       QEStringFormatting class where it is used to determine the precision when formatting numbers as a string.
@@ -460,17 +542,22 @@ void QESpinBox::setUseDbPrecisionForDecimals( bool useDbPrecisionForDecimalIn )
    setDecimalsFromPrecision( qca );
 }
 
+//------------------------------------------------------------------------------
+//
 bool QESpinBox::getUseDbPrecisionForDecimals() const
 {
    return useDbPrecisionForDecimal;
 }
 
+//------------------------------------------------------------------------------
 // set allow updates while widget has focus.
 void QESpinBox::setAllowFocusUpdate( bool allowFocusUpdateIn )
 {
    isAllowFocusUpdate = allowFocusUpdateIn;
 }
 
+//------------------------------------------------------------------------------
+//
 bool QESpinBox::getAllowFocusUpdate() const
 {
    return isAllowFocusUpdate;
