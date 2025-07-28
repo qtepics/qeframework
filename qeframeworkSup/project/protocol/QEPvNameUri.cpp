@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (C) 2018-2023 Australian Synchrotron
+ *  Copyright (C) 2018-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -30,7 +30,6 @@
 #include <QEPvaCheck.h>
 #include <QEAdaptationParameters.h>
 
-
 #define DEBUG qDebug () << "QEPvNameUri" << __LINE__ << __FUNCTION__ << "  "
 
 //------------------------------------------------------------------------------
@@ -43,7 +42,6 @@ static const QString prefix[QEPvNameUri::NUMBER_OF_PROTOCOLS] = {
 };
 
 static const QString cds = "://";    // colon double slash
-
 
 //------------------------------------------------------------------------------
 // static
@@ -123,6 +121,16 @@ QEPvNameUri::QEPvNameUri (const QString& pvNameIn,
 {
    this->pvName = pvNameIn;
    this->protocol = protocolIn;
+}
+
+//------------------------------------------------------------------------------
+//
+QEPvNameUri::QEPvNameUri (const QString& uri, const bool strict)
+{
+   if (!this->decodeUri (uri, strict)) {
+      this->pvName = "";
+      this->protocol = QEPvNameUri::undefined;
+   }
 }
 
 //------------------------------------------------------------------------------
