@@ -133,6 +133,7 @@ protected:
    QMenu* buildContextMenu ();                        // Extend the QE generic context menu
    void contextMenuTriggered (int selectedItemNum);   // An action was selected from the context menu
 
+   // Used by QEQuickSort
    bool itemLessThan (const int a, const int b, QObject* context = NULL) const;
    void swapItems (const int a, const int b, QObject* context = NULL);
 
