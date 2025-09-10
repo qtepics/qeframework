@@ -17,6 +17,7 @@ include/
 *.pro.user
 Makefile.*
 object_script.*
+*.backup
 *.qmake.stash
 # created by protoc
 archapplDataSup/src/archapplProto.pb.h
