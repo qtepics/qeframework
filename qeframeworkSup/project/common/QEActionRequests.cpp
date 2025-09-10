@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron
+ *  Copyright (c) 2013-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -99,7 +99,7 @@ QEActionRequests::QEActionRequests( const QList<windowCreationListItem> windowsI
 
    for( int i = 0; i < windowsIn.count(); i++ )
    {
-       this->windows.append( windowsIn.at(i) );
+      this->windows.append( windowsIn.at(i) );
    }
 }
 
@@ -127,7 +127,7 @@ QEActionRequests::QEActionRequests( const QList<componentHostListItem>& componen
 
    for( int i = 0; i < componentsIn.count(); i++ )
    {
-       this->components.append( componentsIn.at(i) );
+      this->components.append( componentsIn.at(i) );
    }
 }
 
@@ -236,77 +236,116 @@ QString QEActionRequests::getCustomisation() const
 }
 
 //------------------------------------------------------------------------------
-// Return true if creation option creates a dock
+// Return true if creation option creates a dock.
+//
 bool QEActionRequests::isDockCreationOption( const QE::CreationOptions createOption )
 {
-    // Use a switch so compiler can complain if all cases are not considered
-    bool result = false;
-    switch( createOption )
-    {
-        case QE::Open:
-        case QE::NewTab:
-        case QE::NewWindow:
-            result = false;
-            break;
+   // Use a switch so compiler can complain if all cases are not considered
+   bool result = false;
+   switch( createOption )
+   {
+      case QE::Open:
+      case QE::NewTab:
+      case QE::NewWindow:
+         result = false;
+         break;
 
-        case QE::DockTop:
-        case QE::DockBottom:
-        case QE::DockLeft:
-        case QE::DockRight:
-        case QE::DockTopTabbed:
-        case QE::DockBottomTabbed:
-        case QE::DockLeftTabbed:
-        case QE::DockRightTabbed:
-        case QE::DockFloating:
-            result = true;
-            break;
-    }
-    return result;
+      case QE::DockTop:
+      case QE::DockBottom:
+      case QE::DockLeft:
+      case QE::DockRight:
+      case QE::DockTopTabbed:
+      case QE::DockBottomTabbed:
+      case QE::DockLeftTabbed:
+      case QE::DockRightTabbed:
+      case QE::DockFloating:
+         result = true;
+         break;
+   }
+   return result;
 }
 
 //------------------------------------------------------------------------------
-// Creation option creates a tabbed dock
+// Creation option creates a tabbed dock.
+//
 bool QEActionRequests::isTabbedDockCreationOption( const QE::CreationOptions createOption )
 {
-    // Use a switch so compiler can complain if all cases are not considered
-    bool result = false;
-    switch( createOption )
-    {
-        case QE::Open:
-        case QE::NewTab:
-        case QE::NewWindow:
-        case QE::DockTop:
-        case QE::DockBottom:
-        case QE::DockLeft:
-        case QE::DockRight:
-        case QE::DockFloating:
-            result = false;
-            break;
+   // Use a switch so compiler can complain if all cases are not considered
+   bool result = false;
+   switch( createOption )
+   {
+      case QE::Open:
+      case QE::NewTab:
+      case QE::NewWindow:
+      case QE::DockTop:
+      case QE::DockBottom:
+      case QE::DockLeft:
+      case QE::DockRight:
+      case QE::DockFloating:
+         result = false;
+         break;
 
-        case QE::DockTopTabbed:
-        case QE::DockBottomTabbed:
-        case QE::DockLeftTabbed:
-        case QE::DockRightTabbed:
-            result = true;
-            break;
-    }
-    return result;
+      case QE::DockTopTabbed:
+      case QE::DockBottomTabbed:
+      case QE::DockLeftTabbed:
+      case QE::DockRightTabbed:
+         result = true;
+         break;
+   }
+   return result;
 }
 
 //------------------------------------------------------------------------------
 //
 QList<windowCreationListItem> QEActionRequests::getWindows() const
 {
-    return this->windows;
+   return this->windows;
 }
 
 //------------------------------------------------------------------------------
 //
 QList<componentHostListItem> QEActionRequests::getComponents() const
 {
-    return this->components;
+   return this->components;
 }
 
+//------------------------------------------------------------------------------
+//
+QDebug operator<<(QDebug dbg, const QEActionRequests& ar)
+{
+   const QEActionRequests::Kinds kind = ar.getKind();
+   switch (kind) {
+      case QEActionRequests::KindNone:            // no action (default, not valid in any request)
+         dbg << "Kind: None";
+         break;
+
+      case QEActionRequests::KindOpenFile:        // by file name, e.g. "detector_control.ui"
+         dbg << "Kind: Open File" << ar.getArguments();
+         break;
+
+      case QEActionRequests::KindOpenFiles:       // by file names, tahe a list of windowCreationListItems
+         dbg << "Kind: Open Files" << ar.getWindows();
+         break;
+
+      case QEActionRequests::KindAction:          // inbuilt application action, e.g "PV Properties..."
+         dbg << "Kind: Action" << ar.getAction() << ar.getArguments();
+         break;
+
+      case QEActionRequests::KindWidgetAction:    // inbuilt QE widget action
+         dbg << "Kind: Widget Action" << ar.getAction() << ar.getWidgetName() << ar.getArguments();
+         break;
+
+      case QEActionRequests::KindHostComponents:  // componentHostListItem or list thereof.
+         dbg << "Kind: Host Components" << ar.getComponents();
+         break;
+
+      default:
+         dbg << "Kind: Error " << int(kind);
+         break;
+   }
+
+   return dbg.maybeSpace ();
+}
 
 //==============================================================================
 // windowCreationListItem

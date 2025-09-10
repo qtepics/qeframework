@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2022 Australian Synchrotron
+ *  Copyright (c) 2013-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +28,7 @@
 #ifndef QE_ACTION_REQUESTS_H
 #define QE_ACTION_REQUESTS_H
 
+#include <QDebug>
 #include <QString>
 #include <QStringList>
 #include <QVariant>
@@ -43,7 +44,9 @@
 class windowCreationListItem;
 class componentHostListItem;
 
-// Class defining an action an application should carry out on behalf od a QE Widget it has created.
+// Class defining an action an application should carry out on behalf of
+// a QE Widget it has created.
+//
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEActionRequests {
 public:
 
@@ -92,14 +95,14 @@ public:
                      const QEFormMapper::FormHandles& formHandle = QEFormMapper::nullHandle ());
 
    // a set of windows to create
-   QEActionRequests( const QList<windowCreationListItem> windowsIn );
+   QEActionRequests (const QList<windowCreationListItem> windowsIn);
 
    // Action (for a QE widget)
-   QEActionRequests( const QString& actionIn,
+   QEActionRequests (const QString& actionIn,
                      const QString& widgetNameIn,
                      const QStringList& argumentsIn,
                      const bool& initialiseIn,
-                     QAction* originator );
+                     QAction* originator);
 
    // single component to host for a QE widget
    QEActionRequests( const componentHostListItem& componentIn );
@@ -118,16 +121,16 @@ public:
    void setOption (const QE::CreationOptions optionIn);
    QE::CreationOptions getOption () const;
 
-   void setAction( const QString actionIn );
+   void setAction (const QString actionIn);
    QString getAction() const;
 
-   void setWidgetName(const QString widgetNameIn );
+   void setWidgetName (const QString widgetNameIn);
    QString getWidgetName() const;
 
-   void setInitialise (const bool initialiseIn );
+   void setInitialise (const bool initialiseIn);
    bool getInitialise() const;
 
-   void setOriginator( QAction* originatorIn );
+   void setOriginator (QAction* originatorIn);
    QAction* getOriginator() const;
 
    void setFormHandle (const QEFormMapper::FormHandles& formHandle);
@@ -138,8 +141,8 @@ public:
    QList<windowCreationListItem> getWindows() const;
    QList<componentHostListItem> getComponents() const;
 
-   static bool isDockCreationOption( const QE::CreationOptions createOption );          // Return true if creation option creates a dock
-   static bool isTabbedDockCreationOption( const QE::CreationOptions createOption );    // Return true if creation option creates a tabbed dock
+   static bool isDockCreationOption (const QE::CreationOptions createOption);          // Return true if creation option creates a dock
+   static bool isTabbedDockCreationOption (const QE::CreationOptions createOption);    // Return true if creation option creates a tabbed dock
 
 private:
    Kinds kind;
@@ -152,9 +155,15 @@ private:
    QList<componentHostListItem> components;
    QString widgetName;
    bool initialise;     // If true, initial preperation to do this action, don't actually do it.
-                        // For example, set initial checked state of menu item
+   // For example, set initial checked state of menu item
    QAction* originator; // A copy would be safer???
 };
+
+// allows qDebug() << QEActionRequests object.
+//
+QDebug QE_FRAMEWORK_LIBRARY_SHARED_EXPORT
+operator<<(QDebug dbg, const QEActionRequests& actionRequest);
+
 
 //------------------------------------------------------------------------------
 // Class to hold window creation instructions
