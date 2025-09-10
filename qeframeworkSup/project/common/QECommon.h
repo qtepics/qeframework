@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2024 Australian Synchrotron.
+ *  Copyright (c) 2013-2025 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  *
  */
 
@@ -84,10 +84,11 @@
 
 
 // We do not include QColor and QWidget header files in this header file (they
-// are called by by QECommon.cpp), we just provide incomplete declarations.
+// are called b QECommon.cpp), we just provide differed declarations.
 // This particularly usefull for non-gui command line programs.
 //
 class QColor;
+class QLabel;
 class QMainWindow;
 class QWidget;
 class QEWidget;
@@ -271,10 +272,20 @@ public:
     ///
     static QRect screenGeometry (QWidget* widget);
 
+    /// Allows an object to be assigned an arbitartint tag value.
+    /// Under the covers, an obkect property is created/updated.
     // Cribbed from KDM
     //
     static void tagObject (QObject* object, const int tag);
     static int objectTag (const QObject* object, const int defaultValue = -1);
+
+    /// Repeatedly right pads text with pad, and then applies to the label.
+    /// Does nothing if label is nullptr, no padding if pad is an empty string.
+    // Cribbed from kubili.
+    //
+    static void setPaddedText (QLabel* label,
+                               const QString& text,
+                               const QString& pad = " . ");
 
     /// Testing only - outputs the widget hierarchy to std out.
     ///

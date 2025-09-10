@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2024 Australian Synchrotron.
+ *  Copyright (c) 2013-2025 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  *
  */
 
@@ -40,6 +40,7 @@
 #include <QColor>
 #include <QDebug>
 #include <QFileInfo>
+#include <QLabel>
 #include <QMainWindow>
 #include <QMetaEnum>
 #include <QMetaObject>
@@ -784,6 +785,33 @@ int QEUtilities::objectTag (const QObject* object, const int defaultValue)
 
 #undef TAG_NAME
 
+
+//------------------------------------------------------------------------------
+// static
+void QEUtilities::setPaddedText (QLabel* label,
+                                 const QString& text,
+                                 const QString& pad)
+{
+   if (!label) return;   // sanity check
+
+   QString suffix = "";
+   if (!pad.isEmpty()) {
+      const QFontMetrics fm (label->font());
+      const int lgap = MAX (label->indent(), 0);
+      const int rgap = (fm.horizontalAdvance (pad) * 3) / 2;
+
+      while (lgap + fm.horizontalAdvance (text + suffix) + rgap < label->width()) {
+         suffix += pad;
+      }
+
+      while (lgap + fm.horizontalAdvance (text + suffix) < label->width()) {
+         suffix = " " + suffix;
+      }
+   }
+
+   label->setText (text + suffix);
+}
+
 //------------------------------------------------------------------------------
 // static
 void QEUtilities::debugWidgetHierarchy (const QWidget* root,
@@ -830,7 +858,7 @@ void QEUtilities::debugWidgetHierarchy (const QWidget* root,
    QObjectList objList = root->children ();
    for (int j = 0; j < objList.count (); j++) {
       QObject* child = objList.value (j, NULL);
-      if( child && child->isWidgetType ()) {
+      if (child && child->isWidgetType ()) {
          const QWidget* w = (QWidget*) child;
          QEUtilities::debugWidgetHierarchy (w, j, level + 1);
       }
