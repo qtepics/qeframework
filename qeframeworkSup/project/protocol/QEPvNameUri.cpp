@@ -211,7 +211,7 @@ bool QEPvNameUri::decodeUri (const QString& uri, const bool strict)
 
       // Check if any type of protocol defined at all.
       //
-      int kp = work.indexOf (cds);
+      int kp = work.indexOf (cds);  // cds = "://";
 
       // We allow no protocol when strict is false, but never an unknown protocol.
       //
