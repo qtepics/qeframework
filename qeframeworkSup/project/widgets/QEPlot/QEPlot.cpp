@@ -52,6 +52,9 @@
 
 #define DEBUG qDebug () << "QEPlot" <<  __LINE__ << __FUNCTION__  << "  "
 
+#define MINIMUM_SPAN   1.0E-12    // Absolute min y range
+#define MINIMUM_RATIO  1.0E-6     // Min relative range, e.g. 1000000 to 1000001
+
 
 //-----------------------------------------------------------------------------
 // Macro fuction to ensure varable index is in the expected range.
@@ -798,7 +801,14 @@ void QEPlot::setPlotData (const double value, QCaAlarmInfo& alarmInfo,
    //
    QCaDataPoint point;
 
-   point.value = value;
+   const bool isLogScale = this->getLogScale();
+   double v = value;
+   if (this->yAxisAutoScale && isLogScale) {
+      // When auto scale and log scale, clamp using yMin.
+      v = MAX (v, this->yMin);
+   }
+
+   point.value = v;
    point.alarm = alarmInfo;
 
    // If the date is more than a wisker into the future, limit it.
@@ -876,8 +886,14 @@ void QEPlot::setPlotData (const QVector <double>& values,
    tr->scalarData.clear();
    tr->ydata.clear ();
 
+   const bool isLogScale = this->getLogScale();
    for (int i = 0; i < values.count (); i++) {
-      tr->ydata.append (values[i]);
+      double v = values[i];
+      if (this->yAxisAutoScale && isLogScale) {
+         // When auto scale and log scale, clamp using yMin
+         v = MAX (v, this->yMin);
+      }
+      tr->ydata.append (v);
    }
 
    // The data is now ready to plot.
@@ -1451,10 +1467,18 @@ void QEPlot::setPlotAreaYRange (const double min, const double max, const bool i
 //==============================================================================
 // Property functions
 //
+
 // Access functions for YMin
 void QEPlot::setYMin (const double yMinIn)
 {
    this->yMin = yMinIn;
+
+   const double temp1 = this->yMin + MINIMUM_SPAN;
+   const double temp2 = this->yMin + ABS (this->yMin) * MINIMUM_RATIO;
+   const double minMax = MAX (temp1, temp2);
+
+   this->yMax = MAX (this->yMax, minMax);
+
    if (!this->yAxisAutoScale) {
       this->setPlotAreaYRange (this->yMin, this->yMax, false);
       this->replotIsRequired = true;
@@ -1473,6 +1497,13 @@ double QEPlot::getYMin () const
 void QEPlot::setYMax (const double yMaxIn)
 {
    this->yMax = yMaxIn;
+
+   const double temp1 = this->yMax - MINIMUM_SPAN;
+   const double temp2 = this->yMax- ABS (this->yMax) * MINIMUM_RATIO;
+   const double maxMin = MIN (temp1, temp2);
+
+   this->yMin = MIN (this->yMin, maxMin);
+
    if (!this->yAxisAutoScale) {
       this->setPlotAreaYRange (this->yMin, this->yMax, false);
       this->replotIsRequired = true;
