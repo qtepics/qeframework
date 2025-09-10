@@ -21,13 +21,14 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #include "QEPvLoadSaveItem.h"
 #include "QEPvLoadSave.h"
 #include <QEPvLoadSaveUtilities.h>
 
+#include <algorithm>    // std::sort
 #include <QDebug>
 #include <QFrame>
 #include <QMetaType>
@@ -479,6 +480,25 @@ int QEPvLoadSaveGroup::leafCount () const
    }
    return result;
 }
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSaveGroup::sortChildItems ()
+{
+   const int n = this->childItems.count();
+   if (n <= 1) return;
+
+   std::sort (this->childItems.begin(),
+              this->childItems.end(),
+              // lambda
+              [&](const QEPvLoadSaveItem* node1,
+                  const QEPvLoadSaveItem* node2)
+   {
+      return node1->getNodeName() < node2->getNodeName();
+   }
+   );
+}
+
 
 //-----------------------------------------------------------------------------
 //

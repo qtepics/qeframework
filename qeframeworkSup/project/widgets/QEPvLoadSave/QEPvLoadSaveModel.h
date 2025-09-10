@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2021 Australian Synchrotron
+ *  Copyright (c) 2013-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #ifndef QE_PV_LOAD_SAVE_MODEL_H
@@ -39,6 +39,7 @@
 //
 class QEPvLoadSave;
 class QEPvLoadSaveItem;
+class QEPvLoadSaveGroup;
 
 /// This class is based on the TreeModel example specified in:
 /// http://qt-project.org/doc/qt-4.8/itemviews-editabletreemodel.html
@@ -114,6 +115,10 @@ public:
    // Request each item to abort current action, more importantly report incomplete
    //
    void abortAction ();
+
+   // Sort children by node name
+   //
+   void sort (QEPvLoadSaveGroup* group);
 
    // Tree walking attribute functions.
    //

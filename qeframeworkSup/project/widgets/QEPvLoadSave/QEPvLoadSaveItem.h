@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #ifndef QE_PV_LOAD_SAVE_ITEM_H
@@ -68,7 +68,7 @@ class QEPvLoadSaveItem : public QObject
 {
    Q_OBJECT
 protected:
-   // This is an effectivly an abstract class; by making this function protected
+   // This is an effectively an abstract class; by making this function protected
    // we stop QEPvLoadSaveItem class objects being created.
    //
    explicit QEPvLoadSaveItem (const QString& nodeName,
@@ -198,8 +198,9 @@ public:
    void readArchiveData (const QCaDateTime& dateTime);
    void abortAction ();
    int leafCount () const;
-   QEPvLoadSaveCommon::StatusSummary getStatusSummary () const;
+   void sortChildItems ();
 
+   QEPvLoadSaveCommon::StatusSummary getStatusSummary () const;
    QEPvLoadSaveCommon::PvNameValueMaps getPvNameValueMap () const;
 };
 

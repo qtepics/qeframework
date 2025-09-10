@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #include "QEPvLoadSave.h"
@@ -1258,7 +1258,12 @@ void QEPvLoadSave::editClicked (bool)
 void QEPvLoadSave::sortClicked (bool)
 {
    VERIFY_SENDER;
-   DEBUG << side;
+
+   QEPvLoadSaveItem* item = this->half [side]->model->getSelectedItem ();
+   QEPvLoadSaveGroup* group = qobject_cast<QEPvLoadSaveGroup*>(item);
+
+   if (!group) return;   // can only sort groups, not leaf nodes.
+   this->half [side]->model->sort (group);
 }
 
 //------------------------------------------------------------------------------

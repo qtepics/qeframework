@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2024 Australian Synchrotron
+ *  Copyright (c) 2013-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #include "QEPvLoadSaveModel.h"
@@ -146,7 +146,7 @@ bool QEPvLoadSaveModel::addItemToModel (QEPvLoadSaveItem* item, QEPvLoadSaveItem
 {
    bool result = false;
 
-   // sanity checks: item must exist and specified parent.
+   // sanity checks: item must exist and specified parent must exist.
    //
    if (item && parentItem) {
       QModelIndex parentIndex= this->getIndex (parentItem, 0);
@@ -321,9 +321,24 @@ void QEPvLoadSaveModel::readArchiveData (const QCaDateTime& dateTime)
 
 //-----------------------------------------------------------------------------
 //
-void  QEPvLoadSaveModel::abortAction ()
+void QEPvLoadSaveModel::abortAction ()
 {
    this->coreItem->abortAction ();
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSaveModel::sort (QEPvLoadSaveGroup* group)
+{
+   if (!group) return;   // sanity check
+
+   const int number = group->childCount();
+   if (number <= 1) return;  // Empty or a singleton
+
+   group->sortChildItems();
+   this->modelUpdated ();
+
+   // Should we be recursive??
 }
 
 //-----------------------------------------------------------------------------
@@ -399,7 +414,8 @@ void QEPvLoadSaveModel::acceptActionInComplete (const QEPvLoadSaveItem* item,
 
 //-----------------------------------------------------------------------------
 //
-void QEPvLoadSaveModel::selectionChanged (const QItemSelection& selected, const QItemSelection& /* deselected*/ )
+void QEPvLoadSaveModel::selectionChanged (const QItemSelection& selected,
+                                          const QItemSelection& /* deselected*/ )
 {
    QModelIndexList list;
    int n;
