@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #include "QEAbstractDynamicWidget.h"
@@ -190,12 +190,12 @@ QMenu* QEAbstractDynamicWidget::buildContextMenu ()
 
    menu->addSeparator ();
 
-   action = new QAction ("Load Configuration", menu);
+   action = new QAction ("Load Configuration...", menu);
    action->setCheckable (false);
    action->setData (ADWCM_LOAD_WIDGET_CONFIG);
    menu->addAction (action);
 
-   action = new QAction ("Save Configuration", menu);
+   action = new QAction ("Save Configuration...", menu);
    action->setCheckable (false);
    action->setData (ADWCM_SAVE_WIDGET_CONFIG);
    menu->addAction (action);

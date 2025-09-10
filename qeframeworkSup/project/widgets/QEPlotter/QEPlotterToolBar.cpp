@@ -3,6 +3,8 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2013-2026 Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public License as published
  *  by the Free Software Foundation, either version 3 of the License, or
@@ -16,12 +18,10 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2016 Australian Synchrotron.
- *
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  *
  */
 
@@ -79,8 +79,8 @@ static const struct QEPlotterPushButtonSpecifications buttonSpecs [] = {
    { GAP, ICW, true,  QString ("play.png"),          QEPlotterNames::PLOTTER_PLAY,               QString ("Play - Real time")   },
    { 0,   ICW, true,  QString ("pause.png"),         QEPlotterNames::PLOTTER_PAUSE,              QString ("Pause"),             },
 
-   { GAP, ICW, true,  QString ("open_file.png"),     QEPlotterNames::PLOTTER_LOAD_CONFIG,        QString ("Load Configuration") },
-   { 0,   ICW, true,  QString ("save_file.png"),     QEPlotterNames::PLOTTER_SAVE_CONFIG,        QString ("Save Configuration") }
+   { GAP, ICW, true,  QString ("open_file.png"),     QEPlotterNames::PLOTTER_LOAD_CONFIG,        QString ("Load Configuration...") },
+   { 0,   ICW, true,  QString ("save_file.png"),     QEPlotterNames::PLOTTER_SAVE_CONFIG,        QString ("Save Configuration...") }
 };
 
 

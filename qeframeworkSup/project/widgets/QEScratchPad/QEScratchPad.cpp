@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2024 Australian Synchrotron
+ *  Copyright (c) 2013-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #include "QEScratchPad.h"
@@ -97,7 +97,7 @@ void QEScratchPad::createInternalWidgets ()
    this->loadButton = new QPushButton (this->titleFrame);
    this->loadButton->setIcon (QIcon (":/qe/stripchart/open_file.png"));
    this->loadButton->setFocusPolicy (Qt::NoFocus);
-   this->loadButton->setToolTip (" Load scratch pad configuration ");
+   this->loadButton->setToolTip (" Load Configuration... ");
    this->loadButton->setFixedSize (26, 26);
    // We discard the signal bool parameter
    QObject::connect (this->loadButton, SIGNAL (clicked ()),
@@ -106,7 +106,7 @@ void QEScratchPad::createInternalWidgets ()
    this->saveButton = new QPushButton (this->titleFrame);
    this->saveButton->setIcon (QIcon (":/qe/stripchart/save_file.png"));
    this->saveButton->setFocusPolicy (Qt::NoFocus);
-   this->saveButton->setToolTip (" Save scratch pad configuration ");
+   this->saveButton->setToolTip (" Save Configuration... ");
    this->saveButton->setFixedSize (26, 26);
    QObject::connect (this->saveButton, SIGNAL (clicked ()),
                      this, SLOT (saveWidgetConfiguration ()));
