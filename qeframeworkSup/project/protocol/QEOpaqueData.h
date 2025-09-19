@@ -98,7 +98,8 @@ private:
 
 // allows qDebug() << QEOpaqueData object.
 //
-QDebug operator<<(QDebug dbg, const QEOpaqueData& opaque);
+QDebug QE_FRAMEWORK_LIBRARY_SHARED_EXPORT
+operator<<(QDebug dbg, const QEOpaqueData& opaque);
 
 Q_DECLARE_METATYPE (QEOpaqueData)
 

@@ -104,7 +104,6 @@ public:
    //
    QVariant getAttibute (const QString& name) const;
 
-
    // QVariant conversion related functions.
    //
    // Converstion to QVariant
@@ -182,7 +181,8 @@ private:
 
 // allows qDebug() << QENTNDArrayData object.
 //
-QDebug operator<<(QDebug dbg, const QENTNDArrayData &arrayData);
+QDebug QE_FRAMEWORK_LIBRARY_SHARED_EXPORT
+operator<<(QDebug dbg, const QENTNDArrayData &arrayData);
 
 Q_DECLARE_METATYPE (QENTNDArrayData)
 

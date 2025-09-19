@@ -117,7 +117,8 @@ private:
 
 // allows qDebug() << QETableData object.
 //
-QDebug operator<<(QDebug dbg, const QENTTableData &table);
+QDebug QE_FRAMEWORK_LIBRARY_SHARED_EXPORT
+operator<<(QDebug dbg, const QENTTableData &table);
 
 Q_DECLARE_METATYPE (QENTTableData)
 

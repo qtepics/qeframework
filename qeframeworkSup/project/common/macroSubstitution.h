@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2019 Australian Synchrotron
+ *  Copyright (c) 2014-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,10 +18,11 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Author:
- *    Andrew Rhyder
- *  Contact details:
- *    andrew.rhyder@synchrotron.org.au
+ *  Original author: Andrew Rhyder
+ *  Maintained by:   Andrew Starritt
+ *
+ *  Contact details: andrews@ansto.gov.au
+ *  800 Blackburn Road, Clayton, Victoria 3168, Australia.
  */
 
 #ifndef QE_MACRO_SUBSTITUTION_H
@@ -99,7 +100,10 @@ private:
 
 // Allows qDebug() << macroSubstitution and macroSubstitutionList objects.
 //
-QDebug operator<< (QDebug dbg, const macroSubstitution& item);
-QDebug operator<< (QDebug dbg, const macroSubstitutionList& list);
+QDebug QE_FRAMEWORK_LIBRARY_SHARED_EXPORT
+operator<< (QDebug dbg, const macroSubstitution& item);
+
+QDebug QE_FRAMEWORK_LIBRARY_SHARED_EXPORT
+operator<< (QDebug dbg, const macroSubstitutionList& list);
 
 #endif // QE_MACRO_SUBSTITUTION_H
