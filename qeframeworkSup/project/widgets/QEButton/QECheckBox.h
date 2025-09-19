@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2024 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -87,12 +87,27 @@ public:
     /// For example, a button in a sub form may have a 'labelText' property of 'Turn Pump $(PUMPNUM) On'.
     /// When the sub form is used twice in a main form with substitutions PUMPNUM=1 and PUMPNUM=2 respectively,
     /// the two identical buttons in the sub forms will have the labels 'Turn Pump 1 On' and 'Turn Pump 2 On' respectively.
+    ///
     Q_PROPERTY(QString labelText READ getLabelTextProperty WRITE setLabelTextProperty)
 
     /// Value written when user clicks button if 'writeOnClick' property is true.
     /// Note: Set format to Integer when writing numeric values to enum PVs like the bo and mbbo records. 
     ///
     Q_PROPERTY(QString clickText READ getClickText WRITE setClickText)
+
+    /// Text used to compare with text written or read to determine if push button should be marked as checked.
+    /// Note, must be an exact match following formatting of data updates.
+    /// When writing values, the 'pressText', 'ReleaseText', or 'clickedtext' must match this property to cause
+    /// the button to be checked when the write occurs.
+    ///
+    /// Good example: formatting set to diaplay a data value of '1' as 'On', clickCheckedText is 'On', clickText is 'On'.
+    /// In this example, the push button will be checked when a data update occurs with a value of 1 or when the button is clicked.
+    ///
+    /// Bad example: formatting set to diaplay a data value of '1' as 'On', clickCheckedText is 'On', clickText is '1'.
+    /// In this example, the push button will be checked when a data update occurs with a value of 1 but, although
+    /// a valid value will be written when clicked, the button will not be checked when clicked as '1' is not the same as 'On'.
+    ///
+    Q_PROPERTY(QString clickCheckedText READ getClickCheckedText WRITE setClickCheckedText)
 
     /// If true, the 'clickText' property is written when the button is clicked. Default is true
     ///
@@ -226,18 +241,6 @@ public:
     /// Value written when user releases button if 'writeOnRelease' property is true
     ///
     Q_PROPERTY(QString releaseText READ getReleaseText WRITE setReleaseText)
-
-    /// Text used to compare with text written or read to determine if push button should be marked as checked.
-    /// Note, must be an exact match following formatting of data updates.
-    /// When writing values, the 'pressText', 'ReleaseText', or 'clickedtext' must match this property to cause the button to be checked when the write occurs.
-    ///
-    /// Good example: formatting set to diaplay a data value of '1' as 'On', clickCheckedText is 'On', clickText is 'On'.
-    /// In this example, the push button will be checked when a data update occurs with a value of 1 or when the button is clicked.
-    ///
-    /// Bad example: formatting set to diaplay a data value of '1' as 'On', clickCheckedText is 'On', clickText is '1'.
-    /// In this example, the push button will be checked when a data update occurs with a value of 1 but, although 
-    /// a valid value will be written when clicked, the button will not be checked when clicked as '1' is not the same as 'On'.
-    Q_PROPERTY(QString clickCheckedText READ getClickCheckedText WRITE setClickCheckedText)
 public:
     // END-GENERIC-BUTTON-PROPERTIES ==================================================
     

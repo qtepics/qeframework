@@ -403,7 +403,8 @@ void QEGenericButton::setGenericButtonText( const QString& text, QCaAlarmInfo& a
 
             } else {
                 QString message;
-                message = QString( "%1: '%2' (%3) is not one of: '%4' or '%5'" )
+                message = QString( "%1:%2 '%3' (%4) is not one of: '%5' or '%6'" )
+                      .arg( getQWidget()->objectName() )
                       .arg( getQWidget()->metaObject()->className() )
                       .arg( text )
                       .arg( state )
