@@ -184,6 +184,9 @@ public:
    QString                   title;                // Title of this menu item
 };
 
+QDebug QE_FRAMEWORK_LIBRARY_SHARED_EXPORT
+operator<<(QDebug dbg, const windowCreationListItem& item);
+
 //------------------------------------------------------------------------------
 // Class to hold component hosting instructions.
 // (an application can host a widget on behalf of a QE widget.
@@ -206,6 +209,10 @@ public:
    bool                      hidden;
    QString                   title;
 };
+
+QDebug QE_FRAMEWORK_LIBRARY_SHARED_EXPORT
+operator<<(QDebug dbg, const componentHostListItem& item);
+
 
 Q_DECLARE_METATYPE (QEActionRequests)
 

@@ -376,6 +376,22 @@ windowCreationListItem::windowCreationListItem (windowCreationListItem* item)
 windowCreationListItem::~windowCreationListItem() {}
 
 
+//------------------------------------------------------------------------------
+//
+QDebug operator<<(QDebug dbg, const windowCreationListItem& item)
+{
+   dbg << "(";
+   dbg << "uiFile:" << item.uiFile;
+   dbg << ", macros:" << item.macroSubstitutions;
+   dbg << ", title:" << item.title;
+   dbg << ", customisation:" << item.customisationName;
+   dbg << ", creationOption:" << QE::CreationOptionsImage (item.creationOption);
+   dbg << ")";
+
+   return dbg.maybeSpace ();
+}
+
+
 //==============================================================================
 // componentHostListItem
 //==============================================================================
@@ -413,5 +429,18 @@ componentHostListItem::componentHostListItem (componentHostListItem* item)
 //------------------------------------------------------------------------------
 //
 componentHostListItem::~componentHostListItem() {}
+
+//------------------------------------------------------------------------------
+//
+QDebug operator<<(QDebug dbg, const componentHostListItem& item)
+{
+   dbg << "(";
+   dbg << "creationOption:" << QE::CreationOptionsImage (item.creationOption);
+   dbg << ", title:" << item.title;
+   dbg << ", hidden:" << item.hidden;
+   dbg << ")";
+
+   return dbg.maybeSpace ();
+}
 
 // end
