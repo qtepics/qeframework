@@ -3,7 +3,7 @@
 # This file is part of the EPICS QT Framework, initially developed at
 # the Australian Synchrotron.
 #
-# Copyright (c) 2012-2023 Australian Synchrotron
+# Copyright (c) 2012-2025 Australian Synchrotron
 #
 # The EPICS QT Framework is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -1450,6 +1450,9 @@ NIEM,  "No Input Error Mode"
 RIEM,  "Reduced Input Error Mode"
 DFNV,  "Default Numeric Value"
 DFSV,  "Default String Value"
+OOPT,  "Output Execute Opt"
+OUT*,  "Output Specification"
+OEVT,  "Event To Issue"
 IN00*, "Input link 00"
 IN01*, "Input link 01"
 IN02*, "Input link 02"
