@@ -38,7 +38,7 @@
 #include <QENTNDArrayData.h>
 #include <QEOpaqueData.h>
 
-#define DEBUG qDebug () << "QEStringFormatting" << __LINE__ << __FUNCTION__ << "  "
+#define DEBUG qDebug () << "QEStringFormatting" << __LINE__ << __FUNCTION__ << " "
 
 // InternalFormats are an extention of Formats used in QEStringFormatting
 // and are specials for specific PVA varient types.
@@ -721,9 +721,10 @@ QString QEStringFormatting::timeToString (const QVariant& value) const
 
       result = QEUtilities::intervalToString (seconds, effectivePrecision, true);
    } else {
-      result = this->formatFailure (QString
-                                    ("Warning from formatFromTime()."
-                                     " A variant could not be converted to a double."));
+      // Just go with the raw string value.
+      //
+      result = value.toString();
+      DEBUG << "Variant" << result << "could not be converted to a double.";
    }
 
    return result;
