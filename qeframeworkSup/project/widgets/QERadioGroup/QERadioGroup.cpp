@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2023  Australian Synchrotron.
+ *  Copyright (c) 2014-2025  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,11 +21,12 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #include "QERadioGroup.h"
 
+#include <limits>
 #include <QDebug>
 #include <QRadioButton>
 #include <QPushButton>
@@ -33,15 +34,12 @@
 
 #define DEBUG qDebug () << "QERadioGroup" << __LINE__ << __FUNCTION__ << "  "
 
-#define PV_VARIABLE_INDEX      0
-#define TITLE_VARIABLE_INDEX   1
-
 //-----------------------------------------------------------------------------
 // Constructor with no initialisation
 //
 QERadioGroup::QERadioGroup (QWidget* parent) :
    QEAbstractWidget (parent),
-   QESingleVariableMethods (this, PV_VARIABLE_INDEX)
+   QESingleVariableMethods (this, pvVariableIndex)
 {
    this->commonSetup (" QERadioGroup ");
 }
@@ -51,10 +49,10 @@ QERadioGroup::QERadioGroup (QWidget* parent) :
 //
 QERadioGroup::QERadioGroup (const QString& variableNameIn, QWidget* parent) :
    QEAbstractWidget (parent),
-   QESingleVariableMethods (this, PV_VARIABLE_INDEX)
+   QESingleVariableMethods (this, pvVariableIndex)
 {
    this->commonSetup (" QERadioGroup ");
-   this->setVariableName (variableNameIn, PV_VARIABLE_INDEX);
+   this->setVariableName (variableNameIn, pvVariableIndex);
    this->activate();
 }
 
@@ -64,10 +62,10 @@ QERadioGroup::QERadioGroup (const QString& variableNameIn, QWidget* parent) :
 QERadioGroup::QERadioGroup (const QString& title, const QString& variableNameIn,
                             QWidget* parent) :
    QEAbstractWidget (parent),
-   QESingleVariableMethods (this, PV_VARIABLE_INDEX)
+   QESingleVariableMethods (this, pvVariableIndex)
 {
    this->commonSetup (title);
-   this->setVariableName (variableNameIn, PV_VARIABLE_INDEX);
+   this->setVariableName (variableNameIn, pvVariableIndex);
    this->activate();
 }
 
@@ -114,11 +112,11 @@ void QERadioGroup::commonSetup (const QString& title)
 
    // Set variable index used to select write access cursor style.
    //
-   this->setControlPV (PV_VARIABLE_INDEX);
+   this->setControlPV (pvVariableIndex);
 
    // Title managed as second variable.
    //
-   this->setVariableName (title, TITLE_VARIABLE_INDEX);
+   this->setVariableName (title, titleVariableIndex);
 
    // Set up default properties
    //
@@ -146,7 +144,7 @@ void QERadioGroup::commonSetup (const QString& title)
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   this->titleVnpm.setVariableIndex (TITLE_VARIABLE_INDEX);
+   this->titleVnpm.setVariableIndex (titleVariableIndex);
    QObject::connect
        (&this->titleVnpm, SIGNAL (newVariableNameProperty  (QString, QString, unsigned int)),
         this,             SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
@@ -201,7 +199,7 @@ qcaobject::QCaObject* QERadioGroup::createQcaItem (unsigned int variableIndex)
 
    switch (variableIndex) {
 
-      case PV_VARIABLE_INDEX:
+      case pvVariableIndex:
          result = new QEInteger (this->getSubstitutedVariableName (variableIndex),
                                  this, &this->integerFormatting, variableIndex);
 
@@ -210,7 +208,7 @@ qcaobject::QCaObject* QERadioGroup::createQcaItem (unsigned int variableIndex)
          this->setSingleVariableQCaProperties (result);
          break;
 
-      case TITLE_VARIABLE_INDEX:
+      case titleVariableIndex:
          // do nothing
          result = NULL;
          break;
@@ -246,7 +244,7 @@ void QERadioGroup::establishConnection (unsigned int variableIndex)
 
    switch (variableIndex) {
 
-      case PV_VARIABLE_INDEX:
+      case pvVariableIndex:
          // Create a connection.
          // If successfull, the QCaObject object that will supply data update signals will be returned
          // Note createConnection creates the connection and returns reference to existing QCaObject.
@@ -264,7 +262,7 @@ void QERadioGroup::establishConnection (unsigned int variableIndex)
          }
          break;
 
-      case TITLE_VARIABLE_INDEX:
+      case titleVariableIndex:
          // do nothing
          break;
 
@@ -306,11 +304,11 @@ void QERadioGroup::connectionChanged (QCaConnectionInfo& connectionInfo,
    //
    this->setAccessCursorStyle ();
 
-   if (variableIndex == PV_VARIABLE_INDEX) {
+   if (variableIndex == pvVariableIndex) {
       // Signal channel connection change to any (Link) widgets.
       // using signal dbConnectionChanged.
       //
-      this->emitDbConnectionChanged (PV_VARIABLE_INDEX);
+      this->emitDbConnectionChanged (pvVariableIndex);
    }
 }
 
@@ -323,7 +321,7 @@ void QERadioGroup::valueUpdate (const long &value,
 {
    int selectedIndex = -1;
 
-   if (variableIndex != PV_VARIABLE_INDEX) {
+   if (variableIndex != pvVariableIndex) {
       DEBUG << "unexpected variableIndex" << variableIndex;
       return;
    }
@@ -367,7 +365,7 @@ void QERadioGroup::valueUpdate (const long &value,
    //
    QString formattedText;
    formattedText = this->internalWidget->getStrings ().value (selectedIndex, "unknown");
-   this->emitDbValueChanged (formattedText, PV_VARIABLE_INDEX);
+   this->emitDbValueChanged (formattedText, pvVariableIndex);
 }
 
 //---------------------------------------------------------------------------------
@@ -389,7 +387,7 @@ void QERadioGroup::setRadioGroupText ()
    this->valueIndexMap.clear ();
 
    if (this->useDbEnumerations) {
-      qca = getQcaItem (PV_VARIABLE_INDEX);
+      qca = this->getQcaItem (pvVariableIndex);
       if (qca) {
          enumerations = qca->getEnumerations ();
 
@@ -440,7 +438,7 @@ void QERadioGroup::internalValueChanged (const int selectedIndex)
 {
    // Get the variable to write to
    //
-   QEInteger *qca = (QEInteger *) getQcaItem (PV_VARIABLE_INDEX);
+   QEInteger* qca = qobject_cast<QEInteger*> (this->getQcaItem (pvVariableIndex));
 
    // If a QCa object is present (if there is a variable to write to)
    // then write the value
@@ -475,7 +473,7 @@ void QERadioGroup::writeNow()
 {
    // Get the variable to write to
    //
-   QEInteger *qca = (QEInteger *) getQcaItem (PV_VARIABLE_INDEX);
+   QEInteger* qca = qobject_cast<QEInteger*> (this->getQcaItem (pvVariableIndex));
 
    // If a QCa object is present (if there is a variable to write to)
    // then write the value.
@@ -500,6 +498,96 @@ void QERadioGroup::writeNow()
 }
 
 //------------------------------------------------------------------------------
+// slot
+void QERadioGroup::setDefaultStyle (const QString& style)
+{
+   this->setStyleDefault (style);
+}
+
+//------------------------------------------------------------------------------
+// Note: keep aligned with QEComboBox::setPvValue
+// slot
+void QERadioGroup::setPvValue (const QString& text)
+{
+   // First check it text is one of the enumeration values.
+   // If not, then check is a valid integer.
+   //
+   int value = this->internalWidget->findText (text);
+   if (value == -1) {
+      // Repeat with a trimmed string.
+      value = this->internalWidget->findText (text.trimmed());
+   }
+
+   if (value >= 0 && !this->useDbEnumerations) {
+      // We have a match and local enumeration is in use.
+      // We must to the reverse map.
+      //
+      int temp;
+      if (this->valueIndexMap.containsI(value)) {
+         temp = this->valueIndexMap.valueI (value);
+      } else {
+         temp = -1;
+      }
+      value = temp;
+   }
+
+   if (value == -1) {
+      // Try interpretting as an integer number.
+      //
+      bool okay;
+      const int temp = text.toInt (&okay);
+      if (okay) {
+         value = temp;
+      }
+   }
+
+   if (value >= 0) {
+      this->setPvValue (value);
+   } else {
+      QString message = QString ("Cannot convert '%1' to an integer").arg (text);
+
+      message_types mt (MESSAGE_TYPE_INFO, MESSAGE_KIND_STANDARD);
+      this->sendMessage (message, mt);
+      DEBUG << message;
+   }
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QERadioGroup::setPvValue (const int value)
+{
+   this->internalWidget->setValue (value);
+   this->currentIndex = value;   // QERadioGroup caches this locally - duplicate source of truth ;-(
+   this->writeNow ();
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QERadioGroup::setPvValue (const double value)
+{
+   static const int imin = std::numeric_limits<int>::min();
+   static const int imax = std::numeric_limits<int>::max();
+
+   if ((value >= imin) && (value <= imax)) {
+      this->setPvValue (static_cast<int>(value));
+   } else {
+      QString message = QString ("Cannot convert '%1' to an integer").arg (value);
+
+      message_types mt (MESSAGE_TYPE_INFO, MESSAGE_KIND_STANDARD);
+      this->sendMessage (message, mt);
+      DEBUG << message;
+   }
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QERadioGroup::setPvValue (const bool value)
+{
+   this->setPvValue (value ? 1 : 0);
+}
+
+
+//------------------------------------------------------------------------------
 //
 int QERadioGroup::getCurrentIndex () const
 {
@@ -516,7 +604,7 @@ void QERadioGroup::useNewVariableNameProperty (QString variableName,
 
    // Both the variable name and the title use the same useNewVariableNameProperty slot.
    //
-   if (variableIndex == TITLE_VARIABLE_INDEX) {
+   if (variableIndex == titleVariableIndex) {
       QString title = this->getSubstitutedVariableName (variableIndex);
       this->internalWidget->setOwnTitle (title);
    }
@@ -630,7 +718,7 @@ void QERadioGroup::contextMenuTriggered (int selectedItemNum)
 //
 QString QERadioGroup::copyVariable ()
 {
-   return this->getSubstitutedVariableName (PV_VARIABLE_INDEX);
+   return this->getSubstitutedVariableName (pvVariableIndex);
 }
 
 //------------------------------------------------------------------------------
@@ -644,8 +732,8 @@ QVariant QERadioGroup::copyData ()
 //
 void QERadioGroup::paste (QVariant v)
 {
-   this->setVariableName (v.toString (), PV_VARIABLE_INDEX);
-   this->establishConnection (PV_VARIABLE_INDEX);
+   this->setVariableName (v.toString (), pvVariableIndex);
+   this->establishConnection (pvVariableIndex);
 }
 
 // end

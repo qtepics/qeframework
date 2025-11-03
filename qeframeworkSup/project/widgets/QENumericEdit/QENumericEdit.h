@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #ifndef QE_NUMERIC_EDIT_H
@@ -321,6 +321,15 @@ public slots:
    /// Update the default style applied to this widget.
    //
    void setDefaultStyle (const QString& style);
+
+   /// Update the widget and write to the main associated control process variable.
+   /// Supplied values are converted to the approiate widget value type.
+   /// If conversion not possible or resultant value out of range, no widget/PV update occurs.
+   //
+   void setPvValue (const QString& text);
+   void setPvValue (const int value);
+   void setPvValue (const double value);
+   void setPvValue (const bool value);
 
 protected:
    bool eventFilter (QObject* watched, QEvent* event);

@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #include "QEAnalogSlider.h"
@@ -439,13 +439,22 @@ void QEAnalogSlider::valueChanged (const double)
 
 //---------------------------------------------------------------------------------
 //
-void QEAnalogSlider::applyButtonClicked (bool x) {
+void QEAnalogSlider::applyButtonClicked (bool x)
+{
     QAnalogSlider::applyButtonClicked (x);  // call parent class first
     this->writeNow ();
 }
 
+
 //------------------------------------------------------------------------------
-//
+// slot
+void QEAnalogSlider::setManagedVisible (bool v)
+{
+   this->setRunVisible(v);
+}
+
+//------------------------------------------------------------------------------
+// slot
 void QEAnalogSlider::writeNow ()
 {
    QEFloating *qca = (QEFloating *) getQcaItem (SET_POINT_VARIABLE_INDEX);
@@ -454,6 +463,45 @@ void QEAnalogSlider::writeNow ()
       //
       qca->writeFloatingElement (this->getValue ());
    }
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QEAnalogSlider::setPvValue (const QString& text)
+{
+   bool okay;
+   const double v = text.toDouble (&okay);
+   if (okay) {
+      this->setPvValue (v);
+   } else {
+      QString message = QString ("Cannot convert '%1' to a double").arg (text);
+
+      message_types mt (MESSAGE_TYPE_INFO, MESSAGE_KIND_STANDARD);
+      this->sendMessage (message, mt);
+      DEBUG << message;
+   }
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QEAnalogSlider::setPvValue (const int value)
+{
+   this->setPvValue (static_cast<double>(value));
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QEAnalogSlider::setPvValue (const double value)
+{
+   this->setValue (value);
+   this->writeNow ();
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QEAnalogSlider::setPvValue (const bool value)
+{
+   this->setPvValue (value ? 1.0 : 0.0);
 }
 
 //------------------------------------------------------------------------------

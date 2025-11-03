@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #ifndef QE_ANALOG_SLIDER_H
@@ -296,11 +296,20 @@ public slots:
    /// Widget will be hidden if hidden by a call this slot, by will only be made
    /// visible by a calll to this slot if the user level allows.
    ///
-   void setManagedVisible (bool v) { this->setRunVisible(v); }
+   void setManagedVisible (bool v);
 
    // Write the value (of the underlying QAnalogSlider object) to the PV immediately.
    //
    void writeNow ();
+
+   /// Update the widget and write to the main associated control process variable.
+   /// Supplied values are converted to the approiate widget value type.
+   /// If conversion not possible or resultant value out of range, no widget/PV update occurs.
+   //
+   void setPvValue (const QString& text);
+   void setPvValue (const int value);
+   void setPvValue (const double value);
+   void setPvValue (const bool value);
 
 protected:
    // override QEWidget fnctions.

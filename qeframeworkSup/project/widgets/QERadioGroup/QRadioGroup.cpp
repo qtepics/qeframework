@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2024 Australian Synchrotron
+ *  Copyright (c) 2014-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #include "QRadioGroup.h"
@@ -65,7 +65,7 @@ void QRadioGroup::commonSetup (const QString& title)
    this->space = 4;
    this->buttonStyle = Radio;
    this->buttonOrder = QE::rowMajor;
-   this->strings.clear ();
+   this->mStrings.clear ();
 
    // Set the initial state
    //
@@ -184,7 +184,7 @@ void QRadioGroup::reCreateAllButtons ()
       }
    }
 
-   // Create new buttons -invisble for now.
+   // Create new buttons - invisble for now.
    // NOTE: buttons are added/removed from layout as and when needed.
    //
    for (j = 0; j < this->getMaximumButtons (); j++) {
@@ -259,18 +259,18 @@ void QRadioGroup::setButtonText ()
 
    // Create indentity map.
    //
-   for (j = 0; j < this->strings.count (); j++) {
+   for (j = 0; j < this->mStrings.count (); j++) {
       this->valueToButton.insertF (j, this->buttonList.value (j));
    }
 
-   this->numberDisplayed = MIN (this->strings.count (), this->buttonList.count ());
+   this->numberDisplayed = MIN (this->mStrings.count (), this->buttonList.count ());
    this->rows = (numberDisplayed + this->cols - 1) / MAX (this->cols, 1);
 
    for (j = 0; j < this->buttonList.count (); j++) {
       button = this->buttonList.value (j);
       button->setVisible (j < numberDisplayed);
       if (j < numberDisplayed) {
-         button->setText (this->strings.value (j) + suffix);
+         button->setText (this->mStrings.value (j) + suffix);
       }
    }
 
@@ -408,9 +408,9 @@ QString QRadioGroup::getOwnTitle () const
 //
 void QRadioGroup::setStrings (const QStringList& stringsIn)
 {
-   this->strings = stringsIn;
-   while (this->strings.count() > this->getMaximumButtons ()) {
-      this->strings.removeLast ();
+   this->mStrings = stringsIn;
+   while (this->mStrings.count() > this->getMaximumButtons ()) {
+      this->mStrings.removeLast ();
    }
    this->setButtonText ();
 }
@@ -419,7 +419,7 @@ void QRadioGroup::setStrings (const QStringList& stringsIn)
 //
 QStringList QRadioGroup::getStrings () const
 {
-   return this->strings;
+   return this->mStrings;
 }
 
 //------------------------------------------------------------------------------
@@ -496,6 +496,20 @@ void QRadioGroup::setButtonOrder (const QE::GridOrders buttonOrderIn)
 QE::GridOrders QRadioGroup::getButtonOrder () const
 {
    return this->buttonOrder;
+}
+
+//------------------------------------------------------------------------------
+//
+int QRadioGroup::findText (const QString& text) const
+{
+   int result = -1;
+   for (int j = 0; j < this->mStrings.count(); j++) {
+      if (this->mStrings.value (j) == text) {
+         result = j;
+         break;
+      }
+   }
+   return result;
 }
 
 // end

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2023 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,10 +18,9 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Author:
- *    Andrew Rhyder
- *  Contact details:
- *    andrew.rhyder@synchrotron.org
+ *  Author:     Andrew Rhyder
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 /*
@@ -30,6 +29,7 @@
  */
 
 #include "QEComboBox.h"
+#include <limits>
 #include <QDebug>
 
 #define DEBUG qDebug () << "QEComboBox" << __LINE__ << __FUNCTION__ << "  "
@@ -44,7 +44,7 @@ QEComboBox::QEComboBox( QWidget *parent ) :
    QESingleVariableMethods ( this, PV_VARIABLE_INDEX ),
    QEWidget( this )
 {
-   setup();
+   this->setup();
 }
 
 //------------------------------------------------------------------------------
@@ -55,11 +55,9 @@ QEComboBox::QEComboBox( const QString &variableNameIn, QWidget *parent ) :
    QESingleVariableMethods ( this, PV_VARIABLE_INDEX ),
    QEWidget( this )
 {
-   setVariableName( variableNameIn, PV_VARIABLE_INDEX );
-
-   setup();
-
-   activate();
+   this->setVariableName( variableNameIn, PV_VARIABLE_INDEX );
+   this->setup();
+   this->activate();
 }
 
 //------------------------------------------------------------------------------
@@ -72,31 +70,31 @@ QEComboBox::~QEComboBox() { }
 void QEComboBox::setup()
 {
    // Some environmnts seem to stuff this up - set explicitly.
-   updatePropertyStyle ("QWidget { selection-background-color: rgb(80, 160, 255); } " );
+   this->updatePropertyStyle ("QWidget { selection-background-color: rgb(80, 160, 255); } " );
 
    // Set up data
    // This control used a single data source
-   setNumVariables(1);
+   this->setNumVariables(1);
 
    // Set variable index used to select write access cursor style.
    setControlPV( PV_VARIABLE_INDEX );
 
    // Set up default properties
-   useDbEnumerations = true;
-   writeOnChange = true;
-   subscribe = true;
-   setAllowDrop( false );
-   setMaxVisibleItems (16);
+   this->useDbEnumerations = true;
+   this->writeOnChange = true;
+   this->subscribe = true;
+   this->setAllowDrop( false );
+   this->setMaxVisibleItems (16);
 
    // Set the initial state
-   lastValue = 0;
-   isConnected = false;
+   this->lastValue = 0;
+   this->isConnected = false;
 
-   ignoreSingleShotRead = false;
-   isAllowFocusUpdate = false;
+   this->ignoreSingleShotRead = false;
+   this->isAllowFocusUpdate = false;
 
    // Use standard context menu
-   setupContextMenu();
+   this->setupContextMenu();
 
    // Use line edit signals
    // Set up to write data when the user changes the value
@@ -104,7 +102,7 @@ void QEComboBox::setup()
 
    // Set up a connection to recieve variable name property changes
    // The variable name property manager class only delivers an updated variable name after the user has stopped typing
-   connectNewVariableNameProperty( SLOT ( useNewVariableNameProperty( QString, QString, unsigned int ) ) );
+   this->connectNewVariableNameProperty( SLOT ( useNewVariableNameProperty( QString, QString, unsigned int ) ) );
 
    // Change the default focus policy from WheelFocus to ClickFocus
    //
@@ -143,10 +141,11 @@ qcaobject::QCaObject* QEComboBox::createQcaItem( unsigned int variableIndex )
    qcaobject::QCaObject* result = NULL;
 
    // Create the item as a QEInteger
-   result = new QEInteger( getSubstitutedVariableName( variableIndex ), this, &integerFormatting, variableIndex );
+   const QString pvName = this->getSubstitutedVariableName( variableIndex );
+   result = new QEInteger( pvName, this, &integerFormatting, variableIndex );
 
    // Apply currently defined array index/elements request values.
-   setSingleVariableQCaProperties( result );
+   this->setSingleVariableQCaProperties( result );
 
    return result;
 }
@@ -160,11 +159,11 @@ void QEComboBox::establishConnection( unsigned int variableIndex )
 {
    // Create a connection.
    // If successfull, the QCaObject object that will supply data update signals will be returned
-   qcaobject::QCaObject* qca = createConnection( variableIndex );
+   qcaobject::QCaObject* qca = this->createConnection( variableIndex );
 
    // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots
    if(  qca ) {
-      setCurrentIndex( 0 );
+      this->setCurrentIndex( 0 );
       QObject::connect( qca,  SIGNAL( integerChanged( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                         this, SLOT( setValueIfNoFocus( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
       QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
@@ -186,11 +185,11 @@ void QEComboBox::establishConnection( unsigned int variableIndex )
 void QEComboBox::connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex)
 {
    // Note the connected state
-   isConnected = connectionInfo.isChannelConnected();
+   this->isConnected = connectionInfo.isChannelConnected();
 
    // Display the connected state
-   updateToolTipConnection( isConnected,variableIndex );
-   processConnectionInfo( isConnected, variableIndex );
+   this->updateToolTipConnection( isConnected,variableIndex );
+   this->processConnectionInfo( isConnected, variableIndex );
 
    // Start a single shot read if the channel is up (ignore channel down),
    // This will allow initialisation of the widget using info from the database.
@@ -198,19 +197,19 @@ void QEComboBox::connectionChanged( QCaConnectionInfo& connectionInfo, const uns
    // or this is a subsequent 'channel up'
    // If subscribing, then an update will occur without having to initiated one here.
    // Note, channel up implies link up
-   if( isConnected && !subscribe )
+   if( this->isConnected && !this->subscribe )
    {
-      QEInteger* qca = (QEInteger*)getQcaItem( PV_VARIABLE_INDEX );
-      qca->singleShotRead();
-      ignoreSingleShotRead = true;
+      QEInteger* qca = qobject_cast<QEInteger*>(this->getQcaItem (PV_VARIABLE_INDEX));
+      if (qca) qca->singleShotRead();
+      this->ignoreSingleShotRead = true;
    }
 
    // Set cursor to indicate access mode.
-   setAccessCursorStyle();
+   this->setAccessCursorStyle();
 
    // Signal channel connection change to any Link widgets,
    // using signal dbConnectionChanged.
-   emitDbConnectionChanged( PV_VARIABLE_INDEX );
+   this->emitDbConnectionChanged( PV_VARIABLE_INDEX );
 }
 
 //------------------------------------------------------------------------------
@@ -244,22 +243,22 @@ void QEComboBox::setValueIfNoFocus( const long& value,QCaAlarmInfo& alarmInfo,
    //
    if( isMetaDataUpdate )
    {
-      setComboBoxText ();
+      this->setComboBoxText ();
    }
 
    // Do nothing more if doing a single shot read (done when not subscribing to get enumeration values)
-   if( ignoreSingleShotRead )
+   if( this->ignoreSingleShotRead )
    {
-      ignoreSingleShotRead = false;
+      this->ignoreSingleShotRead = false;
       return;
    }
 
    // First caluate index value irrespective of whether we update or not.
    // The data HAS changed and we should signal the correct information
    int index;
-   if( valueIndexMap.containsF (value) )
+   if( this->valueIndexMap.containsF (value) )
    {
-      index = valueIndexMap.valueF (value);
+      index = this->valueIndexMap.valueF (value);
    }
    else
    {
@@ -269,7 +268,7 @@ void QEComboBox::setValueIfNoFocus( const long& value,QCaAlarmInfo& alarmInfo,
    }
 
    // Save the last database value
-   lastValue = value;
+   this->lastValue = value;
 
    // Update the text if appropriate.
    // If the user is editing the object then updates will be inapropriate, unless
@@ -279,20 +278,20 @@ void QEComboBox::setValueIfNoFocus( const long& value,QCaAlarmInfo& alarmInfo,
    // to restrict updates. Allow if the form designer has specifically allowed
    // updates while the widget has focus.
    //
-   if( isAllowFocusUpdate || !hasFocus() || isMetaDataUpdate )
+   if( this->isAllowFocusUpdate || !this->hasFocus() || isMetaDataUpdate )
    {
-      setCurrentIndex( index );
+      this->setCurrentIndex( index );
 
       // Note the last value presented to the user
-      lastUserValue = currentText();
+      this->lastUserValue = this->currentText();
    }
 
    // Invoke common alarm handling processing.
-   processAlarmInfo( alarmInfo );
+   this->processAlarmInfo( alarmInfo );
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged.
-   emitDbValueChanged( this->itemText( index ), PV_VARIABLE_INDEX );
+   this->emitDbValueChanged( this->itemText( index ), PV_VARIABLE_INDEX );
 }
 
 //------------------------------------------------------------------------------
@@ -311,17 +310,17 @@ void QEComboBox::setComboBoxText()
    //
    // Clear value to index mapping.
    //
-   valueIndexMap.clear();
+   this->valueIndexMap.clear();
 
-   if( useDbEnumerations ) {
-      qca = getQcaItem( PV_VARIABLE_INDEX );
+   if( this->useDbEnumerations ) {
+      qca = this->getQcaItem( PV_VARIABLE_INDEX );
       if( qca ) {
          enumerations = qca->getEnumerations();
 
          // Create indentity map.
          //
          for( int j = 0; j < enumerations.count(); j++ ) {
-            valueIndexMap.insertF ( j, j );
+            this->valueIndexMap.insertF ( j, j );
          }
       }
 
@@ -338,7 +337,7 @@ void QEComboBox::setComboBoxText()
       //
       enumerations.clear();
       for( int n = -128; n <= 128; n++ ) {
-         text = localEnumerations.valueToText( n, isMatch );
+         text = this->localEnumerations.valueToText( n, isMatch );
 
          // Unless exact match, do not use.
          //
@@ -349,21 +348,20 @@ void QEComboBox::setComboBoxText()
          int j = enumerations.count ();
          enumerations.append( text );
 
-         valueIndexMap.insertF( n, j );
+         this->valueIndexMap.insertF( n, j );
       }
    }
 
    // Clearing and re-inserting values "upsets" the current index value.
    //
-   savedIndex = currentIndex();
+   savedIndex = this->currentIndex();
 
-   clear();
-   insertItems( 0, enumerations );
+   this->clear();
+   this->insertItems( 0, enumerations );
    if( savedIndex >= count()) {
       savedIndex = -1;
    }
-   setCurrentIndex ( savedIndex );
-
+   this->setCurrentIndex ( savedIndex );
 }
 
 //------------------------------------------------------------------------------
@@ -372,11 +370,11 @@ void QEComboBox::setComboBoxText()
 void QEComboBox::userValueChanged( int index )
 {
    // Do nothing unless writing on change
-   if( !writeOnChange )
+   if( !this->writeOnChange )
       return;
 
    // Get the variable to write to
-   QEInteger* qca = (QEInteger*)getQcaItem( PV_VARIABLE_INDEX );
+   QEInteger* qca = qobject_cast<QEInteger*>(this->getQcaItem (PV_VARIABLE_INDEX));
 
    // If a QCa object is present (if there is a variable to write to)
    // then write the value
@@ -384,15 +382,15 @@ void QEComboBox::userValueChanged( int index )
    {
       // Validate
       //
-      if (!valueIndexMap.containsI (index)) {
+      if (!this->valueIndexMap.containsI (index)) {
          return;
       }
 
       // Don't write same value.
       // Is this test actully get exersized?
       //
-      const int value = valueIndexMap.valueI (index);
-      if (value == lastValue) {
+      const int value = this->valueIndexMap.valueI (index);
+      if (value == this->lastValue) {
          return;
       }
 
@@ -402,14 +400,14 @@ void QEComboBox::userValueChanged( int index )
       // Notify user changes
       QStringList enumerations = qca->getEnumerations();
       QString lastValueString;
-      if( lastValue >= 0 && lastValue < enumerations.size() )
+      if( this->lastValue >= 0 && this->lastValue < enumerations.size() )
       {
-         lastValueString = enumerations[lastValue];
+         lastValueString = enumerations[this->lastValue];
       }
-      emit userChange( currentText(), lastUserValue, lastValueString );
+      emit userChange( this->currentText(), this->lastUserValue, lastValueString );
 
       // Note the last value presented to the user
-      lastUserValue = currentText();
+      this->lastUserValue = currentText();
    }
 }
 
@@ -421,25 +419,108 @@ void QEComboBox::userValueChanged( int index )
 void QEComboBox::writeNow()
 {
    // Get the variable to write to
-   QEInteger* qca = (QEInteger*)getQcaItem( PV_VARIABLE_INDEX );
+   QEInteger* qca = qobject_cast<QEInteger*>(this->getQcaItem (PV_VARIABLE_INDEX));
 
    // If a QCa object is present (if there is a variable to write to)
    // then write the value
    if( qca )
    {
-      const int index = currentIndex();
+      const int index = this->currentIndex();
 
       // Validate
       //
-      if (!valueIndexMap.containsI ( index )) {
+      if (!this->valueIndexMap.containsI ( index )) {
          return;
       }
 
-      const int value = valueIndexMap.valueI (index);
+      const int value = this->valueIndexMap.valueI (index);
 
       // Write the value
       qca->writeIntegerElement( value );
    }
+}
+
+//------------------------------------------------------------------------------
+// Note: keep aligned with QERadioGroup::setPvValue
+// slot
+void QEComboBox::setPvValue (const QString& text)
+{
+   // First check it text is one of the enumeration values.
+   // If not, then check is a valid integer.
+   //
+   int value = this->findText (text);
+   if (value == -1) {
+      // Repeat with a trimmed string.
+      value = this->findText (text.trimmed());
+   }
+
+   if (value >= 0 && !this->useDbEnumerations) {
+      // We have a match and local enumeration is in use.
+      // We must to the reverse map.
+      //
+      int temp;
+      if (this->valueIndexMap.containsI(value)) {
+         temp = this->valueIndexMap.valueI (value);
+      } else {
+         temp = -1;
+      }
+      value = temp;
+   }
+
+   if (value == -1) {
+      // Try interpretting as an integer number.
+      //
+      bool okay;
+      const int temp = text.toInt (&okay);
+      if (okay) {
+         value = temp;
+      }
+   }
+
+   if (value >= 0) {
+      this->setPvValue (value);
+   } else {
+      QString message = QString ("Cannot convert '%1' to an integer").arg (text);
+
+      message_types mt (MESSAGE_TYPE_INFO, MESSAGE_KIND_STANDARD);
+      this->sendMessage (message, mt);
+      DEBUG << message;
+   }
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QEComboBox::setPvValue (const int value)
+{
+   this->setCurrentIndex (value);
+   // Note the last value presented to the user
+   this->lastUserValue = this->currentText();
+   this->writeNow ();
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QEComboBox::setPvValue (const double value)
+{
+   static const int imin = std::numeric_limits<int>::min();
+   static const int imax = std::numeric_limits<int>::max();
+
+   if ((value >= imin) && (value <= imax)) {
+      this->setPvValue (static_cast<int>(value));
+   } else {
+      QString message = QString ("Cannot convert '%1' to an integer").arg (value);
+
+      message_types mt (MESSAGE_TYPE_INFO, MESSAGE_KIND_STANDARD);
+      this->sendMessage (message, mt);
+      DEBUG << message;
+   }
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QEComboBox::setPvValue (const bool value)
+{
+   this->setPvValue (value ? 1 : 0);
 }
 
 //==============================================================================
@@ -483,15 +564,15 @@ void  QEComboBox::contextMenuTriggered (int selectedItemNum)
 // Drag drop
 void QEComboBox::setDrop( QVariant drop )
 {
-   setVariableName( drop.toString(), PV_VARIABLE_INDEX );
-   establishConnection( PV_VARIABLE_INDEX );
+   this->setVariableName( drop.toString(), PV_VARIABLE_INDEX );
+   this->establishConnection( PV_VARIABLE_INDEX );
 }
 
 //------------------------------------------------------------------------------
 //
 QVariant QEComboBox::getDrop()
 {
-   return QVariant( getSubstitutedVariableName( PV_VARIABLE_INDEX ) );
+   return QVariant( this->getSubstitutedVariableName( PV_VARIABLE_INDEX ) );
 }
 
 
@@ -500,22 +581,22 @@ QVariant QEComboBox::getDrop()
 //
 QString QEComboBox::copyVariable()
 {
-   return getSubstitutedVariableName( PV_VARIABLE_INDEX );
+   return this->getSubstitutedVariableName( PV_VARIABLE_INDEX );
 }
 
 //------------------------------------------------------------------------------
 //
 QVariant QEComboBox::copyData()
 {
-   return QVariant( currentText() );
+   return QVariant( this->currentText() );
 }
 
 //------------------------------------------------------------------------------
 //
 void QEComboBox::paste (QVariant s)
 {
-   setVariableName( s.toString(), PV_VARIABLE_INDEX );
-   establishConnection( PV_VARIABLE_INDEX );
+   this->setVariableName( s.toString(), PV_VARIABLE_INDEX );
+   this->establishConnection( PV_VARIABLE_INDEX );
 }
 
 
@@ -525,14 +606,14 @@ void QEComboBox::paste (QVariant s)
 // write on change
 void QEComboBox::setWriteOnChange( bool writeOnChangeIn )
 {
-   writeOnChange = writeOnChangeIn;
+   this->writeOnChange = writeOnChangeIn;
 }
 
 //------------------------------------------------------------------------------
 //
 bool QEComboBox::getWriteOnChange() const
 {
-   return writeOnChange;
+   return this->writeOnChange;
 }
 
 //------------------------------------------------------------------------------
@@ -540,14 +621,14 @@ bool QEComboBox::getWriteOnChange() const
 //
 void QEComboBox::setSubscribe( bool subscribeIn )
 {
-   subscribe = subscribeIn;
+   this->subscribe = subscribeIn;
 }
 
 //------------------------------------------------------------------------------
 //
 bool QEComboBox::getSubscribe() const
 {
-   return subscribe;
+   return this->subscribe;
 }
 
 //------------------------------------------------------------------------------
@@ -555,9 +636,9 @@ bool QEComboBox::getSubscribe() const
 //
 void QEComboBox::setUseDbEnumerations( bool useDbEnumerationsIn )
 {
-   if( useDbEnumerations != useDbEnumerationsIn ) {
-      useDbEnumerations = useDbEnumerationsIn;
-      setComboBoxText();
+   if( this->useDbEnumerations != useDbEnumerationsIn ) {
+      this->useDbEnumerations = useDbEnumerationsIn;
+      this->setComboBoxText();
    }
 }
 
@@ -565,7 +646,7 @@ void QEComboBox::setUseDbEnumerations( bool useDbEnumerationsIn )
 //
 bool QEComboBox::getUseDbEnumerations() const
 {
-   return useDbEnumerations;
+   return this->useDbEnumerations;
 }
 
 //------------------------------------------------------------------------------
@@ -573,9 +654,9 @@ bool QEComboBox::getUseDbEnumerations() const
 //
 void QEComboBox::setLocalEnumerations( const QString & localEnumerationsIn )
 {
-   localEnumerations.setLocalEnumeration( localEnumerationsIn );
-   if( !useDbEnumerations ) {
-      setComboBoxText();
+   this->localEnumerations.setLocalEnumeration( localEnumerationsIn );
+   if( !this->useDbEnumerations ) {
+      this->setComboBoxText();
    }
 }
 
@@ -583,7 +664,7 @@ void QEComboBox::setLocalEnumerations( const QString & localEnumerationsIn )
 //
 QString QEComboBox::getLocalEnumerations() const
 {
-   return localEnumerations.getLocalEnumeration();
+   return this->localEnumerations.getLocalEnumeration();
 }
 
 //------------------------------------------------------------------------------
@@ -591,14 +672,14 @@ QString QEComboBox::getLocalEnumerations() const
 //
 void QEComboBox::setAllowFocusUpdate( bool allowFocusUpdateIn )
 {
-   isAllowFocusUpdate = allowFocusUpdateIn;
+   this->isAllowFocusUpdate = allowFocusUpdateIn;
 }
 
 //------------------------------------------------------------------------------
 //
 bool QEComboBox::getAllowFocusUpdate() const
 {
-   return isAllowFocusUpdate;
+   return this->isAllowFocusUpdate;
 }
 
 // end

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2022 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,10 +18,9 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Author:
- *    Andrew Rhyder
- *  Contact details:
- *    andrew.rhyder@synchrotron.org.au
+ *  Author:     Andrew Rhyder
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 /*
@@ -40,7 +39,7 @@
 */
 QELineEdit::QELineEdit( QWidget *parent ) : QEGenericEdit( parent )
 {
-    setup();
+   setup();
 }
 
 /*
@@ -48,14 +47,43 @@ QELineEdit::QELineEdit( QWidget *parent ) : QEGenericEdit( parent )
 */
 QELineEdit::QELineEdit( const QString& variableNameIn, QWidget *parent ) : QEGenericEdit( variableNameIn, parent )
 {
-    setup();
-    setVariableName( variableNameIn, 0 );
-    activate();
+   setup();
+   setVariableName( variableNameIn, 0 );
+   activate();
 }
 
 void QELineEdit::setup()
 {
-    setAddUnits( false );
+   setAddUnits( false );
+}
+
+//------------------------------------------------------------------------------
+//
+void QELineEdit::setPvValue (const QString& text)
+{
+   this->setText (text);
+   this->writeNow ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QELineEdit::setPvValue (const int value)
+{
+   this->setPvValue (QString::number(value));
+}
+
+//------------------------------------------------------------------------------
+//
+void QELineEdit::setPvValue (const double value)
+{
+   this->setPvValue (QString::number(value));
+}
+
+//------------------------------------------------------------------------------
+//
+void QELineEdit::setPvValue (const bool value)
+{
+   this->setPvValue (value ? "true" : "false");
 }
 
 
@@ -65,16 +93,16 @@ void QELineEdit::setup()
 */
 qcaobject::QCaObject* QELineEdit::createQcaItem( unsigned int variableIndex ) {
 
-    qcaobject::QCaObject* result = NULL;
+   qcaobject::QCaObject* result = NULL;
 
-    // Create the item as a QEString
-    QString pvName = getSubstitutedVariableName( variableIndex );
-    result = new QEString( pvName, this, &stringFormatting, variableIndex );
+   // Create the item as a QEString
+   QString pvName = getSubstitutedVariableName( variableIndex );
+   result = new QEString( pvName, this, &stringFormatting, variableIndex );
 
-    // Apply currently defined array index/elements request values.
-    setSingleVariableQCaProperties( result );
+   // Apply currently defined array index/elements request values.
+   setSingleVariableQCaProperties( result );
 
-    return result;
+   return result;
 }
 
 /*
@@ -84,19 +112,24 @@ qcaobject::QCaObject* QELineEdit::createQcaItem( unsigned int variableIndex ) {
 */
 void QELineEdit::establishConnection( unsigned int variableIndex ) {
 
-    // Create a connection.
-    // If successfull, the QCaObject object that will supply data update signals will be returned
-    qcaobject::QCaObject* qca = createConnection( variableIndex );
+   // Create a connection.
+   // If successfull, the QCaObject object that will supply data update signals will be returned
+   qcaobject::QCaObject* qca = createConnection( variableIndex );
 
-    // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots
-    if(  qca ) {
-        QObject::connect( qca,  SIGNAL( stringChanged( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
-                          this, SLOT( setTextIfNoFocus( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-        QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ),
-                          this, SLOT( connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ) );
-        QObject::connect( this, SIGNAL( requestResend() ),
-                          qca, SLOT( resendLastData() ) );
-    }
+   // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots
+   if(  qca ) {
+      QObject::connect( qca,  SIGNAL( stringChanged( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
+                        this, SLOT( setTextIfNoFocus( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
+      QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ),
+                        this, SLOT( connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ) );
+      QObject::connect( this, SIGNAL( requestResend() ),
+                        qca, SLOT( resendLastData() ) );
+   }
+}
+
+void QELineEdit::stringFormattingChange()
+{
+   emit requestResend();
 }
 
 
@@ -111,20 +144,20 @@ void QELineEdit::establishConnection( unsigned int variableIndex ) {
 */
 void QELineEdit::setTextIfNoFocus( const QString& value, QCaAlarmInfo& alarmInfo, QCaDateTime& dateTime, const unsigned int& ) {
 
-    // Do generic update processing.
-    setDataIfNoFocus (QVariant (value), alarmInfo, dateTime);
+   // Do generic update processing.
+   setDataIfNoFocus (QVariant (value), alarmInfo, dateTime);
 
-    // Signal a database value change to any Link (or other) widgets using one
-    // of the dbValueChanged.
-    //
-    emitDbValueChanged( value, 0 );
+   // Signal a database value change to any Link (or other) widgets using one
+   // of the dbValueChanged.
+   //
+   emitDbValueChanged( value, 0 );
 }
 
 // Set widget to the given value
 //
 void QELineEdit::setValue (const QVariant & value)
 {
-    setText( value.toString() );
+   setText( value.toString() );
 }
 
 QVariant QELineEdit::getValue()
@@ -136,40 +169,40 @@ QVariant QELineEdit::getValue()
 //
 bool QELineEdit::writeData (const QVariant& value, QString& message)
 {
-    bool result = false;
+   bool result = false;
 
-    QEString *qca = dynamic_cast <QEString*> ( getQcaItem(0) );
-    if( qca ) {
+   QEString *qca = dynamic_cast <QEString*> ( getQcaItem(0) );
+   if( qca ) {
 
-        // Should this logic be relocated into QEString?
-        //
-        switch( getArrayAction() ){
+      // Should this logic be relocated into QEString?
+      //
+      switch( getArrayAction() ){
 
-        case QE::Ascii:
+         case QE::Ascii:
             // convert string to zero terninates int array.
             //
             result = qca->writeString( value.toString (), message );
             break;
 
-        case QE::Index:
+         case QE::Index:
             // Update specifiec element and write.
             //
             result = qca->writeStringElement( value.toString (), message );
             break;
 
-        case QE::Append:
-        default:
+         case QE::Append:
+         default:
             message = "Invalid arrayAction property";
             result = false;
             break;
-        }
+      }
 
-    } else {
-        message = "null qca object";
-        result =  false;
-    }
+   } else {
+      message = "null qca object";
+      result =  false;
+   }
 
-    return result;
+   return result;
 }
 
 // end

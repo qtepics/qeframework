@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2023  Australian Synchrotron.
+ *  Copyright (c) 2014-2025  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #ifndef QE_RADIO_GROUP_H
@@ -209,7 +209,16 @@ public slots:
    void writeNow();
 
    /// Update the default style applied to this widget.
-   void setDefaultStyle (const QString& style) { this->setStyleDefault (style); }
+   void setDefaultStyle (const QString& style);
+
+   /// Update the widget and write to the main associated control process variable.
+   /// Supplied values are converted to the approiate widget value type.
+   /// If conversion not possible or resultant value out of range, no widget/PV update occurs.
+   //
+   void setPvValue (const QString& text);
+   void setPvValue (const int value);
+   void setPvValue (const double value);
+   void setPvValue (const bool value);
 
 protected:
    QSize sizeHint () const;
@@ -238,6 +247,11 @@ protected:
    void paste (QVariant s);
 
 private:
+   enum Constatnts {
+      pvVariableIndex = 0,
+      titleVariableIndex = 1
+   };
+
    void commonSetup (const QString& title);
    void setRadioGroupText ();
 

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2014-2024  Australian Synchrotron.
+ *  Copyright (c) 2014-2025  Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #ifndef Q_RADIO_GROUP_H
@@ -61,7 +61,7 @@ public:
    Q_PROPERTY (QE::GridOrders buttonOrder            READ getButtonOrder  WRITE setButtonOrder)
    Q_PROPERTY (int columns                           READ getColumns      WRITE setColumns)
    Q_PROPERTY (int spacing                           READ getSpacing      WRITE setSpacing)
-   Q_PROPERTY (QStringList strings                   READ getStrings      WRITE setStrings)   // max 256 strings.
+   Q_PROPERTY (QStringList mStrings                   READ getStrings      WRITE setStrings)   // max 256 strings.
    Q_PROPERTY (int value                             READ getValue        WRITE setValue)
 
 public:
@@ -106,6 +106,11 @@ public:
    void setButtonOrder (const QE::GridOrders buttonOrder);
    QE::GridOrders getButtonOrder () const;
 
+   // For specified text, findd the associated integer value, or returns -1.
+   // Similar to combo box findText.
+   //
+   int findText (const QString& text) const;
+
 signals:
    void valueChanged (const int value);
 
@@ -123,7 +128,7 @@ private:
    QAbstractButton *noSelectionButton;
 
    QString ownTitle;
-   QStringList strings;
+   QStringList mStrings;
 
    int currentIndex;
    int numberDisplayed;    // number of displayed buttons.

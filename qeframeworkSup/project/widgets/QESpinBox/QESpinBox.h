@@ -18,10 +18,9 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Author:
- *    Andrew Rhyder
- *  Contact details:
- *    andrew.rhyder@synchrotron.org.au
+ *  Author:     Andrew Rhyder
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 #ifndef QE_SPIN_BOX_H
@@ -109,6 +108,15 @@ signals:
 public slots:
    // write the value (of the underlying QDoubleSpinBox object) into the PV immediately
    void writeNow();
+
+   /// Update the widget and write to the main associated control process variable.
+   /// Supplied values are converted to the approiate widget value type.
+   /// If conversion not possible or resultant value out of range, no widget/PV update occurs.
+   //
+   void setPvValue (const QString& text);
+   void setPvValue (const int value);
+   void setPvValue (const double value);
+   void setPvValue (const bool value);
 
    /// Update the default style applied to this widget.
    void setDefaultStyle( const QString& style ) { setStyleDefault( style ); }

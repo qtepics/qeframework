@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2013-2023 Australian Synchrotron.
+ *  Copyright (c) 2013-2025 Australian Synchrotron.
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #include "QENumericEdit.h"
@@ -331,10 +331,10 @@ double QENumericEdit::getValue () const
 //
 void QENumericEdit::setValue (const double value, const bool isUserUpdate)
 {
-    this->internalWidget->setValue (value);
-    if (isUserUpdate) {
-       this->writeNow ();
-    }
+   this->internalWidget->setValue (value);
+   if (isUserUpdate) {
+      this->writeNow ();
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -350,7 +350,7 @@ void QENumericEdit::writeNow ()
    // Get the variable to write to, and check it exists.
    //
    QEFloating* qca = dynamic_cast <QEFloating*> (getQcaItem (PV_VARIABLE_INDEX));
-   if (qca  && qca->getChannelIsConnected ()) {
+   if (qca && qca->getChannelIsConnected ()) {
       // Check is value different ?? Compare with lastValue??
       //
       // Write the element value - honors array index.
@@ -367,15 +367,53 @@ void QENumericEdit::setDefaultStyle (const QString& style)
    this->setStyleDefault (style);
 }
 
+//------------------------------------------------------------------------------
+// slot
+void QENumericEdit::setPvValue (const QString& text)
+{
+   bool okay;
+   const double v = text.toDouble (&okay);
+   if (okay) {
+      this->setPvValue (v);
+   } else {
+      QString message = QString ("Cannot convert '%1' to a double").arg (text);
+
+      message_types mt (MESSAGE_TYPE_INFO, MESSAGE_KIND_STANDARD);
+      this->sendMessage (message, mt);
+      DEBUG << message;
+   }
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QENumericEdit::setPvValue (const int value)
+{
+   this->setPvValue (static_cast<double>(value));
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QENumericEdit::setPvValue (const double value)
+{
+   this->internalWidget->setValue (value);
+   this->writeNow ();
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QENumericEdit::setPvValue (const bool value)
+{
+   this->setPvValue (value ? 1.0 : 0.0);
+}
 
 //==============================================================================
 // Slots/Hook functions
 //
-void QENumericEdit::useNewVariableNameProperty (QString variableName,
-                                                QString substitutions,
-                                                unsigned int variableIndex)
+void QENumericEdit::useNewVariableNameProperty (QString pvName,
+                                                QString subs,
+                                                unsigned int vi)
 {
-   this->setVariableNameAndSubstitutions (variableName, substitutions, variableIndex);
+   this->setVariableNameAndSubstitutions (pvName, subs, vi);
 }
 
 //------------------------------------------------------------------------------

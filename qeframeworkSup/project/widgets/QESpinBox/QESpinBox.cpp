@@ -18,10 +18,9 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Author:
- *    Andrew Rhyder
- *  Contact details:
- *    andrew.rhyder@synchrotron.org.au
+ *  Author:     Andrew Rhyder
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 /*
@@ -44,7 +43,7 @@ QESpinBox::QESpinBox( QWidget *parent ) :
    QESingleVariableMethods ( this, PV_VARIABLE_INDEX ),
    QEWidget( this )
 {
-   setup();
+   this->setup();
 }
 
 /*
@@ -55,10 +54,9 @@ QESpinBox::QESpinBox( const QString &variableNameIn, QWidget *parent ) :
    QESingleVariableMethods ( this, PV_VARIABLE_INDEX ),
    QEWidget( this )
 {
-   setVariableName( variableNameIn, PV_VARIABLE_INDEX );
-
-   setup();
-   activate();
+   this->setVariableName( variableNameIn, PV_VARIABLE_INDEX );
+   this->setup();
+   this->activate();
 }
 
 /*
@@ -67,34 +65,35 @@ QESpinBox::QESpinBox( const QString &variableNameIn, QWidget *parent ) :
 void QESpinBox::setup() {
    // Set up data
    // This control used a single data source
-   setNumVariables(1);
+   this->setNumVariables(1);
 
    // Set variable index used to select write access cursor style.
-   setControlPV( PV_VARIABLE_INDEX );
+   this->setControlPV( PV_VARIABLE_INDEX );
 
    // Initialise the flag indicating the value is being changed programatically (not by the user)
-   programaticValueChange = false;
+   this->programaticValueChange = false;
 
    // Don't respond to every key stroke - just enter or loose focus
-   setKeyboardTracking( false );
+   this->setKeyboardTracking( false );
 
    // Set up default properties
-   writeOnChange = true;
-   setAllowDrop( false );
-   addUnitsAsSuffix = false;
-   useDbPrecisionForDecimal = true;
-   autoScaleSpinBox = true;
-   useAutoStepSize = false;
+   this->writeOnChange = true;
+   this->setAllowDrop( false );
+   this->addUnitsAsSuffix = false;
+   this->useDbPrecisionForDecimal = true;
+   this->autoScaleSpinBox = true;
+   this->useAutoStepSize = false;
 
    // Set the initial state
-   lastValue = 0.0;
-   ignoreSingleShotRead = false;
+   this->lastValue = 0.0;
+   this->ignoreSingleShotRead = false;
 
    // Use standard context menu
-   setupContextMenu();
+   this->setupContextMenu();
 
    // Use spin box signals
-   QObject::connect( this, SIGNAL( valueChanged( double ) ), this, SLOT( userValueChanged( double ) ) );
+   QObject::connect( this, SIGNAL( valueChanged( double ) ),
+                     this, SLOT( userValueChanged( double ) ) );
 
    // Set up a connection to recieve variable name property changes
    // The variable name property manager class only delivers an updated variable name after the user has stopped typing
@@ -190,7 +189,7 @@ QMenu* QESpinBox::getDefaultContextMenu()
 
    // QESpinBox doesn't have a  createStandardContextMenu or equivilent.
    // But it does have/use an embedded line edit object, which does.
-   edit = lineEdit();
+   edit = this->lineEdit();
    if( edit ){
       menu = edit->createStandardContextMenu();
       menu->setTitle( "Edit..." );
@@ -204,7 +203,7 @@ void QESpinBox::useNewVariableNameProperty( QString pvName,
                                             QString substitutions,
                                             unsigned int variableIndex )
 {
-   setVariableNameAndSubstitutions(pvName, substitutions, variableIndex);
+   this->setVariableNameAndSubstitutions(pvName, substitutions, variableIndex);
 }
 
 //------------------------------------------------------------------------------
@@ -216,11 +215,11 @@ qcaobject::QCaObject* QESpinBox::createQcaItem( unsigned int variableIndex ) {
    qcaobject::QCaObject* result = NULL;
 
    // Create the item as a QEFloating
-   result = new QEFloating( getSubstitutedVariableName( variableIndex ), this,
+   result = new QEFloating( this->getSubstitutedVariableName( variableIndex ), this,
                             &floatingFormatting, variableIndex );
 
    // Apply currently defined array index/elements request values.
-   setSingleVariableQCaProperties( result );
+   this->setSingleVariableQCaProperties( result );
 
    return result;
 }
@@ -240,7 +239,7 @@ void QESpinBox::establishConnection( unsigned int variableIndex ) {
    // If a QCaObject object is now available to supply data update signals,
    // connect it to the appropriate slots.
    if( qca ) {
-      setValue( 0 );
+      this->setValue( 0 );
       QObject::connect( qca,  SIGNAL( floatingChanged( const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
                         this, SLOT( setValueIfNoFocus( const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
       QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ),
@@ -260,8 +259,8 @@ void QESpinBox::connectionChanged( QCaConnectionInfo& connectionInfo,
    const bool isConnected = connectionInfo.isChannelConnected();
 
    // Display the connected state
-   updateToolTipConnection( isConnected );
-   processConnectionInfo( isConnected );
+   this->updateToolTipConnection( isConnected );
+   this->processConnectionInfo( isConnected );
 
    // !!! ??? not sure if this is right. Added as the record type was comming back as GENERIC::UNKNOWN deep in the write
    // Start a single shot read if the channel is up (ignore channel down),
@@ -273,18 +272,18 @@ void QESpinBox::connectionChanged( QCaConnectionInfo& connectionInfo,
    // variable when it is time to do a write.
    if( isConnected && !subscribe )
    {
-      qcaobject::QCaObject* qca = getQcaItem(PV_VARIABLE_INDEX);
+      qcaobject::QCaObject* qca = this->getQcaItem(PV_VARIABLE_INDEX);
       if (qca) qca->singleShotRead();
-      ignoreSingleShotRead = true;
+      this->ignoreSingleShotRead = true;
    }
 
    // Set cursor to indicate access mode.
-   setAccessCursorStyle();
+   this->setAccessCursorStyle();
 
    // Signal channel connection change to any (Link) widgets.
    // using signal dbConnectionChanged.
    //
-   emitDbConnectionChanged( variableIndex );
+   this->emitDbConnectionChanged( variableIndex );
 }
 
 /*
@@ -313,38 +312,39 @@ void QESpinBox::setValueIfNoFocus( const double& value, QCaAlarmInfo& alarmInfo,
       double lower = qca->getControlLimitLower();
       if( upper != lower)
       {
-         setMaximum( qca->getControlLimitUpper() );
-         setMinimum( qca->getControlLimitLower() );
+         this->setMaximum( qca->getControlLimitUpper() );
+         this->setMinimum( qca->getControlLimitLower() );
       }
    }
 
    // Do nothing more if doing a single shot read (done when not subscribing to get range values)
    if( ignoreSingleShotRead )
    {
-      ignoreSingleShotRead = false;
+      this->ignoreSingleShotRead = false;
       return;
    }
 
    // Update the spin box only if the user is not interacting with the object, unless
    // the form designer has specifically allowed updates while the widget has focus.
-   if( isAllowFocusUpdate || !hasFocus() ) {
+   //
+   if( this->isAllowFocusUpdate || !this->hasFocus() ) {
       // Update the spin box
-      programaticValueChange = true;
-      setDecimalsFromPrecision( qca );
-      setSuffixEgu( qca );
-      setValue( value );
-      programaticValueChange = false;
+      this->programaticValueChange = true;
+      this->setDecimalsFromPrecision( qca );
+      this->setSuffixEgu( qca );
+      this->setValue( value );
+      this->programaticValueChange = false;
 
       // Note the last value seen by the user
-      lastUserValue = text();
+      this->lastUserValue = text();
    }
 
    // Invoke common alarm handling processing.
-   processAlarmInfo( alarmInfo );
+   this->processAlarmInfo( alarmInfo );
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged signals declared in header file.
-   emitDbValueChanged( variableIndex );
+   this->emitDbValueChanged( variableIndex );
 }
 
 //------------------------------------------------------------------------------
@@ -353,13 +353,13 @@ void QESpinBox::setValueIfNoFocus( const double& value, QCaAlarmInfo& alarmInfo,
 void QESpinBox::userValueChanged( double value )
 {
    // If the user is not changing the value, or not writing on change, do nothing
-   if( programaticValueChange || !writeOnChange )
+   if( this->programaticValueChange || !this->writeOnChange )
    {
       return;
    }
 
    // Get the variable to write to
-   QEFloating* qca = qobject_cast<QEFloating*>(getQcaItem(PV_VARIABLE_INDEX));
+   QEFloating* qca = qobject_cast<QEFloating*>(this->getQcaItem(PV_VARIABLE_INDEX));
 
    // If a QCa object is present (if there is a variable to write to)
    // then write the value
@@ -379,7 +379,7 @@ void QESpinBox::userValueChanged( double value )
 void QESpinBox::writeNow()
 {
    // Get the variable to write to
-   QEFloating* qca = qobject_cast<QEFloating*>(getQcaItem(PV_VARIABLE_INDEX));
+   QEFloating* qca = qobject_cast<QEFloating*>(this->getQcaItem(PV_VARIABLE_INDEX));
 
    // If a QCa object is present (if there is a variable to write to)
    // then write the value
@@ -391,12 +391,51 @@ void QESpinBox::writeNow()
 }
 
 //------------------------------------------------------------------------------
+// slot
+void QESpinBox::setPvValue (const QString& text)
+{
+   bool okay;
+   const double v = text.toDouble (&okay);
+   if (okay) {
+      this->setPvValue (v);
+   } else {
+      QString message = QString ("Cannot convert '%1' to a double").arg (text);
+
+      message_types mt (MESSAGE_TYPE_INFO, MESSAGE_KIND_STANDARD);
+      this->sendMessage (message, mt);
+      DEBUG << message;
+   }
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QESpinBox::setPvValue (const int value)
+{
+   this->setPvValue (static_cast<double>(value));
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QESpinBox::setPvValue (const double value)
+{
+   this->setValue (value);
+   this->writeNow ();
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QESpinBox::setPvValue (const bool value)
+{
+   this->setPvValue (value ? 1.0 : 0.0);
+}
+
+//------------------------------------------------------------------------------
 // Set the EGU as the suffix
 void QESpinBox::setSuffixEgu( qcaobject::QCaObject* qca )
 {
    // If using the EGU as the suffix, and the EGU is available, set the suffix to the EGU
    // otherwise clear the suffix
-   if( qca && addUnitsAsSuffix )
+   if( qca && this->addUnitsAsSuffix )
    {
       setSuffix( QString( " " ).append( qca->getEgu() ) );
    }
@@ -411,9 +450,9 @@ void QESpinBox::setSuffixEgu( qcaobject::QCaObject* qca )
 void QESpinBox::setDecimalsFromPrecision( qcaobject::QCaObject* qca )
 {
    // If using the database precision to determine the number of decimal places, and it is available, then apply it
-   if( qca && useDbPrecisionForDecimal )
+   if( qca && this->useDbPrecisionForDecimal )
    {
-      setDecimals( qca->getPrecision() );
+      this->setDecimals( qca->getPrecision() );
    }
 }
 
@@ -421,22 +460,22 @@ void QESpinBox::setDecimalsFromPrecision( qcaobject::QCaObject* qca )
 // Drag drop
 void QESpinBox::setDrop( QVariant drop )
 {
-   setVariableName( drop.toString(), PV_VARIABLE_INDEX );
-   establishConnection( PV_VARIABLE_INDEX );
+   this->setVariableName( drop.toString(), PV_VARIABLE_INDEX );
+   this->establishConnection( PV_VARIABLE_INDEX );
 }
 
 //------------------------------------------------------------------------------
 //
 QVariant QESpinBox::getDrop()
 {
-   return QVariant( getSubstitutedVariableName(PV_VARIABLE_INDEX) );
+   return QVariant( this->getSubstitutedVariableName(PV_VARIABLE_INDEX) );
 }
 
 //==============================================================================
 // Copy paste
 QString QESpinBox::copyVariable()
 {
-   return getSubstitutedVariableName( PV_VARIABLE_INDEX );
+   return this->getSubstitutedVariableName( PV_VARIABLE_INDEX );
 }
 
 //------------------------------------------------------------------------------
@@ -450,8 +489,8 @@ QVariant QESpinBox::copyData()
 //
 void QESpinBox::paste (QVariant s)
 {
-   setVariableName( s.toString(), 0 );
-   establishConnection( PV_VARIABLE_INDEX );
+   this->setVariableName( s.toString(), 0 );
+   this->establishConnection( PV_VARIABLE_INDEX );
 }
 
 //==============================================================================
@@ -460,28 +499,28 @@ void QESpinBox::paste (QVariant s)
 // write on change
 void QESpinBox::setWriteOnChange( bool writeOnChangeIn )
 {
-   writeOnChange = writeOnChangeIn;
+   this->writeOnChange = writeOnChangeIn;
 }
 
 //------------------------------------------------------------------------------
 //
 bool QESpinBox::getWriteOnChange() const
 {
-   return writeOnChange;
+   return this->writeOnChange;
 }
 
 //------------------------------------------------------------------------------
 // subscribe
 void QESpinBox::setSubscribe( bool subscribeIn )
 {
-   subscribe = subscribeIn;
+   this->subscribe = subscribeIn;
 }
 
 //------------------------------------------------------------------------------
 //
 bool QESpinBox::getSubscribe() const
 {
-   return subscribe;
+   return this->subscribe;
 }
 
 //------------------------------------------------------------------------------

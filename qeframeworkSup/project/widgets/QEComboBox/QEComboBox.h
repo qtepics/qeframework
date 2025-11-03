@@ -18,10 +18,9 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Author:
- *    Andrew Rhyder
- *  Contact details:
- *    andrew.rhyder@synchrotron.org.au
+ *  Author:     Andrew Rhyder
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 #ifndef QE_COMBOBOX_H
@@ -88,13 +87,22 @@ public slots:
    void writeNow();
 
    /// Update the default style applied to this widget.
-   void setDefaultStyle( const QString& style ) { setStyleDefault( style ); }
+   void setDefaultStyle (const QString& style) { this->setStyleDefault (style); }
 
    /// Slot to set the visibility of a QE widget, taking into account the user level.
    /// Widget will be hidden if hidden by a call this slot, by will only be made
    /// visible by a calll to this slot if the user level allows.
    ///
-   void setManagedVisible( bool v ){ setRunVisible( v ); }
+   void setManagedVisible (bool v) { this->setRunVisible (v); }
+
+   /// Update the widget and write to the main associated control process variable.
+   /// Supplied values are converted to the approiate widget value type.
+   /// If conversion not possible or resultant value out of range, no widget/PV update occurs.
+   //
+   void setPvValue (const QString& text);
+   void setPvValue (const int value);
+   void setPvValue (const double value);
+   void setPvValue (const bool value);
 
 protected:
    QEIntegerFormatting integerFormatting;
