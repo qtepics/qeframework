@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2024 Australian Synchrotron
+ *  Copyright (c) 2015-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
  *  Author:
  *    Andrew Starritt
  *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *    andrews@ansto.gov.au
  */
 
 #include <QDebug>
@@ -56,6 +56,7 @@ QEEmitter::QEEmitter (QEWidget* qewIn, QWidget* ownerIn)
       this->filter [j] = false;  // assume not allowed until we find out otherwise.
    }
    this->setupFilterComplete = false;
+   this->dbValueChangedEmitInProgress = false;
 }
 
 //------------------------------------------------------------------------------
@@ -63,6 +64,13 @@ QEEmitter::QEEmitter (QEWidget* qewIn, QWidget* ownerIn)
 QEEmitter::~QEEmitter ()
 {
    // place holder
+}
+
+//------------------------------------------------------------------------------
+//
+bool QEEmitter::isDbValueChangedEmitInProgress() const
+{
+  return this->dbValueChangedEmitInProgress;
 }
 
 //------------------------------------------------------------------------------
@@ -137,7 +145,11 @@ void QEEmitter::emitDbValueChangedPrivate (const bool useFormmattedText,
    qcaobject::QCaObject* qca = this->qew->getQcaItem (variableIndex);
    if (!qca) return;
 
-   // Passed the sainity checks - let's start in earnest.
+   // Are signals inhibited?
+   //
+   if (this->dbValueChangedEmitInProgress) return;
+
+   // Passed all the sanity checks - let's start in earnest.
    //
    const char* member = "dbValueChanged";
 
@@ -172,16 +184,22 @@ void QEEmitter::emitDbValueChangedPrivate (const bool useFormmattedText,
       value = value.toList().value (ai);
    }
 
+   // Now starting the actual emit calls.
+   // Set flag to circuit break infinte loops.
+   // Do NOT add any addtional returns from here to end of this
+   // method without clearing the emit inprogress flag.
+   //
+   this->dbValueChangedEmitInProgress = true;
+
    if (this->filter [fkUpdateEvent]) {
       // No argument - just a notification that an update has occured.
       //
       meta->invokeMethod (this->owner, member, Qt::DirectConnection);
    }
 
-   const double dValue = value.toDouble (&okay);   // Extarct value as double.
+   const double dValue = value.toDouble (&okay);   // Extract value as double.
 
    // Did we successfully extract a double value?
-   // Is the signal not inhibited (yet)?
    //
    if (okay && this->filter [fkDouble]) {
       // Good to go - create required argument.
@@ -223,17 +241,19 @@ void QEEmitter::emitDbValueChangedPrivate (const bool useFormmattedText,
       const auto arg = Q_ARG (QString, sValue);
       meta->invokeMethod (this->owner, member, Qt::DirectConnection, arg);
    }
+
+   this->dbValueChangedEmitInProgress = false;
 }
 
 //------------------------------------------------------------------------------
-//
+// wrapper script
 void QEEmitter::emitDbValueChanged (const unsigned int variableIndex)
 {
    this->emitDbValueChangedPrivate (false, "", variableIndex);
 }
 
 //------------------------------------------------------------------------------
-//
+// wrapper script
 void QEEmitter::emitDbValueChanged (const QString& formatedText,
                                     const unsigned int variableIndex)
 
