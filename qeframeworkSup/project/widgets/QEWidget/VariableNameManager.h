@@ -1,6 +1,9 @@
 /*  VariableNameManager.h
  *
- *  This file is part of the EPICS QT Framework, initially developed at the Australian Synchrotron.
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,16 +18,13 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2009, 2010 Australian Synchrotron
- *
- *  Author:
- *    Andrew Rhyder
- *  Contact details:
- *    andrew.rhyder@synchrotron.org.au
+ *  Author:     Andrew Rhyder
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
-#ifndef VARIABLENAMEMANAGER_H
-#define VARIABLENAMEMANAGER_H
+#ifndef QE_VARIABLE_NAME_MANAGER_H
+#define QE_VARIABLE_NAME_MANAGER_H
 
 #include <QString>
 #include <QList>
@@ -33,32 +33,32 @@
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT VariableNameManager {
 
 public:
-    VariableNameManager();
-    virtual ~VariableNameManager(){}
+   VariableNameManager();
+   virtual ~VariableNameManager(){}
 
-    void variableNameManagerInitialise( unsigned int numVariables ) ;       // Used to set up the number of variables required (defaults to 1 if this is not called)
+   void variableNameManagerInitialise( unsigned int numVariables ) ;       // Used to set up the number of variables required (defaults to 1 if this is not called)
 
-    int getNumberVariables() const;                                         // Returns number of variables that can be set up for this object.
-    QString getOriginalVariableName( unsigned int variableIndex ) const;    // Return variable name prior to any macro substitutions. (eg, SR$SECTOR$V )
-    QString getVariableNameSubstitutions() const;                           // Return macro substitutions used for variable names (eg, SECTOR=01,V=PRESURE)
-    QString getSubstitutedVariableName(unsigned int variableIndex ) const;  // Return variable name after macro substitutions
+   int getNumberVariables() const;                                         // Returns number of variables that can be set up for this object.
+   QString getOriginalVariableName( unsigned int variableIndex ) const;    // Return variable name prior to any macro substitutions. (eg, SR$SECTOR$V )
+   QString getVariableNameSubstitutions() const;                           // Return macro substitutions used for variable names (eg, SECTOR=01,V=PRESURE)
+   QString getSubstitutedVariableName(unsigned int variableIndex ) const;  // Return variable name after macro substitutions
 
-    void setVariableNameSubstitutionsOverride( const QString& substitutions );
+   void setVariableNameSubstitutionsOverride( const QString& substitutions );
 
-    void setVariableName( const QString& variableName, unsigned int variableIndex );    // Accept a new variable name which may include substitution keys preceeded by $
-    void setVariableNameSubstitutions( const QString& substitutions );                  // Accept a new set of macro substitutions in the form KEY1=VALUE1,KEY2=VALUE2
+   void setVariableName( const QString& variableName, unsigned int variableIndex );    // Accept a new variable name which may include substitution keys preceeded by $
+   void setVariableNameSubstitutions( const QString& substitutions );                  // Accept a new set of macro substitutions in the form KEY1=VALUE1,KEY2=VALUE2
 
-    QString substituteThis( const QString string ) const;                   // Perform the macro substitutions on a string. used internaly for variable names, but can be used for any string
+   QString substituteThis( const QString string ) const;                   // Perform the macro substitutions on a string. used internaly for variable names, but can be used for any string
 
-  private:
-    QString doSubstitution( unsigned int variableIndex ) const;
-    void substituteKey( QString& string, QString key, const QString value );
+private:
+   QString doSubstitution( unsigned int variableIndex ) const;
+   void substituteKey( QString& string, QString key, const QString value );
 
 
-    QString macroSubstitutions;
-    QString macroSubstitutionsOverride;
+   QString macroSubstitutions;
+   QString macroSubstitutionsOverride;
 
-    QList<QString> variableNames;
+   QList<QString> variableNames;
 };
 
-#endif // VARIABLENAMEMANAGER_H
+#endif // QE_VARIABLE_NAME_MANAGER_H

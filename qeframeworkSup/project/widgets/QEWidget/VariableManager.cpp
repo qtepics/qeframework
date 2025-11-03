@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2015-2018 Australian Synchrotron
+ *  Copyright (c) 2015-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,10 +18,9 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Author:
- *    Andrew Rhyder
- *  Contact details:
- *    andrew.rhyder@synchrotron.org.au
+ *  Author:     Andrew Rhyder
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 /*
@@ -40,10 +39,10 @@
 //
 VariableManager::VariableManager()
 {
-    // Initially flag no variables array is defined.
-    // This will be corrected when the first variable is declared
-    numVariables = 0;
-    qcaItem = 0;
+   // Initially flag no variables array is defined.
+   // This will be corrected when the first variable is declared
+   numVariables = 0;
+   qcaItem = 0;
 }
 
 //------------------------------------------------------------------------------
@@ -52,14 +51,14 @@ VariableManager::VariableManager()
 //
 VariableManager::~VariableManager()
 {
-    // Delete all the QCaObject instances
-    for( unsigned int i = 0; i < numVariables; i++ ) {
-        deleteQcaItem( i, true );
-    }
+   // Delete all the QCaObject instances
+   for( unsigned int i = 0; i < numVariables; i++ ) {
+      deleteQcaItem( i, true );
+   }
 
-    // Release the list
-    delete[] qcaItem;
-    qcaItem = NULL;
+   // Release the list
+   delete[] qcaItem;
+   qcaItem = NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -69,22 +68,22 @@ VariableManager::~VariableManager()
 //
 void VariableManager::setNumVariables( unsigned int numVariablesIn )
 {
-    // Get the number of variables that will be used by this widget
-    // Don't accept zero or the qca array will be invalid
-    if( numVariablesIn ) {
-        numVariables = numVariablesIn;
-    } else {
-        numVariables = 1;
-    }
+   // Get the number of variables that will be used by this widget
+   // Don't accept zero or the qca array will be invalid
+   if( numVariablesIn ) {
+      numVariables = numVariablesIn;
+   } else {
+      numVariables = 1;
+   }
 
-    // Set up the number of variables managed by the variable name manager
-    variableNameManagerInitialise( numVariables );
+   // Set up the number of variables managed by the variable name manager
+   variableNameManagerInitialise( numVariables );
 
-    // Allocate the array of QCa objects
-    qcaItem = new qcaobject::QCaObject* [numVariables];
-    for( unsigned int i = 0; i < numVariables; i++ ) {
-        qcaItem[i] = NULL;
-    }
+   // Allocate the array of QCa objects
+   qcaItem = new qcaobject::QCaObject* [numVariables];
+   for( unsigned int i = 0; i < numVariables; i++ ) {
+      qcaItem[i] = NULL;
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -95,19 +94,19 @@ void VariableManager::setNumVariables( unsigned int numVariablesIn )
 //
 void VariableManager::activate()
 {
-    // For each variable, ask the CA aware widget based on this class to initiate updates
-    // and to set up whatever signal/slot connections are required to make use of data updates.
-    // Note, establish connection is a virtual function of the VariableNameManager class
-    // and is normally called by that class when a variable name is defined or changed
-    for( unsigned int i = 0; i < numVariables; i++ ) {
-        establishConnection( i );
-    }
+   // For each variable, ask the CA aware widget based on this class to initiate updates
+   // and to set up whatever signal/slot connections are required to make use of data updates.
+   // Note, establish connection is a virtual function of the VariableNameManager class
+   // and is normally called by that class when a variable name is defined or changed
+   for( unsigned int i = 0; i < numVariables; i++ ) {
+      establishConnection( i );
+   }
 
-    // Ask the widget to perform any tasks which should only be done once all other widgets
-    // have been created.  For example, if a widget wants to notify other widgets through
-    // signals during construction, other widgets may not be present yet to recieve the
-    // signals. This type of notification could be held off untill now.
-    activated();
+   // Ask the widget to perform any tasks which should only be done once all other widgets
+   // have been created.  For example, if a widget wants to notify other widgets through
+   // signals during construction, other widgets may not be present yet to recieve the
+   // signals. This type of notification could be held off untill now.
+   activated();
 }
 
 //------------------------------------------------------------------------------
@@ -117,13 +116,13 @@ void VariableManager::activate()
 //
 void VariableManager::deactivate()
 {
-    // Ask the widget to perform any tasks which should done prior to being deactivated.
-    deactivated();
+   // Ask the widget to perform any tasks which should done prior to being deactivated.
+   deactivated();
 
-    // Delete all the QCaObject instances
-    for( unsigned int i = 0; i < numVariables; i++ ) {
-        deleteQcaItem( i, true );
-    }
+   // Delete all the QCaObject instances
+   for( unsigned int i = 0; i < numVariables; i++ ) {
+      deleteQcaItem( i, true );
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -136,36 +135,36 @@ qcaobject::QCaObject* VariableManager::createVariable( unsigned int variableInde
                                                        const bool do_subscribe )
 {
 
-    // If the index is invalid do nothing
-    // This same test is also valid if qcaItem has never been set up yet as numVariables will be zero
-    if( variableIndex >= numVariables ) {
-        return NULL;
-    }
+   // If the index is invalid do nothing
+   // This same test is also valid if qcaItem has never been set up yet as numVariables will be zero
+   if( variableIndex >= numVariables ) {
+      return NULL;
+   }
 
-    // Remove any existing QCa connection
-    deleteQcaItem( variableIndex, false );
+   // Remove any existing QCa connection
+   deleteQcaItem( variableIndex, false );
 
-    // Connect to new variable.
-    // If a new variable name is present, ask the CA aware widget based on this class to create an
-    // appropriate object based on a QCaObject (by calling its createQcaItem() function).
-    // If that is successfull, supply it with a mechanism for handling errors and subscribe
-    // to the new variable if required.
-    if( getSubstitutedVariableName( variableIndex ).length() > 0 ) {
-        qcaItem[variableIndex] = createQcaItem( variableIndex );
-        if( qcaItem[variableIndex] ) {
+   // Connect to new variable.
+   // If a new variable name is present, ask the CA aware widget based on this class to create an
+   // appropriate object based on a QCaObject (by calling its createQcaItem() function).
+   // If that is successfull, supply it with a mechanism for handling errors and subscribe
+   // to the new variable if required.
+   if( getSubstitutedVariableName( variableIndex ).length() > 0 ) {
+      qcaItem[variableIndex] = createQcaItem( variableIndex );
+      if( qcaItem[variableIndex] ) {
 
-            qcaItem[variableIndex]->setUserMessage( (UserMessage*)this );
+         qcaItem[variableIndex]->setUserMessage( (UserMessage*)this );
 
-            if( do_subscribe ) {
-                qcaItem[variableIndex]->subscribe();
-            } else {
-                qcaItem[variableIndex]->connectChannel();   // just connect
-            }
-        }
-    }
+         if( do_subscribe ) {
+            qcaItem[variableIndex]->subscribe();
+         } else {
+            qcaItem[variableIndex]->connectChannel();   // just connect
+         }
+      }
+   }
 
-    // Return the QCaObject, if any
-    return qcaItem[variableIndex];
+   // Return the QCaObject, if any
+   return qcaItem[variableIndex];
 }
 
 //------------------------------------------------------------------------------
@@ -177,7 +176,7 @@ qcaobject::QCaObject* VariableManager::createVariable( unsigned int variableInde
 //
 qcaobject::QCaObject* VariableManager::createQcaItem( unsigned int )
 {
-    return NULL;
+   return NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -215,13 +214,13 @@ void VariableManager::deactivated ()
 //
 qcaobject::QCaObject* VariableManager::getQcaItem( unsigned int variableIndex ) const
 {
-    // If the index is invalid return NULL.
-    // This same test is also valid if qcaItem has never been set up yet as numVariables will be zero
-    if( variableIndex >= numVariables )
-        return NULL;
+   // If the index is invalid return NULL.
+   // This same test is also valid if qcaItem has never been set up yet as numVariables will be zero
+   if( variableIndex >= numVariables )
+      return NULL;
 
-    // Return the QCaObject used for the specified variable name
-    return qcaItem[variableIndex];
+   // Return the QCaObject used for the specified variable name
+   return qcaItem[variableIndex];
 }
 
 //------------------------------------------------------------------------------
@@ -231,29 +230,29 @@ qcaobject::QCaObject* VariableManager::getQcaItem( unsigned int variableIndex ) 
 //
 void VariableManager::deleteQcaItem( unsigned int variableIndex, bool disconnect )
 {
-    // If the index is invalid do nothing.
-    // This same test is also valid if qcaItem has never been set up yet as numVariables will be zero
-    if( variableIndex >= numVariables )
-        return;
+   // If the index is invalid do nothing.
+   // This same test is also valid if qcaItem has never been set up yet as numVariables will be zero
+   if( variableIndex >= numVariables )
+      return;
 
-    // Remove the reference to the deleted object to prevent accidental use
-    qcaobject::QCaObject* qca = qcaItem[variableIndex];
-    qcaItem[variableIndex] = NULL;
+   // Remove the reference to the deleted object to prevent accidental use
+   qcaobject::QCaObject* qca = qcaItem[variableIndex];
+   qcaItem[variableIndex] = NULL;
 
-    // Delete the QCaObject used for the specified variable name
-    if( qca )
-    {
-        // If we need to disconnect first, do so.
-        // If the object connected is being destroyed it is not good to receive signals. (this happened)
-        // If the object connected is not being destroyed is will want to know a disconnection has occured.
-        if( disconnect )
-        {
-            qca->disconnect();
-        }
+   // Delete the QCaObject used for the specified variable name
+   if( qca )
+   {
+      // If we need to disconnect first, do so.
+      // If the object connected is being destroyed it is not good to receive signals. (this happened)
+      // If the object connected is not being destroyed is will want to know a disconnection has occured.
+      if( disconnect )
+      {
+         qca->disconnect();
+      }
 
-        // Delete the QCaObject
-        delete qca;
-    }
+      // Delete the QCaObject
+      delete qca;
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -264,16 +263,16 @@ void VariableManager::deleteQcaItem( unsigned int variableIndex, bool disconnect
 //
 void VariableManager::readNow()
 {
-    // Perform a single shot read on all variables.
-    qcaobject::QCaObject* qca;
-    for( unsigned int i = 0; i < numVariables; i++ )
-    {
-        qca = getQcaItem( i );
-        if( qca ) // If variable exists...
-        {
-            qca->singleShotRead();
-        }
-    }
+   // Perform a single shot read on all variables.
+   qcaobject::QCaObject* qca;
+   for( unsigned int i = 0; i < numVariables; i++ )
+   {
+      qca = getQcaItem( i );
+      if( qca ) // If variable exists...
+      {
+         qca->singleShotRead();
+      }
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -281,7 +280,7 @@ void VariableManager::readNow()
 //
 void VariableManager::writeNow()
 {
-    qDebug() << "default VariableManager::writeNow - this function should be overridden";
+   qDebug() << "default VariableManager::writeNow - this function should be overridden";
 }
 
 
@@ -296,7 +295,7 @@ void VariableManager::writeNow()
 //
 int* VariableManager::getDisconnectedCountRef() const
 {
-    return qcaobject::QCaObject::getDisconnectedCountRef ();
+   return qcaobject::QCaObject::getDisconnectedCountRef ();
 }
 
 //------------------------------------------------------------------------------
@@ -310,7 +309,7 @@ int* VariableManager::getDisconnectedCountRef() const
 //
 int* VariableManager::getConnectedCountRef() const
 {
-    return qcaobject::QCaObject::getConnectedCountRef();
+   return qcaobject::QCaObject::getConnectedCountRef();
 }
 
 // end
