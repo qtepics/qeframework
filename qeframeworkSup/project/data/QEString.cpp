@@ -18,46 +18,50 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Author:
- *    Andrew Rhyder
- *  Contact details:
- *    andrew.rhyder@synchrotron.org.au
+ *  Author:     Andrew Rhyder
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
-// String wrapper for QCaObject variant data.
+// String specifc wrapper for QCaObject variant data.
 
 #include "QEString.h"
 #include <QDebug>
+#include <QMetaType>
+#include <QStringList>
+#include <QEPlatform.h>
+#include <QEVectorVariants.h>
 
 #define DEBUG qDebug() << "QEString" << __LINE__ << __FUNCTION__ << "  "
 
 //------------------------------------------------------------------------------
 //
 QEString::QEString (QString pvName, QObject* eventObject,
-                    QEStringFormatting* newStringFormat,
+                    QEStringFormatting* stringFormattingIn,
                     unsigned int variableIndexIn) :
    QCaObject (pvName, eventObject, variableIndexIn)
 {
-   this->initialise (newStringFormat);
+   this->initialise (stringFormattingIn);
 }
 
 //------------------------------------------------------------------------------
 //
 QEString::QEString (QString pvName, QObject* eventObject,
-                    QEStringFormatting* newStringFormat,
-                    unsigned int variableIndexIn, UserMessage* userMessageIn) :
+                    QEStringFormatting* stringFormattingIn,
+                    unsigned int variableIndexIn,
+                    UserMessage* userMessageIn) :
    QCaObject (pvName, eventObject, variableIndexIn, userMessageIn)
 {
-   this->initialise (newStringFormat);
+   this->initialise (stringFormattingIn);
 }
 
 //------------------------------------------------------------------------------
 // Stream the QCaObject data through this class to generate textual data
 // updates.
 //
-void QEString::initialise (QEStringFormatting* newStringFormat)
+void QEString::initialise (QEStringFormatting* stringFormattingIn)
 {
-   this->stringFormat = newStringFormat;
+   this->stringFormat = stringFormattingIn;
 
    QObject::connect (this, SIGNAL  (dataChanged (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
                      this, SLOT (convertVariant (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
@@ -110,7 +114,6 @@ bool QEString::writeStringElement (const QString &data, QString& message)
       message = QString ("Write element failed, unabled to format:'").append (data).append ("'.");
    }
    return ok;
-
 }
 
 //------------------------------------------------------------------------------
@@ -158,14 +161,56 @@ void QEString::writeString (const QVector<QString>& data)
 void QEString::convertVariant (const QVariant& value, QCaAlarmInfo& alarmInfo,
                                QCaDateTime& timeStamp, const unsigned int& variableIndex)
 {
-   // Set up variable details used by some formatting options
-   this->stringFormat->setDbEgu (getEgu());
-   this->stringFormat->setDbEnumerations (getEnumerations());
-   this->stringFormat->setDbPrecision (getPrecision());
+   const QMetaType::Type mtype = QEPlatform::metaType (value);
 
-   // Format the data and send it
-   const QString formatted = this->stringFormat->formatString (value, getArrayIndex ());
-   emit stringChanged (formatted, alarmInfo, timeStamp, variableIndex);
+   // The expected varient type is one of:
+   // a/ scalar
+   // b/ QVariant::List
+   // c/ QStringList
+   // d/ one of the QEVectorVariants type.
+   //
+   const bool vlist = (mtype == QMetaType::QVariantList);
+   const bool slist = (mtype == QMetaType::QStringList);
+   const bool vector = QEVectorVariants::isVectorVariant (value);
+
+   // Set up variable details used by some formatting options.
+   //
+   this->stringFormat->setDbEgu (this->getEgu());
+   this->stringFormat->setDbEnumerations (this->getEnumerations());
+   this->stringFormat->setDbPrecision (this->getPrecision());
+
+   if (vlist || slist || vector) {
+      // The value is some sort of array type.
+      //
+      emit stringArrayChanged (this->stringFormat->formatStringArray (value),
+                               alarmInfo, timeStamp, variableIndex);
+
+      // Extract the scalar value,
+      //
+      const int ai = this->getArrayIndex ();
+      const int count = vlist ? value.toList ().count () : (
+                        slist ? value.toStringList().count () :
+                        QEVectorVariants::vectorCount (value));
+
+      if ((ai >= 0) && (ai < count)) {
+         // Convert this array element as a scalar update.
+         //
+         const QString item = this->stringFormat->formatString (value, ai);
+         emit stringChanged (item, alarmInfo, timeStamp, variableIndex);
+      }
+
+   } else {
+      // The value is a scalar type.
+      //
+      const QString formatted = this->stringFormat->formatString (value, 0);
+      emit stringChanged (formatted, alarmInfo, timeStamp, variableIndex);
+
+      // A scalar is also an array with one element.
+      //
+      QVector<QString> array;
+      array.append (formatted);
+      emit stringArrayChanged (array, alarmInfo, timeStamp, variableIndex);
+   }
 }
 
 // end

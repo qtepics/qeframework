@@ -18,10 +18,9 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Author:
- *    Andrew Rhyder
- *  Contact details:
- *    andrew.rhyder@synchrotron.org.au
+ *  Author:     Andrew Rhyder
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 #include "QEStringFormatting.h"
@@ -500,13 +499,12 @@ QString QEStringFormatting::formatString (const QVariant& value, int arrayIndex)
          case QE::Ascii:
             // Interpret each element from the array as a character in a string.
             // Translate all non printing characters to '?' except for trailing
-            // zeros (ignore them)
+            // zeros (ignore them).
             //
             for (int j = 0; j < number; j++) {
-               QVariant element = valueArray.value (j);
+               const QVariant element = valueArray.value (j);
                bool okay;
-
-               int c = element.toInt (&okay);
+               const int c = element.toInt (&okay);
 
                if (!okay || (c == 0))
                   break;        // Not an int or got a zero - end of string.
@@ -514,15 +512,16 @@ QString QEStringFormatting::formatString (const QVariant& value, int arrayIndex)
                // Ignore carriage returns.
                // Note this will cause problems when implementing on Commodore 8-bit machines,
                // Acorn BBC, ZX Spectrum, and TRS-80 as they don't use a line feed.
+               //
                if (c == '\r') {
-               }
-               // Translate all non printing characters (except for space and line feed) to a '?'
-               else if ((c != '\n') && ((c < ' ') || (c > '~'))) {
+                  // pass
+               } else if ((c != '\n') && ((c < ' ') || (c > '~'))) {
+                  // Translate all non printing characters
+                  // (except for space and line feed) to a '?'.
                   result.append ("?");
-               }
-               // Use everything else as is.
-               else {
-                  result.append (element.toChar ());
+               } else {
+                  // Use everything else as is.
+                  result.append (QChar (c));
                }
             }
             break;
@@ -554,11 +553,65 @@ QString QEStringFormatting::formatString (const QVariant& value, int arrayIndex)
 }
 
 //------------------------------------------------------------------------------
+//
+QVector<QString> QEStringFormatting::formatStringArray( const QVariant &value ) const
+{
+   QVector<QString> result;
+   bool isNumeric = false;
+
+   // If the value is a list, populate a list, converting each of the
+   // items to a double.
+   //
+   const QMetaType::Type vtype = QEPlatform::metaType (value);
+
+
+   if( vtype == QMetaType::QVariantList )
+   {
+      const QVariantList list = value.toList();
+      for( int i=0; i < list.count(); i++ )
+      {
+         const QVariant element = list.value (i);
+         result.append( this->formatElementString( element, isNumeric ) );
+      }
+   }
+
+   else if( QEVectorVariants::isVectorVariant( value ) ){
+      // This is one of our vectors variant.
+      // We can convert to a QVector<double>
+      //
+      bool okay;  // dummy
+      const QVariantList list = QEVectorVariants::convertToVariantList(value, okay);
+      for( int i=0; i < list.count(); i++ )
+      {
+         const QVariant element = list.value (i);
+         result.append( this->formatElementString ( element, isNumeric ) );
+      }
+
+   } else if( vtype == QMetaType::QStringList ){
+      // This is a string list
+      //
+      const QStringList list = value.toStringList();
+      for( int i=0; i < list.count(); i++ )
+      {
+         const QString element = list.value (i);
+         result.append( this->formatElementString ( element, isNumeric ) );
+      }
+
+   } else {
+      // The value is not a list/vector so build a list with a single String.
+      //
+      result.append( this->formatElementString( value, isNumeric ) );
+   }
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
 // Generate a string given an element value, using formatting defined within
 // this class.
 //
 QString QEStringFormatting::formatElementString (const QVariant& value,
-                                                 bool&isNumeric) const
+                                                 bool& isNumeric) const
 {
    QString result;
    bool okay = true;
@@ -734,7 +787,7 @@ QString QEStringFormatting::timeToString (const QVariant& value) const
 // Do something with the fact that the value could not be formatted as
 // requested.
 //
-QString QEStringFormatting::formatFailure (const QString message) const
+QString QEStringFormatting::formatFailure (const QString& message) const
 {
    // Log the format failure if required.
    //

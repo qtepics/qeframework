@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2024 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,10 +18,9 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Author:
- *    Andrew Rhyder
- *  Contact details:
- *    andrew.rhyder@synchrotron.org.au
+ *  Author:     Andrew Rhyder
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 // Provides textual formatting for QEFloating data.
@@ -44,8 +43,7 @@ QEFloatingFormatting::QEFloatingFormatting() { }
 QEFloatingFormatting::~QEFloatingFormatting() { }
 
 //------------------------------------------------------------------------------
-// Generate a value given a floating point number, using formatting defined
-// within this class.
+// Generate a value given a floating point number, using formatting defined within this class.
 // The formatting mainly applies if formatting as a string. For example, was is
 // the number base? should a sign always be included? are leading zeros requried?
 // The formatting could include properties related to other types. For example, generate
@@ -59,6 +57,10 @@ QVariant QEFloatingFormatting::formatValue( const double &floatingValue) const
 //------------------------------------------------------------------------------
 // Generate a value given an array of floating point number, using formatting
 // defined within this class.
+// The formatting mainly applies if formatting as a string. For example, what is
+// the number base? should a sign always be included? are leading zeros requried?
+// The formatting could include properties related to other types. For example, generate
+// an error if attempting to convert a negative integer to an unsigned integer.
 //
 QVariant QEFloatingFormatting::formatValue( const QVector<double> &floatingValue) const
 {
@@ -91,37 +93,48 @@ double QEFloatingFormatting::formatFloating( const QVariant &value,
    // Otherwise, just use the value as is.
    //
    const QMetaType::Type vtype = QEPlatform::metaType (value);
+
    if( vtype == QMetaType::QVariantList )
    {
       const QVariantList list = value.toList();
 
       if (arrayIndex >= 0 && arrayIndex < list.count()) {
          const QVariant element = list.value (arrayIndex);
-         result = varToDouble ( element );
+         result = this->varToDouble ( element );
       } else {
-         result = formatFailure ("array index out of range" );
+         result = this->formatFailure ("array index out of range" );
       }
 
    } else if( QEVectorVariants::isVectorVariant( value ) ){
       // This is one of our vector variants.
       //
       result = QEVectorVariants::getDoubleValue ( value, arrayIndex, 0.0 );
-   }
-   else
-   {
-      result = varToDouble ( value );
+
+   } else if( vtype == QMetaType::QStringList ){
+      // This is a string list
+      //
+      const QStringList list = value.toStringList();
+      if (arrayIndex >= 0 && arrayIndex < list.count()) {
+         const QVariant element = list.value (arrayIndex);
+         result = this->varToDouble ( element );
+      } else {
+         result = this->formatFailure ("array index out of range" );
+      }
+
+   } else {
+      // Otherwise is a simple scalar or non convertable type.
+      result = this->varToDouble ( value );
    }
 
    return result;
 }
 
 //------------------------------------------------------------------------------
-// Generate an floating point number array given a value, using formatting
-// defined within this class.
+// Generate an floating point number array given a value,
+// using formatting defined within this class.
 //
 QVector<double> QEFloatingFormatting::formatFloatingArray( const QVariant &value )  const
 {
-   bool okay = true;
    QVector<double> result;
 
    // If the value is a list, populate a list, converting each of the
@@ -134,22 +147,31 @@ QVector<double> QEFloatingFormatting::formatFloatingArray( const QVariant &value
       for( int i=0; i < list.count(); i++ )
       {
          const QVariant element = list.value (i);
-         bool elementOkay;
-         result.append( element.toDouble( &elementOkay ) );
-         okay &= elementOkay;
+         result.append( this->varToDouble ( element ) );
       }
    }
-   else if( QEVectorVariants::isVectorVariant( value ) ){
 
+   else if( QEVectorVariants::isVectorVariant( value ) ){
       // This is one of our vectors variant.
       // We can convert to a QVector<double>
       //
+      bool okay;  // dummy
       result = QEVectorVariants::convertToFloatingVector (value, okay);
+
+   } else if( vtype == QMetaType::QStringList ){
+      // This is a string list
+      //
+      const QStringList list = value.toStringList();
+      for( int i=0; i < list.count(); i++ )
+      {
+         const QVariant element = list.value (i);
+         result.append( this->varToDouble ( element ) );
+      }
 
    } else {
       // The value is not a list/vector so build a list with a single double.
       //
-      result.append( value.toDouble( &okay ) );
+      result.append( this->varToDouble( value ) );
    }
 
    return result;
@@ -163,10 +185,10 @@ double QEFloatingFormatting::varToDouble( const QVariant& item ) const
    const QString name = item.typeName();
 
    bool okay;
-   double temp;
+   double temp = 0.0;
    temp = item.toDouble ( &okay );
    if ( !okay ) {
-      return formatFailure (name + " to double conversion failure" );
+      return this->formatFailure (name + " to double conversion failure" );
    }
 
    return double (temp);
@@ -175,7 +197,7 @@ double QEFloatingFormatting::varToDouble( const QVariant& item ) const
 //------------------------------------------------------------------------------
 // Do something with the fact that the value could not be formatted as requested.
 //
-double QEFloatingFormatting::formatFailure( QString message ) const
+double QEFloatingFormatting::formatFailure( const QString& message ) const
 {
    // Log the format failure if required.
    qDebug() << "QEFloatingFormatting" << message;

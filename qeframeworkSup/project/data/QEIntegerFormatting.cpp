@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2024 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,10 +18,9 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Author:
- *    Andrew Rhyder
- *  Contact details:
- *    andrew.rhyder@synchrotron.org.au
+ *  Author:     Andrew Rhyder
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 // Provides textual formatting for QEInteger data.
@@ -94,33 +93,45 @@ long QEIntegerFormatting::formatInteger( const QVariant &value,
    // Otherwise, just use the value as is.
    //
    const QMetaType::Type vtype = QEPlatform::metaType (value);
+
    if( vtype == QMetaType::QVariantList )
    {
       const QVariantList list = value.toList();
 
       if (arrayIndex >= 0 && arrayIndex < list.count()) {
          const QVariant element = list.value (arrayIndex);
-         result = varToLong ( element );
+         result = this->varToLong ( element );
       } else {
-         result = formatFailure ("array index out of range" );
+         result = this->formatFailure ("array index out of range" );
       }
-   }
 
-   else if( QEVectorVariants::isVectorVariant( value ) ){
+   } else if( QEVectorVariants::isVectorVariant( value ) ){
       // This is one of our vector variants.
       //
       result = QEVectorVariants::getIntegerValue ( value, arrayIndex, 0 );
 
+   } else if( vtype == QMetaType::QStringList ){
+      // This is a string list
+      //
+      const QStringList list = value.toStringList();
+      if (arrayIndex >= 0 && arrayIndex < list.count()) {
+         const QVariant element = list.value (arrayIndex);
+         result = this->varToLong ( element );
+      } else {
+         result = this->formatFailure ("array index out of range" );
+      }
+
    } else {
-      // Otherwise is a scaler or non convertable type.
-      result = varToLong ( value );
+      // Otherwise is a simple scalar or non convertable type.
+      result = this->varToLong ( value );
    }
 
    return result;
 }
 
 //------------------------------------------------------------------------------
-// Generate an integer array given a value, using formatting defined within this class.
+// Generate an integer array given a value,
+// using formatting defined within this class.
 //
 QVector<long> QEIntegerFormatting::formatIntegerArray( const QVariant &value ) const
 {
@@ -136,44 +147,54 @@ QVector<long> QEIntegerFormatting::formatIntegerArray( const QVariant &value ) c
       for( int i=0; i < list.count(); i++ )
       {
          const QVariant element = list.value (i);
-         result.append( varToLong ( element ) );
+         result.append( this->varToLong ( element ) );
       }
    }
 
    else if( QEVectorVariants::isVectorVariant( value ) ){
-
       // This is one of our vectors variant.
       // We can convert to a QVector<long>
       //
-      bool okay;
+      bool okay;  // dummy
       result = QEVectorVariants::convertToIntegerVector ( value, okay );
+
+   } else if( vtype == QMetaType::QStringList ){
+      // This is a string list
+      //
+      const QStringList list = value.toStringList();
+      for( int i=0; i < list.count(); i++ )
+      {
+         const QVariant element = list.value (i);
+         result.append( this->varToLong ( element ) );
+      }
 
    } else  {
       // The value is not a list/vector so build a list with a single long.
       //
-      result.append( varToLong ( value ) );
+      result.append( this->varToLong ( value ) );
    }
 
    return result;
 }
 
 //------------------------------------------------------------------------------
+// Wrapper to toLongLong with error report.
 // QVariant provides a toLongLong function, but not a toLong function with
-//  valiation, i.e. out of range.
+// validation, i.e. out of range.
 //
 long QEIntegerFormatting::varToLong (const QVariant& item ) const
 {
    const QString name = item.typeName();
 
    bool okay;
-   qlonglong temp;
+   qlonglong temp = 0;
    temp = item.toLongLong ( &okay );
    if ( !okay ) {
-      return formatFailure (name + " to long conversion failure" );
+      return this->formatFailure (name + " to long conversion failure" );
    }
 
    if ((temp < LONG_MIN) || (temp > LONG_MAX)) {
-      return formatFailure (name + " out of range" );
+      return this->formatFailure (name + " out of range" );
    }
 
    return long (temp);
@@ -182,7 +203,7 @@ long QEIntegerFormatting::varToLong (const QVariant& item ) const
 //------------------------------------------------------------------------------
 // Do something with the fact that the value could not be formatted as requested.
 //
-long QEIntegerFormatting::formatFailure( QString message ) const
+long QEIntegerFormatting::formatFailure( const QString& message ) const
 {
    // Log the format failure if required.
    qDebug() << "QEIntegerFormatting" << message;

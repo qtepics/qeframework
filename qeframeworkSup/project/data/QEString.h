@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2024 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,10 +18,9 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Author:
- *    Andrew Rhyder
- *  Contact details:
- *    andrew.rhyder@synchrotron.org.au
+ *  Author:     Andrew Rhyder
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 // String wrapper for QCaObject variant data.
@@ -56,6 +55,7 @@ public:
 signals:
    void stringChanged (const QString& value, QCaAlarmInfo& alarmInfo,
                        QCaDateTime& timeStamp, const unsigned int& variableIndex);
+
    void stringArrayChanged (const QVector<QString>& values,  QCaAlarmInfo& alarmInfo,
                             QCaDateTime& timeStamp, const unsigned int& variableIndex);
 

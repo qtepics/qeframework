@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2024 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,10 +18,9 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Author:
- *    Andrew Rhyder
- *  Contact details:
- *    andrew.rhyder@synchrotron.org.au
+ *  Author:     Andrew Rhyder
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 // Formats the string for QEString data.
@@ -51,6 +50,14 @@ public:
    //===============================================
    //
    QString formatString (const QVariant& value, int arrayIndex) const;
+
+   /// This is used to convert the QVariant value received from a QCaObject,
+   /// which is still based on the data variable type, to a string array.
+   /// Typically used where the input QVariant value is an array of data values,
+   /// but will work for any QVariant type.
+   QVector<QString> formatStringArray( const QVariant &value ) const;
+
+
    QVariant formatValue (const QString& text, bool& ok) const;
    QVariant formatValue (const QVector<QString>& text, bool& ok) const;
 
@@ -151,7 +158,7 @@ private:
    bool useScientificNotation (const double value) const;
 
    // Error reporting
-   QString formatFailure (const QString message) const;
+   QString formatFailure (const QString& message) const;
 
    // Formatted output string
    mutable QE::Formats dbFormat; // Format determined from read value (Floating, integer, etc).
@@ -172,7 +179,7 @@ private:
    QE::Separators separator;    // Thousands separator (applies to numeric values only)
    bool addUnits;               // Flag use engineering units from database
    int precision;               // Floating point precision. Used if 'useDbPrecision' is false.
-   QELocalEnumeration localEnumerations;        // Local enumeration values.
+   QELocalEnumeration localEnumerations;    // Local enumeration values.
    QE::ArrayActions arrayAction;    // Action to take when processing array or waveform data
    int leadingZeros;            // number of leading zeros
    int radixBase;               // Radix value: 2 - 16
