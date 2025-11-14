@@ -26,6 +26,7 @@
 #ifndef QE_VARIABLE_MANAGER_H
 #define QE_VARIABLE_MANAGER_H
 
+#include <QList>
 #include <QCaObject.h>
 #include <VariableNameManager.h>
 
@@ -81,37 +82,38 @@
   from the QEString object to its setLabelText slot.
  */
 
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT  VariableManager :
-      public VariableNameManager
-{
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT VariableManager :
+   public VariableNameManager {
 public:
    /// Constructor
-   explicit VariableManager();
+   explicit VariableManager ();
 
    /// Destructor
-   virtual ~VariableManager();
+   virtual ~VariableManager ();
 
    /// Initiate updates.
    /// Called after all configuration is complete.
    /// Note: This function invokes the virtual activated() function.
-   void activate();
+   void activate ();
 
    /// Terminates updates.
    /// This has been provided for third party (non QEGui) applications using the framework.
    /// Note: This function invokes the virtual deactivated() function.
-   void deactivate();
+   ///
+   void deactivate ();
 
    /// Return a reference to one of the qCaObjects used to stream CA updates
    ///
-   qcaobject::QCaObject* getQcaItem( unsigned int variableIndex ) const;
+   qcaobject::QCaObject* getQcaItem (unsigned int variableIndex) const;
 
    /// Perform a single shot read on all variables (Usefull when not subscribing by default)
    ///
-   void readNow();
+   void readNow ();
 
    /// (Control widgets only - such as QELineEdit)
-   /// Write the value now. Used when writeOnChange, writeOnEnter, etc are all false
-   virtual void writeNow();
+   /// Write the value now. Used when writeOnChange, writeOnEnter, etc. are all false.
+   ///
+   virtual void writeNow ();
 
    /// Return references to the current count of disconnections.
    /// The plugin library (and therefore the static connection and disconnection counts)
@@ -120,7 +122,8 @@ public:
    /// by the UI Loader. This function can be called on any widget loaded by the UI loader
    /// and the reference returned can be used to get counts for all widgets loaded by the
    /// UI loader.
-   int* getDisconnectedCountRef() const;
+   ///
+   int *getDisconnectedCountRef () const;
 
    /// Return references to the current count of connections.
    /// The plugin library (and therefore the static connection and disconnection counts)
@@ -129,29 +132,31 @@ public:
    /// by the UI Loader. This function can be called on any widget loaded by the UI loader
    /// and the reference returned can be used to get counts for all widgets loaded by the
    /// UI loader.
-   int* getConnectedCountRef() const;
-
+   ///
+   int* getConnectedCountRef () const;
 
 protected:
-   void setNumVariables( unsigned int numVariablesIn );                        ///< Set the number of variables that will stream data updates to the widget. Default of 1 if not called.
-   unsigned int getNumVariables() const { return numVariables; }               ///< Get the number of variables streaming data updates to the widget.
+   void setNumVariables (const unsigned int numVariablesIn);                   ///< Set the number of variables that will stream data updates to the widget. Default of 1 if not called.
+   unsigned int getNumVariables () const;                                      ///< Get the number of variables streaming data updates to the widget.
 
    bool subscribe;                                                             ///< Flag if data updates should be requested (default value used by QEWidget)
 
-   qcaobject::QCaObject* createVariable( unsigned int variableIndex,
-                                         const bool do_subscribe );            ///< Create a CA connection. do_subscribe indicated if updates should be requested.
-   ///< Return a QCaObject if successfull.
+   qcaobject::QCaObject* createVariable (const unsigned int variableIndex,     ///< Create a CA connection. do_subscribe indicated if updates should be requested.
+                                         const bool do_subscribe);             ///< Return a QCaObject if successfull.
 
-   virtual qcaobject::QCaObject* createQcaItem( unsigned int variableIndex );  ///< Function to create a appropriate superclass of QCaObject to stream data updates
-   virtual void establishConnection( unsigned int variableIndex );             ///< Create a CA connection and initiates updates if required
-   virtual void activated();                                                   ///< Do any post-all-widgets-constructed, i.e. activated stuff
-   virtual void deactivated();                                                 ///< Do any post deactivated stuff
+   virtual qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);   ///< Function to create a appropriate superclass of QCaObject to stream data updates
+   virtual void establishConnection (unsigned int variableIndex);              ///< Create a CA connection and initiates updates if required
+   virtual void activated ();                                                  ///< Do any post-all-widgets-constructed, i.e. activated stuff
+   virtual void deactivated ();                                                ///< Do any post deactivated stuff
 
-   void deleteQcaItem( unsigned int variableIndex, bool disconnect );          ///< Delete a stream of CA updates
+   void deleteQcaItem (const unsigned int variableIndex,                       ///< Delete a stream of CA updates
+                       const bool disconnect);
 
 private:
-   unsigned int numVariables;       // The number of process variables that will be managed for the QE widgets.
-   qcaobject::QCaObject** qcaItem;  // CA access - provides a stream of updates. One for each variable name used by the QE widgets
+   void clearQcaItems();             // Deallocate and free all QCaObjects.
+
+   typedef QList<qcaobject::QCaObject*> ChannelLists;
+   ChannelLists qcaItemList;         // CA/PV access - provides a stream of updates. One for each variable name used by the QE widgets
 };
 
-#endif // QE_VARIABLE_MANAGER_H
+#endif  // QE_VARIABLE_MANAGER_H

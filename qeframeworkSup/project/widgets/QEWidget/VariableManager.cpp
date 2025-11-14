@@ -30,6 +30,7 @@
 
 #include "VariableManager.h"
 #include <QDebug>
+#include <QECommon.h>
 #include <QCaObject.h>
 
 #define DEBUG qDebug () << "VariableManager" << __LINE__ << __FUNCTION__ << "  "
@@ -37,28 +38,37 @@
 //------------------------------------------------------------------------------
 // Constructor
 //
-VariableManager::VariableManager()
+VariableManager::VariableManager ()
 {
    // Initially flag no variables array is defined.
-   // This will be corrected when the first variable is declared
-   numVariables = 0;
-   qcaItem = 0;
+   // This will be corrected when the first variable is declared.
+   //
+   this->clearQcaItems();
 }
 
 //------------------------------------------------------------------------------
 // Destruction:
 // Delete all variable sources for the widgeet
 //
-VariableManager::~VariableManager()
+VariableManager::~VariableManager ()
 {
-   // Delete all the QCaObject instances
-   for( unsigned int i = 0; i < numVariables; i++ ) {
-      deleteQcaItem( i, true );
-   }
+   // Delete all the QCaObject instances.
+   //
+   this->clearQcaItems();
+}
 
-   // Release the list
-   delete[] qcaItem;
-   qcaItem = NULL;
+//------------------------------------------------------------------------------
+// Deallocate and free all QCaObjects, i.e. does a deep clear.
+// Smart pointers would have been nice.
+//
+void VariableManager::clearQcaItems()
+{
+   const int number = this->qcaItemList.size();
+   for (int i = 0; i < number; i++) {
+      qcaobject::QCaObject* qca = this->qcaItemList.value (i, NULL);
+      if (qca) delete qca;
+   }
+   this->qcaItemList.clear();
 }
 
 //------------------------------------------------------------------------------
@@ -66,24 +76,29 @@ VariableManager::~VariableManager()
 // Create an array of QCaObject based objects to suit.
 // This is called by the CA aware widgets based on this class, such as a QELabel.
 //
-void VariableManager::setNumVariables( unsigned int numVariablesIn )
+void VariableManager::setNumVariables (const unsigned int numVariablesIn)
 {
    // Get the number of variables that will be used by this widget
-   // Don't accept zero or the qca array will be invalid
-   if( numVariablesIn ) {
-      numVariables = numVariablesIn;
-   } else {
-      numVariables = 1;
-   }
+   // Don't accept zero or the qca array will be invalid.
+   //
+   const unsigned int numVariables = MAX (1, numVariablesIn);
 
-   // Set up the number of variables managed by the variable name manager
-   variableNameManagerInitialise( numVariables );
+   // Set up the number of variables managed by the variable name manager.
+   //
+   this->variableNameManagerInitialise (numVariables);
 
-   // Allocate the array of QCa objects
-   qcaItem = new qcaobject::QCaObject* [numVariables];
-   for( unsigned int i = 0; i < numVariables; i++ ) {
-      qcaItem[i] = NULL;
+   // Allocate/extend the array of channel objects.
+   //
+   while (this->qcaItemList.size() < int(numVariables)) {
+      this->qcaItemList.append (NULL);   // Add place holder NULL value
    }
+}
+
+//------------------------------------------------------------------------------
+//
+unsigned int VariableManager::getNumVariables () const
+{
+   return this->qcaItemList.size();
 }
 
 //------------------------------------------------------------------------------
@@ -92,21 +107,24 @@ void VariableManager::setNumVariables( unsigned int numVariablesIn )
 // When loaded directly by 'designer' they are activated (a CA connection is established) as
 // soon as either the variable name or variable name substitution properties are set
 //
-void VariableManager::activate()
+void VariableManager::activate ()
 {
    // For each variable, ask the CA aware widget based on this class to initiate updates
    // and to set up whatever signal/slot connections are required to make use of data updates.
    // Note, establish connection is a virtual function of the VariableNameManager class
-   // and is normally called by that class when a variable name is defined or changed
-   for( unsigned int i = 0; i < numVariables; i++ ) {
-      establishConnection( i );
+   // and is normally called by that class when a variable name is defined or changed.
+   //
+   const unsigned int number = this->qcaItemList.size();
+   for (unsigned int i = 0; i < number; i++) {
+      this->establishConnection (i);
    }
 
    // Ask the widget to perform any tasks which should only be done once all other widgets
    // have been created.  For example, if a widget wants to notify other widgets through
    // signals during construction, other widgets may not be present yet to recieve the
    // signals. This type of notification could be held off untill now.
-   activated();
+   //
+   this->activated ();
 }
 
 //------------------------------------------------------------------------------
@@ -114,14 +132,17 @@ void VariableManager::activate()
 // This has been provided for third party (non QEGui) applications using the framework.
 // Specifically, this is used by kubili.
 //
-void VariableManager::deactivate()
+void VariableManager::deactivate ()
 {
    // Ask the widget to perform any tasks which should done prior to being deactivated.
-   deactivated();
+   //
+   this->deactivated ();
 
-   // Delete all the QCaObject instances
-   for( unsigned int i = 0; i < numVariables; i++ ) {
-      deleteQcaItem( i, true );
+   // Delete all the QCaObject instances.
+   //
+   const unsigned int number = this->qcaItemList.size();
+   for (unsigned int i = 0; i < number; i++) {
+      this->deleteQcaItem (i, true);
    }
 }
 
@@ -131,40 +152,43 @@ void VariableManager::deactivate()
 // this class, such as a QELabel. If successfull it will return the QCaObject based
 // object supplying data update signals.
 //
-qcaobject::QCaObject* VariableManager::createVariable( unsigned int variableIndex,
-                                                       const bool do_subscribe )
+qcaobject::QCaObject* VariableManager::createVariable (const unsigned int variableIndex,
+                                                       const bool do_subscribe)
 {
-
-   // If the index is invalid do nothing
-   // This same test is also valid if qcaItem has never been set up yet as numVariables will be zero
-   if( variableIndex >= numVariables ) {
+   // Return NULL if invalid or has never been set up.
+   //
+   const unsigned int number = this->qcaItemList.size();
+   if (variableIndex >= number) {
       return NULL;
    }
 
-   // Remove any existing QCa connection
-   deleteQcaItem( variableIndex, false );
+   // Remove any existing CA/PVA connection.
+   //
+   this->deleteQcaItem (variableIndex, false);
 
    // Connect to new variable.
    // If a new variable name is present, ask the CA aware widget based on this class to create an
    // appropriate object based on a QCaObject (by calling its createQcaItem() function).
    // If that is successfull, supply it with a mechanism for handling errors and subscribe
    // to the new variable if required.
-   if( getSubstitutedVariableName( variableIndex ).length() > 0 ) {
-      qcaItem[variableIndex] = createQcaItem( variableIndex );
-      if( qcaItem[variableIndex] ) {
-
-         qcaItem[variableIndex]->setUserMessage( (UserMessage*)this );
-
-         if( do_subscribe ) {
-            qcaItem[variableIndex]->subscribe();
+   //
+   const QString pvName = this->getSubstitutedVariableName (variableIndex);
+   if (pvName.length () > 0) {
+      qcaobject::QCaObject* qca = this->createQcaItem (variableIndex);
+      this->qcaItemList.replace (variableIndex, qca);
+      if (qca) {
+         qca->setUserMessage ((UserMessage *) this);
+         if (do_subscribe) {
+            qca->subscribe ();       // connect and subscribe
          } else {
-            qcaItem[variableIndex]->connectChannel();   // just connect
+            qca->connectChannel ();  // just connect
          }
       }
    }
 
-   // Return the QCaObject, if any
-   return qcaItem[variableIndex];
+   // Return the QCaObject, if any.
+   //
+   return this->qcaItemList.value (variableIndex, NULL);
 }
 
 //------------------------------------------------------------------------------
@@ -174,7 +198,7 @@ qcaobject::QCaObject* VariableManager::createVariable( unsigned int variableInde
 // Since this class can also be used as a base class for widgets that don't establish any CA connection,
 // this default implementation is here to always return NULL when asked to create a QCaObject.
 //
-qcaobject::QCaObject* VariableManager::createQcaItem( unsigned int )
+qcaobject::QCaObject* VariableManager::createQcaItem (unsigned int)
 {
    return NULL;
 }
@@ -186,9 +210,7 @@ qcaobject::QCaObject* VariableManager::createQcaItem( unsigned int )
 // Since this class can also be used as a base class for widgets that don't establish any CA connection,
 // this default implementation is here as a default when not implemented
 //
-void VariableManager::establishConnection( unsigned int )
-{
-}
+void VariableManager::establishConnection (unsigned int) { }
 
 //------------------------------------------------------------------------------
 // Default implementation of activated().
@@ -196,60 +218,54 @@ void VariableManager::establishConnection( unsigned int )
 // For example, if a widget wants to notify other widgets through signals during construction, other widgets
 // may not be present yet to recieve the signals. This type of notification could be held off untill now.
 //
-void VariableManager::activated ()
-{
-}
+void VariableManager::activated () { }
 
 //------------------------------------------------------------------------------
 // Default implementation of deactivated().
 //
-void VariableManager::deactivated ()
-{
-}
+void VariableManager::deactivated () { }
 
 //------------------------------------------------------------------------------
 // Return a reference to one of the qCaObjects used to stream CA data updates to the widget
 // This is called by CA aware widgets based on this class, such as a QELabel, mainly when they
 // want to connect to its signals to recieve data updates.
 //
-qcaobject::QCaObject* VariableManager::getQcaItem( unsigned int variableIndex ) const
+qcaobject::QCaObject* VariableManager::getQcaItem (unsigned int variableIndex) const
 {
-   // If the index is invalid return NULL.
-   // This same test is also valid if qcaItem has never been set up yet as numVariables will be zero
-   if( variableIndex >= numVariables )
-      return NULL;
-
-   // Return the QCaObject used for the specified variable name
-   return qcaItem[variableIndex];
+   // Return the QCaObject used for the specified variable name, or
+   // return NUMM if index is invalid or has never been set up.
+   //
+   return this->qcaItemList.value (variableIndex, NULL);
 }
 
 //------------------------------------------------------------------------------
 // Remove any previous QCaObject created to supply CA data updates for a variable name
 // If the object connected to the QCaObject is being destroyed it is not good to receive signals
-// so the disconnect parameter should be true in this case
+// so the disconnect parameter should be true in this case.
 //
-void VariableManager::deleteQcaItem( unsigned int variableIndex, bool disconnect )
+void VariableManager::deleteQcaItem (const unsigned int variableIndex,
+                                     const bool disconnect)
 {
    // If the index is invalid do nothing.
-   // This same test is also valid if qcaItem has never been set up yet as numVariables will be zero
-   if( variableIndex >= numVariables )
+   //
+   const unsigned int number = this->qcaItemList.size();
+   if (variableIndex >= number)
       return;
 
-   // Remove the reference to the deleted object to prevent accidental use
-   qcaobject::QCaObject* qca = qcaItem[variableIndex];
-   qcaItem[variableIndex] = NULL;
+   // Remove the reference to the deleted object to prevent accidental use.
+   //
+   qcaobject::QCaObject* qca = this->qcaItemList.value (variableIndex, NULL);
+   this->qcaItemList.replace (variableIndex, NULL);
 
-   // Delete the QCaObject used for the specified variable name
-   if( qca )
-   {
+   // Delete the QCaObject used for the specified variable name.
+   //
+   if (qca) {
       // If we need to disconnect first, do so.
       // If the object connected is being destroyed it is not good to receive signals. (this happened)
       // If the object connected is not being destroyed is will want to know a disconnection has occured.
-      if( disconnect )
-      {
-         qca->disconnect();
+      if (disconnect) {
+         qca->disconnect ();
       }
-
       // Delete the QCaObject
       delete qca;
    }
@@ -261,16 +277,15 @@ void VariableManager::deleteQcaItem( unsigned int variableIndex, bool disconnect
 // When not subscribing it may still be usefull to do a single shot read to get initial
 // values, or perhaps confirm a write.
 //
-void VariableManager::readNow()
+void VariableManager::readNow ()
 {
    // Perform a single shot read on all variables.
-   qcaobject::QCaObject* qca;
-   for( unsigned int i = 0; i < numVariables; i++ )
-   {
-      qca = getQcaItem( i );
-      if( qca ) // If variable exists...
-      {
-         qca->singleShotRead();
+   //
+   const unsigned int number = this->qcaItemList.size();
+   for (unsigned int i = 0; i < number; i++) {
+      qcaobject::QCaObject* qca = this->getQcaItem (i);
+      if (qca) {                  // If variable exists...
+         qca->singleShotRead ();
       }
    }
 }
@@ -278,11 +293,10 @@ void VariableManager::readNow()
 //------------------------------------------------------------------------------
 // Provides default implementation of writeNow.
 //
-void VariableManager::writeNow()
+void VariableManager::writeNow ()
 {
-   qDebug() << "default VariableManager::writeNow - this function should be overridden";
+   DEBUG << "This method should be overridden";
 }
-
 
 //------------------------------------------------------------------------------
 // Return references to the current count of disconnections.
@@ -293,7 +307,7 @@ void VariableManager::writeNow()
 // and the reference returned can be used to get counts for all widgets loaded by the
 // UI loader.
 //
-int* VariableManager::getDisconnectedCountRef() const
+int* VariableManager::getDisconnectedCountRef () const
 {
    return qcaobject::QCaObject::getDisconnectedCountRef ();
 }
@@ -307,9 +321,9 @@ int* VariableManager::getDisconnectedCountRef() const
 // and the reference returned can be used to get counts for all widgets loaded by the
 // UI loader.
 //
-int* VariableManager::getConnectedCountRef() const
+int* VariableManager::getConnectedCountRef () const
 {
-   return qcaobject::QCaObject::getConnectedCountRef();
+   return qcaobject::QCaObject::getConnectedCountRef ();
 }
 
 // end
