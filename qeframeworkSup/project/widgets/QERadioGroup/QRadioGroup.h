@@ -61,7 +61,7 @@ public:
    Q_PROPERTY (QE::GridOrders buttonOrder            READ getButtonOrder  WRITE setButtonOrder)
    Q_PROPERTY (int columns                           READ getColumns      WRITE setColumns)
    Q_PROPERTY (int spacing                           READ getSpacing      WRITE setSpacing)
-   Q_PROPERTY (QStringList mStrings                   READ getStrings      WRITE setStrings)   // max 256 strings.
+   Q_PROPERTY (QStringList strings                   READ getStrings      WRITE setStrings)   // max 256 strings.
    Q_PROPERTY (int value                             READ getValue        WRITE setValue)
 
 public:
