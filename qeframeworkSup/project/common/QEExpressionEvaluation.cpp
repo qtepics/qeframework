@@ -3,10 +3,11 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2013-2025 Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ *  the Free Software Foundation, version 3.
  *
  *  The EPICS QT Framework is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,12 +17,9 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2017 Australian Synchrotron.
- *
- *  Author:
- *    Andrew Starritt
- *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *  Author:     Andrew Starritt
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 #include "QEExpressionEvaluation.h"
@@ -29,12 +27,13 @@
 #include <QECommon.h>
 #include <postfix.h>   // out of EPICS
 
-
 #define DEBUG  qDebug () << "QEExpressionEvaluation" << __LINE__ << __FUNCTION__ << "  "
 
 //---------------------------------------------------------------------------------
 //
-QEExpressionEvaluation::QEExpressionEvaluation (const bool allowPrimedInputIn) :
+QEExpressionEvaluation::QEExpressionEvaluation (const int numberOfInputsIn,
+                                                const bool allowPrimedInputIn) :
+   numberOfInputs (numberOfInputsIn),
    allowPrimedInput (allowPrimedInputIn)
 {
    // We are erroneous until Postfix called.
@@ -53,7 +52,6 @@ QEExpressionEvaluation::~QEExpressionEvaluation ()
 //
 bool QEExpressionEvaluation::initialise (const QString& expression)
 {
-   bool okay;
    QString translated;
 
    // Tooo big ?
@@ -63,7 +61,7 @@ bool QEExpressionEvaluation::initialise (const QString& expression)
       return false;
    }
 
-   okay = this->buildMaps (expression, translated);
+   const bool okay = this->buildMaps (expression, translated);
    if (!okay) {
       this->calcError = "Build Map failed - too many args";
       return false;
@@ -71,13 +69,9 @@ bool QEExpressionEvaluation::initialise (const QString& expression)
 
    // Now apply map
    //
-   const char* pinfix;
-   long status;
    short error;
-
-   pinfix = translated.toLatin1 ().data ();
-
-   status = postfix (pinfix, this->postFix, &error);
+   const char* pinfix = translated.toLatin1 ().data ();
+   const long status = postfix (pinfix, this->postFix, &error);
    this->calcError = QString (calcErrorStr (error));
 
    return (status == 0);
@@ -152,25 +146,16 @@ bool QEExpressionEvaluation::buildMaps (const QString& expression, QString& tran
 {
    static const QChar primeChar = '\'';
 
-   int len;
-   int j;
-   QChar x;
-   QChar y;
-   int kind;
-   char c;
-   int letter;
-   int argIndex;
-   int userArg;
-
    this->argumentMap.clear();
    this->userInputMap.clear();
 
-   argIndex = -1;
+   int argIndex = -1;
    translated = "";
 
-   len = expression.length ();
-   for (j = 0; j < len; j++) {
-      x = expression.at (j);
+   const int len = expression.length ();
+   for (int j = 0; j < len; j++) {
+      const QChar x = expression.at (j);
+
       // Skip prime.
       // TODO: Only skip ' following A..Z
       //
@@ -191,30 +176,37 @@ bool QEExpressionEvaluation::buildMaps (const QString& expression, QString& tran
       // We want, e.g., a stand alone 'I', but not an I in "SIN"
       //
       if (j > 0) {
-         y = expression.at (j - 1);
+         const QChar y = expression.at (j - 1);
          if (y.isLetterOrNumber ()) {
             translated.append (x);
             continue;
          }
       }
-      if (j + 1 <  len) {
-         y = expression.at (j + 1);
+      if (j + 1 < len) {
+         const QChar y = expression.at (j + 1);
          if (y.isLetterOrNumber ()) {
             translated.append (x);
             continue;
          }
       }
 
-      kind = Normal;
+      int kind = Normal;
       if (this->allowPrimedInput &&
-          (j + 1 <  len) &&
+          (j + 1 < len) &&
           (expression.at (j + 1) == primeChar)) {
          kind = Primed;
       }
 
-      c = x.toUpper().toLatin1 ();
-      letter = (int) c - (int) 'A';
-      userArg = (NumberUserArguments * kind) + letter;
+      char c = x.toUpper().toLatin1 ();
+      int letter = (int) c - (int) 'A';
+
+      // Check letter is in the expected range.
+      //
+      if (letter >= numberOfInputs) {
+         return false;
+      }
+
+      const int userArg = (NumberUserArguments * kind) + letter;
 
       if (!this->userInputMap.contains (userArg)) {
          // Add new map int item.
@@ -233,8 +225,8 @@ bool QEExpressionEvaluation::buildMaps (const QString& expression, QString& tran
       letter = this->userInputMap.value (userArg);
       c = (char) ((int) 'A' + letter);
       translated.append (c);
-
    }
+
    return true;
 }
 

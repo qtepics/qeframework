@@ -3,10 +3,11 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
+ *  Copyright (c) 2013-2025 Australian Synchrotron.
+ *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ *  the Free Software Foundation, version 3.
  *
  *  The EPICS QT Framework is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,12 +17,9 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Copyright (c) 2013,2017 Australian Synchrotron.
- *
- *  Author:
- *    Andrew Starritt
- *  Contact details:
- *    andrew.starritt@synchrotron.org.au
+ *  Author:     Andrew Starritt
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 #ifndef QE_EXPRESSION_EVALUATION_H
@@ -48,6 +46,9 @@
 /// the native 12 inputs (A .. L). However, the MAXIMUM number of inputs that
 /// may be used in any one expression is still LIMITED to 12.
 ///
+/// The names space is controlled by the allowPrimedInput and numberOfInputs
+/// parameters used at construction time.
+///
 /// That is:  "B + L' + M + X + Y' "  is an allowed expression, but
 /// "A + B + C + D + E + F + G + H + I + J + K + L' + M" is invalid because
 /// more than 12 inputs specified.
@@ -66,7 +67,8 @@
 ///
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEExpressionEvaluation {
 public:
-   QEExpressionEvaluation (const bool allowPrimedInput);
+   QEExpressionEvaluation (const int numberOfInputs,
+                           const bool allowPrimedInput);
    virtual ~QEExpressionEvaluation ();
 
    // User arguments A .. Z and A' .. Z'.
@@ -86,6 +88,7 @@ public:
    static int indexOf (const char c);
 
 private:
+   const int numberOfInputs;
    const bool allowPrimedInput;
    bool buildMaps (const QString& expression, QString& translated);
 
