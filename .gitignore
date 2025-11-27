@@ -23,7 +23,9 @@ object_script.*
 *.qmake.stash
 # created by protoc
 archapplDataSup/src/archapplProto.pb.h
+
 # work in progress
+*/wip/
 *-wip/
 *-wip.h
 *-wip.cpp

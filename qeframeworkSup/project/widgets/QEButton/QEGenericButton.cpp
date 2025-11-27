@@ -144,7 +144,8 @@ void QEGenericButton::guiSetup()
         }
     }
 
-    // A profile is not already defined, create one. This is the case if this class is used by an application that does not set up a profile, such as 'designer'.
+    // A profile is not already defined, create one. This is the case if this class is
+    // used by an application that does not set up a profile, such as 'designer'.
     else
     {
         // Set up the button's own gui form launcher

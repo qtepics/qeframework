@@ -781,7 +781,8 @@ void QEWidget::setAccessCursorStyle()
 
 // Slot for launching a new gui.
 // Used by QE buttons and QEForm as the default action for launching a gui.
-// Normally the widget would be within a container, such as the QEGui application, that will provide a 'launch gui' mechanism.
+// Normally the widget would be within a container, such as the QEGui application,
+// that will provide a 'launch gui' mechanism.
 void QEWidget::startGui( const QEActionRequests & request )
 {
    // Only handle file open requests
