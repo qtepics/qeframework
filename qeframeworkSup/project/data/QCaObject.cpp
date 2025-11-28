@@ -18,10 +18,9 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Author:
- *    Anthony Owen
- *  Contact details:
- *    anthony.owen@gmail.com
+ *  Author:     Anthony Owen
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 #include "QCaObject.h"
@@ -197,11 +196,22 @@ void QCaObject::initialise( const QString& newRecordName,
 //
 QCaObject::~QCaObject()
 {
-   // NOTE: we call closeChannel before the client destructor so that the overriden
-   // connectionUpdate still gets invoked.
-   // Note: closeChannel and openChannel are now dispatching
+   // NOTE: Sometimes explicitly calling closeChannel() here causes error:
+   //   corrupted double-linked list
+   //   Aborted (core dumped)
    //
-   if (this->client) this->client->closeChannel ();
+   // We avoid the corruption by first disconnecting any signal/slot connections.
+   //
+   if (this->client) {
+      QObject::disconnect (this->client, SIGNAL (connectionUpdated (const bool)),
+                           this,         SLOT   (connectionUpdate  (const bool)));
+      QObject::disconnect (this->client, SIGNAL (dataUpdated (const bool)),
+                           this,         SLOT   (dataUpdate  (const bool)));
+      QObject::disconnect (this->client, SIGNAL (putCallbackComplete    (const bool)),
+                           this,         SLOT   (putCallbackNotifcation (const bool)));
+
+      this->client->closeChannel ();
+   }
 
    QCaObject::totalChannelCount--;
    QCaObject::connectedCount = LIMIT (QCaObject::connectedCount, 0, QCaObject::totalChannelCount);
