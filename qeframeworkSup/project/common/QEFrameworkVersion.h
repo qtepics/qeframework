@@ -7,8 +7,7 @@
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ *  the Free Software Foundation, version 3 of the License.
  *
  *  The EPICS QT Framework is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -46,7 +45,7 @@
 //
 #define QE_VERSION_MAJOR      4     // Public releases that include interface or paradigm changes that may require changes to the way the framework is used.
 #define QE_VERSION_MINOR      1     // Public releases containing significant new functionality (may include fixes as well)
-#define QE_VERSION_RELEASE    3     // Public releases containing backward compatible new functionality and/or fixes.
+#define QE_VERSION_RELEASE    4     // Public releases containing backward compatible new functionality and/or fixes.
 
 // The integer version is (major << 16) + (minor << 8) + release, and this macro
 // is used to constuct an integer version number.
@@ -65,7 +64,7 @@
 //
 #define QE_VERSION_STAGE_DEVELOPMENT "Development"
 #define QE_VERSION_STAGE_PRODUCTION  "Production"
-#define QE_VERSION_STAGE             QE_VERSION_STAGE_DEVELOPMENT
+#define QE_VERSION_STAGE             QE_VERSION_STAGE_PRODUCTION
 
 #define QE_VERSION_STRING     STRINGIFY(QE_VERSION_MAJOR) "." \
                               STRINGIFY(QE_VERSION_MINOR) "." \
@@ -82,11 +81,11 @@ public:
    virtual ~QEFrameworkVersion();
 
    static unsigned int getMajor ();         // e.g. 4
-   static unsigned int getMinor ();         // e.g. 0
-   static unsigned int getRelease ();       // e.g. 1
+   static unsigned int getMinor ();         // e.g. 1
+   static unsigned int getRelease ();       // e.g. 4
    static const QString getStage ();        // e.g. "Production"
-   static const QString getString ();       // e.g. "4.1.1 (Production)"
-   static const QString getDateTime ();     // e.g. "Aug 12 2024 16:23:07"
+   static const QString getString ();       // e.g. "4.1.4 (Production)"
+   static const QString getDateTime ();     // e.g. "Dec 05 2025 14:59:17"
 
    // Conditional compile attributes.
    //
