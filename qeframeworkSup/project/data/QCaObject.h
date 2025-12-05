@@ -7,8 +7,7 @@
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ *  the Free Software Foundation, either version 3 of the License.
  *
  *  The EPICS QT Framework is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,15 +17,15 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Author:
- *    Anthony Owen
- *  Contact details:
- *    anthony.owen@gmail.com
+ *  Author:     Anthony Owen
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 #ifndef QCA_OBJECT_H
 #define QCA_OBJECT_H
 
+#include <QMetaType>
 #include <QObject>
 #include <QString>
 #include <QFlags>
@@ -45,6 +44,32 @@
 class QECaClient;
 class QEPvaClient;
 
+// Structures used in signals to indicate connection and data updates.
+//
+struct QEConnectionUpdate {
+   QCaConnectionInfo connectionInfo;
+   unsigned int variableIndex;
+};
+Q_DECLARE_METATYPE (QEConnectionUpdate)
+
+struct QEVariantUpdate {
+   QVariant value;
+   QCaAlarmInfo alarmInfo;
+   QCaDateTime timeStamp;
+   unsigned int variableIndex;
+};
+Q_DECLARE_METATYPE (QEVariantUpdate)
+
+struct QEByteArrayUpdate {
+   QByteArray array;
+   unsigned long dataElementSize;
+   QCaAlarmInfo alarmInfo;
+   QCaDateTime timeStamp;
+   unsigned int variableIndex;
+};
+Q_DECLARE_METATYPE (QEByteArrayUpdate)
+
+
 // TODO: Consider renameing QCaObject to something more vanilla (e.g. QEClient)
 // and dropping the name space and that not used anywhere else in the framework.
 //
@@ -54,7 +79,6 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QCaObject : public QObject {
    Q_OBJECT
 
 public:
-
    // bit significant
    //
    enum SignalsToSend {
@@ -197,6 +221,12 @@ public:
    ObjectIdentity getObjectIdentity () const;
 
 signals:
+   void connectionUpdated (const QEConnectionUpdate& connection);
+   void valueUpdated (const QEVariantUpdate& value);
+   void arrayUpdated (const QEByteArrayUpdate& array);
+
+   // Deprecated - use above.
+   //
    void dataChanged( const QVariant& value, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex );
    void dataChanged( const QByteArray& value, unsigned long dataSize, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex );
    void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex );
@@ -261,6 +291,10 @@ private slots:
 };
 
 }    // end qcaobject namespace
+
+// Prepare for transition to new name
+//
+typedef qcaobject::QCaObject QEChannel;
 
 Q_DECLARE_OPERATORS_FOR_FLAGS (qcaobject::QCaObject::SignalsToSendFlags)
 

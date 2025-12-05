@@ -7,8 +7,7 @@
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ *  the Free Software Foundation, either version 3 of the License.
  *
  *  The EPICS QT Framework is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,14 +27,34 @@
 #ifndef QE_STRING_H
 #define QE_STRING_H
 
-#include <QtDebug>
+#include <QMetaType>
 #include <QVariant>
 #include <QCaObject.h>
 #include <QVector>
 #include <QEStringFormatting.h>
 #include <QEFrameworkLibraryGlobal.h>
 
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEString : public qcaobject::QCaObject {
+// Structures used in signals to indicate connection and data updates.
+//
+struct QEStringValueUpdate {
+   QString value;
+   QCaAlarmInfo alarmInfo;
+   QCaDateTime timeStamp;
+   unsigned int variableIndex;
+};
+Q_DECLARE_METATYPE (QEStringValueUpdate)
+
+struct QEStringArrayUpdate {
+   QVector<QString> values;
+   QCaAlarmInfo alarmInfo;
+   QCaDateTime timeStamp;
+   unsigned int variableIndex;
+};
+Q_DECLARE_METATYPE (QEStringArrayUpdate)
+
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEString :
+      public qcaobject::QCaObject
+{
    Q_OBJECT
 
 public:
@@ -53,6 +72,11 @@ public:
    bool writeString (const QVector<QString> &data, QString& message);
 
 signals:
+   // New style
+   void valueUpdated (const QEStringValueUpdate& value);
+   void arrayUpdated (const QEStringArrayUpdate& array);
+
+   // Old style
    void stringChanged (const QString& value, QCaAlarmInfo& alarmInfo,
                        QCaDateTime& timeStamp, const unsigned int& variableIndex);
 
@@ -69,8 +93,7 @@ private:
    QEStringFormatting* stringFormat;
 
 private slots:
-   void convertVariant (const QVariant& value, QCaAlarmInfo& alarmInfo,
-                        QCaDateTime& timeStamp, const unsigned int& variableIndex);
+   void convertVariant (const QEVariantUpdate&);
 };
 
 #endif // QE_STRING_H

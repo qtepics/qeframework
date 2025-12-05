@@ -7,8 +7,7 @@
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ *  the Free Software Foundation, either version 3 of the License.
  *
  *  The EPICS QT Framework is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +26,6 @@
 
 #include "QEString.h"
 #include <QDebug>
-#include <QMetaType>
 #include <QStringList>
 #include <QEPlatform.h>
 #include <QEVectorVariants.h>
@@ -63,8 +61,8 @@ void QEString::initialise (QEStringFormatting* stringFormattingIn)
 {
    this->stringFormat = stringFormattingIn;
 
-   QObject::connect (this, SIGNAL  (dataChanged (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                     this, SLOT (convertVariant (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+   QObject::connect (this, SIGNAL (valueUpdated (const QEVariantUpdate&)),
+                     this, SLOT (convertVariant (const QEVariantUpdate&)));
 }
 
 //------------------------------------------------------------------------------
@@ -158,10 +156,9 @@ void QEString::writeString (const QVector<QString>& data)
 // Take a new value from the database and emit a string,formatted
 // as directed by the set of formatting information held by this class
 //
-void QEString::convertVariant (const QVariant& value, QCaAlarmInfo& alarmInfo,
-                               QCaDateTime& timeStamp, const unsigned int& variableIndex)
+void QEString::convertVariant (const QEVariantUpdate& update)
 {
-   const QMetaType::Type mtype = QEPlatform::metaType (value);
+   const QMetaType::Type mtype = QEPlatform::metaType (update.value);
 
    // The expected varient type is one of:
    // a/ scalar
@@ -171,7 +168,7 @@ void QEString::convertVariant (const QVariant& value, QCaAlarmInfo& alarmInfo,
    //
    const bool vlist = (mtype == QMetaType::QVariantList);
    const bool slist = (mtype == QMetaType::QStringList);
-   const bool vector = QEVectorVariants::isVectorVariant (value);
+   const bool vector = QEVectorVariants::isVectorVariant (update.value);
 
    // Set up variable details used by some formatting options.
    //
@@ -179,38 +176,77 @@ void QEString::convertVariant (const QVariant& value, QCaAlarmInfo& alarmInfo,
    this->stringFormat->setDbEnumerations (this->getEnumerations());
    this->stringFormat->setDbPrecision (this->getPrecision());
 
+   // Signaled data structures.
+   //
+   QEStringValueUpdate valueUpdate;
+   QEStringArrayUpdate arrayUpdate;
+
+   // Set up associated meta data members.
+   //
+   valueUpdate.alarmInfo = arrayUpdate.alarmInfo = update.alarmInfo;
+   valueUpdate.timeStamp = arrayUpdate.timeStamp = update.timeStamp;
+   valueUpdate.variableIndex = arrayUpdate.variableIndex = update.variableIndex;
+
+   // We need non-const copies as (old) signal parameters are not all const.
+   //
+   QCaAlarmInfo alarmInfo = update.alarmInfo;
+   QCaDateTime  timeStamp = update.timeStamp;
+
    if (vlist || slist || vector) {
       // The value is some sort of array type.
       //
-      emit stringArrayChanged (this->stringFormat->formatStringArray (value),
-                               alarmInfo, timeStamp, variableIndex);
+      const QVector<QString> data = this->stringFormat->formatStringArray (update.value);
+      arrayUpdate.values = data;
+
+      emit arrayUpdated (arrayUpdate);
+      emit stringArrayChanged (data, alarmInfo, timeStamp, update.variableIndex);
 
       // Extract the scalar value,
       //
       const int ai = this->getArrayIndex ();
-      const int count = vlist ? value.toList ().count () : (
-                        slist ? value.toStringList().count () :
-                        QEVectorVariants::vectorCount (value));
+      const int count = vlist ? update.value.toList ().count () : (
+                        slist ? update.value.toStringList().count () :
+                        QEVectorVariants::vectorCount (update.value));
 
       if ((ai >= 0) && (ai < count)) {
          // Convert this array element as a scalar update.
          //
-         const QString item = this->stringFormat->formatString (value, ai);
-         emit stringChanged (item, alarmInfo, timeStamp, variableIndex);
+         const QString item = this->stringFormat->formatString (update.value, ai);
+         valueUpdate.value = item;
+
+         emit valueUpdated (valueUpdate);
+         emit stringChanged (item, alarmInfo, timeStamp, update.variableIndex);
       }
 
    } else {
       // The value is a scalar type.
       //
-      const QString formatted = this->stringFormat->formatString (value, 0);
-      emit stringChanged (formatted, alarmInfo, timeStamp, variableIndex);
+      const QString item = this->stringFormat->formatString (update.value, 0);
+      valueUpdate.value = item;
+
+      emit valueUpdated (valueUpdate);
+      emit stringChanged (item, alarmInfo, timeStamp, update.variableIndex);
 
       // A scalar is also an array with one element.
       //
       QVector<QString> array;
-      array.append (formatted);
-      emit stringArrayChanged (array, alarmInfo, timeStamp, variableIndex);
+      array.append (item);
+      arrayUpdate.values = array;
+
+      emit arrayUpdated (arrayUpdate);
+      emit stringArrayChanged (array, alarmInfo, timeStamp, update.variableIndex);
    }
 }
+
+//------------------------------------------------------------------------------
+//
+static bool registerMetaTypes()
+{
+   qRegisterMetaType<QEStringValueUpdate> ("QEStringValueUpdate");
+   qRegisterMetaType<QEStringArrayUpdate> ("QEStringArrayUpdate");
+   return true;
+}
+
+static const bool elaborate = registerMetaTypes();
 
 // end

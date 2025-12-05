@@ -7,8 +7,7 @@
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ *  the Free Software Foundation, either version 3 of the License.
  *
  *  The EPICS QT Framework is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -54,7 +53,7 @@ int QCaObject::totalChannelCount = 0;
 int QCaObject::disconnectedCount = 0;
 int QCaObject::connectedCount = 0;
 
-// Each created QCaObject is given a unique idtentity.
+// Each created QCaObject is given a unique identity.
 //
 QCaObject::ObjectIdentity QCaObject::nextObjectIdentity = 0;
 
@@ -79,11 +78,11 @@ int* QCaObject::getConnectedCountRef()
 // In other words, the event object does not need to be set up in any way.
 // It just need to have a suitable event loop running.
 //
-QCaObject::QCaObject( const QString& newRecordName,
+QCaObject::QCaObject (const QString& newRecordName,
                       QObject* parent,
                       const unsigned int variableIndexIn,
                       SignalsToSendFlags signalsToSendIn,
-                      priorities priorityIn ) : QObject (parent)
+                      priorities priorityIn) : QObject (parent)
 {
    this->initialise (newRecordName, variableIndexIn, NULL,
                      signalsToSendIn, priorityIn);
@@ -91,12 +90,12 @@ QCaObject::QCaObject( const QString& newRecordName,
 
 //------------------------------------------------------------------------------
 //
-QCaObject::QCaObject( const QString& newRecordName,
+QCaObject::QCaObject (const QString& newRecordName,
                       QObject* parent,
                       const unsigned int variableIndexIn,
                       UserMessage* userMessageIn,
                       SignalsToSendFlags signalsToSendIn,
-                      priorities priorityIn ) : QObject (parent)
+                      priorities priorityIn) : QObject (parent)
 {
    this->initialise (newRecordName, variableIndexIn, userMessageIn,
                      signalsToSendIn, priorityIn);
@@ -104,11 +103,11 @@ QCaObject::QCaObject( const QString& newRecordName,
 
 //------------------------------------------------------------------------------
 //
-void QCaObject::initialise( const QString& newRecordName,
+void QCaObject::initialise (const QString& newRecordName,
                             const unsigned int variableIndexIn,
                             UserMessage* userMessageIn,
                             SignalsToSendFlags signalsToSendIn,
-                            priorities priorityIn )
+                            priorities priorityIn)
 {
    // Ensure client object pointer is null.
    //
@@ -182,7 +181,7 @@ void QCaObject::initialise( const QString& newRecordName,
    }
 
    // Setup any the mechanism to handle messages to the user, if supplied
-   this->setUserMessage( userMessageIn );
+   this->setUserMessage (userMessageIn);
 
    // Update counters. Ensure consistant
    //
@@ -271,10 +270,15 @@ void QCaObject::clearConnectionState()
    // (This is done with some licence. There isn't really a connection change.
    //  The connection has gone from 'no connection' to 'not connectet yet')
    //
-   QCaConnectionInfo connectionInfo( QCaConnectionInfo::NEVER_CONNECTED,
-                                     this->getRecordName() );
+   QCaConnectionInfo connectionInfo (QCaConnectionInfo::NEVER_CONNECTED,
+                                     this->getRecordName());
 
-   emit connectionChanged( connectionInfo, variableIndex );
+   QEConnectionUpdate connection;
+   connection.connectionInfo = connectionInfo;
+   connection.variableIndex = this->variableIndex;
+
+   emit connectionUpdated (connection);
+   emit connectionChanged( connectionInfo, this->variableIndex);
 }
 
 //------------------------------------------------------------------------------
@@ -320,7 +324,7 @@ bool QCaObject::dataTypeKnown() const
 //------------------------------------------------------------------------------
 // Returns the assigned variable index.
 //
-unsigned int QCaObject::getVariableIndex () const
+unsigned int QCaObject::getVariableIndex() const
 {
    return this->variableIndex;
 }
@@ -329,7 +333,7 @@ unsigned int QCaObject::getVariableIndex () const
 // Setup the user message mechanism.
 // After calling this method the QCaObject can report errors to the user.
 //
-void QCaObject::setUserMessage( UserMessage* userMessageIn )
+void QCaObject::setUserMessage (UserMessage* userMessageIn)
 {
    this->userMessage = userMessageIn;
    this->client->setUserMessage (userMessageIn);
@@ -340,7 +344,7 @@ void QCaObject::setUserMessage( UserMessage* userMessageIn )
 // This can be called before a subscription, or during a subscription, in which
 // case the connection will be renewed with the new element count, if changed.
 //
-void  QCaObject::setRequestedElementCount( unsigned int elementCount )
+void  QCaObject::setRequestedElementCount (unsigned int elementCount)
 {
    QECaClient* caClient = this->asCaClient();
    if (caClient) {
@@ -727,7 +731,7 @@ double  QCaObject::getControlLimitLower() const
 // example in a GUI after issuing a motor record move a motor stop command will take effect immedietly
 // if writing without callback, but will only take affect after the move has finished if writing with callback.
 //
-void QCaObject::enableWriteCallbacks( bool enable )
+void QCaObject::enableWriteCallbacks (bool enable)
 {
    QECaClient* caClient = this->asCaClient();
    if (caClient)
@@ -778,19 +782,24 @@ void QCaObject::connectionUpdate (const bool isConnected)
    QCaConnectionInfo connectionInfo;
 
    if (isConnected) {
-      connectionInfo = QCaConnectionInfo( QCaConnectionInfo::CONNECTED,
-                                          this->recordName );
+      connectionInfo = QCaConnectionInfo (QCaConnectionInfo::CONNECTED,
+                                          this->recordName);
       QCaObject::connectedCount++;
    } else {
-      connectionInfo = QCaConnectionInfo( QCaConnectionInfo::CLOSED,
-                                          this->recordName );
+      connectionInfo = QCaConnectionInfo (QCaConnectionInfo::CLOSED,
+                                          this->recordName);
       QCaObject::connectedCount--;
    }
 
    QCaObject::connectedCount = LIMIT (QCaObject::connectedCount, 0, QCaObject::totalChannelCount);
    QCaObject::disconnectedCount = QCaObject::totalChannelCount - QCaObject::connectedCount;
 
-   emit connectionChanged( connectionInfo, this->variableIndex );
+   QEConnectionUpdate connection;
+   connection.connectionInfo = connectionInfo;
+   connection.variableIndex = this->variableIndex;
+
+   emit connectionUpdated (connection);
+   emit connectionChanged (connectionInfo, this->variableIndex);
 }
 
 //------------------------------------------------------------------------------
@@ -798,11 +807,16 @@ void QCaObject::connectionUpdate (const bool isConnected)
 //
 void QCaObject::dataUpdate (const bool firstUpdateIn)
 {
-   static const char* varSignal =
-         SIGNAL (dataChanged (const QVariant&, QCaAlarmInfo&, QCaDateTime&,
-                              const unsigned int&));
+   static const char* varSignal = SIGNAL (valueUpdated (const QEVariantUpdate&));
+   static const char* byteSignal = SIGNAL (arrayUpdated (const QEByteArrayUpdate&));
 
-   static const char* byteSignal =
+   // Older - to be deprecated
+   //
+   static const char* varSignalOld =
+         SIGNAL (dataChanged (const QVariant&, QCaAlarmInfo&,
+                              QCaDateTime&, const unsigned int&));
+
+   static const char* byteSignalOld =
          SIGNAL (dataChanged (const QByteArray&, unsigned long, QCaAlarmInfo&,
                               QCaDateTime&, const unsigned int&));
 
@@ -819,9 +833,16 @@ void QCaObject::dataUpdate (const bool firstUpdateIn)
    if (this->signalsToSend & SIG_VARIANT) {
       // Only form variant and emit signal if at least one receiver.
       //
-      int number = this->receivers (varSignal);
+      int number = this->receivers (varSignal) + this->receivers (varSignalOld);
       if (number > 0) {
          QVariant variantValue = this->getVariant ();
+
+         QEVariantUpdate valueUpdate;
+         valueUpdate.value = variantValue;
+         valueUpdate.alarmInfo = alarmInfo;
+         valueUpdate.timeStamp = timeStamp;
+         valueUpdate.variableIndex = variableIndex;
+         emit valueUpdated (valueUpdate);
          emit dataChanged (variantValue, alarmInfo, timeStamp, this->variableIndex);
       }
    }
@@ -829,7 +850,7 @@ void QCaObject::dataUpdate (const bool firstUpdateIn)
    if (this->signalsToSend & SIG_BYTEARRAY) {
       // Only form byte array and emit signal if at least one receiver.
       //
-      int number = this->receivers (byteSignal);
+      int number = this->receivers (byteSignal) + this->receivers (byteSignalOld);
       if (number > 0) {
          QByteArray byteArrayValue = this->getByteArray ();
          unsigned long dataSize = 0;
@@ -837,6 +858,15 @@ void QCaObject::dataUpdate (const bool firstUpdateIn)
          if (caClient) {
             dataSize = caClient->getDataElementSize ();
          }
+
+         QEByteArrayUpdate arrayUpdate;
+         arrayUpdate.array = byteArrayValue;
+         arrayUpdate.dataElementSize = dataSize;
+         arrayUpdate.alarmInfo = alarmInfo;
+         arrayUpdate.timeStamp = timeStamp;
+         arrayUpdate.variableIndex = variableIndex;
+
+         emit arrayUpdated (arrayUpdate);
          emit dataChanged (byteArrayValue, dataSize, alarmInfo, timeStamp, this->variableIndex);
       }
    }
@@ -864,7 +894,7 @@ QByteArray QCaObject::getByteArray() const
 {
    QByteArray result;
 
-   // Doesn't apply to pva data yet - return an empty array.
+   /// NOTE: Doesn't apply to PVA data yet - return an empty array.
    //
    QECaClient* caClient = this->asCaClient();
    if (caClient) {
@@ -878,8 +908,8 @@ QByteArray QCaObject::getByteArray() const
 //------------------------------------------------------------------------------
 // Extract last emmited data
 //
-void QCaObject::getLastData( bool& isDefinedOut, QVariant& valueOut,
-                             QCaAlarmInfo& alarmInfoOut, QCaDateTime& timeStampOut ) const
+void QCaObject::getLastData (bool& isDefinedOut, QVariant& valueOut,
+                             QCaAlarmInfo& alarmInfoOut, QCaDateTime& timeStampOut) const
 {
    isDefinedOut = this->getDataIsAvailable ();
    valueOut = this->getVariant();
@@ -900,7 +930,7 @@ bool QCaObject::writeEnabled() const
 //------------------------------------------------------------------------------
 // Write a data out to channel
 //
-bool QCaObject::writeData( const QVariant& value )
+bool QCaObject::writeData (const QVariant& value)
 {
    if (!this->client) return false;   // sanity check
    if (!this->writeEnabled()) return false;
@@ -955,7 +985,7 @@ bool QCaObject::writeDataElement (const QVariant& elementValue)
       // The value is a scalar type.
       //
       if (this->arrayIndex == 0) {
-         result = this->writeData (elementValue);       // not an array - write as scalar
+         result = this->writeData (elementValue);   // not an array - write as scalar
       }
    }
    return result;
@@ -965,13 +995,25 @@ bool QCaObject::writeDataElement (const QVariant& elementValue)
 // Re-emit the last data emited, if any.
 // This can be used after a property of a widget using this QCaObject has changed to
 // force an update of the data and a re-presentation of the data in the widget to
-// reflect the new property
+// reflect the new property.
 //
 void QCaObject::resendLastData()
 {
-   if( this->getDataIsAvailable() ){
-      this->dataUpdate( false );
+   if (this->getDataIsAvailable()) {
+      this->dataUpdate (false);
    }
 }
+
+//------------------------------------------------------------------------------
+//
+static bool registerMetaTypes()
+{
+   qRegisterMetaType<QEConnectionUpdate> ("QEConnectionUpdate");
+   qRegisterMetaType<QEVariantUpdate> ("QEVariantUpdate");
+   qRegisterMetaType<QEByteArrayUpdate> ("QEByteArrayUpdate");
+   return true;
+}
+
+static const bool elaborate = registerMetaTypes();
 
 // end
