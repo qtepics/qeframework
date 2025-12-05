@@ -27,6 +27,7 @@
 #ifndef QE_ENUMS_H
 #define QE_ENUMS_H
 
+#include <QMetaType>
 #include <QObject>
 #include <QEFrameworkLibraryGlobal.h>
 

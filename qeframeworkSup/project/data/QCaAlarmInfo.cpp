@@ -3,12 +3,11 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  Copyright (c) 2009-2024 Australian Synchrotron
+ *  Copyright (c) 2009-2025 Australian Synchrotron
  *
  *  The EPICS QT Framework is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ *  the Free Software Foundation, version 3.
  *
  *  The EPICS QT Framework is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,11 +17,9 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
  *
- *  Original author: Andrew Rhyder
- *  Maintained by:   Andrew Starritt
- *
- *  Contact details: andrews@ansto.gov.au
- *  800 Blackburn Road, Clayton, Victoria 3168, Australia.
+ *  Author:     Andrew Rhyder
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 // Alarm info manager
@@ -657,6 +654,8 @@ bool QCaAlarmInfoColorNamesManager::elaborate ()
    // We don't worry about deleting this object.
    //
    new QCaAlarmInfoColorNamesManager ();
+
+   qRegisterMetaType<QCaAlarmInfo>("QCaAlarmInfo");
 
    return true;
 }
