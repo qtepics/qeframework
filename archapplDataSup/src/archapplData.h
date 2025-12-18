@@ -1,32 +1,14 @@
 /*  archapplData.h
  *
- *  A library that takes Google Protocol Buffers data for one PV
- *  recieved from Archiver Appliance, parses it and returns a vector
- *  of object cointaining said data where each object represents one data point.
- *
- *
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  The EPICS QT Framework is free software: you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public License as published
- *  by the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ *  SPDX-FileCopyrightText: 2018-2025 Australian Synchrotron
+ *  SPDX-License-Identifier: LGPL-3.0-only
  *
- *  The EPICS QT Framework is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public License
- *  along with the EPICS QT Framework.  If not, see <http://www.gnu.org/licenses/>.
- *
- *  Copyright (c) 2018 Australian Synchrotron
- *
- *  Author:
- *    Andraz Pozar
- *  Contact details:
- *    andraz.pozar@synchrotron.org.au
+ *  Author:     Andraz Pozar
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 #ifndef ARCHAPPLDATA_H
