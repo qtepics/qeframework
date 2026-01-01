@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2018-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2018-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -370,6 +370,151 @@ QVariantList QEVectorVariants::convertToVariantList (const QVariant& vector, boo
 }
 
 #undef VAR_TO_VAR_LIST
+
+
+//------------------------------------------------------------------------------
+// Template function to extract raw data as a byte array.
+// vtype is the vector type
+// etype is vector element type
+//
+template<class vtype, typename etype>
+static QByteArray getRawData (const QVariant& variant)
+{
+   QByteArray result;
+
+   const vtype vec = qvariant_cast<vtype>(variant);
+   const char* rawData = (const char*) vec.constData();
+   const int count = vec.count() * sizeof (etype);
+   result.append (rawData, count);
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// static
+QByteArray QEVectorVariants::getAsByteArray (const QVariant& vector, bool& okay)
+{
+   QByteArray result;
+
+   okay = true;   // hypothesize all okay.
+
+   const OwnTypes type = QEVectorVariants::getOwnType (vector);
+
+   switch (type) {
+      case DoubleVector:
+         result = getRawData<QEDoubleVector, double>(vector);
+         break;
+
+      case FloatVector:
+         result = getRawData<QEFloatVector, float>(vector);
+         break;
+
+      case BoolVector:
+         result = getRawData<QEBoolVector, bool>(vector);
+         break;
+
+      case Int8Vector:
+         result = getRawData<QEInt8Vector, int8_t>(vector);
+         break;
+
+      case Int16Vector:
+         result = getRawData<QEInt16Vector, int16_t>(vector);
+         break;
+
+      case Int32Vector:
+         result = getRawData<QEInt32Vector, int32_t>(vector);
+         break;
+
+      case Int64Vector:
+         result = getRawData<QEInt64Vector, int64_t>(vector);
+         break;
+
+      case Uint8Vector:
+         result = getRawData<QEUint8Vector, uint8_t>(vector);
+         break;
+
+      case Uint16Vector:
+         result = getRawData<QEUint16Vector, uint16_t>(vector);
+         break;
+
+      case Uint32Vector:
+         result = getRawData<QEUint32Vector, uint32_t>(vector);
+         break;
+
+      case Uint64Vector:
+         result = getRawData<QEUint64Vector, uint64_t>(vector);
+         break;
+
+      case Invalid:
+      default:
+         okay = false;
+         break;
+   }
+
+   return result;
+}
+
+
+//------------------------------------------------------------------------------
+// static
+unsigned QEVectorVariants::getElementSize (const QVariant& vector)
+{
+   unsigned result;
+
+   const OwnTypes type = QEVectorVariants::getOwnType (vector);
+   switch (type) {
+      case DoubleVector:
+         result = sizeof (double);
+         break;
+
+      case FloatVector:
+         result = sizeof (float);
+         break;
+
+      case BoolVector:
+         result = sizeof (bool);
+         break;
+
+      case Int8Vector:
+         result = sizeof (int8_t);
+         break;
+
+      case Int16Vector:
+         result = sizeof (int16_t);
+         break;
+
+      case Int32Vector:
+         result = sizeof (int32_t);
+         break;
+
+      case Int64Vector:
+         result = sizeof (int64_t);
+         break;
+
+      case Uint8Vector:
+         result = sizeof (uint8_t);
+         break;
+
+      case Uint16Vector:
+         result = sizeof (uint16_t);
+         break;
+
+      case Uint32Vector:
+         result = sizeof (uint32_t);
+         break;
+
+      case Uint64Vector:
+         result = sizeof (uint64_t);
+         break;
+
+      case Invalid:
+      default:
+         result = 0;
+         break;
+   }
+
+   return result;
+}
 
 
 //------------------------------------------------------------------------------

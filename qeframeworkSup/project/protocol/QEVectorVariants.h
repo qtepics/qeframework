@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2018-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2018-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -130,6 +130,17 @@ public:
    // okay indicates success or otherwise.
    //
    static QVariantList convertToVariantList (const QVariant& vector, bool& okay);
+
+   // Returns a byte array that holds the raw vector data.
+   // Note: each element of the vector is not converted to a byte, rather
+   // each element becomes 1, 2, 4 or 8 bytes in the byte array.
+   // okay indicates success or otherwise.
+   //
+   static QByteArray getAsByteArray (const QVariant& vector, bool& okay);
+
+   // Returns 1, 2, 4, 8 as appropriate or 0 if vector is not a vector variant.
+   //
+   static unsigned getElementSize (const QVariant& vector);
 
    // Conveniance (and quicker) functions to extract a single element from a vector variant.
    // If index out of range or variant parameter is not a vector variant then default value is returned.

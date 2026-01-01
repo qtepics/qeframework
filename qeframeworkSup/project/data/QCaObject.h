@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Anthony Owen
@@ -51,7 +51,7 @@ Q_DECLARE_METATYPE (QEVariantUpdate)
 
 struct QEByteArrayUpdate {
    QByteArray array;
-   unsigned long dataElementSize;
+   unsigned int dataElementSize;
    QCaAlarmInfo alarmInfo;
    QCaDateTime timeStamp;
    unsigned int variableIndex;
@@ -107,7 +107,7 @@ public:
 
    // Allow dynamic modification of the signals to send.
    void setSignalsToSend (const SignalsToSendFlags signalsToSend);
-   SignalsToSendFlags getSignalsToSend () const;
+   QCaObject::SignalsToSendFlags getSignalsToSend () const;
 
    bool subscribe();        // open channel and subscribe
    bool singleShotRead();   // open channel and initiate a single read
@@ -260,6 +260,7 @@ private:
 
    QVariant getVariant () const;
    QByteArray getByteArray () const;
+   unsigned getDataElementSize () const;
 
    quint64 objectIdentity;   // this object's identity
    static ObjectIdentity nextObjectIdentity;
