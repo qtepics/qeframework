@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2018-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2018-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -34,7 +34,22 @@
 #include <QENTNDArrayData.h>
 #include <QEOpaqueData.h>
 
+
 #define DEBUG qDebug() << "QEPvaData" << __LINE__ << __FUNCTION__ << "  "
+
+//------------------------------------------------------------------------------
+// Essentially != however caters for NaN values.
+// By defn, NaN is != NaN. which is not what we want.
+//
+static bool hasChanged (const double self, const double other)
+{
+   // If both NaN then considered unchanged, i.e. quazi equal.
+   // We don't seem to need to worry about infinites.
+   //
+   if (QEPlatform::isNaN (self) && QEPlatform::isNaN (other)) return false;
+
+   return self != other;
+}
 
 //------------------------------------------------------------------------------
 //
@@ -144,8 +159,8 @@ void QEPvaData::Display::assign (const Display& other, bool& isMetaUpdate)
    if (other.isDefined) {
       isMetaUpdate = isMetaUpdate ||
                      (!this->isDefined) ||
-                     (this->limitLow != other.limitLow) ||
-                     (this->limitHigh != other.limitHigh) ||
+                     hasChanged (this->limitLow, other.limitLow) ||
+                     hasChanged (this->limitHigh, other.limitHigh) ||
                      (this->description != other.description) ||
                      (this->units != other.units) ||
                      (this->precision != other.precision);
@@ -179,8 +194,8 @@ void QEPvaData::Control::assign (const Control& other, bool& isMetaUpdate)
    if (other.isDefined) {
       isMetaUpdate = isMetaUpdate ||
                      (!this->isDefined) ||
-                     (this->limitLow != other.limitLow) ||
-                     (this->limitHigh != other.limitHigh);
+                     hasChanged (this->limitLow, other.limitLow) ||
+                     hasChanged (this->limitHigh, other.limitHigh);
       *this = other;
    } else {
       this->isDefined = false;
@@ -216,10 +231,10 @@ void QEPvaData::ValueAlarm::assign (const ValueAlarm& other, bool& isMetaUpdate)
    if (other.isDefined) {
       isMetaUpdate = isMetaUpdate ||
                      (!this->isDefined) ||
-                     (this->lowAlarmLimit != other.lowAlarmLimit) ||
-                     (this->lowWarningLimit != other.lowWarningLimit) ||
-                     (this->highWarningLimit != other.highWarningLimit) ||
-                     (this->highAlarmLimit != other.highAlarmLimit) ||
+                     hasChanged (this->lowAlarmLimit, other.lowAlarmLimit) ||
+                     hasChanged (this->lowWarningLimit, other.lowWarningLimit) ||
+                     hasChanged (this->highWarningLimit, other.highWarningLimit) ||
+                     hasChanged (this->highAlarmLimit, other.highAlarmLimit) ||
                      (this->lowAlarmSeverity!= other.lowAlarmSeverity) ||
                      (this->lowWarningSeverity != other.lowWarningSeverity) ||
                      (this->highWarningSeverity != other.highWarningSeverity) ||
@@ -310,6 +325,7 @@ bool QEPvaData::extractValue (PVStructureSharedPtr& pv,
 
 
    } else if (epics::nt::NTTable::is_a (pv)) {
+
       epics::nt::NTTable::const_shared_pointer item = epics::nt::NTTable::wrap (pv);
       ASSERT (item.get() != NULL, "NTTable::wrap yielded null");
 
