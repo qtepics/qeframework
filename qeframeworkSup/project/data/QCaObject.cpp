@@ -358,7 +358,7 @@ bool QCaObject::getDataIsAvailable() const
 }
 
 //------------------------------------------------------------------------------
-// Indicates if last data is defined/meaningful.
+// Indicates if last update was a meta data update.
 //
 bool QCaObject::getIsMetaDataUpdate () const
 {
