@@ -946,6 +946,7 @@ void QEPvaClient::processUpdate (QEPvaClient::Update* update)
    if (!update) return;  // sanity check
 
    const QEPvaClient::Update::UpdateKind kind = update->getKind();
+   bool isMetaUpdate;
 
    switch (kind) {
       case QEPvaClient::Update::ukConnection:
@@ -969,16 +970,21 @@ void QEPvaClient::processUpdate (QEPvaClient::Update* update)
          this->pvData = update->getPvData ();
          this->pvType = update->getPvType ();
 
-         // Assign other items.
+         // Assign meta data items.
+         // Note: alarm and timeStamp data does not require is meta data consideration.
          //
+         isMetaUpdate = false;   // hypothesize not a meta data update.
          this->alarm.assign (update->alarm);
          this->timeStamp.assign (update->timeStamp);
-         this->display.assign (update->display);
-         this->control.assign (update->control);
-         this->valueAlarm.assign (update->valueAlarm);
-         this->enumeration.assign (update->enumeration);
+         this->display.assign (update->display, isMetaUpdate);
+         this->control.assign (update->control, isMetaUpdate);
+         this->valueAlarm.assign (update->valueAlarm, isMetaUpdate);
+         this->enumeration.assign (update->enumeration, isMetaUpdate);
 
-         emit dataUpdated (this->firstUpdate);
+         // The first post connection update is always considered
+         // a meta data update.
+         //
+         emit dataUpdated (this->firstUpdate | isMetaUpdate);
          this->firstUpdate = false;
          break;
 

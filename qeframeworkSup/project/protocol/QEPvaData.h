@@ -61,9 +61,10 @@ public:
       explicit Enumerated ();
       ~Enumerated ();
 
-      // Assign the members of other to this intsance.
+      // Assign the members of other to this instance.
+      // isMetaUpdate indicates if this is a meta data update.
       //
-      void assign (const Enumerated& other);
+      void assign (const Enumerated& other, bool& isMetaUpdate);
 
       // Extract field data if available and return if successful extracted.
       // If fails, class instance is interdeminate.
@@ -123,7 +124,8 @@ public:
    public:
       explicit Display ();
       ~Display ();
-      void assign (const Display& other);
+
+      void assign (const Display& other, bool& isMetaUpdate);
 
       // Extract display field from the pv data if available and then populate
       // the limitLow, limitHigh, description etc. class instance members.
@@ -147,7 +149,8 @@ public:
    public:
       explicit Control ();
       ~Control ();
-      void assign (const Control& other);
+
+      void assign (const Control& other, bool& isMetaUpdate);
 
       // Extract control field from the pv data if available and then populate
       // the limitLow, limitHigh and minStep class instance members.
@@ -170,7 +173,8 @@ public:
    public:
       explicit ValueAlarm ();
       ~ValueAlarm ();
-      void assign (const ValueAlarm& other);
+
+      void assign (const ValueAlarm& other, bool& isMetaUpdate);
 
       // Extract valueAlarm field from the pv data if available and then populate
       // the lowAlarmLimit, lowWarningLimit etc. class instance members.

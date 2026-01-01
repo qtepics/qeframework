@@ -57,9 +57,12 @@ QEPvaData::Enumerated::~Enumerated () { } // place holder
 
 //------------------------------------------------------------------------------
 //
-void QEPvaData::Enumerated::assign (const Enumerated& other)
+void QEPvaData::Enumerated::assign (const Enumerated& other, bool& isMetaUpdate)
 {
    if (other.isDefined) {
+      isMetaUpdate = isMetaUpdate ||
+                     (!this->isDefined) ||
+                     (this->choices != other.choices);
       *this = other;
    } else {
       this->isDefined = false;
@@ -136,9 +139,16 @@ QEPvaData::Display::~Display () { } // place holder
 
 //------------------------------------------------------------------------------
 //
-void QEPvaData::Display::assign (const Display& other)
+void QEPvaData::Display::assign (const Display& other, bool& isMetaUpdate)
 {
    if (other.isDefined) {
+      isMetaUpdate = isMetaUpdate ||
+                     (!this->isDefined) ||
+                     (this->limitLow != other.limitLow) ||
+                     (this->limitHigh != other.limitHigh) ||
+                     (this->description != other.description) ||
+                     (this->units != other.units) ||
+                     (this->precision != other.precision);
       *this = other;
    } else {
       this->isDefined = false;
@@ -164,9 +174,13 @@ QEPvaData::Control::~Control () { } // place holder
 
 //------------------------------------------------------------------------------
 //
-void QEPvaData::Control::assign (const Control& other)
+void QEPvaData::Control::assign (const Control& other, bool& isMetaUpdate)
 {
    if (other.isDefined) {
+      isMetaUpdate = isMetaUpdate ||
+                     (!this->isDefined) ||
+                     (this->limitLow != other.limitLow) ||
+                     (this->limitHigh != other.limitHigh);
       *this = other;
    } else {
       this->isDefined = false;
@@ -197,9 +211,19 @@ QEPvaData::ValueAlarm::~ValueAlarm () { } // place holder
 
 //------------------------------------------------------------------------------
 //
-void QEPvaData::ValueAlarm::assign (const ValueAlarm& other)
+void QEPvaData::ValueAlarm::assign (const ValueAlarm& other, bool& isMetaUpdate)
 {
    if (other.isDefined) {
+      isMetaUpdate = isMetaUpdate ||
+                     (!this->isDefined) ||
+                     (this->lowAlarmLimit != other.lowAlarmLimit) ||
+                     (this->lowWarningLimit != other.lowWarningLimit) ||
+                     (this->highWarningLimit != other.highWarningLimit) ||
+                     (this->highAlarmLimit != other.highAlarmLimit) ||
+                     (this->lowAlarmSeverity!= other.lowAlarmSeverity) ||
+                     (this->lowWarningSeverity != other.lowWarningSeverity) ||
+                     (this->highWarningSeverity != other.highWarningSeverity) ||
+                     (this->highAlarmSeverity != other.highAlarmSeverity);
       *this = other;
    } else {
       this->isDefined = false;
