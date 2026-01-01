@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -576,6 +576,12 @@ qcaobject::QCaObject* QEImage::createQcaItem( unsigned int variableIndex ) {
                 // Create the image item
                 QEByteArray* qca = new QEByteArray( getSubstitutedVariableName( variableIndex ), this, variableIndex );
 
+                // This might be a PVA object referencing a an NTNDArray PVA,
+                // so we need both signal types. Depending on what we receive,
+                // we drop either SIG_VARIANT or SIG_BYTEARRAY.
+                //
+                qca->setSignalsToSend (qcaobject::QCaObject::SIG_VARIANT | qcaobject::QCaObject::SIG_BYTEARRAY);
+
                 int elementCount = iProcessor.getElementCount();
                 if( elementCount )
                 {
@@ -701,6 +707,7 @@ void QEImage::establishConnection( unsigned int variableIndex ) {
                                   this, SLOT( setImage( const QByteArray&, unsigned long, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
 
                 // Note: we connect to receive the 'raw' variant data for PVA image data
+                // We will get both initilially.
                 //
                 QObject::connect (qca, SIGNAL (dataChanged (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
                                   this, SLOT  (setPvaImage (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
@@ -928,17 +935,11 @@ void QEImage::connectionChanged( QCaConnectionInfo& connectionInfo, const unsign
     // Note the connected state
     isConnected = connectionInfo.isChannelConnected();
 
-    qcaobject::QCaObject* qca = getQcaItem( variableIndex );
     switch( (variableIndexes)variableIndex )
     {
         // Connect the image waveform record to the display image
         case IMAGE_VARIABLE:
             this->isFirstImageUpdate = true;
-            if( qca && qca->isPvaChannel() ){
-                // PVA channel suppied as QENTImageData varient.
-                //
-                qca->setSignalsToSend( qcaobject::QCaObject::SIG_VARIANT );
-            }
             break;
 
         default:
@@ -973,7 +974,8 @@ void QEImage::connectionChanged( QCaConnectionInfo& connectionInfo, const unsign
 
     This is the slot used to recieve data updates from a QCaObject based class.
  */
-void QEImage::setFormat( const QString& text, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex )
+void QEImage::setFormat( const QString& text, QCaAlarmInfo& alarmInfo,
+                         QCaDateTime&, const unsigned int& variableIndex )
 {
     // Sanity check - Only deal with format variable
     if( variableIndex != FORMAT_VARIABLE)
@@ -1010,7 +1012,8 @@ void QEImage::setFormat( const QString& text, QCaAlarmInfo& alarmInfo, QCaDateTi
     Update the image dimensions (width and height in various arrangements)
     This is the slot used to recieve data updates from a QCaObject based class.
  */
-void QEImage::setDimension( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex )
+void QEImage::setDimension( const long& value, QCaAlarmInfo& alarmInfo,
+                            QCaDateTime&, const unsigned int& variableIndex )
 {
     bool dimensionChange = false;
 
@@ -1100,9 +1103,10 @@ void QEImage::setDataType( const QString& text, QCaAlarmInfo& alarmInfo, QCaDate
         return;
     }
 
+
     // Determine the bit depth from the data type.
     long value = 1;
-    if(      text == "Int8" )    value = 7;
+    if(      text == "Int8" )    value = 8;  // Treat as effectively unsigned.
     else if( text == "UInt8" )   value = 8;
     else if( text == "Int16" )   value = 15;
     else if( text == "UInt16" )  value = 16;
@@ -1110,7 +1114,9 @@ void QEImage::setDataType( const QString& text, QCaAlarmInfo& alarmInfo, QCaDate
     else if( text == "UInt32" )  value = 24; // Todo:??? Should be 32. change to 32 when all pixel information is held in unsigned int or long. (mostly in brightness / contrast code where int is used to woek well with sliders)
     else if( text == "Float32" ) value = 16; // Bit depth cannot be derived. Assume 16 bit (actually, setting bit depth from the data type is always an assumption!)
     else if( text == "Float64" ) value = 16; // Bit depth cannot be derived. Assume 16 bit (actually, setting bit depth from the data type is always an assumption!)
-    else return;
+    else {
+       return;
+    }
 
     // Update the depth
     setBitDepth( value );
@@ -1678,7 +1684,8 @@ void QEImage::setDataImage( const QByteArray& imageIn,
                             QE::ImageFormatOptions format,
                             unsigned int depth )
 {
-    //!!! Should the format, bit depth, width and height be clobered like this? (especially where we are altering properties, like bitDepth)
+    //!!! Should the format, bit depth, width and height be clobered like this?
+    //!!! (especially where we are altering properties, like bitDepth).
     //!!! Perhaps CA delivered and MPEG delivered images should maintain their own attributes?
 
     // set the format
@@ -1708,54 +1715,79 @@ void QEImage::setDataImage( const QByteArray& imageIn,
 
 /* -----------------------------------------------------------------------------
     Update the image
-    This is the slot used to recieve data updates via PV Access.
+    This is the slot used to recieve NTND Array data updates via PV Access.
  */
-void QEImage::setPvaImage( const QVariant& value,
+void QEImage::setPvaImage (const QVariant& value,
                            QCaAlarmInfo& alarmInfo,
                            QCaDateTime& timeStamp,
-                           const unsigned int& variableIndex )
+                           const unsigned int& variableIndex)
 {
-    if (variableIndex != IMAGE_VARIABLE) {
-       DEBUG << "unexpected variableIndex" << variableIndex;
-       return;
-    }
+   if (variableIndex != IMAGE_VARIABLE) {
+      DEBUG << "unexpected variableIndex" << variableIndex;
+      return;
+   }
 
-    QENTNDArrayData imageData;
+   QENTNDArrayData imageData;
+   if (!imageData.assignFromVariant (value)) {
 
-    if (!imageData.assignFromVariant (value)) {
-       if (this->isFirstImageUpdate) {
-          DEBUG << "PV" << this->getSubstitutedVariableName (variableIndex)
-                << "does not provides NTNDArray data";
-       }
-       this->isFirstImageUpdate = false;
-       return;
-    }
+      if (this->isFirstImageUpdate) {
+         // Assignment failed - is not a QENTNDArrayData varient.
+         //
+//       DEBUG << this->objectName() << this->getSubstitutedVariableName (variableIndex)
+//             << "does not provide NTNDArray data";
 
-    // Decompress if needs be.
-    //
-    // bool status =
-    imageData.decompressData ();
+//       DEBUG << this->objectName() << "masking setPvaImage";
 
-    // set the format
-    setFormatOption( imageData.getFormat() );
+         qcaobject::QCaObject* qca = this->getQcaItem (IMAGE_VARIABLE);
 
-    // Set the image bit depth
-    iProcessor.setBitDepth( imageData.getBitDepth() );
+         // Drop SIG_VARIANT
+         if (qca) qca->setSignalsToSend (qcaobject::QCaObject::SIG_BYTEARRAY);
+      }
+      return;
+   }
 
-    iProcessor.setElementsPerPixel( imageData.getBytesPerPixel() );
+   // This is a QENTNDArrayData varient.
+   //
+   if (this->isFirstImageUpdate) {
+//    DEBUG << this->objectName() << "masking setImage";
+      qcaobject::QCaObject* qca = this->getQcaItem (IMAGE_VARIABLE);
+      if (qca) qca->setSignalsToSend (qcaobject::QCaObject::SIG_VARIANT);
+   }
 
-    // Set the image dimensions to match the image size
-    iProcessor.setImageBuffWidth( imageData.getWidth() );
-    iProcessor.setImageBuffHeight( imageData.getHeight() );
+   // Call the corresponding meta data type slot functions,
+   // as if values received via individual channels.
+   //
+   // set the format.
+   //
+   this->setFormat (imageData.getColourMode(), alarmInfo, timeStamp, FORMAT_VARIABLE);
 
-    // Update the image buffer according to the new size.
-    setImageSize();
+   // set the data type.
+   //
+   this->setDataType (imageData.getDataType(), alarmInfo, timeStamp, DATA_TYPE_VARIABLE);
 
-    // Call the standard CA set image
-    setImage( imageData.getData(), imageData.getBytesPerPixel(),
-              alarmInfo, timeStamp, variableIndex );
+   // set the dimensions.
+   //
+   const int ndims = imageData.getNumberDimensions();
+   if ((ndims < 2) || (ndims > 3)) {
+      // We can only handle 2 or 3 dimensions.
+      DEBUG << "ndims out of range";
+      return;
+   }
 
-    this->updateToolTipAlarm (alarmInfo, variableIndex);
+   this->setDimension (ndims, alarmInfo, timeStamp, NUM_DIMENSIONS_VARIABLE);
+
+   this->setDimension (imageData.getDimensionSize(0), alarmInfo, timeStamp, DIMENSION_0_VARIABLE);
+   this->setDimension (imageData.getDimensionSize(1), alarmInfo, timeStamp, DIMENSION_1_VARIABLE);
+   if (ndims == 3) {
+      this->setDimension (imageData.getDimensionSize(2), alarmInfo, timeStamp, DIMENSION_2_VARIABLE);
+   }
+
+   // Lastly call the standard CA set image
+   //
+   this->setImage (imageData.getData(), imageData.getBytesPerPixel(),
+                   alarmInfo, timeStamp, IMAGE_VARIABLE);
+
+   this->isFirstImageUpdate = false;
 }
 
 
@@ -1826,6 +1858,7 @@ void QEImage::setImage( const QByteArray& imageIn,
     }
 
     this->updateToolTipAlarm (alarmInfo, variableIndex);
+    this->isFirstImageUpdate = false;
 }
 
 // Display a new image.
@@ -2933,24 +2966,17 @@ QE::ImageFormatOptions QEImage::getFormatOption()
 }
 
 // Allow user to set the bit depth for Mono video format
-void QEImage::setBitDepth( unsigned int bitDepthIn )
+void QEImage::setBitDepth( int bitDepthIn )
 {
     // Ensure bit depth is reasonable
-    unsigned int sanitiedBitDepth = bitDepthIn;
-    if( sanitiedBitDepth == 0 )
-    {
-        sanitiedBitDepth = 1;
-    }
-    else if( sanitiedBitDepth > 32 )
-    {
-        sanitiedBitDepth = 32;
-    }
+    //
+    const unsigned int sanitiedBitDepth = LIMIT (bitDepthIn, 1, 32);
 
     // Save the option
     iProcessor.setBitDepth( sanitiedBitDepth );
 }
 
-unsigned int QEImage::getBitDepth()
+int QEImage::getBitDepth()
 {
     return iProcessor.getBitDepth();
 }
@@ -2969,19 +2995,13 @@ void QEImage::setZoom( int zoomIn )
 {
     // Save the zoom
     // (Limit to 10 - 400 %)
-    if( zoomIn < 10 )
-        zoom = 10;
-    else if( zoomIn > 400 )
-        zoom = 400;
-    else
-        zoom = zoomIn;
+    this->zoom = LIMIT (zoomIn, 10, 400);
 
     // Resize and rescale
-    setImageSize();
+    this->setImageSize();
 
     // Update the info area
-    infoUpdateZoom( zoom, XStretch, YStretch );
-
+    this->infoUpdateZoom( zoom, XStretch, YStretch );
 }
 
 int QEImage::getZoom()

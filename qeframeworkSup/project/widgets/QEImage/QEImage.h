@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -193,8 +193,8 @@ public:
 public:
     // Property convenience functions
 
-    void setBitDepth( unsigned int bitDepthIn );                        ///< Access function for #bitDepth property - refer to #bitDepth property for details
-    unsigned int getBitDepth();                                         ///< Access function for #bitDepth property - refer to #bitDepth property for details
+    void setBitDepth( int bitDepthIn );                                 ///< Access function for #bitDepth property - refer to #bitDepth property for details
+    int getBitDepth();                                                  ///< Access function for #bitDepth property - refer to #bitDepth property for details
 
     void setFormatOption( QE::ImageFormatOptions formatOption );        ///< Access function for #formatOption property - refer to #formatOption property for details
     QE::ImageFormatOptions getFormatOption();                           ///< Access function for #formatOption property - refer to #formatOption property for details
@@ -1496,7 +1496,7 @@ public:
     /// Bit depth.
     /// Note, EPICS data type size will typically be adequate for the number of bits required (one byte for up to 8 bits, 2 bytes for up to 16 bits, etc),
     /// but can be larger (for example, 4 bytes for 24 bits) and may be larger than nessesary (4 bytes for 8 bits).
-    Q_PROPERTY(unsigned int bitDepth READ getBitDepthProperty WRITE setBitDepthProperty)
+    Q_PROPERTY(int bitDepth READ getBitDepthProperty WRITE setBitDepthProperty)
 
     void setBitDepthProperty( unsigned int bitDepth ){ setBitDepth( bitDepth ); }                                           ///< Access function for #bitDepth property - refer to #bitDepth property for details
     unsigned int getBitDepthProperty(){ return getBitDepth(); }                                                             ///< Access function for #bitDepth property - refer to #bitDepth property for details
