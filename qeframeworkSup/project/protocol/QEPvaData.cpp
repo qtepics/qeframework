@@ -340,7 +340,7 @@ bool QEPvaData::extractValue (PVStructureSharedPtr& pv,
 
 
    } else if (epics::nt::NTNDArray::is_a (pv)) {
-      epics::nt::NTNDArray::const_shared_pointer item = epics::nt::NTNDArray::wrap (pv);
+      epics::nt::NTNDArrayPtr item = epics::nt::NTNDArray::wrap (pv);
       ASSERT (item.get() != NULL, ":NTNDArray::wrap yielded null");
       // This is a NTNDArray/image type.
       //
@@ -1095,14 +1095,19 @@ bool QEPvaData::Alarm::extract (const PVStructureConstPtr& pv)
 
 //------------------------------------------------------------------------------
 // static
-bool QEPvaData::Display::extract (const PVStructureConstPtr& pv)
+bool QEPvaData::Display::extract (const PVStructureConstPtr& pv,
+                                  const QString& identity)
 {
+   const bool isNTNDArray = identity.startsWith ("epics:nt/NTNDArray");
+
    ASSIGN_STRUCT (display, display);
    ASSIGN_MEMBER (display, limitLow,    pvd::PVDouble, double);
    ASSIGN_MEMBER (display, limitHigh,   pvd::PVDouble, double);
    ASSIGN_MEMBER (display, description, pvd::PVString, QString::fromStdString);
    ASSIGN_MEMBER (display, units,       pvd::PVString, QString::fromStdString);
-   ASSIGN_MEMBER (display, precision,   pvd::PVInt,    int);
+   if (!isNTNDArray) {
+      ASSIGN_MEMBER (display, precision,   pvd::PVInt,    int);
+   }
    // format replaced by form - TBD
    this->isDefined = true;
    return true;

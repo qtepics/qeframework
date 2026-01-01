@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2018-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2018-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -131,8 +131,11 @@ public:
       // the limitLow, limitHigh, description etc. class instance members.
       // The function returns true if all data is successfully extracted.
       // If it fails, class instance is interdeminate.
+      // Note, some display substructures are different (e.g. NTNDArray) so
+      // we also need the pv identity, e.g. "epics:nt/NTNDArray:1.0", to
+      // fine tune what is extracted from the display structure.
       //
-      bool extract (const PVStructureConstPtr& pv);
+      bool extract (const PVStructureConstPtr& pv, const QString& identity);
 
       bool isDefined;
       double limitLow;

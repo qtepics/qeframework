@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2018-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2018-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -36,7 +36,7 @@
 #include <lz4.h>
 #include <bitshuffle.h>
 
-#endif
+#endif   // QE_AD_SUPPORT
 
 // Move to QECommon
 #ifdef MIN
@@ -47,6 +47,7 @@
 #undef MAX
 #endif
 
+#include <QENTNDArrayConverter.h>
 #include <QECommon.h>
 
 #define DEBUG qDebug() << "QENTNDArrayData" << __LINE__ << __FUNCTION__ << "  "
@@ -89,32 +90,21 @@ QENTNDArrayData& QENTNDArrayData::operator=(const QENTNDArrayData& other)
 //
 void QENTNDArrayData::assignOther (const QENTNDArrayData& other)
 {
+   this->data = other.data;
+
+   this->colourMode = other.colourMode;
+   this->dataType = other.dataType;
+
    this->numberDimensions = other.numberDimensions;
 
-   for (int dsi = 0; dsi < ARRAY_LENGTH (dimensionSizes); dsi++)
+   for (int dsi = 0; dsi < ARRAY_LENGTH (dimensionSizes); dsi++) {
       this->dimensionSizes [dsi] = other.dimensionSizes[dsi];
+   }
 
    this->bytesPerPixel = other.bytesPerPixel;
-   this->numberElements = other.numberElements;
-   this->totalBytes = other.totalBytes;
-
-   this->compressedDataSize = other.compressedDataSize;
-   this->uncompressedDataSize = other.uncompressedDataSize;
-
-   this->dtsSecondsPastEpoch = other.dtsSecondsPastEpoch;
-   this->dtsNanoseconds = other.dtsNanoseconds;
-   this->dtsUserTag = other.dtsUserTag;
 
    this->uniqueId = other.uniqueId;
    this->descriptor = other.descriptor;
-
-   this->attributeMap = other.attributeMap;
-
-   this->data = other.data;
-   this->codecName = other.codecName;
-   this->format = other.format;
-   this->bitDepth = other.bitDepth;
-   this->isDecompressed = other.isDecompressed;
 }
 
 //------------------------------------------------------------------------------
@@ -123,25 +113,6 @@ void QENTNDArrayData::assignOther (const QENTNDArrayData& other)
 
 namespace TR1 = std::tr1;
 namespace pvd = epics::pvData;
-
-// based on ntndArrayConverter out of areaDetector.
-//
-template <typename pvAttrType, typename valueType>
-static void toAttribute (QENTNDArrayData::AttributeMaps map, pvd::PVStructurePtr src)
-{
-    const char* name   = src->getSubField<pvd::PVString>("name")->get().c_str();
-//  const char* desc   = src->getSubField<pvd::PVString>("descriptor")->get().c_str();
-    valueType value    = src->getSubField<pvd::PVUnion>("value")->get<pvAttrType>()->get();
-    map.insert (QString (name), QVariant (value));
-}
-
-static void toStringAttribute (QENTNDArrayData::AttributeMaps map, pvd::PVStructurePtr src)
-{
-    const char* name   = src->getSubField<pvd::PVString>("name")->get().c_str();
-//  const char* desc   = src->getSubField<pvd::PVString>("descriptor")->get().c_str();
-    const char* value  = src->getSubField<pvd::PVUnion>("value")->get<pvd::PVString>()->get().c_str();
-    map.insert (QString (name), QVariant (value));
-}
 
 
 // Format/structure
@@ -187,20 +158,22 @@ static void toStringAttribute (QENTNDArrayData::AttributeMaps map, pvd::PVStruct
 //     time_t timeStamp ...
 //     display_t display ...
 //
-bool QENTNDArrayData::assignFrom (epics::nt::NTNDArray::const_shared_pointer item)
+bool QENTNDArrayData::assignFrom (epics::nt::NTNDArrayPtr item)
 {
    static bool verbose = true;
 
    // Local macro function
    //
-#define ASSERT(condition, message) {                                             \
-      if (!(condition)) {                                                        \
-         if (verbose) {                                                          \
-            qDebug() << "QENTImageData" << __LINE__ << __FUNCTION__ << message;  \
-         }                                                                       \
-         return false;                                                           \
-      }                                                                          \
+#define ASSERT(condition, message) {           \
+      if (!(condition)) {                      \
+         if (verbose) {                        \
+            DEBUG << message;                  \
+         }                                     \
+         return false;                         \
+      }                                        \
    }
+
+   ASSERT (item, "Null item");
 
    // Ensure we have a value.
    //
@@ -215,45 +188,38 @@ bool QENTNDArrayData::assignFrom (epics::nt::NTNDArray::const_shared_pointer ite
 
    this->clear();
 
-   // process dimensions - based on ntndArrayConverter out of areaDetector.
+   // Extract the image information, excluding the actual data array.
+   // NTNDArrayConverter cribbed from adCore out of Area Detector.
    //
-   pvd::PVStructureArray::const_svector dimensions (item->getDimension()->view());
-
-   this->numberDimensions = (int) dimensions.size();
-   this->numberElements = 1;
-   for (int j = 0; j < this->numberDimensions; j++) {
-      this->dimensionSizes [j] = (int) dimensions[j]->getSubField<pvd::PVInt>("size")->get();
-      this->numberElements *= this->dimensionSizes [j];
+   NTNDArrayInfo_t info;
+   try {
+      NTNDArrayConverter converter (item);
+      info = converter.getInfo();
+   } catch (std::exception& e) {
+      DEBUG << "exception" << e.what();
+      return false;
    }
 
-   // process the image value data
+   // Copy basic meta data
+   //
+   this->colourMode = NDColorModeImage (info.colorMode);
+   this->dataType = NDDataTypeImage (info.dataType);
+
+   this->numberDimensions = info.ndims;
+   for (int d = 0; d < info.ndims; d++) {
+      this->dimensionSizes [d] = info.dims[d];
+   }
+   this->bytesPerPixel = info.bytesPerElement;  //
+
+   const pvd::PVIntPtr id = item->getUniqueId();
+   this->uniqueId = id->getAs<pvd::int32>();
+
+   const pvd::PVStringPtr desc = item->getDescriptor();
+   this->descriptor = QString::fromStdString (desc->getAs <std::string>());
+
+   // Now extract and process the image value data itself
    //
    const pvd::ScalarType scalarType = this->getValueType (value);
-
-   int bpe;  // bytesPerElement
-   switch(scalarType) {
-      case pvd::pvByte:    bpe = sizeof(epicsInt8);    break;
-      case pvd::pvUByte:   bpe = sizeof(epicsUInt8);   break;
-      case pvd::pvShort:   bpe = sizeof(epicsInt16);   break;
-      case pvd::pvUShort:  bpe = sizeof(epicsUInt16);  break;
-      case pvd::pvInt:     bpe = sizeof(epicsInt32);   break;
-      case pvd::pvUInt:    bpe = sizeof(epicsUInt32);  break;
-      case pvd::pvFloat:   bpe = sizeof(epicsFloat32); break;
-      case pvd::pvDouble:  bpe = sizeof(epicsFloat64); break;
-
-      case pvd::pvBoolean:
-      case pvd::pvLong:
-      case pvd::pvULong:
-      case pvd::pvString:
-      default:
-         ASSERT (false, "invalid value data type");
-         break;
-   }
-
-   this->bytesPerPixel = bpe;
-   this->totalBytes = this->numberElements * this->bytesPerPixel;
-   this->bitDepth = 8 * this->bytesPerPixel;
-
    switch (scalarType) {
       case pvd::pvByte:    this->toValue<pvd::PVByteArray>  (value); break;
       case pvd::pvUByte:   this->toValue<pvd::PVUByteArray> (value); break;
@@ -273,59 +239,19 @@ bool QENTNDArrayData::assignFrom (epics::nt::NTNDArray::const_shared_pointer ite
          break;
    }
 
-   // Extract the meta data.
+   // Extract the size meta data.
    //
-   this->codecName = QString::fromStdString (codecNamePtr->getAs <std::string>());
-
    pvd::PVLongPtr cds = item->getCompressedDataSize();
-   this->compressedDataSize = cds->getAs<pvd::int64>();
-
    pvd::PVLongPtr uds = item->getUncompressedDataSize();
-   this->uncompressedDataSize = uds->getAs<pvd::int64>();
 
-   pvd::PVIntPtr id = item->getUniqueId();
-   this->uniqueId = id->getAs<pvd::int32>();
+   Compression compression;
+   compression.codecName = QString::fromStdString (info.codec);
+   compression.compressedDataSize = cds->getAs<pvd::int64>();
+   compression.uncompressedDataSize = uds->getAs<pvd::int64>();
 
-   QEPvaData::TimeStamp dts;
-   dts.extract (item->getDataTimeStamp());
-   this->dtsSecondsPastEpoch = dts.secondsPastEpoch;
-   this->dtsNanoseconds = dts.nanoseconds;
-   this->dtsUserTag = dts.userTag;
-
-   pvd::PVStringPtr desc = item->getDescriptor();
-   this->descriptor = QString::fromStdString (desc->getAs <std::string>());
-
-   // process attributeList - based on ntndArrayConverter out of areaDetector.
+   // Decompress if needs be.
    //
-   this->attributeMap.clear();
-   pvd::PVStructureArray::const_svector attrVec (item->getAttribute()->view());
-
-   for (VectorIter it = attrVec.cbegin(); it != attrVec.cend(); ++it) {
-      pvd::PVScalarPtr srcScalar((*it)->getSubField<pvd::PVUnion>("value")->get<pvd::PVScalar>());
-
-      if (srcScalar) {
-         switch (srcScalar->getScalar()->getScalarType()) {
-            case pvd::pvByte:   toAttribute<pvd::PVByte,   int8_t>  (this->attributeMap, *it); break;
-            case pvd::pvUByte:  toAttribute<pvd::PVUByte,  uint8_t> (this->attributeMap, *it); break;
-            case pvd::pvShort:  toAttribute<pvd::PVShort,  int16_t> (this->attributeMap, *it); break;
-            case pvd::pvUShort: toAttribute<pvd::PVUShort, uint16_t>(this->attributeMap, *it); break;
-            case pvd::pvInt:    toAttribute<pvd::PVInt,    int32_t> (this->attributeMap, *it); break;
-            case pvd::pvUInt:   toAttribute<pvd::PVUInt,   uint32_t>(this->attributeMap, *it); break;
-            case pvd::pvFloat:  toAttribute<pvd::PVFloat,  float>   (this->attributeMap, *it); break;
-            case pvd::pvDouble: toAttribute<pvd::PVDouble, double>  (this->attributeMap, *it); break;
-            case pvd::pvString: toStringAttribute                   (this->attributeMap, *it); break;
-            case pvd::pvBoolean:
-            case pvd::pvLong:
-            case pvd::pvULong:
-            default:
-               break;   // ignore invalid types
-         }
-      }
-   }
-
-   // Do a special for the ColorMode attribute.
-   //
-   this->format = this->getImageFormat (attrVec);
+   this->decompressData (compression);
 
    return true;
 
@@ -350,6 +276,7 @@ pvd::ScalarType QENTNDArrayData::getValueType (pvd::PVUnionPtr value) const
    return result;
 }
 
+//------------------------------------------------------------------------------
 // writes to QByteArray data
 template <typename arrayType>
 void QENTNDArrayData::toValue (pvd::PVUnionPtr value)
@@ -364,58 +291,22 @@ void QENTNDArrayData::toValue (pvd::PVUnionPtr value)
    this->data.append ((const char *)srcVec.data(), length);
 }
 
-
-//------------------------------------------------------------------------------
-//
-QE::ImageFormatOptions QENTNDArrayData::getImageFormat
-   (pvd::PVStructureArray::const_svector attrs) const
-{
-   QE::ImageFormatOptions result = QE::Mono;
-
-   for (VectorIter it (attrs.cbegin()); it != attrs.cend (); ++it) {
-       const std::string name = (*it)->getSubField<pvd::PVString>("name")->get();
-       if (name == "ColorMode") {
-           pvd::PVUnionPtr field ((*it)->getSubField<pvd::PVUnion>("value"));
-           int cm = TR1::static_pointer_cast<pvd::PVInt> (field->get())->get();
-           if ((cm >= 0) && (cm < QE::numberOfImageFormats)) {
-              // Is casting ok - maybe we need a look up table.
-              //
-              result = QE::ImageFormatOptions (cm);
-           }
-           break;
-       }
-   }
-   return result;
-}
-
 #endif  // QE_INCLUDE_PV_ACCESS
 
 //------------------------------------------------------------------------------
 //
 void QENTNDArrayData::clear ()
 {
-   this->isDecompressed = false;
    this->data.clear();
-   this->attributeMap.clear();
-   this->codecName = "";
-   this->format = QE::Mono;
-   this->bitDepth = 8;
-
-   this->compressedDataSize = 0;
-   this->uncompressedDataSize = 0;
-   this->dtsSecondsPastEpoch = 0;
-   this->dtsNanoseconds = 0;
-   this->dtsUserTag = 0;
-   this->uniqueId = 0;
-   this->descriptor = "";
-
-   this->numberElements = 0;
+   this->colourMode = NDColorModeImage (NDColorModeMono);
+   this->dataType = NDDataTypeImage (NDUInt8);
    this->numberDimensions = 0;
    for (int j = 0; j < ARRAY_LENGTH (this->dimensionSizes); j++) {
       this->dimensionSizes[j] = 0;
    }
-   this->bytesPerPixel = 0;
-   this->totalBytes = 0;
+   this->bytesPerPixel = 1;
+   this->descriptor = "";
+   this->uniqueId = 0;
 }
 
 //------------------------------------------------------------------------------
@@ -427,9 +318,16 @@ QByteArray QENTNDArrayData::getData () const
 
 //------------------------------------------------------------------------------
 //
-QString QENTNDArrayData::getCodecName () const
+QString QENTNDArrayData::getColourMode() const
 {
-   return this->codecName;
+    return this->colourMode;
+}
+
+//------------------------------------------------------------------------------
+//
+QString QENTNDArrayData::getDataType() const
+{
+   return this->dataType;
 }
 
 //------------------------------------------------------------------------------
@@ -448,13 +346,6 @@ int QENTNDArrayData::getDimensionSize (const int d) const
 
 //------------------------------------------------------------------------------
 //
-QE::ImageFormatOptions QENTNDArrayData::getFormat() const
-{
-   return this->format;
-}
-
-//------------------------------------------------------------------------------
-//
 int QENTNDArrayData::getBytesPerPixel () const
 {
     return this->bytesPerPixel;
@@ -462,43 +353,16 @@ int QENTNDArrayData::getBytesPerPixel () const
 
 //------------------------------------------------------------------------------
 //
-int QENTNDArrayData::getWidth () const
+QString QENTNDArrayData::getDescription () const
 {
-   int result;
-   switch (this->numberDimensions) {
-      case 2:  result = this->dimensionSizes [0]; break;
-      case 3:  result = this->dimensionSizes [1]; break;
-      default: result = 0; break;
-   }
-   return result;
+   return this->descriptor;
 }
 
 //------------------------------------------------------------------------------
 //
-int QENTNDArrayData::getHeight () const
+int QENTNDArrayData::getUniqueId () const
 {
-   int result;
-   switch (this->numberDimensions) {
-      case 2:  result = this->dimensionSizes [1]; break;
-      case 3:  result = this->dimensionSizes [2]; break;
-      default: result = 0; break;
-   }
-   return result;
-}
-
-//------------------------------------------------------------------------------
-//
-int QENTNDArrayData::getBitDepth () const
-{
-   return this->bitDepth;
-}
-
-//------------------------------------------------------------------------------
-//
-QVariant QENTNDArrayData::getAttibute (const QString& name) const
-{
-   QVariant result = this->attributeMap.value (name, result);
-   return result;
+   return this->uniqueId;
 }
 
 //------------------------------------------------------------------------------
@@ -512,7 +376,7 @@ QVariant QENTNDArrayData::toVariant () const
 
 //------------------------------------------------------------------------------
 //
-bool QENTNDArrayData::assignFromVariant (const QVariant & item)
+bool QENTNDArrayData::assignFromVariant (const QVariant& item)
 {
    bool result = QENTNDArrayData::isAssignableVariant (item);
    if (result) {
@@ -524,18 +388,11 @@ bool QENTNDArrayData::assignFromVariant (const QVariant & item)
 
 //------------------------------------------------------------------------------
 //
-bool QENTNDArrayData::decompressData ()
+bool QENTNDArrayData::decompressData (const Compression& compression)
 {
-   if (this->isDecompressed) {
-      return true;   // Already decompressed - do nothing
-   }
-
-   // Not decompressed yet.
-   //
-   if (this->codecName == "" || this->codecName == "none") {
+   if (compression.codecName == "" || compression.codecName == "none") {
       // Do nothing - already decompressed.
       //
-      this->isDecompressed = true;
       return true;
    }
 
@@ -543,21 +400,21 @@ bool QENTNDArrayData::decompressData ()
 
    bool result;
 
-   if (this->codecName == "jpeg") {
-      result = this->isDecompressed = this->decompressJpeg();
+   if (compression.codecName == "jpeg") {
+      result = this->decompressJpeg(compression);
 
-   } else if (this->codecName == "blosc") {
-      result = this->isDecompressed = this->decompressBlosc ();
+   } else if (compression.codecName == "blosc") {
+      result = this->decompressBlosc (compression);
 
-   } else if (this->codecName == "lz4") {
-      result = this->isDecompressed = this->decompressLz4 ();
+   } else if (compression.codecName == "lz4") {
+      result = this->decompressLz4 (compression);
 
-   } else if (this->codecName == "bslz4") {
-      result = this->isDecompressed = this->decompressBslz4 ();
+   } else if (compression.codecName == "bslz4") {
+      result = this->decompressBslz4 (compression);
 
    } else {
-      DEBUG << "Codec " + this->codecName + " not handled/unexpected";
-      result = false;                                                           \
+      DEBUG << "Codec " + compression.codecName + " not handled/unexpected";
+      result = false;
    }
 
    return result;
@@ -571,12 +428,12 @@ bool QENTNDArrayData::decompressData ()
 //------------------------------------------------------------------------------
 // Cribbed from the various decompress functions out of NDPluginCodec.cpp (R3-8)
 //
-bool QENTNDArrayData::decompressJpeg ()
+bool QENTNDArrayData::decompressJpeg (const Compression& compression)
 {
 #ifdef QE_AD_SUPPORT
 
-   if (this->codecName != "jpeg") {
-      DEBUG << "Unexpected codec:" << this->codecName;
+   if (compression.codecName != "jpeg") {   // sanity check
+      DEBUG << "Unexpected codec:" << compression.codecName;
       return false;
    }
 
@@ -589,12 +446,12 @@ bool QENTNDArrayData::decompressJpeg ()
 
    // Copy source (by referance).
    //
-   QByteArray input = this->data;
-   unsigned char* inbuffer = (unsigned char*) (input.data());
+   const QByteArray input = this->data;
+   const unsigned char* inbuffer = (unsigned char*) (input.data());
 
-   QByteArray output = QByteArray (int (this->uncompressedDataSize), 0);
+   QByteArray output = QByteArray (compression.uncompressedDataSize, 0);
 
-   jpeg_mem_src (&jpegInfo, inbuffer, this->compressedDataSize);
+   jpeg_mem_src (&jpegInfo, inbuffer, compression.compressedDataSize);
 
    jpeg_read_header (&jpegInfo, TRUE);
    jpeg_start_decompress (&jpegInfo);
@@ -629,12 +486,12 @@ bool QENTNDArrayData::decompressJpeg ()
 
 //------------------------------------------------------------------------------
 //
-bool QENTNDArrayData::decompressBlosc ()
+bool QENTNDArrayData::decompressBlosc (const Compression& compression)
 {
 #ifdef QE_AD_SUPPORT
 
-   if (this->codecName != "blosc") {
-      DEBUG << "Unexpected codec:" << this->codecName;
+   if (compression.codecName != "blosc") {   // sanity check
+      DEBUG << "Unexpected codec:" << compression.codecName;
       return false;
    }
 
@@ -643,10 +500,10 @@ bool QENTNDArrayData::decompressBlosc ()
 
    // Copy source (by referance).
    //
-   QByteArray input = this->data;
-   QByteArray output = QByteArray (int (this->uncompressedDataSize), 0);
+   const QByteArray input = this->data;
+   QByteArray output = QByteArray (compression.uncompressedDataSize, 0);
 
-   const size_t destSize = this->uncompressedDataSize;
+   const size_t destSize = compression.uncompressedDataSize;
 
    status = blosc_decompress_ctx (input.data(), output.data(), destSize, 1);
    result = (status >= 0);
@@ -665,12 +522,12 @@ bool QENTNDArrayData::decompressBlosc ()
 
 //------------------------------------------------------------------------------
 //
-bool QENTNDArrayData::decompressLz4 ()
+bool QENTNDArrayData::decompressLz4 (const Compression& compression)
 {
 #ifdef QE_AD_SUPPORT
 
-   if (this->codecName != "lz4") {
-      DEBUG << "Unexpected codec:" << this->codecName;
+   if (compression.codecName != "lz4") {   // sanity check
+      DEBUG << "Unexpected codec:" << compression.codecName;
       return false;
    }
 
@@ -679,10 +536,10 @@ bool QENTNDArrayData::decompressLz4 ()
 
    // Copy source (by referance).
    //
-   QByteArray input = this->data;
-   QByteArray output = QByteArray (int (this->uncompressedDataSize), 0);
+   const QByteArray input = this->data;
+   QByteArray output = QByteArray (compression.uncompressedDataSize, 0);
 
-   int originalSize = this->uncompressedDataSize;
+   const int originalSize = compression.uncompressedDataSize;
 
    status = LZ4_decompress_fast (input.data (), output.data (), originalSize);
    result = (status >= 0);
@@ -701,12 +558,12 @@ bool QENTNDArrayData::decompressLz4 ()
 
 //------------------------------------------------------------------------------
 //
-bool QENTNDArrayData::decompressBslz4 ()
+bool QENTNDArrayData::decompressBslz4 (const Compression& compression)
 {
 #ifdef QE_AD_SUPPORT
 
-   if (this->codecName != "bslz4") {
-      DEBUG << "Unexpected codec:" << this->codecName;
+   if (compression.codecName != "bslz4") {   // sanity check
+      DEBUG << "Unexpected codec:" << compression.codecName;
       return false;
    }
 
@@ -715,10 +572,10 @@ bool QENTNDArrayData::decompressBslz4 ()
 
    // Copy source (by referance).
    //
-   QByteArray input = this->data;
-   QByteArray output = QByteArray (int (this->uncompressedDataSize), 0);
+   const QByteArray input = this->data;
+   QByteArray output = QByteArray (compression.uncompressedDataSize, 0);
 
-   const size_t numberOfElements = this->uncompressedDataSize;
+   const size_t numberOfElements = compression.uncompressedDataSize;
    const size_t elementSize = 1;  /// ONLY works for mono 8 bit
 
    size_t blockSize = 0;
@@ -747,8 +604,8 @@ bool QENTNDArrayData::isAssignableVariant (const QVariant & item)
 }
 
 //------------------------------------------------------------------------------
-// static
-bool QENTNDArrayData::registerMetaType ()
+//
+static bool registerMetaType ()
 {
    qRegisterMetaType < QENTNDArrayData > ();
    return true;
@@ -756,13 +613,15 @@ bool QENTNDArrayData::registerMetaType ()
 
 // Elaborate on start up.
 //
-static const bool _elaborate = QENTNDArrayData::registerMetaType ();
+static const bool _elaborate = registerMetaType ();
 
 //------------------------------------------------------------------------------
 //
-QDebug operator<< (QDebug dbg, const QENTNDArrayData& arrayData )
+QDebug operator<< (QDebug dbg, const QENTNDArrayData& arrayData)
 {
    dbg << "arrayData:" << "\n";
+   dbg << "Colour Mode:" << arrayData.getColourMode()<< "\n";
+   dbg << "Data Type  :" << arrayData.getDataType() << "\n";
    const int nd = arrayData.getNumberDimensions();
    dbg << "number dimensions:" << nd << "\n";
    for (int j = 0; j < nd; j++) {

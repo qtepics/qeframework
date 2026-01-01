@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2018-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2018-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -58,42 +58,31 @@ public:
 #ifdef QE_INCLUDE_PV_ACCESS
    // Note: we can only read, as opposed to write, NTNDArray types for now.
    //
-   bool assignFrom (epics::nt::NTNDArray::const_shared_pointer item);
+   bool assignFrom (epics::nt::NTNDArrayPtr item);
 #endif
+
+   // Access image data attributes.
+   //
+   QByteArray getData () const;
+
+   QString getColourMode() const;
+   QString getDataType() const;
+
+   int getNumberDimensions () const;
+   int getDimensionSize (const int dimension) const;  // returns 0 if dimension is out of range
+
+   int getBytesPerPixel () const;
+
+   QString getDescription () const;
+   int getUniqueId () const;
 
    // Clear all data.
    //
    void clear ();
 
-   // Will decompress the image data if needs be.
-   // This is an itempotent function.
-   // Returns true if decompression is (or has been) successfull.
-   //
-   bool decompressData ();
-
-   QByteArray getData () const;
-
-   // Returns the name of the codec used to compress image.
-   // If image was not compressed, this function returns an empty string.
-   //
-   QString getCodecName () const;
-
-   int getNumberDimensions () const;
-   int getDimensionSize (const int dimension) const;  // returns 0 if dimension is out of range
-
-   QE::ImageFormatOptions getFormat() const;
-   int getBytesPerPixel () const;
-   int getWidth () const;
-   int getHeight () const;
-   int getBitDepth () const;
-
-   // Returns QVariant type Invalid is the attribute is not defined.
-   //
-   QVariant getAttibute (const QString& name) const;
-
    // QVariant conversion related functions.
    //
-   // Converstion to QVariant
+   // Conversion to QVariant
    //
    QVariant toVariant () const;
 
@@ -106,15 +95,18 @@ public:
    //
    bool assignFromVariant (const QVariant& item);
 
-   // Register the QENTNDArrayData meta type.
-   // Note: This function is public for conveniance only, and is invoked by
-   // the module itself during program elaboration.
-   //
-   static bool registerMetaType ();
-
-   typedef QMap<QString, QVariant> AttributeMaps;
-
 private:
+   struct Compression {
+      QString codecName;
+      qlonglong compressedDataSize;
+      qlonglong uncompressedDataSize;
+   };
+
+   // Will decompress the image data if needs be.
+   // Returns true if decompression is successfull.
+   // If ADSupport not incuded, will always return false.
+   //
+   bool decompressData (const Compression& compression);
 
 #ifdef QE_INCLUDE_PV_ACCESS
    // array iterator
@@ -128,42 +120,25 @@ private:
    template <typename arrayType>
    void toValue (epics::pvData::PVUnionPtr value);
 
-   QE::ImageFormatOptions getImageFormat
-      (epics::pvData::PVStructureArray::const_svector attrVec) const;
-
 #endif
 
    void assignOther (const QENTNDArrayData& other);
 
-   bool decompressJpeg ();
-   bool decompressBlosc ();
-   bool decompressLz4 ();
-   bool decompressBslz4 ();
+   bool decompressJpeg (const Compression& compression);
+   bool decompressBlosc (const Compression& compression);
+   bool decompressLz4 (const Compression& compression);
+   bool decompressBslz4 (const Compression& compression);
 
+   QByteArray data;           // basic image data
+   QString colourMode;        // text as is from ColorMode_RBV
+   QString dataType;          // text as is from DataType_RBV
    int numberDimensions;
    int dimensionSizes [10];   // we expect only 2 or 3. area detector NDArray allows upto 10
-   int bytesPerPixel;
-   size_t numberElements;
-   size_t totalBytes;
+   int bytesPerPixel;              // bytes per pixel
 
-   qlonglong compressedDataSize;
-   qlonglong uncompressedDataSize;
-
-   // data time stamp
-   qlonglong dtsSecondsPastEpoch;
-   int dtsNanoseconds;
-   int dtsUserTag;
-
-   int uniqueId;
+   // Not needed for QEImage per se..
    QString descriptor;
-
-   AttributeMaps attributeMap;
-
-   QByteArray data;                 // basic image data
-   QString codecName;               // the codec nam
-   QE::ImageFormatOptions format;   // derived from the ColorMode attribute
-   int bitDepth;
-   bool isDecompressed;
+   int uniqueId;
 };
 
 // allows qDebug() << QENTNDArrayData object.
