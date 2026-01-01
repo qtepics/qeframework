@@ -161,6 +161,18 @@ bool QECaClient::openChannel (const ChannelModesFlags modes)
    if (modes & QEBaseClient::Monitor) {
       // read plus subscription and allows writes
       readMode = ACAI::Subscribe;
+      ACAI::EventMasks mask;
+
+#if (ACAI_VERSION < ACAI_INT_VERSION(1, 8, 1))
+      mask = ACAI::EventMasks (ACAI::EventValue | ACAI::EventAlarm);
+      #warning Use of ACAI 1.8.1 or later for property updates.
+#else
+      // Version 1.8.1 introduces a separate property subscription.
+      //
+      mask = ACAI::EventMasks (ACAI::EventValue | ACAI::EventAlarm | ACAI::EventProperty);
+#endif
+
+      this->mainClient->setEventMask (mask);
    }
 
    this->mainClient->setReadMode (readMode);
