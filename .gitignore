@@ -1,5 +1,14 @@
 # qeframework .gitignore
 #
+# Top level files and directories
+#
+/bin/
+/lib/
+/include/
+/_pro
+
+# intermediate build files.
+#
 O.Common/
 O.linux-x86_64/
 O.linux-x86/
@@ -7,9 +16,6 @@ O.windows-x64/
 O.win32-x86/
 O.win32-x86-mingw/
 O.windows-x64-mingw/
-bin/
-lib/
-include/
 *.o
 *.exe
 *.linux-x86_64
@@ -24,7 +30,8 @@ object_script.*
 # created by protoc
 archapplDataSup/src/archapplProto.pb.h
 
-# work in progress
+# work in progress abd temp files.
+#
 */wip/
 *-wip/
 *-wip.h
