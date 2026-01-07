@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -11,14 +11,14 @@
  *  Contact:    andrews@ansto.gov.au
  */
 
-// Floating specific wrapper for QCaObject.
+// Floating specific wrapper for QEChannel.
 
 #ifndef QE_FLOATING_H
 #define QE_FLOATING_H
 
 #include <QMetaType>
 #include <QVariant>
-#include <QCaObject.h>
+#include <QEChannel.h>
 #include <QEFloatingFormatting.h>
 #include <QEFrameworkLibraryGlobal.h>
 
@@ -29,6 +29,7 @@ struct QEFloatingValueUpdate {
    QCaAlarmInfo alarmInfo;
    QCaDateTime timeStamp;
    unsigned int variableIndex;
+   bool isMetaUpdate;
 };
 Q_DECLARE_METATYPE (QEFloatingValueUpdate)
 
@@ -37,21 +38,22 @@ struct QEFloatingArrayUpdate {
    QCaAlarmInfo alarmInfo;
    QCaDateTime timeStamp;
    unsigned int variableIndex;
+   bool isMetaUpdate;
 };
 Q_DECLARE_METATYPE (QEFloatingArrayUpdate)
 
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEFloating :
-      public qcaobject::QCaObject
+      public QEChannel
 {
    Q_OBJECT
 
 public:
-   QEFloating (QString pvName, QObject* eventObject,
+   QEFloating (const QString& pvName, QObject* eventObject,
                QEFloatingFormatting* floatingFormattingIn,
                unsigned int variableIndexIn);
 
-   QEFloating (QString pvName, QObject* eventObject,
+   QEFloating (const QString& pvName, QObject* eventObject,
                QEFloatingFormatting* floatingFormattingIn,
                unsigned int variableIndexIn,
                UserMessage* userMessageIn);

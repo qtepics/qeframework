@@ -993,7 +993,7 @@ void QEPvaClient::processUpdate (QEPvaClient::Update* update)
          // The first post connection update is always considered
          // a meta data update.
          //
-         emit dataUpdated (this->firstUpdate | isMetaUpdate);
+         emit dataUpdated (this->firstUpdate || isMetaUpdate);
          this->firstUpdate = false;
          break;
 

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -11,7 +11,7 @@
  *  Contact:    andrews@ansto.gov.au
  */
 
-// String specifc wrapper for QCaObject variant data.
+// String specifc wrapper for QEChannel variant data.
 
 #include "QEString.h"
 #include <QDebug>
@@ -23,27 +23,27 @@
 
 //------------------------------------------------------------------------------
 //
-QEString::QEString (QString pvName, QObject* eventObject,
+QEString::QEString (const QString& pvName, QObject* eventObject,
                     QEStringFormatting* stringFormattingIn,
                     unsigned int variableIndexIn) :
-   QCaObject (pvName, eventObject, variableIndexIn)
+   QEChannel (pvName, eventObject, variableIndexIn)
 {
    this->initialise (stringFormattingIn);
 }
 
 //------------------------------------------------------------------------------
 //
-QEString::QEString (QString pvName, QObject* eventObject,
+QEString::QEString (const QString& pvName, QObject* eventObject,
                     QEStringFormatting* stringFormattingIn,
                     unsigned int variableIndexIn,
                     UserMessage* userMessageIn) :
-   QCaObject (pvName, eventObject, variableIndexIn, userMessageIn)
+   QEChannel (pvName, eventObject, variableIndexIn, userMessageIn)
 {
    this->initialise (stringFormattingIn);
 }
 
 //------------------------------------------------------------------------------
-// Stream the QCaObject data through this class to generate textual data
+// Stream the QEChannel data through this class to generate textual data
 // updates.
 //
 void QEString::initialise (QEStringFormatting* stringFormattingIn)
@@ -175,6 +175,7 @@ void QEString::convertVariant (const QEVariantUpdate& update)
    valueUpdate.alarmInfo = arrayUpdate.alarmInfo = update.alarmInfo;
    valueUpdate.timeStamp = arrayUpdate.timeStamp = update.timeStamp;
    valueUpdate.variableIndex = arrayUpdate.variableIndex = update.variableIndex;
+   valueUpdate.isMetaUpdate = arrayUpdate.isMetaUpdate = update.isMetaUpdate;
 
    // We need non-const copies as (old) signal parameters are not all const.
    //

@@ -22,7 +22,7 @@
   User interaction and drawing markups over the image (such as selecting an area) is managed by the imageMarkup class.
  */
 
-#include <QEImage.h>
+#include "QEImage.h"
 #include <QDebug>
 #include <QIcon>
 #include <QPushButton>
@@ -47,14 +47,17 @@
 /*
     Constructor with no initialisation
 */
-QEImage::QEImage( QWidget *parent ) : QFrame( parent ), QEWidget( this ) {
+QEImage::QEImage( QWidget *parent ) : QFrame( parent ), QEWidget( this )
+{
     setup();
 }
 
 /*
     Constructor with known variable
 */
-QEImage::QEImage( const QString &variableNameIn, QWidget *parent ) : QFrame( parent ), QEWidget( this )  {
+QEImage::QEImage( const QString &variableNameIn, QWidget *parent ) :
+   QFrame( parent ), QEWidget( this )
+{
     setup();
     setVariableName( variableNameIn, 0 );
     activate();
@@ -566,21 +569,23 @@ void QEImage::presentControls()
 /*
     Implementation of QEWidget's virtual funtion to create the specific types of QCaObject required.
 */
-qcaobject::QCaObject* QEImage::createQcaItem( unsigned int variableIndex ) {
+QEChannel* QEImage::createQcaItem( unsigned int variableIndex ) {
 
     switch( (variableIndexes)variableIndex )
     {
         // Create the image item as a QEByteArray
         case IMAGE_VARIABLE:
             {
+                const QString pvName = this->getSubstitutedVariableName( variableIndex );
+
                 // Create the image item
-                QEByteArray* qca = new QEByteArray( getSubstitutedVariableName( variableIndex ), this, variableIndex );
+                QEByteArray* qca = new QEByteArray( pvName, this, variableIndex );
 
                 // This might be a PVA object referencing a an NTNDArray PVA,
                 // so we need both signal types. Depending on what we receive,
                 // we drop either SIG_VARIANT or SIG_BYTEARRAY.
                 //
-                qca->setSignalsToSend (qcaobject::QCaObject::SIG_VARIANT | qcaobject::QCaObject::SIG_BYTEARRAY);
+                qca->setSignalsToSend (QEChannel::SIG_VARIANT | QEChannel::SIG_BYTEARRAY);
 
                 int elementCount = iProcessor.getElementCount();
                 if( elementCount )
@@ -695,7 +700,7 @@ void QEImage::establishConnection( unsigned int variableIndex ) {
 
     // Create a connection.
     // If successfull, the QCaObject object that will supply data update signals will be returned
-    qcaobject::QCaObject* qca = createConnection( variableIndex );
+    QEChannel* qca = createConnection( variableIndex );
 
     switch( (variableIndexes)variableIndex )
     {
@@ -703,17 +708,20 @@ void QEImage::establishConnection( unsigned int variableIndex ) {
         case IMAGE_VARIABLE:
             if( qca )
             {
-                QObject::connect( qca,  SIGNAL( byteArrayChanged( const QByteArray&, unsigned long, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
-                                  this, SLOT( setImage( const QByteArray&, unsigned long, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
+               // Note: we connect to receive the traditional byte array data and
+               // the variant data with an NTNDArray variant (via for PVA)
+               // We will get both initialially, however will update the
+               // signals to send accordingly.
+               //
+                QObject::connect( qca,  SIGNAL( byteArrayUpdated( const QEByteArrayUpdate& ) ),
+                                  this, SLOT(  setByteArrayImage( const QEByteArrayUpdate& ) ) );
 
-                // Note: we connect to receive the 'raw' variant data for PVA image data
-                // We will get both initilially.
-                //
-                QObject::connect (qca, SIGNAL (dataChanged (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                                  this, SLOT  (setPvaImage (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+                QObject::connect (qca, SIGNAL (valueUpdated (const QEVariantUpdate& ) ),
+                                  this, SLOT  (setPvaImage  (const QEVariantUpdate& ) ) );
 
                 QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
                                   this, SLOT  ( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
+
                 QObject::connect( this, SIGNAL( requestResend() ),
                                   qca, SLOT( resendLastData() ) );
             }
@@ -1717,46 +1725,37 @@ void QEImage::setDataImage( const QByteArray& imageIn,
     Update the image
     This is the slot used to recieve NTND Array data updates via PV Access.
  */
-void QEImage::setPvaImage (const QVariant& value,
-                           QCaAlarmInfo& alarmInfo,
-                           QCaDateTime& timeStamp,
-                           const unsigned int& variableIndex)
+void QEImage::setPvaImage ( const QEVariantUpdate& update )
 {
-   if (variableIndex != IMAGE_VARIABLE) {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+   if (update.variableIndex != IMAGE_VARIABLE) {
+      DEBUG << "unexpected variableIndex" << update.variableIndex;
       return;
    }
 
-   QENTNDArrayData imageData;
-   if (!imageData.assignFromVariant (value)) {
-
-      if (this->isFirstImageUpdate) {
-         // Assignment failed - is not a QENTNDArrayData varient.
-         //
-//       DEBUG << this->objectName() << this->getSubstitutedVariableName (variableIndex)
-//             << "does not provide NTNDArray data";
-
-//       DEBUG << this->objectName() << "masking setPvaImage";
-
-         qcaobject::QCaObject* qca = this->getQcaItem (IMAGE_VARIABLE);
-
-         // Drop SIG_VARIANT
-         if (qca) qca->setSignalsToSend (qcaobject::QCaObject::SIG_BYTEARRAY);
-      }
+   QEChannel* qca = this->getQcaItem (IMAGE_VARIABLE);
+   if (!qca) {
+      DEBUG << "no QEChannel object" << update.variableIndex;
       return;
    }
 
-   // This is a QENTNDArrayData varient.
+   // Did we receive an NTNDArray variant?
+   // If not, no debug message. This is not unexprected.
    //
-   if (this->isFirstImageUpdate) {
-//    DEBUG << this->objectName() << "masking setImage";
-      qcaobject::QCaObject* qca = this->getQcaItem (IMAGE_VARIABLE);
-      if (qca) qca->setSignalsToSend (qcaobject::QCaObject::SIG_VARIANT);
-   }
+   QENTNDArrayData imageData;
+   if (!imageData.assignFromVariant (update.value)) return;
+
+   // Drop the SIG_BYTEARRAY option.
+   //
+   qca->setSignalsToSend (QEChannel::SIG_VARIANT);
 
    // Call the corresponding meta data type slot functions,
    // as if values received via individual channels.
    //
+   // We need non-const copies, at least for now.
+   //
+   QCaAlarmInfo alarmInfo = update.alarmInfo;
+   QCaDateTime timeStamp = update.timeStamp;
+
    // set the format.
    //
    this->setFormat (imageData.getColourMode(), alarmInfo, timeStamp, FORMAT_VARIABLE);
@@ -1770,7 +1769,7 @@ void QEImage::setPvaImage (const QVariant& value,
    const int ndims = imageData.getNumberDimensions();
    if ((ndims < 2) || (ndims > 3)) {
       // We can only handle 2 or 3 dimensions.
-      DEBUG << "ndims out of range";
+      DEBUG << "number of dimensions (" << ndims << ") out of range 2-3";
       return;
    }
 
@@ -1787,7 +1786,38 @@ void QEImage::setPvaImage (const QVariant& value,
    this->setImage (imageData.getData(), imageData.getBytesPerPixel(),
                    alarmInfo, timeStamp, IMAGE_VARIABLE);
 
-   this->isFirstImageUpdate = false;
+   this->isFirstImageUpdate = update.isMetaUpdate;
+}
+
+/* -----------------------------------------------------------------------------
+    Update the image
+    This is the slot used to receive byte array data.
+ */
+void QEImage::setByteArrayImage( const QEByteArrayUpdate& update )
+{
+   if (update.variableIndex != IMAGE_VARIABLE) {
+      DEBUG << "unexpected variableIndex" << update.variableIndex;
+      return;
+   }
+
+   QEChannel* qca = this->getQcaItem (IMAGE_VARIABLE);
+   if (!qca) {
+      DEBUG << "no QEChannel object" << update.variableIndex;
+      return;
+   }
+
+   // We have received a (traditional) buyte array.
+   // Drop the SIG_VARIANT option.
+   //
+   qca->setSignalsToSend (QEChannel::SIG_BYTEARRAY);
+
+   // We need non-const copies, at least for now.
+   //
+   QCaAlarmInfo alarmInfo = update.alarmInfo;
+   QCaDateTime timeStamp = update.timeStamp;
+
+   this->setImage (update.array, update.dataElementSize,
+                   alarmInfo, timeStamp, IMAGE_VARIABLE);
 }
 
 
@@ -5184,7 +5214,7 @@ void QEImage::pan( QPoint origin )
 // Required when properties change, such as contrast reversal, or when the video widget changes, such as a resize
 void QEImage::redraw()
 {
-    qcaobject::QCaObject* qca = getQcaItem( IMAGE_VARIABLE );
+    QEChannel* qca = getQcaItem( IMAGE_VARIABLE );
     if( qca )
     {
         qca->resendLastData();
@@ -5492,37 +5522,37 @@ void QEImage::showImageAboutDialog()
     QString url = mpegSource->getURL();
     about.append( "\n\nImage MPEG URL: " ).append( (!url.isEmpty()) ? url :"No URL" );
 
-    qcaobject::QCaObject *qca;
+    QEChannel *qca;
 
     qca = getQcaItem( IMAGE_VARIABLE );
-    about.append( "\n\nImage data variable: " ).append( (qca!=0)?qca->getRecordName():"No variable" );
+    about.append( "\n\nImage data variable: " ).append( (qca!=0)?qca->getPvName():"No variable" );
 
     qca = getQcaItem( FORMAT_VARIABLE );
-    about.append( "\n\nImage format variable: " ).append( (qca!=0)?qca->getRecordName():"No variable" );
+    about.append( "\n\nImage format variable: " ).append( (qca!=0)?qca->getPvName():"No variable" );
 
     qca = getQcaItem( BIT_DEPTH_VARIABLE );
-    about.append( "\n\nBit depth variable: " ).append( (qca!=0)?qca->getRecordName():"No variable" );
+    about.append( "\n\nBit depth variable: " ).append( (qca!=0)?qca->getPvName():"No variable" );
 
     qca = getQcaItem( DATA_TYPE_VARIABLE );
-    about.append( "\nData type variable: " ).append( (qca!=0)?qca->getRecordName():"No variable" );
+    about.append( "\nData type variable: " ).append( (qca!=0)?qca->getPvName():"No variable" );
 
     qca = getQcaItem( WIDTH_VARIABLE );
-    about.append( "\n\nImage width variable: " ).append( (qca!=0)?qca->getRecordName():"No variable" );
+    about.append( "\n\nImage width variable: " ).append( (qca!=0)?qca->getPvName():"No variable" );
 
     qca = getQcaItem( HEIGHT_VARIABLE );
-    about.append( "\nImage height variable: " ).append( (qca!=0)?qca->getRecordName():"No variable" );
+    about.append( "\nImage height variable: " ).append( (qca!=0)?qca->getPvName():"No variable" );
 
     qca = getQcaItem( NUM_DIMENSIONS_VARIABLE );
-    about.append( "\n\nImage data dimensions variable: " ).append( (qca!=0)?qca->getRecordName():"No variable" );
+    about.append( "\n\nImage data dimensions variable: " ).append( (qca!=0)?qca->getPvName():"No variable" );
 
     qca = getQcaItem( DIMENSION_0_VARIABLE );
-    about.append( "\n\nImage dimension 1 variable: " ).append( (qca!=0)?qca->getRecordName():"No variable" );
+    about.append( "\n\nImage dimension 1 variable: " ).append( (qca!=0)?qca->getPvName():"No variable" );
 
     qca = getQcaItem( DIMENSION_1_VARIABLE );
-    about.append( "\n\nImage dimension 2 variable: " ).append( (qca!=0)?qca->getRecordName():"No variable" );
+    about.append( "\n\nImage dimension 2 variable: " ).append( (qca!=0)?qca->getPvName():"No variable" );
 
     qca = getQcaItem( DIMENSION_2_VARIABLE );
-    about.append( "\n\nImage dimension 3 variable: " ).append( (qca!=0)?qca->getRecordName():"No variable" );
+    about.append( "\n\nImage dimension 3 variable: " ).append( (qca!=0)?qca->getPvName():"No variable" );
 
     // Display the 'about' text
     QMessageBox::about(this, "About Image", about );

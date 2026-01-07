@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -11,7 +11,7 @@
  *  Contact:    andrews@ansto.gov.au
  */
 
-// Floating specific wrapper for QCaObject variant data.
+// Floating specific wrapper for QEChannel variant data.
 
 #include "QEFloating.h"
 #include <QDebug>
@@ -23,27 +23,27 @@
 
 //------------------------------------------------------------------------------
 //
-QEFloating::QEFloating (QString pvName, QObject* eventObject,
+QEFloating::QEFloating (const QString& pvName, QObject* eventObject,
                         QEFloatingFormatting* floatingFormattingIn,
                         unsigned int variableIndexIn) :
-   QCaObject (pvName, eventObject, variableIndexIn)
+   QEChannel (pvName, eventObject, variableIndexIn)
 {
    this->initialise (floatingFormattingIn);
 }
 
 //------------------------------------------------------------------------------
 //
-QEFloating::QEFloating (QString pvName, QObject* eventObject,
+QEFloating::QEFloating (const QString& pvName, QObject* eventObject,
                         QEFloatingFormatting* floatingFormattingIn,
                         unsigned int variableIndexIn,
                         UserMessage* userMessageIn) :
-   QCaObject (pvName, eventObject, variableIndexIn, userMessageIn)
+   QEChannel (pvName, eventObject, variableIndexIn, userMessageIn)
 {
    this->initialise (floatingFormattingIn);
 }
 
 //------------------------------------------------------------------------------
-// Stream the QCaObject data through this class to generate floating data updates
+// Stream the QEChannel data through this class to generate floating data updates
 //
 void QEFloating::initialise (QEFloatingFormatting* floatingFormattingIn)
 {
@@ -87,7 +87,7 @@ void QEFloating::writeFloating (const QVector<double> &data)
 }
 
 //------------------------------------------------------------------------------
-// Slot to recieve data updates from the base QCaObject and generate floating updates.
+// Slot to recieve data updates from the base QEChannel and generate floating updates.
 //
 void QEFloating::convertVariant (const QEVariantUpdate& update)
 {
@@ -113,6 +113,7 @@ void QEFloating::convertVariant (const QEVariantUpdate& update)
    valueUpdate.alarmInfo = arrayUpdate.alarmInfo = update.alarmInfo;
    valueUpdate.timeStamp = arrayUpdate.timeStamp = update.timeStamp;
    valueUpdate.variableIndex = arrayUpdate.variableIndex = update.variableIndex;
+   valueUpdate.isMetaUpdate = arrayUpdate.isMetaUpdate = update.isMetaUpdate;
 
    // We need non-const copies as (old) signal parameters are not all const.
    //

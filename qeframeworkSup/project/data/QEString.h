@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -11,14 +11,14 @@
  *  Contact:    andrews@ansto.gov.au
  */
 
-// String wrapper for QCaObject variant data.
+// String wrapper for QEChannel variant data.
 
 #ifndef QE_STRING_H
 #define QE_STRING_H
 
 #include <QMetaType>
 #include <QVariant>
-#include <QCaObject.h>
+#include <QEChannel.h>
 #include <QVector>
 #include <QEStringFormatting.h>
 #include <QEFrameworkLibraryGlobal.h>
@@ -30,6 +30,7 @@ struct QEStringValueUpdate {
    QCaAlarmInfo alarmInfo;
    QCaDateTime timeStamp;
    unsigned int variableIndex;
+   bool isMetaUpdate;
 };
 Q_DECLARE_METATYPE (QEStringValueUpdate)
 
@@ -38,20 +39,21 @@ struct QEStringArrayUpdate {
    QCaAlarmInfo alarmInfo;
    QCaDateTime timeStamp;
    unsigned int variableIndex;
+   bool isMetaUpdate;
 };
 Q_DECLARE_METATYPE (QEStringArrayUpdate)
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEString :
-      public qcaobject::QCaObject
+      public QEChannel
 {
    Q_OBJECT
 
 public:
-   QEString (QString pvName, QObject* eventObject,
+   QEString (const QString& pvName, QObject* eventObject,
              QEStringFormatting* stringFormattingIn,
              unsigned int variableIndexIn);
 
-   QEString (QString pvName, QObject* eventObject,
+   QEString (const QString& pvName, QObject* eventObject,
              QEStringFormatting* stringFormattingIn,
              unsigned int variableIndexIn,
              UserMessage* userMessageIn);

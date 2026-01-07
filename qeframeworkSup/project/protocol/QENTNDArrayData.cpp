@@ -196,7 +196,7 @@ bool QENTNDArrayData::assignFrom (epics::nt::NTNDArrayPtr item)
       NTNDArrayConverter converter (item);
       info = converter.getInfo();
    } catch (std::exception& e) {
-      DEBUG << "exception" << e.what();
+      DEBUG << "exception from NTNDArrayConverter: " << e.what();
       return false;
    }
 
@@ -619,14 +619,17 @@ static const bool _elaborate = registerMetaType ();
 //
 QDebug operator<< (QDebug dbg, const QENTNDArrayData& arrayData)
 {
-   dbg << "arrayData:" << "\n";
-   dbg << "Colour Mode:" << arrayData.getColourMode()<< "\n";
-   dbg << "Data Type  :" << arrayData.getDataType() << "\n";
+   dbg << "(Num Bytes  :"  << arrayData.getData().size() << ",\n";
+   dbg << " Colour Mode:" << arrayData.getColourMode() << ",\n";
+   dbg << " Data Type  :" << arrayData.getDataType() << ",\n";
    const int nd = arrayData.getNumberDimensions();
-   dbg << "number dimensions:" << nd << "\n";
+   dbg << " Number dimensions: " << nd << ",\n";
+   dbg << " Dimensions: ";
    for (int j = 0; j < nd; j++) {
-      dbg << "  dimension" << j << ":" << arrayData.getDimensionSize (j) << "\n";
+      dbg << arrayData.getDimensionSize (j);
+      if (j < nd -1 ) dbg << ", ";
    }
+   dbg << "\n)";
    return dbg.maybeSpace ();
 }
 

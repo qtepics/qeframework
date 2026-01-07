@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -16,32 +16,27 @@
 
 #include <QtDebug>
 #include <QVariant>
-#include <QCaObject.h>
+#include <QEChannel.h>
 #include <QEFrameworkLibraryGlobal.h>
 
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEByteArray : public qcaobject::QCaObject {
+/// This class is essentiialy just a wrapper class for QEChannel.
+/// It sets the QE_PRIORITY_LOW low, and the request signals to SIG_BYTEARRAY
+/// It also provide a writeByteArray slot method.
+///
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEByteArray :
+      public QEChannel
+{
    Q_OBJECT
 
 public:
-   QEByteArray (QString pvName, QObject* eventObject, unsigned int variableIndexIn);
-   QEByteArray (QString pvName, QObject* eventObject, unsigned int variableIndexIn,
+   QEByteArray (const QString& pvName, QObject* eventObject, unsigned int variableIndexIn);
+   QEByteArray (const QString& pvName, QObject* eventObject, unsigned int variableIndexIn,
                 UserMessage* userMessageIn);
 
-signals:
-   void byteArrayChanged (const QByteArray& value, unsigned long dataSize,
-                          QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp,
-                          const unsigned int& variableIndex);
+// Note: All signals are new provided by QEChannel.
 
 public slots:
    void writeByteArray (const QByteArray& data);
-
-private:
-   void initialise();
-
-private slots:
-   void forwardDataChanged (const QByteArray &value, unsigned long dataSize,
-                            QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp,
-                            const unsigned int& variableIndex);
 };
 
 #endif // QE_BYTE_ARRAY_H

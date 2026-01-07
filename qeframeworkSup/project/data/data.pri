@@ -4,7 +4,7 @@
 # the Australian Synchrotron. This file is included into and as part
 # of the overall framework.pro project file.
 #
-# SPDX-FileCopyrightText: 2017-2025 Australian Synchrotron
+# SPDX-FileCopyrightText: 2017-2026 Australian Synchrotron
 # SPDX-License-Identifier: LGPL-3.0-only
 #
 # Author:     Andrew Starritt
@@ -34,6 +34,9 @@ SOURCES += $$PWD/QCaVariableNamePropertyManager.cpp
 
 HEADERS += $$PWD/QEByteArray.h
 SOURCES += $$PWD/QEByteArray.cpp
+
+HEADERS += $$PWD/QEChannel.h
+SOURCES += $$PWD/QEChannel.cpp
 
 HEADERS += $$PWD/QEFloating.h
 SOURCES += $$PWD/QEFloating.cpp

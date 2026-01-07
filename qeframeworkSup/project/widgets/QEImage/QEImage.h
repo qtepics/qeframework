@@ -33,6 +33,7 @@
 #include <applicationLauncher.h>
 #include "imageDataFormats.h"
 
+#include <QEChannel.h>
 #include <QEStringFormatting.h>
 #include <QEFrameworkLibraryGlobal.h>
 #include <QEIntegerFormatting.h>
@@ -577,21 +578,28 @@ protected:
     void redisplayAllMarkups();
 
 public slots:
-    // MPEG data update slots (and maybe other non CA sources)
+    // MPEG data update slots (and maybe other non CA sources).
+    //
     void setDataImage( const QByteArray& imageIn,
                        unsigned long dataSize, unsigned long elements,
                        unsigned long width, unsigned long height,
                        QE::ImageFormatOptions format, unsigned int depth );
 
-    // PV Access Image/NDArray data update slot
-    void setPvaImage( const QVariant& value,
-                      QCaAlarmInfo& alarmInfo,
-                      QCaDateTime& timeStamp,
-                      const unsigned int& variableIndex );
+    // PV Access Image/NDArray data update slot.
+    //
+    void setPvaImage( const QEVariantUpdate& update );
 
-    // Channel Access Image/NDArray data update slot
-    void setImage( const QByteArray& image, unsigned long dataSize,
-                   QCaAlarmInfo&, QCaDateTime&, const unsigned int& );
+    // Channel Access Image ata update slot.
+    //
+    void setByteArrayImage( const QEByteArrayUpdate& update );
+
+    // Called by the other slot functions.
+    //
+    void setImage( const QByteArray& image,
+                   unsigned long dataSize,
+                   QCaAlarmInfo&,
+                   QCaDateTime&,
+                   const unsigned int& );
 
     void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex);
 
@@ -783,7 +791,7 @@ private:
     void restoreConfiguration (PersistanceManager* pm, restorePhases restorePhase);
 
     void setup();
-    qcaobject::QCaObject* createQcaItem( unsigned int variableIndex );
+    QEChannel* createQcaItem( unsigned int variableIndex );
 
     QCAALARMINFO_SEVERITY lastSeverity;
     bool isConnected;

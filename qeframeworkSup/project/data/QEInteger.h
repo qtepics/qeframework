@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -11,14 +11,14 @@
  *  Contact:    andrews@ansto.gov.au
  */
 
-// Integer specific wrapper for QCaObject.
+// Integer specific wrapper for QEChannel.
 
 #ifndef QE_INTEGER_H
 #define QE_INTEGER_H
 
 #include <QMetaType>
 #include <QVariant>
-#include <QCaObject.h>
+#include <QEChannel.h>
 #include <QEIntegerFormatting.h>
 #include <QEFrameworkLibraryGlobal.h>
 
@@ -29,6 +29,7 @@ struct QEIntegerValueUpdate {
    QCaAlarmInfo alarmInfo;
    QCaDateTime timeStamp;
    unsigned int variableIndex;
+   bool isMetaUpdate;
 };
 Q_DECLARE_METATYPE (QEIntegerValueUpdate)
 
@@ -37,20 +38,21 @@ struct QEIntegerArrayUpdate {
    QCaAlarmInfo alarmInfo;
    QCaDateTime timeStamp;
    unsigned int variableIndex;
+   bool isMetaUpdate;
 };
 Q_DECLARE_METATYPE (QEIntegerArrayUpdate)
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEInteger :
-      public qcaobject::QCaObject
+      public QEChannel
 {
    Q_OBJECT
 
 public:
-   QEInteger (QString pvName, QObject* eventObject,
+   QEInteger (const QString& pvName, QObject* eventObject,
               QEIntegerFormatting* integerFormattingIn,
               unsigned int variableIndexIn);
 
-   QEInteger (QString pvName, QObject* eventObject,
+   QEInteger (const QString& pvName, QObject* eventObject,
               QEIntegerFormatting* integerFormattingIn,
               unsigned int variableIndexIn,
               UserMessage* userMessageIn);

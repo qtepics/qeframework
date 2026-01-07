@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2015-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2015-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -12,14 +12,13 @@
  */
 
 /*
-  This class is used as a base for QEWidget and provides services for managing CA process
+  This class is used as a base for QEWidget and provides services for managing CA/PVA process
   variable connections. Refer to VariableManager.h for a full class description
  */
 
 #include "VariableManager.h"
 #include <QDebug>
 #include <QECommon.h>
-#include <QCaObject.h>
 
 #define DEBUG qDebug () << "VariableManager" << __LINE__ << __FUNCTION__ << "  "
 
@@ -40,29 +39,29 @@ VariableManager::VariableManager ()
 //
 VariableManager::~VariableManager ()
 {
-   // Delete all the QCaObject instances.
+   // Delete all the QEChannel instances.
    //
    this->clearQcaItems();
 }
 
 //------------------------------------------------------------------------------
-// Deallocate and free all QCaObjects, i.e. does a deep clear.
+// Deallocate and free all QEChannels, i.e. does a deep clear.
 // Smart pointers would have been nice.
 //
 void VariableManager::clearQcaItems()
 {
-   const int number = this->qcaItemList.size();
+   const int number = this->channelList.size();
    for (int i = 0; i < number; i++) {
-      qcaobject::QCaObject* qca = this->qcaItemList.value (i, NULL);
-      if (qca) delete qca;
+      QEChannel* qca = this->channelList.value (i, NULL);
+      if (qca) qca->deleteLater();
    }
-   this->qcaItemList.clear();
+   this->channelList.clear();
 }
 
 //------------------------------------------------------------------------------
 // Set the number of variables that will be used for this widget.
-// Create an array of QCaObject based objects to suit.
-// This is called by the CA aware widgets based on this class, such as a QELabel.
+// Create an array of QEChannel based objects to suit.
+// This is called by the CA/PVA aware widgets based on this class, such as a QELabel.
 //
 void VariableManager::setNumVariables (const unsigned int numVariablesIn)
 {
@@ -77,8 +76,8 @@ void VariableManager::setNumVariables (const unsigned int numVariablesIn)
 
    // Allocate/extend the array of channel objects.
    //
-   while (this->qcaItemList.size() < int(numVariables)) {
-      this->qcaItemList.append (NULL);   // Add place holder NULL value
+   while (this->channelList.size() < int(numVariables)) {
+      this->channelList.append (NULL);   // Add place holder NULL value
    }
 }
 
@@ -86,23 +85,23 @@ void VariableManager::setNumVariables (const unsigned int numVariablesIn)
 //
 unsigned int VariableManager::getNumVariables () const
 {
-   return this->qcaItemList.size();
+   return this->channelList.size();
 }
 
 //------------------------------------------------------------------------------
 // Initiate updates.
 // This is only required when QE widgets are loaded within a form and not directly by 'designer'.
-// When loaded directly by 'designer' they are activated (a CA connection is established) as
+// When loaded directly by 'designer' they are activated (a CA/PVA connection is established) as
 // soon as either the variable name or variable name substitution properties are set
 //
 void VariableManager::activate ()
 {
-   // For each variable, ask the CA aware widget based on this class to initiate updates
+   // For each variable, ask the CA/PVA aware widget based on this class to initiate updates
    // and to set up whatever signal/slot connections are required to make use of data updates.
    // Note, establish connection is a virtual function of the VariableNameManager class
    // and is normally called by that class when a variable name is defined or changed.
    //
-   const unsigned int number = this->qcaItemList.size();
+   const unsigned int number = this->channelList.size();
    for (unsigned int i = 0; i < number; i++) {
       this->establishConnection (i);
    }
@@ -126,26 +125,26 @@ void VariableManager::deactivate ()
    //
    this->deactivated ();
 
-   // Delete all the QCaObject instances.
+   // Delete all the QEChannel instances.
    //
-   const unsigned int number = this->qcaItemList.size();
+   const unsigned int number = this->channelList.size();
    for (unsigned int i = 0; i < number; i++) {
       this->deleteQcaItem (i, true);
    }
 }
 
 //------------------------------------------------------------------------------
-// Create a CA connection and initiates updates if required.
-// This is called by the establishConnection function of CA aware widgets based on
-// this class, such as a QELabel. If successfull it will return the QCaObject based
+// Create a CA/PVA connection and initiates updates if required.
+// This is called by the establishConnection function of CA/PVA aware widgets based on
+// this class, such as a QELabel. If successfull it will return the QEChannel based
 // object supplying data update signals.
 //
-qcaobject::QCaObject* VariableManager::createVariable (const unsigned int variableIndex,
-                                                       const bool do_subscribe)
+QEChannel* VariableManager::createVariable (const unsigned int variableIndex,
+                                            const bool do_subscribe)
 {
    // Return NULL if invalid or has never been set up.
    //
-   const unsigned int number = this->qcaItemList.size();
+   const unsigned int number = this->channelList.size();
    if (variableIndex >= number) {
       return NULL;
    }
@@ -155,15 +154,15 @@ qcaobject::QCaObject* VariableManager::createVariable (const unsigned int variab
    this->deleteQcaItem (variableIndex, false);
 
    // Connect to new variable.
-   // If a new variable name is present, ask the CA aware widget based on this class to create an
-   // appropriate object based on a QCaObject (by calling its createQcaItem() function).
+   // If a new variable name is present, ask the CA/PVA aware widget based on this class to create an
+   // appropriate object based on a QEChannel (by calling its createQcaItem() function).
    // If that is successfull, supply it with a mechanism for handling errors and subscribe
    // to the new variable if required.
    //
    const QString pvName = this->getSubstitutedVariableName (variableIndex);
    if (pvName.length () > 0) {
-      qcaobject::QCaObject* qca = this->createQcaItem (variableIndex);
-      this->qcaItemList.replace (variableIndex, qca);
+      QEChannel* qca = this->createQcaItem (variableIndex);
+      this->channelList.replace (variableIndex, qca);
       if (qca) {
          qca->setUserMessage ((UserMessage *) this);
          if (do_subscribe) {
@@ -174,19 +173,19 @@ qcaobject::QCaObject* VariableManager::createVariable (const unsigned int variab
       }
    }
 
-   // Return the QCaObject, if any.
+   // Return the QEChannel, if any.
    //
-   return this->qcaItemList.value (variableIndex, NULL);
+   return this->channelList.value (variableIndex, NULL);
 }
 
 //------------------------------------------------------------------------------
 // Default implementation of createQcaItem().
 // Usually a QE widgets will request a connection be established by this class and this class will
-// call back the QE widgets for it to create the specific flavour of QCaObject required using this function.
-// Since this class can also be used as a base class for widgets that don't establish any CA connection,
-// this default implementation is here to always return NULL when asked to create a QCaObject.
+// call back the QE widgets for it to create the specific flavour of QEChannel required using this function.
+// Since this class can also be used as a base class for widgets that don't establish any CA/PVA connection,
+// this default implementation is here to always return NULL when asked to create a QEChannel.
 //
-qcaobject::QCaObject* VariableManager::createQcaItem (unsigned int)
+QEChannel* VariableManager::createQcaItem (unsigned int)
 {
    return NULL;
 }
@@ -194,8 +193,8 @@ qcaobject::QCaObject* VariableManager::createQcaItem (unsigned int)
 //------------------------------------------------------------------------------
 // Default implementation of establishConnection().
 // Usually a QE widgets will request a connection be established by this class and this class will
-// call back the QE widgets for it to establish a connection on a newly created QCaObject using this function.
-// Since this class can also be used as a base class for widgets that don't establish any CA connection,
+// call back the QE widgets for it to establish a connection on a newly created QEChannel using this function.
+// Since this class can also be used as a base class for widgets that don't establish any CA/PVA connection,
 // this default implementation is here as a default when not implemented
 //
 void VariableManager::establishConnection (unsigned int) { }
@@ -214,21 +213,21 @@ void VariableManager::activated () { }
 void VariableManager::deactivated () { }
 
 //------------------------------------------------------------------------------
-// Return a reference to one of the qCaObjects used to stream CA data updates to the widget
-// This is called by CA aware widgets based on this class, such as a QELabel, mainly when they
+// Return a reference to one of the QEChannels used to stream CA/PVA data updates to the widget
+// This is called by CA/PVA aware widgets based on this class, such as a QELabel, mainly when they
 // want to connect to its signals to recieve data updates.
 //
-qcaobject::QCaObject* VariableManager::getQcaItem (unsigned int variableIndex) const
+QEChannel* VariableManager::getQcaItem (unsigned int variableIndex) const
 {
-   // Return the QCaObject used for the specified variable name, or
+   // Return the QEChannel used for the specified variable name, or
    // return NUMM if index is invalid or has never been set up.
    //
-   return this->qcaItemList.value (variableIndex, NULL);
+   return this->channelList.value (variableIndex, NULL);
 }
 
 //------------------------------------------------------------------------------
-// Remove any previous QCaObject created to supply CA data updates for a variable name
-// If the object connected to the QCaObject is being destroyed it is not good to receive signals
+// Remove any previous QEChannel created to supply CA/PVA data updates for a variable name
+// If the object connected to the QEChannel is being destroyed it is not good to receive signals
 // so the disconnect parameter should be true in this case.
 //
 void VariableManager::deleteQcaItem (const unsigned int variableIndex,
@@ -236,16 +235,16 @@ void VariableManager::deleteQcaItem (const unsigned int variableIndex,
 {
    // If the index is invalid do nothing.
    //
-   const unsigned int number = this->qcaItemList.size();
+   const unsigned int number = this->channelList.size();
    if (variableIndex >= number)
       return;
 
    // Remove the reference to the deleted object to prevent accidental use.
    //
-   qcaobject::QCaObject* qca = this->qcaItemList.value (variableIndex, NULL);
-   this->qcaItemList.replace (variableIndex, NULL);
+   QEChannel* qca = this->channelList.value (variableIndex, NULL);
+   this->channelList.replace (variableIndex, NULL);
 
-   // Delete the QCaObject used for the specified variable name.
+   // Delete the QEChannel used for the specified variable name.
    //
    if (qca) {
       // If we need to disconnect first, do so.
@@ -254,8 +253,14 @@ void VariableManager::deleteQcaItem (const unsigned int variableIndex,
       if (disconnect) {
          qca->disconnect ();
       }
-      // Delete the QCaObject
-      delete qca;
+
+      // Delete the QEChannel
+      /// Note: we use deleteLater() here (and above). This is because if a
+      /// widget calls (re-)establishConnection from within a slot function
+      /// responding to a signal from this QEChannel object (as does QEImage),
+      /// this can often cause a segmentation fault.
+      // Consider jist reusing the exiting QEChannel object.
+      qca->deleteLater();
    }
 }
 
@@ -269,9 +274,9 @@ void VariableManager::readNow ()
 {
    // Perform a single shot read on all variables.
    //
-   const unsigned int number = this->qcaItemList.size();
+   const unsigned int number = this->channelList.size();
    for (unsigned int i = 0; i < number; i++) {
-      qcaobject::QCaObject* qca = this->getQcaItem (i);
+      QEChannel* qca = this->getQcaItem (i);
       if (qca) {                  // If variable exists...
          qca->singleShotRead ();
       }
@@ -297,7 +302,7 @@ void VariableManager::writeNow ()
 //
 int* VariableManager::getDisconnectedCountRef () const
 {
-   return qcaobject::QCaObject::getDisconnectedCountRef ();
+   return QEChannel::getDisconnectedCountRef ();
 }
 
 //------------------------------------------------------------------------------
@@ -311,7 +316,7 @@ int* VariableManager::getDisconnectedCountRef () const
 //
 int* VariableManager::getConnectedCountRef () const
 {
-   return qcaobject::QCaObject::getConnectedCountRef ();
+   return QEChannel::getConnectedCountRef ();
 }
 
 // end
