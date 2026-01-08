@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2014-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2014-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -404,7 +404,7 @@ void QEScalarHistogram::genReadOut (const int index)
 
       qca->getLastData (isDefined, value, alarmInfo, timeStamp);
 
-      text = qca->getRecordName ();
+      text = qca->getPvName ();
       if (isDefined) {
          this->stringFormatting.setDbEgu (qca->getEgu ());
          text.append (" ").append (this->stringFormatting.formatString (value, 0));

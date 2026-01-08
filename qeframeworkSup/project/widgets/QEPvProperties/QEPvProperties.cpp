@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -1031,7 +1031,7 @@ void QEPvProperties::setValueValue (const QVariant& value,
       //
       const bool isDbfChar = (qca->getFieldType () == "DBF_CHAR");
 
-      const QString pvName = qca->getRecordName ();
+      const QString pvName = qca->getPvName ();
       const QString field = QERecordFieldName::fieldName (pvName);
       const bool requestedCharArray = field.endsWith ('$');
 
@@ -1339,7 +1339,7 @@ void QEPvProperties::customTableContextMenuRequested (const QPoint& posIn)
    switch (item->column ()) {
       case FIELD_COL:
          if (qca) {
-            newPV = qca->getRecordName ();
+            newPV = qca->getPvName ();
          }
          break;
 

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2014-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2014-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -463,7 +463,7 @@ void QEWaveformHistogram::genReadOut (const int index)
 
       // This is for the user - not a C/C++ compiler - number elements from 1.
       //
-      text = qca->getRecordName ().append (QString (" [%1]").arg (index + 1));
+      text = qca->getPvName ().append (QString (" [%1]").arg (index + 1));
 
       if (isDefined) {
          value = valueList.toList ().value (index);

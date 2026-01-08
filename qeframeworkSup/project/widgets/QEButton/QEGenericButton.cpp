@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -604,7 +604,7 @@ void QEGenericButton::writeClickedNow (const bool checked)
         if( !qca->writeStringElement( writeText, error ) )
         {
             message_types mt( MESSAGE_TYPE_WARNING, MESSAGE_KIND_EVENT | MESSAGE_KIND_STATUS );
-            error.prepend( qca->getRecordName() + ": " );
+            error.prepend( qca->getPvName() + ": " );
             this->sendMessage( error, mt );
         }
     }
@@ -647,7 +647,7 @@ void QEGenericButton::processWriteNow ( const bool checked )
         if( !qca->writeStringElement( writeText, error ) )
         {
             message_types mt( MESSAGE_TYPE_WARNING, MESSAGE_KIND_EVENT | MESSAGE_KIND_STATUS );
-            error.prepend( qca->getRecordName() + ": " );
+            error.prepend( qca->getPvName() + ": " );
             this->sendMessage( error, mt );
         }
     }

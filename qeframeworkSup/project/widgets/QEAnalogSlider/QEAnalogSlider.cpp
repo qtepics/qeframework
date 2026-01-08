@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -231,7 +231,7 @@ void QEAnalogSlider::calculateAutoValues (qcaobject::QCaObject* qca)
    //
    if ((ctrlLow == 0.0) && (ctrlUpp == 0.0)) return;
    if (ctrlUpp < ctrlLow) {
-      DEBUG << "PV" << qca->getRecordName() << " poorly defined limits ignored";
+      DEBUG << "PV" << qca->getPvName() << " poorly defined limits ignored";
       return;
    }
 

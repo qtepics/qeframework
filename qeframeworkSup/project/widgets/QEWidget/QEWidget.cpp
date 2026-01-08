@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Anthony Owen
@@ -637,7 +637,7 @@ const QList<QCaInfo> QEWidget::getQCaInfo()
       if( qca ) // If variable exists...
       {
          QCaInfo info(
-                  qca->getRecordName(),               // variable
+                  qca->getPvName(),                   // variable
                   qca->getFieldType(),                // type
                   copyData().toString(),              // value
                   qca->getAlarmInfo().severityName(), // severity
