@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2014-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2014-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -15,8 +15,8 @@
  This class manages image recording and playback for the QEImage widget
  */
 
-#ifndef RECORDING_H
-#define RECORDING_H
+#ifndef QE_IMAGE_RECORDING_H
+#define QE_IMAGE_RECORDING_H
 
 #include <QWidget>
 #include <QList>
@@ -31,7 +31,10 @@
 class historicImage
 {
 public:
-    historicImage( QByteArray image, unsigned long dataSize, QCaAlarmInfo& alarmInfo, QCaDateTime& time );
+    historicImage( const QByteArray& image,
+                   unsigned long dataSize,
+                   const QCaAlarmInfo& alarmInfo,
+                   const QCaDateTime& time );
     ~historicImage(){}
 
     QByteArray image;
@@ -66,7 +69,10 @@ public:
     ~recording();
 
     bool isRecording();             // Determine if in playback or record mode
-    void recordImage( QByteArray image, unsigned long dataSize, QCaAlarmInfo& alarmInfo, QCaDateTime& time );  // Save a new image
+    void recordImage( const QByteArray& image,
+                      unsigned long dataSize,
+                      const QCaAlarmInfo& alarmInfo,
+                      const QCaDateTime& time );  // Save a new image
 
     void nextFrameDue();             // Present the next frame due when playing back (public so accessible by playback timer class)
 
@@ -88,7 +94,9 @@ private:
 
 
 signals:
-  void byteArrayChanged( const QByteArray& value, unsigned long dataSize, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex );
+  void byteArrayChanged( const QByteArray& value, unsigned long dataSize,
+                         const QCaAlarmInfo& alarmInfo, const QCaDateTime& timeStamp,
+                         const unsigned int& variableIndex );
   void playingBack( bool playing );
 
 private slots:
@@ -104,4 +112,4 @@ private slots:
     void on_radioButtonLive_toggled(bool checked);
 };
 
-#endif // RECORDING_H
+#endif // QE_IMAGE_RECORDING_H

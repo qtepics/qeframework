@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2014-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2014-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -83,7 +83,10 @@ bool recording::isRecording()
 
 // Record an image.
 // Used by QEImage to record a new image.
-void recording::recordImage( QByteArray image, unsigned long dataSize, QCaAlarmInfo& alarmInfo, QCaDateTime& time )
+void recording::recordImage( const QByteArray& image,
+                             unsigned long dataSize,
+                             const QCaAlarmInfo& alarmInfo,
+                             const QCaDateTime& time )
 {
     // Determine behaviour
     bool stopAtLimit = ui->radioButtonStopAtLimit->isChecked();

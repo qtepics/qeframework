@@ -263,8 +263,8 @@ void QEImage::setup()
     recorder = new recording( this );
     QObject::connect(recorder, SIGNAL(destroyed(QObject*)), this, SLOT(recorderDestroyed(QObject*)));
     QObject::connect(recorder, SIGNAL(playingBack(bool)), this, SLOT(playingBack(bool)));
-    QObject::connect( recorder,  SIGNAL( byteArrayChanged( const QByteArray&, unsigned long, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
-                      this, SLOT( setImage( const QByteArray&, unsigned long, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
+    QObject::connect(recorder, SIGNAL( byteArrayChanged( const QByteArray&, unsigned long, const QCaAlarmInfo&, const QCaDateTime&, const unsigned int& ) ),
+                     this,     SLOT(   setImage(         const QByteArray&, unsigned long, const QCaAlarmInfo&, const QCaDateTime&, const unsigned int& ) ) );
 
     // Create vertical, horizontal, and general profile plots
     vSliceLabel = new QLabel( "Vertical Profile" );
@@ -569,14 +569,15 @@ void QEImage::presentControls()
 /*
     Implementation of QEWidget's virtual funtion to create the specific types of QCaObject required.
 */
-QEChannel* QEImage::createQcaItem( unsigned int variableIndex ) {
+QEChannel* QEImage::createQcaItem( unsigned int variableIndex )
+{
+    const QString pvName = this->getSubstitutedVariableName( variableIndex );
 
     switch( (variableIndexes)variableIndex )
     {
         // Create the image item as a QEByteArray
         case IMAGE_VARIABLE:
             {
-                const QString pvName = this->getSubstitutedVariableName( variableIndex );
 
                 // Create the image item
                 QEByteArray* qca = new QEByteArray( pvName, this, variableIndex );
@@ -694,8 +695,8 @@ QEChannel* QEImage::createQcaItem( unsigned int variableIndex ) {
     Implementation of VariableNameManager's virtual funtion to establish a connection to a PV as the variable name has changed.
     This function may also be used to initiate updates when loaded as a plugin.
 */
-void QEImage::establishConnection( unsigned int variableIndex ) {
-
+void QEImage::establishConnection( unsigned int variableIndex )
+{
     // IMAGE_VARIABLE width and height are available check has been moved to processing.
 
     // Create a connection.
@@ -947,7 +948,6 @@ void QEImage::connectionChanged( QCaConnectionInfo& connectionInfo, const unsign
     {
         // Connect the image waveform record to the display image
         case IMAGE_VARIABLE:
-            this->isFirstImageUpdate = true;
             break;
 
         default:
@@ -1717,8 +1717,9 @@ void QEImage::setDataImage( const QByteArray& imageIn,
     QCaAlarmInfo alarmInfo;
     QCaDateTime dateTime = QCaDateTime( QDateTime::currentDateTime() );
 
-    // Call the standard CA set image
-    setImage( imageIn, dataSize, alarmInfo, dateTime, IMAGE_VARIABLE );
+    // Call the standard set image
+    //
+    this->setImage( imageIn, dataSize, alarmInfo, dateTime, IMAGE_VARIABLE );
 }
 
 /* -----------------------------------------------------------------------------
@@ -1784,9 +1785,7 @@ void QEImage::setPvaImage ( const QEVariantUpdate& update )
    // Lastly call the standard CA set image
    //
    this->setImage (imageData.getData(), imageData.getBytesPerPixel(),
-                   alarmInfo, timeStamp, IMAGE_VARIABLE);
-
-   this->isFirstImageUpdate = update.isMetaUpdate;
+                   update.alarmInfo, update.timeStamp, IMAGE_VARIABLE);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1811,13 +1810,8 @@ void QEImage::setByteArrayImage( const QEByteArrayUpdate& update )
    //
    qca->setSignalsToSend (QEChannel::SIG_BYTEARRAY);
 
-   // We need non-const copies, at least for now.
-   //
-   QCaAlarmInfo alarmInfo = update.alarmInfo;
-   QCaDateTime timeStamp = update.timeStamp;
-
    this->setImage (update.array, update.dataElementSize,
-                   alarmInfo, timeStamp, IMAGE_VARIABLE);
+                   update.alarmInfo, update.timeStamp, IMAGE_VARIABLE);
 }
 
 
@@ -1831,8 +1825,8 @@ void QEImage::setByteArrayImage( const QEByteArrayUpdate& update )
  */
 void QEImage::setImage( const QByteArray& imageIn,
                         unsigned long dataSize,
-                        QCaAlarmInfo& alarmInfo,
-                        QCaDateTime& time,
+                        const QCaAlarmInfo& alarmInfo,
+                        const QCaDateTime& time,
                         const unsigned int& variableIndex )
 {
     // Do nothing regarding the image until the width and height are available
@@ -1852,9 +1846,6 @@ void QEImage::setImage( const QByteArray& imageIn,
     {
         recorder->recordImage( imageIn, dataSize, alarmInfo, time );
     }
-
-    // Signal a database value change to any Link widgets
-    emit dbValueChanged( "image" );
 
     // Save the image data for analysis and redisplay
     iProcessor.setImage( imageIn, dataSize );
@@ -1888,7 +1879,9 @@ void QEImage::setImage( const QByteArray& imageIn,
     }
 
     this->updateToolTipAlarm (alarmInfo, variableIndex);
-    this->isFirstImageUpdate = false;
+
+    // Signal a database value change to any Link widgets
+    emit dbValueChanged( "image" );
 }
 
 // Display a new image.
@@ -5712,7 +5705,10 @@ void QEImage::actionRequest( QString action, QStringList /*arguments*/, bool ini
 
 // Constructor for class used to hold a record of a single image
 // Used when building a list of recorded images
-historicImage::historicImage( QByteArray imageIn, unsigned long dataSizeIn, QCaAlarmInfo& alarmInfoIn, QCaDateTime& timeIn )
+historicImage::historicImage( const QByteArray& imageIn,
+                              unsigned long dataSizeIn,
+                              const QCaAlarmInfo& alarmInfoIn,
+                              const QCaDateTime& timeIn )
 {
     image = imageIn;
 

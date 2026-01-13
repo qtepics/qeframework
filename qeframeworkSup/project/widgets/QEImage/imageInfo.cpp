@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -299,7 +299,7 @@ void imageInfo::infoUpdateZoom( const int zoom, const double XStretch, const dou
 }
 
 // Update the 'new image' indicator
-void imageInfo::freshImage( QDateTime& time )
+void imageInfo::freshImage( const QDateTime& time )
 {
     currentPausedLabel->setText( time.toString( "hh:mm:ss.zzz" ));
     updateIndicator->freshImage();

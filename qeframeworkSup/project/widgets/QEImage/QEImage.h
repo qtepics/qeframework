@@ -597,8 +597,8 @@ public slots:
     //
     void setImage( const QByteArray& image,
                    unsigned long dataSize,
-                   QCaAlarmInfo&,
-                   QCaDateTime&,
+                   const QCaAlarmInfo&,
+                   const QCaDateTime&,
                    const unsigned int& );
 
     void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex);
@@ -795,7 +795,6 @@ private:
 
     QCAALARMINFO_SEVERITY lastSeverity;
     bool isConnected;
-    bool isFirstImageUpdate;
 
     bool imageSizeSet;      // Flag the video widget size has been set (setImageSize() has been called and done something)
     void setImageSize();    // Set the video widget size so it will match the processed image.

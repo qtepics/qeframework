@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -75,7 +75,7 @@ public:
     void setBriefInfoArea( const bool briefIn );            // Set if displaying all info, or a brief summary
     bool getBriefInfoArea();                                // Report if displaying all info, or a brief summary
 
-    void freshImage( QDateTime& time );                     // Indicate another image has arrived
+    void freshImage( const QDateTime& time );               // Indicate another image has arrived
 
 private:
     bool show;
