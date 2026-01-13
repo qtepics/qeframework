@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -17,8 +17,8 @@
  It is used to present a time stamp, but could be used for any text markups.
 */
 
-#ifndef MARKUPTEXT_H
-#define MARKUPTEXT_H
+#ifndef QE_MARKUP_TEXT_H
+#define QE_MARKUP_TEXT_H
 
 #include <markupItem.h>
 
@@ -26,12 +26,15 @@
 
 class imageMarkup;
 
-// Text markup. Used to add some text to an image, such as a timestamp
+// Text markup. Used to add some text to an image,
+// currently only ised for the timestamp.
+//
 class markupText : public markupItem
 {
 public:
 
-    markupText( imageMarkup* ownerIn, const bool interactiveIn, const bool reportOnMoveIn, const QString legendIn );
+    markupText( imageMarkup* ownerIn, const bool interactiveIn,
+                const bool reportOnMoveIn, const QString legendIn );
 
     void setText( QString textIn );
 
@@ -54,4 +57,4 @@ private:
     QRect rect;     // Area of the text
 };
 
-#endif // MARKUPTEXT_H
+#endif // QE_MARKUP_TEXT_H

@@ -83,28 +83,32 @@ public:
     imageMarkup();
     virtual ~imageMarkup();
 
-    // IDs to indicate what mode the markup system is in (for example, marking out an area), and to identify each of the markup items.
-    enum markupIds { MARKUP_ID_REGION1,
-                     MARKUP_ID_REGION2,
-                     MARKUP_ID_REGION3,
-                     MARKUP_ID_REGION4,
-                     MARKUP_ID_H1_SLICE,
-                     MARKUP_ID_H2_SLICE,
-                     MARKUP_ID_H3_SLICE,
-                     MARKUP_ID_H4_SLICE,
-                     MARKUP_ID_H5_SLICE,
-                     MARKUP_ID_V1_SLICE,
-                     MARKUP_ID_V2_SLICE,
-                     MARKUP_ID_V3_SLICE,
-                     MARKUP_ID_V4_SLICE,
-                     MARKUP_ID_V5_SLICE,
-                     MARKUP_ID_LINE,
-                     MARKUP_ID_TARGET,
-                     MARKUP_ID_BEAM,
-                     MARKUP_ID_TIMESTAMP,
-                     MARKUP_ID_ELLIPSE,
-                     MARKUP_ID_COUNT,  // must be second last
-                     MARKUP_ID_NONE }; // must be last
+    // IDs to indicate what mode the markup system is in (for example,
+    // marking out an area), and to identify each of the markup items.
+    //
+    enum markupIds {
+       MARKUP_ID_REGION1,
+       MARKUP_ID_REGION2,
+       MARKUP_ID_REGION3,
+       MARKUP_ID_REGION4,
+       MARKUP_ID_H1_SLICE,
+       MARKUP_ID_H2_SLICE,
+       MARKUP_ID_H3_SLICE,
+       MARKUP_ID_H4_SLICE,
+       MARKUP_ID_H5_SLICE,
+       MARKUP_ID_V1_SLICE,
+       MARKUP_ID_V2_SLICE,
+       MARKUP_ID_V3_SLICE,
+       MARKUP_ID_V4_SLICE,
+       MARKUP_ID_V5_SLICE,
+       MARKUP_ID_LINE,
+       MARKUP_ID_TARGET,
+       MARKUP_ID_BEAM,
+       MARKUP_ID_TIMESTAMP,
+       MARKUP_ID_ELLIPSE,
+       MARKUP_ID_COUNT,  // must be second last
+       MARKUP_ID_NONE    // must be last
+    };
 
     void setShowTime( bool visibleIn );     // Display timestamp markup if true
     bool getShowTime();                     // Return true if displaying timestamp markup

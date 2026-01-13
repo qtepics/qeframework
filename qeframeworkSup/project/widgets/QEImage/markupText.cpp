@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -18,10 +18,18 @@
 #include <markupText.h>
 #include <imageMarkup.h>
 
-markupText::markupText( imageMarkup* ownerIn, const bool interactiveIn, const bool reportOnMoveIn, const QString legendIn ) : markupItem( ownerIn, OVER_AREA, interactiveIn, reportOnMoveIn, legendIn )
+#define DEBUG qDebug() << "markupText"  << __LINE__ << __FUNCTION__ << "  "
+
+//------------------------------------------------------------------------------
+//
+markupText::markupText( imageMarkup* ownerIn, const bool interactiveIn,
+                        const bool reportOnMoveIn, const QString legendIn ) :
+   markupItem( ownerIn, OVER_AREA, interactiveIn, reportOnMoveIn, legendIn )
 {
 }
 
+//------------------------------------------------------------------------------
+//
 void markupText::drawMarkup( QPainter& p )
 {
     // Scale markup
@@ -35,27 +43,47 @@ void markupText::drawMarkup( QPainter& p )
 
     // Draw markup
 
+    QBrush brush;
+    brush.setStyle( Qt::SolidPattern);
+    brush.setColor( QColor (0, 0, 0, 96) );
+    p.setBrush( brush );
+
+    const QPen savedPen = p.pen();
+
+    QPen pen;
+    pen.setStyle( Qt::NoPen );
+    p.setPen( pen );
+
+    // Draw backgound for text
+    //
+    p.drawRect(scaledRect );
+
     // Draw the text
+    p.setPen( savedPen );
     p.setFont( owner->legendFont );
-    p.drawText( scaledRect, Qt::AlignLeft, text, &scaledRect );
+    p.drawText( scaledRect, Qt::AlignLeft, text );
 
     // Draw markup legend
     // never a legend for text drawLegend( p, ???, ABOVE_RIGHT );
-
 }
 
+//------------------------------------------------------------------------------
+//
 void markupText::setText( QString textIn )
 {
-    text = textIn;
+    text = QString(" %1 ").arg( textIn );
 
     // Update the area to accommodate the new text
     setArea();
 }
 
+//------------------------------------------------------------------------------
+//
 void markupText::setArea()
 {
     // Set the area to more than enough.
     // This will be trimmed to the bounding retangle of the text
+    //
     QSize textSize = owner->legendFontMetrics->size( Qt::TextSingleLine, text );
 
     rect = QRect( QPoint( 0, 0 ), textSize );
@@ -71,6 +99,8 @@ void markupText::setArea()
 
 }
 
+//------------------------------------------------------------------------------
+//
 void markupText::startDrawing( const QPoint pos )
 {
     rect.setBottomLeft( pos );
@@ -78,6 +108,8 @@ void markupText::startDrawing( const QPoint pos )
     activeHandle = MARKUP_HANDLE_NONE;
 }
 
+//------------------------------------------------------------------------------
+//
 void markupText::moveTo( const QPoint posIn )
 {
     // Limit position to within the image
@@ -95,6 +127,8 @@ bool markupText::isOver( const QPoint point, QCursor* cursor )
     return rect.contains( point );
 }
 
+//------------------------------------------------------------------------------
+//
 QPoint markupText::origin()
 {
     return rect.topLeft();
@@ -115,17 +149,25 @@ QCursor markupText::cursorForHandle( const markupItem::markupHandles )
     return defaultCursor();
 }
 
+//------------------------------------------------------------------------------
+//
 QPoint markupText::getPoint1()
 {
     return rect.topLeft();
 }
 
+//------------------------------------------------------------------------------
+//
 QPoint markupText::getPoint2()
 {
     return rect.bottomRight();
 }
 
+//------------------------------------------------------------------------------
+//
 QCursor markupText::defaultCursor()
 {
     return Qt::CrossCursor;
 }
+
+// end
