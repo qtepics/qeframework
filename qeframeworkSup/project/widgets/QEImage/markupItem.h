@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -42,16 +42,26 @@ class imageMarkup;
 class markupItem      // markups managing their own data is not implemented yet : public VariableNameManager
 {
 protected:
-    enum isOverOptions{ OVER_LINE, OVER_BORDER, OVER_AREA }; // test required to determine if pointer is over the object
-    markupItem( imageMarkup* ownerIn, const isOverOptions over, const bool interactiveIn, const bool reportOnMoveIn, const QString legendIn );
+    enum isOverOptions {  // test required to determine if pointer is over the object
+       OVER_LINE,
+       OVER_BORDER,
+       OVER_AREA
+    };
+
+    markupItem( imageMarkup* ownerIn, const isOverOptions over,
+                const bool interactiveIn, const bool reportOnMoveIn,
+                const QString legendIn );
 public:
     virtual ~markupItem();
 
 public:
-    enum markupHandles { MARKUP_HANDLE_NONE, // Over a markup, but not over any specific handle of the markup
-                         MARKUP_HANDLE_START, MARKUP_HANDLE_END, MARKUP_HANDLE_CENTER,  // Lines
-                         MARKUP_HANDLE_TL, MARKUP_HANDLE_TR, MARKUP_HANDLE_BL, MARKUP_HANDLE_BR, // Area corners
-                         MARKUP_HANDLE_T, MARKUP_HANDLE_B, MARKUP_HANDLE_L, MARKUP_HANDLE_R };   // Area sides
+    enum markupHandles {
+       MARKUP_HANDLE_NONE, // Over a markup, but not over any specific handle of the markup
+       MARKUP_HANDLE_START, MARKUP_HANDLE_END, MARKUP_HANDLE_CENTER,  // Lines
+       MARKUP_HANDLE_TL, MARKUP_HANDLE_TR, MARKUP_HANDLE_BL, MARKUP_HANDLE_BR, // Area corners
+       MARKUP_HANDLE_T, MARKUP_HANDLE_B, MARKUP_HANDLE_L, MARKUP_HANDLE_R      // Area sides
+    };
+
     void drawMarkupItem( QPainter& p );
     QSize getImageSize();
 
