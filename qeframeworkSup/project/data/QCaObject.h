@@ -61,8 +61,10 @@ struct QEByteArrayUpdate {
 Q_DECLARE_METATYPE (QEByteArrayUpdate)
 
 
-// TODO: Consider renameing QCaObject to something more vanilla (e.g. QEClient)
-// and dropping the name space and that not used anywhere else in the framework.
+// A qcaobject::QCaObject alias, QEChannel, has been created which has a more
+// vanilla and drops the namespace. New users should use QEChannel.
+// At sometime the roles of QEChannel and qcaobject::QCaObject will be dropped
+// and eventually the latter dropped altogether.
 //
 namespace qcaobject {
 
