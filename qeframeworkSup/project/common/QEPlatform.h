@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2015-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2015-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -16,6 +16,7 @@
 
 #include <Qt>
 #include <QtGlobal>
+#include <QDateTime>
 #include <QDropEvent>
 #include <QMetaType>
 #include <QMouseEvent>
@@ -40,6 +41,10 @@ public:
    ///
    static QPoint positionOf (QDropEvent* event);
    static QPoint positionOf (QMouseEvent* event);
+
+   /// Changes the time zone to UTC.
+   ///
+   static void setUTCTimeZone (QDateTime& dateTime);
 
    /// This function test if the specified double floating point number is 'Not a Number'.
    static bool isNaN (const double x);

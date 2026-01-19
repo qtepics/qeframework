@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2015-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2015-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -22,6 +22,7 @@
 
 #include <QDebug>
 #include <QString>
+#include <QTimeZone>
 
 // TODO check for QT 5.X and use inbuilt functions.
 
@@ -71,6 +72,18 @@ QPoint QEPlatform::positionOf (QMouseEvent* event)
 #endif
    }
    return result;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPlatform::setUTCTimeZone (QDateTime& dateTime)
+{
+#if QT_VERSION < 0x060000
+   dateTime.setTimeSpec (Qt::UTC);
+#else
+   QTimeZone zone (QTimeZone::UTC);
+   dateTime.setTimeZone (zone);
+#endif
 }
 
 //------------------------------------------------------------------------------
