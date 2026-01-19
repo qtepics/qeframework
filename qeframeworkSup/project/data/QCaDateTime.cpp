@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -20,36 +20,40 @@ static const QDateTime qtEpoch    (QDate( 1970, 1, 1 ), QTime( 0, 0, 0, 0 ), Qt:
 static const QDateTime epicsEpoch (QDate( 1990, 1, 1 ), QTime( 0, 0, 0, 0 ), Qt::UTC );
 static unsigned long EPICSQtEpocOffset = qtEpoch.secsTo ( epicsEpoch );
 
-/*
-  Construct an empty QCa date time
- */
+//------------------------------------------------------------------------------
+// Construct an empty QCa date time
+//
 QCaDateTime::QCaDateTime()
 {
    this->nSec = 0;
    this->userTag = 0;
 }
 
-/*
-  Construct a QCa date time set to the same date/time as another QCa date time .
- */
+//------------------------------------------------------------------------------
+// Construct a QCa date time set to the same date/time as another QCa date time .
+//
 QCaDateTime::QCaDateTime( const QCaDateTime& other ) : QDateTime( other )
 {
    this->nSec = other.nSec;
    this->userTag = other.userTag;
 }
 
+//------------------------------------------------------------------------------
 /*
-  Construct a QCa date time set to the same date/time as a conventional QDateTime
+//  Construct a QCa date time set to the same date/time as a conventional QDateTime
  */
+//
 QCaDateTime::QCaDateTime( const QDateTime& dt ) : QDateTime( dt )
 {
    this->nSec = 0;
    this->userTag = 0;
 }
 
+//------------------------------------------------------------------------------
 /*
-  Construct a QCa date time set to the same date/time as an EPICS time stamp
+//  Construct a QCa date time set to the same date/time as an EPICS time stamp
  */
+//
 QCaDateTime::QCaDateTime( const unsigned long seconds,
                           const unsigned long nanoseconds,
                           const int userTagIn )
@@ -69,19 +73,20 @@ QCaDateTime::QCaDateTime( const unsigned long seconds,
    //
    qint64 mSecsSinceEpoch;
    mSecsSinceEpoch = ((qint64) (seconds + EPICSQtEpocOffset)) * 1000 + mSec;
-   setMSecsSinceEpoch (mSecsSinceEpoch);
+   this->setMSecsSinceEpoch (mSecsSinceEpoch);
 
    this->userTag = userTagIn;
 }
 
+//------------------------------------------------------------------------------
 // Place holder
 //
 QCaDateTime::~QCaDateTime() {}
 
 
-/*
-  Copy a QCaDateTime from another and return value to allow t1 = t2 = t3 = etc.
- */
+//------------------------------------------------------------------------------
+// Copy a QCaDateTime from another and return value to allow t1 = t2 = t3 = etc.
+//
 QCaDateTime& QCaDateTime::operator=( const QCaDateTime& other )
 {
    // Do parent class stuff assignment.
@@ -95,9 +100,9 @@ QCaDateTime& QCaDateTime::operator=( const QCaDateTime& other )
    return *this;
 }
 
-/*
-  Returns a string which represents the date and time
- */
+//------------------------------------------------------------------------------
+// Returns a string which represents the date and time
+//
 QString QCaDateTime::text() const
 {
    // Format the date and time to millisecond resolution
@@ -114,9 +119,9 @@ QString QCaDateTime::text() const
    return out;
 }
 
-/*
-  Returns an ISO 8601 string which represents the date and time
- */
+//------------------------------------------------------------------------------
+// Returns an ISO 8601 string which represents the date and time
+//
 QString QCaDateTime::ISOText() const
 {
    // Format the date and time to millisecond resolution
@@ -126,9 +131,9 @@ QString QCaDateTime::ISOText() const
    return out;
 }
 
-/*
-  Returns time represented by object plus specified number of seconds.
- */
+//------------------------------------------------------------------------------
+// Returns time represented by object plus specified number of seconds.
+//
 QCaDateTime QCaDateTime::addSeconds( const double seconds ) const
 {
    QCaDateTime result;
@@ -139,18 +144,18 @@ QCaDateTime QCaDateTime::addSeconds( const double seconds ) const
    return result;
 }
 
-/*
-  Returns a double which represents time in seconds (to mS resolution) to specified target time.
- */
+//------------------------------------------------------------------------------
+// Returns a double which represents time in seconds (to mS resolution) to specified target time.
+//
 double QCaDateTime::secondsTo( const QDateTime & target ) const
 {
    qint64 msec = this->msecsTo (target);
    return double (msec) / double (1000.0);
 }
 
-/*
-  Returns original number of seconds from EPICS Epoch
- */
+//------------------------------------------------------------------------------
+// Returns original number of seconds from EPICS Epoch
+//
 unsigned long QCaDateTime::getSeconds() const
 {
    qint64 msec = epicsEpoch.msecsTo (*this);
@@ -159,9 +164,9 @@ unsigned long QCaDateTime::getSeconds() const
    return (unsigned long) (msec / 1000);
 }
 
-/*
-  Returns original number of nano-seconds.
- */
+//------------------------------------------------------------------------------
+// Returns original number of nano-seconds.
+//
 unsigned long QCaDateTime::getNanoSeconds() const
 {
    qint64 msec = epicsEpoch.msecsTo (*this);
@@ -172,9 +177,9 @@ unsigned long QCaDateTime::getNanoSeconds() const
    return  (unsigned long) (msec * 1000000) + this->nSec;
 }
 
-/*
-  Returns original userTag - zero for CA.
- */
+//------------------------------------------------------------------------------
+// Returns original userTag - zero for CA.
+//
 int QCaDateTime::getUserTag() const
 {
    return this->userTag;
@@ -189,6 +194,5 @@ static bool registerMetaTypes()
 }
 
 static const bool elaborate = registerMetaTypes();
-
 
 // end
