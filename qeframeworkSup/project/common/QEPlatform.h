@@ -42,9 +42,9 @@ public:
    static QPoint positionOf (QDropEvent* event);
    static QPoint positionOf (QMouseEvent* event);
 
-   /// Changes the time zone to UTC.
+   /// Changes the time zone to UTC or LocalTime only.
    ///
-   static void setUTCTimeZone (QDateTime& dateTime);
+   static void setTimeZone (QDateTime& dateTime, const Qt::TimeSpec timeSpec);
 
    /// This function test if the specified double floating point number is 'Not a Number'.
    static bool isNaN (const double x);

@@ -24,7 +24,8 @@
 #include <QString>
 #include <QTimeZone>
 
-// TODO check for QT 5.X and use inbuilt functions.
+#define DEBUG qDebug() << "QEPlatform" << __LINE__ << __FUNCTION__ << "  "
+
 
 QEPlatform::QEPlatform () { }
 QEPlatform::~QEPlatform () { }
@@ -76,12 +77,21 @@ QPoint QEPlatform::positionOf (QMouseEvent* event)
 
 //------------------------------------------------------------------------------
 //
-void QEPlatform::setUTCTimeZone (QDateTime& dateTime)
+void QEPlatform::setTimeZone (QDateTime& dateTime, const Qt::TimeSpec timeSpec)
 {
-#if QT_VERSION < 0x060000
-   dateTime.setTimeSpec (Qt::UTC);
+   if ((timeSpec != Qt::UTC) && (timeSpec != Qt::LocalTime)) {
+      DEBUG << "Unexprected time spec" << timeSpec << "ignored.";
+      return;
+   }
+
+#if QT_VERSION < 0x060500
+   dateTime.setTimeSpec (timeSpec);
 #else
-   QTimeZone zone (QTimeZone::UTC);
+   // Currently Qt::TimeSpec and QTimeZone::Initialization values are numerically
+   // the same; howver that cound change/
+   //
+   const QTimeZone::Initialization init = (timeSpec == Qt::UTC) ? QTimeZone::UTC : QTimeZone::LocalTime;
+   QTimeZone zone (init);
    dateTime.setTimeZone (zone);
 #endif
 }
