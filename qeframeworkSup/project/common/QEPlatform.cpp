@@ -77,10 +77,24 @@ QPoint QEPlatform::positionOf (QMouseEvent* event)
 
 //------------------------------------------------------------------------------
 //
+QDateTime QEPlatform::constructEpoch (const int year)
+{
+   QDateTime result;
+#if QT_VERSION < 0x060500
+   result = QDateTime (QDate (year, 1, 1), QTime (0, 0, 0), Qt::UTC);
+#else
+   const QTimeZone zone (QTimeZone::UTC);
+   result = QDateTime (QDate (year, 1, 1), QTime (0, 0, 0), zone);
+#endif
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
 void QEPlatform::setTimeZone (QDateTime& dateTime, const Qt::TimeSpec timeSpec)
 {
    if ((timeSpec != Qt::UTC) && (timeSpec != Qt::LocalTime)) {
-      DEBUG << "Unexprected time spec" << timeSpec << "ignored.";
+      DEBUG << "Unexpected time spec" << timeSpec << "ignored.";
       return;
    }
 
@@ -94,6 +108,26 @@ void QEPlatform::setTimeZone (QDateTime& dateTime, const Qt::TimeSpec timeSpec)
    QTimeZone zone (init);
    dateTime.setTimeZone (zone);
 #endif
+}
+
+//------------------------------------------------------------------------------
+//
+QDateTime QEPlatform::toTimeZone (const QDateTime& dateTime,
+                                  const Qt::TimeSpec timeSpec)
+{
+   if ((timeSpec != Qt::UTC) && (timeSpec != Qt::LocalTime)) {
+      DEBUG << "Unexpected time spec" << timeSpec << "ignored.";
+      return dateTime;   // unchanged
+   }
+
+   QDateTime result;
+   if (timeSpec == Qt::UTC) {
+      result = dateTime.toUTC();
+   } else {
+      result = dateTime.toLocalTime();
+   }
+
+   return result;
 }
 
 //------------------------------------------------------------------------------

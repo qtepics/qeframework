@@ -15,9 +15,11 @@
 #include <QString>
 #include <QTextStream>
 #include <QDebug>
+#include <QEPlatform.h>
 
-static const QDateTime qtEpoch    (QDate( 1970, 1, 1 ), QTime( 0, 0, 0, 0 ), Qt::UTC );
-static const QDateTime epicsEpoch (QDate( 1990, 1, 1 ), QTime( 0, 0, 0, 0 ), Qt::UTC );
+static const QDateTime qtEpoch    = QEPlatform::constructEpoch (1970);
+static const QDateTime epicsEpoch = QEPlatform::constructEpoch (1990);
+
 static unsigned long EPICSQtEpocOffset = qtEpoch.secsTo ( epicsEpoch );
 
 //------------------------------------------------------------------------------
@@ -39,9 +41,7 @@ QCaDateTime::QCaDateTime( const QCaDateTime& other ) : QDateTime( other )
 }
 
 //------------------------------------------------------------------------------
-/*
 //  Construct a QCa date time set to the same date/time as a conventional QDateTime
- */
 //
 QCaDateTime::QCaDateTime( const QDateTime& dt ) : QDateTime( dt )
 {
@@ -50,9 +50,7 @@ QCaDateTime::QCaDateTime( const QDateTime& dt ) : QDateTime( dt )
 }
 
 //------------------------------------------------------------------------------
-/*
 //  Construct a QCa date time set to the same date/time as an EPICS time stamp
- */
 //
 QCaDateTime::QCaDateTime( const unsigned long seconds,
                           const unsigned long nanoseconds,

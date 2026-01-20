@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2021-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2021-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andraz Pozar
@@ -24,6 +24,7 @@
 #include <vector>
 #include <map>
 #include <QEArchiveManager.h>
+#include <QEPlatform.h>
 
 // Enable Archiver Appliance support
 //
@@ -523,11 +524,11 @@ void QEArchapplInterface::processValues(const QObject* userData, QNetworkReply* 
       // 2. secondsintoyear - This is stored with each sample.
       // 3. nano - This is stored with each sample.
       //
-      // Here we combine all three into one timestamp and covert to local time
+      // Here we combine all three into one timestamp and covert to local time.
       //
       QTime zeroTime (0, 0, 0);
       QDateTime pointDateTime(QDate(onePointData.year, 1, 1), zeroTime);
-      pointDateTime.setTimeSpec(Qt::UTC);
+      QEPlatform::setTimeZone(pointDateTime, Qt::UTC);
       pointDateTime = pointDateTime.addSecs(onePointData.seconds);
       pointDateTime = pointDateTime.addMSecs((int)(onePointData.nanos/1000000));
       pointDateTime = pointDateTime.toLocalTime();

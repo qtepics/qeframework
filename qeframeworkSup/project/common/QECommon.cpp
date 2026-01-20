@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -248,18 +248,27 @@ int QEUtilities::getTimeZoneOffset (const QDateTime& atTime)
 
    // This changes the time, e.g. from "2013-02-24 11:37:19 EST" to "2013-02-24 11:37:19 UTC" which
    // has same numbers but is not the same time in an absolute sense (with apologies to Einstein).
+   // Note: we can't use atTime.toUTC() here.
    //
-   local.setTimeSpec (Qt::UTC);
+   QEPlatform::setTimeZone (local, Qt::UTC);
 
    // The "same" time in different time zones is a different time.
    // Use that difference to determine the local time offset from UTC.
    //
-   return atTime.secsTo (local);
+   // Sometimes this is off by one second, e.g. in Melbourne (AEDT) it can
+   // return 39599 rather than the expected 39600.  To overcome this feature,
+   // add a few seconds and then round down to a whole 1/4 hour.
+   // (not all time zones are a whole hour away from UTC, e.g. Adelaide).
+   //
+   const int r1 = atTime.secsTo (local);
+   const int r2 = ((r1 + 10) / 900) * 900;
+   return r2;
 }
 
 //------------------------------------------------------------------------------
 //
-QString QEUtilities::getTimeZoneTLA (const Qt::TimeSpec timeSpec, const QDateTime & atTime)
+QString QEUtilities::getTimeZoneTLA (const Qt::TimeSpec timeSpec,
+                                     const QDateTime& atTime)
 {
    QString result;
 

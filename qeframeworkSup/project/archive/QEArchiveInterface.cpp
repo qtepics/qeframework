@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -14,6 +14,7 @@
 #include "QEArchiveInterface.h"
 
 #include <QDebug>
+#include <QEPlatform.h>
 
 #define DEBUG qDebug () << "QEArchiveInterface" << __LINE__ << __FUNCTION__  << "  "
 
@@ -22,8 +23,8 @@
 // and nano seconds from an Epoch data time (1/1/1970). This happens to be the
 // epoch used by Qt but we don't make use of that assumption.
 //
-static const QDateTime archiveEpoch (QDate (1970, 1, 1), QTime (0, 0, 0, 0), Qt::UTC);
-static const QDateTime epicsEpoch   (QDate (1990, 1, 1), QTime (0, 0, 0, 0), Qt::UTC);
+static const QDateTime archiveEpoch = QEPlatform::constructEpoch (1970);
+static const QDateTime epicsEpoch   = QEPlatform::constructEpoch (1990);
 
 // Static count of the number of seconds between the archiver and epics epochs.
 //

@@ -42,9 +42,17 @@ public:
    static QPoint positionOf (QDropEvent* event);
    static QPoint positionOf (QMouseEvent* event);
 
+   /// Construct an epoch date time, always Jan 1st 00:00:00
+   ///
+   static QDateTime constructEpoch (const int year);
+
    /// Changes the time zone to UTC or LocalTime only.
    ///
    static void setTimeZone (QDateTime& dateTime, const Qt::TimeSpec timeSpec);
+
+   /// This converts the actual time to UTC or LocalTime.
+   ///
+   static QDateTime toTimeZone (const QDateTime& dateTime, const Qt::TimeSpec timeSpec);
 
    /// This function test if the specified double floating point number is 'Not a Number'.
    static bool isNaN (const double x);

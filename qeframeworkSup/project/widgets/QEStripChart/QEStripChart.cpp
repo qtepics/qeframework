@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -41,6 +41,7 @@
 #include <qwt_plot_curve.h>
 #include <QEGraphicNames.h>
 #include <QEGraphic.h>
+#include <QEPlatform.h>
 
 #include <alarm.h>
 
@@ -632,13 +633,15 @@ void QEStripChart::plotData ()
    QString format = "yyyy-MM-dd hh:mm:ss";
    QString times = " ";
 
-   dt = this->getStartDateTime ().toTimeSpec (this->timeZoneSpec);
+   dt = this->getStartDateTime ();
+   dt = QEPlatform::toTimeZone (dt, this->timeZoneSpec);
    zoneTLA = QEUtilities::getTimeZoneTLA (this->timeZoneSpec, dt);
 
    times.append (dt.toString (format)).append (" ").append (zoneTLA);
    times.append (" to ");
 
-   dt = this->getEndDateTime ().toTimeSpec (this->timeZoneSpec);
+   dt = this->getEndDateTime ();
+   dt = QEPlatform::toTimeZone (dt, this->timeZoneSpec);
    zoneTLA = QEUtilities::getTimeZoneTLA (this->timeZoneSpec, dt);
 
    times.append (dt.toString (format)).append (" ").append (zoneTLA);
@@ -728,7 +731,9 @@ void QEStripChart::setReadOut (const QString & text)
 QDateTime QEStripChart::timeAt (const double x) const
 {
    const qint64 mSec = qint64 (1000.0 * x);
-   QDateTime result = this->getEndDateTime ().toTimeSpec (this->timeZoneSpec);
+   QDateTime result = this->getEndDateTime ();
+   result = QEPlatform::toTimeZone (result, this->timeZoneSpec);
+
    result = result.addMSecs (mSec);
    return result;
 }
@@ -1541,6 +1546,7 @@ void QEStripChart::timeZoneSelected (const Qt::TimeSpec timeZoneSpecIn)
 //
 void QEStripChart::playModeSelected (const QEStripChartNames::PlayModes mode)
 {
+   QDateTime ct, st, et;
    int n;
    int d;
 
@@ -1571,9 +1577,24 @@ void QEStripChart::playModeSelected (const QEStripChartNames::PlayModes mode)
          break;
 
       case QEStripChartNames::selectTimes:
-         this->timeDialog->setMaximumDateTime (QDateTime::currentDateTime ().toTimeSpec (this->timeZoneSpec));
-         this->timeDialog->setStartDateTime (this->getStartDateTime().toTimeSpec (this->timeZoneSpec));
-         this->timeDialog->setEndDateTime (this->getEndDateTime().toTimeSpec (this->timeZoneSpec));
+         // Extract relevent times.
+         //
+         ct = QDateTime::currentDateTime ();
+         st = this->getStartDateTime();
+         et = this->getEndDateTime();
+
+         // Convert to UTC or local time as needed.
+         //
+         ct = QEPlatform::toTimeZone (ct, this->timeZoneSpec);
+         st = QEPlatform::toTimeZone (st, this->timeZoneSpec);
+         et = QEPlatform::toTimeZone (et, this->timeZoneSpec);
+
+         // And set dialog parameters.
+         //
+         this->timeDialog->setMaximumDateTime (ct);
+         this->timeDialog->setStartDateTime (st);
+         this->timeDialog->setEndDateTime (et);
+
          n = this->timeDialog->exec (this);
          if (n == 1) {
             // User has selected okay.
