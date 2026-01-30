@@ -609,6 +609,14 @@ public slots:
     ///
     void setManagedVisible( bool v ){ setRunVisible( v ); }
 
+    /// Allows auto brightness control.
+    ///
+    void brightnessContrastAutoImageRequest();
+
+    /// Allows brightness or contrast or contrast reversal has changed
+    ///
+    void imageDisplayPropertiesChanged();
+
 private slots:
     void setFormat( const QString& text, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
     void setBitDepth( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
@@ -641,9 +649,6 @@ private slots:
     void beamSelectModeClicked();
 
     void panModeClicked();
-
-    void imageDisplayPropertiesChanged();
-    void brightnessContrastAutoImageRequest();
 
     // !! move this functionality into QEWidget???
     // !! needs one for single variables and one for multiple variables, or just the multiple variable one for all

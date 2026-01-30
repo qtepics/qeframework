@@ -257,7 +257,8 @@ void QEImage::setup()
                       this,    SLOT  ( imageDisplayPropertiesChanged()) );
     QObject::connect( imageDisplayProps, SIGNAL( brightnessContrastAutoImage() ),
                       this,    SLOT  ( brightnessContrastAutoImageRequest() ) );
-    QObject::connect(imageDisplayProps, SIGNAL(destroyed(QObject*)), this, SLOT(imageDisplayPropsDestroyed(QObject*)));
+    QObject::connect( imageDisplayProps, SIGNAL(destroyed(QObject*)),
+                      this,  SLOT(imageDisplayPropsDestroyed(QObject*)));
 
     // Create image recorder
     recorder = new recording( this );
@@ -4916,7 +4917,8 @@ void QEImage::imageDisplayPropertiesChanged()
 // A request has been made to set the brightness and contrast to suit the current image
 void QEImage::brightnessContrastAutoImageRequest()
 {
-    setRegionAutoBrightnessContrast( QPoint( 0, 0), QPoint( iProcessor.getImageBuffWidth(), iProcessor.getImageBuffHeight() ) );
+    setRegionAutoBrightnessContrast( QPoint( 0, 0), QPoint( iProcessor.getImageBuffWidth(),
+                                                            iProcessor.getImageBuffHeight() ) );
 }
 
 //=====================================================================
