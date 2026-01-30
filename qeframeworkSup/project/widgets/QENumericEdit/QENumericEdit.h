@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -23,6 +23,7 @@
 #include <QEEnums.h>
 #include <QEAbstractWidget.h>
 #include <QNumericEdit.h>
+#include <QEChannel.h>
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QESingleVariableMethods.h>
@@ -331,7 +332,7 @@ protected:
    //
    void activated ();
    void establishConnection (unsigned int variableIndex);
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
 
    // Drag and Drop
    void dragEnterEvent (QDragEnterEvent *event) { qcaDragEnterEvent( event ); }
@@ -381,7 +382,7 @@ private:
    bool allowFocusUpdate;
 
    // If when autoScale set true, we save these values so that when autoScale
-   // is set falsewe can reapply them.
+   // is set false can re-apply them.
    //
    int designLeadingZeros;
    int designPrecision;
@@ -389,11 +390,9 @@ private:
    double designMaximum;
 
 private slots:
-   void connectionChanged (QCaConnectionInfo& connectionInfo,
-                           const unsigned int &variableIndex);
+   void connectionUpdated (const QEConnectionUpdate& update);
 
-   void externalValueUpdate (const double& value, QCaAlarmInfo&, 
-                             QCaDateTime&, const unsigned int&);
+   void externalValueUpdate (const QEFloatingValueUpdate& update);
 
    void useNewVariableNameProperty (QString variableName,
                                     QString variableNameSubstitutions,

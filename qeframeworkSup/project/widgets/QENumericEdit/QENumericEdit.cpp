@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -23,6 +23,10 @@
 #define DEBUG qDebug () << "QENumericEdit" << __LINE__ << __FUNCTION__  << "  "
 
 #define PV_VARIABLE_INDEX      0
+
+static const QString applyStyleEnabled  = QEUtilities::colourToStyle (QColor (128, 232, 128));
+static const QString applyStyleDisabled = QEUtilities::colourToStyle (QColor (216, 232, 216), QColor(128, 128, 128));
+
 
 //------------------------------------------------------------------------------
 // Constructor with no initialisation
@@ -60,8 +64,7 @@ void QENumericEdit::commonSetup ()
    this->applyButton->setSizePolicy (QSizePolicy::Preferred, QSizePolicy::Preferred);
    this->applyButton->setFocusPolicy (Qt::NoFocus);
    this->setApplyButtonWidth ();
-   const QString style = QEUtilities::colourToStyle (QColor (128, 232, 128));
-   this->applyButton->setStyleSheet (style);
+   this->applyButton->setStyleSheet (applyStyleEnabled);
 
    // Copy actual widget size policy to the containing widget, then ensure
    // internal widget will expand to fill container widget.
@@ -205,6 +208,19 @@ bool QENumericEdit::eventFilter (QObject* watched, QEvent* event)
          }
          break;
 
+      case QEvent::EnabledChange:
+         // The enabled state must be passed through to the apply button.
+         // The internal QNumericEdit widget already gets this.
+         //
+         if (watched == this) {
+            if (this->isEnabled()) {
+               this->applyButton->setStyleSheet (applyStyleEnabled);
+            } else {
+               this->applyButton->setStyleSheet (applyStyleDisabled);
+            }
+         }
+         break;
+
       default:
          result = false;
          break;
@@ -336,7 +352,7 @@ void QENumericEdit::writeNow ()
 
    // Get the variable to write to, and check it exists.
    //
-   QEFloating* qca = dynamic_cast <QEFloating*> (getQcaItem (PV_VARIABLE_INDEX));
+   QEFloating* qca = qobject_cast <QEFloating*> (this->getQcaItem (PV_VARIABLE_INDEX));
    if (qca && qca->getChannelIsConnected ()) {
       // Check is value different ?? Compare with lastValue??
       //
@@ -405,19 +421,18 @@ void QENumericEdit::useNewVariableNameProperty (QString pvName,
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of
-// QCaObject required. A QCaObject that streams doubles is required.
+// QEChannel required. A QEChannel that streams doubles is required.
 //
-qcaobject::QCaObject* QENumericEdit::createQcaItem (unsigned int variableIndex)
+QEChannel* QENumericEdit::createQcaItem (unsigned int variableIndex)
 {
    if (variableIndex != PV_VARIABLE_INDEX) {
       DEBUG << "unexpected variable index" << variableIndex;
       return NULL;
    }
 
-   qcaobject::QCaObject* result = NULL;
-
-   result = new QEFloating (this->getSubstitutedVariableName (variableIndex),
-                            this, &this->floatingFormatting, variableIndex);
+   const QString pvName = this->getSubstitutedVariableName (variableIndex);
+   QEChannel* result = new QEFloating (pvName, this, &this->floatingFormatting,
+                                       variableIndex);
 
    // Apply currently defined array index/elements request values.
    //
@@ -450,38 +465,39 @@ void QENumericEdit::establishConnection (unsigned int variableIndex)
    }
 
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   // Note createConnection creates the connection and returns reference to existing QCaObject.
+   // If successfull, the QEChannel object that will supply data update signals will be returned
+   // Note createConnection creates the connection and returns reference to existing QEChannel.
    //
-   qcaobject::QCaObject* qca = this->createConnection (variableIndex);
+   QEChannel* qca = this->createConnection (variableIndex);
 
-   // If a QCaObject object is now available to supply data update signals,
+   // If a QEChannel object is now available to supply data update signals,
    // connect it to the appropriate slots.
    //
    if (qca) {
-      QObject::connect (qca,  SIGNAL (connectionChanged (QCaConnectionInfo&, const unsigned int&)),
-                        this, SLOT   (connectionChanged (QCaConnectionInfo&, const unsigned int&)));
+      QObject::connect (qca,  SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                        this, SLOT   (connectionUpdated (const QEConnectionUpdate&)));
 
-      QObject::connect (qca,  SIGNAL (floatingChanged     (const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                        this, SLOT   (externalValueUpdate (const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+      QObject::connect (qca,  SIGNAL (valueUpdated        (const QEFloatingValueUpdate&)),
+                        this, SLOT   (externalValueUpdate (const QEFloatingValueUpdate&)));
    }
 }
 
 //------------------------------------------------------------------------------
 // Act on a connection change.
 // Change how the widget looks and change the tool tip
-// This is the slot used to recieve connection updates from a QCaObject based class.
+// This is the slot used to recieve connection updates from a QEChannel based class.
 //
-void QENumericEdit::connectionChanged (QCaConnectionInfo& connectionInfo,
-                                       const unsigned int& variableIndex)
+void QENumericEdit::connectionUpdated (const QEConnectionUpdate& update)
 {
-   if (variableIndex != PV_VARIABLE_INDEX) {
-      DEBUG << "unexpected variable index" << variableIndex;
+   const unsigned int vi = update.variableIndex;
+
+   if (vi != PV_VARIABLE_INDEX) {
+      DEBUG << "unexpected variable index" << vi;
    }
 
    // Note the connected state
    //
-   this->isConnected = connectionInfo.isChannelConnected ();
+   this->isConnected = update.connectionInfo.isChannelConnected ();
 
    // Enable internal widget iff connected.
    // Container widget remains enabled, so menues etc. still work.
@@ -490,8 +506,8 @@ void QENumericEdit::connectionChanged (QCaConnectionInfo& connectionInfo,
 
    // Display the connected state
    //
-   this->updateToolTipConnection (this->isConnected, variableIndex);
-   this->processConnectionInfo (this->isConnected, variableIndex);
+   this->updateToolTipConnection (this->isConnected, vi);
+   this->processConnectionInfo (this->isConnected, vi);
 
    // Set cursor to indicate access mode.
    //
@@ -500,31 +516,23 @@ void QENumericEdit::connectionChanged (QCaConnectionInfo& connectionInfo,
    // Signal channel connection change to any (Link) widgets.
    // using signal dbConnectionChanged.
    //
-   this->emitDbConnectionChanged (PV_VARIABLE_INDEX);
+   this->emitDbConnectionChanged (vi);
 }
 
 //------------------------------------------------------------------------------
 //
-void QENumericEdit::externalValueUpdate (const double& value,
-                                         QCaAlarmInfo& alarmInfo,
-                                         QCaDateTime&,
-                                         const unsigned int& variableIndex)
+void QENumericEdit::externalValueUpdate (const QEFloatingValueUpdate& update)
 {
-   if (variableIndex != PV_VARIABLE_INDEX) {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+   const unsigned int vi = update.variableIndex;
+
+   if (vi != PV_VARIABLE_INDEX) {
+      DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
-   // Get the associate channel object.
-   //
-   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
-   if (!qca) return;   // sanity check
-
-   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
-
    // Check first/meta data update
    //
-   if (isMetaDataUpdate) {
+   if (update.isMetaUpdate) {
 
       // Check for auto scale and add units.
       //
@@ -532,7 +540,7 @@ void QENumericEdit::externalValueUpdate (const double& value,
          this->calculateAutoValues ();
       }
 
-      qcaobject::QCaObject* qca = this->getQcaItem (PV_VARIABLE_INDEX);
+      QEChannel* qca = this->getQcaItem (vi);
       QString suffix;
       if (this->getAddUnits () && qca) {
          suffix = qca->getEgu ();
@@ -549,7 +557,7 @@ void QENumericEdit::externalValueUpdate (const double& value,
    // database) value. This last value is also used to manage notifying user
    // changes (save what the user will be changing from).
    //
-   this->lastValue = value;
+   this->lastValue = update.value;
 
    // Update the value if appropriate.
    // If the user is editing the object then updates will be
@@ -563,7 +571,7 @@ void QENumericEdit::externalValueUpdate (const double& value,
    // Make hasFocus a QNumericEdit method
    //
    if (this->internalWidget->lineEdit->hasFocus ()) {
-      allowUpdate = this->allowFocusUpdate || !this->isModified || isMetaDataUpdate;
+      allowUpdate = this->allowFocusUpdate || !this->isModified || update.isMetaUpdate;
    } else {
       // No focus - but maybe confirmation dialog present.
       allowUpdate = !this->messageDialogPresent;
@@ -574,12 +582,12 @@ void QENumericEdit::externalValueUpdate (const double& value,
       // Note programatical updates like this, as opposed to user updates, do
       // not signal valueChanged (connected to internalValueChanged).
       //
-      this->internalWidget->setValue (value);
+      this->internalWidget->setValue (update.value);
    }
 
    // Invoke common alarm handling processing.
    //
-   this->processAlarmInfo (alarmInfo, variableIndex);
+   this->processAlarmInfo (update.alarmInfo, vi);
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged. Because the write underying QLineEdit may not have
@@ -587,8 +595,8 @@ void QENumericEdit::externalValueUpdate (const double& value,
    // We must reformat in order to always generate sensible signal text.
    //
    QString formattedText;
-   formattedText = this->internalWidget->getFormattedText (value);
-   this->emitDbValueChanged (formattedText, PV_VARIABLE_INDEX);
+   formattedText = this->internalWidget->getFormattedText (update.value);
+   this->emitDbValueChanged (formattedText, vi);
 }
 
 //------------------------------------------------------------------------------
@@ -599,7 +607,7 @@ void QENumericEdit::calculateAutoValues ()
    //
    if (!this->isConnected) return;
 
-   qcaobject::QCaObject* qca = this->getQcaItem (PV_VARIABLE_INDEX);
+   QEChannel* qca = this->getQcaItem (PV_VARIABLE_INDEX);
    if (!qca) return;        // sainity check
 
    // Do the auto scale calculations.
@@ -667,7 +675,7 @@ void QENumericEdit::internalValueChanged (const double)
 {
    this->isModified = true;
 
-   qcaobject::QCaObject* qca = this->getQcaItem (PV_VARIABLE_INDEX);
+   QEChannel* qca = this->getQcaItem (PV_VARIABLE_INDEX);
    if (!qca) return;   // sanity check
    const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
 
