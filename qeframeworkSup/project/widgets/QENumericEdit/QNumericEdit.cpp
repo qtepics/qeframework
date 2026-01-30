@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2014-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2014-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -76,7 +76,7 @@ void QNumericEdit::commonConstructor ()
    // force internalSetValue to process.
    //
    this->mValue = 0.1;  // force initial update
-   this->internalSetValue (0.0);
+   this->internalSetValue (0.0, vsExternal);
    this->cursorPosition = this->cursorFirst;
    this->emitValueChangeInhibited = false;
 }
@@ -117,7 +117,7 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
          if (this->cursorOverSign ()) {
             // Eg: +1.23  => -1.23
             double fabule = fabs (this->getValue ());
-            this->internalSetValue (key == Qt::Key_Up ? +fabule : -fabule);
+            this->internalSetValue (key == Qt::Key_Up ? +fabule : -fabule, vsUserInput);
 
          } else if (this->cursorOverExpSign ()) {
             // Eg: 1.23E-6  => 1.23E+6
@@ -129,7 +129,7 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
                    ((expValue > 0) && (key == Qt::Key_Down) )) {
                   int p = -2 * expValue;
                   double factor = pow (10.0, p);
-                  this->internalSetValue (this->getValue () * factor);
+                  this->internalSetValue (this->getValue () * factor, vsUserInput);
                }
             }
 
@@ -138,7 +138,7 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
             int p = (index == (this->cursorLast - 1)) ? 10 : 1;
             p = (key == Qt::Key_Up ? +p : -p);
             double factor = pow (10.0, p);
-            this->internalSetValue (this->getValue () * factor);
+            this->internalSetValue (this->getValue () * factor, vsUserInput);
 
          } else if (this->isRadixDigit (qc)) {    // Is this a digit character?
 
@@ -169,7 +169,7 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
 
             double delta = pow (dblRadix, significance);
             delta = (key == Qt::Key_Up ? +delta : -delta);
-            this->internalSetValue (this->getValue () + delta);
+            this->internalSetValue (this->getValue () + delta, vsUserInput);
          }
          break;
 
@@ -201,9 +201,9 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
       case Qt::Key_Minus:
          if (this->cursorOverSign ()) {
             if (key == Qt::Key_Plus) {
-               this->internalSetValue (+fabs (this->getValue ()));
+               this->internalSetValue (+fabs (this->getValue ()), vsUserInput);
             } else {
-               this->internalSetValue (-fabs (this->getValue ()));
+               this->internalSetValue (-fabs (this->getValue ()), vsUserInput);
             }
             this->setCursorPosition (this->getCursorPosition () + 1);
 
@@ -213,7 +213,7 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
 
             double newval = this->valueOfImage (tryThis);
 
-            this->internalSetValue (newval);
+            this->internalSetValue (newval, vsUserInput);
             this->setCursorPosition (this->getCursorPosition () + 1);
          }
          break;
@@ -247,7 +247,7 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
 
             double newval = this->valueOfImage (tryThis);
 
-            this->internalSetValue (newval);
+            this->internalSetValue (newval, vsUserInput);
             this->setCursorPosition (this->getCursorPosition () + 1);
 
             // If we have moved onto a filler character, then move again.
@@ -673,7 +673,8 @@ void QNumericEdit::applyLimits ()
    this->mMinimum = MAX (this->mMinimum, this->minimumMin);
    this->mMaximum = MIN (this->mMaximum, this->maximumMax);
 
-   this->internalSetValue (this->getValue ());   // Set value forces min/max limits.
+   // Invoking set value enforces min/max limits.
+   this->internalSetValue (this->getValue (), vsExternal);
 }
 
 //------------------------------------------------------------------------------
@@ -823,7 +824,7 @@ void QNumericEdit::setMinimum (const double value)
    //
    this->mMaximum = LIMIT (this->mMaximum, this->mMinimum, this->maximumMax);
 
-   this->internalSetValue (this->getValue ());   // Set value forces min/max limits.
+   this->internalSetValue (this->getValue (), vsExternal);   // Set value forces min/max limits.
    this->redisplayText ();
 }
 
@@ -844,7 +845,7 @@ void QNumericEdit::setMaximum (const double value)
    //
    this->mMinimum = LIMIT (this->mMinimum, this->minimumMin, this->mMaximum);
 
-   this->internalSetValue (this->getValue ());   // Set value forces min/max limits.
+   this->internalSetValue (this->getValue (), vsExternal);   // Set value forces min/max limits.
    this->redisplayText ();
 }
 
@@ -899,7 +900,8 @@ QE::Separators QNumericEdit::getSeparator () const
 
 //------------------------------------------------------------------------------
 //
-void QNumericEdit::internalSetValue (const double value)
+void QNumericEdit::internalSetValue (const double value,
+                                     const ValueSource source)
 {
    const double dblRadix = double (this->fpr.getRadixValue ());
    const double modelSmall = pow (dblRadix, -this->mPrecision);
@@ -925,7 +927,7 @@ void QNumericEdit::internalSetValue (const double value)
          constrainedValue = LIMIT (constrainedValue, this->mMinimum, this->mMaximum);
       } else {
         // The Wrap value property is set.
-        // NOTE: the <  and the >= asymetry - allow for proper modulo working
+        // NOTE: the <  and the >= asymmetry - allow for proper modulo working
         //
         if ((constrainedValue <  this->mMinimum) ||
             (constrainedValue >= this->mMaximum)) {
@@ -965,12 +967,21 @@ void QNumericEdit::internalSetValue (const double value)
    if (this->mValue != constrainedValue) {
       this->mValue = constrainedValue;
 
-      // This prevents infinite looping in the case of cyclic connections.
+      // This prevents infinite looping in the case of cyclic signal-slot connections.
       //
       if (!this->emitValueChangeInhibited) {
          this->emitValueChangeInhibited = true;
+
+         const int iValue = static_cast<int>(this->mValue);   // range check?
+
          emit valueChanged (this->mValue);
-         emit valueChanged (int (this->mValue));   // range check?
+         emit valueChanged (iValue);
+
+         if (source == vsUserInput) {
+            emit valueEdited (this->mValue);
+            emit valueEdited (iValue);
+         }
+
          this->emitValueChangeInhibited = false;
       }
       this->redisplayText ();
@@ -983,7 +994,7 @@ void QNumericEdit::setValue (const double value)
 {
    // Essentially just a wrapper.
    //
-   this->internalSetValue (value);
+   this->internalSetValue (value, vsExternal);
 }
 
 //------------------------------------------------------------------------------

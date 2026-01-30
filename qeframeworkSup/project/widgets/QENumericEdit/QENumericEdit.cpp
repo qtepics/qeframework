@@ -91,7 +91,7 @@ void QENumericEdit::commonSetup ()
 
    // QNumericEdit signals
    //
-   QObject::connect (this->internalWidget, SIGNAL (valueChanged         (const double)),
+   QObject::connect (this->internalWidget, SIGNAL (valueEdited          (const double)),
                      this,                 SLOT   (internalValueChanged (const double)));
    QObject::connect (this->internalWidget, SIGNAL (returnPressed ()),
                      this,                 SLOT   (returnPressed ()));
@@ -578,7 +578,7 @@ void QENumericEdit::externalValueUpdate (const QEFloatingValueUpdate& update)
    }
 
    if (allowUpdate) {
-      // Update to refect current database value.
+      // Update to reflect current database value.
       // Note programatical updates like this, as opposed to user updates, do
       // not signal valueChanged (connected to internalValueChanged).
       //
@@ -671,16 +671,11 @@ void QENumericEdit::calculateAutoValues ()
 
 //------------------------------------------------------------------------------
 //
-void QENumericEdit::internalValueChanged (const double)
+void QENumericEdit::internalValueChanged (const double /* value */)
 {
    this->isModified = true;
-
-   QEChannel* qca = this->getQcaItem (PV_VARIABLE_INDEX);
-   if (!qca) return;   // sanity check
-   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
-
-   // GUI-320
-   if (this->writeOnChange && !isMetaDataUpdate) {
+   // writeNow performs the does the QEChannel exists check.
+   if (this->writeOnChange) {
       this->writeNow ();
    }
 }
