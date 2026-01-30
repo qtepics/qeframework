@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -184,6 +184,11 @@ QEStripChartItem::QEStripChartItem (QEStripChart* chartIn,
    QObject::connect (this->pvSlotLetter, SIGNAL ( clicked (bool)),
                      this,   SLOT   ( letterButtonClicked (bool)));
 
+   // Connect shiw/hode check box
+   //
+   QObject::connect (this->showHide, SIGNAL (stateChanged (int)),
+                     this, SLOT (showHideChecked (int)));
+
    this->hostSlotAvailable = false;
 
    // Prepare to interact with whatever application is hosting this widget.
@@ -236,13 +241,19 @@ void QEStripChartItem::createInternalWidgets ()
 
    this->caLabel = new QELabel (this);
    this->caLabel->setMinimumSize (QSize (88, 15));
-   this->caLabel->setMaximumSize (QSize (200, 15));
+   this->caLabel->setMaximumSize (QSize (400, 15));
    this->layout->addWidget (this->caLabel);
 
-   // Set up the stretchh ratios.
-   this->layout->setStretch (0, 0);
-   this->layout->setStretch (1, 3);
-   this->layout->setStretch (2, 1);
+   this->showHide = new QCheckBox (this);
+   this->showHide->setFixedWidth (17);
+   this->showHide->setChecked (true);
+   this->layout->addWidget (this->showHide);
+
+   // Set up the stretch ratios.
+   this->layout->setStretch (0, 0);   // button
+   this->layout->setStretch (1, 3);   // label
+   this->layout->setStretch (2, 2);   // pv label
+   this->layout->setStretch (3, 0);   // check box
 
    this->colourDialog = new QColorDialog (this);
    this->colourDialog->setOption (QColorDialog::ShowAlphaChannel, true);
@@ -275,7 +286,10 @@ void QEStripChartItem::clear ()
    this->description = "";
    this->useReceiveTime = false;
    this->archiveReadHow = QEArchiveInterface::PlotBinning;
-   this->lineDrawMode = QEStripChartNames::ldmRegular;
+   // Set to QEStripChartNames::ldmRegular;
+   this->isDisplayed = true;
+   this->isBold = false;
+
    this->linePlotMode = QEStripChartNames::lpmRectangular;
 
    // Reset identity sclaing
@@ -808,7 +822,7 @@ void QEStripChartItem::plotData ()
    this->displayedMinMax.clear ();
    this->firstPointIsDefined = false;
 
-   if (this->lineDrawMode != QEStripChartNames::ldmHide) {
+   if (this->isDisplayed) {
 
       this->plotDataPoints (this->historicalTimeDataPoints, false, Qt::SolidLine, temp);
       this->displayedMinMax.merge (temp);
@@ -1423,6 +1437,20 @@ void QEStripChartItem::normalise () {
 
 //------------------------------------------------------------------------------
 //
+QEStripChartNames::LineDrawModes QEStripChartItem::getLineDrawMode () const
+{
+   QEStripChartNames::LineDrawModes result;
+   if (this->isDisplayed) {
+      result = this->isBold ? QEStripChartNames::ldmBold
+                            : QEStripChartNames::ldmRegular;
+   } else {
+      result = QEStripChartNames::ldmHide;
+   }
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
 void QEStripChartItem::setAliasName (const QString& aliasNameIn)
 {
    this->aliasName = aliasNameIn;
@@ -1475,23 +1503,16 @@ QPen QEStripChartItem::getPen () const
 {
    QPen result (this->getColour ());
 
-   switch (this->lineDrawMode) {
-      case QEStripChartNames::ldmHide:
-         result.setWidth (0);
-         break;
-
-      case QEStripChartNames::ldmRegular:
-         result.setWidth (1);
-         break;
-
-      case QEStripChartNames::ldmBold:
+   if (this->isDisplayed) {
+      if (this->isBold) {
          result.setWidth (2);
-         break;
-
-      default:
+      } else {
          result.setWidth (1);
-         break;
+      }
+   } else {
+      result.setWidth (0);
    }
+
    return result;
 }
 
@@ -1546,7 +1567,8 @@ bool QEStripChartItem::eventFilter (QObject *obj, QEvent *event)
       case QEvent::MouseButtonDblClick:
          mouseEvent = static_cast<QMouseEvent *> (event);
          if (obj == this->pvName && (mouseEvent->button () == Qt::LeftButton)) {
-            this->runSelectNameDialog (this->pvName);
+            this->isBold = !this->isBold;   // toggle
+            this->chart->setReplotIsRequired ();
             return true;  // we have handled double click
          }
          break;
@@ -1875,6 +1897,14 @@ void QEStripChartItem::letterButtonClicked (bool)
 
 //------------------------------------------------------------------------------
 //
+void QEStripChartItem::showHideChecked (int state)
+{
+   this->isDisplayed = (state == Qt::Checked);
+   this->chart->setReplotIsRequired ();
+}
+
+//------------------------------------------------------------------------------
+//
 void QEStripChartItem::contextMenuRequested (const QPoint & pos)
 {
    QPoint tempPos;
@@ -2114,17 +2144,22 @@ void QEStripChartItem::contextMenuSelected (const QEStripChartNames::ContextMenu
          break;
 
       case QEStripChartNames::SCCM_LINE_HIDE:
-         this->lineDrawMode = QEStripChartNames::ldmHide;
+         this->isDisplayed = false;
+         this->showHide->setChecked (this->isDisplayed);
          this->chart->setReplotIsRequired ();
          break;
 
       case QEStripChartNames::SCCM_LINE_REGULAR:
-         this->lineDrawMode = QEStripChartNames::ldmRegular;
+         this->isDisplayed = true;
+         this->isBold = false;
+         this->showHide->setChecked (this->isDisplayed);
          this->chart->setReplotIsRequired ();
          break;
 
       case QEStripChartNames::SCCM_LINE_BOLD:
-         this->lineDrawMode = QEStripChartNames::ldmBold;
+         this->isDisplayed = true;
+         this->isBold = true;
+         this->showHide->setChecked (this->isDisplayed);
          this->chart->setReplotIsRequired ();
          break;
 
@@ -2232,11 +2267,12 @@ void QEStripChartItem::restoreConfiguration (PMElement& parentElement)
       QString lineDrawModeStr;
       status = pvElement.getValue ("lineDrawMode", lineDrawModeStr);
       if (status) {
-         int ldm;
-         ldm = QEUtilities::stringToEnum (QEStripChartNames::staticMetaObject,
-                                          "LineDrawModes", lineDrawModeStr, &status);
+         int ildm = QEUtilities::stringToEnum (QEStripChartNames::staticMetaObject,
+                                               "LineDrawModes", lineDrawModeStr, &status);
+         QEStripChartNames::LineDrawModes ldm = QEStripChartNames::LineDrawModes (ildm);
          if (status) {
-            this->lineDrawMode = QEStripChartNames::LineDrawModes (ldm);
+            this->isDisplayed = (ldm != QEStripChartNames::ldmHide);
+            this->isBold = (ldm == QEStripChartNames::ldmBold);
          }
       }
 

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -14,6 +14,7 @@
 #ifndef QE_STRIP_CHART_ITEM_H
 #define QE_STRIP_CHART_ITEM_H
 
+#include <QCheckBox>
 #include <QColor>
 #include <QColorDialog>
 #include <QHBoxLayout>
@@ -79,7 +80,7 @@ public:
    //
    bool getUseReceiveTime () const { return this->useReceiveTime; }
    QEArchiveInterface::How getArchiveReadHow () const { return this->archiveReadHow; }
-   QEStripChartNames::LineDrawModes getLineDrawMode () const { return this->lineDrawMode; }
+   QEStripChartNames::LineDrawModes getLineDrawMode () const;
    QEStripChartNames::LinePlotModes getLinePlotMode () const { return this->linePlotMode; }
 
    void setAliasName (const QString& aliasName);
@@ -180,8 +181,14 @@ private:
    bool isConnected;
    bool useReceiveTime;
    QEArchiveInterface::How archiveReadHow;
-   QEStripChartNames::LineDrawModes lineDrawMode;
-   QEStripChartNames::LinePlotModes linePlotMode;
+
+   // QEStripChartNames::LineDrawModes lineDrawMode;
+   // hide, regualar, bold.
+   //
+   bool isDisplayed;
+   bool isBold;
+
+   QEStripChartNames::LinePlotModes linePlotMode;   // rectangular, smooth
 
    QString aliasName;
    QString description;
@@ -232,6 +239,7 @@ private:
    QPushButton* pvSlotLetter;
    QLabel* pvName;
    QELabel* caLabel;
+   QCheckBox* showHide;
    QColorDialog* colourDialog;
    QEStripChartContextMenu* inUseMenu;
    QEStripChartContextMenu* emptyMenu;
@@ -252,6 +260,7 @@ private slots:
                         const QString& pvName, const QString& supplementary);
 
    void letterButtonClicked (bool checked);
+   void showHideChecked (int state);
    void contextMenuRequested (const QPoint & pos);
    void contextMenuSelected  (const QEStripChartNames::ContextMenuOptions option);
 };

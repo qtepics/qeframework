@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -586,7 +586,7 @@ private:
       QHBoxLayout* frameLayout;
       QPushButton* letterButton;
       QLabel* itemName;
-      QCheckBox* checkBox;
+      QCheckBox* showHide;
       QEPlotterMenu* itemMenu;
    private:
       QEPlotter* owner;
@@ -690,7 +690,7 @@ public slots:
 private slots:
    void postContruction ();
    void letterButtonClicked (bool checked);
-   void checkBoxStateChanged (int state);
+   void showHideChecked (int state);
    void tickTimeout ();
 
    void generalContextMenuRequested (const QPoint& pos);

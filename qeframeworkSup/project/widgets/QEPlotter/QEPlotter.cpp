@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -136,7 +136,7 @@ void QEPlotter::createSlotWidgets (const int slot)
       frameLayout->addWidget (box);
 
       QObject::connect (box,  SIGNAL (stateChanged (int)),
-                        this, SLOT   (checkBoxStateChanged (int)));
+                        this, SLOT   (showHideChecked (int)));
    }
 
    // Save widget references.
@@ -145,7 +145,7 @@ void QEPlotter::createSlotWidgets (const int slot)
    this->xy [slot].frameLayout = frameLayout;
    this->xy [slot].letterButton = letter;
    this->xy [slot].itemName = label;
-   this->xy [slot].checkBox = box;
+   this->xy [slot].showHide = box;
 
    // Setup widget to slot mapping.
    //
@@ -370,7 +370,7 @@ QEPlotter::DataSets::DataSets ()
    this->frameLayout = NULL;
    this->letterButton = NULL;
    this->itemName = NULL;
-   this->checkBox = NULL;
+   this->showHide = NULL;
    this->itemMenu = NULL;
 }
 
@@ -763,7 +763,7 @@ void QEPlotter::letterButtonClicked (bool)
 
 //------------------------------------------------------------------------------
 //
-void QEPlotter::checkBoxStateChanged (int state)
+void QEPlotter::showHideChecked (int state)
 {
    QCheckBox* box = dynamic_cast <QCheckBox*> (this->sender ());
    int slot;
@@ -1452,7 +1452,7 @@ void QEPlotter::menuSelected (const QEPlotterNames::MenuActions action, const in
 
       case QEPlotterNames::PLOTTER_LINE_VISIBLE:
          ds->isDisplayed = !ds->isDisplayed;
-         ds->checkBox->setChecked (ds->isDisplayed);
+         ds->showHide->setChecked (ds->isDisplayed);
          this->replotIsRequired = true;
          break;
 
@@ -2055,7 +2055,8 @@ bool QEPlotter::eventFilter (QObject *obj, QEvent *event)
       case QEvent::MouseButtonDblClick:
          slot = this->findSlot (obj);
          if (slot >= 0) {
-            this->runDataDialog (slot, dynamic_cast <QWidget*> (obj));
+            this->xy[slot].isBold = !this->xy[slot].isBold;   // toggle
+            this->replotIsRequired = true;
             return true;  // we have handled double click
          }
          break;
@@ -3077,7 +3078,7 @@ void QEPlotter::setXYLineVisible (const int slot, const bool isVisible)
    //
    if (slot != 0) {
       this->xy[slot].isDisplayed = isVisible;
-      this->xy [slot].checkBox->setChecked (isVisible);
+      this->xy [slot].showHide->setChecked (isVisible);
       this->replotIsRequired = true;
    }
 }
