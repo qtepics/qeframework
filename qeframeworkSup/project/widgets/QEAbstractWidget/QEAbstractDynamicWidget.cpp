@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2016-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2016-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -300,6 +300,15 @@ void QEAbstractDynamicWidget::loadNamedWidetConfiguration (const QString& filena
       //
       QString title = QString("%1  %2").arg(this->metaObject()->className()).arg(filename);
       QEUtilities::setWindowTitle (this, title);
+
+   } else {
+      // Load failed.
+      //
+      const QString errorMessage = QString("%1 configuration load from %2 failed")
+                                   .arg(this->metaObject()->className())
+                                   .arg (filename);
+      const message_types mt (MESSAGE_TYPE_WARNING, MESSAGE_KIND_STANDARD);
+      this->sendMessage (errorMessage, mt);
    }
 }
 
@@ -318,8 +327,17 @@ void QEAbstractDynamicWidget::saveNamedWidetConfiguration (const QString& filena
    if (okay) {
       // File saved successfully - update window title.
       //
-      QString title = QString("%1  %2").arg(this->metaObject()->className()).arg(filename);
+      QString title = QString("%1  %2").arg(this->metaObject()->className()).arg (filename);
       QEUtilities::setWindowTitle (this, title);
+
+   } else {
+      // Save failed.
+      //
+      const QString errorMessage = QString("%1 configuration save to %2 failed")
+                                   .arg(this->metaObject()->className())
+                                   .arg (filename);
+      const message_types mt (MESSAGE_TYPE_WARNING, MESSAGE_KIND_STANDARD);
+      this->sendMessage (errorMessage, mt);
    }
 }
 
