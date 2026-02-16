@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Anthony Owen
@@ -20,6 +20,7 @@
 #include <QObject>
 #include <VariableManager.h>
 #include <ContainerProfile.h>
+#include <QEChannel.h>
 #include <QEEmitter.h>
 #include <QEToolTip.h>
 #include <QEFrameworkLibraryGlobal.h>
@@ -321,9 +322,9 @@ public:
     const QList<QCaInfo> getQCaInfo();
 
 protected:
-    qcaobject::QCaObject* createConnection( unsigned int variableIndex ); ///< Create a CA connection. Use default subscribe option. Return a QCaObject if successfull
-    qcaobject::QCaObject* createConnection( unsigned int variableIndex,
-                                            const bool do_subscribe );    ///< Create a CA connection. Use specified subscribe option. Return a QCaObject if successfull
+    QEChannel* createConnection( unsigned int variableIndex );            ///< Create a CA connection. Use default subscribe option. Return a QCaObject if successfull
+    QEChannel* createConnection( unsigned int variableIndex,
+                                 const bool do_subscribe );               ///< Create a CA connection. Use specified subscribe option. Return a QCaObject if successfull
 
     QString persistantName( QString prefix ) const;                       ///< Returns a string that will not change between runs of the application (given the same configuration)
 

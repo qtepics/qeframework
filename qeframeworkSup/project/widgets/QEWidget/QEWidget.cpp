@@ -84,6 +84,7 @@ QEWidget::QEWidget( QWidget *ownerIn ) :
    // messages in a manner appropriate for the application.
    // In this case, the widget is taking the oppertunity to tell its creator it exists, and also to
    // get any variable name macro substitutions offered by its creator.
+   //
    if( isProfileDefined() )
    {
       addContainedWidget( this );
@@ -116,31 +117,35 @@ QEWidget::~QEWidget() {
    // construction, but there are exceptions. A typical exception is QEMotor, which creates and sometimes
    // destroys QELabels during contruction. These QELabels get added to the contained widgets list
    // but are then destroyed. Unless they are removed from the list, the form will attempt to activate them.
+   //
    removeContainedWidget( this );
 }
 
 // Create a CA connection and initiates updates if required.
 // This is called by the establishConnection function of CA aware widgets based on this class, such as a QELabel.
-// If successfull it will return the QCaObject based object supplying data update signals
-qcaobject::QCaObject* QEWidget::createConnection( unsigned int variableIndex,
-                                                  const bool do_subscribe ) {
+// If successfull it will return the QCaObject based object supplying data update signals.
+//
+QEChannel* QEWidget::createConnection( unsigned int variableIndex,
+                                       const bool do_subscribe ) {
 
    // Update the variable names in the tooltip if required
    setToolTipFromVariableNames();
 
    // Create the required QCa objects (in the end, the originating QE widget will be asked to create
    // the QCa objects in the flavours that it wants through the createQcaItem() virtual function.
+   //
    return createVariable( variableIndex, do_subscribe );
 }
 
 // Overloaded function. As above but use the default (as set via the proprty) as subscribe mode.
-qcaobject::QCaObject* QEWidget::createConnection( unsigned int variableIndex ) {
+//
+QEChannel* QEWidget::createConnection( unsigned int variableIndex ) {
    return createConnection (variableIndex, this->subscribe );
 }
 
 // Return a colour to update the widget's look to reflect the current alarm state
 // Note, the color is determined by the alarmInfo class, but since that class is used in non
-// gui applications, it can't return a QColor
+// gui applications, it can't return a QColor.
 //
 QColor QEWidget::getColor( const QCaAlarmInfo& alarmInfo, int saturation )
 {
@@ -156,7 +161,7 @@ void QEWidget::processConnectionInfo (bool isConnected, const unsigned int )
 {
    updateConnectionStyle( isConnected );
 
-   // Re-initialise 'current' severity and alarm states
+   // Re-initialise 'current' severity and alarm states.
    lastSeverity = QCaAlarmInfo::getInvalidSeverity();
    lastDisplayAlarmState = QE::Never;
 }
@@ -173,6 +178,7 @@ void QEWidget::processAlarmInfo( const QCaAlarmInfo& alarmInfo,
 
    // If anything has changed (either the alarm state itself, or if we have just started
    // or stopped displaying the alarm state), update the alarm style as appropriate.
+   //
    if( severity != lastSeverity || displayAlarmState != lastDisplayAlarmState )
    {
       // If displaying the alarm state, apply the current alarm style
@@ -188,8 +194,9 @@ void QEWidget::processAlarmInfo( const QCaAlarmInfo& alarmInfo,
       }
    }
 
-   // Regardless of whether we are displaying the alarm state in the widget, update the
-   // tool tip to reflect current alarm state.
+   // Regardless of whether we are displaying the alarm state in the widget,
+   // update the tool tip to reflect current alarm state.
+   //
    updateToolTipAlarm( alarmInfo, variableIndex );
 
    // Save state for processing next update.
@@ -212,12 +219,15 @@ void QEWidget::setToolTipFromVariableNames()
 
 // Returns true if running within the Qt Designer application.
 // used when the behaviour needs to be different in designer.
-// For example, a run-time-visible property - always visible in designer, visible at run time dependant on the property.
+// For example, a run-time-visible property - always visible in designer,
+// visible at run time dependant on the property.
 // [static]
 bool QEWidget::inDesigner()
 {
    // check if the current executable has 'designer' in the name
-   // Note, depending on Qt version, (and installation?) designer image may be 'designer' or 'designer-qt4'
+   // Note, depending on Qt version, (and installation?) designer image
+   // may be 'designer' or (obsolete: 'designer-qt4').
+   //
    QString appPath = QCoreApplication::applicationFilePath();
    QFileInfo fi( appPath );
    return fi.baseName().contains( "designer" );
@@ -238,9 +248,12 @@ void QEWidget::userLevelChangedGeneral( QE::UserLevels level )
 
 
 // Access functions for variableName and variableNameSubstitutions
-// variable substitutions Example: SECTOR=01 will result in any occurance of $SECTOR in variable name being replaced with 01.
+// variable substitutions Example: SECTOR=01 will result in any occurance
+// of $SECTOR in variable name being replaced with 01.
 //
-void QEWidget::setVariableNameAndSubstitutions( QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex )
+void QEWidget::setVariableNameAndSubstitutions( QString variableNameIn,
+                                                QString variableNameSubstitutionsIn,
+                                                unsigned int variableIndex )
 {
    setVariableNameSubstitutions( variableNameSubstitutionsIn );
    setVariableName( variableNameIn, variableIndex );
@@ -293,7 +306,8 @@ QString QEWidget::defaultFileLocation() const
 }
 
 // Returns an open file given a file name.
-// This uses findQEFile() to find files in a consistant set of locations. Refer to findQEFile() for details.
+// This uses findQEFile() to find files in a consistant set of locations.
+// Refer to findQEFile() for details.
 //
 QFile* QEWidget::openQEFile( QString name, QIODevice::OpenModeFlag mode )
 {
@@ -334,6 +348,7 @@ QFile* QEWidget::findQEFile( QString name, ContainerProfile* profile )
    //  - The application's path list (set up in the application profile) (the -p switch for QEGui)
    //  - The current directory
    //  - The environment variable QE_UI_PATH
+   //
    QStringList searchList;
    if(  QDir::isAbsolutePath( name ) )
    {
@@ -447,7 +462,9 @@ QString QEWidget::getFrameworkVersion() const
    return QE_VERSION_STRING " " QE_VERSION_DATE_TIME;
 }
 
-// Returns a string that will not change between runs of the application (given the same configuration)
+// Returns a string that will not change between runs of the application
+// (given the same configuration).
+//
 QString QEWidget::persistantName( QString prefix ) const
 {
    QString name = prefix;
@@ -455,7 +472,9 @@ QString QEWidget::persistantName( QString prefix ) const
    return name;
 }
 
-// Returns a string that will not change between runs of the application (given the same configuration)
+// Returns a string that will not change between runs of the application
+// (given the same configuration).
+//
 void QEWidget::buildPersistantName( QWidget* w, QString& name ) const
 {
    // Stop when a QEForm is found with a unique identifier.
@@ -479,6 +498,7 @@ void QEWidget::buildPersistantName( QWidget* w, QString& name ) const
 
    // Get the widget's sibling, add the widget's position in the list of
    // siblings to the persistant name, then repeat for the widget's parent.
+   //
    QObjectList c = p->children();
    int num = c.count();
    for( int i = 0; i < num; i++ )
@@ -544,6 +564,7 @@ void signalSlotHandler::saveRestore( SaveRestoreSignal::saveRestoreOptions optio
          // This phase is still delivered to QEWidgets as they can be
          // used directly within an application, or unlike QEGui an
          // application may have already created QEWidgets.
+         //
       case SaveRestoreSignal::RESTORE_APPLICATION:
          owner->restoreConfiguration( pm, QEWidget::APPLICATION );
          break;
@@ -569,7 +590,8 @@ QWidget* QEWidget::getQWidget() const
 // The widget hierarchy under a supplied widget is searched for a QE widget with a given name and optional title.
 // If found the QE widget will attecjpt to carry out the requested action which consists of an action string and an argument list.
 // This method allows an application to initiate QE widget activity. The QEGui application uses this mechanism when providing custom menus defined in XML files.
-// The method returns true if the named widget was found. (The action was not nessesarily performed, or even recognised by the widget)
+// The method returns true if the named widget was found. (The action was not nessesarily performed, or even recognised by the widget).
+//
 void QEWidget::doAction( QWidget* searchPoint, QString widgetName, QString action, QStringList arguments, bool initialise, QAction* originator )
 {
    // Do nothing if no widget to search for is provided
@@ -630,7 +652,7 @@ const QList<QCaInfo> QEWidget::getQCaInfo()
    QList<QCaInfo> list;
 
    // Populate the list for each variable
-   qcaobject::QCaObject* qca;
+   QEChannel* qca;
    for( unsigned int i = 0; i < getNumVariables(); i++ )
    {
       qca = getQcaItem( i );
@@ -690,6 +712,7 @@ QEWidget::ControlVariableIndicesSet QEWidget::getControlPVs () const
 // and the write access associated with each of those control variables.
 // When more than control variable nominated, all have to be denied write access
 // in order for the cursor style to be set to Qt::ForbiddenCursor.
+//
 void QEWidget::setAccessCursorStyle()
 {
    QWidget* widget = getQWidget();
@@ -703,7 +726,7 @@ void QEWidget::setAccessCursorStyle()
       newIsWriteAllowed = false;
       for( int j = 0; j < number ; j++ ){
          const unsigned int variableIndex = controlVariableIndices.value( j );
-         qcaobject::QCaObject* qca = getQcaItem( variableIndex );
+         QEChannel* qca = getQcaItem( variableIndex );
          bool channelWritable = false;
 
          if( qca ){
@@ -770,7 +793,8 @@ void QEWidget::setAccessCursorStyle()
 // Used by QE buttons and QEForm as the default action for launching a gui.
 // Normally the widget would be within a container, such as the QEGui application,
 // that will provide a 'launch gui' mechanism.
-void QEWidget::startGui( const QEActionRequests & request )
+//
+void QEWidget::startGui( const QEActionRequests& request )
 {
    // Only handle file open requests
    if( request.getKind() != QEActionRequests::KindOpenFile )
@@ -785,21 +809,15 @@ void QEWidget::startGui( const QEActionRequests & request )
       // Build it in a new window.
       QMainWindow* w = new QMainWindow;
       QEForm* gui = new QEForm( request.getArguments().first() );
-      if( gui )
-      {
-         if( gui->readUiFile())
-         {
+      if( gui ) {
+         if( gui->readUiFile()) {
             w->setCentralWidget( gui );
             w->show();
-         }
-         else
-         {
+         } else {
             delete gui;
             gui = NULL;
          }
-      }
-      else
-      {
+      } else {
          delete w;
       }
    }
