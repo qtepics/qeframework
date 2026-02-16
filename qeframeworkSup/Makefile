@@ -1,5 +1,5 @@
 # File: qeframeworkSup/Makefile
-# DateTime: Mon Apr 21 18:59:50 2025
+# DateTime: Tue Feb 10 16:36:06 2026
 # Last checked in by: starritt
 #
 # This make file is the bridge beween the EPICS build system and the Qt project qmake/make paradigm.
@@ -66,6 +66,11 @@ else
 
 endif
 
+# Set default number of cores if not otherwise defined.
+#
+ifndef QE_NUMBER_OF_CORES
+   QE_NUMBER_OF_CORES = 4
+endif
 
 # Directories of interest.
 #
@@ -98,9 +103,9 @@ install: $(TARGET)  headers
 # Note: we always run this step
 #
 $(TARGET) : $(SOURCE_DIR)/$(MAKEFILE)  always
-	@echo "=== Building $(LIBFILE) library"      && \
-	cd  $(SOURCE_DIR)                            && \
-	$(MAKE) -f $(MAKEFILE) -j 3 -w               && \
+	@echo "=== Building $(LIBFILE) library"              && \
+	cd  $(SOURCE_DIR)                                    && \
+	$(MAKE) -f $(MAKEFILE) -j $(QE_NUMBER_OF_CORES) -w   && \
 	echo "=== $(LIBFILE) library build complete"
 
 
