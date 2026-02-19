@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2011-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2011-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -15,7 +15,6 @@
 #include <alarm.h>
 #include <QDebug>
 #include <QECommon.h>
-#include <QCaObject.h>
 
 #define DEBUG  qDebug () << "QEBitStatus"  << __LINE__<< __FUNCTION__ << "  "
 
@@ -36,7 +35,7 @@ QEBitStatus::QEBitStatus (QWidget * parent) :
 //------------------------------------------------------------------------------
 // Constructor with known variable
 //
-QEBitStatus::QEBitStatus (const QString & variableNameIn, QWidget * parent) :
+QEBitStatus::QEBitStatus (const QString & variableNameIn, QWidget* parent) :
    QBitStatus (parent),
    QESingleVariableMethods (this, PV_VARIABLE_INDEX),
    QEWidget (this)
@@ -85,20 +84,20 @@ void QEBitStatus::setup ()
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type
-// of QCaObject required. For a Bit Status widget a QCaObject that streams
+// of QEChannel required. For a Bit Status widget a QEChannel that streams
 // integers is required.
 //
-qcaobject::QCaObject* QEBitStatus::createQcaItem (unsigned int variableIndex)
+QEChannel* QEBitStatus::createQcaItem (unsigned int variableIndex)
 {
-   qcaobject::QCaObject* result = NULL;
+   QEChannel* result = NULL;
 
    if (variableIndex != PV_VARIABLE_INDEX) {
       DEBUG << "unexpected variableIndex" << variableIndex;
       return NULL;
    }
 
-   result = new QEInteger (getSubstitutedVariableName (variableIndex),
-                           this, &integerFormatting, variableIndex);
+   const QString pvName = this->getSubstitutedVariableName (variableIndex);
+   result = new QEInteger (pvName, this, &this->integerFormatting, variableIndex);
 
    // Apply currently defined array index/elements request values.
    //
@@ -122,20 +121,20 @@ void QEBitStatus::establishConnection (unsigned int variableIndex)
    }
 
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   // Note createConnection creates the connection and returns reference to existing QCaObject.
+   // If successfull, the QEChannel object that will supply data update signals will be returned
+   // Note createConnection creates the connection and returns reference to existing QEChannel.
    //
-   qcaobject::QCaObject* qca = this->createConnection (variableIndex);
+   QEChannel* qca = this->createConnection (variableIndex);
 
-   // If a QCaObject object is now available to supply data update signals,
+   // If a QEChannel object is now available to supply data update signals,
    // connect it to the appropriate slots.
    //
    if (qca) {
-      QObject::connect (qca,  SIGNAL (integerChanged  (const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int &)),
-                        this, SLOT (setBitStatusValue (const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int &)));
+      QObject::connect (qca,  SIGNAL (valueUpdated      (const QEIntegerValueUpdate&)),
+                        this, SLOT   (setBitStatusValue (const QEIntegerValueUpdate&)));
 
-      QObject::connect (qca,  SIGNAL (connectionChanged (QCaConnectionInfo&, const unsigned int &)),
-                        this, SLOT   (connectionChanged (QCaConnectionInfo&, const unsigned int &)));
+      QObject::connect (qca,  SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                        this, SLOT   (connectionUpdated (const QEConnectionUpdate&)));
    }
 }
 
@@ -143,16 +142,16 @@ void QEBitStatus::establishConnection (unsigned int variableIndex)
 //------------------------------------------------------------------------------
 // Act on a connection change.
 // Change how the progress bar looks and change the tool tip
-// This is the slot used to recieve connection updates from a QCaObject based class.
-//
-void QEBitStatus::connectionChanged (QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex)
+// This is the slot used to recieve connection updates from a QEChannel based class.
+// slot
+void QEBitStatus::connectionUpdated (const QEConnectionUpdate& update)
 {
     // Note the connected state
-    bool isConnected = connectionInfo.isChannelConnected();
+    const bool isConnected = update.connectionInfo.isChannelConnected();
 
     // Display the connected state
-    this->updateToolTipConnection (isConnected, variableIndex);
-    this->processConnectionInfo (isConnected, variableIndex);
+    this->updateToolTipConnection (isConnected, update.variableIndex);
+    this->processConnectionInfo (isConnected, update.variableIndex);
 
     this->setIsActive (isConnected);
 
@@ -164,25 +163,23 @@ void QEBitStatus::connectionChanged (QCaConnectionInfo& connectionInfo, const un
 
 
 //------------------------------------------------------------------------------
-// Update the progress bar value
-// This is the slot used to recieve data updates from a QCaObject based class.
-//
-void QEBitStatus::setBitStatusValue (const long &valueIn,
-                                     QCaAlarmInfo & alarmInfo,
-                                     QCaDateTime &, const unsigned int &variableIndex)
+// Update the progress bar value.
+// This is the slot used to recieve data updates from a QEChannel based class.
+// slot
+void QEBitStatus::setBitStatusValue (const QEIntegerValueUpdate& update)
 {
    // Update the Bit Status
    //
-   this->setValue (int (valueIn));
+   this->setValue (int (update.value));
 
    // Set validity status.
    //
-   this->setIsValid (alarmInfo.getSeverity () != INVALID_ALARM);
+   this->setIsValid (update.alarmInfo.getSeverity() != INVALID_ALARM);
 
    // Invoke common alarm handling processing.
    // Although this sets widget style, we invoke for tool tip processing only.
    //
-   this->processAlarmInfo (alarmInfo, variableIndex);
+   this->processAlarmInfo (update.alarmInfo, update.variableIndex);
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged.
@@ -194,11 +191,11 @@ void QEBitStatus::setBitStatusValue (const long &valueIn,
 //------------------------------------------------------------------------------
 // This is the slot used to recieve new PV information.
 //
-void QEBitStatus::useNewVariableNameProperty( QString variableNameIn,
-                                              QString variableNameSubstitutionsIn,
-                                              unsigned int variableIndex )
+void QEBitStatus::useNewVariableNameProperty (QString pvName,
+                                              QString subs,
+                                              unsigned int vi)
 {
-   this->setVariableNameAndSubstitutions(variableNameIn, variableNameSubstitutionsIn, variableIndex);
+   this->setVariableNameAndSubstitutions (pvName, subs, vi);
 }
 
 //==============================================================================

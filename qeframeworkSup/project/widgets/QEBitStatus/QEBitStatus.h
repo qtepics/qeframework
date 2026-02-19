@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2011-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2011-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -17,6 +17,7 @@
 #include <QString>
 #include <QVector>
 #include <QBitStatus.h>
+#include <QEChannel.h>
 #include <QEEnums.h>
 #include <QEWidget.h>
 #include <QEInteger.h>
@@ -219,7 +220,7 @@ public slots:
    void setManagedVisible (bool v) { this->setRunVisible(v); }
 
 protected:
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
    void establishConnection (unsigned int variableIndex);
 
    // Drag and Drop
@@ -238,10 +239,9 @@ private:
    void setup ();
 
 private slots:
-   void connectionChanged (QCaConnectionInfo&  connectionInfo, const unsigned int &);
+   void connectionUpdated (const QEConnectionUpdate&);
 
-   void setBitStatusValue (const long &value, QCaAlarmInfo &,
-                           QCaDateTime &, const unsigned int &);
+   void setBitStatusValue (const QEIntegerValueUpdate&);
 
    void useNewVariableNameProperty (QString variableNameIn,
                                     QString variableNameSubstitutionsIn,
