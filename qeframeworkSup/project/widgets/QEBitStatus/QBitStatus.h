@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2011-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2011-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -77,6 +77,11 @@ public:
    Q_PROPERTY (bool    isValid             READ getIsValid              WRITE setIsValid)
    Q_PROPERTY (bool    isActive            READ getIsActive             WRITE setIsActive)
 
+   /// Both default to ""
+   ///
+   Q_PROPERTY (QString unsetText           READ getUnsetText            WRITE setUnsetText)
+   Q_PROPERTY (QString setText             READ getSetText              WRITE setSetText)
+
 public:
    // Constructor/destructor
    //
@@ -135,6 +140,12 @@ public:
    void setShape (const Shapes value);
    Shapes getShape () const;
 
+   void setUnsetText (const QString value);
+   QString getUnsetText () const;
+
+   void setSetText (const QString value);
+   QString getSetText () const;
+
 public slots:
    void setValue (const int value);
 
@@ -155,9 +166,11 @@ private:
    QColor getOnPaintColour () const;
    QColor getInvalidPaintColour () const;
 
-   // Like painter drawRect or drawEllipse, but bounded by rect, i.e.sensible.
+   // Like painter drawRect or drawEllipse, but bounded by rect, i.e. sensible.
    //
-   void drawItem  (QPainter & painter, const QRect& rect);
+   void drawItem  (QPainter& painter,
+                   const QRect& rect,
+                   const QString& text);
 
    static QString intToMask (const int n);
    static int maskToInt (const QString mask);
@@ -185,6 +198,8 @@ private:
    Qt::Orientation mOrientation;
    bool mInvertedAppearance;
    Shapes mShape;
+   QString mUnsetText;
+   QString mSetText;
 };
 
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED

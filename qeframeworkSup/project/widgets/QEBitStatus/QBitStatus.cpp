@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2011-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2011-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -15,6 +15,7 @@
 
 #include "QBitStatus.h"
 #include <QDebug>
+#include <QTextOption>
 #include <QECommon.h>
 
 #define DEBUG qDebug () << "QBitStatus" << __LINE__ << __FUNCTION__ << "  "
@@ -44,6 +45,8 @@ QBitStatus::QBitStatus( QWidget *parent ) : QWidget (parent)
    this->mOnClearMask = 0x00000000;
    this->mOffClearMask = 0x00000000;
    this->mReversePolarityMask = 0x00000000;
+   this->mUnsetText = "";
+   this->mSetText = "";
 
    // Do this only once, not in paintEvent as it causes another paint event.
    //
@@ -103,11 +106,13 @@ QColor QBitStatus::getInvalidPaintColour () const
 // This function un-does this "helpful feature".
 // The drawn rectangle/ellipse IS bounded by the specified rect.
 //
-void QBitStatus::drawItem (QPainter & painter, const QRect & rect)
+void QBitStatus::drawItem (QPainter& painter,
+                           const QRect& rect,
+                           const QString& text)
 {
    // Round down top-left offset, round up botton-right offset.
    //
-   const int pen_width =  painter.pen ().width ();
+   const int pen_width = painter.pen ().width ();
    const int tl = pen_width / 2;
    const int br = pen_width - tl;
 
@@ -146,6 +151,10 @@ void QBitStatus::drawItem (QPainter & painter, const QRect & rect)
          break;
    }
 
+   static const Qt::Alignment textAlignment (Qt::AlignHCenter|Qt::AlignVCenter);
+   static const QTextOption textOption (textAlignment);
+
+   painter.drawText (rect, text, textOption);
 }
 
 //-----------------------------------------------------------------------------
@@ -157,13 +166,9 @@ void QBitStatus::paintEvent (QPaintEvent *)
    QPen pen;
    QBrush brush;
    QRect bit_area;
-   int j;
    int bottom;
    int left;
    int right;
-   double length;
-   double bitSpacing;
-   double offset;
    int useGap;
    int work;
    int onApplies;
@@ -249,40 +254,41 @@ void QBitStatus::paintEvent (QPaintEvent *)
 
    // Calculate the available (floating) pixel length.
    //
-   length = double (right - left + 1);
+   const double length = double (right - left + 1);
 
    // Calculate the (floating) pixel size per bit.
    //
-   bitSpacing = length / this->mNumberOfBits;
+   const double bitSpacing = length / this->mNumberOfBits;
 
    // Calucate of edge offset from the centre.
    // - 1 for the pen width.
    //
-   offset = (bitSpacing - 1.0 - useGap) / 2.0;
+   const double offset = (bitSpacing - 1.0 - useGap) / 2.0;
 
    work = (mValue >> mShift) ^ mReversePolarityMask;
    onApplies  = (-1) ^ mOnClearMask;
    offApplies = (-1) ^ mOffClearMask;
 
-   for (j = mNumberOfBits - 1; j >= 0;  j--) {
-      double centre;
+   for (int j = mNumberOfBits - 1; j >= 0;  j--) {
       QColor bitColour;
+      QString text = "";
 
       // Calculate the centre, and then and set left and right of this bit.
       //
-      centre = left - 0.5 + (j + 0.5)*bitSpacing;
+      const double centre = left - 0.5 + (j + 0.5)*bitSpacing;
 
       // Calucalte size, but constrain to be within left to right.
       //
       bit_area.setLeft  (MAX (left,  QEUtilities::roundToInt (centre - offset)));
       bit_area.setRight (MIN (right, QEUtilities::roundToInt (centre + offset)));
 
-      if (mIsValid) {
+      if (this->mIsValid) {
 
          if ((work & 1) == 1) {
             // Bit is on
             if ((onApplies & 1) == 1) {
                bitColour = this->getOnPaintColour ();
+               text = this->mSetText;
             }  else {
                bitColour = this->mClearColour;
             }
@@ -290,6 +296,7 @@ void QBitStatus::paintEvent (QPaintEvent *)
             // Bit is off
             if ((offApplies & 1) == 1) {
                bitColour = this->getOffPaintColour ();
+               text = this->mUnsetText;
             }  else {
                bitColour = this->mClearColour;
             }
@@ -313,7 +320,7 @@ void QBitStatus::paintEvent (QPaintEvent *)
 
       // Do the actual draw.
       //
-      this->drawItem (painter, bit_area);
+      this->drawItem (painter, bit_area, text);
 
       // Pre-pare for next iteration through the loop.
       // We don't worry about checking for last time through the loop.
@@ -377,6 +384,10 @@ PROPERTY_ACCESS (QColor, OffColour, value)
 PROPERTY_ACCESS (QColor, InvalidColour, value)
 
 PROPERTY_ACCESS (QColor, ClearColour, value)
+
+PROPERTY_ACCESS (QString, UnsetText, value)
+
+PROPERTY_ACCESS (QString, SetText, value)
 
 #undef PROPERTY_ACCESS
 
