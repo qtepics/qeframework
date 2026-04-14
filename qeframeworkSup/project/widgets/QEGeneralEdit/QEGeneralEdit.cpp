@@ -118,11 +118,11 @@ void QEGeneralEdit::commonSetup ()
    //
    this->setupContextMenu ();
 
-   // Set up a connection to recieve variable name property changes
+   // Set up a connection to receive variable name property changes.
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   this->connectPvNameProperties (SLOT (usePvNameProperties (const QEVariantUpdate&)));
+   this->connectPvNameProperties (SLOT (usePvNameProperties (const QEPvNameProperties&)));
 
    // Apply button connections (always connected even when not in use).
    //
