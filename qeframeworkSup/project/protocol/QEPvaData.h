@@ -29,7 +29,7 @@
 ///
 /// Scalar PV data is converted to one of the standard QVariant types.
 ///
-/// Numeric scalar array PV data is converted to one of the QE vector varient types
+/// Numeric scalar array PV data is converted to one of the QE vector variant types
 /// defined in QEVariants; String scalar array PV data is converted to a QStringList
 /// variant.
 ///
@@ -47,8 +47,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvaData {
 public:
    // A bit of short hand
    //
-   typedef epics::pvData::PVStructure::const_shared_pointer  PVStructureConstPtr;
-   typedef epics::pvData::PVStructure::shared_pointer        PVStructureSharedPtr;
+   using PVStructureSharedPtr = epics::pvData::PVStructure::shared_pointer;
 
    // Note: the structures member names, apart from isDefined, exactly match
    // the Normative Type field names. We make use of this with some pre-porcessor
@@ -69,7 +68,7 @@ public:
       // Extract field data if available and return if successful extracted.
       // If fails, class instance is interdeminate.
       //
-      bool extract (const PVStructureConstPtr& pv);
+      bool extract (const PVStructureSharedPtr& pv);
 
       bool isDefined;
       int index;
@@ -89,7 +88,7 @@ public:
       // The function returns true if all data is successfully extracted.
       // If it fails, class instance is interdeminate.
       //
-      bool extract (const PVStructureConstPtr& pv);
+      bool extract (const PVStructureSharedPtr& pv);
 
       bool isDefined;
       int severity;
@@ -110,7 +109,7 @@ public:
       // The function returns true if all data is successfully extracted.
       // If it fails, class instance is interdeminate.
       //
-      bool extract (const PVStructureConstPtr& pv);
+      bool extract (const PVStructureSharedPtr& pv);
 
       bool isDefined;
       qlonglong secondsPastEpoch;
@@ -135,7 +134,7 @@ public:
       // we also need the pv identity, e.g. "epics:nt/NTNDArray:1.0", to
       // fine tune what is extracted from the display structure.
       //
-      bool extract (const PVStructureConstPtr& pv, const QString& identity);
+      bool extract (const PVStructureSharedPtr& pv);
 
       bool isDefined;
       double limitLow;
@@ -160,7 +159,7 @@ public:
       // The function returns true if all data is successfully extracted.
       // If it fails, class instance is interdeminate.
       //
-      bool extract (const PVStructureConstPtr& pv);
+      bool extract (const PVStructureSharedPtr& pv);
 
       bool isDefined;
       double limitLow;
@@ -187,7 +186,7 @@ public:
       // Note: irrespective of the native type, the limit values are caste
       // to double.
       //
-      bool extract (const PVStructureConstPtr& pv);
+      bool extract (const PVStructureSharedPtr& pv);
 
       bool isDefined;
       bool active;

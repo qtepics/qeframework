@@ -263,14 +263,6 @@ namespace TR1 = std::tr1;
 namespace pvd = epics::pvData;
 namespace nmt = epics::nt;
 
-// Expected type identifiers - less version number
-//
-static const QString scalarTypeId = "epics:nt/NTScalar:";              //
-static const QString arrayTypeId  = "epics:nt/NTScalarArray:";         //
-static const QString enumTypeId   = "epics:nt/NTEnum:";                //
-static const QString tableTypeId  = "epics:nt/NTTable:";               //
-static const QString imageTypeId  = "epics:nt/NTNDArray:";             //
-
 static const QVariant nullVariant;
 
 #define ASSERT(condition, message) {                                           \
@@ -293,6 +285,7 @@ bool QEPvaData::extractValue (PVStructureSharedPtr& pv,
    value = nullVariant;
 
    // Note: since base-7.0.3, had to switch to wrapUnsafe for NTScalar and NTScalarArray.
+   // However looks okay for 7.0.9
    //
    if (epics::nt::NTScalar::is_a (pv)) {
       epics::nt::NTScalar::const_shared_pointer item = epics::nt::NTScalar::wrapUnsafe (pv);
@@ -358,15 +351,13 @@ bool QEPvaData::extractValue (PVStructureSharedPtr& pv,
    else {
       // Unknown/unhandled types.
       //
-      const pvd::StructureConstPtr ptr = pv->getStructure();
-
       QEOpaqueData opaque;
-      result = opaque.assignFrom (ptr);
+      result = opaque.assignFrom (pv);
       if (result) {
          value = opaque.toVariant ();
          type = "opaque";
       } else {
-         DEBUG << "opaque to varient failed.";
+         DEBUG << "opaque to variant failed.";
       }
    }
 
@@ -1008,8 +999,8 @@ QVariantList QEPvaData::scalarArrayToQVariantList
 //
 #define ASSIGN_STRUCT(target, field)                                           \
    this->isDefined = false;                                                    \
-   pvd::PVField::const_shared_pointer itemField;                               \
-   PVStructureConstPtr structField;                                            \
+   pvd::PVField::shared_pointer itemField;                                     \
+   PVStructureSharedPtr structField;                                           \
    /* */                                                                       \
    itemField = pv->getSubField (#field);                                       \
    if (!itemField) {                                                           \
@@ -1022,8 +1013,8 @@ QVariantList QEPvaData::scalarArrayToQVariantList
       return false;                                                            \
    }                                                                           \
    /* */                                                                       \
-   structField = TR1::static_pointer_cast<const pvd::PVStructure>(itemField);
-                        \
+   structField = TR1::static_pointer_cast<pvd::PVStructure>(itemField);
+
 
 //------------------------------------------------------------------------------
 //
@@ -1040,19 +1031,16 @@ QVariantList QEPvaData::scalarArrayToQVariantList
 
 //------------------------------------------------------------------------------
 // static
-bool QEPvaData::Enumerated::extract (const PVStructureConstPtr& pv)
+bool QEPvaData::Enumerated::extract (const PVStructureSharedPtr& pv)
 {
    this->isDefined = false;
 
    const pvd::StructureConstPtr ptr = pv->getStructure();
    if (!ptr) return false;
-   const QString typeName = QString::fromStdString (ptr->getID ());
 
    // Verify this is a, or at least perports to be, ab NTEnum type.
    //
-   if (typeName.left (enumTypeId.length ()) != enumTypeId) {
-      return false;
-   }
+   if (!epics::nt::NTEnum::is_a (pv)) return false;
 
    ASSIGN_STRUCT (enumeration, value);
    ASSIGN_MEMBER (enumeration, index, pvd::PVInt,    int);
@@ -1083,7 +1071,7 @@ bool QEPvaData::Enumerated::extract (const PVStructureConstPtr& pv)
 
 //------------------------------------------------------------------------------
 // static
-bool QEPvaData::Alarm::extract (const PVStructureConstPtr& pv)
+bool QEPvaData::Alarm::extract (const PVStructureSharedPtr& pv)
 {
    ASSIGN_STRUCT (alarm, alarm);
    ASSIGN_MEMBER (alarm, severity, pvd::PVInt,    int);
@@ -1095,27 +1083,37 @@ bool QEPvaData::Alarm::extract (const PVStructureConstPtr& pv)
 
 //------------------------------------------------------------------------------
 // static
-bool QEPvaData::Display::extract (const PVStructureConstPtr& pv,
-                                  const QString& identity)
+bool QEPvaData::Display::extract (const PVStructureSharedPtr& pv)
 {
-   const bool isNTNDArray = identity.startsWith ("epics:nt/NTNDArray");
+   const bool isNTTable = epics::nt::NTTable::is_a (pv);
+   const bool isNTNDArray = epics::nt::NTNDArray::is_a (pv);
 
-   ASSIGN_STRUCT (display, display);
-   ASSIGN_MEMBER (display, limitLow,    pvd::PVDouble, double);
-   ASSIGN_MEMBER (display, limitHigh,   pvd::PVDouble, double);
-   ASSIGN_MEMBER (display, description, pvd::PVString, QString::fromStdString);
-   ASSIGN_MEMBER (display, units,       pvd::PVString, QString::fromStdString);
-   if (!isNTNDArray) {
-      ASSIGN_MEMBER (display, precision,   pvd::PVInt,    int);
+   if (isNTTable) {
+      // The NT table description has its 'own' location.
+      //
+      pvd::PVString::const_shared_pointer itemField;
+      itemField = pv->getSubField<pvd::PVString> ("descriptor");
+      this->description = QString::fromStdString (itemField->get());
+
+   } else {
+      ASSIGN_STRUCT (display, display);
+      ASSIGN_MEMBER (display, limitLow,    pvd::PVDouble, double);
+      ASSIGN_MEMBER (display, limitHigh,   pvd::PVDouble, double);
+      ASSIGN_MEMBER (display, description, pvd::PVString, QString::fromStdString);
+      ASSIGN_MEMBER (display, units,       pvd::PVString, QString::fromStdString);
+      if (!isNTNDArray) {
+         ASSIGN_MEMBER (display, precision,   pvd::PVInt,    int);
+      }
+      // format replaced by form - TBD
    }
-   // format replaced by form - TBD
+
    this->isDefined = true;
    return true;
 }
 
 //------------------------------------------------------------------------------
 // static
-bool QEPvaData::TimeStamp::extract (const PVStructureConstPtr& pv)
+bool QEPvaData::TimeStamp::extract (const PVStructureSharedPtr& pv)
 {
    ASSIGN_STRUCT (timeStamp, timeStamp);
    ASSIGN_MEMBER (timeStamp, secondsPastEpoch, pvd::PVLong, long);
@@ -1127,7 +1125,7 @@ bool QEPvaData::TimeStamp::extract (const PVStructureConstPtr& pv)
 
 //------------------------------------------------------------------------------
 // static
-bool QEPvaData::Control::extract (const PVStructureConstPtr& pv)
+bool QEPvaData::Control::extract (const PVStructureSharedPtr& pv)
 {
    ASSIGN_STRUCT (control, control);
    ASSIGN_MEMBER (control, limitLow,  pvd::PVDouble, double);
@@ -1139,7 +1137,7 @@ bool QEPvaData::Control::extract (const PVStructureConstPtr& pv)
 
 //------------------------------------------------------------------------------
 // static
-bool QEPvaData::ValueAlarm::extract (const PVStructureConstPtr& pv)
+bool QEPvaData::ValueAlarm::extract (const PVStructureSharedPtr& pv)
 {
    ASSIGN_STRUCT (valueAlarm, valueAlarm);
    ASSIGN_MEMBER (valueAlarm, active,              pvd::PVBoolean, bool);
@@ -1276,4 +1274,3 @@ bool QEPvaData::ValueAlarm::extract (const PVStructureConstPtr& pv)
 #endif  // QE_INCLUDE_PV_ACCESS
 
 // end
-

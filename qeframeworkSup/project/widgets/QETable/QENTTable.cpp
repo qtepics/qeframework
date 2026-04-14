@@ -19,6 +19,7 @@
 #include <QTimer>
 
 #include <QECommon.h>
+#include <QEPlatform.h>
 #include <QEFloating.h>
 #include <QHeaderView>
 #include <QENTTableData.h>
@@ -61,9 +62,19 @@ void QENTTable::commonConstruct ()
    this->tableData = new QENTTableData ();
    this->tableData->clear();
 
-   // Create internal widget. We always have at least one row and one col.
+   // Create internal widgets.
    //
-   this->table = new QTableWidget (1, 1, this);
+   this->pvNameLabel = new QLabel();
+   this->pvNameLabel->setFixedHeight (24);
+   this->pvNameLabel->setAlignment (Qt::AlignHCenter | Qt::AlignVCenter);
+   this->pvNameLabel->setStyleSheet (QEUtilities::colourToStyle (QColor (0xf0f0f0)));
+   QFont font = this->pvNameLabel->font();
+   font.setPointSize (font.pointSize () + 1);
+   this->pvNameLabel->setFont (font);
+
+   // We always have at least one row and one col.
+   //
+   this->table = new QTableWidget (1, 1);
 
    // Copy actual widget size policy to the containing widget, then ensure
    // internal widget will expand to fill container widget.
@@ -71,8 +82,10 @@ void QENTTable::commonConstruct ()
    this->setSizePolicy (this->table->sizePolicy ());
    this->table->setSizePolicy (QSizePolicy::Preferred, QSizePolicy::Preferred);
 
-   this->layout = new QHBoxLayout (this);
+   this->layout = new QVBoxLayout (this);
    this->layout->setContentsMargins (0, 0, 0, 0);    // extact fit.
+   this->layout->setSpacing (2);
+   this->layout->addWidget (this->pvNameLabel);
    this->layout->addWidget (this->table);
 
    // Set default property values
@@ -83,6 +96,8 @@ void QENTTable::commonConstruct ()
 
    this->columnWidthMinimum = 80;
    this->orientation = Qt::Vertical;
+   this->showPvName = false;
+   this->setShowPvName (false);
 
    // This widget uses a single data source
    //
@@ -98,16 +113,13 @@ void QENTTable::commonConstruct ()
    QObject::connect (this->rePopulateTimer, SIGNAL (timeout ()),
                      this, SLOT (timeout ()));
 
-   this->rePopulateData = false;
+   this->rePopulateData = false;         //
    this->rePopulateTimer->start (100);   // 10Hz  ???
 
-   // Use default standard context menu less drag related items.
+   // Use default standard context menu.
    // Note we overide buildContextMenu to add QENTTable specific items.
    //
-   ContextMenuOptionSets tableMenuSet = this->defaultMenuSet ();
-   tableMenuSet.remove (CM_DRAG_VARIABLE);
-   tableMenuSet.remove (CM_DRAG_DATA);
-   this->setupContextMenu (tableMenuSet);
+   this->setupContextMenu ();
 
    // Set up a connection to recieve variable name property changes
    // The variable name property manager class only delivers an updated
@@ -145,7 +157,7 @@ QENTTable::~QENTTable ()
 //
 QSize QENTTable::sizeHint () const
 {
-   return QSize (222, 118);
+   return QSize (222, 140);
 }
 
 //---------------------------------------------------------------------------------
@@ -158,7 +170,7 @@ bool QENTTable::eventFilter (QObject* watched, QEvent* event)
    switch (type) {
       case QEvent::FontChange:
          if (watched == this) {
-            // Font must be mapped to the internal table
+            // Font changes must be aapplied to the internal table.
             //
             if (this->table) {
                this->table->setFont (this->font ());
@@ -192,9 +204,8 @@ QEChannel* QENTTable::createQcaItem (unsigned int variableIndex)
       return NULL;
    }
 
-   QEChannel* result = NULL;
    const QString pvName = this->getSubstitutedVariableName (variableIndex);
-   result = new QEChannel (pvName, this, PV_VARIABLE_INDEX);
+   QEChannel* result = new QEChannel (pvName, this, PV_VARIABLE_INDEX);
 
    // using setSingleVariableQCaProperties not applicable here
 
@@ -231,13 +242,6 @@ void QENTTable::establishConnection (unsigned int variableIndex)
    //
    QObject::connect (qca, SIGNAL (valueUpdated     (const QEVariantUpdate&)),
                      this, SLOT  (tableDataUpdated (const QEVariantUpdate&)));
-}
-
-//------------------------------------------------------------------------------
-//
-void QENTTable::activated ()
-{
-   //
 }
 
 //------------------------------------------------------------------------------
@@ -301,17 +305,23 @@ void QENTTable::connectionUpdated (const QEConnectionUpdate& update)
 
    // Note the connected state.
    //
-   this->isConnected = update.connectionInfo.isChannelConnected ();
+   const bool isConnected = update.connectionInfo.isChannelConnected ();
+
+   // If this is a connect (as oppose to a disconnect) clear the
+   // widget contents. Om disconnext, this leva last know values
+   // on display, albeit grayed out.
+   //
+   if (isConnected) this->table->clear();
 
    // Enable internal widget iff connected.
    // Container widget remains enabled, so menues etc. still work.
    //
-   this->table->setEnabled (this->isConnected);
+   this->table->setEnabled (isConnected);
 
    // Display the connected state
    //
-   this->updateToolTipConnection (this->isConnected, vi);
-   this->processConnectionInfo (this->isConnected, vi);
+   this->updateToolTipConnection (isConnected, vi);
+   this->processConnectionInfo (isConnected, vi);
 
    // Set cursor to indicate access mode.
    //
@@ -343,6 +353,17 @@ void QENTTable::tableDataUpdated (const QEVariantUpdate& update)
          DEBUG << "PV" << pvname << "does not provides NTTable data";
       }
       return;
+   }
+
+   if (update.isMetaUpdate) {
+      // Append the description, if it exists, to the PV name label.
+      //
+      QString qualifiedPvName = this->getSubstitutedVariableName (vi);
+      const QString desc = qca->getDescription();
+      if (!desc.isEmpty()) {
+         qualifiedPvName.append(" : ").append (desc);
+      }
+      this->pvNameLabel->setText (qualifiedPvName);
    }
 
    this->populateTable ();
@@ -428,28 +449,42 @@ void QENTTable::populateVerticalTable ()
 
       QVariantList dataSet = this->tableData->getColData (col);
 
+      Qt::Alignment itemAlignment;
       for (int row = 0; row < rows; row++) {
+         const QVariant datum = dataSet.value (row, QVariant ("-"));
 
-         item = this->table->verticalHeaderItem (row);
-         if (!item) {
-            item = new QTableWidgetItem ();
-            this->table->setVerticalHeaderItem (row, item);
+         if (row == 0) {
+            item = this->table->verticalHeaderItem (row);
+            if (!item) {
+               item = new QTableWidgetItem ();
+               this->table->setVerticalHeaderItem (row, item);
+            }
+            item->setText (QString::number(row + 1));
+
+            // Do this once to ensure all rows have same alignment.
+            //
+            const QMetaType::Type mtype = QEPlatform::metaType (datum);
+            if (mtype == QMetaType::QString) {
+               itemAlignment = (Qt::AlignLeft | Qt::AlignVCenter);
+            } else {
+               itemAlignment = (Qt::AlignRight | Qt::AlignVCenter);
+            }
          }
-         item->setText (QString::number(row + 1));
 
+         // Create table item if needs be.
+         //
          item = this->table->item (row, col);
          if (!item) {
             // We need to allocate item and insert it into the table.
             //
             item = new QTableWidgetItem ();
-            item->setTextAlignment (Qt::AlignRight | Qt::AlignVCenter);
             item->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
             this->table->setItem (row, col, item);
          }
+         item->setTextAlignment (itemAlignment);
 
-         QVariant datum = dataSet.value (row, QVariant ("-"));
-         QString image = datum.toString ();
-         item->setText (image);
+         const QString image = datum.toString ();
+         item->setText (QString(" %1 ").arg (image));
       }
    }
 }
@@ -471,7 +506,6 @@ void QENTTable::populateHorizontalTable ()
    this->table->setColumnCount (MAX (cols, 1));
    this->table->setRowCount (MAX (rows, 1));
 
-
    for (int row = 0; row < rows; row++) {
       // Set the title - allocate title item if needs be.
       //
@@ -484,29 +518,42 @@ void QENTTable::populateHorizontalTable ()
 
       QVariantList dataSet = this->tableData->getColData (row);
 
+      Qt::Alignment itemAlignment;
       for (int col = 0; col < cols; col++) {
+         const QVariant datum = dataSet.value (col, QVariant ("-"));
 
-         item = this->table->horizontalHeaderItem (col);
-         if (!item) {
-            item = new QTableWidgetItem ();
-            this->table->setHorizontalHeaderItem (col, item);
+         if (col == 0) {
+            item = this->table->horizontalHeaderItem (col);
+            if (!item) {
+               item = new QTableWidgetItem ();
+               this->table->setHorizontalHeaderItem (col, item);
+            }
+            item->setText (QString::number(col + 1));
+
+            // Do this once to ensure all cols have same alignment.
+            //
+            const QMetaType::Type mtype = QEPlatform::metaType (datum);
+            if (mtype == QMetaType::QString) {
+               itemAlignment = (Qt::AlignLeft | Qt::AlignVCenter);
+            } else {
+               itemAlignment = (Qt::AlignRight | Qt::AlignVCenter);
+            }
          }
-         item->setText (QString::number(col + 1));
 
-         QTableWidgetItem* item = this->table->item (row, col);
-
+         // Create table item if needs be.
+         //
+         item = this->table->item (row, col);
          if (!item) {
             // We need to allocate item and insert it into the table.
             //
             item = new QTableWidgetItem ();
-            item->setTextAlignment (Qt::AlignRight | Qt::AlignVCenter);
             item->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
             this->table->setItem (row, col, item);
          }
+         item->setTextAlignment (itemAlignment);
 
-         QVariant datum = dataSet.value (col, QVariant ("-"));
-         QString image = datum.toString ();
-         item->setText (image);
+         const QString image = datum.toString ();
+         item->setText (QString(" %1 ").arg (image));
       }
    }
 }
@@ -530,6 +577,9 @@ void QENTTable::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
    this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
                                           pvNameProperties.substitutions,
                                           pvNameProperties.index);
+
+   const QString pvName = this->getSubstitutedVariableName (pvNameProperties.index);
+   this->pvNameLabel->setText (pvName);
 }
 
 //---------------------------------------------------------------------------------
@@ -594,10 +644,9 @@ int QENTTable::getSelection () const {
    return this->selection;
 }
 
-
 //==============================================================================
 // Properties
-//------------------------------------------------------------------------------
+//==============================================================================
 //
 void QENTTable::setDisplayMaximum (const int displayMaximumIn)
 {
@@ -620,7 +669,7 @@ int QENTTable::getDisplayMaximum () const
 //
 void QENTTable::setColumnWidthMinimum (const int minimumColumnWidthIn)
 {
-   int temp = LIMIT (minimumColumnWidthIn, 20, 320);
+   const int temp = LIMIT (minimumColumnWidthIn, 20, 320);
 
    if (this->columnWidthMinimum != temp) {
       this->columnWidthMinimum = temp;
@@ -657,8 +706,24 @@ Qt::Orientation QENTTable::getOrientation () const
    return this->orientation;
 }
 
+//------------------------------------------------------------------------------
+//
+void QENTTable::setShowPvName (const bool showNameIn)
+{
+   this->showPvName = showNameIn;
+   this->pvNameLabel->setVisible (this->showPvName);
+}
+
+//------------------------------------------------------------------------------
+//
+bool QENTTable::getShowPvName () const
+{
+   return this->showPvName;
+}
+
 //==============================================================================
 // Copy / Paste
+//==============================================================================
 //
 QString QENTTable::copyVariable ()
 {
@@ -670,6 +735,16 @@ QString QENTTable::copyVariable ()
 QVariant QENTTable::copyData ()
 {
    return this->tableData->toVariant();
+}
+
+//------------------------------------------------------------------------------
+//
+void QENTTable::paste (QVariant s)
+{
+   const QString pvName = s.toString ();
+   this->pvNameLabel->setText (pvName);
+   this->setVariableName (pvName, PV_VARIABLE_INDEX);
+   this->establishConnection (PV_VARIABLE_INDEX);
 }
 
 // end

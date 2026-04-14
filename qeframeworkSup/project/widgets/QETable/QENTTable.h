@@ -14,7 +14,7 @@
 #ifndef QE_NT_TABLE_H
 #define QE_NT_TABLE_H
 
-#include <QHBoxLayout>
+#include <QLabel>
 #include <QList>
 #include <QMenu>
 #include <QString>
@@ -22,6 +22,7 @@
 #include <QSize>
 #include <QTableWidget>
 #include <QTimer>
+#include <QVBoxLayout>
 #include <QVector>
 
 #include <QECommon.h>
@@ -66,6 +67,10 @@ public:
    /// In some widgets are are also used for other purposes.
    ///
    Q_PROPERTY (QString variableSubstitutions READ getVariableNameSubstitutionsProperty WRITE setVariableNameSubstitutionsProperty)
+
+   /// Controls if PV name displayed. Default is false.
+   ///
+   Q_PROPERTY (bool showPvName        READ getShowPvName       WRITE setShowPvName)
 
    /// Specified the minimum allow column width. The widget will shrink/expand the width
    /// of each column to as to exactly fit the with of the widget. However, columns will
@@ -115,6 +120,9 @@ public:
    void setOrientation (const Qt::Orientation orientation);
    Qt::Orientation getOrientation () const;
 
+   void setShowPvName (const bool showName);
+   bool getShowPvName () const;
+
    // Expose access to the internal table widget's set/get functions.
    //
    QE_EXPOSE_INTERNAL_OBJECT_FUNCTIONS (table, bool,         showGrid,  setShowGrid)
@@ -153,21 +161,22 @@ protected:
    //
    void establishConnection (unsigned int variableIndex);
    QEChannel* createQcaItem (unsigned int variableIndex);
-   void activated ();
 
    // Context menu
    //
-   enum OwnContextMenuOptions { CM_HORIZONTAL_TABLE = CM_SPECIFIC_WIDGETS_START_HERE ,
-                                CM_VERTICAL_TABLE };
+   enum OwnContextMenuOptions {
+      CM_HORIZONTAL_TABLE = CM_SPECIFIC_WIDGETS_START_HERE,
+      CM_VERTICAL_TABLE
+   };
 
    QMenu* buildContextMenu ();                        // Build the QENTTable specific context menu
    void contextMenuTriggered (int selectedItemNum);   // An action was selected from the context menu
 
    // Drag and Drop
    //
-   void mousePressEvent (QMouseEvent *event)    { qcaMousePressEvent (event); }
-   void dragEnterEvent (QDragEnterEvent *event) { qcaDragEnterEvent (event);  }
-   void dropEvent (QDropEvent *event)           { qcaDropEvent (event, true); }
+   void mousePressEvent (QMouseEvent* event)    { qcaMousePressEvent (event); }
+   void dragEnterEvent (QDragEnterEvent* event) { qcaDragEnterEvent (event);  }
+   void dropEvent (QDropEvent* event)           { qcaDropEvent (event, true); }
 
    // This widget uses the setDrop/getDrop defined in QEWidget.
 
@@ -175,6 +184,7 @@ protected:
    //
    QString copyVariable ();
    QVariant copyData ();
+   void paste (QVariant s);
 
 private:
    void commonConstruct ();   //
@@ -185,28 +195,22 @@ private:
    void populateVerticalTable ();     //
    void populateHorizontalTable ();   //
 
-   // Provides consistant interpretation of variableIndex.
-   // Must be consistent with variableIndex allocation in the contructor.
-   //
-   int slotOf  (const unsigned int vi) { return int (vi); }
-
    QENTTableData* tableData;
+   QLabel* pvNameLabel;         // Displays the PV name
    QTableWidget* table;         // internal widget
-   QHBoxLayout* layout;         // holds the internal widget - any layout type will do
+   QVBoxLayout* layout;         // holds the name label and internal widget
    QTimer* rePopulateTimer;
-   int displayMaximum;
+   int displayMaximum;          // not used ... yet.
    Qt::Orientation orientation;
    int selection;
    int columnWidthMinimum;
+   bool showPvName;
    bool selectionChangeInhibited;
    bool rePopulateData;
-   bool isConnected;
 
 private slots:
    void usePvNameProperties (const QEPvNameProperties&);
-
    void connectionUpdated (const QEConnectionUpdate&);
-
    void tableDataUpdated (const QEVariantUpdate&);
 
    void gridCellClicked (int row, int column);

@@ -380,7 +380,7 @@ void QEPvaMonitorRequesterInterface::processElement (pva::MonitorElement::const_
    const QString pvIdentity = QString::fromStdString (ptr->getID ());
 
    // The extracted value is a basic variant, a QE vector varient or one
-   // of the specialised variants: QENTTableData, QENTImageData.
+   // of the specialised variants: QENTTableData, QENTImageData, or QEOpaque.
    //
    QVariant value;
    QString type;
@@ -410,7 +410,7 @@ void QEPvaMonitorRequesterInterface::processElement (pva::MonitorElement::const_
    item->timeStamp.extract (pv);
    item->alarm.extract (pv);
    item->control.extract (pv);
-   item->display.extract (pv, pvIdentity);
+   item->display.extract (pv);
    item->valueAlarm.extract (pv);
 
    // We have copied all the element data.
