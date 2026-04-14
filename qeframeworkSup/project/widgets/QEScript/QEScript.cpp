@@ -1552,7 +1552,6 @@ void _QTableWidgetScript::refreshSize()
       if (this->isColumnHidden(i)) continue;
       if ( num_of_large_size_cols > 0 && i >= PROG && i <= DIR ){
           this->setColumnWidth(i, (this->width() - num_of_small_size_cols*SMALL_COL_SIZE) / num_of_large_size_cols);
-          qDebug() << "Large";
       }
    }
 }
