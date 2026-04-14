@@ -25,7 +25,7 @@
 
 /* markups managing their own data is not implemented yet
 #include <VariableNameManager.h>
-#include <QCaObject.h>
+#include <QEChannel.h>
 */
 
 // Allowable distance in pixels from object which will still be considered 'over'
@@ -131,10 +131,10 @@ protected:
 
     bool subscribe;                                         // Flag if data updates should be requested
 
-    qcaobject::QCaObject* createConnection( unsigned int variableIndex );       // Create a CA connection. Return a QCaObject if successfull
+    QEChannel* createConnection( unsigned int variableIndex );                  // Create a PV connection. Return a QEChannel if successfull
 
-    virtual qcaobject::QCaObject* createQcaItem( unsigned int variableIndex );  // Function to create a appropriate superclass of QCaObject to stream data updates
-    virtual void establishConnection( unsigned int variableIndex );             // Create a CA connection and initiates updates if required
+    virtual QEChannel* createQcaItem( unsigned int variableIndex );             // Function to create a appropriate superclass of QEChannel to stream data updates
+    virtual void establishConnection( unsigned int variableIndex );             // Create a PV connection and initiates updates if required
     virtual void activated();                                                   // Do any post-all-widgets-constructed stuff
 */
 

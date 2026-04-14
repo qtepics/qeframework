@@ -34,10 +34,13 @@
 #include "imageDataFormats.h"
 
 #include <QEChannel.h>
+#include <QEString.h>
 #include <QEStringFormatting.h>
-#include <QEFrameworkLibraryGlobal.h>
+#include <QEInteger.h>
 #include <QEIntegerFormatting.h>
+#include <QEFloating.h>
 #include <QEFloatingFormatting.h>
+#include <QEFrameworkLibraryGlobal.h>
 #include <fullScreenWindow.h>
 #include <recording.h>
 #include <imageProperties.h>
@@ -589,7 +592,7 @@ public slots:
     //
     void setPvaImage( const QEVariantUpdate& update );
 
-    // Channel Access Image ata update slot.
+    // Channel Access Image data update slot.
     //
     void setByteArrayImage( const QEByteArrayUpdate& update );
 
@@ -601,7 +604,7 @@ public slots:
                    const QCaDateTime&,
                    const unsigned int& );
 
-    void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex);
+    void connectionUpdated( const QEConnectionUpdate& update);
 
     /// Slot to set the visibility of a QE widget, taking into account the user level.
     /// Widget will be hidden if hidden by a call this slot, by will only be made
@@ -618,16 +621,16 @@ public slots:
     void imageDisplayPropertiesChanged();
 
 private slots:
-    void setFormat( const QString& text, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
-    void setBitDepth( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
-    void setDataType( const QString& text, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
-    void setDimension( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
-    void setClipping( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
-    void setROI( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
-    void setProfile( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
-    void setTargeting( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
-    void setEllipse( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
-    void setEllipseFloat( const double& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex);
+    void setFormat( const QEStringValueUpdate& );
+    void setBitDepth( const QEIntegerValueUpdate& );
+    void setDataType( const QEStringValueUpdate& );
+    void setDimension( const QEIntegerValueUpdate& );
+    void setClipping( const QEIntegerValueUpdate& );
+    void setROI( const QEIntegerValueUpdate& );
+    void setProfile( const QEIntegerValueUpdate& );
+    void setTargeting( const QEIntegerValueUpdate& );
+    void setEllipse( const QEIntegerValueUpdate& );
+    void setEllipseFloat( const QEFloatingValueUpdate& );
 
     // Menu choice slots
     void vSlice1SelectModeClicked();
@@ -651,11 +654,10 @@ private slots:
     void panModeClicked();
 
     // !! move this functionality into QEWidget???
-    // !! needs one for single variables and one for multiple variables, or just the multiple variable one for all
-    void useNewVariableNameProperty( QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex )// !! move into Standard Properties section??
-    {
-        setVariableNameAndSubstitutions(variableNameIn, variableNameSubstitutionsIn, variableIndex);
-    }
+    // !! needs one for single variables and one for multiple variables, or
+    // just the multiple variable one for all.
+    //
+    void usePvNameProperties( const QEPvNameProperties& pvNameProperties );
 
     void userSelection( imageMarkup::markupIds mode, bool complete, bool clearing, QPoint point1, QPoint point2, unsigned int thickness );
     void zoomInOut( int zoomAmount );
