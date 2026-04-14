@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Ricardo Fernandes
@@ -849,9 +849,8 @@ void QEScript::buttonDeleteClicked()
 void QEScript::buttonExecuteClicked()
 {
    QProcess *qProcess;
-   QStringList qStringList;
+   QStringList parameterList;
    QString program;
-   QString parameters;
    QString workingDirectory;
    bool log;
    int exitCode;
@@ -873,7 +872,14 @@ void QEScript::buttonExecuteClicked()
       }
       else
       {
-         program = qTableWidgetScript->item(i, 2)->text().trimmed();
+         QStringList programList;
+         programList = qTableWidgetScript->item(i, 2)->text().trimmed().split(" ");
+         program = programList[0];
+         programList.removeAt(0);
+         // put in the parameter list if any remained item(s)
+         if (programList.count() > 0){
+            parameterList = programList;
+         }
          log = ((QCheckBox *) qTableWidgetScript->cellWidget(i, 7))->isChecked();
          if (program.isEmpty())
          {
@@ -906,15 +912,14 @@ void QEScript::buttonExecuteClicked()
             {
                qProcess->setWorkingDirectory(workingDirectory);
             }
-            parameters = qTableWidgetScript->item(i, 3)->text().trimmed();
-            if (parameters.isEmpty())
+            parameterList.append(qTableWidgetScript->item(i, 3)->text().trimmed().split(" "));
+            if (parameterList.isEmpty())
             {
                qProcess->start(program);
             }
             else
             {
-               qStringList.append(parameters);
-               qProcess->start(program, qStringList);
+               qProcess->start(program, parameterList);
             }
             while(true)
             {
