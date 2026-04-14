@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -80,6 +80,7 @@ QEWidgets::QEWidgets(QObject *parent) : QObject(parent) {
     // If QE_PVACCESS_SUPPORT is not YES, this widget still exists but is
     // essntially non functional.
     //
+    widgets.append(new QEOpaqueManager(this));
     widgets.append(new QENTTableManager(this));
 
     // Non-EPICS aware framework widgets.

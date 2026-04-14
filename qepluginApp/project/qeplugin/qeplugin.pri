@@ -4,7 +4,7 @@
 # the Australian Synchrotron. This file is included into and as part
 # of the overall framework.pro project file.
 #
-# SPDX-FileCopyrightText: 2017-2025 Australian Synchrotron
+# SPDX-FileCopyrightText: 2017-2026 Australian Synchrotron
 # SPDX-License-Identifier: LGPL-3.0-only
 #
 # Author:     Andrew Starritt
@@ -65,6 +65,7 @@ OTHER_FILES += qeplugin/QELogin.png
 OTHER_FILES += qeplugin/QEMenuButton.png
 OTHER_FILES += qeplugin/QENTTable.png
 OTHER_FILES += qeplugin/QENumericEdit.png
+OTHER_FILES += qeplugin/QEOpaque.png
 OTHER_FILES += qeplugin/QEPeriodic.png
 OTHER_FILES += qeplugin/QEPlot.png
 OTHER_FILES += qeplugin/QEPlotter.png

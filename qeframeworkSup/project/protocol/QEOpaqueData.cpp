@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2019-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2019-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -13,6 +13,7 @@
 
 #include "QEOpaqueData.h"
 #include <iostream>
+#include <sstream>
 #include <QEPvaData.h>
 
 #define DEBUG qDebug() << "QEOpaqueData" << __LINE__ << __FUNCTION__ << "  "
@@ -26,10 +27,11 @@ QEOpaqueData::QEOpaqueData ()
 
 //------------------------------------------------------------------------------
 //
-QEOpaqueData::QEOpaqueData (const QEOpaqueData & other)
+QEOpaqueData::QEOpaqueData (const QEOpaqueData& other)
 {
    // needed for types to be registrered as meta type.
-   *this = other;
+   //
+   this->text = other.text;
 }
 
 //------------------------------------------------------------------------------
@@ -41,9 +43,9 @@ QEOpaqueData::~QEOpaqueData ()
 
 //------------------------------------------------------------------------------
 //
-QEOpaqueData& QEOpaqueData::operator=(const QEOpaqueData& )
+QEOpaqueData& QEOpaqueData::operator=(const QEOpaqueData& other)
 {
-   // nothing to copy per se.
+   this->text = other.text;
    return *this;
 }
 
@@ -51,8 +53,12 @@ QEOpaqueData& QEOpaqueData::operator=(const QEOpaqueData& )
 //
 #ifdef QE_INCLUDE_PV_ACCESS
 
-bool QEOpaqueData::assignFrom (const epics::pvData::StructureConstPtr)
+bool QEOpaqueData::assignFrom (const epics::pvData::PVStructure::const_shared_pointer item)
 {
+   std::stringstream buffer;
+   buffer << item;
+
+   this->text = QString (buffer.str().c_str());
    return true;
 }
 
@@ -60,8 +66,17 @@ bool QEOpaqueData::assignFrom (const epics::pvData::StructureConstPtr)
 
 //------------------------------------------------------------------------------
 //
-void QEOpaqueData::clear () { }   // place holder.
+void QEOpaqueData::clear ()
+{
+   this->text.clear();
+}
 
+//------------------------------------------------------------------------------
+//
+QString QEOpaqueData::getText () const
+{
+   return this->text;
+}
 
 //------------------------------------------------------------------------------
 //
@@ -74,28 +89,28 @@ QVariant QEOpaqueData::toVariant () const
 
 //------------------------------------------------------------------------------
 //
-bool QEOpaqueData::assignFromVariant (const QVariant & item)
+bool QEOpaqueData::assignFromVariant (const QVariant& item)
 {
    bool result = QEOpaqueData::isAssignableVariant (item);
    if (result) {
       this->clear ();
-      *this = item.value < QEOpaqueData > ();
+      *this = item.value <QEOpaqueData>();
    }
    return result;
 }
 
 //------------------------------------------------------------------------------
 // static
-bool QEOpaqueData::isAssignableVariant (const QVariant & item)
+bool QEOpaqueData::isAssignableVariant (const QVariant& item)
 {
-   return item.canConvert < QEOpaqueData > ();
+   return item.canConvert <QEOpaqueData>();
 }
 
 //------------------------------------------------------------------------------
 // static
 bool QEOpaqueData::registerMetaType ()
 {
-   qRegisterMetaType < QEOpaqueData > ();
+   qRegisterMetaType <QEOpaqueData> ();
    return true;
 }
 
@@ -105,9 +120,10 @@ static const bool _elaborate = QEOpaqueData::registerMetaType ();
 
 //------------------------------------------------------------------------------
 //
-QDebug operator<< (QDebug dbg, const QEOpaqueData&)
+QDebug operator<< (QDebug dbg, const QEOpaqueData& data)
 {
-   dbg << "QEOpaqueData" << "\n";
+   dbg << "QEOpaqueData" << '\n';
+   dbg << data.getText();
    return dbg.maybeSpace ();
 }
 

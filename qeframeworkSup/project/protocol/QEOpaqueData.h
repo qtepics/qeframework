@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2019-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2019-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -15,10 +15,8 @@
 #define QE_OPAQUE_DATA_H
 
 #include <QDebug>
-#include <QList>
 #include <QMetaType>
 #include <QString>
-#include <QStringList>
 #include <QVariant>
 #include <QEFrameworkLibraryGlobal.h>
 #include <QEPvaCheck.h>
@@ -27,21 +25,25 @@
 #include <pv/pvData.h>
 #endif
 
+
 /// Defines a data class type, specifically to support the unknown PV Access
-/// data types such an none normative types.
+/// data types such an none normative types. This type is essentially
+/// just a QStringList containing "stream << opaque".
+///
 /// This type is registered as a QVariant type, and can be set/get like this:
 ///
 ///   QEOpaqueData opaque;
 ///   QVariant var;
 ///
-///   var.setValue (opaque);       or
-///   var = opaque.toVariant();          -- defined in this module
+///   var.setValue (opaque);       -- or
+///   var = opaque.toVariant();    -- defined in this module
 ///
-///   opaque = var.value<QEOpaqueData>();
-///   opaque = qvariant_cast<QEOpaqueData>(var);  or
-///   opaque.assignFromVariant (var);    -- defined in this module
+///   opaque = var.value<QEOpaqueData>();         -- or
+///   opaque = qvariant_cast<QEOpaqueData>(var);  -- or
+///   opaque.assignFromVariant (var);             -- defined in this module
 ///
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEOpaqueData {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEOpaqueData
+{
 public:
    // explicit is a no-no here.
    QEOpaqueData ();
@@ -53,12 +55,16 @@ public:
 #ifdef QE_INCLUDE_PV_ACCESS
    // Note: we can read any type for now.
    //
-   bool assignFrom (const epics::pvData::StructureConstPtr ptr);
+   bool assignFrom (const epics::pvData::PVStructure::const_shared_pointer item);
 #endif
 
-   // Clear all opaque data - added for completeness
+   // Clear all opaque data.
    //
    void clear ();
+
+   // Returns structured text representing PV Access item.
+   //
+   QString getText () const;
 
    // Converstion to QVariant
    //
@@ -80,7 +86,7 @@ public:
    static bool registerMetaType ();
 
 private:
-   // no data per se.
+   QString text;
 };
 
 // allows qDebug() << QEOpaqueData object.

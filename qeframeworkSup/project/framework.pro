@@ -3,7 +3,7 @@
 # This file is part of the EPICS QT Framework, initially developed at
 # the Australian Synchrotron.
 #
-# SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+# SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
 # SPDX-License-Identifier: LGPL-3.0-only
 #
 # Author:     Anthony Owen
@@ -94,7 +94,7 @@ isEmpty( _ACAI ) {
 # Add a bit usefull diag/config information.
 #
 message ("BASE = "$$(EPICS_BASE)", "$$(EPICS_HOST_ARCH) )
-message ("PVA  = "$$(QE_ARCHAPPL_SUPPORT) )
+message ("PVA  = "$$(QE_PVACCESS_SUPPORT) )
 message ("ACAI = "$$(ACAI) )
 message ("QWT  = "$$(QWT_ROOT) )
 
@@ -207,6 +207,7 @@ include (widgets/QELog/QELog.pri)
 include (widgets/QELogin/QELogin.pri)
 include (widgets/QEMenuButton/QEMenuButton.pri)
 include (widgets/QENumericEdit/QENumericEdit.pri)
+include (widgets/QEOpaque/QEOpaque.pri)
 include (widgets/QEPeriodic/QEPeriodic.pri)
 include (widgets/QEPlot/QEPlot.pri)
 include (widgets/QEPlotter/QEPlotter.pri)
@@ -289,7 +290,7 @@ equals(_PVACCESS_SUPPORT, "YES") {
     # If you are using EPICS 4, modify the following to reference  EPICS 4 libraries.
     #
     LIBS += -L$$(EPICS_BASE)/lib/$$(EPICS_HOST_ARCH) -lpvData  -lpvAccess -lnt
-    
+
 } else {
     message( "QE_PVACCESS_SUPPORT is not defined. The QE framework library will not include PV Access support." )
     message( "If you want to build with PV Access support, set environment variable QE_PVACCESS_SUPPORT=YES" )

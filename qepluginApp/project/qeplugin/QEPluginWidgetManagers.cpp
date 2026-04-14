@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2017-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2017-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -56,6 +56,7 @@
 #include <QEMenuButton.h>
 #include <QNumericEdit.h>
 #include <QENumericEdit.h>
+#include <QEOpaque.h>
 #include <QEPeriodic.h>
 #include <QEPlot.h>
 #include <QEPlotter.h>
@@ -129,6 +130,7 @@ QE_IMPLEMENT_PLUGIN_MANAGER (QELog,               QESUPPORT,  ":/qe/plugin/QELog
 QE_IMPLEMENT_PLUGIN_MANAGER (QELogin,             QESUPPORT,  ":/qe/plugin/QELogin.png",             false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QNumericEdit,        QETOOL,     ":/qe/plugin/QNumericEdit.png",        false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QENumericEdit,       QECONTROL,  ":/qe/plugin/QENumericEdit.png",       false)
+QE_IMPLEMENT_PLUGIN_MANAGER (QEOpaque,            QEMONITOR,  ":/qe/plugin/QEOpaque.png",            false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEPlot,              QEGRAPHIC,  ":/qe/plugin/QEPlot.png",              false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEPlotter,           QEGRAPHIC,  ":/qe/plugin/QEPlotter.png",           false)
 QE_IMPLEMENT_PLUGIN_MANAGER (QEPvLoadSave,        QESUPPORT,  ":/qe/plugin/QEPvLoadSave.png",        false)
