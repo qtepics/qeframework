@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -57,13 +57,20 @@ public:
 
    // Predefined actions values for built in windows that consumer may provide.
    //
-   static QString actionPvProperties ()   { return "PV Properties...";   }
-   static QString actionStripChart ()     { return "Strip Chart...";     }
-   static QString actionScratchPad ()     { return "Scratch Pad...";     }
-   static QString actionPlotter ()        { return "Show in Plotter..."; }
-   static QString actionTable ()          { return "Show in Table...";   }
-   static QString actionShowInHisogram () { return "Show in Histogram..."; }
-   static QString actionGeneralPvEdit ()  { return "General PV Edit..."; }
+   static QString actionPvProperties ()     { return "PV Properties...";     }
+   static QString actionStripChart ()       { return "Strip Chart...";       }
+   static QString actionScratchPad ()       { return "Scratch Pad...";       }
+   static QString actionPlotter ()          { return "Show in Plotter...";   }
+   static QString actionTable ()            { return "Show in Table...";     }
+   static QString actionShowInHistogram ()  { return "Show in Histogram..."; }
+   Q_DECL_DEPRECATED_X ("Use actionShowInHistogram")
+   static QString actionShowInHisogram ()   { return actionShowInHistogram(); }
+   static QString actionGeneralPvEdit ()    { return "General PV Edit...";   }
+
+   // PV Access only
+   static QString actionNTTable ()          { return "Show in NTTable...";   }
+   static QString actionNTNDArray ()        { return "Show as Image...";     }
+   static QString actionOpaque ()           { return "Show as Opaque...";    }
 
    // Constructors.
    //
