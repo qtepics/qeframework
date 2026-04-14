@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2011-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2011-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -31,17 +31,17 @@ class QEContextMenuObject : public QObject
 public:
    QEContextMenuObject( contextMenu* menuIn,  QObject* parent ); // Construction
    ~QEContextMenuObject();                                       // Destruction
-   void sendRequestAction( const QEActionRequests& request);   // Emit a GUI launch request
+   void sendRequestAction( const QEActionRequests& request);     // Emit a GUI launch request
 
 signals:
-   void requestAction( const QEActionRequests& );                      // Signal 'launch a GUI'
+   void requestAction( const QEActionRequests& );                // Signal 'launch a GUI'
 
 public slots:
-   void contextMenuTriggeredSlot( QAction* selectedItem );             // Slot - an item has been selected from the context menu
-   void showContextMenuSlot( const QPoint& pos );                      // Slot - a widget has requested the QE sutom context menu be shown
+   void contextMenuTriggeredSlot( QAction* selectedItem );       // Slot - an item has been selected from the context menu
+   void showContextMenuSlot( const QPoint& pos );                // Slot - a widget has requested the QE sutom context menu be shown
 
 private:
-   contextMenu* menu;                                                  // contextMenu class owning this class
+   contextMenu* menu;                                            // contextMenu class owning this class
 };
 
 // Manage QE widget context menu
@@ -63,6 +63,9 @@ public:
       CM_ADD_TO_PLOTTER,
       CM_ADD_TO_TABLE,
       CM_SHOW_AS_HISTOGRAM,
+      CM_SHOW_AS_NT_TABLE,
+      CM_SHOW_AS_NTND_ARRAY,
+      CM_SHOW_AS_OPAQUE,
       CM_GENERAL_PV_EDIT,
       CM_SPECIFIC_WIDGETS_START_HERE
    };
@@ -75,7 +78,8 @@ public:
    virtual ~contextMenu();
 
    // Set up the standard QE context menu for a QE widget (conextMenu class is a base class for
-   // all QE widgets, but a menu is only available to users if this is called)
+   // all QE widgets, but a menu is only available to users if this is called).
+   //
    void setupContextMenu( const ContextMenuOptionSets& menuSet = contextMenu::defaultMenuSet ());
 
    // Default user level is USERLEVEL_ENGINEER
@@ -94,6 +98,7 @@ public:
    // menu constructed by its parent class, these function allow action items to be inserted into the
    // menu before/after the noninated menu option value. These functions return false if the specified
    // option was not found.
+   //
    static bool insertBefore( QMenu* menu, QAction* action, const int option );
    static bool insertAfter(  QMenu* menu, QAction* action, const int option );
 
@@ -117,24 +122,43 @@ protected:
    void setConsumer (QObject *consumer);               // Set the consumer of the signal generted by this object
 
 private:
-   QEContextMenuObject* object;                        // Our own QObject based class to managing signals and slots
-   void doCopyVariable();                              // 'Copy Variable' was selected from the menu
-   void doCopyData();                                  // 'Copy Data' was selected from the menu
-   void doPaste();                                     // 'Paste' was selected from the menu
-   void doShowPvProperties();                          // 'Show Properties' was selected from the menu
-   void doAddToStripChart();                           // 'Add to strip chart' was selected from the menu
-   void doAddToScratchPad();                           // 'Add to scratch pad' was selected from the menu
-   void doAddToPlotter();                              // 'Add to plotter' was selected from the menu
-   void doAddToTable();                                // 'Add to table' was selected from the menu
-   void doShowAsHistogram();                           // 'Show as histogram' was selected from the menu
-   void doGeneralPVEdit();                             // 'Add to scratch pad' was selected from the menu
-   bool isArrayVariable () const;                      // Tests is primary PV is an array variable
-   static bool draggingVariable;                       // Global 'dragging variable' flag (dragging data if false)
-   QEWidget* qew;                                      // QEWidget associated with this instance
-   bool hasConsumer;                                   // A launch consumer has been set (it is ok to present menu options that require application support to receive signals to, for example, start a strip chart
-   ContextMenuOptionSets menuSet;                      // Defines required set of menu items.
-   int numberOfItems;                                  // Number PV names to be copied/dragged
-   QE::UserLevels editPvUserLevel;                     // Minimum user level for this context menu entry
+   // Utility function to create and set up an action.
+   //
+   QAction* make (QMenu* parentMenu,
+                  const QString& caption,
+                  const bool checkable,
+                  const contextMenu::contextMenuOptions menuAction);
+
+   void doCopyVariable();               // 'Copy Variable' was selected from the menu
+   void doCopyData();                   // 'Copy Data' was selected from the menu
+   void doPaste();                      // 'Paste' was selected from the menu
+   void doShowPvProperties();           // 'Show Properties' was selected from the menu
+   void doAddToStripChart();            // 'Add to strip chart' was selected from the menu
+   void doAddToScratchPad();            // 'Add to scratch pad' was selected from the menu
+   void doAddToPlotter();               // 'Add to plotter' was selected from the menu
+   void doAddToTable();                 // 'Add to table' was selected from the menu
+   void doShowAsHistogram();            // 'Show as histogram' was selected from the menu
+   void doShowAsNTTable();              // 'Show as NTTable' was selected from the menu
+   void doShowAsInage();                // 'Show as Image' was selected from the menu
+   void doShowAsOpaque();               // 'Show as Qpaque' was selected from the menu
+   void doGeneralPVEdit();              // 'Add to scratch pad' was selected from the menu
+   bool isArrayVariable () const;       // Tests is primary PV is an array variable
+
+   // PVA variant type checks
+   bool isNTTableVariable () const;     // Tests is primary PV a epics:nt/NTTable variable
+   bool isNTNDArrayVariable () const;   // Tests is primary PV a epics:nt/NTNDArray variable
+   bool isOpaqueVariable () const;      // Tests is primary PV a unknown/opaque variable
+
+   static bool draggingVariable;        // Global 'dragging variable' flag (dragging data if false)
+
+   QEContextMenuObject* object;         // Our own QObject based class to managing signals and slots
+   QEWidget* qew;                       // QEWidget associated with this instance
+   bool hasConsumer;                    // A launch consumer has been set (it is ok to  present
+                                        // menu options that require application support to receive
+                                        // signals to, for example, start a strip chart)
+   ContextMenuOptionSets menuSet;       // Defines required set of menu items.
+   int numberOfItems;                   // Number PV names to be copied/dragged
+   QE::UserLevels editPvUserLevel;      // Minimum user level for this context menu entry
 };
 
 #endif // QE_CONTEXT_MENU_H

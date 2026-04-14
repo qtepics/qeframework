@@ -25,15 +25,22 @@
  */
 
 #include "contextMenu.h"
+#include <QAction>
 #include <QApplication>
 #include <QDebug>
 #include <QClipboard>
 #include <QMetaType>
+#include <QVariant>
+
 #include <QEPlatform.h>
 #include <QEChannel.h>
 #include <QEWidget.h>
 #include <QEScaling.h>
-#include <QAction>
+#include <QCaAlarmInfo.h>
+#include <QCaDateTime.h>
+#include <QENTTableData.h>
+#include <QENTNDArrayData.h>
+#include <QEOpaqueData.h>
 
 #define DEBUG qDebug() << "contextMenu" << __LINE__ << __FUNCTION__ << "  "
 
@@ -46,7 +53,7 @@ bool contextMenu::draggingVariable = true;
 // Methods for QObject based contextMenuObject class
 //==============================================================================
 //
-QEContextMenuObject::QEContextMenuObject( contextMenu* menuIn,  QObject* parent ) :
+QEContextMenuObject::QEContextMenuObject (contextMenu* menuIn,  QObject* parent) :
    QObject (parent)
 {
    menu = menuIn;
@@ -58,23 +65,23 @@ QEContextMenuObject::~QEContextMenuObject() { }
 
 //------------------------------------------------------------------------------
 //
-void QEContextMenuObject::sendRequestAction( const QEActionRequests& request)
+void QEContextMenuObject::sendRequestAction (const QEActionRequests& request)
 {
    emit requestAction( request );
 }
 
 //------------------------------------------------------------------------------
 //
-void QEContextMenuObject::contextMenuTriggeredSlot( QAction* selectedItem )
+void QEContextMenuObject::contextMenuTriggeredSlot (QAction* selectedItem)
 {
-   menu->contextMenuTriggered( selectedItem->data().toInt() );
+   menu->contextMenuTriggered (selectedItem->data().toInt());
 }
 
 //------------------------------------------------------------------------------
 //
-void QEContextMenuObject::showContextMenuSlot( const QPoint& pos )
+void QEContextMenuObject::showContextMenuSlot (const QPoint& pos)
 {
-   menu->showContextMenu( pos );
+   menu->showContextMenu (pos);
 }
 
 //==============================================================================
@@ -82,15 +89,13 @@ void QEContextMenuObject::showContextMenuSlot( const QPoint& pos )
 //==============================================================================
 // Create the default menu set, i.e. the lot.
 //
-contextMenu::ContextMenuOptionSets  contextMenu::defaultMenuSet ()
+contextMenu::ContextMenuOptionSets contextMenu::defaultMenuSet ()
 {
    ContextMenuOptionSets result;
 
    result.clear();
-
-   for( int j = CM_NOOPTION; j < CM_SPECIFIC_WIDGETS_START_HERE; j++ )
-   {
-      contextMenuOptions e = (contextMenuOptions) j;
+   for (int j = CM_NOOPTION; j < CM_SPECIFIC_WIDGETS_START_HERE; j++) {
+      const contextMenuOptions e = static_cast <contextMenuOptions>(j);
       result.insert( e );
    }
    return result;
@@ -127,6 +132,64 @@ bool contextMenu::isArrayVariable () const
    }
    return result;
 }
+
+//------------------------------------------------------------------------------
+// Tests is primary PV is a epics:nt/NTTable variable
+//
+bool contextMenu::isNTTableVariable () const
+{
+   bool result = false;
+   QEChannel* qca = qew->getQcaItem (0);
+   if (qca) {
+      bool isDefined;
+      QVariant data;
+      QCaAlarmInfo alarmInfo;
+      QCaDateTime timeStamp;
+      qca->getLastData (isDefined, data, alarmInfo, timeStamp);
+
+      result = isDefined && QENTTableData::isAssignableVariant (data);
+   }
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// Tests is primary PV is a epics:nt/NTNDArray variable
+//
+bool contextMenu::isNTNDArrayVariable () const
+{
+   bool result = false;
+   QEChannel* qca = qew->getQcaItem (0);
+   if (qca) {
+      bool isDefined;
+      QVariant data;
+      QCaAlarmInfo alarmInfo;
+      QCaDateTime timeStamp;
+      qca->getLastData (isDefined, data, alarmInfo, timeStamp);
+
+      result = isDefined && QENTNDArrayData::isAssignableVariant (data);
+   }
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// Tests is primary PV is an unknown/opaque variable
+//
+bool contextMenu::isOpaqueVariable () const
+{
+   bool result = false;
+   QEChannel* qca = qew->getQcaItem (0);
+   if (qca) {
+      bool isDefined;
+      QVariant data;
+      QCaAlarmInfo alarmInfo;
+      QCaDateTime timeStamp;
+      qca->getLastData (isDefined, data, alarmInfo, timeStamp);
+
+      result = isDefined && QEOpaqueData::isAssignableVariant (data);
+   }
+   return result;
+}
+
 
 //------------------------------------------------------------------------------
 // static
@@ -199,15 +262,15 @@ QMenu* contextMenu::buildContextMenu()
    bool addSeparator;
 
    // Create the menu
-   QMenu* menu = new QMenu( );//qew->getQWidget() );
-   menu->setStyle( QApplication::style() );
+   QMenu* menu = new QMenu( );  // qew->getQWidget() );
+   menu->setStyle (QApplication::style());
 
-   // Get Qt widget standard menu if any
+   // Get Qt widget standard menu if any.
+   //
    QMenu* defaultMenu = qew->getDefaultContextMenu();
 
-   if( defaultMenu )
-   {
-      defaultMenu->setStyle( QApplication::style() );
+   if (defaultMenu) {
+      defaultMenu->setStyle (QApplication::style());
 
       // Apply current scaling if any to new default menu.
       //
@@ -217,119 +280,149 @@ QMenu* contextMenu::buildContextMenu()
    }
 
    // Add QE context menu
-   QAction* a;
-   QString names = (numberOfItems >= 2) ? "names " : "name ";
+   //
+   const QString names = (numberOfItems >= 2) ? " names" : " name";
 
-   // Add menu options that require the application to provide support such as launch a strip chart.
-   if( hasConsumer )
-   {
+   // Add menu options that require the application to provide support
+   // such as launch a strip chart.
+   //
+   if (this->hasConsumer) {
+
+      // Only one of these may be true, they all can be false.
+      //
+      const bool isArray = this->isArrayVariable();
+      const bool isNTTable = !isArray && this->isNTTableVariable();
+      const bool isNTNDArray = !isArray && !isNTTable && this->isNTNDArrayVariable();
+      const bool isOpaque = !isArray && !isNTTable && !isNTNDArray && this->isOpaqueVariable();
+
+      const bool isPVA = isNTTable || isNTNDArray || isOpaque;
       addSeparator = false;
 
-      if( menuSet.contains( CM_SHOW_PV_PROPERTIES ))
-      {
-         a = new QAction( "Examine Properties",     menu ); a->setCheckable( false ); a->setData( CM_SHOW_PV_PROPERTIES ); menu->addAction( a );
+      if (menuSet.contains (CM_SHOW_PV_PROPERTIES)) {
+         this->make (menu, "Examine Properties", false, CM_SHOW_PV_PROPERTIES);
          addSeparator = true;
       }
 
-      if( menuSet.contains( CM_ADD_TO_STRIPCHART ))
-      {
-         a = new QAction( "Plot in StripChart",     menu ); a->setCheckable( false ); a->setData( CM_ADD_TO_STRIPCHART );  menu->addAction( a );
+      if (!isPVA && menuSet.contains (CM_ADD_TO_STRIPCHART)) {
+         this->make (menu, "Plot in StripChart", false, CM_ADD_TO_STRIPCHART);
          addSeparator = true;
       }
 
-      if( menuSet.contains( CM_ADD_TO_SCRATCH_PAD ))
-      {
-         a = new QAction( "Show in Scratch Pad",    menu ); a->setCheckable( false ); a->setData( CM_ADD_TO_SCRATCH_PAD ); menu->addAction( a );
+      if (menuSet.contains( CM_ADD_TO_SCRATCH_PAD)) {
+         this->make (menu, "Show in Scratch Pad", false, CM_ADD_TO_SCRATCH_PAD);
          addSeparator = true;
       }
 
-      // This menu items are really only sensible of array PVs, i.e. PVs with at least two elements.
-      if( isArrayVariable() ) {
-
-         if( menuSet.contains( CM_ADD_TO_PLOTTER ))
-         {
-            a = new QAction( "Show in Plotter",    menu ); a->setCheckable( false ); a->setData( CM_ADD_TO_PLOTTER ); menu->addAction( a );
-            addSeparator = true;
-         }
-
-         if( menuSet.contains( CM_SHOW_AS_HISTOGRAM ))
-         {
-            a = new QAction( "Show as Historgram", menu ); a->setCheckable( false ); a->setData( CM_SHOW_AS_HISTOGRAM ); menu->addAction( a );
-            addSeparator = true;
-         }
-
-         if( menuSet.contains( CM_ADD_TO_TABLE ))
-         {
-            a = new QAction( "Show in Table",      menu ); a->setCheckable( false ); a->setData( CM_ADD_TO_TABLE ); menu->addAction( a );
-            addSeparator = true;
-         }
+      // These menu items are really only sensible of array PVs,
+      // i.e. PVs with at least two elements.
+      //
+      if (isArray && menuSet.contains (CM_ADD_TO_PLOTTER)) {
+         this->make (menu, "Show in Plotter", false, CM_ADD_TO_PLOTTER);
+         addSeparator = true;
       }
 
-      if( addSeparator ) menu->addSeparator();
+      if (isArray && menuSet.contains (CM_SHOW_AS_HISTOGRAM)) {
+         this->make (menu, "Show as Histogram", false, CM_SHOW_AS_HISTOGRAM);
+      }
+
+      if (isArray && menuSet.contains (CM_ADD_TO_TABLE)) {
+         this->make (menu, "Show in Table", false, CM_ADD_TO_TABLE);
+         addSeparator = true;
+      }
+
+      // This menu item only applies to PVA variables.
+      //
+      if (isNTTable && menuSet.contains (CM_SHOW_AS_NT_TABLE)) {
+         this->make (menu, "Show in NTTable", false, CM_SHOW_AS_NT_TABLE);
+         addSeparator = true;
+      }
+
+//    Pending
+      if (isNTNDArray && menuSet.contains (CM_SHOW_AS_NTND_ARRAY)) {
+         this->make (menu, "Show as Image", false, CM_SHOW_AS_NTND_ARRAY);
+         addSeparator = true;
+      }
+
+      if (isOpaque && menuSet.contains (CM_SHOW_AS_OPAQUE)) {
+         this->make (menu, "Show as Opaque", false, CM_SHOW_AS_OPAQUE);
+         addSeparator = true;
+      }
+
+      if (addSeparator) menu->addSeparator();
    }
 
-   // Add menu options that don't require the application to provide support such as launch a strip chart.
+   // Add menu options that don't require the application to provide support
+   // such as launch a strip chart.
+   //
    addSeparator = false;
 
-   if( menuSet.contains( CM_COPY_VARIABLE ))
-   {
-      a = new QAction( "Copy variable " + names, menu ); a->setCheckable( false ); a->setData( CM_COPY_VARIABLE );      menu->addAction( a );
+   if (menuSet.contains(CM_COPY_VARIABLE)) {
+      this->make (menu, "Copy variable" + names, false, CM_COPY_VARIABLE);
       addSeparator = true;
    }
 
-   if( menuSet.contains( CM_COPY_DATA ))
-   {
-      a = new QAction( "Copy data",              menu ); a->setCheckable( false ); a->setData( CM_COPY_DATA );          menu->addAction( a );
+   if (menuSet.contains (CM_COPY_DATA)) {
+      this->make (menu, "Copy data", false , CM_COPY_DATA);
       addSeparator = true;
    }
 
-   if( menuSet.contains( CM_PASTE ))
-   {
-      a = new QAction( "Paste to variable " + names, menu ); a->setCheckable( false ); a->setData( CM_PASTE );          menu->addAction( a );
-
+   if (menuSet.contains (CM_PASTE)) {
+      QAction* a = this->make (menu, "Paste to variable" + names, false, CM_PASTE);
       QClipboard *cb = QApplication::clipboard();
-      a->setEnabled( qew->getAllowDrop() && !cb->text().isEmpty() );
+      a->setEnabled (qew->getAllowDrop() && !cb->text().isEmpty());
       addSeparator = true;
    }
 
-   if( addSeparator )  menu->addSeparator();
-
+   if (addSeparator)  menu->addSeparator();
    addSeparator = false;
 
-   if( menuSet.contains( CM_DRAG_VARIABLE ))
-   {
-      a = new QAction( "Drag variable " + names, menu ); a->setCheckable( true );  a->setData( CM_DRAG_VARIABLE );      menu->addAction( a );
-      a->setChecked( draggingVariable );
+   if (menuSet.contains (CM_DRAG_VARIABLE)) {
+      QAction* a = this->make (menu, "Drag variable" + names, true, CM_DRAG_VARIABLE);
+      a->setChecked (draggingVariable);
       addSeparator = true;
    }
 
-   if( menuSet.contains( CM_DRAG_DATA ))
-   {
-      a = new QAction( "Drag data",              menu ); a->setCheckable( true );  a->setData( CM_DRAG_DATA );          menu->addAction( a );
-      a->setChecked( !draggingVariable );
+   if (menuSet.contains (CM_DRAG_DATA)) {
+      QAction* a = this->make (menu, "Drag data", true, CM_DRAG_DATA);
+      a->setChecked (!draggingVariable);
       addSeparator = true;
    }
 
    // Add edit PV menu if and only if we are in the approriate level.
-   if( ( qew->getUserLevel() >= editPvUserLevel ) && menuSet.contains( CM_GENERAL_PV_EDIT ))
-   {
-      if( addSeparator ) menu->addSeparator();
-      a = new QAction( "Edit PV", menu );
-      a->setCheckable( false );
-      a->setData( CM_GENERAL_PV_EDIT );
-      menu->addAction( a );
+   //
+   if ((qew->getUserLevel() >= editPvUserLevel) &&
+        this->menuSet.contains (CM_GENERAL_PV_EDIT)) {
+      if (addSeparator) menu->addSeparator();
+      this->make (menu, "Edit PV", false, CM_GENERAL_PV_EDIT);
    }
 
-   menu->setTitle( "Use..." );
+   menu->setTitle ("Use...");
 
-   QObject::connect( menu, SIGNAL( triggered ( QAction* ) ),
-                     object, SLOT( contextMenuTriggeredSlot( QAction* )) );
+   QObject::connect (menu, SIGNAL (triggered                (QAction*)),
+                     object, SLOT (contextMenuTriggeredSlot (QAction*)));
 
    // This object is created dynamically as opposed to at overall contruction time,
    // so need to apply current scalling, if any to the new menu.
-   QEScaling::applyToWidget( menu );
+   //
+   QEScaling::applyToWidget (menu);
 
    return menu;
+}
+
+//------------------------------------------------------------------------------
+//
+QAction* contextMenu::make (QMenu* parentMenu,
+                            const QString& caption,
+                            const bool checkable,
+                            const contextMenu::contextMenuOptions menuAction)
+{
+   QAction* action = NULL;
+
+   action = new QAction (caption, parentMenu);
+   action->setCheckable (checkable);
+   action->setData (static_cast<int>(menuAction));
+   parentMenu->addAction (action);
+   return action;
 }
 
 //------------------------------------------------------------------------------
@@ -506,6 +599,18 @@ void contextMenu::contextMenuTriggered( int optionNum )
          doShowAsHistogram();
          break;
 
+      case contextMenu::CM_SHOW_AS_NT_TABLE:
+         doShowAsNTTable();
+         break;
+
+      case contextMenu::CM_SHOW_AS_NTND_ARRAY:
+         doShowAsInage();
+         break;
+
+      case contextMenu::CM_SHOW_AS_OPAQUE:
+         doShowAsOpaque();
+         break;
+
       case contextMenu::CM_GENERAL_PV_EDIT:
          doGeneralPVEdit();
          break;
@@ -612,12 +717,42 @@ void contextMenu::doAddToTable()
 }
 
 //------------------------------------------------------------------------------
+// 'Show in NTTable' was selected from the menu
+//
+void contextMenu::doShowAsNTTable()
+{
+   QString pvName = this->copyVariable().trimmed();
+   QEActionRequests request (QEActionRequests::actionNTTable(), pvName);
+   if (!pvName.isEmpty()) object->sendRequestAction (request);
+}
+
+//------------------------------------------------------------------------------
+// 'Show as Image' was selected from the menu
+//
+void contextMenu::doShowAsInage()
+{
+   QString pvName = this->copyVariable().trimmed();
+   QEActionRequests request (QEActionRequests::actionNTNDArray(), pvName);
+   if (!pvName.isEmpty()) object->sendRequestAction (request);
+}
+
+//------------------------------------------------------------------------------
+// 'Show as Qpaque' was selected from the menu
+//
+void contextMenu::doShowAsOpaque()
+{
+   QString pvName = this->copyVariable().trimmed();
+   QEActionRequests request (QEActionRequests::actionOpaque(), pvName);
+   if (!pvName.isEmpty()) object->sendRequestAction (request);
+}
+
+//------------------------------------------------------------------------------
 // 'Show as Histogram' was selected from the menu
 //
 void contextMenu::doShowAsHistogram()
 {
    QString pvName = copyVariable().trimmed();
-   QEActionRequests request( QEActionRequests::actionShowInHisogram(), pvName );
+   QEActionRequests request (QEActionRequests::actionShowInHistogram(), pvName );
    if( !pvName.isEmpty() ) object->sendRequestAction( request );
 }
 
