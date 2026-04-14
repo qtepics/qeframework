@@ -47,7 +47,6 @@
 
 #include <QEAdaptationParameters.h>
 #include <QECommon.h>
-#include <QCaObject.h>
 #include <QELabel.h>
 #include <QCaVariableNamePropertyManager.h>
 
@@ -1936,7 +1935,7 @@ void QEStripChart::evaluateAllowDrop ()
 
 //------------------------------------------------------------------------------
 //
-qcaobject::QCaObject* QEStripChart::createQcaItem (unsigned int variableIndex)
+QEChannel* QEStripChart::createQcaItem (unsigned int variableIndex)
 {
    DEBUG << "unexpected call, variableIndex = " << variableIndex;
    return NULL;

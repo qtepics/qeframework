@@ -13,7 +13,6 @@
 
 #include "QEWaveformHistogram.h"
 #include <QDebug>
-#include <QCaObject.h>
 #include <QEPVNameSelectDialog.h>
 
 #define DEBUG  qDebug () << "QEWaveformHistogram"  << __LINE__ << __FUNCTION__ << "  "
@@ -64,27 +63,29 @@ QEWaveformHistogram::QEWaveformHistogram (QWidget* parent) :
    // variable name after the user has stopped typing.
    //
    this->vnpm.setVariableIndex (0);
-      QObject::connect (&this->vnpm, SIGNAL (newVariableNameProperty  (QString, QString, unsigned int)),
-                        this,        SLOT   (newVariableNameProperty  (QString, QString, unsigned int)));
+   QObject::connect (&this->vnpm, SIGNAL (newPvNameProperties (const QEPvNameProperties&)),
+                     this,        SLOT   (usePvNameProperties (const QEPvNameProperties&)));
 }
 
 
 //------------------------------------------------------------------------------
 // This is the slot used to recieve new PV information.
 //
-void QEWaveformHistogram::newVariableNameProperty (QString pvName, QString subs, unsigned int pvi)
+void QEWaveformHistogram::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
    this->histogram->clear ();
-   this->setVariableNameAndSubstitutions (pvName, subs, pvi);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of
-// QCaObject required. For a histogram floating point numbers are required.
+// QEChannel required. For a histogram floating point numbers are required.
 //
-qcaobject::QCaObject* QEWaveformHistogram::createQcaItem (unsigned int pvi)
+QEChannel* QEWaveformHistogram::createQcaItem (unsigned int pvi)
 {
-   qcaobject::QCaObject* result = NULL;
+   QEChannel* result = NULL;
 
    if (pvi == 0) {
       QString pvName = this->getSubstitutedVariableName (pvi);
@@ -112,52 +113,50 @@ void QEWaveformHistogram::establishConnection (unsigned int variableIndex)
     }
 
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   // Note createConnection creates the connection and returns reference to existing QCaObject.
+   // If successfull, the QEChannel object that will supply data update signals will be returned
+   // Note createConnection creates the connection and returns reference to existing QEChannel.
    //
-   qcaobject::QCaObject* qca = createConnection (variableIndex);
+   QEChannel* qca = createConnection (variableIndex);
 
-   // If a QCaObject object is now available to supply data update signals,
+   // If a QEChannel object is now available to supply data update signals,
    // connect it to the appropriate slots.
    //
    if (qca) {
-      QObject::connect (qca, SIGNAL (floatingArrayChanged (const QVector<double>&, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)),
-                        this, SLOT  (setChannelArrayValue (const QVector<double>&, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)));
+      QObject::connect (qca,  SIGNAL (arrayUpdated         (const QEFloatingArrayUpdate&)),
+                        this, SLOT   (setChannelArrayValue (const QEFloatingArrayUpdate&)));
 
-      QObject::connect (qca,  SIGNAL (connectionChanged (QCaConnectionInfo &, const unsigned int &)),
-                        this, SLOT   (connectionChanged (QCaConnectionInfo &, const unsigned int &)));
+      QObject::connect (qca,  SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                        this, SLOT   (connectionUpdated (const QEConnectionUpdate&)));
    }
 }
 
-
 //------------------------------------------------------------------------------
 // Act on a connection change.
-// This is the slot used to recieve connection updates from a QCaObject based class.
+// This is the slot used to recieve connection updates from a QEChannel based class.
 //
-void QEWaveformHistogram::connectionChanged (QCaConnectionInfo & connectionInfo,
-                                             const unsigned int & variableIndex)
+void QEWaveformHistogram::connectionUpdated (const QEConnectionUpdate& update)
 {
-   bool pvConnected;
+   const unsigned int vi = update.variableIndex;
 
-   if (variableIndex != 0) {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+   if (vi != 0) {
+      DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
-   // Note the connected state
+   // Note the connected state.
    //
-   pvConnected = connectionInfo.isChannelConnected ();
+   const bool pvConnected = update.connectionInfo.isChannelConnected ();
 
-   // Display the connected state
+   // Display the connected state.
    //
-   this->updateToolTipConnection (pvConnected, variableIndex);
+   this->updateToolTipConnection (pvConnected, vi);
 
    // Do not use processConnectionInfo.
    //
    // If this is a disconnect - set gray.
    // If this is a connect, we will soon change from gray to required colour.
    //
-   const int n =this->histogram->count ();
+   const int n = this->histogram->count ();
    for (int j = 0; j < n; j++ ) {
       this->histogram->setColour (j, QColor (0xe8e8e8));
    }
@@ -165,14 +164,14 @@ void QEWaveformHistogram::connectionChanged (QCaConnectionInfo & connectionInfo,
    // Signal a channel connection change to any widgets using the
    // dbConnectionChanged signal.
    //
-   this->emitDbConnectionChanged (variableIndex);
+   this->emitDbConnectionChanged (vi);
 }
 
 //------------------------------------------------------------------------------
 //
 void QEWaveformHistogram::updateHistogramScale ()
 {
-   qcaobject::QCaObject* qca = NULL;
+   QEChannel* qca = NULL;
    double lopr;
    double hopr;
 
@@ -211,30 +210,27 @@ void QEWaveformHistogram::updateHistogramScale ()
 
 //------------------------------------------------------------------------------
 // Update the histogram bar value
-// This is the slot used to recieve data updates from a QCaObject based class.
+// This is the slot used to recieve data updates from a QEChannel based class.
 //
-void QEWaveformHistogram::setChannelArrayValue (const QVector<double>& value,
-                                                QCaAlarmInfo& alarmInfo,
-                                                QCaDateTime&,
-                                                const unsigned int& variableIndex)
+void QEWaveformHistogram::setChannelArrayValue (const QEFloatingArrayUpdate& update)
 {
-   if (variableIndex != 0) {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+   const unsigned int vi = update.variableIndex;
+
+   if (vi != 0) {
+      DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
    // Associated qca object - avoid any segmentation fault.
    //
-   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   QEChannel* qca = this->getQcaItem (vi);
    if (!qca) return;   // sanity check
 
-   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
-
-   this->histogram->setValues (value);
+   this->histogram->setValues (update.values);
 
    const int n =this->histogram->count ();
-   if (this->getUseAlarmState (alarmInfo)) {
-      QColor colour = this->getColor (alarmInfo, 255);
+   if (this->getUseAlarmState (update.alarmInfo)) {
+      QColor colour = this->getColor (update.alarmInfo, 255);
       for (int j = 0; j < n; j++ ) {
          this->histogram->setColour (j, colour);
       }
@@ -246,18 +242,18 @@ void QEWaveformHistogram::setChannelArrayValue (const QVector<double>& value,
 
    // First/meta update (for this connection).
    //
-   if (isMetaDataUpdate) {
+   if (update.isMetaUpdate) {
       this->updateHistogramScale ();
    }
 
    // Don't invoke common alarm handling processing.
    // Invoke for tool tip processing directly.
    //
-   this->updateToolTipAlarm (alarmInfo, variableIndex);
+   this->updateToolTipAlarm (update.alarmInfo, vi);
 
    // Signal a database value change to any widgets using dbValueChanged.
    //
-   this->emitDbValueChanged (variableIndex);
+   this->emitDbValueChanged (vi);
 }
 
 //------------------------------------------------------------------------------
@@ -445,7 +441,7 @@ void QEWaveformHistogram::setReadOut (const QString& text)
 //
 void QEWaveformHistogram::genReadOut (const int index)
 {
-   qcaobject::QCaObject* qca = NULL;
+   QEChannel* qca = NULL;
    QString text;
 
    if (index >= 0) {
@@ -492,7 +488,7 @@ QString QEWaveformHistogram::copyVariable ()
 QVariant QEWaveformHistogram::copyData ()
 {
    QVariant result;
-   qcaobject::QCaObject* qca = NULL;
+   QEChannel* qca = NULL;
 
    qca = this->getQcaItem (0);
 

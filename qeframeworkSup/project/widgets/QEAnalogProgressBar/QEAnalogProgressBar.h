@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2011-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2011-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -19,6 +19,7 @@
 #include <QEEnums.h>
 #include <QEAnalogIndicator.h>
 #include <QEWidget.h>
+#include <QEChannel.h>
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QCaVariableNamePropertyManager.h>
@@ -362,7 +363,7 @@ public slots:
 
 protected:
     void establishConnection( unsigned int variableIndex );
-    qcaobject::QCaObject* createQcaItem( unsigned int variableIndex );
+    QEChannel* createQcaItem( unsigned int variableIndex );
     void stringFormattingChange() { emit requestResend();  }
 
     // Drag and Drop
@@ -397,13 +398,11 @@ private:
     QString theImage;
 
 private slots:
-    void connectionChanged (QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex);
+    void connectionUpdated (const QEConnectionUpdate& update);
 
-    void setProgressBarValue (const double& value, QCaAlarmInfo&, QCaDateTime&, const unsigned int&);
+    void setProgressBarValue (const QEFloatingValueUpdate& update);
 
-    void useNewVariableNameProperty (QString variableNameIn,
-                                     QString variableNameSubstitutionsIn,
-                                     unsigned int variableIndex);
+    void usePvNameProperties (const QEPvNameProperties& pvNameProperties);
 };
 
 #ifdef QE_DECLARE_METATYPE_IS_REQUIRED

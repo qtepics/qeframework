@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -43,116 +43,150 @@
 #include <QDebug>
 #include <QEWidget.h>
 
-#define WAIT_FOR_TYPING_TO_FINISH 1000  // One Second
+#define WAIT_FOR_TYPING_TO_FINISH 1000  // One Second in mSec
 
-/*
-    Construction
-*/
-QCaVariableNamePropertyManager::QCaVariableNamePropertyManager() {
-
-    // If a container profile has been defined, then this widget isn't being created within designer,
-    // so flag the variable name and substitutions are not being modified interactively.
-    // If a user is not modifying the variable name or macro substitutions there is no need for
-    // the variable name property name manager to wait for a user to finish typing before using a variable name.
-    interactive = QEWidget::inDesigner();
-
-    // Setup a timer so rapid changes to the variable name property are ignored.
-    // Only after the user has stopped typing for a while will the entry be used.
-    // The timer will be set on the first keystroke and reset with each subsequent keystroke
-    // untill the keystrokes stop for longer than the timeout period.
-    // Note, timers are not required if there is no user entering variable names of macro substitutions.
-    if( interactive )
-    {
-        setSingleShot( true );
-        QObject::connect( this, SIGNAL( timeout() ), this, SLOT( subscribeDelayExpired() ) );
-    }
-
-    // Default to first (and only) variable
-    variableIndex = 0;
-}
-
-/*
-    Set the variable index.
-    Used when multiple variables can affect an object.
-*/
-void QCaVariableNamePropertyManager::setVariableIndex( unsigned int variableIndexIn ) {
-    variableIndex = variableIndexIn;
-}
-
-/*
-    Get the variable index.
-*/
-unsigned int QCaVariableNamePropertyManager::getVariableIndex() const
+//------------------------------------------------------------------------------
+// Construction
+//
+QCaVariableNamePropertyManager::QCaVariableNamePropertyManager ()
 {
-    return variableIndex;
+   // If a container profile has been defined, then this widget isn't being created within designer,
+   // so flag the variable name and substitutions are not being modified interactively.
+   // If a user is not modifying the variable name or macro substitutions there is no need for
+   // the variable name property name manager to wait for a user to finish typing before using a variable name.
+   //
+   this->interactive = QEWidget::inDesigner ();
+
+   // Setup a timer so rapid changes to the variable name property are ignored.
+   // Only after the user has stopped typing for a while will the entry be used.
+   // The timer will be set on the first keystroke and reset with each subsequent keystroke
+   // untill the keystrokes stop for longer than the timeout period.
+   // Note, timers are not required if there is no user entering variable names of macro substitutions.
+   //
+   if (this->interactive) {
+      this->setSingleShot (true);
+      QObject::connect (this, SIGNAL (timeout ()), this, SLOT (subscribeDelayExpired ()));
+   }
+
+   // Default to first (and only) variable.
+   //
+   this->variableIndex = 0;
 }
 
-/*
-    Set the Variable Name property
-    This changes with every keystroke.
-    Store the new value but don't subscribe yet.
-    Instead, set a timer that will expire only when changes stop occuring for
-    a while.
-*/
-void QCaVariableNamePropertyManager::setVariableNameProperty( QString variableNamePropertyIn ) {
+//------------------------------------------------------------------------------
+// Destruction - place holder
+//
+QCaVariableNamePropertyManager::~QCaVariableNamePropertyManager () { }
 
-    // If the variable name has changed as a result of a user typing, save it and
-    // set (or reset) a timer to complete when changes stop occuring.
-    // The timer will signal subscribeDelayExpired()
-    // If the change was not interactive, use the change immedietly.
-    if( variableNameProperty != variableNamePropertyIn ) {
-        variableNameProperty = variableNamePropertyIn;
-        if( interactive )
-            start( WAIT_FOR_TYPING_TO_FINISH );
-        else
-            subscribeDelayExpired();
-    }
+//------------------------------------------------------------------------------
+// Set the variable index.
+// Used when multiple variables can affect an object.
+//
+void QCaVariableNamePropertyManager::setVariableIndex (unsigned int variableIndexIn)
+{
+   this->variableIndex = variableIndexIn;
 }
 
-/*
-    Set the Variable Name Substitutions property.
-    This changes with every keystroke.
-    Store the new value but don't subscribe yet.
-    Instead, set a timer that will expire only when changes stop occuring for
-    a while.
-*/
-void QCaVariableNamePropertyManager::setSubstitutionsProperty( QString substitutionsPropertyIn ) {
-    // If the substitutions have changed as a result of a user typing, save them and
-    // set (or reset) a timer to complete when changes stop occuring.
-    // The timer will signal subscribeDelayExpired()
-    // If the change was not interactive, use the change immedietly.
-    if( substitutionsProperty != substitutionsPropertyIn ) {
-        substitutionsProperty = substitutionsPropertyIn;
-        if( interactive )
-            start( WAIT_FOR_TYPING_TO_FINISH );
-        else
-            subscribeDelayExpired();
-    }
+//------------------------------------------------------------------------------
+// Get the variable index.
+//
+unsigned int QCaVariableNamePropertyManager::getVariableIndex () const
+{
+   return this->variableIndex;
 }
 
-/*
-    Return the Variable Name property.
-*/
-QString QCaVariableNamePropertyManager::getVariableNameProperty() const {
-    return variableNameProperty;
+//------------------------------------------------------------------------------
+// Set the Variable Name property
+// This changes with every keystroke.
+// Store the new value but don't subscribe yet.
+// Instead, set a timer that will expire only when changes stop occuring for
+// a while.
+//
+void QCaVariableNamePropertyManager::setVariableNameProperty (QString variableNamePropertyIn)
+{
+   // If the variable name has changed as a result of a user typing, save it and
+   // set (or reset) a timer to complete when changes stop occuring.
+   // The timer will signal subscribeDelayExpired()
+   // If the change was not interactive, use the change immediately.
+   //
+   if (this->variableNameProperty != variableNamePropertyIn) {
+      this->variableNameProperty = variableNamePropertyIn;
+      if (this->interactive)
+         this->start (WAIT_FOR_TYPING_TO_FINISH);
+      else
+         this->subscribeDelayExpired ();
+   }
 }
 
-/*
-    Return the Variable Name Substitutions property.
-*/
-QString QCaVariableNamePropertyManager::getSubstitutionsProperty() const {
-    return substitutionsProperty;
+//------------------------------------------------------------------------------
+// Set the Variable Name Substitutions property.
+// This changes with every keystroke.
+// Store the new value but don't subscribe yet.
+// Instead, set a timer that will expire only when changes stop occuring for
+// a while.
+//
+void QCaVariableNamePropertyManager::setSubstitutionsProperty (QString substitutionsPropertyIn)
+{
+   // If the substitutions have changed as a result of a user typing, save them and
+   // set (or reset) a timer to complete when changes stop occuring.
+   // The timer will signal subscribeDelayExpired()
+   // If the change was not interactive, use the change immediately.
+   //
+   if (this->substitutionsProperty != substitutionsPropertyIn) {
+      this->substitutionsProperty = substitutionsPropertyIn;
+      if (this->interactive)
+         this->start (WAIT_FOR_TYPING_TO_FINISH);
+      else
+         this->subscribeDelayExpired ();
+   }
 }
 
-/*
-    Subscribe to an an updated variable name.
-    The variable name property is changed by the user with every keystroke.
-    A timer expires (and this method is called) if keystrokes have not
-    occured for a while implying the user has completed entering the
-    variable name.
-*/
-void QCaVariableNamePropertyManager::subscribeDelayExpired() {
-    emit newVariableNameProperty( variableNameProperty, substitutionsProperty, variableIndex );
+//------------------------------------------------------------------------------
+// Return the Variable Name property.
+//
+QString QCaVariableNamePropertyManager::getVariableNameProperty () const
+{
+   return this->variableNameProperty;
 }
+
+//------------------------------------------------------------------------------
+// Return the Variable Name Substitutions property.
+//
+QString QCaVariableNamePropertyManager::getSubstitutionsProperty () const
+{
+   return this->substitutionsProperty;
+}
+
+//------------------------------------------------------------------------------
+// Subscribe to an an updated variable name.
+// The variable name property is changed by the user with every keystroke.
+// A timer expires (and this method is called) if keystrokes have not
+// occured for a while implying the user has completed entering the
+// variable name.
+//
+void QCaVariableNamePropertyManager::subscribeDelayExpired ()
+{
+   QEPvNameProperties pvNameProperties;
+   pvNameProperties.pvName = this->variableNameProperty;
+   pvNameProperties.substitutions = this->substitutionsProperty;
+   pvNameProperties.index = this->variableIndex;
+
+   // Emit new style and old style properties.
+   //
+   emit newPvNameProperties (pvNameProperties);
+   emit newVariableNameProperty (this->variableNameProperty,
+                                 this->substitutionsProperty,
+                                 this->variableIndex);
+}
+
+//------------------------------------------------------------------------------
+//
+static bool registerMetaTypes()
+{
+   qRegisterMetaType<QEPvNameProperties> ("QEPvNameProperties");
+   return true;
+}
+
+static const bool elaborate = registerMetaTypes();
 
 // end

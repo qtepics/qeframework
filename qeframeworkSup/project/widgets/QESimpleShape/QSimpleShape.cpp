@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2014-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2014-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -14,6 +14,7 @@
 #include "QSimpleShape.h"
 #include <QDebug>
 #include <QPainter>
+#include <QTextOption>
 #include <QECommon.h>
 
 #define DEBUG qDebug () << "QSimpleShape" << __LINE__ << __FUNCTION__ << "  "
@@ -30,7 +31,7 @@ QSimpleShape::QSimpleShape (QWidget* parent) : QWidget (parent)
    this->textFormat = FixedText;
    this->fixedText = "";
    this->alignment = Qt::AlignHCenter | Qt::AlignVCenter;
-   this->indent = 6;
+   this->indent = -1;
    this->isActive = true;
    this->edgeWidth = 1;
    this->edgeStyle = Qt::SolidLine;
@@ -85,7 +86,6 @@ void QSimpleShape::paintEvent (QPaintEvent*)
    QColor colour;
    QColor boarderColour;
    bool washedOut = false;
-   QString text;
    int f = 0;             // fraction
    int g = 0;             // co-fraction
    int sum;
@@ -732,73 +732,43 @@ void QSimpleShape::paintEvent (QPaintEvent*)
 
    // Get the required text (if any).
    //
-   text = this->calcTextImage ();
+   const QString text = this->calcTextImage ();
    if (!text.isEmpty ()) {
 
-      QFont pf (this->font ());
+      const QFont pf (this->font ());
       painter.setFont (pf);
-      QFontMetrics fm = painter.fontMetrics ();
-
-      const int textWidth  = fm.horizontalAdvance (text);
-      const int textHeight = fm.height ();
-
-      // baseLineOffset is the difference between the bottom of an 'normal' char
-      // and the bottom of a "g", "j", "p", "q" and/or "y" char.
-      //
-      const int baseLineOffset = ((textHeight * 6) + 19) / 38;  /// TODO: fine tune this ratio.
-
-      int xpos;      // holds the text bottom-left x position.
-      int ypos;      // holds the text bottom-left y position.
-
-      // Set the default position to the centre of the widget.
-      //
-      xpos = (this->width () - textWidth) / 2;
-      ypos = (this->height() + textHeight - 1) / 2 - baseLineOffset;
 
       // Calculate the indents - we do this whether required or not.
       //
-      int xIndent = this->indent;  // pixel indent.
-      int yIndent = this->indent;
+      int useIndent = this->indent;
 
-      if (this->indent < 0) {
+      if (useIndent < 0) {
          // Indent -ve, use the x standard (as per QLabel).
          //
-         xIndent = fm.horizontalAdvance ("x") / 2;
-         yIndent = baseLineOffset;
+         const QFontMetrics fm = painter.fontMetrics ();
+         useIndent = fm.horizontalAdvance ("x") / 2;
       }
 
-      // Take acount of the edgeWidth - usually black and will obsure text.
-      // But this also makes QShape behave like QLabel where edgeWidth is
-      // equivilent to QFrame lineWidth.
+      // Form the draw text boundary and options.
       //
-      xIndent += this->edgeWidth;
-      yIndent += this->edgeWidth;
-
-      // Modify the postion to reflected alignment and indent.
-      //
-      if (this->alignment & Qt::AlignTop) {
-         ypos = yIndent + textHeight - baseLineOffset;
-      } else if (this->alignment & Qt::AlignBottom) {
-         ypos = this->height () - yIndent - baseLineOffset;
-      }
-
-      if (this->alignment & Qt::AlignLeft) {
-         xpos = xIndent;
-      } else if (this->alignment & Qt::AlignRight) {
-         xpos = (this->width () - (xIndent + textWidth));
-      }
+      const QPoint offset (useIndent, useIndent);
+      const QPoint topLeft = offset;
+      const int w = this->geometry().width();
+      const int h = this->geometry().height();
+      const QPoint bottomRight = QPoint (w, h) - offset;
+      const QRect textRect (topLeft, bottomRight);
+      const QTextOption textOption (this->alignment);
 
       if (!washedOut) {
          pen.setColor (QEUtilities::fontColour (colour));
       } else {
          pen.setColor (QColor (140, 140, 140, 255));   // gray
       }
-
       painter.setPen (pen);
 
-      // If text too wide, then ensure we show most significant part.
+      // If text too wide, drawText ensures we show most significant part.
       //
-      painter.drawText (MAX (this->edgeWidth, xpos), ypos, text);
+      painter.drawText (textRect, text, textOption);
    }
 }
 

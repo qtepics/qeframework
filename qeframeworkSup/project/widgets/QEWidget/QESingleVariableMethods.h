@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2016-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2016-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -17,7 +17,7 @@
 #include <QString>
 #include <QEFrameworkLibraryGlobal.h>
 #include <QCaVariableNamePropertyManager.h>
-#include <QCaObject.h>
+#include <QEChannel.h>
 
 class QEWidget;   // differed
 
@@ -85,7 +85,7 @@ public:
    /// variable is an array variable. Defaults to 0, i.e. first element.
    /// arrayIndex value is restricted to be >= 0
    ///
-   /// If the assocated qcaobject::QCaObject exists then calls its setArrayIndex function
+   /// If the assocated QEChannel exists then calls its setArrayIndex function
    /// and then requests that the object resend last data.
    /// The function adjusts the #elementsRequired property value if necessary.
    ///
@@ -103,7 +103,16 @@ public:
    ///    this->connectNewVariableNameProperty
    ///            (SLOT (useNewVariableNameProperty (QString, QString, unsigned int));
    ///
+   QT_DEPRECATED_X("use connectPvNameProperties instead")
    void connectNewVariableNameProperty (const char* useNameSlot);
+
+   /// As abive, save using new QEPvNameProperties structure.
+   ///
+   /// Example:
+   ///    this->connectPvNameProperties
+   ///            (SLOT setPvNameProperties (const QEPvNameProperties&));
+   ///
+   void connectPvNameProperties (const char* useNameSlot);
 
    // Conveniance function
    //
@@ -114,10 +123,10 @@ public:
    //    qca->setRequestedElementCount (this->elementsRequired);
    // if needs be.
    //
-   // The QCaObjects are destroyed and re-created as the name/substitution values change
-   // so the array index must be re-applied each time the QCaObjects is created.
+   // The QEChannels are destroyed and re-created as the name/substitution values change
+   // so the array index must be re-applied each time the QEChannels is created.
    //
-   void setSingleVariableQCaProperties (qcaobject::QCaObject* qca);
+   void setSingleVariableQCaProperties (QEChannel* qca);
 
 private:
    QEWidget* owner;

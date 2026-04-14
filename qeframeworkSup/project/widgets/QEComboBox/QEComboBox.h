@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -21,6 +21,7 @@
 
 #include <QEEnums.h>
 #include <QEOneToOne.h>
+#include <QEChannel.h>
 #include <QEWidget.h>
 #include <QEInteger.h>
 #include <QEIntegerFormatting.h>
@@ -102,13 +103,10 @@ protected:
    void establishConnection( unsigned int variableIndex );
 
 private slots:
-   void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& );
-   void setValueIfNoFocus( const long& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& );
+   void usePvNameProperties (const QEPvNameProperties& pvNameProperties);
+   void connectionUpdated (const QEConnectionUpdate& update);
+   void setComboBoxValue (const QEIntegerValueUpdate& update);
    void userValueChanged( int value );
-   void useNewVariableNameProperty( QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex )// !! move into Standard Properties section??
-   {
-      setVariableNameAndSubstitutions(variableNameIn, variableNameSubstitutionsIn, variableIndex);
-   }
 
 signals:
    // Note, the following signals are common to many QE widgets,
@@ -135,7 +133,7 @@ signals:
 
 private:
    void setup();
-   qcaobject::QCaObject* createQcaItem( unsigned int variableIndex );
+   QEChannel* createQcaItem( unsigned int variableIndex );
    void setComboBoxText ();
 
    typedef QEOneToOne<int, int> ValueIndexAssociations;
@@ -150,7 +148,6 @@ private:
    //
    ValueIndexAssociations valueIndexMap;
 
-   bool isConnected;
    bool isAllowFocusUpdate;
 
    long lastValue;

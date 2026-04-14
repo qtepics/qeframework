@@ -184,6 +184,7 @@ public:
    // Indicates if this is a meta data update; the first
    // post connection update is always a meta data update.
    //
+   QT_DEPRECATED_X("use new signal.isMetaUpdate")
    bool getIsMetaDataUpdate () const;
 
    // note: apart for array action, this provides a raw string conversion,

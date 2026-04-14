@@ -29,8 +29,6 @@
 
 #include <QEPlatform.h>
 #include <QECommon.h>
-#include <QEFloating.h>
-#include <QEInteger.h>
 #include <QEScaling.h>
 
 
@@ -231,11 +229,11 @@ void QEPlotter::createInternalWidgets ()
    QObject::connect (this->plotArea, SIGNAL (mouseMove     (const QPointF&)),
                      this,           SLOT   (plotMouseMove (const QPointF&)));
 
-   QObject::connect (this->plotArea, SIGNAL (markupMove     (const QEGraphicNames::Markups, const QPointF&)),
-                     this,           SLOT   (markupMove     (const QEGraphicNames::Markups, const QPointF&)));
+   QObject::connect (this->plotArea, SIGNAL (markupMove (const QEGraphicNames::Markups, const QPointF&)),
+                     this,           SLOT   (markupMove (const QEGraphicNames::Markups, const QPointF&)));
 
-   QObject::connect (this->plotArea, SIGNAL (wheelRotate   (const QPointF&, const int)),
-                     this,           SLOT   (zoomInOut     (const QPointF&, const int)));
+   QObject::connect (this->plotArea, SIGNAL (wheelRotate (const QPointF&, const int)),
+                     this,           SLOT   (zoomInOut   (const QPointF&, const int)));
 
    QObject::connect (this->plotArea, SIGNAL (areaDefinition (const QPointF&, const QPointF&)),
                      this,           SLOT   (scaleSelect    (const QPointF&, const QPointF&)));
@@ -598,21 +596,21 @@ QEPlotter::QEPlotter (QWidget* parent) : QEAbstractDynamicWidget (parent)
    //
    for (int slot = 0 ; slot < ARRAY_LENGTH (this->xy); slot++) {
       vpnm = &this->xy [slot].dataVariableNameManager;
-      QObject::connect (vpnm, SIGNAL (newVariableNameProperty (QString, QString, unsigned int)),
-                        this, SLOT   (setNewVariableName      (QString, QString, unsigned int)));
+      QObject::connect (vpnm, SIGNAL (newPvNameProperties (const QEPvNameProperties&)),
+                        this, SLOT   (usePvNameProperties (const QEPvNameProperties&)));
 
       vpnm = &this->xy [slot].sizeVariableNameManager;
-      QObject::connect (vpnm, SIGNAL (newVariableNameProperty (QString, QString, unsigned int)),
-                        this, SLOT   (setNewVariableName      (QString, QString, unsigned int)));
+      QObject::connect (vpnm, SIGNAL (newPvNameProperties (const QEPvNameProperties&)),
+                        this, SLOT   (usePvNameProperties (const QEPvNameProperties&)));
    }
 
    vpnm = &this->xMarkerVariableNameManager;
-   QObject::connect (vpnm, SIGNAL (newVariableNameProperty (QString, QString, unsigned int)),
-                     this, SLOT   (setNewVariableName      (QString, QString, unsigned int)));
+   QObject::connect (vpnm, SIGNAL (newPvNameProperties (const QEPvNameProperties&)),
+                     this, SLOT   (usePvNameProperties (const QEPvNameProperties&)));
 
    vpnm = &this->yMarkerVariableNameManager;
-   QObject::connect (vpnm, SIGNAL (newVariableNameProperty (QString, QString, unsigned int)),
-                     this, SLOT   (setNewVariableName      (QString, QString, unsigned int)));
+   QObject::connect (vpnm, SIGNAL (newPvNameProperties (const QEPvNameProperties&)),
+                     this, SLOT   (usePvNameProperties (const QEPvNameProperties&)));
 
 
    // Connect action requests to consumer, e.g. qegui.
@@ -688,7 +686,7 @@ void QEPlotter::updateLabel (const int slot)
    DataSets* ds = &this->xy [slot];
    QString caption;
    QE::PVLabelMode labelMode;
-   qcaobject::QCaObject* qca = NULL;
+   QEChannel* qca = NULL;
 
    caption.clear ();
 
@@ -776,66 +774,13 @@ void QEPlotter::showHideChecked (int state)
 }
 
 //------------------------------------------------------------------------------
-//
-void QEPlotter::setNewVariableName (QString variableName,
-                                    QString variableNameSubstitutions,
-                                    unsigned int variableIndex)
-{
-   // Deal with marker special case first.
-   //
-   if (this->isMarkerIndex (variableIndex)) {
-      // Note: essentially calls establishConnection and then createQcaItem.
-      //
-      this->setVariableNameAndSubstitutions (variableName, variableNameSubstitutions, variableIndex);
-      return;
-   }
-
-   const int slot = this->slotOf (variableIndex);
-   SLOT_CHECK (slot,);
-
-   // First clear out any status - this is a new PV name or cleared PV name.
-   // Note: we must clear the xxxxIsConnect state - we do not get an initial
-   // xxxxConnectionChanged (set not connected) signal.
-   //
-   if (this->isDataIndex (variableIndex)) {
-      this->xy [slot].dataKind = NotInUse;
-      this->xy [slot].dataIsConnected = false;
-   } else if (this->isSizeIndex (variableIndex)) {
-      this->xy [slot].sizeKind = NotSpecified;
-      this->xy [slot].sizeIsConnected = false;
-   } else {
-      DEBUG << "Unexpected variableIndex" << variableIndex;
-   }
-
-   // Note: essentially calls establishConnection and then createQcaItem.
-   //
-   this->setVariableNameAndSubstitutions (variableName, variableNameSubstitutions, variableIndex);
-
-   if (this->isDataIndex (variableIndex)) {
-      QString pvName;
-      pvName = this->getSubstitutedVariableName (variableIndex).trimmed ();
-      this->xy [slot].pvName = pvName;
-      this->updateLabel (slot);
-   }
-
-   this->replotIsRequired = true;
-   this->setToolTipSummary ();
-
-   // This prevents infinite looping in the case of cyclic connections.
-   //
-   this->pvNameSetChangeInhibited = true;
-   emit this->pvDataNameSetChanged (this->getDataPvNameSet ());
-   this->pvNameSetChangeInhibited = false;
-}
-
-//------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of
-// QCaObject required. QCaObjects that streams doubles and integers are required.
+// QEChannel required. QEChannels that streams doubles and integers are required.
 //
-qcaobject::QCaObject* QEPlotter::createQcaItem (unsigned int variableIndex)
+QEChannel* QEPlotter::createQcaItem (unsigned int variableIndex)
 {
 
-   qcaobject::QCaObject* result = NULL;
+   QEChannel* result = NULL;
    QString pvName;
    int size;
    bool okay;
@@ -911,10 +856,10 @@ qcaobject::QCaObject* QEPlotter::createQcaItem (unsigned int variableIndex)
 void QEPlotter::establishConnection (unsigned int variableIndex)
 {
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   // Note createConnection creates the connection and returns reference to existing QCaObject.
+   // If successfull, the QEChannel object that will supply data update signals will be returned
+   // Note createConnection creates the connection and returns reference to existing QEChannel.
    //
-   qcaobject::QCaObject* qca = createConnection (variableIndex);
+   QEChannel* qca = createConnection (variableIndex);
 
    if (!qca) {
       return;
@@ -927,11 +872,11 @@ void QEPlotter::establishConnection (unsigned int variableIndex)
 
       ds->clear ();  // Clear any old data.
 
-      QObject::connect (qca, SIGNAL (connectionChanged     (QCaConnectionInfo &, const unsigned int &)),
-                        this, SLOT  (dataConnectionChanged (QCaConnectionInfo &, const unsigned int &)));
+      QObject::connect (qca, SIGNAL (connectionUpdated     (const QEConnectionUpdate&)),
+                        this, SLOT  (dataConnectionUpdated (const QEConnectionUpdate&)));
 
-      QObject::connect (qca, SIGNAL (floatingArrayChanged (const QVector<double>&, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)),
-                        this, SLOT  (dataArrayChanged     (const QVector<double>&, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)));
+      QObject::connect (qca, SIGNAL (arrayUpdated     (const QEFloatingArrayUpdate&)),
+                        this, SLOT  (dataArrayUpdated (const QEFloatingArrayUpdate&)));
 
       // Get, or at least, initiate fatching the description.
       //
@@ -940,18 +885,18 @@ void QEPlotter::establishConnection (unsigned int variableIndex)
       }
 
    } else if (this->isSizeIndex (variableIndex)) {
-      QObject::connect (qca, SIGNAL (connectionChanged     (QCaConnectionInfo &, const unsigned int &)),
-                        this, SLOT  (sizeConnectionChanged (QCaConnectionInfo &, const unsigned int &)));
+      QObject::connect (qca, SIGNAL (connectionUpdated     (const QEConnectionUpdate&)),
+                        this, SLOT  (sizeConnectionUpdated (const QEConnectionUpdate&)));
 
-      QObject::connect (qca, SIGNAL (integerChanged   (const long &, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)),
-                        this, SLOT  (sizeValueChanged (const long &, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)));
+      QObject::connect (qca, SIGNAL (valueUpdated     (const QEIntegerValueUpdate&)),
+                        this, SLOT  (sizeValueUpdated (const QEIntegerValueUpdate&)));
 
-   } else if (this->isMarkerIndex(variableIndex)) {
-      QObject::connect (qca, SIGNAL (connectionChanged       (QCaConnectionInfo &, const unsigned int &)),
-                        this, SLOT  (markerConnectionChanged (QCaConnectionInfo &, const unsigned int &)));
+   } else if (this->isMarkerIndex (variableIndex)) {
+      QObject::connect (qca, SIGNAL (connectionUpdated       (const QEConnectionUpdate&)),
+                        this, SLOT  (markerConnectionUpdated (const QEConnectionUpdate&)));
 
-      QObject::connect (qca, SIGNAL (floatingChanged    (const double &, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)),
-                        this, SLOT  (markerValueChanged (const double &, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)));
+      QObject::connect (qca, SIGNAL (vakueUpdated       (const QEFloatingValueUpdate&)),
+                        this, SLOT  (markerValueUpdated (const QEFloatingValueUpdate&)));
    }
 }
 
@@ -1805,10 +1750,10 @@ void QEPlotter::setDataPvNameSet (const QStringList& pvNameSet)
    // Stop infinite signal slot loops.
    //
    if (!this->pvNameSetChangeInhibited) {
-      for (int slot = 0; slot < ARRAY_LENGTH (this->xy); slot++) {
-         QString pvName = pvNameSet.value (slot, "");
-         this->setNewVariableName (pvName, "", 2*slot + 0);
-         this->setNewVariableName ("",     "", 2*slot + 1);
+      for (unsigned int slot = 0; slot < ARRAY_LENGTH (this->xy); slot++) {
+         const QString pvName = pvNameSet.value (slot, "");
+         this->usePvNameProperties ({pvName, "", 2*slot + 0});
+         this->usePvNameProperties ({"",     "", 2*slot + 1});
       }
    }
 }
@@ -2358,25 +2303,91 @@ void QEPlotter::setToolTipSummary ()
 //------------------------------------------------------------------------------
 // Slots receiving PV data
 //------------------------------------------------------------------------------
-//
-void QEPlotter::dataConnectionChanged (QCaConnectionInfo& connectionInfo,
-                                       const unsigned int &variableIndex)
+// slot
+void QEPlotter::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
-   const int slot = this->slotOf (variableIndex);
+   const unsigned int vi = pvNameProperties.index;
+
+   // Deal with marker special case first.
+   //
+   if (this->isMarkerIndex (vi)) {
+      // Note: essentially calls establishConnection and then createQcaItem.
+      //
+      this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                             pvNameProperties.substitutions,
+                                             pvNameProperties.index);
+      return;
+   }
+
+   const int slot = this->slotOf (vi);
+   SLOT_CHECK (slot,);
+
+   // First clear out any status - this is a new PV name or cleared PV name.
+   // Note: we must clear the xxxxIsConnect state - we do not get an initial
+   // xxxxConnectionChanged (set not connected) signal.
+   //
+   if (this->isDataIndex (vi)) {
+      this->xy [slot].dataKind = NotInUse;
+      this->xy [slot].dataIsConnected = false;
+   } else if (this->isSizeIndex (vi)) {
+      this->xy [slot].sizeKind = NotSpecified;
+      this->xy [slot].sizeIsConnected = false;
+   } else {
+      DEBUG << "Unexpected variableIndex" << vi;
+   }
+
+   // Note: essentially calls establishConnection and then createQcaItem.
+   //
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
+
+   if (this->isDataIndex (vi)) {
+      QString pvName;
+      pvName = this->getSubstitutedVariableName (vi).trimmed ();
+      this->xy [slot].pvName = pvName;
+      this->updateLabel (slot);
+   }
+
+   this->replotIsRequired = true;
+   this->setToolTipSummary ();
+
+   // This prevents infinite looping in the case of cyclic connections.
+   //
+   this->pvNameSetChangeInhibited = true;
+   emit this->pvDataNameSetChanged (this->getDataPvNameSet ());
+   this->pvNameSetChangeInhibited = false;
+}
+
+//------------------------------------------------------------------------------
+// deprecated slot
+void QEPlotter::setNewVariableName (QString variableName,
+                                    QString substitutions,
+                                    unsigned int variableIndex)
+{
+   this->usePvNameProperties({variableName, substitutions, variableIndex});
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QEPlotter::dataConnectionUpdated (const QEConnectionUpdate& update)
+{
+   const unsigned int vi = update.variableIndex;
+   const int slot = this->slotOf (vi);
 
    SLOT_CHECK (slot,);
 
    DataSets* ds = &this->xy [slot];
 
-   ds->dataIsConnected = connectionInfo.isChannelConnected ();
-   this->updateToolTipConnection (ds->dataIsConnected, variableIndex);
+   ds->dataIsConnected = update.connectionInfo.isChannelConnected ();
+   this->updateToolTipConnection (ds->dataIsConnected, vi);
    this->replotIsRequired = true;
    this->setToolTipSummary ();
 
    if (ds->dataIsConnected) {
       // We have a channel connect.
       //
-      qcaobject::QCaObject* qca = this->getQcaItem(variableIndex);
+      QEChannel* qca = this->getQcaItem(vi);
       if (qca) {
          ds->description = qca->getDescription();
       }
@@ -2384,105 +2395,156 @@ void QEPlotter::dataConnectionChanged (QCaConnectionInfo& connectionInfo,
 }
 
 //------------------------------------------------------------------------------
-//
-void QEPlotter::dataArrayChanged (const QVector<double>& values,
-                                  QCaAlarmInfo& alarmInfo,
-                                  QCaDateTime&,
-                                  const unsigned int& variableIndex)
+// deprecated slot
+void QEPlotter::dataConnectionChanged (QCaConnectionInfo& connectionInfo,
+                                       const unsigned int &variableIndex)
 {
-   const int slot = this->slotOf (variableIndex);
+   this->dataConnectionUpdated ({connectionInfo, variableIndex});
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QEPlotter::dataArrayUpdated (const QEFloatingArrayUpdate& update)
+{
+   const unsigned int vi = update.variableIndex;
+   const int slot = this->slotOf (vi);
 
    SLOT_CHECK (slot,);
    if (this->isPaused) return;
-   if (alarmInfo.isInvalid ()) return;   // don't attempt to plot invalid data
-   this->xy [slot].data = QEFloatingArray (values);
+   if (update.alarmInfo.isInvalid ()) return;   // don't attempt to plot invalid data
+   this->xy [slot].data = QEFloatingArray (update.values);
    this->replotIsRequired = true;
-   this->processAlarmInfo (alarmInfo, variableIndex);
+   this->processAlarmInfo (update.alarmInfo, vi);
+   this->setToolTipSummary ();
+
+}
+
+//------------------------------------------------------------------------------
+// deprecated slot
+void QEPlotter::dataArrayChanged (const QVector<double>& values,
+                                  QCaAlarmInfo& alarmInfo,
+                                  QCaDateTime& dateTime,
+                                  const unsigned int& variableIndex)
+{
+   this->dataArrayUpdated ({values, alarmInfo, dateTime, variableIndex, false});
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QEPlotter::sizeConnectionUpdated (const QEConnectionUpdate& update)
+{
+   const unsigned int vi = update.variableIndex;
+   const int slot = this->slotOf (vi);
+
+   SLOT_CHECK (slot,);
+   this->xy [slot].sizeIsConnected = update.connectionInfo.isChannelConnected ();
+   this->updateToolTipConnection (this->xy [slot].sizeIsConnected, vi);
+   this->replotIsRequired = true;
    this->setToolTipSummary ();
 }
 
 //------------------------------------------------------------------------------
-//
+// deprecated slot
 void QEPlotter::sizeConnectionChanged (QCaConnectionInfo& connectionInfo,
                                        const unsigned int &variableIndex)
 {
-   const int slot = this->slotOf (variableIndex);
-
-   SLOT_CHECK (slot,);
-   this->xy [slot].sizeIsConnected = connectionInfo.isChannelConnected ();
-   this->updateToolTipConnection (this->xy [slot].sizeIsConnected, variableIndex);
-   this->replotIsRequired = true;
-   this->setToolTipSummary ();
+   this->sizeConnectionUpdated ({connectionInfo, variableIndex});
 }
 
 //------------------------------------------------------------------------------
-//
-void QEPlotter::sizeValueChanged (const long& value,
-                                  QCaAlarmInfo& alarmInfo,
-                                  QCaDateTime&,
-                                  const unsigned int& variableIndex)
+// slot
+void QEPlotter::sizeValueUpdated (const QEIntegerValueUpdate& update)
 {
-   const int slot = this->slotOf (variableIndex);
+   const unsigned int vi = update.variableIndex;
+   const int slot = this->slotOf (vi);
 
    SLOT_CHECK (slot,);
    if (this->isPaused) return;
-   if (alarmInfo.isInvalid ()) return;   // don't attempt to plot invalid data
-   this->xy [slot].dbSize = value;
+   if (update.alarmInfo.isInvalid ()) return;   // don't attempt to plot invalid data
+   this->xy [slot].dbSize = update.value;
    this->replotIsRequired = true;
-   this->processAlarmInfo (alarmInfo, variableIndex);
+   this->processAlarmInfo (update.alarmInfo, vi);
    this->setToolTipSummary ();
 }
 
 //------------------------------------------------------------------------------
-//
-void QEPlotter::markerConnectionChanged (QCaConnectionInfo& connectionInfo,
-                                         const unsigned int& variableIndex)
+// deprecated slot
+void QEPlotter::sizeValueChanged (const long& value,
+                                  QCaAlarmInfo& alarmInfo,
+                                  QCaDateTime& dateTime,
+                                  const unsigned int& variableIndex)
 {
-   QEGraphicNames::Markups markup;
+   this->sizeValueUpdated ({value, alarmInfo, dateTime, variableIndex, false});
+}
 
-   if (variableIndex == NONE_SLOT_VI_BASE + 0) {
+//------------------------------------------------------------------------------
+// slot
+void QEPlotter::markerConnectionUpdated (const QEConnectionUpdate& update)
+{
+   const unsigned int vi = update.variableIndex;
+
+   QEGraphicNames::Markups markup;
+   if (vi == NONE_SLOT_VI_BASE + 0) {
       markup = QEGraphicNames::VerticalMarker_1;
-   } else if (variableIndex == NONE_SLOT_VI_BASE + 1) {
+   } else if (vi == NONE_SLOT_VI_BASE + 1) {
       markup = QEGraphicNames::HorizontalMarker_1;
    } else {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+      DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
-   const bool isConnected = connectionInfo.isChannelConnected();
+   const bool isConnected = update.connectionInfo.isChannelConnected();
    if (!isConnected) {
       QEGraphic* g = this->getGraphic ();
       g->setMarkupVisible (markup, false);
    }
 
-   this->updateToolTipConnection (isConnected, variableIndex);
+   this->updateToolTipConnection (isConnected, vi);
    this->replotIsRequired = true;
 // this->setToolTipSummary ();
 }
 
 //------------------------------------------------------------------------------
-//
-void QEPlotter::markerValueChanged (const double& value,
-                                    QCaAlarmInfo&,
-                                    QCaDateTime&,
-                                    const unsigned int& variableIndex)
+// deprecated slot
+void QEPlotter::markerConnectionChanged (QCaConnectionInfo& connectionInfo,
+                                         const unsigned int& variableIndex)
 {
+   this->markerConnectionUpdated ({connectionInfo, variableIndex});
+}
+
+//------------------------------------------------------------------------------
+// slot
+void QEPlotter::markerValueUpdated (const QEFloatingValueUpdate& update)
+{
+   const unsigned int vi = update.variableIndex;
+
    QEGraphicNames::Markups markup;
 
-   if (variableIndex == NONE_SLOT_VI_BASE + 0) {
+   if (vi == NONE_SLOT_VI_BASE + 0) {
       markup = QEGraphicNames::VerticalMarker_1;
-   } else if (variableIndex == NONE_SLOT_VI_BASE + 1) {
+   } else if (vi == NONE_SLOT_VI_BASE + 1) {
       markup = QEGraphicNames::HorizontalMarker_1;
    } else {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+      DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
    QEGraphic* g = this->getGraphic ();
    g->setMarkupVisible (markup, true);
-   g->setMarkupPosition (markup, QPointF (value, value));
+   g->setMarkupPosition (markup, QPointF (update.value, update.value));
    this->replotIsRequired = true;
 }
+
+//------------------------------------------------------------------------------
+// deprecated slot
+void QEPlotter::markerValueChanged (const double& value,
+                                    QCaAlarmInfo& alarmInfo,
+                                    QCaDateTime& dateTime,
+                                    const unsigned int& variableIndex)
+{
+   this->markerValueUpdated ({value, alarmInfo, dateTime, variableIndex, false});
+}
+
 
 //------------------------------------------------------------------------------
 // Plot and plot related functions

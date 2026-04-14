@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -17,6 +17,7 @@
 #include <QSlider>
 #include <QEEnums.h>
 #include <QEWidget.h>
+#include <QEChannel.h>
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QESingleVariableMethods.h>
@@ -115,7 +116,7 @@ protected:
    QVariant copyData ();
    void paste (QVariant s);
 
-   qcaobject::QCaObject * createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
    void establishConnection (unsigned int variableIndex);
 
 private:
@@ -144,11 +145,10 @@ private:
    QEFloatingFormatting floatingFormatting;     // Floating formatting options.
 
 private slots:
-   void connectionChanged (QCaConnectionInfo & connectionInfo, const unsigned int &);
-   void setValueIfNoFocus (const double &value, QCaAlarmInfo &, QCaDateTime &,
-                           const unsigned int &);
-   void userValueChanged (const int &newValue);
-   void useNewVariableNameProperty (QString pvName, QString substitutions, unsigned int index);
+   void connectionUpdated (const QEConnectionUpdate& update);
+   void setSliderValue (const QEFloatingValueUpdate& update);
+   void userValueChanged (const int& newValue);
+   void usePvNameProperties (const QEPvNameProperties& pvNameProperties);
 
 
    // BEGIN-SINGLE-VARIABLE-V2-PROPERTIES ===============================================
@@ -164,13 +164,13 @@ public:
    /// EPICS variable name (CA PV)
    ///
    Q_PROPERTY (QString variable READ getVariableNameProperty WRITE setVariableNameProperty)
+
    /// Macro substitutions. The default is no substitutions. The format is NAME1=VALUE1[,] NAME2=VALUE2...
    /// Values may be quoted strings. For example, 'PUMP=PMP3, NAME = "My Pump"'
    /// These substitutions are applied to variable names for all QE widgets.
    /// In some widgets are are also used for other purposes.
    ///
-   Q_PROPERTY (QString variableSubstitutions READ getVariableNameSubstitutionsProperty WRITE
-               setVariableNameSubstitutionsProperty)
+   Q_PROPERTY (QString variableSubstitutions READ getVariableNameSubstitutionsProperty WRITE setVariableNameSubstitutionsProperty)
 
    /// The number of elements required to be subscribed for from the PV host (IOC).
    /// The default is 0 which means subscribed for all elements.

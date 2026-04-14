@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2014-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2014-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -26,7 +26,7 @@
 
 #include <QECommon.h>
 #include <QEAbstractWidget.h>
-#include <QCaObject.h>
+#include <QEChannel.h>
 #include <QEWidget.h>
 #include <QCaVariableNamePropertyManager.h>
 #include <QESingleVariableMethods.h>
@@ -152,7 +152,7 @@ protected:
    // Override QEWidget functions.
    //
    void establishConnection (unsigned int variableIndex);
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
    void activated ();
 
    // Context menu
@@ -203,17 +203,11 @@ private:
    bool isConnected;
 
 private slots:
-   void setNewVariableName (QString variableNameIn,
-                            QString variableNameSubstitutionsIn,
-                            unsigned int variableIndex);
+   void usePvNameProperties (const QEPvNameProperties&);
 
-   void connectionChanged (QCaConnectionInfo& connectionInfo,
-                           const unsigned int &variableIndex);
+   void connectionUpdated (const QEConnectionUpdate&);
 
-   void tableDataChanged (const QVariant& value,
-                          QCaAlarmInfo& alarmInfo,
-                          QCaDateTime& timeStamp,
-                          const unsigned int& variableIndex);
+   void tableDataUpdated (const QEVariantUpdate&);
 
    void gridCellClicked (int row, int column);
    void gridCellEntered (int row, int column);

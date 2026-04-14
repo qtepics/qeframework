@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2011-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2011-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -88,16 +88,16 @@ void QEAnalogProgressBar::setup ()
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   this->connectNewVariableNameProperty (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+   this->connectPvNameProperties (SLOT (usePvNameProperties (const QEPvNameProperties&)));
 }
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of QCaObject required.
 // For a progress bar a QCaObject that streams integers is required.
 //
-qcaobject::QCaObject* QEAnalogProgressBar::createQcaItem (unsigned int variableIndex)
+QEChannel* QEAnalogProgressBar::createQcaItem (unsigned int variableIndex)
 {
-   qcaobject::QCaObject* result = NULL;
+   QEChannel* result = NULL;
 
    if (variableIndex == PV_VARIABLE_INDEX) {
       result = new QEFloating (getSubstitutedVariableName (variableIndex), this,
@@ -126,16 +126,16 @@ void QEAnalogProgressBar::establishConnection (unsigned int variableIndex)
    // If successfull, the QCaObject object that will supply data update signals will be returned
    // Note createConnection creates the connection and returns reference to existing QCaObject.
    //
-   qcaobject::QCaObject* qca = this->createConnection (variableIndex);
+   QEChannel* qca = this->createConnection (variableIndex);
 
    // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots.
    //
    if ((qca) && (variableIndex == PV_VARIABLE_INDEX)) {
-      QObject::connect (qca,  SIGNAL (floatingChanged   (const double &, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)),
-                        this, SLOT (setProgressBarValue (const double &, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)));
+      QObject::connect (qca,  SIGNAL (valueUpdated      (const QEFloatingValueUpdate&)),
+                        this, SLOT (setProgressBarValue (const QEFloatingValueUpdate&)));
 
-      QObject::connect (qca, SIGNAL (connectionChanged (QCaConnectionInfo &,const unsigned int&)),
-                        this, SLOT  (connectionChanged (QCaConnectionInfo &,const unsigned int&)));
+      QObject::connect (qca, SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                        this, SLOT  (connectionUpdated (const QEConnectionUpdate&)));
 
       QObject::connect (this, SIGNAL (requestResend ()),
                         qca,  SLOT  (resendLastData ()));
@@ -147,24 +147,23 @@ void QEAnalogProgressBar::establishConnection (unsigned int variableIndex)
 // Change how the progress bar looks and change the tool tip
 // This is the slot used to recieve connection updates from a QCaObject based class.
 //
-void QEAnalogProgressBar::connectionChanged (QCaConnectionInfo& connectionInfo,
-                                             const unsigned int& variableIndex)
+void QEAnalogProgressBar::connectionUpdated (const QEConnectionUpdate& update)
 {
    // Note the connected state
-   const bool isConnected = connectionInfo.isChannelConnected ();
+   const bool isConnected = update.connectionInfo.isChannelConnected ();
 
    // Display the connected state
-   this->updateToolTipConnection (isConnected, variableIndex);
+   this->updateToolTipConnection (isConnected, update.variableIndex);
 
    // Change style to reflect being connected/disconnected.
    //
-   this->processConnectionInfo (isConnected, variableIndex);
+   this->processConnectionInfo (isConnected, update.variableIndex);
    this->setIsActive (isConnected);
 
    // Signal channel connection change to any (Link) widgets.
    // using signal dbConnectionChanged.
    //
-   this->emitDbConnectionChanged (variableIndex);
+   this->emitDbConnectionChanged (update.variableIndex);
 }
 
 //------------------------------------------------------------------------------
@@ -172,7 +171,7 @@ void QEAnalogProgressBar::connectionChanged (QCaConnectionInfo& connectionInfo,
 //
 bool QEAnalogProgressBar::useAlarmColours (QCaAlarmInfo& alarmInfo) const
 {
-   qcaobject::QCaObject* qca = this->getQcaItem (PV_VARIABLE_INDEX);
+   QEChannel* qca = this->getQcaItem (PV_VARIABLE_INDEX);
    if (!qca) return false;
    if (!qca->getDataIsAvailable()) return false;
 
@@ -277,7 +276,7 @@ QEAnalogIndicator::BandList QEAnalogProgressBar::getBandList () const
 
    // Associated qca object - avoid the segmentation fault.
    //
-   qcaobject::QCaObject* qca = this->getQcaItem (PV_VARIABLE_INDEX);
+   QEChannel* qca = this->getQcaItem (PV_VARIABLE_INDEX);
    if (qca) {
       const double dispLower = this->getMinimum ();
       const double dispUpper = this->getMaximum ();
@@ -332,10 +331,7 @@ QEAnalogIndicator::BandList QEAnalogProgressBar::getBandList () const
 // Update the progress bar value
 // This is the slot used to recieve data updates from a QCaObject based class.
 //
-void QEAnalogProgressBar::setProgressBarValue (const double& value,
-                                               QCaAlarmInfo& alarmInfo,
-                                               QCaDateTime&,
-                                               const unsigned int& variableIndex)
+void QEAnalogProgressBar::setProgressBarValue (const QEFloatingValueUpdate& update)
 {
    // If not enabled then do nothing.
    // NOTE: the regular isEnabled is hidden by function in the standard properties
@@ -345,12 +341,10 @@ void QEAnalogProgressBar::setProgressBarValue (const double& value,
 
    // Associated qca object - avoid the segmentation fault.
    //
-   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   QEChannel* qca = this->getQcaItem (update.variableIndex);
    if (!qca) return;   // sanity check
 
-   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
-
-   if (isMetaDataUpdate) {
+   if (update.isMetaUpdate) {
 
       // Set up variable details used by some formatting options
       //
@@ -362,11 +356,8 @@ void QEAnalogProgressBar::setProgressBarValue (const double& value,
       //
       if (this->getUseDbDisplayLimits ()) {
 
-         double lower;
-         double upper;
-
-         lower = qca->getDisplayLimitLower ();
-         upper = qca->getDisplayLimitUpper ();
+         const double lower = qca->getDisplayLimitLower ();
+         const double upper = qca->getDisplayLimitUpper ();
 
          // Check that sensible limits have been defined and not just left
          // at the default (i.e. zero) values by a lazy database creator.
@@ -380,32 +371,32 @@ void QEAnalogProgressBar::setProgressBarValue (const double& value,
 
    // Form and save the image - must do before call to setValue.
    //
-   this->theImage = this->stringFormatting.formatString (value, this->getArrayIndex());
+   this->theImage = this->stringFormatting.formatString (update.value, this->getArrayIndex());
 
    // Update the progress bar
    //
-   this->setValue (value);
+   this->setValue (update.value);
    this->update ();   // always update and redraw
 
    // Invoke common alarm handling processing.
    // Although this sets widget style, we invoke for tool tip processing only.
    //
-   this->processAlarmInfo (alarmInfo, variableIndex);
+   this->processAlarmInfo (update.alarmInfo, update.variableIndex);
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged signals declared in header file.
    //
-   this->emitDbValueChanged (variableIndex);
+   this->emitDbValueChanged (update.variableIndex);
 }
 
 //------------------------------------------------------------------------------
 // Update variable name etc.
 //
-void QEAnalogProgressBar::useNewVariableNameProperty (QString variableNameIn,
-                                                      QString variableNameSubstitutionsIn,
-                                                      unsigned int variableIndex)
+void QEAnalogProgressBar::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
-   this->setVariableNameAndSubstitutions (variableNameIn, variableNameSubstitutionsIn, variableIndex);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 //==============================================================================

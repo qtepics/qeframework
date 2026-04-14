@@ -17,7 +17,10 @@
   the QEWidget when setting properties so the widget can update itself based on the changes.
  */
 
-#include <QEStringFormattingMethods.h>
+#include "QEStringFormattingMethods.h"
+#include <QDebug>
+
+#define DEBUG qDebug () << "QEStringFormattingMethods" << __LINE__ << __FUNCTION__  << "  "
 
 // Place holders
 //

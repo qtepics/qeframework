@@ -78,7 +78,7 @@ void QEBitStatus::setup ()
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   this->connectNewVariableNameProperty (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+   this->connectPvNameProperties (SLOT (usePvNameProperties (const QEPvNameProperties&)));
 }
 
 
@@ -191,11 +191,11 @@ void QEBitStatus::setBitStatusValue (const QEIntegerValueUpdate& update)
 //------------------------------------------------------------------------------
 // This is the slot used to recieve new PV information.
 //
-void QEBitStatus::useNewVariableNameProperty (QString pvName,
-                                              QString subs,
-                                              unsigned int vi)
+void QEBitStatus::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
-   this->setVariableNameAndSubstitutions (pvName, subs, vi);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 //==============================================================================

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -18,6 +18,7 @@
 #include <QColor>
 #include <QFileSystemWatcher>
 #include <QEEnums.h>
+#include <QEChannel.h>
 #include <QEWidget.h>
 #include <QEString.h>
 #include <QEStringFormatting.h>
@@ -269,7 +270,7 @@ public slots:
    void setManagedVisible( bool v ){ setRunVisible( v ); }
 
 protected:
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
    void establishConnection(unsigned int variableIndex);
    void stringFormattingChange() { requestResend(); }
 
@@ -287,7 +288,6 @@ protected:
 private:
    void setup();
 
-   bool isConnected;
    QString fileName;
    QFileSystemWatcher fileMon;
    QColor thresholdColor;
@@ -298,9 +298,9 @@ private:
    bool scaledContents;
 
 private slots:
-   void connectionChanged(QCaConnectionInfo& connectionInfo, const unsigned int&);
-   void setLabelImage(const QString& text, QCaAlarmInfo&, QCaDateTime&, const unsigned int&);
-   void useNewVariableNameProperty(QString variableName, QString substitutions, unsigned int variableIndex);
+   void connectionUpdated (const QEConnectionUpdate& update);
+   void setLabelImage (const QEStringValueUpdate& update);
+   void usePvNameProperties (const QEPvNameProperties& pvNameProperties);
 };
 
 #endif // QE_FILE_IMAGE_H

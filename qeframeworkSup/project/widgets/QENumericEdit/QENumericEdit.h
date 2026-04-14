@@ -394,9 +394,7 @@ private slots:
 
    void externalValueUpdate (const QEFloatingValueUpdate& update);
 
-   void useNewVariableNameProperty (QString variableName,
-                                    QString variableNameSubstitutions,
-                                    unsigned int variableIndex);
+   void usePvNameProperties (const QEPvNameProperties& pvNameProperties);
 
    void internalValueChanged (const double value);
 

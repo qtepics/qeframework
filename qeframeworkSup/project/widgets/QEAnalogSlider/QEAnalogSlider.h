@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -17,7 +17,7 @@
 #include <QECommon.h>
 #include <QEEnums.h>
 #include <QEFrame.h>
-#include <QCaObject.h>
+#include <QEChannel.h>
 #include <QEWidget.h>
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
@@ -302,7 +302,7 @@ protected:
    // override QEWidget fnctions.
    //
    void establishConnection (unsigned int variableIndex);
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
 
    // Drag and Drop
    void dragEnterEvent (QDragEnterEvent *event) { qcaDragEnterEvent( event ); }
@@ -317,7 +317,7 @@ protected:
 
 private:
    void commonSetup ();
-   void calculateAutoValues (qcaobject::QCaObject* qca);
+   void calculateAutoValues (QEChannel* qca);
    void calcColourBandList ();
 
    QEFloatingFormatting floatingFormatting;
@@ -330,18 +330,13 @@ private:
    bool mAxisAlarmColours;
 
 private slots:
-   void mainConnectionChanged (QCaConnectionInfo& connectionInfo,
-                               const unsigned int &variableIndex);
+   void mainConnectionUpdated (const QEConnectionUpdate& update);
+   void secondaryConnectionUpdated (const QEConnectionUpdate& update);
 
-   void secondaryConnectionChanged (QCaConnectionInfo& connectionInfo,
-                                    const unsigned int &variableIndex);
+   void floatingChanged (const QEFloatingValueUpdate& update);
+   void stringChanged   (const QEStringValueUpdate& update);
 
-   void floatingChanged (const double&,  QCaAlarmInfo&, QCaDateTime&, const unsigned int&);
-   void stringChanged   (const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&);
-
-   void useNewVariableNameProperty (QString variableNameIn,
-                                    QString variableNameSubstitutionsIn,
-                                    unsigned int variableIndex);
+   void usePvNameProperties (const QEPvNameProperties& pvNameProperties);
 
    void valueChanged (const double value);
    void applyButtonClicked (bool);  // override parent class

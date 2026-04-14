@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -29,6 +29,7 @@
 #include <QScrollArea>
 
 #include <QEEnums.h>
+#include <QEChannel.h>
 #include <QCaAlarmInfo.h>
 #include <QEFrameworkLibraryGlobal.h>
 #include <QCaDateTime.h>
@@ -251,7 +252,7 @@ protected:
 
    // override virtual functions
    //
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
    void establishConnection (unsigned int variableIndex);
    void saveConfiguration (PersistanceManager* pm);
    void restoreConfiguration (PersistanceManager* pm, restorePhases restorePhase);

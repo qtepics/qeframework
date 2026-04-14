@@ -24,7 +24,7 @@
 #include <QVariantList>
 
 #include <QEAdaptationParameters.h>
-#include <QCaObject.h>
+#include <QEChannel.h>
 #include <QEArchiveInterface.h>
 #include <QECommon.h>
 #include <QEPlatform.h>
@@ -102,7 +102,7 @@ QEStripChartItem::QEStripChartItem (QEStripChart* chartIn,
    this->createInternalWidgets ();
 
    this->maxRealTimePoints = getMaxRealTimePoints ();
-   this->previousIdentity = qcaobject::QCaObject::nullObjectIdentity();
+   this->previousIdentity = QEChannel::nullObjectIdentity();
 
    this->dataKind = NotInUse;
    this->calculator = new QEExpressionEvaluation (16, false);
@@ -156,8 +156,8 @@ QEStripChartItem::QEStripChartItem (QEStripChart* chartIn,
    // user has stopped typing.
    //
    this->pvNameProperyManager.setVariableIndex (0);
-   QObject::connect (&this->pvNameProperyManager, SIGNAL (newVariableNameProperty (QString, QString, unsigned int)),
-                     this,                        SLOT   (newVariableNameProperty (QString, QString, unsigned int)));
+   QObject::connect (&this->pvNameProperyManager, SIGNAL (newPvNameProperties (const QEPvNameProperties&)),
+                     this,                        SLOT   (usePvNameProperties (const QEPvNameProperties&)));
 
 
    // Set up connection to archive access mamanger.
@@ -272,7 +272,7 @@ void QEStripChartItem::clear ()
    this->caLabel->setVariableNameAndSubstitutions ("", "", 0);
    this->caLabel->setText ("-");
    this->caLabel->setStyleSheet (unusedStyle);
-   this->previousIdentity = qcaobject::QCaObject::nullObjectIdentity();
+   this->previousIdentity = QEChannel::nullObjectIdentity();
 
    this->displayedMinMax.clear ();
    this->historicalMinMax.clear ();
@@ -301,7 +301,7 @@ void QEStripChartItem::clear ()
 
 //------------------------------------------------------------------------------
 //
-qcaobject::QCaObject* QEStripChartItem::getQcaItem () const
+QEChannel* QEStripChartItem::getQcaItem () const
 {
    // We "know" that a QELabel has only one PV, with variable index 0.
    //
@@ -312,7 +312,7 @@ qcaobject::QCaObject* QEStripChartItem::getQcaItem () const
 //
 void QEStripChartItem::connectQcaSignals ()
 {
-   qcaobject::QCaObject* qca = this->getQcaItem ();
+   QEChannel* qca = this->getQcaItem ();
 
    // Set up connections if we can/if we need to.
    // Called regularly by plotData().
@@ -322,11 +322,11 @@ void QEStripChartItem::connectQcaSignals ()
       //
       this->previousIdentity = qca->getObjectIdentity();
 
-      QObject::connect (qca, SIGNAL (connectionChanged (QCaConnectionInfo&, const unsigned int& ) ),
-                        this,  SLOT (setDataConnection (QCaConnectionInfo&, const unsigned int& ) ) );
+      QObject::connect (qca, SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                        this,  SLOT (setDataConnection (const QEConnectionUpdate&)));
 
-      QObject::connect (qca, SIGNAL (dataChanged  (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
-                        this,  SLOT (setDataValue (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
+      QObject::connect (qca, SIGNAL (valueUpdated (const QEVariantUpdate&)),
+                        this,  SLOT (setDataValue (const QEVariantUpdate&)));
    }
 
    // Get, or at least, initiate fatching the description.
@@ -404,7 +404,7 @@ QString QEStripChartItem::getEgu () const
 {
    QString result = "";
    if (this->isPvData ()) {
-      qcaobject::QCaObject* qca = this->caLabel->getQcaItem (0);
+      QEChannel* qca = this->caLabel->getQcaItem (0);
       if (qca) result = qca->getEgu ();
    }
    return result;
@@ -518,7 +518,7 @@ bool QEStripChartItem::isCalculation () const
 QEDisplayRanges QEStripChartItem::getLoprHopr (bool doScale) const
 {
    QEDisplayRanges result;
-   qcaobject::QCaObject *qca;
+   QEChannel *qca;
    double lopr;
    double hopr;
 
@@ -923,7 +923,8 @@ void QEStripChartItem::calculateAndUpdate (const QCaDateTime& datetimeIn,
    //
    QCaAlarmInfo alarm (okay ? NO_ALARM : CALC_ALARM,       // status
                        okay ? NO_ALARM : INVALID_ALARM);   // severity
-   this->setDataValue (QVariant (value), alarm, datetime, 0);
+   QEVariantUpdate update = {QVariant (value), alarm, datetime, 0, false};
+   this->setDataValue (update);
 
    // Save for next update so that we can detect status change or dead band exceeded.
    //
@@ -959,9 +960,10 @@ const QCaDataPoint* QEStripChartItem::findNearestPoint (const QCaDateTime& searc
 
 //------------------------------------------------------------------------------
 //
-void QEStripChartItem::newVariableNameProperty (QString pvName, QString substitutions, unsigned int)
+void QEStripChartItem::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
-   this->setPvName (pvName, substitutions);
+   this->setPvName (pvNameProperties.pvName,
+                    pvNameProperties.substitutions);
 
    // Re evaluate the chart drag drop allowed status.
    //
@@ -989,14 +991,14 @@ void QEStripChartItem::addRealTimeDataPoint (const QCaDataPoint& point)
 
 //------------------------------------------------------------------------------
 //
-void QEStripChartItem::setDataConnection (QCaConnectionInfo& connectionInfo, const unsigned int&)
+void QEStripChartItem::setDataConnection (const QEConnectionUpdate& update)
 {
-   this->isConnected = connectionInfo.isChannelConnected ();
+   this->isConnected = update.connectionInfo.isChannelConnected ();
 
    if (this->isConnected) {
       // We have a channel connect.
       //
-      qcaobject::QCaObject* qca = this->getQcaItem ();
+      QEChannel* qca = this->getQcaItem ();
       this->description = qca->getDescription();
    }
 
@@ -1018,8 +1020,7 @@ void QEStripChartItem::setDataConnection (QCaConnectionInfo& connectionInfo, con
 
 //------------------------------------------------------------------------------
 //
-void QEStripChartItem::setDataValue (const QVariant& value, QCaAlarmInfo& alarm,
-                                     QCaDateTime& datetime, const unsigned int&)
+void QEStripChartItem::setDataValue (const QEVariantUpdate& update)
 {
    QVariant input;
    double y;
@@ -1028,20 +1029,20 @@ void QEStripChartItem::setDataValue (const QVariant& value, QCaAlarmInfo& alarm,
 
    // Do something sensible with array PVs.
    //
-   const QMetaType::Type mtype = QEPlatform::metaType (value);
+   const QMetaType::Type mtype = QEPlatform::metaType (update.value);
    if (mtype == QMetaType::QVariantList) {
-      QVariantList list = value.toList ();
+      QVariantList list = update.value.toList ();
       // Use first element. Consider some mechanism to all the element to
       // be selected buy the user.
       //
       input = list.value (0);
 
-   } else if (QEVectorVariants::isVectorVariant (value)) {
+   } else if (QEVectorVariants::isVectorVariant (update.value)) {
       // Use first element.
-      input = QEVectorVariants::getDoubleValue (value, 0, 0.0);
+      input = QEVectorVariants::getDoubleValue (update.value, 0, 0.0);
 
    } else {
-      input = value;  // use as is
+      input = update.value;  // use as is
    }
 
    y = input.toDouble (&okay);
@@ -1049,7 +1050,7 @@ void QEStripChartItem::setDataValue (const QVariant& value, QCaAlarmInfo& alarm,
       // Conversion went okay - use this point.
       //
       point.value = y;
-      point.alarm = alarm;
+      point.alarm = update.alarmInfo;
    } else {
       // Could not convert to a double - mark as an invalid point.
       //
@@ -1065,7 +1066,7 @@ void QEStripChartItem::setDataValue (const QVariant& value, QCaAlarmInfo& alarm,
    if (this->useReceiveTime) {
       point.datetime = QDateTime::currentDateTime ().toUTC ();
    } else {
-      point.datetime = datetime;
+      point.datetime = update.timeStamp;
    }
 
    if (point.isDisplayable ()) {
@@ -1839,7 +1840,7 @@ void QEStripChartItem::writeListToFile (QEStripChart* chart,
 //
 void QEStripChartItem::generateStatistics ()
 {
-   qcaobject::QCaObject* qca = this->getQcaItem ();
+   QEChannel* qca = this->getQcaItem ();
    QString egu = qca ? qca->getEgu() : "";
    QCaDataPointList dataPoints = this->extractPlotPoints (false);
    QEStripChartStatistics* pvStatistics;

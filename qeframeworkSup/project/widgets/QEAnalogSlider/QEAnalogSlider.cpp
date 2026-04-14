@@ -106,11 +106,9 @@ void QEAnalogSlider::commonSetup ()
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   this->connectNewVariableNameProperty
-         (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+   this->connectPvNameProperties (SLOT (usePvNameProperties (const QEPvNameProperties&)));
 
-   this->readback->connectNewVariableNameProperty
-         (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+   this->readback->connectPvNameProperties (SLOT (usePvNameProperties (const QEPvNameProperties&)));
 }
 
 //------------------------------------------------------------------------------
@@ -124,9 +122,9 @@ QEAnalogSlider::~QEAnalogSlider()
 // Implementation of QEWidget's virtual funtion to create the specific type of
 // QCaObject required. A QCaObject that streams integers is required.
 //
-qcaobject::QCaObject* QEAnalogSlider::createQcaItem (unsigned int variableIndex)
+QEChannel* QEAnalogSlider::createQcaItem (unsigned int variableIndex)
 {
-   qcaobject::QCaObject* result = NULL;
+   QEChannel* result = NULL;
 
    switch (variableIndex) {
       case SET_POINT_VARIABLE_INDEX:
@@ -164,7 +162,7 @@ qcaobject::QCaObject* QEAnalogSlider::createQcaItem (unsigned int variableIndex)
 //
 void QEAnalogSlider::establishConnection (unsigned int variableIndex)
 {
-   qcaobject::QCaObject* qca = NULL;
+   QEChannel* qca = NULL;
 
    // Create a connection.
    // If successfull, the QCaObject object that will supply data update signals will be returned
@@ -176,22 +174,22 @@ void QEAnalogSlider::establishConnection (unsigned int variableIndex)
          qca = this->createConnection (variableIndex);
          if (!qca) break;
 
-         QObject::connect (qca,  SIGNAL (connectionChanged     (QCaConnectionInfo&, const unsigned int&)),
-                           this, SLOT   (mainConnectionChanged (QCaConnectionInfo&, const unsigned int&)));
+         QObject::connect (qca,  SIGNAL (connectionUpdated     (const QEConnectionUpdate&)),
+                           this, SLOT   (mainConnectionUpdated (const QEConnectionUpdate&)));
 
-         QObject::connect (qca,  SIGNAL (floatingChanged (const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                           this, SLOT   (floatingChanged (const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+         QObject::connect (qca,  SIGNAL (valueUpdated    (const QEFloatingValueUpdate&)),
+                           this, SLOT   (floatingChanged (const QEFloatingValueUpdate&)));
          break;
 
       case READ_BACK_VARIABLE_INDEX:
          qca = this->createConnection (variableIndex);
          if (!qca) break;
 
-         QObject::connect (qca,  SIGNAL (connectionChanged          (QCaConnectionInfo&, const unsigned int&)),
-                           this, SLOT   (secondaryConnectionChanged (QCaConnectionInfo&, const unsigned int&)));
+         QObject::connect (qca,  SIGNAL (connectionUpdated          (const QEConnectionUpdate&)),
+                           this, SLOT   (secondaryConnectionUpdated (const QEConnectionUpdate&)));
 
-         QObject::connect (qca,  SIGNAL (stringChanged (const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                           this, SLOT   (stringChanged (const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+         QObject::connect (qca,  SIGNAL (valueUpdated  (const QEStringValueUpdate&)),
+                           this, SLOT   (stringChanged (const QEStringValueUpdate&)));
          break;
 
       default:
@@ -203,7 +201,7 @@ void QEAnalogSlider::establishConnection (unsigned int variableIndex)
 //------------------------------------------------------------------------------
 // Need to do some smarts if/when not radix 10.
 //
-void QEAnalogSlider::calculateAutoValues (qcaobject::QCaObject* qca)
+void QEAnalogSlider::calculateAutoValues (QEChannel* qca)
 {
    if (!qca) return;   // sainity check.
    if (!this->getAutoScale()) return;   // no auto scaling
@@ -257,7 +255,7 @@ void QEAnalogSlider::calculateAutoValues (qcaobject::QCaObject* qca)
 //
 void QEAnalogSlider::calcColourBandList ()
 {
-   qcaobject::QCaObject* qca = this->getQcaItem (SET_POINT_VARIABLE_INDEX);
+   QEChannel* qca = this->getQcaItem (SET_POINT_VARIABLE_INDEX);
 
    QEColourBandList bandList;
 
@@ -284,17 +282,18 @@ void QEAnalogSlider::activated ()
 // Act on a connection change.
 // Change how the s looks and change the tool tip
 // This is the slot used to recieve connection updates from a QCaObject based class.
-//
-void QEAnalogSlider::mainConnectionChanged (QCaConnectionInfo& connectionInfo,
-                                            const unsigned int& variableIndex)
+// slot
+void QEAnalogSlider::mainConnectionUpdated (const QEConnectionUpdate& update)
 {
+   const unsigned int vi = update.variableIndex;
+
    // Note the connected state
    //
-   this->isConnected = connectionInfo.isChannelConnected ();
+   this->isConnected = update.connectionInfo.isChannelConnected ();
 
    // Display the connected state
    //
-   this->updateToolTipConnection (this->isConnected, variableIndex);
+   this->updateToolTipConnection (this->isConnected, vi);
 
    // Is this the main control PV.
    //
@@ -312,19 +311,21 @@ void QEAnalogSlider::mainConnectionChanged (QCaConnectionInfo& connectionInfo,
    // Signal a channel connection change to any Link (or other) widgets using one
    // of the dbValueChanged signals declared in header file.
    //
-   this->emitDbConnectionChanged (variableIndex);
+   this->emitDbConnectionChanged (vi);
 }
 
 //-----------------------------------------------------------------------------
-//
-void QEAnalogSlider::secondaryConnectionChanged (QCaConnectionInfo& connectionInfo,
-                                                 const unsigned int& variableIndex)
+// slot
+void QEAnalogSlider::secondaryConnectionUpdated (const QEConnectionUpdate& update)
 {
+   const unsigned int vi = update.variableIndex;
+
    // Display the connected state
    //
-   this->updateToolTipConnection (connectionInfo.isChannelConnected (), variableIndex);
+   this->updateToolTipConnection (update.connectionInfo.isChannelConnected (),
+                                  vi);
 
-   if (connectionInfo.isChannelConnected ()) {
+   if (update.connectionInfo.isChannelConnected ()) {
       QEAxisPainter* ap = this->getAxisPainter ();
       ap->setMarkerVisible (READ_BACK_MARKER, false);
    }
@@ -335,25 +336,22 @@ void QEAnalogSlider::secondaryConnectionChanged (QCaConnectionInfo& connectionIn
 }
 
 //-----------------------------------------------------------------------------
-//
-void QEAnalogSlider::floatingChanged (const double& value,
-                                      QCaAlarmInfo& alarmInfo,
-                                      QCaDateTime&,
-                                      const unsigned int& variableIndex)
+// slot
+void QEAnalogSlider::floatingChanged (const QEFloatingValueUpdate& update)
 {
-   if (variableIndex != SET_POINT_VARIABLE_INDEX) {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+   const unsigned int vi = update.variableIndex;
+
+   if (vi != SET_POINT_VARIABLE_INDEX) {
+      DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
    // Associated qca object - avoid the segmentation fault.
    //
-   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   QEChannel* qca = this->getQcaItem (vi);
    if (!qca) return;   // sanity check
 
-   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
-
-   if (isMetaDataUpdate && (variableIndex == SET_POINT_VARIABLE_INDEX)) {
+   if (update.isMetaUpdate && (vi == SET_POINT_VARIABLE_INDEX)) {
       // Determine auto scaling values based on the PV's meta data.
       //
       this->calculateAutoValues (qca);
@@ -363,42 +361,41 @@ void QEAnalogSlider::floatingChanged (const double& value,
 
    // Repositon the slider to refect current database value.
    //
-   this->setValue (value);
+   this->setValue (update.value);
 
    QEAxisPainter* ap = this->getAxisPainter ();
 
-   ap->setMarkerValue (SET_POINT_MARKER, value);
+   ap->setMarkerValue (SET_POINT_MARKER, update.value);
    ap->setMarkerColour (SET_POINT_MARKER, QColor (255, 155, 55));
    ap->setMarkerVisible (SET_POINT_MARKER, true);
 
    // Invoke common alarm handling processing.
    //
-   this->processAlarmInfo (alarmInfo, variableIndex);
+   this->processAlarmInfo (update.alarmInfo, vi);
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged signals declared in header file.
    //
-   this->emitDbValueChanged (variableIndex);
+   this->emitDbValueChanged (vi);
 }
 
 //-----------------------------------------------------------------------------
-//
-void QEAnalogSlider::stringChanged (const QString& value,
-                                    QCaAlarmInfo& alarmInfo,
-                                    QCaDateTime&,
-                                    const unsigned int& variableIndex)
+// slot
+void QEAnalogSlider::stringChanged (const QEStringValueUpdate& update)
 {
-   qcaobject::QCaObject* qca = NULL;
+   const unsigned int vi = update.variableIndex;
+
+   QEChannel* qca = NULL;
 
    // Only the main control PV sets alarm related style changes.
    //
-   switch (variableIndex) {
+   switch (vi) {
 
       case READ_BACK_VARIABLE_INDEX:
-         this->setCentreText (value);
-         this->updateToolTipAlarm (alarmInfo, variableIndex);
+         this->setCentreText (update.value);
+         this->updateToolTipAlarm (update.alarmInfo, vi);
 
-         qca = this->getQcaItem (variableIndex);
+         qca = this->getQcaItem (vi);
          if (qca) {
             QEAxisPainter* ap = this->getAxisPainter ();
             ap->setMarkerValue (READ_BACK_MARKER, qca->getFloatingValue ());
@@ -409,14 +406,14 @@ void QEAnalogSlider::stringChanged (const QString& value,
          break;
 
       default:
-         DEBUG << "unexpected variableIndex" << variableIndex;
+         DEBUG << "unexpected variableIndex" << vi;
          return;
          break;
    }
 }
 
 //---------------------------------------------------------------------------------
-//
+// slot
 void QEAnalogSlider::valueChanged (const double)
 {
    if (this->getContinuousWrite()) {
@@ -425,7 +422,7 @@ void QEAnalogSlider::valueChanged (const double)
 }
 
 //---------------------------------------------------------------------------------
-//
+// slot
 void QEAnalogSlider::applyButtonClicked (bool x)
 {
     QAnalogSlider::applyButtonClicked (x);  // call parent class first
@@ -493,11 +490,12 @@ void QEAnalogSlider::setPvValue (const bool value)
 
 //------------------------------------------------------------------------------
 //
-void QEAnalogSlider::useNewVariableNameProperty (QString variableName,
-                                                 QString substitutions,
-                                                 unsigned int variableIndex)
+void QEAnalogSlider::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
+
 {
-   this->setVariableNameAndSubstitutions (variableName, substitutions, variableIndex);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -31,7 +31,7 @@
 #include <QCaAlarmInfo.h>
 #include <QEEnums.h>
 #include <QEDragDrop.h>
-#include <QCaObject.h>
+#include <QEChannel.h>
 #include <QEFrameworkLibraryGlobal.h>
 #include <QEAbstractDynamicWidget.h>
 #include <QESingleVariableMethods.h>
@@ -126,9 +126,9 @@ protected:
 
    void establishConnection (unsigned int variableIndex);
 
-   // Override QCaObject/QEWidget functions.
+   // Override QEChannel/QEWidget functions.
    //
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
 
    // Drop only. Dragging is from individual embedded QEWidgets.
    //
@@ -202,7 +202,7 @@ private:
    QString previousRecordBaseName;
    QString previousRecordType;
 
-   QList<QEString *> fieldChannels;
+   QList<QEString*> fieldChannels;
    QList<bool> isLinkField;
    bool fieldsAreSorted;
 
@@ -256,29 +256,22 @@ private slots:
    // Actually sets the required columns widths.
    void delayedSetColumnWidths ();
 
-   void useNewVariableNameProperty (QString variableNameIn,
-                                    QString variableNameSubstitutionsIn,
-                                    unsigned int variableIndex);
+   void usePvNameProperties (const QEPvNameProperties&);
 
    // Basic widgit PV related slots (used for RTYP pseudo field).
    //
-   void setRecordTypeConnection (QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex);
-   void setRecordTypeValue (const QString & rtypeValue, QCaAlarmInfo&, QCaDateTime&, const unsigned int& );
+   void setRecordTypeConnection (const QEConnectionUpdate&);
+   void setRecordTypeValue (const QEStringValueUpdate&);
 
    // The value item slots.
    //
-   void setValueConnection (QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex);
-   void setValueValue (const QVariant& valueValue, QCaAlarmInfo&, QCaDateTime&, const unsigned int& variableIndex);
+   void setValueConnection (const QEConnectionUpdate&);
+   void setValueValue (const QEVariantUpdate&);
 
    // Field related slots
    //
-   void setFieldConnection (QCaConnectionInfo& connectionInfo,
-                            const unsigned int &variableIndex);
-
-   void setFieldValue (const QString &value,
-                       QCaAlarmInfo & alarmInfo,
-                       QCaDateTime & dateTime,
-                       const unsigned int & variableIndex);
+   void setFieldConnection (const QEConnectionUpdate&);
+   void setFieldValue (const QEStringValueUpdate&);
 
    void pvNameSelect (bool);
    void boxCurrentIndexChanged (int index);                    // From own combo box.

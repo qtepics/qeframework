@@ -243,9 +243,7 @@ private slots:
 
    void setBitStatusValue (const QEIntegerValueUpdate&);
 
-   void useNewVariableNameProperty (QString variableNameIn,
-                                    QString variableNameSubstitutionsIn,
-                                    unsigned int variableIndex);
+   void usePvNameProperties (const QEPvNameProperties&);
 };
 
 #endif   // QE_BIT_STATUS_H

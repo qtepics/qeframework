@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2014-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2014-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -27,7 +27,7 @@
 #include <QEAbstractWidget.h>
 #include <QRadioGroup.h>
 
-#include <QCaObject.h>
+#include <QEChannel.h>
 #include <QEInteger.h>
 #include <QEIntegerFormatting.h>
 #include <QELocalEnumeration.h>
@@ -215,7 +215,7 @@ protected:
    //
    void activated ();
    void establishConnection (unsigned int variableIndex);
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
 
    // Menu related
    QMenu* buildContextMenu ();                        // Build the specific context menu
@@ -264,14 +264,11 @@ private:
    QCaVariableNamePropertyManager titleVnpm;
 
 private slots:
-   void connectionChanged (QCaConnectionInfo& connectionInfo,
-                           const unsigned int &variableIndex);
-   void valueUpdate (const long& value, QCaAlarmInfo&,
-                     QCaDateTime&, const unsigned int&);
+   void connectionUpdated (const QEConnectionUpdate& update);
 
-   void useNewVariableNameProperty (QString variableNameIn,
-                                    QString variableNameSubstitutionsIn,
-                                    unsigned int variableIndex);
+   void valueUpdate (const QEIntegerValueUpdate& update);
+
+   void usePvNameProperties (const QEPvNameProperties& pvNameProperties);
 
    void internalValueChanged (const int value);
 };

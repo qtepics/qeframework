@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2014-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2014-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -24,10 +24,8 @@
 
 #include <QEEnums.h>
 #include <QRadioGroup.h>
-#include <QCaObject.h>
+#include <QEChannel.h>
 #include <QEWidget.h>
-#include <QEInteger.h>
-#include <QEIntegerFormatting.h>
 #include <QESingleVariableMethods.h>
 #include <QELocalEnumeration.h>
 #include <QCaVariableNamePropertyManager.h>
@@ -167,7 +165,7 @@ protected:
    // override QEWidget fnctions.
    //
    void establishConnection (unsigned int variableIndex);
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
 
 private:
    void commonSetup ();
@@ -176,12 +174,9 @@ private:
    bool useApplyButton;
 
 private slots:
-   void useNewVariableNameProperty (QString variableNameIn,
-                                    QString variableNameSubstitutionsIn,
-                                    unsigned int variableIndex);
-
-   void connectionChanged (QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex);
-   void dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp, const unsigned int& variableIndex);
+   void usePvNameProperties (const QEPvNameProperties& pvNameProperties);
+   void connectionUpdated (const QEConnectionUpdate& update);
+   void valueUpdated (const QEVariantUpdate& update);
 
    // Handles signals from within the General_Edit_Form itself.
    //

@@ -14,7 +14,6 @@
 #include "QEScalarHistogram.h"
 #include <QDebug>
 #include <QECommon.h>
-#include <QCaObject.h>
 
 #define DEBUG  qDebug () << "QEScalarHistogram" << __LINE__ << __FUNCTION__ << "  "
 
@@ -62,8 +61,8 @@ QEScalarHistogram::QEScalarHistogram (QWidget * parent) :
    //
    for (int j = 0; j < ARRAY_LENGTH (this->vnpm); j++) {
       this->vnpm [j].setVariableIndex (j);
-      QObject::connect (&this->vnpm [j], SIGNAL (newVariableNameProperty  (QString, QString, unsigned int)),
-                        this,            SLOT   (newVariableNameProperty  (QString, QString, unsigned int)));
+      QObject::connect (&this->vnpm [j], SIGNAL (newPvNameProperties (const QEPvNameProperties&)),
+                        this,            SLOT   (usePvNameProperties (const QEPvNameProperties&)));
    }
 }
 
@@ -71,22 +70,24 @@ QEScalarHistogram::QEScalarHistogram (QWidget * parent) :
 //------------------------------------------------------------------------------
 // This is the slot used to recieve new PV information.
 //
-void QEScalarHistogram::newVariableNameProperty (QString pvName, QString subs, unsigned int pvi)
+void QEScalarHistogram::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
-   this->histogram->clearValue ((int) pvi);
-   this->setVariableNameAndSubstitutions (pvName, subs, pvi);
+   this->histogram->clearValue ((int) pvNameProperties.index);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of
-// QCaObject required. For a histogram floating point numbers are required.
+// QEChannel required. For a histogram floating point numbers are required.
 //
-qcaobject::QCaObject* QEScalarHistogram::createQcaItem (unsigned int pvi)
+QEChannel* QEScalarHistogram::createQcaItem (unsigned int pvi)
 {
-   qcaobject::QCaObject* result = NULL;
+   QEChannel* result = NULL;
 
    if (pvi < ARRAY_LENGTH (this->vnpm)) {
-      QString pvName = this->getSubstitutedVariableName (pvi);
+      const QString pvName = this->getSubstitutedVariableName (pvi);
       result = new QEFloating (pvName, this, &this->floatingFormatting, pvi);
    }
 
@@ -104,20 +105,20 @@ void QEScalarHistogram::establishConnection (unsigned int variableIndex)
    }
 
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   // Note createConnection creates the connection and returns reference to existing QCaObject.
+   // If successfull, the QEChannel object that will supply data update signals will be returned
+   // Note createConnection creates the connection and returns reference to existing QEChannel.
    //
-   qcaobject::QCaObject* qca = this->createConnection (variableIndex);
+   QEChannel* qca = this->createConnection (variableIndex);
 
-   // If a QCaObject object is now available to supply data update signals,
+   // If a QEChannel object is now available to supply data update signals,
    // connect it to the appropriate slots.
    //
    if (qca) {
-      QObject::connect (qca, SIGNAL (floatingChanged (const double &, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)),
-                        this, SLOT  (setChannelValue (const double &, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)));
+      QObject::connect (qca,  SIGNAL (valueUpdated    (const QEFloatingValueUpdate&)),
+                        this, SLOT   (setChannelValue (const QEFloatingValueUpdate&)));
 
-      QObject::connect (qca,  SIGNAL (connectionChanged (QCaConnectionInfo &, const unsigned int &)),
-                        this, SLOT   (connectionChanged (QCaConnectionInfo &, const unsigned int &)));
+      QObject::connect (qca,  SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                        this, SLOT   (connectionUpdated (const QEConnectionUpdate&)));
 
       // Also set/reset value. This mimics a disconnection.
       // Note: this also creates the underlying entry with the histogram widget.
@@ -131,25 +132,24 @@ void QEScalarHistogram::establishConnection (unsigned int variableIndex)
 
 //------------------------------------------------------------------------------
 // Act on a connection change.
-// This is the slot used to recieve connection updates from a QCaObject based class.
+// This is the slot used to recieve connection updates from a QEChannel based class.
 //
-void QEScalarHistogram::connectionChanged (QCaConnectionInfo & connectionInfo,
-                                           const unsigned int & variableIndex)
+void QEScalarHistogram::connectionUpdated (const QEConnectionUpdate& update)
 {
-   bool pvConnected;
+   const unsigned int vi = update.variableIndex;
 
-   if (variableIndex >= ARRAY_LENGTH (this->vnpm)) {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+   if (vi >= ARRAY_LENGTH (this->vnpm)) {
+      DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
-   // Note the connected state
+   // Note the connected state.
    //
-   pvConnected = connectionInfo.isChannelConnected ();
+   const bool pvConnected = update.connectionInfo.isChannelConnected ();
 
-   // Display the connected state
+   // Display the connected state.
    //
-   this->updateToolTipConnection (pvConnected, variableIndex);
+   this->updateToolTipConnection (pvConnected, vi);
 
    // This is a multi PV widget.
    // Do not use processConnectionInfo.
@@ -157,15 +157,15 @@ void QEScalarHistogram::connectionChanged (QCaConnectionInfo & connectionInfo,
    // If this is a disconnect - set gray.
    // If this is a connect, we will soon change from gray to required colour.
    //
-   this->histogram->setColour ((int) variableIndex, disconnectedColour);
-   this->histogram->setValue ((int) variableIndex, this->getMaximum());
+   this->histogram->setColour ((int) vi, disconnectedColour);
+   this->histogram->setValue ((int) vi, this->getMaximum());
 }
 
 //------------------------------------------------------------------------------
 //
 void QEScalarHistogram::updateHistogramScale ()
 {
-   qcaobject::QCaObject* qca = NULL;
+   QEChannel* qca = NULL;
    double lopr;
    double hopr;
 
@@ -216,31 +216,29 @@ void QEScalarHistogram::updateHistogramScale ()
 
 //------------------------------------------------------------------------------
 // Update the histogram bar value
-// This is the slot used to recieve data updates from a QCaObject based class.
+// This is the slot used to recieve data updates from a QEChannel based class.
 //
-void QEScalarHistogram::setChannelValue (const double& value,
-                                         QCaAlarmInfo& alarmInfo,
-                                         QCaDateTime&,
-                                         const unsigned int &variableIndex)
+void QEScalarHistogram::setChannelValue (const QEFloatingValueUpdate& update)
 {
-   double displayValue = value;
-   if (variableIndex >= ARRAY_LENGTH (this->vnpm)) {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+   const unsigned int vi = update.variableIndex;
+
+   if (vi >= ARRAY_LENGTH (this->vnpm)) {
+      DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
+   double displayValue = update.value;
+
    // Associated qca object - avoid any segmentation fault.
    //
-   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   QEChannel* qca = this->getQcaItem (vi);
    if (!qca) return;   // sanity check
-
-   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
 
    QColor colour;
 
-   if (this->getUseAlarmState (alarmInfo)) {
-      colour = this->getColor (alarmInfo, 255);
-      if (alarmInfo.isInvalid()) {
+   if (this->getUseAlarmState (update.alarmInfo)) {
+      colour = this->getColor (update.alarmInfo, 255);
+      if (update.alarmInfo.isInvalid()) {
          // When invalid, set the height (or width) of the bar to maximum,
          // so that the user can actually see it. Invalid value are often zero
          // and not readily visible to the user.
@@ -251,19 +249,19 @@ void QEScalarHistogram::setChannelValue (const double& value,
       colour = this->histogram->getBarColour ();
    }
 
-   this->histogram->setColour ((int) variableIndex, colour);
-   this->histogram->setValue ((int) variableIndex, displayValue);
+   this->histogram->setColour ((int) vi, colour);
+   this->histogram->setValue ((int) vi, displayValue);
 
    // First/meta update (for this connection).
    //
-   if (isMetaDataUpdate) {
+   if (update.isMetaUpdate) {
       this->updateHistogramScale ();
    }
 
    // Don't invoke common alarm handling processing.
    // Invoke for tool tip processing directly.
    //
-   this->updateToolTipAlarm (alarmInfo, variableIndex);
+   this->updateToolTipAlarm (update.alarmInfo, vi);
 }
 
 //------------------------------------------------------------------------------
@@ -389,7 +387,7 @@ void QEScalarHistogram::setReadOut (const QString& text)
 //
 void QEScalarHistogram::genReadOut (const int index)
 {
-   qcaobject::QCaObject* qca = NULL;
+   QEChannel* qca = NULL;
    QString text;
 
    if (index >= 0) {
@@ -434,7 +432,7 @@ QString QEScalarHistogram::copyVariable ()
 QVariant QEScalarHistogram::copyData ()
 {
    QVariant result;
-   qcaobject::QCaObject* qca = NULL;
+   QEChannel* qca = NULL;
 
    if (this->selectedChannel >= 0) {
       qca = this->getQcaItem ((unsigned int) this->selectedChannel);

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2021-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2021-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -112,8 +112,8 @@ void QESelector::commonSetup()
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   this->connectNewVariableNameProperty
-         (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+   this->connectPvNameProperties
+         (SLOT (usePvNameProperties (const QEPvNameProperties&)));
 
    // Some events must be applied to the internal widget
    //
@@ -305,36 +305,36 @@ void QESelector::establishConnection (unsigned int variableIndex)
    }
 
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update
+   // If successfull, the QEChannel object that will supply data update
    // signals will be returned.  Note createConnection creates the connection
-   // and returns reference to existing QCaObject.
+   // and returns reference to existing QEChannel.
    //
-   qcaobject::QCaObject* qca = this->createConnection (variableIndex);
+   QEChannel* qca = this->createConnection (variableIndex);
 
-   // If a QCaObject object is now available to supply data update signals,
+   // If a QEChannel object is now available to supply data update signals,
    // connect it to the appropriate slots.
    //
    if (qca) {
-      QObject::connect (qca,  SIGNAL (connectionChanged (QCaConnectionInfo&, const unsigned int&)),
-                        this, SLOT   (connectionChanged (QCaConnectionInfo&, const unsigned int&)));
+      QObject::connect( qca,  SIGNAL (connectionUpdated( const QEConnectionUpdate&)),
+                        this, SLOT   (connectionUpdated( const QEConnectionUpdate&)));
 
-      QObject::connect (qca,  SIGNAL (stringChanged (const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                        this, SLOT   (valueUpdate   (const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+      QObject::connect (qca,  SIGNAL (valueUpdated (const QEStringValueUpdate&)),
+                        this, SLOT   (valueUpdated (const QEStringValueUpdate&)));
    }
 }
 
 //------------------------------------------------------------------------------
 //
-qcaobject::QCaObject* QESelector::createQcaItem (unsigned int variableIndex)
+QEChannel* QESelector::createQcaItem (unsigned int variableIndex)
 {
    if (variableIndex != PV_VARIABLE_INDEX) {
       DEBUG << "unexpected variableIndex" << variableIndex;
       return NULL;
    }
 
-   qcaobject::QCaObject* result = NULL;
-   result = new QEString (this->getSubstitutedVariableName (variableIndex),
-                          this, &this->formatting, variableIndex);
+   QEChannel* result = NULL;
+   const QString pvName = this->getSubstitutedVariableName (variableIndex);
+   result = new QEString (pvName, this, &this->formatting, variableIndex);
 
    // Apply currently defined array index/elements request values.
    //
@@ -345,25 +345,26 @@ qcaobject::QCaObject* QESelector::createQcaItem (unsigned int variableIndex)
 
 //------------------------------------------------------------------------------
 //
-void QESelector::connectionChanged (QCaConnectionInfo& connectionInfo,
-                                    const unsigned int &variableIndex)
+void QESelector::connectionUpdated (const QEConnectionUpdate& update)
 {
-   if (variableIndex != PV_VARIABLE_INDEX) {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+   const unsigned int vi = update.variableIndex;
+
+   if (vi != PV_VARIABLE_INDEX) {
+      DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
-   // Note the connected state
+   // Note the connected state.
    //
-   bool isConnected = connectionInfo.isChannelConnected ();
+   bool isConnected = update.connectionInfo.isChannelConnected ();
 
    // Display the connected state
    // Note: only one/first "variable" is a PV. Modify the tool tip class object
    //       to only display actual PV name and connection status.
    //
    this->setNumberToolTipVariables (1);
-   this->updateToolTipConnection (isConnected, variableIndex);
-   this->processConnectionInfo (isConnected, variableIndex);
+   this->updateToolTipConnection (isConnected, vi);
+   this->processConnectionInfo (isConnected, vi);
 
    this->internalWidget->setEnabled (isConnected);
 
@@ -379,23 +380,20 @@ void QESelector::connectionChanged (QCaConnectionInfo& connectionInfo,
 
 //------------------------------------------------------------------------------
 //
-void QESelector::valueUpdate (const QString& text,
-                              QCaAlarmInfo& alarmInfo,
-                              QCaDateTime&,
-                              const unsigned int& variableIndex)
+void QESelector::valueUpdated (const QEStringValueUpdate& update)
 {
-   if (variableIndex != PV_VARIABLE_INDEX) {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+   const unsigned int vi = update.variableIndex;
+
+   if (vi != PV_VARIABLE_INDEX) {
+      DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
-   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   QEChannel* qca = this->getQcaItem (vi);
    if (!qca) return;  // sanity check
 
-   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
-
    bool found = false;
-   if (text.isEmpty()) {
+   if (update.value.isEmpty()) {
       this->internalWidget->setCurrentIndex (0);
       found = true;
    } else {
@@ -404,7 +402,7 @@ void QESelector::valueUpdate (const QString& text,
       for (int j = 0; j < infoList.count(); j++) {
          QString option = infoList.value(j);
          option = this->extractValue (option);
-         if (text == option) {
+         if (update.value == option) {
             // Found it
             //
             found = true;
@@ -415,9 +413,10 @@ void QESelector::valueUpdate (const QString& text,
             // form designer has specifically allowed updates while the widget
             // has focus.
             //
-            if (this->isAllowFocusUpdate || !this->hasFocus() || isMetaDataUpdate) {
+            if (this->isAllowFocusUpdate || !this->hasFocus() || update.isMetaUpdate) {
 
-               // recall 0th entry used for null text
+               // recall 0th entry used for null text, hence the plus one.
+               //
                this->internalWidget->setCurrentIndex(j + 1);
             }
 
@@ -427,29 +426,27 @@ void QESelector::valueUpdate (const QString& text,
    }
 
    if (!found) {
-     DEBUG << text << "did not match any of the allowed values";
+     DEBUG << update.value << "did not match any of the allowed values";
    }
 
    // Invoke common alarm handling processing.
    //
-   this->processAlarmInfo (alarmInfo, variableIndex);
+   this->processAlarmInfo (update.alarmInfo, vi);
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged. Because the write underying QComboBox may not have
    // occured (because we had focus), we cannot use the currentText () function.
    //
-   this->emitDbValueChanged (text, PV_VARIABLE_INDEX);
+   this->emitDbValueChanged (update.value, vi);
 }
 
 //------------------------------------------------------------------------------
 //
-void QESelector::useNewVariableNameProperty (QString variableNameIn,
-                                             QString substitutionsIn,
-                                             unsigned int variableIndex)
+void QESelector::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
-   this->setVariableNameAndSubstitutions (variableNameIn,
-                                          substitutionsIn,
-                                          variableIndex);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 //------------------------------------------------------------------------------
@@ -457,7 +454,7 @@ void QESelector::useNewVariableNameProperty (QString variableNameIn,
 void QESelector::writeNow()
 {
    QEString* qca = qobject_cast<QEString*>(this->getQcaItem (PV_VARIABLE_INDEX));
-   if (!qca)  return;  // sanity check
+   if (!qca) return;  // sanity check
 
    QString text = this->internalWidget->currentText();
    if (text == EMPTY_TEXT) {

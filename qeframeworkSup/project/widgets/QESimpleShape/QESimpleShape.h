@@ -15,13 +15,14 @@
 #define QE_SIMPLE_SHAPE_H
 
 #include <QEEnums.h>
-#include <QCaObject.h>
+#include <QEChannel.h>
 #include <QCaVariableNamePropertyManager.h>
 #include <QEWidget.h>
 #include <QString>
 #include <QEFrameworkLibraryGlobal.h>
 #include <QESingleVariableMethods.h>
 #include <QEStringFormattingMethods.h>
+#include <QEChannel.h>
 #include <QSimpleShape.h>
 
 /*!
@@ -331,7 +332,7 @@ public slots:
 
 protected:
    void activated ();
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
    void establishConnection (unsigned int variableIndex);
 
    // Drag and Drop
@@ -367,15 +368,11 @@ private:
    QColor fillColour;
 
 private slots:
-   void useNewVariableNameProperty (QString variableName,
-                                    QString variableNameSubstitutions,
-                                    unsigned int variableIndex);
+   void usePvNameProperties (const QEPvNameProperties& pvNameProperties);
 
-   void connectionChanged (QCaConnectionInfo& connectionInfo,
-                           const unsigned int& variableIndex);
+   void connectionUpdated (const QEConnectionUpdate& update);
 
-   void setShapeValue (const QVariant& value, QCaAlarmInfo& alarmInfo,
-                       QCaDateTime& dateTime, const unsigned int& variableIndex);
+   void setShapeValue (const QEVariantUpdate& update);
 };
 
 #endif  // QE_SIMPLE_SHAPE_H

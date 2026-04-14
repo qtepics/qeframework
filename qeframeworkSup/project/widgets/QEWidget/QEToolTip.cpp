@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -14,6 +14,7 @@
 #include "QEToolTip.h"
 #include <QApplication>
 #include <QDebug>
+#include <QEChannel.h>
 #include <QEWidget.h>
 
 #define DEBUG qDebug () << "QEToolTip" << __LINE__ << __FUNCTION__ << "  "
@@ -104,7 +105,7 @@ void QEToolTipSingleton::updateWidget ()
    const unsigned int number = (unsigned int) this->currentWidget->getNumberVariables ();
    for (unsigned int j = 0; j < number; j++) {
       QString desc = "";       // blank until we know better.
-      qcaobject::QCaObject* qca = this->currentWidget->getQcaItem (j);
+      QEChannel* qca = this->currentWidget->getQcaItem (j);
       if (qca) {  // sanity check
          desc = qca->getDescription();
       }

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Author: Glenn Jackson
@@ -17,6 +17,7 @@
 #include <QEEnums.h>
 #include <QEWidget.h>
 #include <QEAbstractWidget.h>
+#include <QEChannel.h>
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QEInteger.h>
@@ -420,7 +421,7 @@ protected:
 
    // Functions common to most QE widgets
    //
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
    void establishConnection (unsigned int variableIndex);
 
    // Drag and Drop
@@ -440,7 +441,7 @@ protected:
 
 private:
    void setup ();
-   void setAlarmInfoCommon (QCaAlarmInfo& alarmInfo, const unsigned int variableIndex);
+   void setAlarmInfoCommon (const QCaAlarmInfo& alarmInfo, const unsigned int variableIndex);
    void plotData ();
    void drawLegend ();
    void purgeOldData ();
@@ -493,18 +494,13 @@ private:
    QE::MouseMoveSignalFlags mMouseMoveSignals;
 
 private slots:
-   void connectionChanged (QCaConnectionInfo& connectionInfo, const unsigned int&);
-   void setPlotData (const QVector<double>& values, QCaAlarmInfo&,
-                     QCaDateTime&, const unsigned int&);
-   void setPlotData (const double value, QCaAlarmInfo&,
-                     QCaDateTime&, const unsigned int&);
-   void setSizeData (const long value, QCaAlarmInfo&,
-                     QCaDateTime&, const unsigned int&);
-   void tickTimeout ();
+   void usePvNameProperties (const QEPvNameProperties& pvNameProperties);
+   void connectionUpdated (const QEConnectionUpdate& update);
+   void setPlotData (const QEFloatingValueUpdate& update);
+   void setPlotData (const QEFloatingArrayUpdate& update);
+   void setSizeData (const QEIntegerValueUpdate& update);
 
-   void useNewVariableNameProperty (QString variableName,
-                                    QString variableNameSubstitutions,
-                                    unsigned int variableIndex);
+   void tickTimeout ();
 
    void setArchiveData (const QObject* userData, const bool okay,
                         const QCaDataPointList& archiveData,

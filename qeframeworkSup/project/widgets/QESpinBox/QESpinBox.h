@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -17,6 +17,7 @@
 #include <QDoubleSpinBox>
 #include <QEEnums.h>
 #include <QEWidget.h>
+#include <QEChannel.h>
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QESingleVariableMethods.h>
@@ -35,21 +36,21 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESpinBox :
    typedef QDoubleSpinBox ParentWidget;
 
 public:
-   QESpinBox( QWidget *parent = 0 );
-   QESpinBox( const QString& variableName, QWidget *parent = 0 );
+   QESpinBox (QWidget* parent = 0);
+   QESpinBox (const QString& variableName, QWidget* parent = 0);
 
    // Property convenience functions
 
    // write on change
-   void setWriteOnChange( bool writeOnChangeIn );
+   void setWriteOnChange (bool writeOnChangeIn);
    bool getWriteOnChange() const;
 
    // subscribe
-   void setSubscribe( bool subscribe );
+   void setSubscribe (bool subscribe);
    bool getSubscribe() const;
 
    // Add units (as suffix)
-   void setAddUnitsAsSuffix( bool addUnitsAsSuffixIn );
+   void setAddUnitsAsSuffix (bool addUnitsAsSuffixIn);
    bool getAddUnitsAsSuffix() const;
 
    // Auto scale control
@@ -57,15 +58,15 @@ public:
    bool getAutoScale () const;
 
    // useDbPrecision (as spinbox 'decimals')
-   void setUseDbPrecisionForDecimals( bool useDbPrecisionForDecimalIn );
+   void setUseDbPrecisionForDecimals (bool useDbPrecisionForDecimalIn);
    bool getUseDbPrecisionForDecimals() const;
 
    // set/get allow focus update
-   void setAllowFocusUpdate( bool allowFocusUpdate );
+   void setAllowFocusUpdate (bool allowFocusUpdate);
    bool getAllowFocusUpdate() const;
 
    // set/get use auto step size
-   void setAutoStepSize( bool autoStepSize );
+   void setAutoStepSize (bool autoStepSize);
    bool getAutoStepSize() const;
 
 signals:
@@ -75,23 +76,27 @@ signals:
    /// Sent when the widget is updated following a data change
    /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
    /// For example a QList widget could log updates from this widget.
-   void dbValueChanged();                       // signal event
-   void dbValueChanged( const QString& out );   // signal as formatted text
-   void dbValueChanged( const int& out );       // signal as int if applicable
-   void dbValueChanged( const long& out );      // signal as long if applicable
-   void dbValueChanged( const qlonglong& out ); // signal as qlonglong if applicable
-   void dbValueChanged( const double& out );    // signal as floating if applicable
-   void dbValueChanged( const bool& out );      // signal as bool: value != 0 if applicable
+   //
+   void dbValueChanged();                      // signal event
+   void dbValueChanged (const QString& out);   // signal as formatted text
+   void dbValueChanged (const int& out);       // signal as int if applicable
+   void dbValueChanged (const long& out);      // signal as long if applicable
+   void dbValueChanged (const qlonglong& out); // signal as qlonglong if applicable
+   void dbValueChanged (const double& out);    // signal as floating if applicable
+   void dbValueChanged (const bool& out);      // signal as bool: value != 0 if applicable
 
    // This signal is emitted using the QEEmitter::emitDbConnectionChanged function.
    /// Sent when the widget state updated following a channel connection change
    /// Applied to primary varible.
-   void dbConnectionChanged( const bool& isConnected );
+   //
+   void dbConnectionChanged (const bool& isConnected);
 
    /// Internal use only. Used by QEConfiguredLayout to be notified when one of its widgets has written something
    // Signal a user attempt to change a value. Values are strings as the user sees them.
    //
-   void userChange( const QString& oldValue, const QString& newValue, const QString& lastValue );
+   void userChange (const QString& oldValue,
+                    const QString& newValue,
+                    const QString& lastValue);
 
 public slots:
    // write the value (of the underlying QDoubleSpinBox object) into the PV immediately
@@ -107,27 +112,28 @@ public slots:
    void setPvValue (const bool value);
 
    /// Update the default style applied to this widget.
-   void setDefaultStyle( const QString& style ) { setStyleDefault( style ); }
+   void setDefaultStyle (const QString& style) { this->setStyleDefault (style); }
 
    /// Slot to set the visibility of a QE widget, taking into account the user level.
    /// Widget will be hidden if hidden by a call this slot, by will only be made
    /// visible by a calll to this slot if the user level allows.
    ///
-   void setManagedVisible( bool v ){ setRunVisible( v ); }
+   void setManagedVisible (bool v) { this->setRunVisible (v); }
 
 protected:
    // Auto step size
    void stepBy (int steps) override;
    bool eventFilter (QObject* watch, QEvent* event);
 
-   qcaobject::QCaObject* createQcaItem( unsigned int variableIndex );
-   void establishConnection( unsigned int variableIndex );
+   QEChannel* createQcaItem (unsigned int variableIndex);
+   void establishConnection (unsigned int variableIndex);
 
    // Drag and Drop
-   void dragEnterEvent(QDragEnterEvent *event) { qcaDragEnterEvent( event ); }
-   void dropEvent(QDropEvent *event)           { qcaDropEvent( event ); }
-   // Don't drag from interactive widget void mousePressEvent(QMouseEvent *event)    { qcaMousePressEvent( event ); }
-   void setDrop( QVariant drop );
+   void dragEnterEvent(QDragEnterEvent *event) { this->qcaDragEnterEvent (event); }
+   void dropEvent(QDropEvent *event)           { this->qcaDropEvent (event); }
+   // Don't drag from interactive widget
+   // void mousePressEvent(QMouseEvent *event) { this->qcaMousePressEvent (event); }
+   void setDrop (QVariant drop);
    QVariant getDrop();
 
    // Copy paste
@@ -135,12 +141,12 @@ protected:
    QVariant copyData();
    void paste (QVariant s);
 
-   QMenu* getDefaultContextMenu();                 // Return the Qt default context menu to add to the QE context menu
+   QMenu* getDefaultContextMenu();  // Return the Qt default context menu to add to the QE context menu
 
 private:
    void setup();
-   void setSuffixEgu( qcaobject::QCaObject* qca );
-   void setDecimalsFromPrecision( qcaobject::QCaObject* qca );
+   void setSuffixEgu (QEChannel* qca);
+   void setDecimalsFromPrecision (QEChannel* qca);
 
    bool programaticValueChange;   // Flag set while the spin box value is being changed programatically (not by the user)
    bool isAllowFocusUpdate;
@@ -150,20 +156,17 @@ private:
    bool ignoreSingleShotRead;
 
    QEFloatingFormatting floatingFormatting;
-   bool writeOnChange;                     // Write changed value to database when user changes a value
+   bool writeOnChange;            // Write changed value to database when user changes a value.
    bool addUnitsAsSuffix;
    bool autoScaleSpinBox;
    bool useDbPrecisionForDecimal;
 
 private slots:
-   void connectionChanged( QCaConnectionInfo& connectionInfo,
-                           const unsigned int &variableIndex );
-   void setValueIfNoFocus( const double& value, QCaAlarmInfo&, QCaDateTime&, const unsigned int& );
-   void userValueChanged( double value );
+   void connectionUpdated (const QEConnectionUpdate& update);
+   void setSpinBoxValue (const QEFloatingValueUpdate& update);
+   void userValueChanged (double value);
+   void usePvNameProperties (const QEPvNameProperties& pvNameProperties);
 
-   void useNewVariableNameProperty( QString pvName,
-                                    QString substitutions,
-                                    unsigned int variableIndex );
 
    // BEGIN-SINGLE-VARIABLE-V2-PROPERTIES ===============================================
    // Single Variable properties
@@ -227,7 +230,7 @@ public:
    /// of filtering on this ID. For example, by using a unique message source ID
    /// a QELog widget may be set up to only log messages from a select set of widgets.
    ///
-   Q_PROPERTY(unsigned int messageSourceId READ getMessageSourceId WRITE setMessageSourceId )
+   Q_PROPERTY(unsigned int messageSourceId READ getMessageSourceId WRITE setMessageSourceId)
 
    /// Hide style sheet from designer as style calculation by the styleManager
    /// and not directly setable per se.
@@ -312,11 +315,11 @@ public:
 public:
    /// Sets if this widget subscribes for data updates and displays current data.
    /// Default is 'true' (subscribes for and displays data updates)
-   Q_PROPERTY(bool subscribe READ getSubscribe WRITE setSubscribe)
+   Q_PROPERTY (bool subscribe READ getSubscribe WRITE setSubscribe)
 
    /// Allow updated while widget has focus - defaults to false
    ///
-   Q_PROPERTY( bool allowFocusUpdate READ getAllowFocusUpdate WRITE setAllowFocusUpdate )
+   Q_PROPERTY (bool allowFocusUpdate READ getAllowFocusUpdate WRITE setAllowFocusUpdate)
 public:
    //=================================================================================
    Q_PROPERTY(bool writeOnChange READ getWriteOnChange WRITE setWriteOnChange)
@@ -340,7 +343,7 @@ public:
    // Enables/disabled auto step size.
    // The default is false, i.e. disabled.
    //
-   Q_PROPERTY(bool autoStepSize READ getAutoStepSize WRITE setAutoStepSize )
+   Q_PROPERTY(bool autoStepSize READ getAutoStepSize WRITE setAutoStepSize)
 
    // Make the value property non-designable. This both hides the property value
    // within designer and stops the value from being written to the .ui file.

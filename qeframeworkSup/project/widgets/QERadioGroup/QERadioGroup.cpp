@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2014-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2014-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -124,8 +124,8 @@ void QERadioGroup::commonSetup (const QString& title)
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   this->connectNewVariableNameProperty
-         (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+   this->connectPvNameProperties
+         (SLOT (usePvNameProperties (const QEPvNameProperties&)));
 
    // Set up a connection to recieve variable name property changes
    // The variable name property manager class only delivers an updated
@@ -133,8 +133,8 @@ void QERadioGroup::commonSetup (const QString& title)
    //
    this->titleVnpm.setVariableIndex (titleVariableIndex);
    QObject::connect
-       (&this->titleVnpm, SIGNAL (newVariableNameProperty  (QString, QString, unsigned int)),
-        this,             SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+       (&this->titleVnpm, SIGNAL (newPvNameProperties (const QEPvNameProperties&)),
+        this,             SLOT   (usePvNameProperties (const QEPvNameProperties&)));
 
    this->setSubstitutedTitleProperty (title);
 
@@ -178,11 +178,11 @@ bool QERadioGroup::eventFilter (QObject* watched, QEvent* event)
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of
-// QCaObject required. A QCaObject that streams integers is required.
+// QEChannel required. A QEChannel that streams integers is required.
 //
-qcaobject::QCaObject* QERadioGroup::createQcaItem (unsigned int variableIndex)
+QEChannel* QERadioGroup::createQcaItem (unsigned int variableIndex)
 {
-   qcaobject::QCaObject* result = NULL;
+   QEChannel* result = NULL;
 
    switch (variableIndex) {
 
@@ -227,25 +227,25 @@ void QERadioGroup::activated ()
 //
 void QERadioGroup::establishConnection (unsigned int variableIndex)
 {
-   qcaobject::QCaObject* qca = NULL;
+   QEChannel* qca = NULL;
 
    switch (variableIndex) {
 
       case pvVariableIndex:
          // Create a connection.
-         // If successfull, the QCaObject object that will supply data update signals will be returned
-         // Note createConnection creates the connection and returns reference to existing QCaObject.
+         // If successfull, the QEChannel object that will supply data update signals will be returned
+         // Note createConnection creates the connection and returns reference to existing QEChannel.
          //
          qca = this->createConnection (variableIndex);
 
-         // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots.
+         // If a QEChannel object is now available to supply data update signals, connect it to the appropriate slots.
          //
          if (qca) {
-            QObject::connect (qca,  SIGNAL (connectionChanged (QCaConnectionInfo&, const unsigned int&)),
-                              this, SLOT   (connectionChanged (QCaConnectionInfo&, const unsigned int&)));
+            QObject::connect (qca,  SIGNAL (valueUpdated (const QEIntegerValueUpdate&)),
+                              this, SLOT   (valueUpdate  (const QEIntegerValueUpdate&)));
 
-            QObject::connect (qca,  SIGNAL (integerChanged (const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                              this, SLOT   (valueUpdate    (const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+            QObject::connect (qca,  SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                              this, SLOT   (connectionUpdated (const QEConnectionUpdate&)));
          }
          break;
 
@@ -262,24 +262,23 @@ void QERadioGroup::establishConnection (unsigned int variableIndex)
 //------------------------------------------------------------------------------
 // Act on a connection change.
 // Change how the s looks and change the tool tip
-// This is the slot used to recieve connection updates from a QCaObject based class.
+// This is the slot used to recieve connection updates from a QEChannel based class.
 //
-void QERadioGroup::connectionChanged (QCaConnectionInfo& connectionInfo,
-                                      const unsigned int& variableIndex)
+void QERadioGroup::connectionUpdated (const QEConnectionUpdate& update)
 {
-   bool isConnected;
+   const unsigned int vi = update.variableIndex;
 
    // Note the connected state
    //
-   isConnected = connectionInfo.isChannelConnected ();
+   const bool isConnected = update.connectionInfo.isChannelConnected ();
 
    // Display the connected state
    // Note: only one/first "variable" is a PV. Modify the tool tip class object
    //       to only display actual PV name and connection status.
    //
    this->setNumberToolTipVariables (1);
-   this->updateToolTipConnection (isConnected, variableIndex);
-   this->processConnectionInfo (isConnected, variableIndex);
+   this->updateToolTipConnection (isConnected, vi);
+   this->processConnectionInfo (isConnected, vi);
 
    this->internalWidget->setEnabled (isConnected);
 
@@ -291,7 +290,7 @@ void QERadioGroup::connectionChanged (QCaConnectionInfo& connectionInfo,
    //
    this->setAccessCursorStyle ();
 
-   if (variableIndex == pvVariableIndex) {
+   if (vi == pvVariableIndex) {
       // Signal channel connection change to any (Link) widgets.
       // using signal dbConnectionChanged.
       //
@@ -301,38 +300,34 @@ void QERadioGroup::connectionChanged (QCaConnectionInfo& connectionInfo,
 
 //-----------------------------------------------------------------------------
 //
-void QERadioGroup::valueUpdate (const long &value,
-                                QCaAlarmInfo & alarmInfo,
-                                QCaDateTime &,
-                                const unsigned int &variableIndex)
+void QERadioGroup::valueUpdate (const QEIntegerValueUpdate& update)
 {
-   int selectedIndex = -1;
+   const unsigned int vi = update.variableIndex;
 
-   if (variableIndex != pvVariableIndex) {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+   if (vi != pvVariableIndex) {
+      DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
    // Get the associate channel object.
    //
-   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   QEChannel* qca = this->getQcaItem (vi);
    if (!qca) return;   // sanity check
-
-   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
 
    // If and only iff first/meta update (for this connection) then use enumeration
    // values to re-populate the radio group.
    //
-   if (isMetaDataUpdate) {
+   if (update.isMetaUpdate) {
       this->setRadioGroupText ();
    }
 
    // Set and save the selected index value.
    //
-   this->currentIndex = value;
+   this->currentIndex = update.value;
 
-   if (this->valueIndexMap.containsF (value)) {
-      selectedIndex = this->valueIndexMap.valueF (value, -1);
+   int selectedIndex = -1;
+   if (this->valueIndexMap.containsF (update.value)) {
+      selectedIndex = this->valueIndexMap.valueF (update.value, -1);
    } else {
       // We haven't mapped this value - use hidden selection.
       // This will uncheck all the "real" buttons.
@@ -345,7 +340,7 @@ void QERadioGroup::valueUpdate (const long &value,
    // Only first "variable" is a PV.
    //
    this->setNumberToolTipVariables (1);
-   this->processAlarmInfo (alarmInfo, variableIndex);
+   this->processAlarmInfo (update.alarmInfo, vi);
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged.
@@ -359,7 +354,7 @@ void QERadioGroup::valueUpdate (const long &value,
 //
 void QERadioGroup::setRadioGroupText ()
 {
-   qcaobject::QCaObject* qca = NULL;
+   QEChannel* qca = NULL;
    QStringList enumerations;
    QString text;
    bool isMatch;
@@ -386,7 +381,6 @@ void QERadioGroup::setRadioGroupText ()
       }
 
    } else {
-
       // Build up enumeration list using the local enumerations.  This may be
       // sparce: e.g.: 1 => Red, 5 => Blue, 63 => Green.  We create a reverse
       // map 0 => 1; 1 => 5; 2 => 63 so that when user selects the an element,
@@ -583,16 +577,16 @@ int QERadioGroup::getCurrentIndex () const
 
 //------------------------------------------------------------------------------
 //
-void QERadioGroup::useNewVariableNameProperty (QString variableName,
-                                               QString substitutions,
-                                               unsigned int variableIndex)
+void QERadioGroup::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
-   this->setVariableNameAndSubstitutions (variableName, substitutions, variableIndex);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 
    // Both the variable name and the title use the same useNewVariableNameProperty slot.
    //
-   if (variableIndex == titleVariableIndex) {
-      QString title = this->getSubstitutedVariableName (variableIndex);
+   if (pvNameProperties.index == titleVariableIndex) {
+      const QString title = this->getSubstitutedVariableName (titleVariableIndex);
       this->internalWidget->setOwnTitle (title);
    }
 }

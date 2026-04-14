@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2018-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2018-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -15,7 +15,6 @@
 #include <alarm.h>
 #include <QDebug>
 #include <QECommon.h>
-#include <QCaObject.h>
 #include <QEStringFormatting.h>
 
 #define DEBUG qDebug () << "QELCDNumber" << __LINE__ << __FUNCTION__ << "  "
@@ -111,22 +110,22 @@ void QELCDNumber::setup ()
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   const char* slot = SLOT (useNewVariableNameProperty (QString, QString, unsigned int));
-   this->connectNewVariableNameProperty (slot);
+   const char* slot = SLOT (usePvNameProperties (const QEPvNameProperties&));
+   this->connectPvNameProperties (slot);
 }
 
 //------------------------------------------------------------------------------
-// Implementation of QEWidget's virtual funtion to create the specific type of QCaObject required.
-// For a progress bar a QCaObject that streams integers is required.
+// Implementation of QEWidget's virtual funtion to create the specific type of QEChannel required.
+// For a progress bar a QEChannel that streams integers is required.
 //
-qcaobject::QCaObject* QELCDNumber::createQcaItem (unsigned int variableIndex)
+QEChannel* QELCDNumber::createQcaItem (unsigned int variableIndex)
 {
    if (variableIndex != PV_VARIABLE_INDEX) return NULL;  // sanity check
 
-   qcaobject::QCaObject* result = NULL;
+   QEChannel* result = NULL;
 
-   result = new QEFloating (getSubstitutedVariableName (variableIndex), this,
-                            &this->floatingFormatting, variableIndex);
+   const QString pvName = this->getSubstitutedVariableName (variableIndex);
+   result = new QEFloating (pvName, this, &this->floatingFormatting, variableIndex);
 
    // Apply currently defined array index and elements request values.
    //
@@ -146,73 +145,70 @@ void QELCDNumber::establishConnection (unsigned int variableIndex)
    if (variableIndex != PV_VARIABLE_INDEX) return;  // sanity check
 
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   // Note createConnection creates the connection and returns reference to existing QCaObject.
+   // If successfull, the QEChannel object that will supply data update signals will be returned
+   // Note createConnection creates the connection and returns reference to existing QEChannel.
    //
-   qcaobject::QCaObject* qca = this->createConnection (variableIndex);
+   QEChannel* qca = this->createConnection (variableIndex);
 
-   // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots.
+   // If a QEChannel object is now available to supply data update signals, connect it to the appropriate slots.
    //
    if ((qca) && (variableIndex == PV_VARIABLE_INDEX)) {
-      QObject::connect (qca,  SIGNAL (floatingChanged (const double &, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)),
-                        this, SLOT   (setPvValue      (const double &, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)));
+      QObject::connect (qca,  SIGNAL (valueUpdated (const QEFloatingValueUpdate&)),
+                        this, SLOT   (setPvValue   (const QEFloatingValueUpdate&)));
 
-      QObject::connect (qca, SIGNAL (connectionChanged (QCaConnectionInfo &,const unsigned int&)),
-                        this, SLOT  (connectionChanged (QCaConnectionInfo &,const unsigned int&)));
+      QObject::connect (qca, SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                        this, SLOT  (connectionUpdated (const QEConnectionUpdate&)));
    }
 }
-
 
 //------------------------------------------------------------------------------
 // Act on a connection change.
 // Change how the widget looks and change the tool tip
-// This is the slot used to recieve connection updates from a QCaObject based class.
+// This is the slot used to recieve connection updates from a QEChannel based class.
 //
-void QELCDNumber::connectionChanged (QCaConnectionInfo& connectionInfo,
-                                     const unsigned int& variableIndex)
+void QELCDNumber::connectionUpdated (const QEConnectionUpdate& update)
 {
-   if (variableIndex != PV_VARIABLE_INDEX) return;  // sanity check
+   const unsigned int vi = update.variableIndex;
+
+   if (vi != PV_VARIABLE_INDEX) return;  // sanity check
 
    // Note the connected state
    //
-   const bool isConnected = connectionInfo.isChannelConnected ();
+   const bool isConnected = update.connectionInfo.isChannelConnected ();
 
    // We can do this on connect as well as disconnect.
    //
    this->lastValue = QVariant ();
 
    // Display the connected state
-   this->updateToolTipConnection (isConnected, variableIndex);
+   this->updateToolTipConnection (isConnected, vi);
 
    // Change style to reflect being connected/disconnected.
    //
-   this->processConnectionInfo (isConnected, variableIndex);
+   this->processConnectionInfo (isConnected, vi);
 
    // Signal channel connection change to any (Link) widgets.
    // using signal dbConnectionChanged.
    //
-   this->emitDbConnectionChanged (variableIndex);
+   this->emitDbConnectionChanged (vi);
 }
 
 //------------------------------------------------------------------------------
-// Update the progress bar value
-// This is the slot used to recieve data updates from a QCaObject based class.
+// Update the LCD Number value
+// This is the slot used to recieve data updates from a QEChannel based class.
 //
-void QELCDNumber::setPvValue (const double& value,
-                              QCaAlarmInfo& alarmInfo,
-                              QCaDateTime&,
-                              const unsigned int& variableIndex)
+void QELCDNumber::setPvValue (const QEFloatingValueUpdate& update)
 {
-   if (variableIndex != PV_VARIABLE_INDEX) return;  // sanity check
+   const unsigned int vi = update.variableIndex;
+
+   if (vi != PV_VARIABLE_INDEX) return;  // sanity check
 
    // Associated qca object - avoid the segmentation fault.
    //
-   qcaobject::QCaObject* qca = getQcaItem (variableIndex);
+   QEChannel* qca = getQcaItem (vi);
    if (!qca) return;   // sanity check
 
-   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
-
-   if (isMetaDataUpdate) {
+   if (update.isMetaUpdate) {
       // Set up variable details used by some formatting options
       //
       this->stringFormatting.setAddUnits (false);   // strictly numeric
@@ -221,7 +217,7 @@ void QELCDNumber::setPvValue (const double& value,
 
    // Form and save the image - must do before call to setValue.
    //
-   QString theImage = this->stringFormatting.formatString (value, this->getArrayIndex());
+   QString theImage = this->stringFormatting.formatString (update.value, this->getArrayIndex());
 
    int digitCount = theImage.length ();   // minimum required
 
@@ -240,26 +236,26 @@ void QELCDNumber::setPvValue (const double& value,
 
    this->internalWidget->setDigitCount (digitCount);
    this->internalWidget->display (theImage);
-   this->lastValue = QVariant (double (value));
+   this->lastValue = QVariant (double (update.value));
 
    // Invoke common alarm handling processing.
    //
-   this->processAlarmInfo (alarmInfo, variableIndex);
+   this->processAlarmInfo (update.alarmInfo, vi);
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged signals declared in header file.
    //
-   this->emitDbValueChanged (variableIndex);
+   this->emitDbValueChanged (vi);
 }
 
 //------------------------------------------------------------------------------
 // Update variable name etc.
 //
-void QELCDNumber::useNewVariableNameProperty (QString pvName,
-                                              QString subs,
-                                              unsigned int pvi)
+void QELCDNumber::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
-   this->setVariableNameAndSubstitutions (pvName, subs, pvi);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 //==============================================================================

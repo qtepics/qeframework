@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2020-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2020-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -145,20 +145,20 @@ void QEAbstract2DData::commonSetup ()
    this->dnpm.setVariableIndex (DATA_PV_INDEX);
    this->wnpm.setVariableIndex (WIDTH_PV_INDEX);
 
-   QObject::connect(&this->dnpm, SIGNAL (newVariableNameProperty (QString, QString, unsigned int)),
-                    this,        SLOT   (setVariableNameProperty (QString, QString, unsigned int)));
+   QObject::connect(&this->dnpm, SIGNAL (newPvNameProperties (const QEPvNameProperties&)),
+                    this,        SLOT   (usePvNameProperties (const QEPvNameProperties&)));
 
-   QObject::connect(&this->wnpm, SIGNAL (newVariableNameProperty (QString, QString, unsigned int)),
-                    this,        SLOT   (setVariableNameProperty (QString, QString, unsigned int)));
+   QObject::connect(&this->wnpm, SIGNAL (newPvNameProperties (const QEPvNameProperties&)),
+                    this,        SLOT   (usePvNameProperties (const QEPvNameProperties&)));
 }
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of
 // QCaObject's required.
 //
-qcaobject::QCaObject* QEAbstract2DData::createQcaItem (unsigned int vi)
+QEChannel* QEAbstract2DData::createQcaItem (unsigned int vi)
 {
-   qcaobject::QCaObject* result = NULL;
+   QEChannel* result = NULL;
    QString pvName;
 
    switch (vi) {
@@ -189,29 +189,28 @@ qcaobject::QCaObject* QEAbstract2DData::createQcaItem (unsigned int vi)
 //
 void QEAbstract2DData::establishConnection (unsigned int vi)
 {
-   qcaobject::QCaObject* qca = NULL;
+   QEChannel* qca = NULL;
 
    switch (vi) {
       case DATA_PV_INDEX:
          qca = this->createConnection (vi);
          if (!qca) break;
 
-         QObject::connect (qca,  SIGNAL (connectionChanged (QCaConnectionInfo &, const unsigned int& )),
-                           this, SLOT   (connectionChanged (QCaConnectionInfo &, const unsigned int& )));
+         QObject::connect (qca,  SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                           this, SLOT   (connectionUpdated (const QEConnectionUpdate&)));
 
-         QObject::connect (qca, SIGNAL (floatingArrayChanged (const QVector <double>&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                           this,  SLOT (onDataArrayUpdate    (const QVector <double>&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+         QObject::connect (qca, SIGNAL (arrayUpdated      (const QEFloatingArrayUpdate&)),
+                           this,  SLOT (onDataArrayUpdate (const QEFloatingArrayUpdate&)));
          break;
 
       case WIDTH_PV_INDEX:
          qca = this->createConnection (vi);
          if (!qca) break;
+         QObject::connect (qca,  SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                           this, SLOT   (connectionUpdated (const QEConnectionUpdate&)));
 
-         QObject::connect (qca,  SIGNAL (connectionChanged (QCaConnectionInfo &, const unsigned int& )),
-                           this, SLOT   (connectionChanged (QCaConnectionInfo &, const unsigned int& )));
-
-         QObject::connect (qca,  SIGNAL (integerChanged (const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                           this, SLOT   (onWidthUpdate  (const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+         QObject::connect (qca,  SIGNAL (valueUpdated  (const QEIntegerValueUpdate&)),
+                           this, SLOT   (onWidthUpdate (const QEIntegerValueUpdate&)));
          break;
 
       default:
@@ -410,7 +409,7 @@ void QEAbstract2DData::getDataMinMaxValues (double& min, double& max) const
 //
 void QEAbstract2DData::getScaleModeMinMaxValues (double& min, double& max) const
 {
-   qcaobject::QCaObject* qca = NULL;
+   QEChannel* qca = NULL;
    double lopr;
    double hopr;
 
@@ -474,7 +473,7 @@ void QEAbstract2DData::getNumberRowsAndCols (int& numberRows, int& numberCols) c
 QString QEAbstract2DData::getUnits() const
 {
    QString result = "";
-   qcaobject::QCaObject* qca = this->getQcaItem (DATA_PV_INDEX);
+   QEChannel* qca = this->getQcaItem (DATA_PV_INDEX);
    if (qca) {
       result = qca->getEgu();
    }
@@ -486,7 +485,7 @@ QString QEAbstract2DData::getUnits() const
 int QEAbstract2DData::getPrecision() const
 {
    int result = 0;
-   qcaobject::QCaObject* qca = this->getQcaItem (DATA_PV_INDEX);
+   QEChannel* qca = this->getQcaItem (DATA_PV_INDEX);
    if (qca) {
       result = qca->getPrecision();
    }
@@ -520,7 +519,7 @@ void QEAbstract2DData::setMouseOverElement (const int displayRow, const int disp
       //
       QString message;
       if (value != noValue) {
-         qcaobject::QCaObject* qca;
+         QEChannel* qca;
          QString egu = "";
 
          qca = this->getQcaItem (DATA_PV_INDEX);
@@ -728,16 +727,18 @@ void QEAbstract2DData::calculateDataVisulationValues()
 
 //==============================================================================
 // Slots
-void QEAbstract2DData::setVariableNameProperty (QString pvName,
-                                                QString subs,
-                                                unsigned int vi)
+void QEAbstract2DData::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
+   const unsigned int vi = pvNameProperties.index ;
+
    if ((vi != DATA_PV_INDEX) && (vi != WIDTH_PV_INDEX)) {
       DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
-   this->setVariableNameAndSubstitutions (pvName, subs, vi);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 //------------------------------------------------------------------------------
@@ -745,9 +746,10 @@ void QEAbstract2DData::setVariableNameProperty (QString pvName,
 // We don't chage the style - the inner widgets can to that.
 // This is the slot used to recieve connection updates from a QCaObject based class.
 //
-void QEAbstract2DData::connectionChanged (QCaConnectionInfo& connectionInfo,
-                                          const unsigned int& vi)
+void QEAbstract2DData::connectionUpdated (const QEConnectionUpdate& update)
 {
+   const unsigned int vi = update.variableIndex;
+
    if ((vi != DATA_PV_INDEX) && (vi != WIDTH_PV_INDEX)) {
       DEBUG << "unexpected variableIndex" << vi;
       return;
@@ -755,7 +757,7 @@ void QEAbstract2DData::connectionChanged (QCaConnectionInfo& connectionInfo,
 
    // Note the connected state.
    //
-   bool isConnected = connectionInfo.isChannelConnected ();
+   bool isConnected = update.connectionInfo.isChannelConnected ();
 
    // Display the connected state.
    //
@@ -775,7 +777,7 @@ void QEAbstract2DData::connectionChanged (QCaConnectionInfo& connectionInfo,
          break;
 
       case WIDTH_PV_INDEX:
-         this->pvDataWidthAvailable = false;
+         this->pvDataWidthAvailable = false;   // until we know better
          this->updateCount = 0;
          break;
    }
@@ -785,16 +787,16 @@ void QEAbstract2DData::connectionChanged (QCaConnectionInfo& connectionInfo,
 
 //------------------------------------------------------------------------------
 //
-void QEAbstract2DData::onDataArrayUpdate (const QVector<double>& values,
-                                          QCaAlarmInfo& alarmInfo,
-                                          QCaDateTime&, const unsigned int& vi)
+void QEAbstract2DData::onDataArrayUpdate (const QEFloatingArrayUpdate update)
 {
+   const unsigned int vi = update.variableIndex;
+
    if (vi != DATA_PV_INDEX) {
       DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
-   QEFloatingArray data (values);
+   QEFloatingArray data (update.values);
    this->data.append (data);
 
    int number = (this->mDataFormat == array2D) ? 1 : this->mNumberOfSets;
@@ -808,7 +810,7 @@ void QEAbstract2DData::onDataArrayUpdate (const QVector<double>& values,
 
    // Invoke common alarm handling processing.
    //
-   this->processAlarmInfo (alarmInfo);
+   this->processAlarmInfo (update.alarmInfo);
 
    // Signal a database value change to any Link (or other) widgets using
    // the dbValueChanged signal.
@@ -818,15 +820,16 @@ void QEAbstract2DData::onDataArrayUpdate (const QVector<double>& values,
 
 //------------------------------------------------------------------------------
 //
-void QEAbstract2DData::onWidthUpdate (const long value, QCaAlarmInfo& alarmInfo,
-                                      QCaDateTime&, const unsigned int& vi)
+void QEAbstract2DData::onWidthUpdate (const QEIntegerValueUpdate& update)
 {
+   const unsigned int vi = update.variableIndex;
+
    if (vi != WIDTH_PV_INDEX) {
       DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
-   int temp = MAX (1, value);  // Ensure strictly positive.
+   int temp = MAX (1, update.value);  // Ensure strictly positive.
 
    // Update image iff value has changes.
    //
@@ -838,7 +841,7 @@ void QEAbstract2DData::onWidthUpdate (const long value, QCaAlarmInfo& alarmInfo,
 
    // Update the tool tip for this PV, but not general widget alarm state.
    //
-   this->updateToolTipAlarm (alarmInfo, vi);
+   this->updateToolTipAlarm (update.alarmInfo, vi);
 
    // Signal a database value change to any Link (or other) widgets using
    // the dbValueChanged signal.

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2015-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2015-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -19,7 +19,7 @@
 
 #include <QECommon.h>
 #include <QEPlatform.h>
-#include <QCaObject.h>
+#include <QEChannel.h>
 #include <QEWidget.h>
 
 #include <QEEmitter.h>
@@ -99,7 +99,7 @@ void QEEmitter::emitDbConnectionChanged (const unsigned int variableIndex)
    if (!meta) return;
 
    if (!this->qew) return;
-   qcaobject::QCaObject* qca = this->qew->getQcaItem (variableIndex);
+   QEChannel* qca = this->qew->getQcaItem (variableIndex);
    if (!qca) return;
 
    // Passed the sainity checks - let's start in earnest.
@@ -129,7 +129,7 @@ void QEEmitter::emitDbValueChangedPrivate (const bool useFormmattedText,
    if (!meta) return;
 
    if (!this->qew) return;
-   qcaobject::QCaObject* qca = this->qew->getQcaItem (variableIndex);
+   QEChannel* qca = this->qew->getQcaItem (variableIndex);
    if (!qca) return;
 
    // Are signals inhibited?

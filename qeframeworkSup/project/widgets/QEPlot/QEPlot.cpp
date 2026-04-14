@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Author: Glenn Jackson
@@ -407,13 +407,13 @@ void QEPlot::setup ()
 
       vnpm = &this->traces[i]->dnpm;
       vnpm->setVariableIndex (i);
-      QObject::connect (vnpm, SIGNAL (newVariableNameProperty    (QString, QString, unsigned int)),
-                        this, SLOT   (useNewVariableNameProperty (QString, QString, unsigned int)));
+      QObject::connect (vnpm, SIGNAL (newPvNameProperties (const QEPvNameProperties&)),
+                        this, SLOT   (usePvNameProperties (const QEPvNameProperties&)));
 
       vnpm = &this->traces[i]->snpm;
       vnpm->setVariableIndex (i + QEPLOT_NUM_PLOTS);
-      QObject::connect (vnpm, SIGNAL (newVariableNameProperty    (QString, QString, unsigned int)),
-                        this, SLOT   (useNewVariableNameProperty (QString, QString, unsigned int)));
+      QObject::connect (vnpm, SIGNAL (newPvNameProperties (const QEPvNameProperties&)),
+                        this, SLOT   (usePvNameProperties (const QEPvNameProperties&)));
    }
 }
 
@@ -605,16 +605,16 @@ void QEPlot::contextMenuTriggered (int selectedItemNum)
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of
-// QCaObject required. For a strip chart a QCaObject that streams floating point
+// QEChannel required. For a strip chart a QEChannel that streams floating point
 // data is required.
 //
-qcaobject::QCaObject* QEPlot::createQcaItem (unsigned int vi)
+QEChannel* QEPlot::createQcaItem (unsigned int vi)
 {
    PV_INDEX_CHECK (vi, NULL);
 
    const QString pvName = this->getSubstitutedVariableName (vi);
 
-   qcaobject::QCaObject* result;
+   QEChannel* result;
 
    if (vi < QEPLOT_NUM_PLOTS) {
       // Create the item as a QEFloating
@@ -644,10 +644,10 @@ void QEPlot::establishConnection (unsigned int vi)
 {
    PV_INDEX_CHECK (vi,);
 
-   // Create a connection. If successfull, the QCaObject object that will
+   // Create a connection. If successfull, the QEChannel object that will
    // supply data update signals will be returned.
    //
-   qcaobject::QCaObject* qca = this->createConnection (vi);
+   QEChannel* qca = this->createConnection (vi);
    if (!qca) return;         // sanity check.
 
    if (vi < QEPLOT_NUM_PLOTS) {
@@ -659,51 +659,52 @@ void QEPlot::establishConnection (unsigned int vi)
       tr->isInUse = true;        // Controlled soley by the data variable.
    }
 
-   // If a QCaObject object is now available to supply data update signals,
+   // If a QEChannel object is now available to supply data update signals,
    // connect it to the appropriate slots
    //
    if (vi < QEPLOT_NUM_PLOTS) {
       // Must be the data variable - capture both scalars and arrays
       //
-      QObject::connect (qca, SIGNAL (floatingArrayChanged (const QVector <double>&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                        this,  SLOT (setPlotData          (const QVector <double>&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
-      QObject::connect (qca, SIGNAL (floatingChanged      (const double, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                        this,  SLOT (setPlotData          (const double, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+      QObject::connect (qca, SIGNAL (arrayUpdated (const QEFloatingArrayUpdate&)),
+                        this,  SLOT (setPlotData  (const QEFloatingArrayUpdate&)));
+      QObject::connect (qca, SIGNAL (valueUpdated (const QEFloatingValueUpdate&)),
+                        this,  SLOT (setPlotData  (const QEFloatingValueUpdate&)));
    } else {
       // Must be the size variable.
       //
-      QObject::connect (qca, SIGNAL (integerChanged       (const long, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                        this,  SLOT (setSizeData          (const long, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+      QObject::connect (qca, SIGNAL (valueUpdated (const QEIntegerValueUpdate&)),
+                        this,  SLOT (setSizeData  (const QEIntegerValueUpdate&)));
    }
 
-   QObject::connect (qca, SIGNAL (connectionChanged    (QCaConnectionInfo&, const unsigned int&)),
-                     this,  SLOT (connectionChanged    (QCaConnectionInfo&, const unsigned int&)));
+   QObject::connect (qca, SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                     this,  SLOT (connectionUpdated (const QEConnectionUpdate&)));
 }
 
 //------------------------------------------------------------------------------
 // Act on a connection change.
 // Change how the strip chart looks and change the tool tip
-// This is the slot used to recieve connection updates from a QCaObject based class.
+// This is the slot used to recieve connection updates from a QEChannel based class.
 //
-void QEPlot::connectionChanged (QCaConnectionInfo& connectionInfo,
-                                const unsigned int& variableIndex)
+void QEPlot::connectionUpdated (const QEConnectionUpdate& update)
 {
-   PV_INDEX_CHECK (variableIndex,);
+   const unsigned int vi = update.variableIndex;
+
+   PV_INDEX_CHECK (vi,);
 
    // Select the curve/trace information for this variable
    //
-   Trace* tr = this->traces[variableIndex % QEPLOT_NUM_PLOTS];
+   Trace* tr = this->traces[vi % QEPLOT_NUM_PLOTS];
    if (!tr) return;             // sanity check.
 
-   // Note the connected state
+   // Note the connected state.
    //
-   bool isConnected = connectionInfo.isChannelConnected ();
+   bool isConnected = update.connectionInfo.isChannelConnected ();
 
    // Display the connected state.
    //
-   this->updateToolTipConnection (isConnected, variableIndex);
+   this->updateToolTipConnection (isConnected, vi);
 
-   if (variableIndex >= QEPLOT_NUM_PLOTS) {
+   if (vi >= QEPLOT_NUM_PLOTS) {
       // Must be the size PV
       // Either way (a connect or a disconnet), reset the data size
       //
@@ -747,21 +748,22 @@ void QEPlot::connectionChanged (QCaConnectionInfo& connectionInfo,
 
    this->replotIsRequired = true;
 
-   this->processConnectionInfo (isNone || isConnected, variableIndex);
+   this->processConnectionInfo (isNone || isConnected, vi);
 }
 
 //------------------------------------------------------------------------------
 // Update the plotted data with a new single value
-// This is a slot used to recieve data updates from a QCaObject based class.
+// This is a slot used to recieve data updates from a QEChannel based class.
 //
-void QEPlot::setPlotData (const double value, QCaAlarmInfo& alarmInfo,
-                          QCaDateTime& timestamp, const unsigned int& variableIndex)
+void QEPlot::setPlotData (const QEFloatingValueUpdate& update)
 {
-   DATA_INDEX_CHECK (variableIndex,);
+   const unsigned int vi = update.variableIndex;
+
+   DATA_INDEX_CHECK (vi,);
 
    // Select the curve/trace information for this variable
    //
-   Trace* tr = this->traces[variableIndex];
+   Trace* tr = this->traces[vi];
    if (!tr) return;      // sanity check.
 
 
@@ -790,14 +792,14 @@ void QEPlot::setPlotData (const double value, QCaAlarmInfo& alarmInfo,
    QCaDataPoint point;
 
    const bool isLogScale = this->getLogScale();
-   double v = value;
+   double v = update.value;
    if (this->yAxisAutoScale && isLogScale) {
       // When auto scale and log scale, clamp using yMin.
       v = MAX (v, this->yMin);
    }
 
    point.value = v;
-   point.alarm = alarmInfo;
+   point.alarm = update.alarmInfo;
 
    // If the date is more than a wisker into the future, limit it.
    // This will happen if the source is on another machine with an incorrect time.
@@ -807,6 +809,7 @@ void QEPlot::setPlotData (const double value, QCaAlarmInfo& alarmInfo,
    // this last point will be before this actual data point.
    //
    QCaDateTime ct = QCaDateTime::currentDateTime ().toUTC();
+   QCaDateTime timestamp = update.timeStamp;   // own copy
    double tsDiff = ct.secondsTo (timestamp);
    if (tsDiff > 0.1) {
       timestamp = ct.addMSecs (100);
@@ -830,26 +833,26 @@ void QEPlot::setPlotData (const double value, QCaAlarmInfo& alarmInfo,
 
    // The data is now ready to plot
    //
-   this->setAlarmInfoCommon (alarmInfo, variableIndex);
+   this->setAlarmInfoCommon (update.alarmInfo, vi);
 
    // Signal a database value change to any Link widgets.
    //
-   emit dbValueChanged (value);
+   emit dbValueChanged (update.value);
 }
 
 //------------------------------------------------------------------------------
 // Update the plotted data with a new array of values
-// This is a slot used to recieve data updates from a QCaObject based class.
+// This is a slot used to recieve data updates from a QEChannel based class.
 //
-void QEPlot::setPlotData (const QVector <double>& values,
-                          QCaAlarmInfo& alarmInfo, QCaDateTime&,
-                          const unsigned int& variableIndex)
+void QEPlot::setPlotData (const QEFloatingArrayUpdate& update)
 {
-   DATA_INDEX_CHECK (variableIndex,);
+   const unsigned int vi = update.variableIndex;
+
+   DATA_INDEX_CHECK (vi,);
 
    // Select the curve/trace information for this variable
    //
-   Trace* tr = this->traces[variableIndex];
+   Trace* tr = this->traces[vi];
 
    if (!tr) return;     // sanity check.
 
@@ -857,7 +860,7 @@ void QEPlot::setPlotData (const QVector <double>& values,
    // manages scalar data, so decide if we are plotting scalar or array data and
    // do nothing more here if plotting scalar data.
    //
-   tr->isWaveform = (values.count () > 1);
+   tr->isWaveform = (update.values.count () > 1);
    if (!tr->isWaveform) {
       return;
    }
@@ -875,8 +878,8 @@ void QEPlot::setPlotData (const QVector <double>& values,
    tr->ydata.clear ();
 
    const bool isLogScale = this->getLogScale();
-   for (int i = 0; i < values.count (); i++) {
-      double v = values[i];
+   for (int i = 0; i < update.values.count (); i++) {
+      double v = update.values[i];
       if (this->yAxisAutoScale && isLogScale) {
          // When auto scale and log scale, clamp using yMin
          v = MAX (v, this->yMin);
@@ -888,18 +891,19 @@ void QEPlot::setPlotData (const QVector <double>& values,
    //
    this->replotIsRequired = true;
 
-   this->setAlarmInfoCommon (alarmInfo, variableIndex);
+   this->setAlarmInfoCommon (update.alarmInfo, vi);
 
    // Signal a database value change to any Link or similar widgets
    //
-   emit dbValueChanged (values);
+   emit dbValueChanged (update.values);
 }
 
 //------------------------------------------------------------------------------
 //
-void QEPlot::setSizeData (const long value, QCaAlarmInfo& alarmInfo,
-                          QCaDateTime&, const unsigned int& vi)
+void QEPlot::setSizeData (const QEIntegerValueUpdate& update)
 {
+   const unsigned int vi = update.variableIndex;
+
    SIZE_INDEX_CHECK (vi,);
 
    // Select the curve/trace information for this variable
@@ -907,25 +911,25 @@ void QEPlot::setSizeData (const long value, QCaAlarmInfo& alarmInfo,
    Trace* tr = this->traces[vi % QEPLOT_NUM_PLOTS];
    if (!tr) return;     // sanity check.
 
-   bool valueDefined = !alarmInfo.isInvalid();
+   bool valueDefined = !update.alarmInfo.isInvalid();
 
    // Has it effectively changed state?
    //
    if ((tr->dataSizeDefined != valueDefined) ||
-       (valueDefined && (tr->dataSize != value))) {
-      tr->dataSize = value;
+       (valueDefined && (tr->dataSize != update.value))) {
+      tr->dataSize = update.value;
       tr->dataSizeDefined = valueDefined;
       this->replotIsRequired = true;
    }
 
    // Update the tool tip for this PV, but not general widget alarm state.
    //
-   this->updateToolTipAlarm (alarmInfo, vi);
+   this->updateToolTipAlarm (update.alarmInfo, vi);
 }
 
 //------------------------------------------------------------------------------
 //
-void QEPlot::setAlarmInfoCommon (QCaAlarmInfo& alarmInfo,
+void QEPlot::setAlarmInfoCommon (const QCaAlarmInfo& alarmInfo,
                                  const unsigned int variableIndex)
 {
    PV_INDEX_CHECK (variableIndex,);
@@ -1274,8 +1278,10 @@ void QEPlot::tickTimeout ()
 //------------------------------------------------------------------------------
 // Set variable name
 //
-void QEPlot::useNewVariableNameProperty (QString pvName, QString subs, unsigned int vi)
+void QEPlot::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
+   const unsigned int vi = pvNameProperties.index;
+
    PV_INDEX_CHECK (vi,);
 
    if (vi < QEPLOT_NUM_PLOTS) {
@@ -1285,7 +1291,9 @@ void QEPlot::useNewVariableNameProperty (QString pvName, QString subs, unsigned 
       tr->reset();
    }
 
-   this->setVariableNameAndSubstitutions (pvName, subs, vi);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 //------------------------------------------------------------------------------

@@ -34,7 +34,7 @@
 
 #define DEBUG qDebug() << "QEPvProperties" << __LINE__ << __FUNCTION__ << "  "
 
-// CALC fields are now 80, nut INP/OUT links are now 1024.
+// CALC fields are now 80, and INP/OUT links are now 1024.
 //
 #define MAX_FIELD_DATA_SIZE    1024
 #define PV_VARIABLE_INDEX      0
@@ -498,8 +498,8 @@ void QEPvProperties::common_setup ()
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   this->connectNewVariableNameProperty
-         (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+   this->connectPvNameProperties
+         (SLOT (usePvNameProperties (const QEPvNameProperties&)));
 }
 
 //------------------------------------------------------------------------------
@@ -565,7 +565,7 @@ void QEPvProperties::resizeEvent (QResizeEvent *)
 
 //------------------------------------------------------------------------------
 // NB. Need to do a deep clear to avoid memory loss.
-// qcaobject::QCaObjects aren't owned by parent widget
+// QEChannel::QEChannels aren't owned by parent widget
 // Also clears description and value table items.
 //
 void QEPvProperties::clearFieldChannels ()
@@ -643,32 +643,28 @@ void QEPvProperties::swapItems (const int a, const int b, QObject*)
 
 //------------------------------------------------------------------------------
 //
-void QEPvProperties::useNewVariableNameProperty (QString pvName,
-                                                 QString substitutions,
-                                                 unsigned int vi)
+void QEPvProperties::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
-   this->setVariableNameAndSubstitutions (pvName, substitutions, vi);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 //------------------------------------------------------------------------------
 //
-qcaobject::QCaObject* QEPvProperties::createQcaItem (unsigned int variableIndex)
+QEChannel* QEPvProperties::createQcaItem (unsigned int variableIndex)
 {
    if (variableIndex != PV_VARIABLE_INDEX) {
       DEBUG << "unexpected variableIndex" << variableIndex;
       return NULL;
    }
 
-   QString pvName;
-   qcaobject::QCaObject* qca;
-
-   pvName = this->getSubstitutedVariableName (variableIndex);
+   const QString pvName = this->getSubstitutedVariableName (variableIndex);
 
    // We don't need any formatting - that's looked after by the embedded QELabel,
    // but we are afrter a bit of meta data.
    //
-   qca = new qcaobject::QCaObject (pvName, this, variableIndex,
-                                   qcaobject::QCaObject::SIG_VARIANT);
+   QEChannel* qca = new QEChannel (pvName, this, variableIndex, QEChannel::SIG_VARIANT);
 
    // Apply currently defined array index/elements request values.
    //
@@ -686,12 +682,12 @@ void QEPvProperties::establishConnection (unsigned int variableIndex)
       return;
    }
 
-   const QString substitutedPVName = this->getSubstitutedVariableName (variableIndex).trimmed ();
-   this->recordBaseName = QERecordFieldName::recordName (substitutedPVName);
+   const QString pvName = this->getSubstitutedVariableName (variableIndex).trimmed ();
+   this->recordBaseName = QERecordFieldName::recordName (pvName);
 
    // Set up field name label.
    //
-   this->label2->setText (QERecordFieldName::fieldName (substitutedPVName));
+   this->label2->setText (QERecordFieldName::fieldName (pvName));
 
    // Clear associated data fields.
    //
@@ -712,7 +708,7 @@ void QEPvProperties::establishConnection (unsigned int variableIndex)
 
    // Remove this name from mid-list if it exists and (re) insert at top of list.
    //
-   this->insertIntoDropDownList (substitutedPVName);
+   this->insertIntoDropDownList (pvName);
 
    // Ensure CombBox consistent .
    //
@@ -736,27 +732,27 @@ void QEPvProperties::establishConnection (unsigned int variableIndex)
    // Lastly do the regular connection.
    //
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   // Note createConnection creates the connection and returns reference to existing QCaObject.
+   // If successfull, the QEChannel object that will supply data update signals will be returned
+   // Note createConnection creates the connection and returns reference to existing QEChannel.
    //
-   qcaobject::QCaObject* qca = this->createConnection (variableIndex);
+   QEChannel* qca = this->createConnection (variableIndex);
 
-   // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots.
+   // If a QEChannel object is now available to supply data update signals, connect it to the appropriate slots.
    //
    if (qca) {
-      QObject::connect (qca,  SIGNAL (connectionChanged  (QCaConnectionInfo&, const unsigned int&)),
-                        this, SLOT   (setValueConnection (QCaConnectionInfo&, const unsigned int&)));
+      QObject::connect (qca,  SIGNAL (connectionUpdated  (const QEConnectionUpdate&)),
+                        this, SLOT   (setValueConnection (const QEConnectionUpdate&)));
 
       // We only need the first element, unless this is a long string.
       //
-      if (substitutedPVName.endsWith ('$')) {
+      if (pvName.endsWith ('$')) {
          qca->setRequestedElementCount (MAX_FIELD_DATA_SIZE);
       } else {
          qca->setRequestedElementCount (1);
       }
 
-      QObject::connect (qca,  SIGNAL (dataChanged   (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                        this, SLOT   (setValueValue (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+      QObject::connect (qca,  SIGNAL (valueUpdated  (const QEVariantUpdate&)),
+                        this, SLOT   (setValueValue (const QEVariantUpdate&)));
    }
 }
 
@@ -764,11 +760,8 @@ void QEPvProperties::establishConnection (unsigned int variableIndex)
 //
 void QEPvProperties::setUpRecordProcChannel (QEInteger* &qca)
 {
-   QString pvName;
-   QString recordProcFieldName;
-
-   pvName = this->getSubstitutedVariableName (0).trimmed ();
-   recordProcFieldName = QERecordFieldName::fieldPvName (pvName, "PROC");
+   const QString pvName = this->getSubstitutedVariableName (0).trimmed ();
+   const QString recordProcFieldName = QERecordFieldName::fieldPvName (pvName, "PROC");
 
    // Delete any existing qca object if needs be.
    //
@@ -785,13 +778,10 @@ void QEPvProperties::setUpRecordProcChannel (QEInteger* &qca)
 //
 void QEPvProperties::setUpRecordTypeChannels (QEString* &qca, const PVReadModes readMode)
 {
-   QString pvName;
-   QString recordTypeName;
-
-   pvName = this->getSubstitutedVariableName (0).trimmed ();
+   const QString pvName = this->getSubstitutedVariableName (0).trimmed ();
    this->recordBaseName = QERecordFieldName::recordName (pvName);
 
-   recordTypeName = QERecordFieldName::rtypePvName (pvName);
+   QString recordTypeName = QERecordFieldName::rtypePvName (pvName);
    if (readMode == ReadAsCharArray) {
       recordTypeName.append ("$");
    }
@@ -813,22 +803,22 @@ void QEPvProperties::setUpRecordTypeChannels (QEString* &qca, const PVReadModes 
       qca->setRequestedElementCount (1);
    }
 
-   QObject::connect (qca,  SIGNAL (connectionChanged       (QCaConnectionInfo&, const unsigned int& )),
-                     this, SLOT   (setRecordTypeConnection (QCaConnectionInfo&, const unsigned int& )));
+   QObject::connect (qca,  SIGNAL (connectionUpdated       (const QEConnectionUpdate&)),
+                     this, SLOT   (setRecordTypeConnection (const QEConnectionUpdate&)));
 
-   QObject::connect (qca,  SIGNAL (stringChanged      (const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& )),
-                     this, SLOT   (setRecordTypeValue (const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& )));
+   QObject::connect (qca,  SIGNAL (valueUpdated       (const QEStringValueUpdate&)),
+                     this, SLOT   (setRecordTypeValue (const QEStringValueUpdate&)));
 
    qca->subscribe ();
 }
 
 //------------------------------------------------------------------------------
 //
-void QEPvProperties::setRecordTypeConnection (QCaConnectionInfo& connectionInfo,
-                                              const unsigned int &variableIndex)
+void QEPvProperties::setRecordTypeConnection (const QEConnectionUpdate& update)
 {
-   const PVReadModes readMode = (PVReadModes) variableIndex;
-   const bool isConnected = connectionInfo.isChannelConnected ();
+   const unsigned int vi = update.variableIndex;
+   const PVReadModes readMode = static_cast<PVReadModes>(vi);
+   const bool isConnected = update.connectionInfo.isChannelConnected ();
 
    if ((readMode == ReadAsCharArray) && isConnected) {
       // XXX.RTYP$ connected - pre empty standard connection.
@@ -839,32 +829,30 @@ void QEPvProperties::setRecordTypeConnection (QCaConnectionInfo& connectionInfo,
 
    // Update tool tip, but leave the basic widget enabled.
    //
-   this->updateToolTipConnection (isConnected, variableIndex);
+   this->updateToolTipConnection (isConnected, vi);
 }
 
 //------------------------------------------------------------------------------
 // Called when notified of the (new) record type value.
 //
-void QEPvProperties::setRecordTypeValue (const QString& rtypeValue,
-                                         QCaAlarmInfo&,
-                                         QCaDateTime&,
-                                         const unsigned int& variableIndex)
+void QEPvProperties::setRecordTypeValue (const QEStringValueUpdate& update)
 {
-   const PVReadModes readMode = (PVReadModes) variableIndex;
+   const unsigned int vi = update.variableIndex;
+   const PVReadModes readMode = static_cast<PVReadModes>(vi);
 
    if ((this->recordBaseName == this->previousRecordBaseName) &&
-       (rtypeValue == this->previousRecordType)) {
+       (update.value == this->previousRecordType)) {
       return;   // Nothing to do - there is no significant change.
    }
 
    // Update for next time.
    //
    this->previousRecordBaseName = this->recordBaseName;
-   this->previousRecordType = rtypeValue;
+   this->previousRecordType = update.value;
 
    // Look for the record spec for the given record type if it exists.
    //
-   const QERecordSpec* pRecordSpec = recordSpecList.find (rtypeValue);
+   const QERecordSpec* pRecordSpec = recordSpecList.find (update.value);
 
    // If we didn't find the specific record type, use the default record spec.
    //
@@ -944,11 +932,11 @@ void QEPvProperties::setRecordTypeValue (const QString& rtypeValue,
          qca->setRequestedElementCount (1);
       }
 
-      QObject::connect (qca, SIGNAL (connectionChanged  (QCaConnectionInfo&, const unsigned int& )),
-                        this,  SLOT (setFieldConnection (QCaConnectionInfo&, const unsigned int& )));
+      QObject::connect (qca, SIGNAL (connectionUpdated  (const QEConnectionUpdate&)),
+                        this,  SLOT (setFieldConnection (const QEConnectionUpdate&)));
 
-      QObject::connect (qca, SIGNAL (stringChanged (const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& )),
-                        this,  SLOT (setFieldValue (const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& )));
+      QObject::connect (qca, SIGNAL (valueUpdated  (const QEStringValueUpdate&)),
+                        this,  SLOT (setFieldValue (const QEStringValueUpdate&)));
 
       qca->subscribe ();
 
@@ -963,12 +951,9 @@ void QEPvProperties::setRecordTypeValue (const QString& rtypeValue,
 
 //------------------------------------------------------------------------------
 //
-void QEPvProperties::setValueConnection (QCaConnectionInfo& connectionInfo,
-                                         const unsigned int&)
+void QEPvProperties::setValueConnection (const QEConnectionUpdate& update)
 {
-   qcaobject::QCaObject *qca;
-
-   const bool isConnected = connectionInfo.isChannelConnected ();
+   const bool isConnected = update.connectionInfo.isChannelConnected ();
 
    // These are not QELabels - so have to do this do manually.
    //
@@ -978,10 +963,10 @@ void QEPvProperties::setValueConnection (QCaConnectionInfo& connectionInfo,
    this->fieldType->setEnabled (isConnected);
    this->elementCount->setEnabled (isConnected);
 
-   if (connectionInfo.isChannelConnected ()) {
+   if (isConnected) {
       // We "know" that the only/main channel is the 1st (slot 0) channel.
       //
-      qca = this->getQcaItem (0);
+      QEChannel* qca = this->getQcaItem (0);
       if (qca) {
          this->hostName->setText (qca->getHostName());
       }
@@ -990,29 +975,19 @@ void QEPvProperties::setValueConnection (QCaConnectionInfo& connectionInfo,
 
 //------------------------------------------------------------------------------
 //
-void QEPvProperties::setValueValue (const QVariant& value,
-                                    QCaAlarmInfo& alarmInfo,
-                                    QCaDateTime& dateTime,
-                                    const unsigned int& variableIndex)
+void QEPvProperties::setValueValue (const QEVariantUpdate& update)
 {
-   QStringList enumerations;
-   QLabel *enumLabel;
-   QLabel *enumLast;
-   int n;
-   int j;
-   QRect g;
-   int h;
+   const unsigned int vi = update.variableIndex;
 
-   this->timeStamp->setText (dateTime.text () + "  " + QEUtilities::getTimeZoneTLA (dateTime));
+   this->timeStamp->setText (update.timeStamp.text () + "  " +
+                             QEUtilities::getTimeZoneTLA (update.timeStamp));
 
    // We "know" that the only/main channel is the 1st (slot 0) channel.
    //
-   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   QEChannel* qca = this->getQcaItem (vi);
    if (!qca) return;   // sanity check
 
-   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
-
-   if (isMetaDataUpdate) {
+   if (update.isMetaUpdate) {
       // First/meta update - fill in some of the meta data.
       //
       this->fieldType->setText (qca->getFieldType ());
@@ -1054,12 +1029,12 @@ void QEPvProperties::setValueValue (const QVariant& value,
 
       // Set up any enumeration values
       //
-      enumerations = qca->getEnumerations ();
-      n = enumerations.count();
+      QStringList enumerations = qca->getEnumerations ();
+      int n = enumerations.count();
 
-      enumLast = NULL;
-      for (j = 0; j < this->enumerationLabelList.count (); j++) {
-         enumLabel = this->enumerationLabelList.value (j);
+      QLabel* enumLast = NULL;
+      for (int j = 0; j < this->enumerationLabelList.count (); j++) {
+         QLabel* enumLabel = this->enumerationLabelList.value (j);
          if (j < n) {
             // Form label text by prefixing with the numeric index value.
             //
@@ -1075,8 +1050,9 @@ void QEPvProperties::setValueValue (const QVariant& value,
          }
       }
 
+      int h;
       if (enumLast) {
-         g = enumLast->geometry ();
+         QRect g = enumLast->geometry ();
          h = g.top() + g.height() + 4;
       } else {
          h = 0;
@@ -1091,22 +1067,22 @@ void QEPvProperties::setValueValue (const QVariant& value,
 
    // Update internal label.
    //
-   this->valueLabel->setText (this->valueStringFormatting.formatString (value, 0));
-   this->valueLabel->setStyleSheet (alarmInfo.style ());
+   this->valueLabel->setText (this->valueStringFormatting.formatString (update.value, 0));
+   this->valueLabel->setStyleSheet (update.alarmInfo.style ());
 
    // Invoke common alarm handling processing.
    //
-   this->processAlarmInfo (alarmInfo);
+   this->processAlarmInfo (update.alarmInfo);
 }
 
 //------------------------------------------------------------------------------
 //
-void QEPvProperties::setFieldConnection (QCaConnectionInfo& connectionInfo,
-                                         const unsigned int &variableIndex)
+void QEPvProperties::setFieldConnection (const QEConnectionUpdate& update)
 {
-   const int row = this->variableIndexTableRowMap.valueF (variableIndex);
+   const unsigned int vi = update.variableIndex;
+   const int row = this->variableIndexTableRowMap.valueF (vi);
    const int numberOfRows = this->table->rowCount ();
-   const bool isConnected = connectionInfo.isChannelConnected ();
+   const bool isConnected = update.connectionInfo.isChannelConnected ();
 
    if ((row >= 0) && (row < numberOfRows)) {
       QTableWidgetItem* item = this->table->item (row, VALUE_COL);
@@ -1120,32 +1096,30 @@ void QEPvProperties::setFieldConnection (QCaConnectionInfo& connectionInfo,
          item->setForeground (QColor (160, 160, 160));
       }
    } else {
-      DEBUG << "variableIndex/row =" << variableIndex << row
+      DEBUG << "variableIndex/row =" << vi << row
             << ", out of range - must be <" << numberOfRows;
    }
 }
 
 //------------------------------------------------------------------------------
 //
-void QEPvProperties::setFieldValue (const QString& value,
-                                    QCaAlarmInfo&,
-                                    QCaDateTime&,
-                                    const unsigned int& variableIndex)
+void QEPvProperties::setFieldValue (const QEStringValueUpdate& update)
 {
-   const int row = this->variableIndexTableRowMap.valueF (variableIndex);
+   const unsigned int vi = update.variableIndex;
+   const int row = this->variableIndexTableRowMap.valueF (vi);
    const int numberOfRows = this->table->rowCount ();
 
    if ((row >= 0) && (row < numberOfRows)) {
       QTableWidgetItem* item = this->table->item (row, VALUE_COL);
 
-      if (value.length () < MAX_FIELD_DATA_SIZE) {
-         item->setText  (" " + value);
+      if (update.value.length () < MAX_FIELD_DATA_SIZE) {
+         item->setText  (" " + update.value);
       } else {
          // The string has maxed-out the read length, add ...
-         item->setText  (" " + value + "...");
+         item->setText  (" " + update.value + "...");
       }
    } else {
-      DEBUG << "variableIndex/row =" << variableIndex << row
+      DEBUG << "variableIndex/row =" << vi << row
             << ", out of range - must be <" << numberOfRows;
    }
 }
@@ -1332,7 +1306,7 @@ void QEPvProperties::customTableContextMenuRequested (const QPoint& posIn)
    //
    const int row = item->row ();
    const int vi = this->variableIndexTableRowMap.valueI (row, -1);
-   qcaobject::QCaObject* qca = this->fieldChannels.value (vi, NULL);
+   QEChannel* qca = this->fieldChannels.value (vi, NULL);
 
    QString newPV = "";
 

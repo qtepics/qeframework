@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -31,56 +31,53 @@ enum Constants {
 //------------------------------------------------------------------------------
 // Constructor with no initialisation
 //
-QEFileImage::QEFileImage(QWidget *parent) :
-   QLabel(parent),
-   QEWidget(this),
+QEFileImage::QEFileImage (QWidget* parent):
+   QLabel (parent),
+   QEWidget (this),
    QESingleVariableMethods (this, PV_VARIABLE_INDEX)
 {
-   this->setup();
+   this->setup ();
 }
 
 //------------------------------------------------------------------------------
 // Constructor with known variable
 //
-QEFileImage::QEFileImage(const QString &variableNameIn, QWidget *parent) :
-   QLabel(parent),
-   QEWidget(this),
+QEFileImage::QEFileImage (const QString& variableNameIn, QWidget* parent):
+   QLabel (parent),
+   QEWidget (this),
    QESingleVariableMethods (this, PV_VARIABLE_INDEX)
 {
-   this->setup();
-   this->setVariableName(variableNameIn, 0);
-   this->activate();
+   this->setup ();
+   this->setVariableName (variableNameIn, 0);
+   this->activate ();
 }
 
 //------------------------------------------------------------------------------
 // Place holder destructor
 //
-QEFileImage::~QEFileImage() {}
+QEFileImage::~QEFileImage () {}
 
 //------------------------------------------------------------------------------
 // Setup common to all constructors
 //
-void QEFileImage::setup()
+void QEFileImage::setup ()
 {
    this->threshold = NULL_THRESHOLD;
-   this->thresholdColor= QColor("#ffffff");
+   this->thresholdColor = QColor ("#ffffff");
    this->scaledContents = false;
 
    // Set up data
    // This control used a single data source
-   this->setNumVariables(1);
+   this->setNumVariables (1);
 
    // Set minimum size
-   this->setMinimumSize(100, 100);
+   this->setMinimumSize (100, 100);
 
    // Set up default properties
-   this->setAllowDrop(false);
-
-   // Set the initial state
-   this->isConnected = false;
+   this->setAllowDrop (false);
 
    // Use standard context menu
-   this->setupContextMenu();
+   this->setupContextMenu ();
 
    //    defaultStyleSheet = styleSheet();
    // Use label signals
@@ -90,30 +87,30 @@ void QEFileImage::setup()
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   this->connectNewVariableNameProperty
-         (SLOT (useNewVariableNameProperty(QString, QString, unsigned int)));
+   this->connectPvNameProperties (SLOT (usePvNameProperties (const QEPvNameProperties &)));
 
    // Prepare to recieve notification of changes from the file monitor.
    //
-   QObject::connect (&this->fileMon, SIGNAL(fileChanged(const QString &)),
-                     this, SLOT(setImageFileName(const QString &)));
+   QObject::connect (&this->fileMon, SIGNAL (fileChanged (const QString &)),
+                     this, SLOT (setImageFileName (const QString &)));
 }
 
-
 //------------------------------------------------------------------------------
-// Implementation of QEWidget's virtual funtion to create the specific type of QCaObject required.
-// For a QEFileImage a QCaObject that streams strings is required.
+// Implementation of QEWidget's virtual funtion to create the specific type of QEChannel required.
+// For a QEFileImage a QEChannel that streams strings is required.
 //
-qcaobject::QCaObject* QEFileImage::createQcaItem(unsigned int variableIndex)
+QEChannel *QEFileImage::createQcaItem (unsigned int variableIndex)
 {
-   qcaobject::QCaObject* result = NULL;
+   QEChannel *result = NULL;
 
-   // Create the item as a QEString
-   QString pvName = this->getSubstitutedVariableName(variableIndex);
-   result = new QEString(pvName, this, &stringFormatting, variableIndex);
+   // Create the item as a QEString.
+   //
+   const QString pvName = this->getSubstitutedVariableName (variableIndex);
+   result = new QEString (pvName, this, &stringFormatting, variableIndex);
 
    // Apply currently defined array index/elements request values.
-   this->setSingleVariableQCaProperties(result);
+   //
+   this->setSingleVariableQCaProperties (result);
 
    return result;
 }
@@ -123,122 +120,131 @@ qcaobject::QCaObject* QEFileImage::createQcaItem(unsigned int variableIndex)
 // establish a connection to a PV as the variable name has changed.
 // This function may also be used to initiate updates when loaded as a plugin.
 //
-void QEFileImage::establishConnection(unsigned int variableIndex) {
+void QEFileImage::establishConnection (unsigned int variableIndex)
+{
 
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals
+   // If successfull, the QEChannel object that will supply data update signals
    // will be returned.
    //
-   qcaobject::QCaObject* qca = this->createConnection(variableIndex);
+   QEChannel *qca = this->createConnection (variableIndex);
 
-   // If a QCaObject object is now available to supply data update signals,
+   // If a QEChannel object is now available to supply data update signals,
    // connect it to the appropriate slots.
    //
-   if( qca) {
-      QObject::connect(qca,  SIGNAL(stringChanged(const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                       this, SLOT(  setLabelImage(const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
-      QObject::connect(qca,  SIGNAL(connectionChanged(QCaConnectionInfo&, const unsigned int& )),
-                       this, SLOT(  connectionChanged(QCaConnectionInfo&, const unsigned int& )));
-      QObject::connect(this, SIGNAL(requestResend()),
-                       qca,  SLOT(  resendLastData()));
+   if (qca) {
+      QObject::connect (qca, SIGNAL (valueUpdated  (const QEStringValueUpdate&)),
+                        this,  SLOT (setLabelImage (const QEStringValueUpdate&)));
+
+      QObject::connect (qca, SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                        this,  SLOT (connectionUpdated (const QEConnectionUpdate&)));
+
+      QObject::connect (this, SIGNAL (requestResend ()),
+                        qca,    SLOT (resendLastData ()));
    }
 }
 
-
 //------------------------------------------------------------------------------
 //
-void QEFileImage::useNewVariableNameProperty(QString variableNameIn,
-                                              QString substitutionsIn,
-                                              unsigned int variableIndex)
+void QEFileImage::usePvNameProperties (const QEPvNameProperties & pvNameProperties)
 {
-   this->setVariableNameAndSubstitutions(variableNameIn, substitutionsIn, variableIndex);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 //------------------------------------------------------------------------------
 // Act on a connection change.
 // Change how the label looks and change the tool tip
-// This is the slot used to recieve connection updates from a QCaObject based class.
+// This is the slot used to recieve connection updates from a QEChannel based class.
 //
-void QEFileImage::connectionChanged(QCaConnectionInfo& connectionInfo,
-                                    const unsigned int& variableIndex)
+void QEFileImage::connectionUpdated (const QEConnectionUpdate& update)
 {
-   // Note the connected state
-   this->isConnected = connectionInfo.isChannelConnected();
+   const unsigned int vi = update.variableIndex;
 
-   // Display the connected state
-   this->updateToolTipConnection(isConnected, variableIndex);
-   this->processConnectionInfo(isConnected, variableIndex);
+   // Note the connected state.
+   //
+   const bool isConnected = update.connectionInfo.isChannelConnected ();
+
+   // Display the connected state.
+   //
+   this->updateToolTipConnection (isConnected, vi);
+   this->processConnectionInfo (isConnected, vi);
 
    // Signal channel connection change to any (Link) widgets.
    // using signal dbConnectionChanged.
    //
-   this->emitDbConnectionChanged(variableIndex);
+   this->emitDbConnectionChanged (vi);
 }
 
 //------------------------------------------------------------------------------
 // Update the label pixmap from variable data.
-// This is the slot used to recieve data updates from a QCaObject based class.
+// This is the slot used to recieve data updates from a QEChannel based class.
 //
-void QEFileImage::setLabelImage(const QString& textIn, QCaAlarmInfo& alarmInfo,
-                                QCaDateTime&, const unsigned int& variableIndex)
+void QEFileImage::setLabelImage (const QEStringValueUpdate& update)
 {
-   // Update the image
-   this->setImageFileName(textIn);
+   const unsigned int vi = update.variableIndex;
+
+   // Update the image.
+   //
+   this->setImageFileName (update.value);
 
    // Invoke common alarm handling processing.
-   this->processAlarmInfo(alarmInfo, variableIndex);
+   //
+   this->processAlarmInfo (update.alarmInfo, vi);
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged signals declared in header file.
-   this->emitDbValueChanged(variableIndex);
+   //
+   this->emitDbValueChanged (vi);
 }
 
 //------------------------------------------------------------------------------
 // Slot to update the label pixmap from any source
 //
-void QEFileImage::setImageFileName(const QString& text)
+void QEFileImage::setImageFileName (const QString& text)
 {
    // Find the file
-   QFile* imageFile =  QEWidget::findQEFile(text);
+   QFile *imageFile = QEWidget::findQEFile (text);
 
    // If filename not found
-   if(!imageFile) {
+   if (!imageFile) {
       QPixmap emptyPixmap;
-      this->setPixmap(emptyPixmap);
+
+      this->setPixmap (emptyPixmap);
       this->fileName = text;
-      this->setText(QString("File not found: ").append(text));
+      this->setText (QString ("File not found: ").append (text));
       return;
    }
-
    // Get the filename and discard the image file object.
    //
-   this->fileName = imageFile->fileName();
+   this->fileName = imageFile->fileName ();
    delete imageFile;
 
    // Clear any text
-   this->clear();
+   this->clear ();
 
    // Form pixmap object from the file
-   QPixmap pixmap(this->fileName);
+   QPixmap pixmap (this->fileName);
 
    // Do we need to apply a threshold?
    //
    if (this->threshold != NULL_THRESHOLD) {
       // Yes - convert to image.
       //
-      QImage image = pixmap.toImage();
-      const int nr = image.height();
-      const int nc = image.width();
+      QImage image = pixmap.toImage ();
+      const int nr = image.height ();
+      const int nc = image.width ();
 
       // Is this an RGB32 image?
       //
-      if (image.format() == QImage::Format_RGB32) {
+      if (image.format () == QImage::Format_RGB32) {
          // Yes - do thresholding the fast way.
          //
-         const QRgb tRgb = this->thresholdColor.rgb();
+         const QRgb tRgb = this->thresholdColor.rgb ();
 
          for (int row = 0; row < nr; row++) {
-            QRgb* rowData = (QRgb*) image.scanLine(row);
+            QRgb *rowData = (QRgb *) image.scanLine (row);
 
             for (int col = 0; col < nc; col++) {
                QColor pc = QColor (rowData[col]);
@@ -246,6 +252,7 @@ void QEFileImage::setImageFileName(const QString& text)
                // Decompise colour to find its lightness.
                //
                int h, s, l, a;
+
                pc.getHsl (&h, &s, &l, &a);
 
                if (l >= this->threshold) {
@@ -259,15 +266,16 @@ void QEFileImage::setImageFileName(const QString& text)
          //
          for (int row = 0; row < nr; row++) {
             for (int col = 0; col < nc; col++) {
-               QColor pc = image.pixelColor(col, row);
+               QColor pc = image.pixelColor (col, row);
 
                // Decompise colour to find its lightness.
                //
                int h, s, l, a;
+
                pc.getHsl (&h, &s, &l, &a);
 
                if (l >= this->threshold) {
-                  image.setPixelColor(col, row, this->thresholdColor);
+                  image.setPixelColor (col, row, this->thresholdColor);
                }
             }
          }
@@ -275,22 +283,23 @@ void QEFileImage::setImageFileName(const QString& text)
 
       // Lastly update the pixmap.
       //
-      pixmap.convertFromImage(image);
+      pixmap.convertFromImage (image);
    }
 
-   // Update the label pixmap
+   // Update the label pixmap.
+   //
    Qt::AspectRatioMode aspectMode;
-   aspectMode = this->scaledContents ?  Qt::IgnoreAspectRatio : Qt::KeepAspectRatio;
-   this->setPixmap (pixmap.scaled(this->size(), aspectMode));
+   aspectMode = this->scaledContents ? Qt::IgnoreAspectRatio : Qt::KeepAspectRatio;
+   this->setPixmap (pixmap.scaled (this->size (), aspectMode));
 
    // Ensure no other files are being monitored.
    // We could be smarter here if same file name.
    //
-   QStringList monitoredPaths = this->fileMon.files();
-   if(monitoredPaths.count()) {
-      this->fileMon.removePaths(monitoredPaths);
-   }
+   QStringList monitoredPaths = this->fileMon.files ();
 
+   if (monitoredPaths.count ()) {
+      this->fileMon.removePaths (monitoredPaths);
+   }
    // Monitor this file
    this->fileMon.addPath (this->fileName);
 }
@@ -307,7 +316,7 @@ QString QEFileImage::getImageFileName () const
 void QEFileImage::setThresholdColor (const QColor thresholdColorIn)
 {
    this->thresholdColor = thresholdColorIn;
-   this->setImageFileName(this->fileName);   // trigger reprocessing of the same file
+   this->setImageFileName (this->fileName);     // trigger reprocessing of the same file
 }
 
 //------------------------------------------------------------------------------
@@ -319,15 +328,15 @@ QColor QEFileImage::getThresholdColor () const
 
 //------------------------------------------------------------------------------
 // slot function
-void QEFileImage::setThreshold(const int thresholdIn)
+void QEFileImage::setThreshold (const int thresholdIn)
 {
-   this->threshold = LIMIT(thresholdIn, 0, NULL_THRESHOLD);
-   this->setImageFileName(this->fileName);   // trigger reprocessing of the same file
+   this->threshold = LIMIT (thresholdIn, 0, NULL_THRESHOLD);
+   this->setImageFileName (this->fileName);     // trigger reprocessing of the same file
 }
 
 //------------------------------------------------------------------------------
 //
-int QEFileImage::getThreshold() const
+int QEFileImage::getThreshold () const
 {
    return this->threshold;
 }
@@ -337,7 +346,7 @@ int QEFileImage::getThreshold() const
 void QEFileImage::setScaledContents (bool scaledContentsIn)
 {
    this->scaledContents = scaledContentsIn;
-   this->setImageFileName(this->fileName);   // trigger reprocessing of the same file
+   this->setImageFileName (this->fileName);     // trigger reprocessing of the same file
 }
 
 //------------------------------------------------------------------------------
@@ -349,24 +358,24 @@ bool QEFileImage::getScaledContents () const
 
 //==============================================================================
 // Copy / Paste
-QString QEFileImage::copyVariable()
+QString QEFileImage::copyVariable ()
 {
-   return this->getSubstitutedVariableName(PV_VARIABLE_INDEX);
+   return this->getSubstitutedVariableName (PV_VARIABLE_INDEX);
 }
 
 //------------------------------------------------------------------------------
 //
-QVariant QEFileImage::copyData()
+QVariant QEFileImage::copyData ()
 {
-   return QVariant(this->fileName);
+   return QVariant (this->fileName);
 }
 
 //------------------------------------------------------------------------------
 //
-void QEFileImage::paste(QVariant v)
+void QEFileImage::paste (QVariant v)
 {
-   this->setVariableName(v.toString(), PV_VARIABLE_INDEX);
-   this->establishConnection(PV_VARIABLE_INDEX);
+   this->setVariableName (v.toString (), PV_VARIABLE_INDEX);
+   this->establishConnection (PV_VARIABLE_INDEX);
 }
 
 // end

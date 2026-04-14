@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2019-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2019-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -27,8 +27,10 @@
 #include <QEArchiveAccess.h>
 #include <QEEnums.h>
 #include <QECommon.h>
+#include <QEChannel.h>
 #include <QCaDataPoint.h>
 #include <QEAbstractDynamicWidget.h>
+#include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QEStringFormatting.h>
 #include <QEAxisPainter.h>
@@ -193,7 +195,7 @@ public:
 protected:
     bool eventFilter (QObject* watched, QEvent* event);
 
-    qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+    QEChannel* createQcaItem (unsigned int variableIndex);
     void establishConnection (unsigned int variableIndex);
 
     // Drag and Drop
@@ -299,15 +301,11 @@ private:
    QEAxisPainter* yAxis;
 
 private slots:
-   void newPvName (QString variableNameIn,
-                   QString variableNameSubstitutionsIn,
-                   unsigned int variableIndex);
+   void usePvNameProperties (const QEPvNameProperties& pvNameProperties);
 
-   void connectionChanged (QCaConnectionInfo& connectionInfo,
-                           const unsigned int& variableIndex);
+   void connectionUpdated (const QEConnectionUpdate& update);
 
-   void setPvValue (const double& value, QCaAlarmInfo&,
-                    QCaDateTime&, const unsigned int&);
+   void setPvValue (const QEFloatingValueUpdate& update);
 
    void runPVSelectDialog (bool);
    void resetButtonClicked (bool);

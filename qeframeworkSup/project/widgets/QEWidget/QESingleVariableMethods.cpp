@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2016-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2016-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -117,14 +117,14 @@ void QESingleVariableMethods::setArrayIndex (const int arrayIndexIn)
    // the array index.
    //
    if (this->elementsRequired != REQUIRED_ELEMENTS_UNSPECIFIED) {
-      int minRequired = this->arrayIndex + 1;
+      const int minRequired = this->arrayIndex + 1;
       if (minRequired > this->elementsRequired) {
          this->setElementsRequired (minRequired);
       }
    }
 
-   unsigned int pvIndex = this->vnpm.getVariableIndex();
-   qcaobject::QCaObject* qca = this->owner->getQcaItem (pvIndex);
+   const unsigned int pvIndex = this->vnpm.getVariableIndex();
+   QEChannel* qca = this->owner->getQcaItem (pvIndex);
    if (qca) {
       // Apply to qca object and force update
       // Note: we can't just store array Index in the qca object as it may not
@@ -143,7 +143,18 @@ int QESingleVariableMethods::getArrayIndex () const
 }
 
 //------------------------------------------------------------------------------
-//
+// new style
+void QESingleVariableMethods::connectPvNameProperties (const char* useNameSlot)
+{
+   static const char* newNameSignal =
+         SIGNAL (newPvNameProperties (const QEPvNameProperties&));
+
+   QObject::connect (&this->vnpm, newNameSignal,
+                     this->owner->getQWidget (), useNameSlot);
+}
+
+//------------------------------------------------------------------------------
+// old style
 void QESingleVariableMethods::connectNewVariableNameProperty (const char* useNameSlot)
 {
    static const char* newNameSignal =
@@ -155,11 +166,11 @@ void QESingleVariableMethods::connectNewVariableNameProperty (const char* useNam
 
 //------------------------------------------------------------------------------
 //
-void QESingleVariableMethods::setSingleVariableQCaProperties (qcaobject::QCaObject* qca)
+void QESingleVariableMethods::setSingleVariableQCaProperties (QEChannel* qca)
 {
    const unsigned int pvIndex = this->vnpm.getVariableIndex();
 
-   if (qca) {   // sainity check
+   if (qca) {   // sanity check
       if (qca->getVariableIndex () == pvIndex) {
          qca->setArrayIndex (this->arrayIndex);
          if (this->elementsRequired != REQUIRED_ELEMENTS_UNSPECIFIED) {

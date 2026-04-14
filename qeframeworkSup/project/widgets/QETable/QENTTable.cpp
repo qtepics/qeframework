@@ -113,8 +113,8 @@ void QENTTable::commonConstruct ()
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   this->connectNewVariableNameProperty
-         (SLOT (setNewVariableName (QString, QString, unsigned int)));
+   this->connectPvNameProperties
+         (SLOT (usePvNameProperties (const QEPvNameProperties&)));
 
    // Table related signals
    //
@@ -183,18 +183,18 @@ void QENTTable::resizeEvent (QResizeEvent*)
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of
-// QCaObject required. A QCaObject that streams integers is required.
+// QEChannel required. A QEChannel that streams integers is required.
 //
-qcaobject::QCaObject* QENTTable::createQcaItem (unsigned int variableIndex)
+QEChannel* QENTTable::createQcaItem (unsigned int variableIndex)
 {
    if (variableIndex != PV_VARIABLE_INDEX) {
       DEBUG << "unexpected variable index" << variableIndex;
       return NULL;
    }
 
-   qcaobject::QCaObject* result = NULL;
-   result = new qcaobject::QCaObject (this->getSubstitutedVariableName (variableIndex),
-                                      this, PV_VARIABLE_INDEX);
+   QEChannel* result = NULL;
+   const QString pvName = this->getSubstitutedVariableName (variableIndex);
+   result = new QEChannel (pvName, this, PV_VARIABLE_INDEX);
 
    // using setSingleVariableQCaProperties not applicable here
 
@@ -214,23 +214,23 @@ void QENTTable::establishConnection (unsigned int variableIndex)
    }
 
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   // Note createConnection creates the connection and returns reference to existing QCaObject.
+   // If successfull, the QEChannel object that will supply data update signals will be returned
+   // Note createConnection creates the connection and returns reference to existing QEChannel.
    //
-   qcaobject::QCaObject* qca = createConnection (variableIndex);
+   QEChannel* qca = createConnection (variableIndex);
 
    if (!qca) return;  // Sanity check
 
-   // If a QCaObject object is now available to supply data update signals,
+   // If a QEChannel object is now available to supply data update signals,
    // connect it to the appropriate slots.
    //
-   QObject::connect (qca, SIGNAL (connectionChanged (QCaConnectionInfo&, const unsigned int&)),
-                     this, SLOT  (connectionChanged (QCaConnectionInfo&, const unsigned int&)));
+   QObject::connect (qca,  SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                     this, SLOT   (connectionUpdated (const QEConnectionUpdate&)));
 
    // Note: we connect to receive the 'raw' variant data.
    //
-   QObject::connect (qca, SIGNAL (dataChanged      (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                     this, SLOT  (tableDataChanged (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+   QObject::connect (qca, SIGNAL (valueUpdated     (const QEVariantUpdate&)),
+                     this, SLOT  (tableDataUpdated (const QEVariantUpdate&)));
 }
 
 //------------------------------------------------------------------------------
@@ -289,18 +289,19 @@ void QENTTable::contextMenuTriggered (int selectedItemNum)
 //------------------------------------------------------------------------------
 // Act on a connection change.
 // Change how the s looks and change the tool tip
-// This is the slot used to recieve connection updates from a QCaObject based class.
+// This is the slot used to recieve connection updates from a QEChannel based class.
 //
-void QENTTable::connectionChanged (QCaConnectionInfo& connectionInfo,
-                                   const unsigned int& variableIndex)
+void QENTTable::connectionUpdated (const QEConnectionUpdate& update)
 {
-   if (variableIndex != PV_VARIABLE_INDEX) {
-      DEBUG << "unexpected variable index" << variableIndex;
+   const unsigned int vi = update.variableIndex;
+
+   if (vi != PV_VARIABLE_INDEX) {
+      DEBUG << "unexpected variable index" << vi;
    }
 
-   // Note the connected state
+   // Note the connected state.
    //
-   this->isConnected = connectionInfo.isChannelConnected ();
+   this->isConnected = update.connectionInfo.isChannelConnected ();
 
    // Enable internal widget iff connected.
    // Container widget remains enabled, so menues etc. still work.
@@ -309,8 +310,8 @@ void QENTTable::connectionChanged (QCaConnectionInfo& connectionInfo,
 
    // Display the connected state
    //
-   this->updateToolTipConnection (this->isConnected, variableIndex);
-   this->processConnectionInfo (this->isConnected, variableIndex);
+   this->updateToolTipConnection (this->isConnected, vi);
+   this->processConnectionInfo (this->isConnected, vi);
 
    // Set cursor to indicate access mode.
    //
@@ -324,24 +325,21 @@ void QENTTable::connectionChanged (QCaConnectionInfo& connectionInfo,
 
 //-----------------------------------------------------------------------------
 //
-void QENTTable::tableDataChanged (const QVariant& value,
-                                  QCaAlarmInfo& alarmInfo,
-                                  QCaDateTime&,
-                                  const unsigned int& variableIndex)
+void QENTTable::tableDataUpdated (const QEVariantUpdate& update)
 {
-   if (variableIndex != PV_VARIABLE_INDEX) {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+   const unsigned int vi = update.variableIndex;
+
+   if (vi != PV_VARIABLE_INDEX) {
+      DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
-   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   QEChannel* qca = this->getQcaItem (vi);
    if (!qca) return;  // sanity check
 
-   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
-
-   if (!this->tableData->assignFromVariant (value)) {
-      if (isMetaDataUpdate) {
-         QString pvname = this->getSubstitutedVariableName (variableIndex);
+   if (!this->tableData->assignFromVariant (update.value)) {
+      if (update.isMetaUpdate) {
+         QString pvname = this->getSubstitutedVariableName (vi);
          DEBUG << "PV" << pvname << "does not provides NTTable data";
       }
       return;
@@ -351,11 +349,11 @@ void QENTTable::tableDataChanged (const QVariant& value,
 
    // Invoke common alarm handling processing.
    //
-   this->processAlarmInfo (alarmInfo, variableIndex);
+   this->processAlarmInfo (update.alarmInfo, vi);
 
    // Signal a database value change to any Link widgets
    //
-   emit this->dbValueChanged (value);
+   emit this->dbValueChanged (update.value);
    emit this->dbValueChanged (*this->tableData);
 }
 
@@ -525,13 +523,13 @@ void QENTTable::timeout ()
 
 //------------------------------------------------------------------------------
 //
-void QENTTable::setNewVariableName (QString variableName,
-                                    QString substitutions,
-                                    unsigned int variableIndex)
+void QENTTable::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
    // Note: essentially calls createQcaItem.
    //
-   this->setVariableNameAndSubstitutions (variableName, substitutions, variableIndex);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 //---------------------------------------------------------------------------------

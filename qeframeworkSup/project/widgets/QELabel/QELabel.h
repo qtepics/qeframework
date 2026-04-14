@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -17,6 +17,7 @@
 #include <QLabel>
 #include <QEEnums.h>
 #include <QEWidget.h>
+#include <QEChannel.h>
 #include <QEString.h>
 #include <QEStringFormatting.h>
 #include <QEFrameworkLibraryGlobal.h>
@@ -80,18 +81,16 @@ public slots:
 private:
    void establishConnection( unsigned int variableIndex );
 
-   UpdateOptions updateOption;
+   UpdateOptions mUpdateOption;
 
    // Property convenience functions - Update option (icon, text, or both)
-   void setUpdateOption( UpdateOptions updateOptionIn );
-   UpdateOptions getUpdateOption();
+   void setUpdateOption (const UpdateOptions updateOptionIn);
+   UpdateOptions getUpdateOption() const;
 
 private slots:
-   void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int&  );
-   void setLabelText( const QString& text, QCaAlarmInfo&, QCaDateTime&, const unsigned int& );
-   void useNewVariableNameProperty( QString variableNameIn,
-                                    QString variableNameSubstitutionsIn,
-                                    unsigned int variableIndex );
+   void connectionUpdated (const QEConnectionUpdate&);
+   void setLabelText (const QEStringValueUpdate&);
+   void usePvNameProperties (const QEPvNameProperties&);
 
 signals:
    // Note, the following signals are common to many QE widgets,
@@ -117,15 +116,12 @@ signals:
 
 private:
    void setup();
-   qcaobject::QCaObject* createQcaItem( unsigned int variableIndex );
-
-   bool isConnected;
+   QEChannel* createQcaItem( unsigned int variableIndex );
 
    QString lastTextStyle;
    QString currentText;
 
    void stringFormattingChange() { requestResend(); }
-
 
 private:
    // Drag and Drop

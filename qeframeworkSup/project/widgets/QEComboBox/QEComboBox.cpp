@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -76,7 +76,6 @@ void QEComboBox::setup()
 
    // Set the initial state
    this->lastValue = 0;
-   this->isConnected = false;
 
    this->ignoreSingleShotRead = false;
    this->isAllowFocusUpdate = false;
@@ -85,12 +84,16 @@ void QEComboBox::setup()
    this->setupContextMenu();
 
    // Use line edit signals
-   // Set up to write data when the user changes the value
-   QObject::connect( this, SIGNAL( activated ( int ) ), this, SLOT( userValueChanged( int ) ) );
+   // Set up to write data when the user changes the value.
+   //
+   QObject::connect( this, SIGNAL( activated ( int ) ),
+                     this, SLOT( userValueChanged( int ) ) );
 
    // Set up a connection to recieve variable name property changes
-   // The variable name property manager class only delivers an updated variable name after the user has stopped typing
-   this->connectNewVariableNameProperty( SLOT ( useNewVariableNameProperty( QString, QString, unsigned int ) ) );
+   // The variable name property manager class only delivers an updated
+   // variable name after the user has stopped typing.
+   //
+   this->connectPvNameProperties (SLOT (usePvNameProperties (const QEPvNameProperties&)));
 
    // Change the default focus policy from WheelFocus to ClickFocus
    //
@@ -121,12 +124,12 @@ bool QEComboBox::eventFilter (QObject *obj, QEvent *event)
 }
 
 //------------------------------------------------------------------------------
-// Implementation of QEWidget's virtual funtion to create the specific type of QCaObject required.
-// For a Combo box a QCaObject that streams integers is required.
+// Implementation of QEWidget's virtual funtion to create the specific type of QEChannel required.
+// For a Combo box a QEChannel that streams integers is required.
 //
-qcaobject::QCaObject* QEComboBox::createQcaItem( unsigned int variableIndex )
+QEChannel* QEComboBox::createQcaItem( unsigned int variableIndex )
 {
-   qcaobject::QCaObject* result = NULL;
+   QEChannel* result = NULL;
 
    // Create the item as a QEInteger
    const QString pvName = this->getSubstitutedVariableName( variableIndex );
@@ -146,23 +149,37 @@ qcaobject::QCaObject* QEComboBox::createQcaItem( unsigned int variableIndex )
 void QEComboBox::establishConnection( unsigned int variableIndex )
 {
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   qcaobject::QCaObject* qca = this->createConnection( variableIndex );
+   // If successfull, the QEChannel object that will supply data update
+   // signals will be returned.
+   //
+   QEChannel* qca = this->createConnection( variableIndex );
 
-   // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots
+   // If a QEChannel object is now available to supply data update signals,
+   // connect it to the appropriate slots.
+   //
    if(  qca ) {
       this->setCurrentIndex( 0 );
-      QObject::connect( qca,  SIGNAL( integerChanged( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
-                        this, SLOT( setValueIfNoFocus( const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-      QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
-                        this, SLOT( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
+      QObject::connect (qca,  SIGNAL (valueUpdated     (const QEIntegerValueUpdate&)),
+                        this, SLOT   (setComboBoxValue (const QEIntegerValueUpdate&)));
+
+      QObject::connect (qca,  SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                        this, SLOT   (connectionUpdated (const QEConnectionUpdate&)));
    }
+}
+
+//------------------------------------------------------------------------------
+//
+void QEComboBox::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
+{
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 //------------------------------------------------------------------------------
 // Act on a connection change.
 // Change how the label looks and change the tool tip.
-// This is the slot used to recieve connection updates from a QCaObject based class.
+// This is the slot used to recieve connection updates from a QEChannel based class.
 //
 // Perform initialisation that can only be completed once data from the variable has been read.
 // Specifically, set up the combo box entries to match the enumerated types if required.
@@ -170,22 +187,32 @@ void QEComboBox::establishConnection( unsigned int variableIndex )
 // It will also be called if the channel fails
 // and recovers. Subsequent calls will do nothing as the combo box is already populated.
 //
-void QEComboBox::connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex)
+void QEComboBox::connectionUpdated (const QEConnectionUpdate& update)
 {
-   // Note the connected state
-   this->isConnected = connectionInfo.isChannelConnected();
+   const unsigned int vi = update.variableIndex;
 
-   // Display the connected state
-   this->updateToolTipConnection( isConnected,variableIndex );
-   this->processConnectionInfo( isConnected, variableIndex );
+   if (vi != PV_VARIABLE_INDEX) {
+      DEBUG << "unexpected variableIndex" << vi;
+      return;
+   }
+
+   // Note the connected state.
+   //
+   const bool isConnected = update.connectionInfo.isChannelConnected();
+
+   // Display the connected state.
+   //
+   this->updateToolTipConnection( isConnected, vi );
+   this->processConnectionInfo( isConnected, vi );
 
    // Start a single shot read if the channel is up (ignore channel down),
    // This will allow initialisation of the widget using info from the database.
    // If the combo box is already populated, then it has been set up at design time,
    // or this is a subsequent 'channel up'
    // If subscribing, then an update will occur without having to initiated one here.
-   // Note, channel up implies link up
-   if( this->isConnected && !this->subscribe )
+   // Note, channel up implies link up.
+   //
+   if( isConnected && !this->subscribe )
    {
       QEInteger* qca = qobject_cast<QEInteger*>(this->getQcaItem (PV_VARIABLE_INDEX));
       if (qca) qca->singleShotRead();
@@ -193,11 +220,13 @@ void QEComboBox::connectionChanged( QCaConnectionInfo& connectionInfo, const uns
    }
 
    // Set cursor to indicate access mode.
+   //
    this->setAccessCursorStyle();
 
    // Signal channel connection change to any Link widgets,
    // using signal dbConnectionChanged.
-   this->emitDbConnectionChanged( PV_VARIABLE_INDEX );
+   //
+   this->emitDbConnectionChanged( vi );
 }
 
 //------------------------------------------------------------------------------
@@ -210,26 +239,25 @@ void QEComboBox::connectionChanged( QCaConnectionInfo& connectionInfo, const uns
 // Note, this will still be called once if not subscribing to set up enumeration values.
 // See  QEComboBox::dynamicSetup() for details.
 //
-void QEComboBox::setValueIfNoFocus( const long& value,QCaAlarmInfo& alarmInfo,
-                                    QCaDateTime&, const unsigned int& variableIndex)
+void QEComboBox::setComboBoxValue (const QEIntegerValueUpdate& update)
 {
-   if (variableIndex != PV_VARIABLE_INDEX) {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+   const unsigned int vi = update.variableIndex;
+
+   if (vi != PV_VARIABLE_INDEX) {
+      DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
    // Associated qca object - avoid any segmentation fault.
    //
-   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   QEChannel* qca = this->getQcaItem (vi);
    if (!qca) return;   // sanity check
-
-   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
 
    // If and only if first update (for this connection) then use enumeration
    // values to populate the combo box.
    // If not subscribing, there will still be an initial update to get enumeration values.
    //
-   if( isMetaDataUpdate )
+   if( update.isMetaUpdate )
    {
       this->setComboBoxText ();
    }
@@ -244,9 +272,9 @@ void QEComboBox::setValueIfNoFocus( const long& value,QCaAlarmInfo& alarmInfo,
    // First caluate index value irrespective of whether we update or not.
    // The data HAS changed and we should signal the correct information
    int index;
-   if( this->valueIndexMap.containsF (value) )
+   if( this->valueIndexMap.containsF (update.value) )
    {
-      index = this->valueIndexMap.valueF (value);
+      index = this->valueIndexMap.valueF (update.value);
    }
    else
    {
@@ -255,8 +283,9 @@ void QEComboBox::setValueIfNoFocus( const long& value,QCaAlarmInfo& alarmInfo,
       index = -1;
    }
 
-   // Save the last database value
-   this->lastValue = value;
+   // Save the last database value.
+   //
+   this->lastValue = update.value;
 
    // Update the text if appropriate.
    // If the user is editing the object then updates will be inapropriate, unless
@@ -266,7 +295,7 @@ void QEComboBox::setValueIfNoFocus( const long& value,QCaAlarmInfo& alarmInfo,
    // to restrict updates. Allow if the form designer has specifically allowed
    // updates while the widget has focus.
    //
-   if( this->isAllowFocusUpdate || !this->hasFocus() || isMetaDataUpdate )
+   if( this->isAllowFocusUpdate || !this->hasFocus() || update.isMetaUpdate )
    {
       this->setCurrentIndex( index );
 
@@ -275,11 +304,13 @@ void QEComboBox::setValueIfNoFocus( const long& value,QCaAlarmInfo& alarmInfo,
    }
 
    // Invoke common alarm handling processing.
-   this->processAlarmInfo( alarmInfo );
+   //
+   this->processAlarmInfo( update.alarmInfo );
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged.
-   this->emitDbValueChanged( this->itemText( index ), PV_VARIABLE_INDEX );
+   //
+   this->emitDbValueChanged( this->itemText( index ), vi );
 }
 
 //------------------------------------------------------------------------------
@@ -287,7 +318,7 @@ void QEComboBox::setValueIfNoFocus( const long& value,QCaAlarmInfo& alarmInfo,
 //
 void QEComboBox::setComboBoxText()
 {
-   qcaobject::QCaObject * qca = NULL;
+   QEChannel * qca = NULL;
    QStringList enumerations;
    QString text;
    bool isMatch;

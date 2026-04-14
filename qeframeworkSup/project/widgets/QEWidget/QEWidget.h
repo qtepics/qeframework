@@ -30,7 +30,7 @@
 #include <contextMenu.h>
 #include <standardProperties.h>
 
-/// Class to pass summary information about a QCaObject
+/// Class to pass summary information about a QEChannel
 class QCaInfo
 {
 public:
@@ -147,13 +147,13 @@ private:
   Note, there is tight integration between the CA aware widget classes, this class, and its
   base classes, especially VariableManager, VariableNameManager and QEToolTip.
 
-  In particular, the VariableManager class manages QCaObject classes that stream updates to the
+  In particular, the VariableManager class manages QEChannel classes that stream updates to the
   CA aware widgets. But the VariableManager class, however, doesn't know how to format the data,
   or how the updates will be used.
   To resolve this, the VariableManager class asks a parent class (such as QELabel) to create the
-  QCaObject class in what ever flavour it wants, by calling the virtual function createQcaItem.
+  QEChannel class in what ever flavour it wants, by calling the virtual function createQcaItem.
   A QELabel, for example, wants string updates so it creates a QEString which is based on a
-  QCaObject class and formats all updates as strings.
+  QEChannel class and formats all updates as strings.
 
   The CA aware parent class (such as QELabel) defines a variable by calling VariableNameManager::setVariableName().
   The VariableNamePropertyManager class calls the establishConnection function of the CA aware parent class, such as QELabel
@@ -184,13 +184,13 @@ private:
   function, to perform the tasks common to all CA aware widgets for establishing a stream of CA data.
 
   The createConnection() function sets up the widget 'tool tip', then immedietly calls (through VariableManager::createVariable)
-  the CA aware widget back asking it to create an object based on QCaObject. This object will supply a stream of CA update
+  the CA aware widget back asking it to create an object based on QEChannel. This object will supply a stream of CA update
   signals to the CA aware object in a form that it needs. For example a QELabel creates a QEString object. The QEString class
-  is based on the QCaObject class and converts all update data to a strings which is required for updating a Qt label widget.
-  This class stores the QCaObject based class.
+  is based on the QEChannel class and converts all update data to a strings which is required for updating a Qt label widget.
+  This class stores the QEChannel based class.
 
   After the establishConnection() function in the CA aware widget has called createConnection(), the remaining task of the
-  establishConnection() function is to connect the signals of the newly created QCaObject based classes to its own slots
+  establishConnection() function is to connect the signals of the newly created QEChannel based classes to its own slots
   so that data updates can be used. For example, a QELabel connects the 'stringChanged' signal
   from the QEString object to its setLabelText slot.
 
@@ -322,9 +322,9 @@ public:
     const QList<QCaInfo> getQCaInfo();
 
 protected:
-    QEChannel* createConnection( unsigned int variableIndex );            ///< Create a CA connection. Use default subscribe option. Return a QCaObject if successfull
+    QEChannel* createConnection( unsigned int variableIndex );            ///< Create a CA connection. Use default subscribe option. Return a QEChannel if successfull
     QEChannel* createConnection( unsigned int variableIndex,
-                                 const bool do_subscribe );               ///< Create a CA connection. Use specified subscribe option. Return a QCaObject if successfull
+                                 const bool do_subscribe );               ///< Create a CA connection. Use specified subscribe option. Return a QEChannel if successfull
 
     QString persistantName( QString prefix ) const;                       ///< Returns a string that will not change between runs of the application (given the same configuration)
 

@@ -159,8 +159,8 @@ void QENumericEdit::commonSetup ()
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   this->connectNewVariableNameProperty
-         (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+   this->connectPvNameProperties
+         (SLOT (usePvNameProperties (const QEPvNameProperties&)));
 
    // Some events must be applied to the internal widget
    //
@@ -412,11 +412,11 @@ void QENumericEdit::setPvValue (const bool value)
 //==============================================================================
 // Slots/Hook functions
 //
-void QENumericEdit::useNewVariableNameProperty (QString pvName,
-                                                QString subs,
-                                                unsigned int vi)
+void QENumericEdit::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
-   this->setVariableNameAndSubstitutions (pvName, subs, vi);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 //------------------------------------------------------------------------------

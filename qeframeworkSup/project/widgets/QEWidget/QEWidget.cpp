@@ -123,7 +123,7 @@ QEWidget::~QEWidget() {
 
 // Create a CA connection and initiates updates if required.
 // This is called by the establishConnection function of CA aware widgets based on this class, such as a QELabel.
-// If successfull it will return the QCaObject based object supplying data update signals.
+// If successfull it will return the QEChannel based object supplying data update signals.
 //
 QEChannel* QEWidget::createConnection( unsigned int variableIndex,
                                        const bool do_subscribe ) {

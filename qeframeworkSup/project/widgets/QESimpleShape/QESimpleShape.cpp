@@ -99,10 +99,10 @@ void QESimpleShape::setup ()
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   this->connectNewVariableNameProperty
-         (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
-   this->edge->connectNewVariableNameProperty
-         (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+   this->connectPvNameProperties
+         (SLOT (usePvNameProperties (const QEPvNameProperties&)));
+   this->edge->connectPvNameProperties
+         (SLOT (usePvNameProperties (const QEPvNameProperties&)));
 }
 
 //------------------------------------------------------------------------------
@@ -171,44 +171,43 @@ QString QESimpleShape::getEdgeVariableNameProperty () const
 //------------------------------------------------------------------------------
 // Update variable name etc.
 //
-void QESimpleShape::useNewVariableNameProperty (QString variableNameIn,
-                                                QString variableNameSubstitutionsIn,
-                                                unsigned int variableIndex)
+void QESimpleShape::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
-   ASSERT_PV_INDEX (variableIndex, return);
+   ASSERT_PV_INDEX (pvNameProperties.index, return);
 
    // Note: essentially calls createQcaItem - provided the expanded PV name is not empty.
    //
-   this->setVariableNameAndSubstitutions (variableNameIn,
-                                          variableNameSubstitutionsIn,
-                                          variableIndex);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 //------------------------------------------------------------------------------
-// Implementation of QEWidget's virtual funtion to create the specific type of QCaObject required.
-// For shape, a QCaObject that streams integers is required.
+// Implementation of QEWidget's virtual funtion to create the specific type of QEChannel required.
+// For shape, a QEChannel that streams integers is required.
 //
-qcaobject::QCaObject* QESimpleShape::createQcaItem (unsigned int variableIndex)
+QEChannel* QESimpleShape::createQcaItem (unsigned int variableIndex)
 {
    ASSERT_PV_INDEX (variableIndex, return NULL);
 
-   qcaobject::QCaObject* result = NULL;
+   QEChannel* result = NULL;
 
    if (variableIndex == MAIN_PV_INDEX) {
-      QString pvName = this->getSubstitutedVariableName (variableIndex);
+      const QString pvName = this->getSubstitutedVariableName (variableIndex);
 
       // Note: we have dropped the interpretation of PV name as a literal integer.
       // Use a QSimpleShape widget instead.
       //
-      result = new qcaobject::QCaObject (pvName, this, variableIndex);
+      result = new QEChannel (pvName, this, variableIndex);
 
       // Apply currently defined array index/elements request values.
       //
       this->setSingleVariableQCaProperties (result);
 
    } else if (variableIndex == EDGE_PV_INDEX) {
-      QString pvName = this->getSubstitutedVariableName (variableIndex);
-      result = new qcaobject::QCaObject (pvName, this, variableIndex);
+      const QString pvName = this->getSubstitutedVariableName (variableIndex);
+
+      result = new QEChannel (pvName, this, variableIndex);
 
       // Apply currently defined array index/elements request values.
       //
@@ -233,48 +232,49 @@ void QESimpleShape::establishConnection (unsigned int variableIndex)
    ASSERT_PV_INDEX (variableIndex, return);
 
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   // Note createConnection creates the connection and returns reference to existing QCaObject.
+   // If successfull, the QEChannel object that will supply data update signals will be returned
+   // Note createConnection creates the connection and returns reference to existing QEChannel.
    //
-   qcaobject::QCaObject* qca = this->createConnection (variableIndex);
+   QEChannel* qca = this->createConnection (variableIndex);
 
-   // If a QCaObject object is now available to supply data update signals,
+   // If a QEChannel object is now available to supply data update signals,
    // connect it to the appropriate slots.
    //
    if (qca) {
-      QObject::connect (qca,  SIGNAL (dataChanged   (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int &)),
-                        this, SLOT   (setShapeValue (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int &)));
+      QObject::connect (qca,  SIGNAL (valueUpdated  (const QEVariantUpdate&)),
+                        this, SLOT   (setShapeValue (const QEVariantUpdate&)));
 
-      QObject::connect (qca,  SIGNAL (connectionChanged (QCaConnectionInfo&, const unsigned int &)),
-                        this, SLOT   (connectionChanged (QCaConnectionInfo&, const unsigned int &)));
+      QObject::connect (qca,  SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                        this, SLOT   (connectionUpdated (const QEConnectionUpdate&)));
    }
 }
 
 //------------------------------------------------------------------------------
 // Act on a connection change.
 // Change how the shape looks and change the tool tip
-// This is the slot used to recieve connection updates from a QCaObject based class.
+// This is the slot used to recieve connection updates from a QEChannel based class.
 //
-void QESimpleShape::connectionChanged (QCaConnectionInfo & connectionInfo,
-                                       const unsigned int& variableIndex)
+void QESimpleShape::connectionUpdated (const QEConnectionUpdate& update)
 {
-   ASSERT_PV_INDEX (variableIndex, return);
+   const unsigned int vi = update.variableIndex;
+
+   ASSERT_PV_INDEX (vi, return);
 
    bool isConnected;
 
    // Note the connected state
    //
-   isConnected = connectionInfo.isChannelConnected ();
+   isConnected = update.connectionInfo.isChannelConnected ();
 
    // Display the connected state
    //
-   this->updateToolTipConnection (isConnected, variableIndex);
+   this->updateToolTipConnection (isConnected, vi);
 
-   if (variableIndex == MAIN_PV_INDEX) {
+   if (vi == MAIN_PV_INDEX) {
       // Widget draws itself - a styleSheet not applicable per se.
       // However we stillcall processConnectionInfo (isConnected)
       //
-      this->processConnectionInfo (isConnected, variableIndex);
+      this->processConnectionInfo (isConnected, vi);
       this->setIsActive (isConnected);
 
       // Signal channel connection change to any (Link) widgets.
@@ -283,7 +283,7 @@ void QESimpleShape::connectionChanged (QCaConnectionInfo & connectionInfo,
       this->emitDbConnectionChanged (MAIN_PV_INDEX);
    }
 
-   if (variableIndex == EDGE_PV_INDEX) {
+   if (vi == EDGE_PV_INDEX) {
       // grayout edge on disconnetc and on connect until we get first value.
       this->setEdgeColour (QColor (0xc8c8c8));
    }
@@ -291,29 +291,28 @@ void QESimpleShape::connectionChanged (QCaConnectionInfo & connectionInfo,
 
 //------------------------------------------------------------------------------
 // Update the shape value
-// This is the slot used to recieve data updates from a QCaObject based class.
+// This is the slot used to recieve data updates from a QEChannel based class.
 //
-void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo& alarmInfo,
-                                   QCaDateTime&, const unsigned int& variableIndex)
+void QESimpleShape::setShapeValue (const QEVariantUpdate& update)
 {
-   ASSERT_PV_INDEX (variableIndex, return);
+   const unsigned int vi = update.variableIndex;
+
+   ASSERT_PV_INDEX (vi, return);
 
    QColor selectedEdgeColour;
    int channelValue;
 
    // Associated qca object - avoid the segmentation fault.
    //
-   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   QEChannel* qca = this->getQcaItem (vi);
    if (!qca) return;   // sanity check
 
-   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
-
-   switch (variableIndex) {
+   switch (vi) {
 
       case MAIN_PV_INDEX:
          // Set up variable details used by some formatting options.
          //
-         if (isMetaDataUpdate) {
+         if (update.isMetaUpdate) {
             this->stringFormatting.setArrayAction (QE::Index);
             this->stringFormatting.setDbEgu (qca->getEgu ());
             this->stringFormatting.setDbEnumerations (qca->getEnumerations ());
@@ -333,16 +332,16 @@ void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo& 
          //
          channelValue = int (qca->getIntegerValue ());
 
-         if (this->useAlarmColours (this->getDisplayAlarmStateOption(), alarmInfo)) {
+         if (this->useAlarmColours (this->getDisplayAlarmStateOption(), update.alarmInfo)) {
             // Save alarm colour.
             // Must do before we set value as getItemColour will get called.
             //
             if (this->mainUsesStyleAlarmColours) {
                // Use the style colour based on the current alarm state.
                //
-               this->fillColour = QColor (alarmInfo.getStyleColorName());
+               this->fillColour = QColor (update.alarmInfo.getStyleColorName());
             } else {
-                this->fillColour = this->getColor (alarmInfo, 255);
+                this->fillColour = this->getColor (update.alarmInfo, 255);
             }
 
          } else {
@@ -364,14 +363,14 @@ void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo& 
       case EDGE_PV_INDEX:
          // For now (at least) we treat everything not Never as Always.
          //
-         if (this->useAlarmColours (this->getEdgeAlarmStateOption(), alarmInfo)) {
+         if (this->useAlarmColours (this->getEdgeAlarmStateOption(), update.alarmInfo)) {
 
             if (this->edgeUsesStyleAlarmColours) {
                // Use the style colour based on the current alarm state.
                //
-               selectedEdgeColour = QColor (alarmInfo.getStyleColorName());
+               selectedEdgeColour = QColor (update.alarmInfo.getStyleColorName());
             } else {
-               selectedEdgeColour = this->getColor (alarmInfo, 255);
+               selectedEdgeColour = this->getColor (update.alarmInfo, 255);
             }
 
          } else {
@@ -385,12 +384,12 @@ void QESimpleShape::setShapeValue (const QVariant& /* valueIn */, QCaAlarmInfo& 
    // Invoke tool tip handling directly. We don't want to interfere with the style
    // as widget draws it's own stuff with own, possibly clear, colours.
    //
-   this->updateToolTipAlarm (alarmInfo, variableIndex);
+   this->updateToolTipAlarm (update.alarmInfo, vi);
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged (for main variable only).
    //
-   if (variableIndex == MAIN_PV_INDEX) {
+   if (vi == MAIN_PV_INDEX) {
       this->emitDbValueChanged (MAIN_PV_INDEX);
    }
 }
@@ -421,7 +420,7 @@ QString QESimpleShape::getItemText ()
       case QSimpleShape::PvText:
       case QSimpleShape::LocalEnumeration:
          {
-            qcaobject::QCaObject* qca = this->getQcaItem (MAIN_PV_INDEX);
+            QEChannel* qca = this->getQcaItem (MAIN_PV_INDEX);
             if (!qca) break;  // sanity check
             if (!qca->getChannelIsConnected ()) break;
             bool isDefined;
@@ -480,7 +479,7 @@ void QESimpleShape::setEdgeAlarmStateOption (QE::DisplayAlarmStateOptions option
 
    // Force update (if we can).
    //
-   qcaobject::QCaObject* qca = this->getQcaItem (EDGE_PV_INDEX);
+   QEChannel* qca = this->getQcaItem (EDGE_PV_INDEX);
    if (qca) qca->resendLastData ();
 }
 
@@ -500,7 +499,7 @@ void QESimpleShape::setUseStyleAlarmColours (const bool useStyleAlarmColoursIn)
 
    // Force update (if we can).
    //
-   qcaobject::QCaObject* qca = nullptr;
+   QEChannel* qca = nullptr;
 
    qca = this->getQcaItem (MAIN_PV_INDEX);
    if (qca) qca->resendLastData ();
@@ -521,7 +520,7 @@ void QESimpleShape::setEdgeUsesStyleAlarmColours (const bool useStyleAlarmColour
 
    // Force update (if we can).
    //
-   qcaobject::QCaObject* qca = nullptr;
+   QEChannel* qca = nullptr;
 
    qca = this->getQcaItem (EDGE_PV_INDEX);
    if (qca) qca->resendLastData ();

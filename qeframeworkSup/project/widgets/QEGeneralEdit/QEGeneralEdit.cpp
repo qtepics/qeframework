@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2014-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2014-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -122,7 +122,7 @@ void QEGeneralEdit::commonSetup ()
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   this->connectNewVariableNameProperty (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+   this->connectPvNameProperties (SLOT (usePvNameProperties (const QEVariantUpdate&)));
 
    // Apply button connections (always connected even when not in use).
    //
@@ -159,24 +159,21 @@ void QEGeneralEdit::setArrayIndex (const int arrayIndex)
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of
-// QCaObject required. A QCaObject that streams integers is required.
+// QEChannel required. A QEChannel that streams integers is required.
 //
-qcaobject::QCaObject* QEGeneralEdit::createQcaItem (unsigned int variableIndex)
+QEChannel* QEGeneralEdit::createQcaItem (unsigned int variableIndex)
 {
-   qcaobject::QCaObject * result = NULL;
-   QString pvName;
-
    if (variableIndex != PV_VARIABLE_INDEX) {
       DEBUG << "unexpected variableIndex" << variableIndex;
       return NULL;
    }
 
-   pvName = this->getSubstitutedVariableName (0).trimmed ();
+   const QString pvName = this->getSubstitutedVariableName (0).trimmed ();
    this->ui->pvNameLabel->setText (pvName);
 
    // We create a generic connection here as opposed to a QEInteger or QEFloating etc.
    //
-   result = new qcaobject::QCaObject (pvName, this, variableIndex);
+   QEChannel* result = new QEChannel (pvName, this, variableIndex, QEChannel::SIG_VARIANT);
 
    // Apply currently defined array index/elements request values.
    //
@@ -200,38 +197,40 @@ void QEGeneralEdit::establishConnection (unsigned int variableIndex)
    }
 
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   // Note createConnection creates the connection and returns reference to existing QCaObject.
+   // If successfull, the QEChannel object that will supply data update signals will be returned
+   // Note createConnection creates the connection and returns reference to existing QEChannel.
    //
-   qcaobject::QCaObject* qca = createConnection (variableIndex);
+   QEChannel* qca = createConnection (variableIndex);
 
-   // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots.
+   // If a QEChannel object is now available to supply data update signals,
+   // connect it to the appropriate slots.
    //
    if (qca) {
-      QObject::connect (qca,  SIGNAL (connectionChanged (QCaConnectionInfo &, const unsigned int& )),
-                        this, SLOT   (connectionChanged (QCaConnectionInfo &, const unsigned int& )));
+      QObject::connect (qca,  SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                        this, SLOT   (connectionUpdated (const QEConnectionUpdate&)));
 
-      QObject::connect (qca,SIGNAL (dataChanged (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& )),
-                        this, SLOT (dataChanged (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& )));
+      QObject::connect (qca,  SIGNAL (valueUpdated (const QEVariantUpdate&)),
+                        this, SLOT   (valueUpdated (const QEVariantUpdate&)));
    }
 }
 
 //------------------------------------------------------------------------------
 // Act on a connection change - modify the tool tip
 // We don't chage the style - the inner widgets can to that.
-// This is the slot used to recieve connection updates from a QCaObject based class.
+// This is the slot used to recieve connection updates from a QEChannel based class.
 //
-void QEGeneralEdit::connectionChanged (QCaConnectionInfo& connectionInfo,
-                                       const unsigned int& variableIndex)
+void QEGeneralEdit::connectionUpdated (const QEConnectionUpdate& update)
 {
-   if (variableIndex != PV_VARIABLE_INDEX) {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+   const unsigned int vi = update.variableIndex;
+
+   if (vi != PV_VARIABLE_INDEX) {
+      DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
    // Note the connected state
    //
-   bool isConnected = connectionInfo.isChannelConnected ();
+   bool isConnected = update.connectionInfo.isChannelConnected ();
 
    // Display the connected state
    //
@@ -240,28 +239,26 @@ void QEGeneralEdit::connectionChanged (QCaConnectionInfo& connectionInfo,
    // Signal channel connection change to any (Link) widgets.
    // using signal dbConnectionChanged.
    //
-   this->emitDbConnectionChanged (PV_VARIABLE_INDEX);
+   this->emitDbConnectionChanged (vi);
 }
 
 //-----------------------------------------------------------------------------
 //
-void QEGeneralEdit::dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
-                                 QCaDateTime&, const unsigned int& variableIndex)
-
+void QEGeneralEdit::valueUpdated (const QEVariantUpdate& update)
 {
-   if (variableIndex != PV_VARIABLE_INDEX) {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+   const unsigned int vi = update.variableIndex;
+
+   if (vi != PV_VARIABLE_INDEX) {
+      DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
    // Get the associate channel object.
    //
-   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   QEChannel* qca = this->getQcaItem (vi);
    if (!qca) return;   // sanity check
 
-   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
-
-   if (isMetaDataUpdate) {
+   if (update.isMetaUpdate) {
       const QString pvName = this->getSubstitutedVariableName (0).trimmed ();
 
       this->ui->valueLabel->setVariableNameAndSubstitutions (pvName, "", 0);
@@ -277,27 +274,27 @@ void QEGeneralEdit::dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
       this->ui->radioGroupWidget->setVariableNameAndSubstitutions ("", "", 0);
       this->ui->stringEditWidget->setVariableNameAndSubstitutions ("", "", 0);
 
-      QVariant workingValue = value;
-      QMetaType::Type mtype = QEPlatform::metaType (value);
+      QVariant workingValue = update.value;
+      QMetaType::Type mtype = QEPlatform::metaType (update.value);
 
       if (mtype == QMetaType::QVariantList) {
          int ai = this->getArrayIndex();
-         if (ai >= 0 && ai < value.toList().count() ) {
+         if (ai >= 0 && ai < update.value.toList().count() ) {
             // Convert this array element as a scalar update.
             //
-            workingValue = value.toList().value(ai);
+            workingValue = update.value.toList().value(ai);
             mtype = QEPlatform::metaType (workingValue);
          } else {
             DEBUG << " Array index out of bounds:" << ai;
             return; // do nothing
          }
-      } else if (QEVectorVariants::isVectorVariant (value)) {
+      } else if (QEVectorVariants::isVectorVariant (update.value)) {
 
          int ai = this->getArrayIndex();
-         if (ai >= 0 && ai < QEVectorVariants::vectorCount (value) ) {
+         if (ai >= 0 && ai < QEVectorVariants::vectorCount (update.value) ) {
             // Convert this array element as a scalar update.
             //
-            workingValue = QEVectorVariants::getDoubleValue (value, ai, 0.0);
+            workingValue = QEVectorVariants::getDoubleValue (update.value, ai, 0.0);
             mtype = QEPlatform::metaType (workingValue);
          } else {
             DEBUG << " Array index out of bounds:" << ai;
@@ -397,12 +394,12 @@ void QEGeneralEdit::dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
 
    // Invoke common alarm handling processing.
    //
-   this->processAlarmInfo (alarmInfo);
+   this->processAlarmInfo (update.alarmInfo);
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged.
    //
-   this->emitDbValueChanged (PV_VARIABLE_INDEX);
+   this->emitDbValueChanged (vi);
 }
 
 //------------------------------------------------------------------------------
@@ -449,11 +446,11 @@ void QEGeneralEdit::onPrecisionValueChanged (const int value)
 // Properties
 // Update variable name etc.
 //
-void QEGeneralEdit::useNewVariableNameProperty (QString variableNameIn,
-                                                QString substitutionsIn,
-                                                unsigned int variableIndex)
+void QEGeneralEdit::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
-   this->setVariableNameAndSubstitutions (variableNameIn, substitutionsIn, variableIndex);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 //------------------------------------------------------------------------------

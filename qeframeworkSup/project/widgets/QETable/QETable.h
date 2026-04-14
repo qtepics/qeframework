@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2014-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2014-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -29,10 +29,11 @@
 #include <QEAbstractDynamicWidget.h>
 #include <QEStringFormatting.h>
 #include <QEStringFormattingMethods.h>
+#include <QEFloating.h>
 #include <QEFloatingArray.h>
 #include <QEFloatingFormatting.h>
 #include <persistanceManager.h>
-#include <QCaObject.h>
+#include <QEChannel.h>
 #include <QEWidget.h>
 #include <QCaVariableNamePropertyManager.h>
 #include <QEFrameworkLibraryGlobal.h>
@@ -286,7 +287,7 @@ protected:
    // Override QEWidget functions.
    //
    void establishConnection (unsigned int variableIndex);
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
    void activated ();
    void stringFormattingChange ();
 
@@ -376,17 +377,11 @@ private:
    DataSets dataSet [MAXIMUM_NUMBER_OF_VARIABLES];
 
 private slots:
-   void setNewVariableName (QString variableNameIn,
-                            QString variableNameSubstitutionsIn,
-                            unsigned int variableIndex);
+   void usePvNameProperties (const QEPvNameProperties&);
 
-   void connectionChanged (QCaConnectionInfo& connectionInfo,
-                           const unsigned int &variableIndex);
+   void connectionUpdated (const QEConnectionUpdate&);
 
-   void dataArrayChanged (const QVector<double>& values,
-                          QCaAlarmInfo& alarmInfo,
-                          QCaDateTime& timeStamp,
-                          const unsigned int& variableIndex);
+   void dataArrayUpdated (const QEFloatingArrayUpdate&);
 
    void gridCellClicked (int row, int column);
    void gridCellEntered (int row, int column);

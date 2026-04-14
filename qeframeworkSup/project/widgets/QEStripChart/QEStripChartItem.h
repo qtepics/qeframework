@@ -32,7 +32,7 @@
 #include <QCaDataPoint.h>
 #include <QCaDateTime.h>
 #include <QELabel.h>
-#include <QCaObject.h>
+#include <QEChannel.h>
 #include <QCaVariableNamePropertyManager.h>
 #include <QEArchiveAccess.h>
 #include <persistanceManager.h>
@@ -156,8 +156,8 @@ protected:
    bool eventFilter (QObject *obj, QEvent *event);
 
 private:
-   qcaobject::QCaObject* getQcaItem () const; // Return reference to QELabel used to stream CA updates
-   void connectQcaSignals ();                 // Performs qca slignal/slot connections if needs be.
+   QEChannel* getQcaItem () const;  // Return reference to QELabel's QEChannel used to stream updates
+   void connectQcaSignals ();       // Performs qca slignal/slot connections if needs be.
    void clear ();
    void highLight (bool isHigh);
    void addRealTimeDataPoint (const QCaDataPoint& point);
@@ -243,20 +243,21 @@ private:
    QColorDialog* colourDialog;
    QEStripChartContextMenu* inUseMenu;
    QEStripChartContextMenu* emptyMenu;
-   qcaobject::QCaObject::ObjectIdentity previousIdentity;
+   QEChannel::ObjectIdentity previousIdentity;
    bool hostSlotAvailable;
 
    void createInternalWidgets ();
    void runSelectNameDialog (QWidget* control);
 
 private slots:
-   void newVariableNameProperty (QString pvName, QString substitutions, unsigned int slot);
+   void usePvNameProperties (const QEPvNameProperties&);
 
-   void setDataConnection (QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex);
-   void setDataValue (const QVariant& value, QCaAlarmInfo& alarm,
-                      QCaDateTime& datetime, const unsigned int& variableIndex);
+   void setDataConnection (const QEConnectionUpdate&);
 
-   void setArchiveData (const QObject* userData, const bool okay, const QCaDataPointList& archiveData,
+   void setDataValue (const QEVariantUpdate&);
+
+   void setArchiveData (const QObject* userData, const bool okay,
+                        const QCaDataPointList& archiveData,
                         const QString& pvName, const QString& supplementary);
 
    void letterButtonClicked (bool checked);

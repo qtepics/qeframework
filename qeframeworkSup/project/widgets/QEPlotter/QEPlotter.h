@@ -34,8 +34,11 @@
 #include <QCaAlarmInfo.h>
 #include <QCaDateTime.h>
 #include <QEActionRequests.h>
+#include <QEChannel.h>
+#include <QEFloating.h>
 #include <QEFloatingArray.h>
 #include <QEFloatingFormatting.h>
+#include <QEInteger.h>
 #include <QEIntegerFormatting.h>
 #include <QEAbstractDynamicWidget.h>
 #include <QEExpressionEvaluation.h>
@@ -414,7 +417,7 @@ protected:
 
    // Implementation of QEWidget's virtual funtions
    //
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
    void establishConnection (unsigned int variableIndex);
    void activated ();
    bool eventFilter (QObject *obj, QEvent *event);
@@ -659,29 +662,55 @@ private:
    void runDataDialog (const int slot, QWidget* control);
 
 public slots:
+   /// New style slot functions.
+   //
+   void usePvNameProperties (const QEPvNameProperties& pvNameProperties);
+
+   void dataConnectionUpdated (const QEConnectionUpdate& update);
+
+   void dataArrayUpdated (const QEFloatingArrayUpdate& update);
+
+   void sizeConnectionUpdated (const QEConnectionUpdate& update);
+
+   void sizeValueUpdated (const QEIntegerValueUpdate& update);
+
+   void markerConnectionUpdated (const QEConnectionUpdate& update);
+
+   void markerValueUpdated (const QEFloatingValueUpdate& update);
+
+   /// These slots are public, therefore keep but flag as deprecated.
+   /// They will eventually be deleted.
+   //
+   Q_DECL_DEPRECATED_X ("use usePvNameProperties")
    void setNewVariableName (QString variableName,
                             QString variableNameSubstitutions,
                             unsigned int variableIndex);
 
+   Q_DECL_DEPRECATED_X ("use dataConnectionUpdated")
    void dataConnectionChanged (QCaConnectionInfo& connectionInfo,
                                const unsigned int& variableIndex);
 
+   Q_DECL_DEPRECATED_X ("use dataArrayUpdated")
    void dataArrayChanged (const QVector<double>& values,
                           QCaAlarmInfo& alarmInfo,
                           QCaDateTime& timeStamp,
                           const unsigned int& variableIndex);
 
+   Q_DECL_DEPRECATED_X ("use sizeConnectionUpdated")
    void sizeConnectionChanged (QCaConnectionInfo& connectionInfo,
                                const unsigned int& variableIndex);
 
+   Q_DECL_DEPRECATED_X ("use sizeValueUpdated")
    void sizeValueChanged (const long& value,
                           QCaAlarmInfo& alarmInfo,
                           QCaDateTime& timeStamp,
                           const unsigned int& variableIndex);
 
+   Q_DECL_DEPRECATED_X ("use markerConnectionUpdated")
    void markerConnectionChanged (QCaConnectionInfo& connectionInfo,
                                  const unsigned int& variableIndex);
 
+   Q_DECL_DEPRECATED_X ("use markerValueUpdated")
    void markerValueChanged (const double& value,
                             QCaAlarmInfo& alarmInfo,
                             QCaDateTime& timeStamp,

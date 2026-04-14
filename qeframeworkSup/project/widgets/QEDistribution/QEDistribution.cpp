@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2019-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2019-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -22,9 +22,6 @@
 #include <QBrush>
 #include <QDebug>
 
-#include <QECommon.h>
-#include <QCaObject.h>
-#include <QEFloating.h>
 #include <QEDisplayRanges.h>
 
 #define DEBUG qDebug() << "QEDistribution" << __LINE__ << __FUNCTION__ << "  "
@@ -161,8 +158,8 @@ void QEDistribution::setup()
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   const char* slot = SLOT (newPvName (QString, QString, unsigned int));
-   this->connectNewVariableNameProperty (slot);
+   const char* slot = SLOT (usePvNameProperties (const QEPvNameProperties&));
+   this->connectPvNameProperties (slot);
 
    // Create the static QEDistribution timer if needs be.
    //
@@ -755,26 +752,30 @@ void QEDistribution::setPvName (const QString& pvName)
 
 //------------------------------------------------------------------------------
 // slot
-void QEDistribution::newPvName (QString pvName, QString subs, unsigned int pvi)
+void QEDistribution::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
+   const unsigned int pvi = pvNameProperties.index;
+
    if (pvi != PV_VARIABLE_INDEX) return;  // sanity check
 
    this->resetDistibution ();
-   this->setVariableNameAndSubstitutions (pvName, subs, pvi);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
    this->pvNameLabel->setText (this->getSubstitutedVariableName (pvi));
 }
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of
-// QCaObject required. For a progress bar a QCaObject that streams integers is
+// QEChannel required. For a progress bar a QEChannel that streams integers is
 // required.
 //
-qcaobject::QCaObject* QEDistribution::createQcaItem (unsigned int pvi)
+QEChannel* QEDistribution::createQcaItem (unsigned int pvi)
 {
    if (pvi != PV_VARIABLE_INDEX) return NULL;  // sanity check
-   qcaobject::QCaObject* result = NULL;
+   QEChannel* result = NULL;
 
-   QString pvName = this->getSubstitutedVariableName (pvi);
+   const QString pvName = this->getSubstitutedVariableName (pvi);
    this->pvNameLabel->setText (pvName);
 
    result = new QEFloating (pvName, this, &this->floatingFormatting, pvi);
@@ -796,32 +797,33 @@ void QEDistribution::establishConnection (unsigned int pvi)
    if (pvi != PV_VARIABLE_INDEX) return;  // sanity check
 
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   // Note createConnection creates the connection and returns reference to existing QCaObject.
+   // If successfull, the QEChannel object that will supply data update signals will be returned
+   // Note createConnection creates the connection and returns reference to existing QEChannel.
    //
-   qcaobject::QCaObject* qca = this->createConnection (pvi);
+   QEChannel* qca = this->createConnection (pvi);
 
-   // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots.
+   // If a QEChannel object is now available to supply data update signals, connect it to the appropriate slots.
    //
    if (qca) {
-      QObject::connect (qca,  SIGNAL (floatingChanged (const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                        this, SLOT   (setPvValue      (const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+      QObject::connect (qca, SIGNAL (valueUpdated (const QEFloatingValueUpdate&)),
+                        this, SLOT  (setPvValue   (const QEFloatingValueUpdate&)));
 
-      QObject::connect (qca, SIGNAL (connectionChanged (QCaConnectionInfo&,const unsigned int&)),
-                        this, SLOT  (connectionChanged (QCaConnectionInfo&,const unsigned int&)));
+      QObject::connect (qca, SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                        this, SLOT  (connectionUpdated (const QEConnectionUpdate&)));
    }
 }
 
 //------------------------------------------------------------------------------
 //
-void QEDistribution::connectionChanged (QCaConnectionInfo& connectionInfo,
-                                        const unsigned int& pvi)
+void QEDistribution::connectionUpdated (const QEConnectionUpdate& update)
 {
+   const unsigned int pvi = update.variableIndex;
+
    if (pvi != PV_VARIABLE_INDEX) return;  // sanity check
 
    // Note the connected state
    //
-   const bool isConnected = connectionInfo.isChannelConnected ();
+   const bool isConnected = update.connectionInfo.isChannelConnected ();
 
    if (!isConnected && (this->pvData.count() >= 1)) {
       // We have a channel disconnect.
@@ -856,34 +858,33 @@ void QEDistribution::connectionChanged (QCaConnectionInfo& connectionInfo,
 
 //------------------------------------------------------------------------------
 //
-void QEDistribution::setPvValue (const double& value, QCaAlarmInfo& alarmInfo,
-                                 QCaDateTime& timestamp, const unsigned int& pvi)
+void QEDistribution::setPvValue (const QEFloatingValueUpdate& update)
 {
+   const unsigned int pvi = update.variableIndex;
+
    if (pvi != PV_VARIABLE_INDEX) return;  // sanity check
 
-   qcaobject::QCaObject* qca = this->getQcaItem (pvi);
+   QEChannel* qca = this->getQcaItem (pvi);
    if (!qca) return;  // sanity check
 
-   const bool isMetaDataUpdate = qca->getIsMetaDataUpdate();
-
-   if (isMetaDataUpdate) {
+   if (update.isMetaUpdate) {
       this->stringFormatting.setArrayAction (QE::Index);
       this->stringFormatting.setDbEgu (qca->getEgu ());
       this->stringFormatting.setDbEnumerations (qca->getEnumerations ());
       this->stringFormatting.setDbPrecision (qca->getPrecision ());
    }
 
-   QString text = this->stringFormatting.formatString (value, this->getArrayIndex ());
+   QString text = this->stringFormatting.formatString (update.value, this->getArrayIndex ());
    this->valueLabel->setText (text);
-   this->valueLabel->setStyleSheet (alarmInfo.style ());
+   this->valueLabel->setStyleSheet (update.alarmInfo.style ());
 
    // Save the point - add to the PV data set.
    //
    QCaDataPoint point;
 
-   point.value = value;
-   point.datetime = timestamp;
-   point.alarm = alarmInfo;
+   point.value = update.value;
+   point.datetime = update.timeStamp;
+   point.alarm = update.alarmInfo;
    this->pvData.append (point);
 
    // Don't let this data set tooo big.
@@ -894,7 +895,7 @@ void QEDistribution::setPvValue (const double& value, QCaAlarmInfo& alarmInfo,
 
    // Invoke common alarm handling processing.
    //
-   this->processAlarmInfo (alarmInfo, pvi);
+   this->processAlarmInfo (update.alarmInfo, pvi);
 
    // Lastly signal a database value change to any Link (or other) widgets
    // using one of the dbValueChanged signals declared in header file.

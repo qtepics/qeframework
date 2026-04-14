@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2021-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2021-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -23,6 +23,7 @@
 
 #include <QECommon.h>
 #include <QEEnums.h>
+#include <QEChannel.h>
 #include <QEString.h>
 #include <QEStringFormatting.h>
 
@@ -162,7 +163,7 @@ signals:
    /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
    /// For example a QList widget could log updates from this widget.
    ///
-   void dbValueChanged ();                       // signal event
+   void dbValueChanged ();                     // signal event
    void dbValueChanged (const QString& out);   // signal as enumeration text
    void dbValueChanged (const int& out);       // signal as int if applicable
    void dbValueChanged (const long& out);      // signal as long if applicable
@@ -183,7 +184,7 @@ protected:
    // override QEWidget fnctions.
    //
    void establishConnection (unsigned int variableIndex);
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
 
    // Drag and Drop
    void dragEnterEvent (QDragEnterEvent *event) { qcaDragEnterEvent (event); }
@@ -216,15 +217,11 @@ private:
    bool isAllowFocusUpdate;
 
 private slots:
-   void connectionChanged (QCaConnectionInfo& connectionInfo,
-                           const unsigned int& variableIndex);
+   void connectionUpdated (const QEConnectionUpdate&);
 
-   void valueUpdate (const QString& text, QCaAlarmInfo& alarmInfo,
-                     QCaDateTime& dateTime, const unsigned int& variableIndex);
+   void valueUpdated (const QEStringValueUpdate&);
 
-   void useNewVariableNameProperty (QString variableName,
-                                    QString substitutions,
-                                    unsigned int variableIndex);
+   void usePvNameProperties (const QEPvNameProperties&);
 
    void selected (int index);
 };

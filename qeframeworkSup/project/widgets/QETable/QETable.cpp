@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2014-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2014-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -20,7 +20,6 @@
 #include <QTimer>
 
 #include <QECommon.h>
-#include <QEFloating.h>
 #include <QHeaderView>
 #include <QVariant>
 
@@ -333,14 +332,14 @@ QETable::QETable (QWidget* parent) : QEAbstractDynamicWidget (parent)
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   for (int slot = 0 ; slot < ARRAY_LENGTH (this->dataSet); slot++) {
+   for (int slot = 0; slot < ARRAY_LENGTH (this->dataSet); slot++) {
       QCaVariableNamePropertyManager* vpnm;
 
       vpnm = &this->dataSet [slot].variableNameManager;
       vpnm->setVariableIndex (slot);   // Use slot as variable index.
 
-      QObject::connect (vpnm, SIGNAL (newVariableNameProperty (QString, QString, unsigned int)),
-                        this, SLOT   (setNewVariableName      (QString, QString, unsigned int)));
+      QObject::connect (vpnm, SIGNAL (newPvNameProperties (const QEPvNameProperties&)),
+                        this, SLOT   (usePvNameProperties (const QEPvNameProperties&)));
    }
 
    // Table related signals
@@ -404,17 +403,15 @@ void QETable::resizeEvent (QResizeEvent*)
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of
-// QCaObject required. A QCaObject that streams integers is required.
+// QEChannel required. A QEChannel that streams integers is required.
 //
-qcaobject::QCaObject* QETable::createQcaItem (unsigned int variableIndex)
+QEChannel* QETable::createQcaItem (unsigned int variableIndex)
 {
    const int slot = this->slotOf (variableIndex);
    SLOT_CHECK (slot, NULL);
 
-   qcaobject::QCaObject* result = NULL;
-   QString pvName;
-
-   pvName = this->getSubstitutedVariableName (variableIndex).trimmed ();
+   QEChannel* result = NULL;
+   const QString pvName = this->getSubstitutedVariableName (variableIndex).trimmed ();
    result = new QEFloating (pvName, this, &this->floatingFormatting, variableIndex);
 
    return result;
@@ -432,17 +429,17 @@ void QETable::establishConnection (unsigned int variableIndex)
    SLOT_CHECK (slot, );
 
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   // Note createConnection creates the connection and returns reference to existing QCaObject.
+   // If successfull, the QEChannel object that will supply data update signals will be returned
+   // Note createConnection creates the connection and returns reference to existing QEChannel.
    //
-   qcaobject::QCaObject* qca = createConnection (variableIndex);
+   QEChannel* qca = createConnection (variableIndex);
    if (!qca) return;  // Sanity check
 
-   QObject::connect (qca, SIGNAL (connectionChanged (QCaConnectionInfo &, const unsigned int &)),
-                     this, SLOT  (connectionChanged (QCaConnectionInfo &, const unsigned int &)));
+   QObject::connect (qca,  SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                     this, SLOT   (connectionUpdated (const QEConnectionUpdate&)));
 
-   QObject::connect (qca, SIGNAL (floatingArrayChanged (const QVector<double>&, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)),
-                     this, SLOT  (dataArrayChanged     (const QVector<double>&, QCaAlarmInfo &, QCaDateTime &, const unsigned int &)));
+   QObject::connect (qca, SIGNAL (arrayUpdated     (const QEFloatingArrayUpdate&)),
+                     this, SLOT  (dataArrayUpdated (const QEFloatingArrayUpdate&)));
 }
 
 //------------------------------------------------------------------------------
@@ -528,34 +525,32 @@ void QETable::contextMenuTriggered (int selectedItemNum)
 //------------------------------------------------------------------------------
 // Act on a connection change.
 // Change how the s looks and change the tool tip
-// This is the slot used to recieve connection updates from a QCaObject based class.
+// This is the slot used to recieve connection updates from a QEChannel based class.
 //
-void QETable::connectionChanged (QCaConnectionInfo& connectionInfo,
-                                 const unsigned int& variableIndex)
+void QETable::connectionUpdated (const QEConnectionUpdate& update)
 {
-   const int slot = this->slotOf (variableIndex);
+   const unsigned int vi = update.variableIndex;
+   const int slot = this->slotOf (vi);
    SLOT_CHECK (slot,);
 
-   this->dataSet [slot].isConnected = connectionInfo.isChannelConnected ();
+   this->dataSet [slot].isConnected = update.connectionInfo.isChannelConnected ();
    this->rePopulateData = true;
 
-   this->updateToolTipConnection (dataSet [slot].isConnected, variableIndex);
+   this->updateToolTipConnection (dataSet [slot].isConnected, vi);
 }
 
 //-----------------------------------------------------------------------------
 //
-void QETable::dataArrayChanged (const QVector<double>& values,
-                                QCaAlarmInfo& alarmInfo,
-                                QCaDateTime&,
-                                const unsigned int& variableIndex)
+void QETable::dataArrayUpdated (const QEFloatingArrayUpdate& update)
 {
-   const int slot = this->slotOf (variableIndex);
+   const unsigned int vi = update.variableIndex;
+   const int slot = this->slotOf (vi);
    SLOT_CHECK (slot,);
 
-   this->dataSet [slot].data = QEFloatingArray (values);
-   this->dataSet [slot].alarmInfo = alarmInfo;
+   this->dataSet [slot].data = QEFloatingArray (update.values);
+   this->dataSet [slot].alarmInfo = update.alarmInfo;
 
-   qcaobject::QCaObject* qca = this->getQcaItem (variableIndex);
+   QEChannel* qca = this->getQcaItem (vi);
    if (qca) {
       // Extract meta info.
       //
@@ -571,12 +566,12 @@ void QETable::dataArrayChanged (const QVector<double>& values,
 
    // Signal a database value change to any Link widgets
    //
-   emit this->dbValueChanged (values);
+   emit this->dbValueChanged (update.values);
 
    // Don't invoke common alarm handling processing, as we use a PV specifc alarm
    // dinication per col/row. Update the tool tip to reflect current alarm state.
    //
-   this->updateToolTipAlarm (alarmInfo, variableIndex);
+   this->updateToolTipAlarm (update.alarmInfo, vi);
 }
 
 //---------------------------------------------------------------------------------
@@ -691,20 +686,21 @@ void QETable::timeout ()
 
 //------------------------------------------------------------------------------
 //
-void QETable::setNewVariableName (QString variableName,
-                                  QString substitutions,
-                                  unsigned int variableIndex)
+void QETable::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
-   int slot = this->slotOf (variableIndex);
+   const unsigned int vi = pvNameProperties.index;
+   const int slot = this->slotOf (vi);
    QString pvName;
 
    SLOT_CHECK (slot,);
 
    // Note: essentially calls createQcaItem.
    //
-   this->setVariableNameAndSubstitutions (variableName, substitutions, variableIndex);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 
-   pvName = this->getSubstitutedVariableName (variableIndex).trimmed ();
+   pvName = this->getSubstitutedVariableName (vi).trimmed ();
    this->dataSet [slot].setPvName (pvName);
    this->rePopulateTitles = true;
 
@@ -778,9 +774,11 @@ void QETable::setPvNameSet (const QStringList& pvNameSet)
    //
    if (this->pvNameSetChangeInhibited) return;
 
-   for (int slot = 0; slot < ARRAY_LENGTH (this->dataSet); slot++) {
-      QString pvName = pvNameSet.value (slot, "");
-      this->setNewVariableName (pvName, "", slot);
+   // slot is the variable index.
+   //
+   for (unsigned int slot = 0; slot < ARRAY_LENGTH (this->dataSet); slot++) {
+      const QString pvName = pvNameSet.value (slot, "");
+      this->usePvNameProperties ({pvName, "", slot});
    }
 }
 

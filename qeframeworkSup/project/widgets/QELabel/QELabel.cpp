@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -68,11 +68,10 @@ void QELabel::setup()
    setAllowDrop( false );
 
    // Set the initial state
-   setText( "----" );
-   setIndent( 6 );
-   isConnected = false;
-   processConnectionInfo( isConnected, 0 );
-   updateOption = Text;
+   this->setText( "----" );
+   this->setIndent( 6 );
+   this->processConnectionInfo( false, 0 );
+   this->mUpdateOption = Text;
 
    // Use standard context menu
    setupContextMenu();
@@ -83,7 +82,8 @@ void QELabel::setup()
    // Set up a connection to recieve variable name property changes
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
-   connectNewVariableNameProperty( SLOT ( useNewVariableNameProperty( QString, QString, unsigned int ) ) );
+   //
+   connectPvNameProperties( SLOT ( usePvNameProperties( const QEPvNameProperties& ) ) );
 }
 
 /*
@@ -94,78 +94,93 @@ void QELabel::setDefaultStyle( const QString& style )
    setStyleDefault( style );
 }
 
-/*
-    Implementation of QEWidget's virtual funtion to create the specific type of QCaObject required.
-    For a label a QCaObject that streams strings is required.
-*/
-qcaobject::QCaObject* QELabel::createQcaItem( unsigned int variableIndex )
+//------------------------------------------------------------------------------
+// Implementation of QEWidget's virtual funtion to create the specific type
+// of QEChannel required.  For a label a QEChannel that streams strings is
+// required.
+//
+QEChannel* QELabel::createQcaItem( unsigned int variableIndex )
 {
-   qcaobject::QCaObject* result = NULL;
-
-   // Create the item as a QEString
-   QString pvName = getSubstitutedVariableName( variableIndex );
-   result = new QEString( pvName, this, &stringFormatting, variableIndex );
+   // Create the item as a QEString.
+   //
+   const QString pvName = this->getSubstitutedVariableName( variableIndex );
+   QEChannel* result = new QEString (pvName, this, &this->stringFormatting, variableIndex);
 
    // Apply currently defined array index/elements request values.
-   setSingleVariableQCaProperties( result );
+   //
+   this->setSingleVariableQCaProperties (result);
 
    return result;
 }
 
-/*
-    Start updating.
-    Implementation of VariableNameManager's virtual funtion to establish a connection to a PV as the variable name has changed.
-    This function may also be used to initiate updates when loaded as a plugin.
-*/
-void QELabel::establishConnection( unsigned int variableIndex ) {
+//------------------------------------------------------------------------------
+// Start updating.
+// Implementation of VariableNameManager's virtual funtion to establish a
+// connection to a PV as the variable name has changed.
+// This function may also be used to initiate updates when loaded as a plugin.
+//
+void QELabel::establishConnection( unsigned int variableIndex )
+{
+   // Create a connection.  If successfull, the QEChannel object that will
+   // supply data update signals will be returned.
+   //
+   QEChannel* qca = this->createConnection( variableIndex );
 
-   // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   qcaobject::QCaObject* qca = createConnection( variableIndex );
-
-   // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots
-   if(  qca ) {
-      QObject::connect( qca,  SIGNAL( stringChanged( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
-                        this, SLOT( setLabelText( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
+   // If a QEChannel object is now available to supply data update signals,
+   // connect it to the appropriate slots.
+   //
+   if (qca) {
+      QObject::connect( qca,  SIGNAL( valueUpdated( const QEStringValueUpdate& ) ),
+                        this, SLOT(   setLabelText( const QEStringValueUpdate& ) ) );
       qca->setRequestedElementCount( 10000 );
 
-      QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
-                        this, SLOT( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ) );
+      QObject::connect( qca,  SIGNAL( connectionUpdated( const QEConnectionUpdate& ) ),
+                        this, SLOT(   connectionUpdated( const QEConnectionUpdate&) ) );
+
       QObject::connect( this, SIGNAL( requestResend() ),
-                        qca, SLOT( resendLastData() ) );
+                        qca,  SLOT(   resendLastData() ) );
    }
 }
 
 
-/*
-    Act on a connection change.
-    Change how the label looks and change the tool tip
-    This is the slot used to recieve connection updates from a QCaObject based class.
- */
-void QELabel::connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex)
+//------------------------------------------------------------------------------
+// Act on a connection change.  This is the slot used to recieve connection
+// updates from a QEChannel based class.
+// Change how the label looks and change the tool tip.
+//
+void QELabel::connectionUpdated (const QEConnectionUpdate& update)
 {
-   // Note the connected state
-   isConnected = connectionInfo.isChannelConnected();
+   const unsigned int vi = update.variableIndex;
 
-   // Display the connected state
-   updateToolTipConnection( isConnected, variableIndex );
-   processConnectionInfo( isConnected, variableIndex );
+   // Note the connected state.
+   //
+   bool isConnected = update.connectionInfo.isChannelConnected();
+
+   // Display the connected state.
+   //
+   this->updateToolTipConnection (isConnected, vi);
+   this->processConnectionInfo (isConnected, vi);
 
    // Signal channel connection change to any Link widgets,
    // using signal dbConnectionChanged.
-   emitDbConnectionChanged( PV_VARIABLE_INDEX );
+   //
+   this->emitDbConnectionChanged (vi);
 }
 
-/*
-    Update the label text
-    This is the slot used to recieve data updates from a QCaObject based class.
- */
-void QELabel::setLabelText( const QString& textIn, QCaAlarmInfo& alarmInfo,
-                            QCaDateTime&, const unsigned int& )
+
+//------------------------------------------------------------------------------
+// Update the label text.
+// This is the slot used to recieve data updates from a QEChannel based class.
+//
+void QELabel::setLabelText( const QEStringValueUpdate& update )
 {
-   // Extract any formatting info from the text
+   const unsigned int vi = update.variableIndex;
+
+   // Extract any formatting info from the text.
    // For example "<background-color: red>Engineering Mode" or "<color: red>not selected"
-   currentText = textIn;
+   // Does anyone use this???
+   //
+   currentText = update.value;
    QString textStyle;
    int textStyleStart = currentText.indexOf( '<' );
    if( textStyleStart >= 0 )
@@ -178,46 +193,50 @@ void QELabel::setLabelText( const QString& textIn, QCaAlarmInfo& alarmInfo,
       }
    }
 
-   // Update the color
+   // Update the color.
+   //
    if( textStyle.compare( lastTextStyle ) )
    {
       if( !textStyle.isEmpty() )
       {
-         updateDataStyle( QString( "QWidget { " ).append( textStyle ).append( "; }") );
+         this->updateDataStyle( QString( "QWidget { " ).append( textStyle ).append( "; }") );
       }
       else
       {
-         updateDataStyle( "" );
+         this->updateDataStyle( "" );
       }
       lastTextStyle = textStyle;
    }
 
-   switch( updateOption )
-   {
-      // Update the text if required
+   switch (this->mUpdateOption) {
       case Text:
-         setText( currentText );
+         // Update the text if required.
+         this->setText( currentText );
          break;
 
-         // Update the pixmap if required
       case Picture:
-         setPixmap( getDataPixmap( currentText ).scaled( size() ) );
+         // Update the pixmap if required
+         this->setPixmap( getDataPixmap( currentText ).scaled( size() ) );
          break;
    }
 
    // Invoke common alarm handling processing.
-   processAlarmInfo( alarmInfo );
+   //
+   this->processAlarmInfo (update.alarmInfo);
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged.
-   emitDbValueChanged( currentText, 0 );
+   //
+   this->emitDbValueChanged (currentText, vi);
 }
 
 //------------------------------------------------------------------------------
 //
-void QELabel::useNewVariableNameProperty( QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex )// !! move into Standard Properties section??
+void QELabel::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
-   setVariableNameAndSubstitutions(variableNameIn, variableNameSubstitutionsIn, variableIndex);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 
@@ -261,14 +280,14 @@ void QELabel::paste( QVariant v )
 // Property convenience functions
 
 // Update option Property convenience function
-void QELabel::setUpdateOption( UpdateOptions updateOptionIn )
+void QELabel::setUpdateOption(const UpdateOptions updateOptionIn)
 {
-   updateOption = updateOptionIn;
+   this->mUpdateOption = updateOptionIn;
 }
 
-QELabel::UpdateOptions QELabel::getUpdateOption()
+QELabel::UpdateOptions QELabel::getUpdateOption() const
 {
-   return updateOption;
+   return this->mUpdateOption;
 }
 
 // end

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -81,7 +81,7 @@ void QESlider::setup ()
    // The variable name property manager class only delivers an updated variable
    // name after the user has stopped typing.
    //
-   this->connectNewVariableNameProperty (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+   this->connectPvNameProperties (SLOT (usePvNameProperties (const QEPvNameProperties&)));
 }
 
 
@@ -101,12 +101,12 @@ int QESlider::pvToSlider (const double x) const
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of
-// QCaObject required. For a slider a QCaObject that streams integers is required.
+// QEChannel required. For a slider a QEChannel that streams integers is required.
 //
-qcaobject::QCaObject * QESlider::createQcaItem (unsigned int variableIndex)
+QEChannel* QESlider::createQcaItem (unsigned int variableIndex)
 {
 
-   qcaobject::QCaObject * result = NULL;
+   QEChannel* result = NULL;
 
    // Create the item as a QEFloating
    result = new QEFloating (this->getSubstitutedVariableName (variableIndex),
@@ -128,37 +128,38 @@ void QESlider::establishConnection (unsigned int variableIndex)
 {
 
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
+   // If successfull, the QEChannel object that will supply data update signals will be returned
    //
-   qcaobject::QCaObject * qca = this->createConnection (variableIndex);
+   QEChannel* qca = this->createConnection (variableIndex);
 
-   // If a QCaObject object is now available to supply data update signals,
+   // If a QEChannel object is now available to supply data update signals,
    // connect it to the appropriate slots.
    //
    if (qca) {
       this->setValue (0);
-      QObject::connect (qca, SIGNAL (floatingChanged (const double&, QCaAlarmInfo&,
-                                                      QCaDateTime&, const unsigned int&)),
-                        this, SLOT (setValueIfNoFocus (const double&, QCaAlarmInfo&,
-                                                       QCaDateTime&, const unsigned int&)));
-      QObject::connect (qca, SIGNAL (connectionChanged (QCaConnectionInfo&, const unsigned int)),
-                        this, SLOT  (connectionChanged (QCaConnectionInfo&, const unsigned int)));
+      QObject::connect (qca,  SIGNAL (valueUpdated (const QEFloatingValueUpdate&)),
+                        this, SLOT (setSliderValue (const QEFloatingValueUpdate&)));
+
+      QObject::connect (qca, SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                        this, SLOT  (connectionUpdated (const QEConnectionUpdate&)));
    }
 }
 
 //------------------------------------------------------------------------------
 // Act on a connection change.
 // Change how the label looks and change the tool tip
-// This is the slot used to recieve connection updates from a QCaObject based class.
+// This is the slot used to recieve connection updates from a QEChannel based class.
 //
-void QESlider::connectionChanged (QCaConnectionInfo& connectionInfo,
-                                  const unsigned int&variableIndex)
+void QESlider::connectionUpdated (const QEConnectionUpdate& update)
 {
-   // Note the connected state
-   //
-   const bool isConnected = connectionInfo.isChannelConnected ();
+   const unsigned int vi = update.variableIndex;
 
-   // Display the connected state
+   // Note the connected state.
+   //
+   const bool isConnected = update.connectionInfo.isChannelConnected ();
+
+   // Display the connected state.
+   //
    this->updateToolTipConnection (isConnected);
    this->processConnectionInfo (isConnected);
 
@@ -172,18 +173,19 @@ void QESlider::connectionChanged (QCaConnectionInfo& connectionInfo,
    // variable when it is time to do a write.
    //
    if (isConnected && !this->subscribe) {
-      QEFloating* qca =  qobject_cast<QEFloating*>(this->getQcaItem (pvVariableIndex));
+      QEFloating* qca =  qobject_cast<QEFloating*>(this->getQcaItem (vi));
       if (qca) qca->singleShotRead ();
       this->ignoreSingleShotRead = true;
    }
 
    // Set cursor to indicate access mode.
+   //
    this->setAccessCursorStyle ();
 
    // Signal channel connection change to any (Link) widgets.
    // using signal dbConnectionChanged.
    //
-   this->emitDbConnectionChanged (variableIndex);
+   this->emitDbConnectionChanged (vi);
 }
 
 //------------------------------------------------------------------------------
@@ -191,11 +193,11 @@ void QESlider::connectionChanged (QCaConnectionInfo& connectionInfo,
 // Note, it would not be common to have a user editing a regularly updating value. However, this
 // scenario should be allowed for. A reasonable reason for a user modified value to update on a gui is
 // if is is written to by another user on another gui.
-// This is the slot used to recieve data updates from a QCaObject based class.
+// This is the slot used to recieve data updates from a QEChannel based class.
 //
-void QESlider::setValueIfNoFocus (const double&value, QCaAlarmInfo& alarmInfo,
-                                  QCaDateTime&, const unsigned int&variableIndex)
+void QESlider::setSliderValue (const QEFloatingValueUpdate& update)
 {
+   const unsigned int vi = update.variableIndex;
 
    // Do nothing if doing a single shot read
    // (done when not subscribing to get enumeration values)
@@ -203,23 +205,26 @@ void QESlider::setValueIfNoFocus (const double&value, QCaAlarmInfo& alarmInfo,
       this->ignoreSingleShotRead = false;
       return;
    }
+
    // Update the slider only if the user is not interacting with the object, unless
    // the form designer has specifically allowed updates  while the widget has focus.
+   //
    if (this->m_isAllowFocusUpdate || !this->hasFocus ()) {
       this->updateInProgress = true;
-      this->m_currentValue = value;
-      int intValue = this->pvToSlider (value);
+      this->m_currentValue = update.value;
+      int intValue = this->pvToSlider (update.value);
       this->setValue (intValue);
       this->updateInProgress = false;
    }
 
    // Invoke common alarm handling processing.
-   this->processAlarmInfo (alarmInfo);
+   //
+   this->processAlarmInfo (update.alarmInfo);
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged signals declared in header file.
    //
-   this->emitDbValueChanged (variableIndex);
+   this->emitDbValueChanged (vi);
 }
 
 //------------------------------------------------------------------------------
@@ -227,7 +232,7 @@ void QESlider::setValueIfNoFocus (const double&value, QCaAlarmInfo& alarmInfo,
 // This will occur as the user slides the slider if tracking is enabled,
 // or when the user completes sliding if tracking is not enabled.
 //
-void QESlider::userValueChanged (const int&value)
+void QESlider::userValueChanged (const int& value)
 {
 
    // If the change is due to an update (and not the user)
@@ -237,7 +242,7 @@ void QESlider::userValueChanged (const int&value)
    }
 
    // Get the variable to write to
-   QEFloating* qca =  qobject_cast<QEFloating*>(this->getQcaItem (pvVariableIndex));
+   QEFloating* qca = qobject_cast<QEFloating*>(this->getQcaItem (pvVariableIndex));
 
    /* If a QCa object is present (if there is a variable to write to)
     * then write the value
@@ -264,11 +269,11 @@ void QESlider::userValueChanged (const int&value)
 
 //------------------------------------------------------------------------------
 //
-void QESlider::useNewVariableNameProperty (QString pvName,
-                                           QString substitutions,
-                                           unsigned int index)
+void QESlider::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
-   this->setVariableNameAndSubstitutions (pvName, substitutions, index);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 //------------------------------------------------------------------------------
