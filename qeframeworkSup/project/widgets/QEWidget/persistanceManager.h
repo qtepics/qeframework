@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -245,6 +245,8 @@ private:
    QDomElement config;                 // Current configuration
 
    QDomElement docElem;                // Configuration document
+
+   friend class QEWidget;
 };
 
 #endif // QE_PERSISTANCE_MANAGER_H

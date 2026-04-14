@@ -60,6 +60,10 @@ QEWidget::QEWidget( QWidget *ownerIn ) :
    // Keep a handle on the underlying QWidget of the QE widgets
    owner = ownerIn;
 
+   // Use "standard" persistance name.
+   //
+   this->useOwnPersistantName = false;
+
    // Clear list
    controlVariableIndices.clear();
    isWriteAllowed = true;     // assume allowed until we find out otherwise.
@@ -465,10 +469,19 @@ QString QEWidget::getFrameworkVersion() const
 // Returns a string that will not change between runs of the application
 // (given the same configuration).
 //
-QString QEWidget::persistantName( QString prefix ) const
+QString QEWidget::persistantName( const QString& prefix ) const
 {
-   QString name = prefix;
-   buildPersistantName( owner, name );
+   QString name = prefix;  // typically the class name
+
+   if (this->useOwnPersistantName) {
+      // We are saving/restoring just this component/widget.
+      // Use a fixed name based on given prefix.
+      //
+      name = QString ("%1_Widget").arg (prefix);
+   } else {
+      this->buildPersistantName( owner, name );
+   }
+
    return name;
 }
 
@@ -578,8 +591,34 @@ void signalSlotHandler::saveRestore( SaveRestoreSignal::saveRestoreOptions optio
    }
 }
 
+//------------------------------------------------------------------------------
+//
+QDomElement QEWidget::getDetailedConfiguration (const QString& tagName)
+{
+   PersistanceManager pm;
+   pm.config = pm.doc.createElement (tagName);
+   this->useOwnPersistantName = true;
+   this->saveConfiguration (&pm);
+   this->useOwnPersistantName = false;
+   return pm.config;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEWidget::setDetailedConfiguration (const QDomElement& config)
+{
+   PersistanceManager pm;
+   pm.config = config;
+   this->useOwnPersistantName = true;
+   this->restoreConfiguration (&pm, FRAMEWORK);
+   this->useOwnPersistantName = false;
+}
+
+//------------------------------------------------------------------------------
 // Get the QWidget that the parent of this QEWidget instance is based on.
-// For example, the parent of a QEWidget might be a QELabel, which is based on QLabel which is based on QWidget.
+// For example, the parent of a QEWidget might be a QELabel, which is based
+// on QLabel which is based on QWidget.
+//
 QWidget* QEWidget::getQWidget() const
 {
    return owner;

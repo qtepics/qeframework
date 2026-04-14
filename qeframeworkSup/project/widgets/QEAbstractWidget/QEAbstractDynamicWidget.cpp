@@ -20,7 +20,7 @@
 #include <persistanceManager.h>
 #include <contextMenu.h>
 
-#define DEBUG qDebug() << "QEAbstractComplexWidget" << __LINE__ << __FUNCTION__ << "  "
+#define DEBUG qDebug() << "QEAbstractDynamicWidget" << __LINE__ << __FUNCTION__ << "  "
 
 //------------------------------------------------------------------------------
 //
@@ -268,18 +268,9 @@ QString QEAbstractDynamicWidget::getPersistantName () const
 {
    const QString className = this->metaObject()->className ();
 
-   QString result;
-
-   if (this->useOwnPersistantName) {
-      // We are saving/restoring just this component/widget. Use a fixed name.
-      //
-      result = QString ("%1_Widget").arg (className);
-   } else {
-      // Use an application generated window name.
-      //
-      result = this->persistantName (className);
-   }
-
+   // Use an application generated window name.
+   //
+   const QString result = this->persistantName (className);
    return result;
 }
 
@@ -349,7 +340,7 @@ void QEAbstractDynamicWidget::loadWidgetConfiguration ()
          (this,"Select configuration input file", this->getDefaultDir (),
           "Config Files(*.xml);;All files (*)");
 
-   // Idf user clicks on Cancel, an empty file name is returned.
+   // If the user clicks on Cancel, an empty file name is returned.
    // This is handled by the loadNamedWidetConfiguration function.
    //
    this->loadNamedWidetConfiguration (filename);

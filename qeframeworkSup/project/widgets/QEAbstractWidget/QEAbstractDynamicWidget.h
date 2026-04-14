@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2016-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2016-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -147,7 +147,6 @@ protected slots:
 private:
    QString getPersistantRootName () const;
 
-   bool useOwnPersistantName;
    QString defaultDir;
    bool enableEditPv;
    QE::PVLabelMode pvLabelMode;
