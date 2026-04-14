@@ -17,11 +17,13 @@
 #include <QBrush>
 #include <QColor>
 #include <QDebug>
+#include <QHeaderView>
 #include <QTimer>
+#include <QVariant>
 
 #include <QECommon.h>
-#include <QHeaderView>
-#include <QVariant>
+#include <QEPlatform.h>
+#include <QEVectorVariants.h>
 
 #define DEBUG qDebug () << "QETable" << __LINE__ << __FUNCTION__ << "  "
 
@@ -211,32 +213,51 @@ void QETable::DataSets::rePopulateData ()
       currentSize = table->columnCount ();
    }
 
+   Qt::Alignment itemAlignment;
    for (int j = 0; j <  currentSize; j++) {
       int row = this->owner->isVertical () ? j : this->index;
       int col = this->owner->isVertical () ? this->index : j;
 
-      QTableWidgetItem* item = table->item (row, col);
+      const QVariant element = this->data.value (j);
+      if (j == 0) {
+          // Do this once to ensure all rows have same alignment.
+          //
+          const QMetaType::Type mtype = QEPlatform::metaType (element);
+          if (mtype == QMetaType::QString) {
+             itemAlignment = (Qt::AlignLeft | Qt::AlignVCenter);
+          } else {
+             itemAlignment = (Qt::AlignRight | Qt::AlignVCenter);
+          }
+       }
 
+      QTableWidgetItem* item = table->item (row, col);
       if (!item) {
          // We need to allocate item and insert it into the table.
          //
          item = new QTableWidgetItem ();
-         item->setTextAlignment (Qt::AlignRight | Qt::AlignVCenter);
          item->setFlags (Qt::ItemIsSelectable | Qt::ItemIsEnabled);
          table->setItem (row, col, item);
       }
+      item->setTextAlignment (itemAlignment);
 
       QString image;
       if (j < this->data.count ()) {
-         const double value = this->data.value (j);
-         image = this->stringFormatting.formatString (QVariant (value), 0);
+         const QVariant element = this->data.value (j);
+         bool okay;
+         const double value = element.toDouble (&okay);
+         if (okay) {
+            image = this->stringFormatting.formatString (QVariant (value), 0);
+         } else {
+            image = element.toString();
+         }
       } else {
          // Beyond end of data
          image = "";
          backgroundColour = QColor (0xc8c8c8);   // light gray
       }
 
-      item->setText (image);
+      item->setText (QString(" %1 ").arg (image));
+
       brush.setColor (backgroundColour);
       item->setBackground (brush);
       brush.setColor (textColour);
@@ -412,7 +433,7 @@ QEChannel* QETable::createQcaItem (unsigned int variableIndex)
 
    QEChannel* result = NULL;
    const QString pvName = this->getSubstitutedVariableName (variableIndex).trimmed ();
-   result = new QEFloating (pvName, this, &this->floatingFormatting, variableIndex);
+   result = new QEChannel (pvName, this, variableIndex);
 
    return result;
 }
@@ -438,8 +459,8 @@ void QETable::establishConnection (unsigned int variableIndex)
    QObject::connect (qca,  SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
                      this, SLOT   (connectionUpdated (const QEConnectionUpdate&)));
 
-   QObject::connect (qca, SIGNAL (arrayUpdated     (const QEFloatingArrayUpdate&)),
-                     this, SLOT  (dataArrayUpdated (const QEFloatingArrayUpdate&)));
+   QObject::connect (qca, SIGNAL (valueUpdated     (const QEVariantUpdate&)),
+                     this, SLOT  (dataArrayUpdated (const QEVariantUpdate&)));
 }
 
 //------------------------------------------------------------------------------
@@ -541,13 +562,28 @@ void QETable::connectionUpdated (const QEConnectionUpdate& update)
 
 //-----------------------------------------------------------------------------
 //
-void QETable::dataArrayUpdated (const QEFloatingArrayUpdate& update)
+void QETable::dataArrayUpdated (const QEVariantUpdate& update)
 {
    const unsigned int vi = update.variableIndex;
    const int slot = this->slotOf (vi);
    SLOT_CHECK (slot,);
 
-   this->dataSet [slot].data = QEFloatingArray (update.values);
+   const QMetaType::Type mtype = QEPlatform::metaType (update.value);
+   const bool vlist = (mtype == QMetaType::QVariantList);
+   const bool slist = (mtype == QMetaType::QStringList);
+   const bool vector = QEVectorVariants::isVectorVariant (update.value);
+
+   if (vlist || slist || vector) {
+      // The value is some sort of array type, save as is.
+      //
+      this->dataSet [slot].data = update.value.toList();
+   } else {
+      // The value is a scalar type, create a list of one.
+      //
+      QVariantList temp;
+      temp.append (update.value);
+      this->dataSet [slot].data = temp;
+   }
    this->dataSet [slot].alarmInfo = update.alarmInfo;
 
    QEChannel* qca = this->getQcaItem (vi);
@@ -566,7 +602,7 @@ void QETable::dataArrayUpdated (const QEFloatingArrayUpdate& update)
 
    // Signal a database value change to any Link widgets
    //
-   emit this->dbValueChanged (update.values);
+   emit this->dbValueChanged ();
 
    // Don't invoke common alarm handling processing, as we use a PV specifc alarm
    // dinication per col/row. Update the tool tip to reflect current alarm state.
@@ -1092,7 +1128,7 @@ QVariant QETable::copyData ()
          ds = &this->dataSet [slot];
          if (ds->isInUse ()) {
             if (j < ds->data.count ()) {
-               result.append (QString ("\t%1").arg (ds->data [j], fw));
+               result.append (QString ("\t%1").arg (ds->data [j].toString(), fw));
             } else {
                result.append (QString ("\t%1").arg ("nul", fw));
             }

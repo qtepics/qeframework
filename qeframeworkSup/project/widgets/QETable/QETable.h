@@ -22,6 +22,7 @@
 #include <QSize>
 #include <QTableWidget>
 #include <QTimer>
+#include <QVariantList>
 #include <QVector>
 
 #include <QEEnums.h>
@@ -29,9 +30,6 @@
 #include <QEAbstractDynamicWidget.h>
 #include <QEStringFormatting.h>
 #include <QEStringFormattingMethods.h>
-#include <QEFloating.h>
-#include <QEFloatingArray.h>
-#include <QEFloatingFormatting.h>
 #include <persistanceManager.h>
 #include <QEChannel.h>
 #include <QEWidget.h>
@@ -277,7 +275,8 @@ signals:
    /// Can be used to pass on EPICS data (as presented in this widget) to other widgets.
    /// For example a QList widget could log updates from this widget.
    /// Note: this widget emits the numeric enumeration value as opposed to the associated text.
-   void dbValueChanged (const QVector<double>& out);
+   //
+   void dbValueChanged (); // just a signal
 
 protected:
    QSize sizeHint () const;
@@ -333,7 +332,6 @@ private:
    QTimer* rePopulateTimer;
    int displayMaximum;
    Qt::Orientation orientation;
-   QEFloatingFormatting floatingFormatting;
    int selection;
    int columnWidthMinimum;
    bool selectionChangeInhibited;
@@ -359,7 +357,7 @@ private:
       void rePopulateTable ();
       void rePopulateData ();
 
-      QEFloatingArray data;
+      QVariantList data;
       QCaAlarmInfo alarmInfo;
 
       QString title;
@@ -378,10 +376,8 @@ private:
 
 private slots:
    void usePvNameProperties (const QEPvNameProperties&);
-
    void connectionUpdated (const QEConnectionUpdate&);
-
-   void dataArrayUpdated (const QEFloatingArrayUpdate&);
+   void dataArrayUpdated (const QEVariantUpdate&);
 
    void gridCellClicked (int row, int column);
    void gridCellEntered (int row, int column);
