@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2018-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2018-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -12,6 +12,7 @@
  */
 
 #include "QECaClient.h"
+#include <new>
 #include <QDebug>
 #include <QMetaType>
 #include <QTimer>
@@ -88,8 +89,11 @@ void QE_ACAI_Client::putCallbackNotifcation (const bool isSuccessful)
 QECaClient::QECaClient (const QString& pvNameIn,
                         QObject* parent) :
    QEBaseClient (QEBaseClient::CAType, pvNameIn, parent),
-   mainClient (new QE_ACAI_Client (pvNameIn, this))
+   mainClient (new (this->mainClientBuffer) QE_ACAI_Client (pvNameIn, this))
 {
+    static_assert (sizeof (this->mainClientBuffer) >= sizeof(QE_ACAI_Client),
+                   "Preallocated buffer too small for QE_ACAI_Client object");
+
    this->descClient = NULL;     // we don't create a DESC client unless requested.
    QECaClientManager::initialise ();   // idempotent
 }
@@ -110,7 +114,7 @@ QECaClient::~QECaClient ()
       this->descClient = NULL;
    }
 
-   delete this->mainClient;
+   this->mainClient->~QE_ACAI_Client();
 }
 
 //------------------------------------------------------------------------------
@@ -478,7 +482,7 @@ bool QECaClient::putPvData (const QVariant& value)
             //
             for (int j = 0; j < number; j++) {
                ACAI::ClientInteger i;
-               result = this->varientToEnumIndex (valueArray.value (j), i, valueInRange);
+               result = this->variantToEnumIndex (valueArray.value (j), i, valueInRange);
                if (!result) break;
                intArray.push_back (i);
             }
@@ -492,7 +496,7 @@ bool QECaClient::putPvData (const QVariant& value)
          case ACAI::ClientFieldLONG:
             for (int j = 0; j < number; j++) {
                ACAI::ClientInteger i;
-               result = this->varientToInteger (valueArray.value (j), i, valueInRange);
+               result = this->variantToInteger (valueArray.value (j), i, valueInRange);
                if (!result) break;
                intArray.push_back (i);
             }
@@ -505,7 +509,7 @@ bool QECaClient::putPvData (const QVariant& value)
          case ACAI::ClientFieldDOUBLE:
             for (int j = 0; j < number; j++) {
                ACAI::ClientFloating f;
-               result = this->varientToFloat (valueArray.value (j), f, valueInRange);
+               result = this->variantToFloat (valueArray.value (j), f, valueInRange);
                if (!result) break;
                fltArray.push_back (f);
             }
@@ -534,7 +538,7 @@ bool QECaClient::putPvData (const QVariant& value)
             break;
 
          case ACAI::ClientFieldENUM:
-            result = this->varientToEnumIndex (value, i, valueInRange);
+            result = this->variantToEnumIndex (value, i, valueInRange);
             if (!result) break;
             result = this->mainClient->putInteger (i);
             break;
@@ -549,7 +553,7 @@ bool QECaClient::putPvData (const QVariant& value)
                result = this->mainClient->putByteArray (text, len + 1); // include the zero
             } else {
                // Treat as numeric.
-               result = this->varientToInteger (value, i, valueInRange);
+               result = this->variantToInteger (value, i, valueInRange);
                if (!result) break;
                result = this->mainClient->putInteger (i);
             }
@@ -557,14 +561,14 @@ bool QECaClient::putPvData (const QVariant& value)
 
          case ACAI::ClientFieldSHORT:
          case ACAI::ClientFieldLONG:
-            result = this->varientToInteger (value, i, valueInRange);
+            result = this->variantToInteger (value, i, valueInRange);
             if (!result) break;
             result = this->mainClient->putInteger (i);
             break;
 
          case ACAI::ClientFieldFLOAT:
          case ACAI::ClientFieldDOUBLE:
-            result = this->varientToFloat (value, f, valueInRange);
+            result = this->variantToFloat (value, f, valueInRange);
             if (!result) break;
             result = this->mainClient->putFloating (f);
             break;
@@ -628,7 +632,7 @@ bool QECaClient::putPvData (const QVariant& value)
 
 //------------------------------------------------------------------------------
 //
-bool QECaClient::varientToFloat (const QVariant& qValue,
+bool QECaClient::variantToFloat (const QVariant& qValue,
                                  ACAI::ClientFloating& fltValue,
                                  bool& valueInRange)
 {
@@ -651,7 +655,7 @@ bool QECaClient::varientToFloat (const QVariant& qValue,
 
 //------------------------------------------------------------------------------
 //
-bool QECaClient::varientToInteger (const QVariant& qValue,
+bool QECaClient::variantToInteger (const QVariant& qValue,
                                    ACAI::ClientInteger& intValue,
                                    bool& valueInRange)
 {
@@ -684,7 +688,7 @@ bool QECaClient::varientToInteger (const QVariant& qValue,
 
 //------------------------------------------------------------------------------
 //
-bool QECaClient::varientToEnumIndex (const QVariant& qValue,
+bool QECaClient::variantToEnumIndex (const QVariant& qValue,
                                      ACAI::ClientInteger& index,
                                      bool& valueInRange)
 {
@@ -714,7 +718,7 @@ bool QECaClient::varientToEnumIndex (const QVariant& qValue,
       // however we may have a string like "3" which is a perfectly good integer.
       // Decode the "integer" value.
       //
-      result = this->varientToInteger (qValue, index, valueInRange);
+      result = this->variantToInteger (qValue, index, valueInRange);
    }
 
    return result;

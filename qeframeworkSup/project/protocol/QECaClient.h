@@ -93,12 +93,14 @@ protected:
 private:
    // Local conveniance functions.
    //
-   bool varientToFloat (const QVariant& qValue, ACAI::ClientFloating& fValue, bool& valueInRange);
-   bool varientToInteger (const QVariant& qValue, ACAI::ClientInteger& iValue, bool& valueInRange);
-   bool varientToEnumIndex (const QVariant& qValue, ACAI::ClientInteger& index, bool& valueInRange);
+   bool variantToFloat (const QVariant& qValue, ACAI::ClientFloating& fValue, bool& valueInRange);
+   bool variantToInteger (const QVariant& qValue, ACAI::ClientInteger& iValue, bool& valueInRange);
+   bool variantToEnumIndex (const QVariant& qValue, ACAI::ClientInteger& index, bool& valueInRange);
 
    QE_ACAI_Client* mainClient;    // Typically but not necessarily .VAL field.
    QE_ACAI_Client* descClient;    // connects to the .DESC field (when needed).
+
+   alignas (8) uint8_t mainClientBuffer [952];  // holds the main client
 
 private slots:
    void requestDescription ();
