@@ -164,6 +164,18 @@ void QEFloating::convertVariant (const QEVariantUpdate& update)
       emit arrayUpdated (arrayUpdate);
       emit floatingArrayChanged (array, alarmInfo, timeStamp, update.variableIndex);
    }
+
+   // Deprecated signals.
+   //
+   static const char* valueSignal =
+         SIGNAL(floatingChanged (const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&));
+   static const char* arraySignal =
+         SIGNAL(floatingArrayChanged (const QVector<double>&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&));
+
+   if (update.isMetaUpdate) {
+      this->checkDeprecatedSignalUsage (valueSignal);
+      this->checkDeprecatedSignalUsage (arraySignal);
+   }
 }
 
 //------------------------------------------------------------------------------

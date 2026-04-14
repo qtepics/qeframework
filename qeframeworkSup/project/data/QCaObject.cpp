@@ -136,12 +136,12 @@ void QCaObject::initialise (const QString& newPvName,
    switch (protocol) {
 
       case QEPvNameUri::ca:
-         this->client = caClient = new QECaClient (pvName, this);
+         this->client = caClient = new QECaClient (pvName, NULL);
          caClient->setPriority (int (priorityIn));
          break;
 
       case QEPvNameUri::pva:
-         this->client = new QEPvaClient (pvName, this);
+         this->client = new QEPvaClient (pvName, NULL);
          break;
 
       default:
@@ -154,7 +154,7 @@ void QCaObject::initialise (const QString& newPvName,
          //
          //   result = this->client->getEgu();
          //
-         this->client = new QENullClient (pvName, this);
+         this->client = new QENullClient (pvName, NULL);
    }
 
    // Do the plumbing.
@@ -186,17 +186,13 @@ QCaObject::~QCaObject()
    //   corrupted double-linked list
    //   Aborted (core dumped)
    //
-   // We avoid the corruption by first disconnecting any signal/slot connections.
+   // We avoid the corruption by using deleteLater.
+   // Note: the client is NOT parented by the QCaObject.
    //
    if (this->client) {
-      QObject::disconnect (this->client, SIGNAL (connectionUpdated (const bool)),
-                           this,         SLOT   (connectionUpdate  (const bool)));
-      QObject::disconnect (this->client, SIGNAL (dataUpdated (const bool)),
-                           this,         SLOT   (dataUpdate  (const bool)));
-      QObject::disconnect (this->client, SIGNAL (putCallbackComplete    (const bool)),
-                           this,         SLOT   (putCallbackNotifcation (const bool)));
-
-      this->client->closeChannel ();
+      this->client->closeChannel();
+      this->client->deleteLater();
+      this->client = NULL;
    }
 
    QCaObject::totalChannelCount--;
@@ -770,6 +766,49 @@ QString QCaObject::getDescription () const
 }
 
 //------------------------------------------------------------------------------
+//
+void QCaObject::checkDeprecatedSignalUsage (const char* varSignal)
+{
+   const int number = this->receivers (varSignal);
+   if (number == 0) return;   // good - user is keeping up-to-date.
+
+   QString message;
+   message.append (this->parent()->metaObject()->className());
+   message.append (" is using deprecated signal:\n");
+   message.append (varSignal + 1);   // meta signal data at 0
+   message.append ("\nfor PV ");
+   message.append (this->getPvName());
+
+   static const message_types mt =
+         message_types (MESSAGE_TYPE_WARNING, MESSAGE_KIND_EVENT);
+
+   // Has a UserMessage been allocated to this channel?
+   //
+   if (this->userMessage) {
+      // Yes - use it.
+      //
+      this->userMessage->sendMessage (message, mt);
+      return;
+   }
+
+   // No UserMessage object has been assigned.
+   // Is the parent/owner a UserMessage object?
+   //
+   UserMessage* pum = dynamic_cast<UserMessage*>(this->parent());
+   if (pum) {
+      // Yes - use it.
+      //
+      pum->sendMessage (message, mt);
+      return;
+   }
+
+   // Last resort - a debug message to standard error.
+   //
+   message.replace ("\n", " ");
+   qWarning() << "warning:" << message.toStdString().c_str();   // drop quotes
+}
+
+//------------------------------------------------------------------------------
 // Handle connection status change - emit to awaiting objects.
 //
 void QCaObject::connectionUpdate (const bool isConnected)
@@ -795,6 +834,17 @@ void QCaObject::connectionUpdate (const bool isConnected)
 
    emit connectionUpdated (connection);
    emit connectionChanged (connectionInfo, this->variableIndex);
+
+   // Deprecated signal.
+   //
+   static const char* conSignal =
+         SIGNAL(connectionChanged (QCaConnectionInfo&, const unsigned int&));
+
+   // We don't need re-report on close.
+   //
+   if (isConnected) {
+      this->checkDeprecatedSignalUsage (conSignal);
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -847,6 +897,21 @@ void QCaObject::dataUpdate (const bool isMetaUpdateIn)
          emit byteArrayUpdated (arrayUpdate);
          emit byteArrayChanged (byteArrayValue, dataSize, alarmInfo, timeStamp, this->variableIndex);
       }
+   }
+
+   // Deprecated signals.
+   //
+   static const char* dcSignal =
+         SIGNAL (dataChanged (const QVariant&, QCaAlarmInfo&,  QCaDateTime&, const unsigned int&));
+   static const char* baSignal =
+         SIGNAL (byteArrayChanged (const QByteArray&, unsigned long, QCaAlarmInfo&,
+                                   QCaDateTime&, const unsigned int&));
+
+   // We don't need repeated error reports.
+   //
+   if (this->isFirstMetaUpdate) {
+      this->checkDeprecatedSignalUsage (dcSignal);
+      this->checkDeprecatedSignalUsage (baSignal);
    }
 }
 

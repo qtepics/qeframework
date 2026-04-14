@@ -226,6 +226,18 @@ void QEString::convertVariant (const QEVariantUpdate& update)
       emit arrayUpdated (arrayUpdate);
       emit stringArrayChanged (array, alarmInfo, timeStamp, update.variableIndex);
    }
+
+   // Deprecated signals.
+   //
+   static const char* valueSignal =
+         SIGNAL(stringChanged (const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&));
+   static const char* arraySignal =
+         SIGNAL(stringArrayChanged (const QVector<QString>&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&));
+
+   if (update.isMetaUpdate) {
+      this->checkDeprecatedSignalUsage (valueSignal);
+      this->checkDeprecatedSignalUsage (arraySignal);
+   }
 }
 
 //------------------------------------------------------------------------------

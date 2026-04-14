@@ -227,7 +227,7 @@ signals:
    //
    void dataChanged( const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& );
    void byteArrayChanged( const QByteArray&, unsigned long, QCaAlarmInfo&, QCaDateTime&, const unsigned int& );
-   void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex );
+   void connectionChanged( QCaConnectionInfo&, const unsigned int& );
 
 public slots:
    bool writeData( const QVariant& value );
@@ -238,6 +238,9 @@ public slots:
    bool writeDataElement( const QVariant& elementValue );
 
    void resendLastData();
+
+protected:
+   void checkDeprecatedSignalUsage (const char* varSignal);
 
 private:
    // start of private
