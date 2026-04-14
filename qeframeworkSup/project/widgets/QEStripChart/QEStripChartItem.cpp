@@ -292,9 +292,7 @@ void QEStripChartItem::clear ()
 
    this->linePlotMode = QEStripChartNames::lpmRectangular;
 
-   // Reset identity sclaing
-   //
-   this->scaling.reset();
+   this->scaling.reset();   // i.e. identity mapping
 
    this->setCaption ();
 }
@@ -577,20 +575,17 @@ QEDisplayRanges QEStripChartItem::getBufferedMinMax (bool doScale) const
 }
 
 //------------------------------------------------------------------------------
-// macro functions to convert real-world values to a plot values,
-// doing safe log conversion if required.
+// macro functions to convert real-world values to a plot values.
 //
-#define PLOT_T(t) (t)
 #define PLOT_Y(y) (this->scaling.value (y))
 
 //------------------------------------------------------------------------------
 //
 QPointF QEStripChartItem::dataPointToReal (const QCaDataPoint& point) const
 {
-
    const QCaDateTime end_time = this->chart->getEndDateTime ();
    const double t = end_time.secondsTo (point.datetime);
-   QPointF result = QPointF (PLOT_T (t), PLOT_Y (point.value));
+   QPointF result = QPointF (t, PLOT_Y (point.value));
    return result;
 }
 
@@ -604,15 +599,15 @@ void QEStripChartItem::plotDataPoints (const QCaDataPointList& dataPoints,
    const QCaDateTime start_time = this->chart->getStartDateTime ();
    const QCaDateTime end_time = this->chart->getEndDateTime ();
    const double duration = this->chart->getDuration ();
+   const double timeOffset = this->scaling.getTimeOffset();
+
    QEGraphic* graphic = this->chart->plotArea;
 
    QVector<double> tdata;
    QVector<double> ydata;
-   QCaDataPoint point;
    QCaDataPoint previous;
    bool doesPreviousExist;
    bool isFirstPoint;
-   double t;
    bool extendToEnd = false;
 
    if (!graphic) return;   // sanity check
@@ -662,11 +657,15 @@ void QEStripChartItem::plotDataPoints (const QCaDataPointList& dataPoints,
    ydata.reserve (drawPoints);
 
    for (int j = first; j < count; j += decimation) {
-      point = dataPoints.value (j);
+      QCaDataPoint point = dataPoints.value (j);
+
+      // Adjust the time by the plot time offset.
+      //
+      point.datetime = point.datetime.addSecs (timeOffset);
 
       // Calculate the time of this point (in seconds) relative to the end of the chart.
       //
-      t = end_time.secondsTo (point.datetime);
+      const double t = end_time.secondsTo (point.datetime);
 
       if (t < -duration) {
          // Point time is before current time range of the chart.
@@ -676,12 +675,11 @@ void QEStripChartItem::plotDataPoints (const QCaDataPointList& dataPoints,
          //
          previous = point;
 
-         // Only "exists" if plottable.
+         // Only "exists" if plotable.
          //
          doesPreviousExist = point.isDisplayable ();  // (previous.alarm.isInvalid () == false);
 
-      }
-      else if ((t >= -duration) && (t <= 0.0)) {
+      } else if ((t >= -duration) && (t <= 0.0)) {
          // Point time is within current time range of the chart.
          //
          // Is it a valid point - can we sensible plot it?
@@ -697,7 +695,7 @@ void QEStripChartItem::plotDataPoints (const QCaDataPointList& dataPoints,
             // start edge effect required?
             //
             if (isFirstPoint && doesPreviousExist) {
-                tdata.append (PLOT_T (-duration));
+                tdata.append (-duration);
                 ydata.append (PLOT_Y (previous.value));
                 plottedTrackRange.merge (previous.value);
             }
@@ -706,12 +704,12 @@ void QEStripChartItem::plotDataPoints (const QCaDataPointList& dataPoints,
                // Do steps - do it like this as using qwt Step mode is not what I want.
                //
                if (ydata.count () >= 1) {
-                  tdata.append (PLOT_T (t));
+                  tdata.append (t);
                   ydata.append (ydata.last ());   // copy - don't need PLOT_Y
                }
             }
 
-            tdata.append (PLOT_T (t));
+            tdata.append (t);
             ydata.append (PLOT_Y (point.value));
             plottedTrackRange.merge (point.value);
 
@@ -722,7 +720,7 @@ void QEStripChartItem::plotDataPoints (const QCaDataPointList& dataPoints,
                // The current pont is unplotable (invalid/disconneted).
                // Create  a valid stopper point consisting of prev. point value and this point time.
                //
-               tdata.append (PLOT_T (t));
+               tdata.append (t);
                ydata.append (ydata.last ());   // is a copy - no PLOT_Y required.
 
                graphic->plotCurveData (tdata, ydata);
@@ -740,7 +738,7 @@ void QEStripChartItem::plotDataPoints (const QCaDataPointList& dataPoints,
          // Point time is after current plot time of the chart.
          // This this point is dispalyable, then plot upto the edge of the chart.
          //
-         extendToEnd = point.isDisplayable ();;
+         extendToEnd = point.isDisplayable ();
          break;
       }
    }
@@ -748,7 +746,7 @@ void QEStripChartItem::plotDataPoints (const QCaDataPointList& dataPoints,
    // Start edge special required?
    //
    if (isFirstPoint && doesPreviousExist) {
-       tdata.append (PLOT_T (-duration));
+       tdata.append (-duration);
        ydata.append (PLOT_Y (previous.value));
        plottedTrackRange.merge (previous.value);
    }
@@ -759,16 +757,16 @@ void QEStripChartItem::plotDataPoints (const QCaDataPointList& dataPoints,
       // Extention to time now required?
       //
       if (isRealTime || extendToEnd) {
-         // Replicate last value upto end of chart.
+         // Replicate last value upto end of chart, well time 0 takeing into
+         // account any time offset.
          //
-         tdata.append (PLOT_T (0.0));
+         tdata.append (timeOffset);
          ydata.append (ydata.last ());   // is a copy - no PLOT_Y required.
       }
       graphic->plotCurveData (tdata, ydata);
    }
 }
 
-#undef PLOT_T
 #undef PLOT_Y
 
 //------------------------------------------------------------------------------
@@ -2048,7 +2046,7 @@ void QEStripChartItem::contextMenuSelected (const QEStripChartNames::ContextMenu
       case QEStripChartNames::SCCM_SCALE_PV_FIRST_CENTRE:
          if (this->firstPointIsDefined) {
             midway = (chart->getYMinimum () + this->chart->getYMaximum () ) / 2.0;
-            this->scaling.set (this->firstPoint.value, 1.0, midway);
+            this->scaling.set (this->firstPoint.value, 1.0, midway, 0.0);
             this->setCaption ();
             this->chart->setReplotIsRequired ();
          }
@@ -2235,7 +2233,7 @@ void QEStripChartItem::restoreConfiguration (PMElement& parentElement)
 
    this->clear();
 
-   PMElement pvElement = parentElement.getElement ("PV", "slot", (int) this->slot);
+   PMElement pvElement = parentElement.getElement ("PV", "slot", this->slot);
    if (pvElement.isNull ()) return;
 
    // Attempt to extract a PV name

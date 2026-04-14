@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -18,6 +18,7 @@
 #include <QColor>
 #include <QEDialog.h>
 #include <QDateTime>
+#include <QTime>
 
 #include <QEDisplayRanges.h>
 #include <QEStripChartUtilities.h>
@@ -39,11 +40,11 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEStripChartAdjustPVDialog :
     Q_OBJECT
 
 public:
-   explicit QEStripChartAdjustPVDialog (QWidget *parent = 0);
+   explicit QEStripChartAdjustPVDialog (QWidget* parent = 0);
    ~QEStripChartAdjustPVDialog ();
 
-    void setValueScaling (const ValueScaling & valueScale);
-    ValueScaling getValueScaling () const;
+    void setValueScaling (const QEValueScaling& valueScale);
+    QEValueScaling getValueScaling () const;
 
     // Support data for scaling calculations.
     //
@@ -55,7 +56,7 @@ public:
 private:
    Ui::QEStripChartAdjustPVDialog *ui;
 
-   ValueScaling valueScale;
+   QEValueScaling valueScale;
 
    QEDisplayRanges loprHopr;
    QEDisplayRanges plotted;
@@ -72,6 +73,9 @@ private slots:
    void originReturnPressed ();
    void slopeReturnPressed ();
    void offsetReturnPressed ();
+   void signButtonClicked (bool);
+   void daysChanged (const int);
+   void timeChanged (const QTime&);
 
    void resetButtonClicked (bool checked = false);
    void loprHoprButtonClicked (bool checked = false);

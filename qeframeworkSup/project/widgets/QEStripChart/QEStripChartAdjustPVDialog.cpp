@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -12,15 +12,18 @@
  */
 
 #include "QEStripChartAdjustPVDialog.h"
-#include <QVariant>
-#include <ui_QEStripChartAdjustPVDialog.h>
 #include <QDebug>
+#include <QVariant>
+#include <QECommon.h>
+#include <ui_QEStripChartAdjustPVDialog.h>
 
 #define DEBUG  qDebug () << "QEStripChartAdjustPVDialog" << __LINE__ <<  __FUNCTION__  << "  "
 
+static const int secsPerDay = 86400;
+
 //------------------------------------------------------------------------------
 //
-QEStripChartAdjustPVDialog::QEStripChartAdjustPVDialog (QWidget *parent) :
+QEStripChartAdjustPVDialog::QEStripChartAdjustPVDialog (QWidget* parent) :
       QEDialog (parent),
       ui (new Ui::QEStripChartAdjustPVDialog)
 {
@@ -41,6 +44,17 @@ QEStripChartAdjustPVDialog::QEStripChartAdjustPVDialog (QWidget *parent) :
    QObject::connect (this->ui->offsetEdit, SIGNAL  (returnPressed ()),
                      this,                 SLOT (offsetReturnPressed ()));
 
+   QObject::connect (this->ui->posTimeOffset,  SIGNAL (clicked           (bool)),
+                     this,                     SLOT   (signButtonClicked (bool)));
+
+   QObject::connect (this->ui->negTimeOffset,  SIGNAL (clicked           (bool)),
+                     this,                     SLOT   (signButtonClicked (bool)));
+
+   QObject::connect (this->ui->daysOffsetEdit, SIGNAL (valueChanged (const int)),
+                     this,                     SLOT   (daysChanged  (const int)));
+
+   QObject::connect (this->ui->timeOffsetEdit, SIGNAL (timeChanged  (const QTime&)),
+                     this,                     SLOT   (timeChanged  (const QTime&)));
 
    // Connect push buttons.
    //
@@ -75,14 +89,14 @@ QEStripChartAdjustPVDialog::~QEStripChartAdjustPVDialog ()
 
 //------------------------------------------------------------------------------
 //
-void QEStripChartAdjustPVDialog::setValueScaling (const ValueScaling & valueScaleIn)
+void QEStripChartAdjustPVDialog::setValueScaling (const QEValueScaling& valueScaleIn)
 {
-   double d, m, c;
+   double d, m, c, t;
    QString text;
 
    this->valueScale.assign (valueScaleIn);
 
-   this->valueScale.get (d, m, c);
+   this->valueScale.get (d, m, c, t);
 
    text = QString::asprintf (" %g", d);
    this->ui->originEdit->setText (text);
@@ -92,11 +106,29 @@ void QEStripChartAdjustPVDialog::setValueScaling (const ValueScaling & valueScal
 
    text = QString::asprintf (" %g", c);
    this->ui->offsetEdit->setText (text);
+
+   // Round to nearest second.
+   //
+   const int offset = static_cast<int>(qRound(t));
+
+   this->ui->posTimeOffset->setChecked (offset >= 0);
+   this->ui->negTimeOffset->setChecked (offset <  0);
+
+   const int absOffset = ABS(offset);
+   const int days = absOffset / secsPerDay;
+   const int secs = absOffset % secsPerDay;
+
+   QTime time (0, 0, 0, 0);
+   time = time.addSecs (secs);
+
+   this->ui->daysOffsetEdit->setValue (days);
+   this->ui->timeOffsetEdit->setTime (time);
+
 }
 
 //------------------------------------------------------------------------------
 //
-ValueScaling QEStripChartAdjustPVDialog::getValueScaling () const
+QEValueScaling QEStripChartAdjustPVDialog::getValueScaling () const
 {
    return this->valueScale;
 }
@@ -120,12 +152,11 @@ void QEStripChartAdjustPVDialog::setSupport (const double minIn, const double ma
    this->buffered = buffereInd;
 }
 
-
 //------------------------------------------------------------------------------
 //
 void QEStripChartAdjustPVDialog::useSelectedRange (const QEDisplayRanges& selectedRange)
 {
-   ValueScaling preset;
+   QEValueScaling preset;
    bool status;
    double min, max;
 
@@ -161,13 +192,29 @@ void QEStripChartAdjustPVDialog::offsetReturnPressed ()
 }
 
 //------------------------------------------------------------------------------
+//
+void QEStripChartAdjustPVDialog::signButtonClicked (bool)
+{
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChartAdjustPVDialog::daysChanged (const int)
+{
+}
+
+//------------------------------------------------------------------------------
+//
+void QEStripChartAdjustPVDialog::timeChanged (const QTime&)
+{
+}
+
+//------------------------------------------------------------------------------
 // Preset options
 //
 void QEStripChartAdjustPVDialog::resetButtonClicked (bool)
 {
-   ValueScaling preset;
-
-   preset.reset ();
+   static const QEValueScaling preset;  // default
    this->setValueScaling (preset);
 }
 
@@ -257,10 +304,15 @@ void QEStripChartAdjustPVDialog::on_buttonBox_accepted ()
    double m = this->ui->slopeEdit->text ().toDouble (&ok2);
    double c = this->ui->offsetEdit->text ().toDouble (&ok3);
 
+   int sign = this->ui->posTimeOffset->isChecked() ? +1 : -1;
+   int days = this->ui->daysOffsetEdit->value ();
+   int secs = QTime (0, 0, 0, 0).secsTo (this->ui->timeOffsetEdit->time ());
+   int offset = sign*(secsPerDay * days + secs);
+
    if (ok1 && ok2 && ok3) {
       // All okay - assign values to object.
       //
-      this->valueScale.set (d, m, c);
+      this->valueScale.set (d, m, c, static_cast<double>(offset));
 
       // Proceed with 'good' dialog exit
       //

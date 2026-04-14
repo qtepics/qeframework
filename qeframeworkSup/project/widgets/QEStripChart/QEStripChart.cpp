@@ -1984,6 +1984,8 @@ void QEStripChart::saveConfiguration (PersistanceManager* pm)
    for (int slot = 0; slot < NUMBER_OF_PVS; slot++) {
       QEStripChartItem* item = this->getItem (slot);
       if (item) {
+         // Item adds itself to the list.
+         //
          item->saveConfiguration (pvListElement);
       }
    }
@@ -2026,6 +2028,8 @@ void QEStripChart::restoreConfiguration (PersistanceManager* pm, restorePhases r
    for (int slot = 0; slot < NUMBER_OF_PVS; slot++) {
       QEStripChartItem* item = this->getItem (slot);
       if (item) {
+         // Item selects the appropriate PV slot out of the list.
+         //
          item->restoreConfiguration (pvListElement);
       }
    }

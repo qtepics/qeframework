@@ -70,8 +70,6 @@ public:
    QString getDescription () const;    // Extracts the PV DESCription field.
    QString getCaptionLabel () const;   // As used in the name bar.
 
-   bool isScaled () const;
-
    // Resturns x (i.e. t) and y values as plotted taking into account value and time scaling.
    //
    QPointF dataPointToReal (const QCaDataPoint& point) const;
@@ -97,7 +95,7 @@ public:
    // return range item is scaled using the current PV scale. When false, the "raw"
    // value is returned.
    //
-   QEDisplayRanges getLoprHopr (bool doScale) const;          // returns CA specified operating range
+   QEDisplayRanges getLoprHopr (bool doScale) const;          // returns PV specified operating range
    QEDisplayRanges getDisplayedMinMax (bool doScale) const;   // returns range of values currently plotted
    QEDisplayRanges getBufferedMinMax (bool doScale) const;    // returns range of values that could be plotted
 
@@ -193,7 +191,7 @@ private:
    QString aliasName;
    QString description;
    QColor colour;
-   ValueScaling scaling;
+   QEValueScaling scaling;
 
    QCaDataPointList historicalTimeDataPoints;
    QCaDataPointList realTimeDataPoints;
