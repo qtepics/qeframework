@@ -236,8 +236,8 @@ QEPvLoadSave::Halves::Halves (const Sides sideIn, QEPvLoadSave* ownerIn, QBoxLay
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   QObject::connect (&this->vnpm, SIGNAL (newVariableNameProperty (QString, QString, unsigned int)),
-                     this->owner, SLOT   (useNewConfigurationFileProperty (QString, QString, unsigned int)));
+   QObject::connect (&this->vnpm, SIGNAL (newPvNameProperties   (const QEPvNameProperties&)),
+                     this->owner, SLOT   (useFilenameProperties (const QEPvNameProperties&)));
 }
 
 //------------------------------------------------------------------------------
@@ -533,16 +533,16 @@ bool QEPvLoadSave::eventFilter (QObject* /* obj*/ , QEvent* /* event */ )
 
 //------------------------------------------------------------------------------
 //
-void QEPvLoadSave::useNewConfigurationFileProperty (QString configurationFileIn,
-                                                    QString configurationFileSubstitutionsIn,
-                                                    unsigned int variableIndex)
+void QEPvLoadSave::useFilenameProperties (const QEPvNameProperties& fileNameProperties)
 {
-   this->setVariableNameAndSubstitutions (configurationFileIn, configurationFileSubstitutionsIn, variableIndex);
+   this->setVariableNameAndSubstitutions (fileNameProperties.pvName,
+                                          fileNameProperties.substitutions,
+                                          fileNameProperties.index);
 }
 
 //------------------------------------------------------------------------------
 //
-qcaobject::QCaObject* QEPvLoadSave::createQcaItem (unsigned int variableIndex)
+QEChannel* QEPvLoadSave::createQcaItem (unsigned int variableIndex)
 {
    DEBUG << "unexpected - variableIndex =" << variableIndex;
    return NULL;
@@ -552,14 +552,12 @@ qcaobject::QCaObject* QEPvLoadSave::createQcaItem (unsigned int variableIndex)
 //
 void QEPvLoadSave::establishConnection (unsigned int variableIndex)
 {
-   QString configurationFile;
-
    if (variableIndex >= ARRAY_LENGTH (this->half)) {
       DEBUG << "unexpected - variableIndex =" << variableIndex;
       return;
    }
 
-   configurationFile = this->getSubstitutedVariableName (variableIndex);
+   const QString configurationFile = this->getSubstitutedVariableName (variableIndex);
    this->half [variableIndex]->open (configurationFile);
 }
 

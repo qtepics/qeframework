@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2011-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2011-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Anton Maksimenko
@@ -20,7 +20,7 @@
  */
 
 #include "qepicspv.h"
-#include "QCaObject.h"
+#include <QEChannel.h>
 #include <QEPlatform.h>
 
 #include <QMetaType>
@@ -29,7 +29,6 @@
 #include <QCoreApplication>
 #include <QDebug>
 
-using namespace qcaobject;
 
 const QVariant QEpicsPV::badData = QVariant();
 
@@ -50,7 +49,8 @@ bool QEpicsPV::init() {
 
 //------------------------------------------------------------------------------
 //
-void QEpicsPV::setDebugLevel(unsigned level){
+void QEpicsPV::setDebugLevel(unsigned level)
+{
   debugLevel = level;
 }
 
@@ -82,17 +82,19 @@ QEpicsPV::QEpicsPV(QObject *parent) :
 
 //------------------------------------------------------------------------------
 //
-QEpicsPV::~QEpicsPV(){
+QEpicsPV::~QEpicsPV()
+{
   setPV();
 }
 
 
 //------------------------------------------------------------------------------
 //
-void QEpicsPV::setPV(const QString & _pvName) {
+void QEpicsPV::setPV(const QString & _pvName)
+{
   pvName = _pvName;
   if (qCaField) {
-    delete (QCaObject *) qCaField;
+    delete (QEChannel *) qCaField;
     qCaField = 0;
   }
   updateConnection();
@@ -100,7 +102,7 @@ void QEpicsPV::setPV(const QString & _pvName) {
   if ( pvName.isEmpty() )
     return;
 
-  QCaObject * _qCaField = new QCaObject(pvName, this, 0);   // Use arbitary variable index
+  QEChannel* _qCaField = new QEChannel(pvName, this, 0);   // Use arbitary variable index
   qCaField = _qCaField;
 
   // Qt::QueuedConnection here is needed to ensure the QEventLoop in
@@ -116,38 +118,41 @@ void QEpicsPV::setPV(const QString & _pvName) {
           SLOT(updateValue(QVariant)), Qt::QueuedConnection);
 
   _qCaField->subscribe();
-
 }
 
 //------------------------------------------------------------------------------
 //
-const QString & QEpicsPV::pv() const {
+const QString & QEpicsPV::pv() const
+{
   return pvName;
 }
 
 
 //------------------------------------------------------------------------------
 //
-bool QEpicsPV::isConnected() const {
-  return qCaField && ((QCaObject *) qCaField) -> getChannelIsConnected();
+bool QEpicsPV::isConnected() const
+{
+  return qCaField && ((QEChannel *) qCaField) -> getChannelIsConnected();
 }
 
 //------------------------------------------------------------------------------
 //
-const QVariant & QEpicsPV::get() const {
+const QVariant & QEpicsPV::get() const
+{
   return lastData;
 }
 
 //------------------------------------------------------------------------------
 //
-void QEpicsPV::needUpdated() const {
+void QEpicsPV::needUpdated() const
+{
   updated = false;
 }
 
 //------------------------------------------------------------------------------
 //
-const QVariant & QEpicsPV::getUpdated(int delay) const {
-
+const QVariant & QEpicsPV::getUpdated(int delay) const
+{
   if ( ! isConnected() )
     return badData;
   if ( updated )
@@ -172,8 +177,8 @@ const QVariant & QEpicsPV::getUpdated(int delay) const {
 
 //------------------------------------------------------------------------------
 //
-const QVariant & QEpicsPV::getReady(int delay) const {
-
+const QVariant & QEpicsPV::getReady(int delay) const
+{
   if ( ! qCaField )
     return badData;
 
@@ -201,7 +206,8 @@ const QVariant & QEpicsPV::getReady(int delay) const {
 
 //------------------------------------------------------------------------------
 //
-QVariant QEpicsPV::get(const QString & _pvName, int delay) {
+QVariant QEpicsPV::get(const QString & _pvName, int delay)
+{
   if (_pvName.isEmpty())
     return badData;
   QEpicsPV * tpv = new QEpicsPV(_pvName);
@@ -253,7 +259,7 @@ const QVariant & QEpicsPV::set(QVariant value, int delay)
      }
   }
 
-  ((QCaObject *) qCaField) -> writeData(value);
+  ((QEChannel *) qCaField) -> writeData(value);
 
   return delay >= 0  ?  getUpdated(delay)  :  get();
 }
@@ -261,7 +267,8 @@ const QVariant & QEpicsPV::set(QVariant value, int delay)
 
 //------------------------------------------------------------------------------
 //
-QVariant QEpicsPV::set(QString & _pvName, const QVariant & value, int delay) {
+QVariant QEpicsPV::set(QString& _pvName, const QVariant& value, int delay)
+{
   if (_pvName.isEmpty())
     return badData;
   QEpicsPV * tpv = new QEpicsPV(_pvName);
@@ -273,8 +280,8 @@ QVariant QEpicsPV::set(QString & _pvName, const QVariant & value, int delay) {
 
 //------------------------------------------------------------------------------
 //
-void QEpicsPV::updateValue(const QVariant & data){
-
+void QEpicsPV::updateValue(const QVariant & data)
+{
   if ( debugLevel > 0 )
     qDebug() << "QEpicsPV DEBUG: UPD" << this << isConnected() << pv() << get() << data << getEnum();
 
@@ -284,19 +291,19 @@ void QEpicsPV::updateValue(const QVariant & data){
   lastData = data;
 
   if (firstRead) {
-    theEnum = ((QCaObject *) qCaField) -> getEnumerations();
+    theEnum = ((QEChannel *) qCaField) -> getEnumerations();
     emit valueInited(lastData);
   }
   if (changed)
     emit valueChanged(lastData);
   emit valueUpdated(lastData);
-
 }
 
 
 //------------------------------------------------------------------------------
 //
-void QEpicsPV::updateConnection() {
+void QEpicsPV::updateConnection()
+{
   if ( debugLevel > 0 )
     qDebug() << "QEpicsPV DEBUG: CON" << this << pv() << isConnected();
   if (isConnected()) {
@@ -312,7 +319,8 @@ void QEpicsPV::updateConnection() {
 
 //------------------------------------------------------------------------------
 //
-const QStringList & QEpicsPV::getEnum() const {
+const QStringList & QEpicsPV::getEnum() const
+{
   return theEnum;
 }
 

@@ -16,7 +16,7 @@
  *
  * A class to manage simple non-event driven access to CA data.
  *
- * A wrapper around the QCaObject designed to hide EPICS-related features
+ * A wrapper around the QEChannel designed to hide EPICS-related features
  * unimportant and unclear for the end-user. Also implements some frequently
  * used operations in a single methods.
  *
@@ -37,7 +37,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEpicsPV : public QObject {
 
 private:
 
-  // Basic object representing the field. Is always of type QCaObject*,
+  // Basic object representing the field. Is always of type QEChannel*,
   // here is void* to avoid installing all headers in the src directory.
   void* qCaField;
 
@@ -228,11 +228,11 @@ public slots:
 
 private slots:
 
-  // Used to catch the QCaObject::dataChanged() signal from the ::qCaField.
+  // Used to catch the QEChannel::dataChanged() signal from the ::qCaField.
   // @param data new data.
   void updateValue(const QVariant & data);
 
-  // Used to catch QCaObject::connectionChanged() signal from the ::qCaField.
+  // Used to catch QEChannel::connectionChanged() signal from the ::qCaField.
   void updateConnection();
 
 signals:

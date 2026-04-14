@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2015-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2015-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -16,11 +16,8 @@
 
 #include <QColor>
 #include <QList>
+#include <QEChannel.h>
 #include <QEFrameworkLibraryGlobal.h>
-
-namespace qcaobject {
-   class QCaObject;   // differed
-}
 
 // A colour band element.
 // This defines a range of values and an associated colour.
@@ -53,11 +50,11 @@ public:
    QEColourBand value (int j) const;
 
    // Conveniance function to set the colour band list based upon alarm levels
-   // from within the given QCaObject.
+   // from within the given QEChannel.
    //
    void setAlarmColours (const double dispLower,
                          const double dispUpper,
-                         qcaobject::QCaObject* qca);
+                         QEChannel* qca);
 
 private:
    static QEColourBand createColourBand (const double lower, const double upper, const QColor& colour);

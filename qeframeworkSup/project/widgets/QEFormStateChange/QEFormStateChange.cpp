@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2019-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2019-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -11,7 +11,7 @@
  *  Contact:    andrews@ansto.gov.au
  */
 
-#include <QEFormStateChange.h>
+#include "QEFormStateChange.h"
 #include <QDebug>
 #include <QPainter>
 #include <QTimer>
@@ -48,8 +48,8 @@ QEFormStateChange::Actions::Actions (const VariableIndicies indexIn,
 {
    this->text = "1";
    this->vnpm.setVariableIndex (this->index);
-   QObject::connect (&this->vnpm, SIGNAL (newVariableNameProperty (QString, QString, unsigned int)),
-                     this->owner, SLOT   (newVariableNameProperty (QString, QString, unsigned int)));
+   QObject::connect (&this->vnpm, SIGNAL (newPvNameProperties (const QEPvNameProperties&)),
+                     this->owner, SLOT   (usePvNameProperties (const QEPvNameProperties&)));
 
 }
 
@@ -342,12 +342,12 @@ void QEFormStateChange::paintEvent (QPaintEvent* /* event */)
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of
-// QCaObject required. For a QEFormStateChange, a QCaObject that accepts strings
+// QEChannel required. For a QEFormStateChange, a QEChannel that accepts strings
 // is required.
 //
-qcaobject::QCaObject* QEFormStateChange::createQcaItem (unsigned int vi)
+QEChannel* QEFormStateChange::createQcaItem (unsigned int vi)
 {
-   if (vi >= NUMBER_OF_VARIABLES) return NULL;
+   if (vi >= NUMBER_OF_VARIABLES) return NULL;   // sanity check
 
    // Create all items as QEFloating
    QString pvName = this->getSubstitutedVariableName (vi);
@@ -362,7 +362,7 @@ qcaobject::QCaObject* QEFormStateChange::createQcaItem (unsigned int vi)
 //
 void QEFormStateChange::establishConnection (unsigned int vi)
 {
-   if (vi >= NUMBER_OF_VARIABLES) return;
+   if (vi >= NUMBER_OF_VARIABLES) return;   // sanity check
 
    // Create a connection. We don't need any connection/update signals.
    //
@@ -389,12 +389,13 @@ void QEFormStateChange::windowClosed ()
 
 //------------------------------------------------------------------------------
 //
-void QEFormStateChange::newVariableNameProperty (QString pvName,
-                                                 QString subs,
-                                                 unsigned int vi)
+void QEFormStateChange::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
-   if (vi >= NUMBER_OF_VARIABLES) return;
-   this->setVariableNameAndSubstitutions (pvName, subs, vi);
+   if (pvNameProperties.index >= NUMBER_OF_VARIABLES) return;   // sanity check
+
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 // end

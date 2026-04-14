@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -17,6 +17,7 @@
 #include <QLineEdit>
 #include <QVariant>
 #include <QEEnums.h>
+#include <QEChannel.h>
 #include <QEWidget.h>
 #include <QESingleVariableMethods.h>
 #include <QCaVariableNamePropertyManager.h>
@@ -278,7 +279,7 @@ public:
     ///
     bool getSubscribe();
 
-    void writeValue (qcaobject::QCaObject *qca, QVariant newValue );
+    void writeValue (QEChannel* qca, QVariant newValue );
 
 public slots:
     /// Update the default style applied to this widget.
@@ -306,8 +307,8 @@ private:
 
 
 private slots:
-    void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex );
-    void useNewVariableNameProperty( QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex );
+    void connectionUpdated( const QEConnectionUpdate& update );
+    void usePvNameProperties( const QEPvNameProperties& );
     void userReturnPressed();                       // Act on the user pressing return in the widget
     void userEditingFinished();                     // Act on the user signaling text editing is complete (pressing return)
 
@@ -332,7 +333,7 @@ protected:
 
     bool isConnected;
 
-    void setDataIfNoFocus( const QVariant& value, QCaAlarmInfo& alarmInfo, QCaDateTime& dateTime );
+    void setDataIfNoFocus( const QEVariantUpdate& update );
 
     bool getIsConnected() const;
     bool getIsFirstUpdate() const;

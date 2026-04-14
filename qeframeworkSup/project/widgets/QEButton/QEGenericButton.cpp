@@ -142,23 +142,23 @@ void QEGenericButton::guiSetup()
 }
 
 /*
-    Implementation of QEWidget's virtual funtion to create the specific type of QCaObject required.
-    For a push button a QCaObject that streams strings is required.
+    Implementation of QEWidget's virtual funtion to create the specific type of QEChannel required.
+    For a push button a QEChannel that streams strings is required.
 */
-qcaobject::QCaObject* QEGenericButton::createQcaItem( unsigned int variableIndex ) {
+QEChannel* QEGenericButton::createQcaItem( unsigned int variableIndex ) {
 
-    qcaobject::QCaObject* result = NULL;
+    QEChannel* result = NULL;
 
     // Fetch reference to the target button widget and get pv name.
-    QString pvName = getSubstitutedVariableName( variableIndex );
-    QAbstractButton* target = getButtonQObject();
+    const QString pvName = this->getSubstitutedVariableName( variableIndex );
+    QAbstractButton* target = this->getButtonQObject();
 
     // Create the item as a QEString
     switch (variableIndex) {
     case VAR_PRIMARY:
         result = new QEString( pvName, target, &stringFormatting, variableIndex );
         // Apply currently defined array index.
-        setSingleVariableQCaProperties( result );
+        this->setSingleVariableQCaProperties( result );
         break;
 
     case VAR_READBACK:
@@ -172,24 +172,26 @@ qcaobject::QCaObject* QEGenericButton::createQcaItem( unsigned int variableIndex
 
 /*
     Start updating.
-    Implementation of VariableNameManager's virtual funtion to establish a connection to a PV as the variable name has changed.
+    Implementation of VariableNameManager's virtual funtion to establish a
+    connection to a PV as the variable name has changed.
     This function may also be used to initiate updates when loaded as a plugin.
 */
 void QEGenericButton::establishConnection( unsigned int variableIndex ) {
 
     // Create a connection.
-    // If successfull, the QCaObject object that will supply data update signals will be returned.
-    qcaobject::QCaObject* qca = NULL;
+    // If successfull, the QEChannel object that will supply data update signals will be returned.
+    QEChannel* qca = NULL;
     switch (variableIndex) {
 
     case VAR_PRIMARY:
         // We always subscribe for primary irrsepective of the subscribe property
         // so that we get status. If subscribe false, we ignore the value update.
-        qca = createConnection( variableIndex, true );
+        //
+        qca = this->createConnection( variableIndex, true );
         break;
 
     case VAR_READBACK:
-        qca = createConnection( variableIndex );
+        qca = this->createConnection( variableIndex );
         break;
 
     default:
@@ -202,7 +204,7 @@ void QEGenericButton::establishConnection( unsigned int variableIndex ) {
     // Fetch reference to the target button widget.
     QAbstractButton* target = getButtonQObject();
 
-    // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots
+    // If a QEChannel object is now available to supply data update signals, connect it to the appropriate slots
     switch (variableIndex) {
 
     case VAR_PRIMARY:     // Primary readback variable
@@ -210,18 +212,19 @@ void QEGenericButton::establishConnection( unsigned int variableIndex ) {
         if( subscribe && getSubstitutedVariableName( VAR_READBACK ).isEmpty() ){
             if( (updateOption & QE::Text) == QE::Text )
             {
-                setButtonText( "" );
+                this->setButtonText( "" );
             }
         }
 
         // We always subscribe for and handle primary data changes, because we
         // want the STATus to check againtts the disabled record policy.
         //
-        connectButtonDataChange( qca );
+        this->connectButtonDataChange( qca );
 
-        // Get conection status changes always (subscribing or not)
-        QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
-                          target, SLOT( connectionChanged( QCaConnectionInfo&, const unsigned int&) ) );
+        // Get conection status changes always (subscribing or not).
+        //
+        QObject::connect( qca,  SIGNAL( connectionUpdated (const QEConnectionUpdate&) ),
+                          target, SLOT( connectionChanged (const QEConnectionUpdate&) ) );
         break;
 
     case VAR_READBACK:     // Alternate readback variable
@@ -234,9 +237,10 @@ void QEGenericButton::establishConnection( unsigned int variableIndex ) {
             connectButtonDataChange( qca );
         }
 
-        // Get conection status changes always (subscribing or not)
-        QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int& ) ),
-                          target, SLOT( connectionChanged( QCaConnectionInfo&, const unsigned int&) ) );
+        // Get conection status changes always (subscribing or not).
+        //
+        QObject::connect( qca,  SIGNAL( connectionUpdated (const QEConnectionUpdate&) ),
+                          target, SLOT( connectionChanged (const QEConnectionUpdate&) ) );
         break;
 
     default:
@@ -260,11 +264,11 @@ QE::DisabledRecordPolicy QEGenericButton::getDisabledRecordPolicy() const
 /*
  Common handler for setting variable names.
  */
-void QEGenericButton::useGenericNewVariableName( const QString& variableNameIn,
-                                                 const QString& variableNameSubstitutionsIn,
-                                                 const unsigned int variableIndex )
+void QEGenericButton::useGenericNewVariableName( const QEPvNameProperties& pvNameProperties )
 {
-    setVariableNameAndSubstitutions( variableNameIn, variableNameSubstitutionsIn, variableIndex );
+    setVariableNameAndSubstitutions( pvNameProperties.pvName,
+                                     pvNameProperties.substitutions,
+                                     pvNameProperties.index );
 
     // Update the labelText property with itself.
     // This will apply any macro substitutions changes since the labelText property was last changed
@@ -280,7 +284,7 @@ void QEGenericButton::processRecordDisableState()
     QAbstractButton* button = getButtonQObject();
     if( !button ) return;                       // sanity check
 
-    qcaobject::QCaObject* qca = this->getQcaItem (VAR_PRIMARY);
+    QEChannel* qca = this->getQcaItem (VAR_PRIMARY);
     if( !qca ) return;                         // sanity check
     if( !qca->getDataIsAvailable() ) return;  // sanity check
 
@@ -306,47 +310,50 @@ void QEGenericButton::processRecordDisableState()
 /*
     Act on a connection change.
     Change how the label looks and change the tool tip
-    This is the slot used to recieve connection updates from a QCaObject based class.
+    This is the slot used to recieve connection updates from a QEChannel based class.
  */
-void QEGenericButton::connectionChanged( QCaConnectionInfo& connectionInfo,
-                                         const unsigned int& variableIndex )
+void QEGenericButton::connectionChanged (const QEConnectionUpdate& update)
 {
+    const unsigned int vi = update.variableIndex;
+
     // Do nothing if no variable name, but there is a program to run or a new gui to open.
     // Most widgets will be dissabled at this point if there is no good connection to a PV,
-    // but this widget may be doing other stuff (running a program of starting a GUI)
-    if( getSubstitutedVariableName( variableIndex ).isEmpty() )
+    // but this widget may be doing other stuff (running a program of starting a GUI).
+    //
+    if( this->getSubstitutedVariableName( update.variableIndex ).isEmpty() )
         return;
 
     // Note the connected state for primary PV only.
     //
-    if( variableIndex  == VAR_PRIMARY ) {
-       isConnected = connectionInfo.isChannelConnected();
+    if( vi == VAR_PRIMARY ) {
+       this->isConnected = update.connectionInfo.isChannelConnected();
     }
 
     // Display the connected state
-    updateToolTipConnection( isConnected, variableIndex );
-    updateConnectionStyle( isConnected );
+    this->updateToolTipConnection( isConnected, vi );
+    this->updateConnectionStyle( isConnected );
 
     // set cursor to indicate access mode
-    setAccessCursorStyle();
+    this->setAccessCursorStyle();
 
     // Signal channel connection change to any Link  (or other) widgets,
     // using signal dbConnectionChanged.
-    if( variableIndex  == VAR_PRIMARY ) {
-        emitDbConnectionChanged( variableIndex );
+    if( vi  == VAR_PRIMARY ) {
+        emitDbConnectionChanged( vi );
     }
 }
 
 /*
   Implement a slot to set the current text of the push button
-  This is the slot used to recieve data updates from a QCaObject based class.
+  This is the slot used to recieve data updates from a QEChannel based class.
 */
-void QEGenericButton::setGenericButtonText( const QString& text, QCaAlarmInfo& alarmInfo,
-                                            QCaDateTime&, const unsigned int& variableIndex )
+void QEGenericButton::setGenericButtonText( const QEStringValueUpdate& update )
 {
-    if( variableIndex == VAR_PRIMARY ) {
+   const unsigned int vi = update.variableIndex;
+
+    if( vi == VAR_PRIMARY ) {
        // Modify style/enable state basesd on disabledRecordPolicy and record state.
-       processRecordDisableState();
+       this->processRecordDisableState();
     }
 
     // If not subscribing, or subscribing but update is not for the readback variable, then do nothing.
@@ -357,7 +364,7 @@ void QEGenericButton::setGenericButtonText( const QString& text, QCaAlarmInfo& a
     // Note, variableIndex = 0 = Primary readback variable, variableIndex = 1 = Alternate readback variable,
     // so an update for variable 1 is always OK, an update from variable 0 is OK as long as there is no variable 1
     //
-    if( !subscribe || ( variableIndex == VAR_PRIMARY && !getSubstitutedVariableName( VAR_READBACK ).isEmpty() ))
+    if( !subscribe || ( vi == VAR_PRIMARY && !this->getSubstitutedVariableName( VAR_READBACK ).isEmpty() ))
     {
         return;
     }
@@ -368,16 +375,16 @@ void QEGenericButton::setGenericButtonText( const QString& text, QCaAlarmInfo& a
     //
     if( (updateOption & QE::State) == QE::State )
     {
-        if( text.compare( clickCheckedText ) == 0){
+        if( update.value.compare( clickCheckedText ) == 0){
             setButtonState( true );
 
-        } else if( text.compare( clickText ) == 0 ){
+        } else if( update.value.compare( clickText ) == 0 ){
             setButtonState( false );
 
         } else {
             // Can we be clever/helpfull? Not too clever I hope.
             //
-            qcaobject::QCaObject* qca = this->getQcaItem( VAR_PRIMARY );
+            QEChannel* qca = this->getQcaItem( VAR_PRIMARY );
             const int state = qca ? qca->getIntegerValue() : -1;
             bool b1, b2;
             const int s1 = clickCheckedText.toInt( &b1 );
@@ -394,7 +401,7 @@ void QEGenericButton::setGenericButtonText( const QString& text, QCaAlarmInfo& a
                 message = QString( "%1:%2 '%3' (%4) is not one of: '%5' or '%6'" )
                       .arg( getQWidget()->objectName() )
                       .arg( getQWidget()->metaObject()->className() )
-                      .arg( text )
+                      .arg( update.value )
                       .arg( state )
                       .arg( clickText )
                       .arg( clickCheckedText );
@@ -409,25 +416,25 @@ void QEGenericButton::setGenericButtonText( const QString& text, QCaAlarmInfo& a
     // Update the text if required
     if( (updateOption & QE::Text) == QE::Text )
     {
-        setButtonText( text );
+        this->setButtonText( update.value );
     }
 
     // Update the icon if required
     if( (updateOption & QE::Icon) == QE::Icon )
     {
         QIcon icon;
-        icon.addPixmap( getDataPixmap( text ) );
-        setButtonIcon( icon );
+        icon.addPixmap( getDataPixmap( update.value ) );
+        this->setButtonIcon( icon );
     }
 
     // Invoke common alarm handling processing.
-    processAlarmInfo( alarmInfo, variableIndex );
+    this->processAlarmInfo( update.alarmInfo, vi );
 
     // Signal a database value change to any Link (or other) widgets using one
     // of the dbValueChanged. Must be subscribed.
     //
-    if( variableIndex == VAR_PRIMARY ) {
-        emitDbValueChanged( text, variableIndex );
+    if( vi == VAR_PRIMARY ) {
+        emitDbValueChanged( update.value, vi );
     }
 }
 
@@ -656,12 +663,13 @@ void QEGenericButton::processWriteNow ( const bool checked )
 /*
  Provides default functionality.
  */
-void QEGenericButton::connectButtonDataChange( qcaobject::QCaObject* qca )
+void QEGenericButton::connectButtonDataChange( QEChannel* qca )
 {
     QAbstractButton* target = getButtonQObject();
 
-    QObject::connect( qca,  SIGNAL( stringChanged( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
-                      target, SLOT( setButtonText( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
+    QObject::connect( qca,  SIGNAL( valueUpdated ( const QEStringValueUpdate& ) ),
+                      target, SLOT( setButtonText( const QEStringValueUpdate& ) ) );
+
     QObject::connect( target, SIGNAL( requestResend() ),
                       qca,      SLOT( resendLastData() ) );
 }

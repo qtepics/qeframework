@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2018-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2018-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -141,11 +141,11 @@ void QECorrelation::setup ()
    this->xVariableNameManager.setVariableIndex (xPvIndex);
    this->yVariableNameManager.setVariableIndex (yPvIndex);
 
-   QObject::connect (&this->xVariableNameManager, SIGNAL (newVariableNameProperty (QString, QString, unsigned int)),
-                     this,                        SLOT   (setNewVariableName      (QString, QString, unsigned int)));
+   QObject::connect (&this->xVariableNameManager, SIGNAL (newPvNameProperties (const QEPvNameProperties&)),
+                     this,                        SLOT   (usePvNameProperties (const QEPvNameProperties&)));
 
-   QObject::connect (&this->yVariableNameManager, SIGNAL (newVariableNameProperty (QString, QString, unsigned int)),
-                     this,                        SLOT   (setNewVariableName      (QString, QString, unsigned int)));
+   QObject::connect (&this->yVariableNameManager, SIGNAL (newPvNameProperties (const QEPvNameProperties&)),
+                     this,                        SLOT   (usePvNameProperties (const QEPvNameProperties&)));
 
    this->pvNameSelectDialog = new QEPVNameSelectDialog (this);
    this->scaleDialog = new QETwinScaleSelectDialog (manualScaleWindowName, scaleOneName, scaleTwoName, this);
@@ -340,21 +340,25 @@ QECorrelation::~QECorrelation ()
 
 //------------------------------------------------------------------------------
 //
-void QECorrelation::setNewVariableName (QString pvName,
-                                        QString substitutions,
-                                        unsigned int vi)
+void QECorrelation::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
+   const unsigned int vi = pvNameProperties.index;
+
    INDEX_CHECK (vi,);
 
    QELabel* caLabel = this->items[vi].value;
    QLabel* pvNameLabel = this->items[vi].pvName;
-   QString substitutedPvName;
 
-   caLabel->setVariableNameAndSubstitutions (pvName, substitutions, QELabelPVIndex);
+   // Note: we must use the QELabel widget's own variable index, and
+   // not the QECorrelation widget's variable index.
+   //
+   caLabel->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                             pvNameProperties.substitutions,
+                                             QELabelPVIndex);
    caLabel->setText ("");
 
-   substitutedPvName = caLabel->getSubstitutedVariableName (QELabelPVIndex);
-   pvNameLabel->setText (substitutedPvName);
+   const QString pvName = caLabel->getSubstitutedVariableName (QELabelPVIndex);
+   pvNameLabel->setText (pvName);
 }
 
 //------------------------------------------------------------------------------
@@ -383,7 +387,7 @@ void QECorrelation::clearAllPvNames ()
 //------------------------------------------------------------------------------
 // Overriden, but not used.
 //
-qcaobject::QCaObject* QECorrelation::createQcaItem (unsigned int variableIndex)
+QEChannel* QECorrelation::createQcaItem (unsigned int variableIndex)
 {
    DEBUG << "unexpected call, variableIndex = " << variableIndex;
    return NULL;
@@ -805,16 +809,10 @@ void QECorrelation::reDrawPlane ()
 //
 void QECorrelation::updateDataArrays ()
 {
-   double samplePeriod;
-   int maximumPoints;
-   double maximumPeriod;
-   double currentPeriod;
    int extra;
-   int number;
-   double correlation;
 
-   samplePeriod = this->uiForm->Sample_Interval_Edit->getValue ();
-   maximumPoints = (int) this->uiForm->Number_Samples_Edit->getValue ();
+   const double samplePeriod = this->uiForm->Sample_Interval_Edit->getValue ();
+   const int maximumPoints = (int) this->uiForm->Number_Samples_Edit->getValue ();
 
    // Purge old data. Both x and y should be in step with the same number
    // of "extra" points, but no harm done being pedantic here.
@@ -829,11 +827,11 @@ void QECorrelation::updateDataArrays ()
       this->yData.remove (0, extra);   // remove 1st extra values
    }
 
-   number = this->xData.count ();
-   maximumPeriod = samplePeriod * maximumPoints;
-   currentPeriod = samplePeriod * number;
+   const int number = this->xData.count ();
+   const double maximumPeriod = samplePeriod * maximumPoints;
+   const double currentPeriod = samplePeriod * number;
 
-   correlation = this->calculateCorrelationCoefficient ();
+   const double correlation = this->calculateCorrelationCoefficient ();
 
    this->uiForm->Number_Points_Label->setText (QString ("%1").arg (number));
    this->uiForm->Maximum_Sample_Label->setText (QEUtilities::intervalToString (maximumPeriod, 0, false));
@@ -847,20 +845,14 @@ void QECorrelation::updateDataArrays ()
 //
 void QECorrelation::sampleTimeout ()
 {
-   qcaobject::QCaObject* xQCa;
-   qcaobject::QCaObject* yQCa;
-
-   double x = 0.0;
-   double y = 0.0;
-
-   xQCa = this->uiForm->CA_DataLabel1->getQcaItem (QELabelPVIndex);
-   yQCa = this->uiForm->CA_DataLabel2->getQcaItem (QELabelPVIndex);
+   QEChannel* xQCa = this->uiForm->CA_DataLabel1->getQcaItem (QELabelPVIndex);
+   QEChannel* yQCa = this->uiForm->CA_DataLabel2->getQcaItem (QELabelPVIndex);
 
    if (xQCa && yQCa) {
       if (xQCa->getDataIsAvailable() && yQCa->getDataIsAvailable()) {
 
-         x = xQCa->getFloatingValue ();
-         y = yQCa->getFloatingValue ();
+         const double x = xQCa->getFloatingValue ();
+         const double y = yQCa->getFloatingValue ();
 
          this->xData.append (x);
          this->yData.append (y);

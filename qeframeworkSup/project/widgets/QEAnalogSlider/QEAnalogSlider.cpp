@@ -120,7 +120,7 @@ QEAnalogSlider::~QEAnalogSlider()
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of
-// QCaObject required. A QCaObject that streams integers is required.
+// QEChannel required. A QEChannel that streams integers is required.
 //
 QEChannel* QEAnalogSlider::createQcaItem (unsigned int variableIndex)
 {
@@ -165,8 +165,8 @@ void QEAnalogSlider::establishConnection (unsigned int variableIndex)
    QEChannel* qca = NULL;
 
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   // Note createConnection creates the connection and returns reference to existing QCaObject.
+   // If successfull, the QEChannel object that will supply data update signals will be returned
+   // Note createConnection creates the connection and returns reference to existing QEChannel.
    //
    switch (variableIndex) {
 
@@ -281,7 +281,7 @@ void QEAnalogSlider::activated ()
 //------------------------------------------------------------------------------
 // Act on a connection change.
 // Change how the s looks and change the tool tip
-// This is the slot used to recieve connection updates from a QCaObject based class.
+// This is the slot used to recieve connection updates from a QEChannel based class.
 // slot
 void QEAnalogSlider::mainConnectionUpdated (const QEConnectionUpdate& update)
 {

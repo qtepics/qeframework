@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2011-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2011-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -21,6 +21,7 @@
 #include <QHBoxLayout>
 #include <QEEnums.h>
 #include <QEWidget.h>
+#include <QEChannel.h>
 #include <QEFloating.h>
 #include <QEFloatingFormatting.h>
 #include <QCaVariableNamePropertyManager.h>
@@ -209,8 +210,8 @@ public:
     int getSelectedAtomicNumber() const;
 
 private slots:
-    void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex );
-    void setElement( const double& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& );
+    void connectionUpdated( const QEConnectionUpdate& );
+    void elementUpdated( const QEFloatingValueUpdate& );
     void userClicked();
 
 public slots:
@@ -254,7 +255,7 @@ protected:
 
 private:
     void setup();
-    qcaobject::QCaObject* createQcaItem( unsigned int variableIndex  );
+    QEChannel* createQcaItem( unsigned int variableIndex  );
 
     void writeUserInfoFile();
     void readUserInfoFile();
@@ -363,10 +364,7 @@ protected:
 public:
 
 private slots:
-  void useNewVariableNameProperty( QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex )
-  {
-      setVariableNameAndSubstitutions(variableNameIn, variableNameSubstitutionsIn, variableIndex);
-  }
+  void usePvNameProperties( const QEPvNameProperties& );
 
 public:
     //=================================================================================

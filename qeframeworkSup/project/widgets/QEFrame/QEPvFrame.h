@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2016-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2016-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -18,6 +18,7 @@
 #include <QWidget>
 #include <QVariant>
 
+#include <QEChannel.h>
 #include <QEInteger.h>
 #include <QEIntegerFormatting.h>
 #include <QESingleVariableMethods.h>
@@ -32,7 +33,6 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvFrame :
    public QEFrame,
    public QESingleVariableMethods
 {
-
    Q_OBJECT
 
    // BEGIN-SINGLE-VARIABLE-V2-PROPERTIES ===============================================
@@ -97,7 +97,7 @@ signals:
    void dbConnectionChanged (const bool & isConnected);
 
 protected:
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
    void establishConnection (unsigned int variableIndex);
 
    // No drag/drop
@@ -112,15 +112,11 @@ private:
    QEIntegerFormatting integerFormatting;
 
 private slots:
-   void useNewVariableNameProperty (QString variableName,
-                                    QString variableNameSubstitutions,
-                                    unsigned int variableIndex);
+   void usePvNameProperties (const QEPvNameProperties&);
 
-   void connectionChanged (QCaConnectionInfo & connectionInfo,
-                           const unsigned int &variableIndex);
+   void connectionUpdated (const QEConnectionUpdate&);
 
-   void pvValueUpdate (const long &value, QCaAlarmInfo & alarmInfo,
-                       QCaDateTime & dateTime, const unsigned int &variableIndex);
+   void pvValueUpdate (const QEIntegerValueUpdate&);
 };
 
 #endif                          // QE_PV_FRAME_H

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2019-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2019-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -19,6 +19,7 @@
 #include <QEEnums.h>
 #include <QEWidget.h>
 #include <QCaVariableNamePropertyManager.h>
+#include <QEChannel.h>
 #include <QEStringFormatting.h>
 #include <QEStringFormattingMethods.h>
 #include <applicationLauncher.h>
@@ -26,8 +27,8 @@
 
 /// This widget is capable of responding to window/form open and close events.
 /// On open and/or close the widget can write to a PV and/or executate an arbitary
-/// local program/scripts. This is not unlike automatically clicking a QEPushButton
-/// on open/close, save that there is no option to open another ui file.
+/// local program/script. This is not unlike automatically clicking a QEPushButton
+/// on open/close, except that there is no option to open another ui file.
 /// Note: the widget itself non-visible by default.
 ///
 // TODO?? Capture form minimised amd maximised as well.
@@ -126,7 +127,7 @@ protected:
    QSize sizeHint ();
    void paintEvent (QPaintEvent* event);   // draw something as design time
 
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
    void establishConnection (unsigned int variableIndex);
    void stringFormattingChange ();         // must be defined, but not used.
 
@@ -139,9 +140,7 @@ private:
 private slots:
    void windowOpened();   // actually called when object created
    void windowClosed();   // and deleted.
-   void newVariableNameProperty (QString variableNameIn,
-                                 QString variableNameSubstitutionsIn,
-                                 unsigned int variableIndex);
+   void usePvNameProperties (const QEPvNameProperties&);
 };
 
 #endif // QE_FORM_STATE_CHANGE_H

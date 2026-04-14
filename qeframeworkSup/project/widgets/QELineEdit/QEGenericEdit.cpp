@@ -3,14 +3,13 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
  *  Maintainer: Andrew Starritt
  *  Contact:    andrews@ansto.gov.au
  */
-
 
 // This class is a generic CA aware line edit widget based on the Qt line edit widget.
 // It is tighly integrated with the base class QEWidget. Refer to QEWidget.cpp for details
@@ -88,7 +87,7 @@ void QEGenericEdit::setup()
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   connectNewVariableNameProperty( SLOT( useNewVariableNameProperty( QString, QString, unsigned int ) ) );
+   connectPvNameProperties( SLOT( usePvNameProperties( const QEPvNameProperties& ) ) );
 
 }
 
@@ -104,13 +103,14 @@ QMenu* QEGenericEdit::getDefaultContextMenu()
 //------------------------------------------------------------------------------
 // Act on a connection change.
 // Change how the label looks and change the tool tip
-// This is the slot used to recieve connection updates from a QCaObject based class.
+// This is the slot used to recieve connection updates from a QEChannel based class.
 //
-void QEGenericEdit::connectionChanged( QCaConnectionInfo& connectionInfo,
-                                       const unsigned int& variableIndex )
+void QEGenericEdit::connectionUpdated( const QEConnectionUpdate& update )
 {
+   const unsigned int vi = update.variableIndex;
+
    // Note the connected state
-   isConnected = connectionInfo.isChannelConnected();
+   isConnected = update.connectionInfo.isChannelConnected();
 
    // Note if first update has arrived (ok to set repeatedly)
    if( isConnected )
@@ -128,19 +128,19 @@ void QEGenericEdit::connectionChanged( QCaConnectionInfo& connectionInfo,
    // Signal channel connection change to any (Link) widgets.
    // using signal dbConnectionChanged.
    //
-   emitDbConnectionChanged( variableIndex );
+   emitDbConnectionChanged( vi );
 }
 
 //------------------------------------------------------------------------------
 // Generic update logic.
 //
-void QEGenericEdit::setDataIfNoFocus( const QVariant& value, QCaAlarmInfo& alarmInfo, QCaDateTime& ) {
-
+void QEGenericEdit::setDataIfNoFocus( const QEVariantUpdate& update )
+{
    // Save the most recent value.
    // If the user is editing the value updates are not applied. If the user cancels the write, the value the widget
    // should revert to the latest value.
    // This last value is also used to manage notifying user changes (save what the user will be changing from)
-   lastValue = value;
+   lastValue = update.value;
 
    // Update the text if appropriate.
    // If the user is editing the object then updates will be
@@ -151,12 +151,12 @@ void QEGenericEdit::setDataIfNoFocus( const QVariant& value, QCaAlarmInfo& alarm
          ( !hasFocus() && !messageDialogPresent ) ||
          (  hasFocus() && !isModified() && isFirstUpdate ))
    {
-      setValue( value );
-      lastUserValue = value;
+      setValue( update.value );
+      lastUserValue = update.value;
    }
 
    // Invoke common alarm handling processing.
-   processAlarmInfo( alarmInfo );
+   processAlarmInfo( update.alarmInfo );
 
    // First (and subsequent) update is now over
    isFirstUpdate = false;
@@ -177,8 +177,9 @@ void QEGenericEdit::userReturnPressed()
       return;
    }
 
-   // Get the variable to write to
-   qcaobject::QCaObject *qca = getQcaItem(0);
+   // Get the variable to write to.
+   //
+   QEChannel* qca = getQcaItem(0);
 
    // If a QCa object is present (if there is a variable to write to)
    // and the object is set up to write when the user presses return
@@ -229,7 +230,7 @@ void QEGenericEdit::userEditingFinished()
    }
 
    // Get the variable to write to
-   qcaobject::QCaObject *qca = getQcaItem(0);
+   QEChannel *qca = getQcaItem(0);
 
    // If a QCa object is present (if there is a variable to write to)
    // and the object is set up to write when the user changes focus away from the object
@@ -287,8 +288,9 @@ void QEGenericEdit::writeNow ()
       return;
    }
 
-   // Get the variable to write to
-   qcaobject::QCaObject *qca = getQcaItem(0);
+   // Get the variable to write to.
+   //
+   QEChannel* qca = getQcaItem(0);
 
    // If a QCa object is present (if there is a variable to write to)
    // and is of the corect type then write the value.
@@ -305,7 +307,7 @@ void QEGenericEdit::writeNow ()
 // Write a value in response to user editing the widget
 // Request confirmation if required.
 //
-void QEGenericEdit::writeValue( qcaobject::QCaObject *, QVariant newValue )
+void QEGenericEdit::writeValue( QEChannel *, QVariant newValue )
 {
    // If required, get confirmation from the user as to what to do
    int confirm = QMessageBox::Yes;
@@ -370,11 +372,11 @@ void QEGenericEdit::writeValue( qcaobject::QCaObject *, QVariant newValue )
 //------------------------------------------------------------------------------
 // Update variable name etc.
 //
-void QEGenericEdit::useNewVariableNameProperty( QString variableNameIn,
-                                                QString variableNameSubstitutionsIn,
-                                                unsigned int variableIndex )
+void QEGenericEdit::usePvNameProperties( const QEPvNameProperties& pvNameProperties )
 {
-   setVariableNameAndSubstitutions(variableNameIn, variableNameSubstitutionsIn, variableIndex);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 

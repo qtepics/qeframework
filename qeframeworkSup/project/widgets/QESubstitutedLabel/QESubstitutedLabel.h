@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -27,63 +27,71 @@
 
 #include <QLabel>
 #include <QEWidget.h>
+#include <QEChannel.h>
 #include <QCaVariableNamePropertyManager.h>
 #include <QEFrameworkLibraryGlobal.h>
 
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESubstitutedLabel : public QLabel, public QEWidget {
-    Q_OBJECT
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QESubstitutedLabel :
+      public QLabel, public QEWidget
+{
+   Q_OBJECT
 
 public:
-    QESubstitutedLabel( QWidget *parent = 0 );
+   QESubstitutedLabel( QWidget *parent = 0 );
+   ~QESubstitutedLabel () {}
 
-    // Property convenience functions
+   // Property convenience functions
 
-    // label text (prior to substitution)
-    void setLabelTextProperty( QString labelTextIn );
-    QString getLabelTextProperty();
+   // label text (prior to substitution).
+   //
+   void setLabelTextProperty( QString labelTextIn );
+   QString getLabelTextProperty();
 
-    // Macro substitions
-    void setSubstitutionsProperty( QString macroSubstitutionsIn );
-    QString getSubstitutionsProperty();
+   // Macro substitions.
+   //
+   void setSubstitutionsProperty( QString macroSubstitutionsIn );
+   QString getSubstitutionsProperty();
 
 
-    // label text (prior to substitution) with line feeds encoded in C style to allow entry in designer
-    QString getLabelTextPropertyFormat();
-    void setLabelTextPropertyFormat( QString labelTextIn );
+   // label text (prior to substitution) with line feeds encoded in C style to
+   // allow entry in designer.
+   //
+   QString getLabelTextPropertyFormat();
+   void setLabelTextPropertyFormat( QString labelTextIn );
 
 
 protected:
-    QString labelText;                                                 // Fixed text to which substitutions will be applied
+   QString labelText;                                       // Fixed text to which substitutions will be applied
 
 
 private:
-    void setup();
-    qcaobject::QCaObject* createQcaItem( unsigned int ){ return NULL; } // Not used as this widget does not connect to any data source
+   void setup();
+   QEChannel* createQcaItem( unsigned int ){ return NULL; } // Not used as this widget does not connect to any data source
 
 public:
-    //=================================================================================
-    // NOTE, this plugin uses the variable-name-and-substitutions mechanism normally used to manage variable names
-    //       to manage text displayed in the label.
-    //       If you are reading this because you searched for SINGLEVARIABLEPROPERTIES, this section is not the standard set normally
-    //       used for all widgets with a single variable, but some changes may be needed here as well
+   //=================================================================================
+   // NOTE, this plugin uses the variable-name-and-substitutions mechanism normally used to manage variable names
+   //       to manage text displayed in the label.
+   //       If you are reading this because you searched for SINGLEVARIABLEPROPERTIES, this section is not the standard set normally
+   //       used for all widgets with a single variable, but some changes may be needed here as well
 
-    // Make the text proerty non-designable. This both hides the text property within
-    // designer and stops the text value from being written to the .ui file.
-    // And stop users accidentally setting wrong propery.
-    //
-    Q_PROPERTY(QString text READ text WRITE setText DESIGNABLE false)
+   // Make the text proerty non-designable. This both hides the text property within
+   // designer and stops the text value from being written to the .ui file.
+   // And stop users accidentally setting wrong propery.
+   //
+   Q_PROPERTY(QString text READ text WRITE setText DESIGNABLE false)
 
-    /// Label text to be substituted.
-    /// This text will be copied to the label text after applying any macro substitutions from the textSubstitutions property
-    Q_PROPERTY(QString labelText READ getLabelTextPropertyFormat WRITE setLabelTextPropertyFormat)
+   /// Label text to be substituted.
+   /// This text will be copied to the label text after applying any macro substitutions from the textSubstitutions property
+   Q_PROPERTY(QString labelText READ getLabelTextPropertyFormat WRITE setLabelTextPropertyFormat)
 
-    /// Text substitutions.
-    /// These substitutions are applied to the 'labelText' property prior to copying it to the label text.
-    Q_PROPERTY(QString textSubstitutions READ getSubstitutionsProperty WRITE setSubstitutionsProperty)
+   /// Text substitutions.
+   /// These substitutions are applied to the 'labelText' property prior to copying it to the label text.
+   Q_PROPERTY(QString textSubstitutions READ getSubstitutionsProperty WRITE setSubstitutionsProperty)
 
 private:
-    // No standard variaable name and substitutions management required
-    //=================================================================================
+   // No standard variaable name and substitutions management required
+   //=================================================================================
 };
 
 #endif // QE_SUBSTITUTED_LABEL_H

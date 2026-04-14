@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -134,7 +134,7 @@ public:
     /// Customisations are not applied if the GUI is opened as a dock.
     Q_PROPERTY(QString customisationName READ getCustomisationName WRITE setCustomisationName)
 
-    
+
     //--------------------------------------------------------------------------
     /// Program to run when the button is clicked.
     /// No attempt to run a program is made if this property is empty.
@@ -570,8 +570,8 @@ private:
 
 private slots:
     // Hand-ball to QEGenericButton.
-    void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex ) { QEGenericButton::connectionChanged( connectionInfo, variableIndex ); }
-    void setButtonText( const QString& text, QCaAlarmInfo& alarmInfo, QCaDateTime& timestamp, const unsigned int& variableIndex ) { setGenericButtonText( text, alarmInfo, timestamp, variableIndex); }
+    void connectionChanged( const QEConnectionUpdate& update ) { QEGenericButton::connectionChanged( update ); }
+    void setButtonText( const QEStringValueUpdate& update ) { QEGenericButton::setGenericButtonText( update ); }
     void userPressed() { QEGenericButton::userPressed(); }
     void userReleased() { QEGenericButton::userReleased(); }
     void userClicked( bool checked ) { QEGenericButton::userClicked( checked ); }
@@ -580,10 +580,10 @@ private slots:
     /// Slot to receiver a 'process completed' signal from the application launcher
     //
     void programCompletedSlot();
-    
-    void useNewVariableNameProperty( QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex )
+
+    void usePvNameProperties( const QEPvNameProperties& pvNameProperties )
     {
-        useGenericNewVariableName( variableNameIn, variableNameSubstitutionsIn, variableIndex );
+        useGenericNewVariableName( pvNameProperties );
     }
 };
 

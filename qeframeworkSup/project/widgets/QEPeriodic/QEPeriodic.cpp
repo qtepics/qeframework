@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2011-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2011-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -305,21 +305,29 @@ void QEPeriodic::setup()
    // set up a connection to recieve variable name property changes.
    // The variable name property manager class only delivers an updated variable name after the user has stopped typing.
    //
-   for( int i = 0; i < QEPERIODIC_NUM_VARIABLES; i++ )
-   {
-      variableNamePropertyManagers[i].setVariableIndex( i );
-      QObject::connect( &variableNamePropertyManagers[i],
-                            SIGNAL(    newVariableNameProperty( QString, QString, unsigned int ) ),
-                        this, SLOT( useNewVariableNameProperty( QString, QString, unsigned int ) ) );
+   for( int i = 0; i < QEPERIODIC_NUM_VARIABLES; i++ ) {
+      QCaVariableNamePropertyManager* vnpm = &this->variableNamePropertyManagers[i];
+      vnpm->setVariableIndex( i );
+      QObject::connect( vnpm, SIGNAL( newPvNameProperties ( const QEPvNameProperties& ) ),
+                        this, SLOT(   usePvNameProperties ( const QEPvNameProperties& ) ) );
    }
 }
 
 //------------------------------------------------------------------------------
-// Implementation of QEWidget's virtual funtion to create the specific type of QCaObject required.
-// For a push button a QCaObject that streams strings is required.
 //
-qcaobject::QCaObject* QEPeriodic::createQcaItem( unsigned int variableIndex ) {
+void QEPeriodic::usePvNameProperties( const QEPvNameProperties& pvNameProperties)
+{
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
+}
 
+//------------------------------------------------------------------------------
+// Implementation of QEWidget's virtual funtion to create the specific type of QEChannel required.
+// For a push button a QEChannel that streams strings is required.
+//
+QEChannel* QEPeriodic::createQcaItem( unsigned int variableIndex )
+{
    // Reflect the initial disconnected state if there is a write PVs.
    // If there are no write PVs, leave it enabled it as this widget can be used to signal
    // an element selection as well as write element related values.
@@ -328,8 +336,9 @@ qcaobject::QCaObject* QEPeriodic::createQcaItem( unsigned int variableIndex ) {
       writeButton->setEnabled( false );
    }
 
-   // Create the items as a QEFloating
-   return new QEFloating( getSubstitutedVariableName( variableIndex ), this, &floatingFormatting, variableIndex );
+   // Create the items as a QEFloating.
+   const QString pvName = this->getSubstitutedVariableName( variableIndex );
+   return new QEFloating( pvName, this, &floatingFormatting, variableIndex );
 }
 
 //------------------------------------------------------------------------------
@@ -338,39 +347,41 @@ qcaobject::QCaObject* QEPeriodic::createQcaItem( unsigned int variableIndex ) {
 // to a PV as the variable name has changed.
 // This function may also be used to initiate updates when loaded as a plugin.
 //
-void QEPeriodic::establishConnection( unsigned int variableIndex ) {
-
+void QEPeriodic::establishConnection( unsigned int variableIndex )
+{
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   qcaobject::QCaObject* qca = createConnection( variableIndex );
+   // If successfull, the QEChannel object that will supply data update signals will be returned
+   QEChannel* qca = createConnection( variableIndex );
 
-   // If a QCaObject object is now available to supply data update signals,
+   // If a QEChannel object is now available to supply data update signals,
    // connect it to the appropriate slots
    if(  qca ) {
-      QObject::connect( qca,  SIGNAL( floatingChanged( const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
-                        this, SLOT(        setElement( const double&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
+      QObject::connect( qca,  SIGNAL( valueUpdated( const QEFloatingValueUpdate& ) ),
+                        this, SLOT( elementUpdated( const QEFloatingValueUpdate& ) ) );
 
       // Get conection status changes always (subscribing or not)
-      QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ),
-                        this, SLOT(   connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ) );
+      QObject::connect( qca,  SIGNAL( connectionUpdated( const QEConnectionUpdate& ) ),
+                        this, SLOT(   connectionUpdated( const QEConnectionUpdate& ) ) );
+
       QObject::connect( this, SIGNAL( requestResend() ),
                         qca,  SLOT(  resendLastData() ) );
-
    }
 }
 
 //------------------------------------------------------------------------------
 // Act on a connection change.
 // Change how the label looks and change the tool tip
-// This is the slot used to recieve connection updates from a QCaObject based class.
-void QEPeriodic::connectionChanged( QCaConnectionInfo& connectionInfo,
-                                    const unsigned int& variableIndex )
+// This is the slot used to recieve connection updates from a QEChannel based class.
+//
+void QEPeriodic::connectionUpdated( const QEConnectionUpdate& update )
 {
+   const unsigned int vi = update.variableIndex;
+
    // If connected enabled the widget if required.
-   if( connectionInfo.isChannelConnected() )
+   if( update.connectionInfo.isChannelConnected() )
    {
       isConnected = true;
-      updateToolTipConnection( isConnected, variableIndex );
+      updateToolTipConnection( isConnected, vi );
 
       if( localEnabled )
       {
@@ -386,7 +397,7 @@ void QEPeriodic::connectionChanged( QCaConnectionInfo& connectionInfo,
    else
    {
       isConnected = false;
-      updateToolTipConnection( isConnected, variableIndex );
+      updateToolTipConnection( isConnected, vi );
 
       if( writeButton )
          writeButton->setEnabled( false );
@@ -401,32 +412,33 @@ void QEPeriodic::connectionChanged( QCaConnectionInfo& connectionInfo,
 
 //------------------------------------------------------------------------------
 //  Implement a slot to set the current text of the push button
-//  This is the slot used to recieve data updates from a QCaObject based class.
-void QEPeriodic::setElement( const double& value, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex )
+//  This is the slot used to recieve data updates from a QEChannel based class.
+//
+void QEPeriodic::elementUpdated( const QEFloatingValueUpdate& update )
 {
-   // Signal a database value change to any Link widgets
-   emit dbValueChanged( value );
+   const unsigned int vi = update.variableIndex;
 
    QString newText;
-   switch( variableIndex )
-   {
-      // Write push button variables
+   switch( vi ) {
       case 0:
       case 1:
-         if( writeButton )
-         {
-            if( getElementTextForValue( value, variableIndex, writeButtonData, writeButton->text(), newText  ) )
+         // Write push button variables.
+         //
+         if( writeButton ) {
+            if( getElementTextForValue( update.value, vi, writeButtonData, writeButton->text(), newText  ) )
                writeButton->setText( newText );
          }
          break;
 
-         // Readback Label variables
       case 2:
       case 3:
-         if( readbackLabel )
-         {
-            // When checking if an element matched the current text, use the button text in preference to the readback label.
+         // Readback Label variables.
+         //
+         if( readbackLabel ) {
+            // When checking if an element matched the current text, use
+            // the button text in preference to the readback label.
             // This is required if several elements have the same values.
+            //
             QString currentText;
             if( writeButton )
             {
@@ -436,7 +448,7 @@ void QEPeriodic::setElement( const double& value, QCaAlarmInfo& alarmInfo, QCaDa
             {
                currentText = readbackLabel->text();
             }
-            if( getElementTextForValue( value, variableIndex, readbackLabelData, currentText, newText  ) )
+            if( getElementTextForValue( update.value, vi, readbackLabelData, currentText, newText ) )
                readbackLabel->setText( newText );
          }
          break;
@@ -444,15 +456,19 @@ void QEPeriodic::setElement( const double& value, QCaAlarmInfo& alarmInfo, QCaDa
 
    // Invoke common alarm handling processing.
    // TODO: Aggregate all channel severities into a single alarm state.
-   processAlarmInfo( alarmInfo );
+   //
+   processAlarmInfo( update.alarmInfo );
 
    //   if( writeButton )
    //      writeButton->setStyleSheet( ai.style() );
    //
    //   if( readbackLabel )
    //       readbackLabel->setStyleSheet( ai.style() );
-}
 
+   // Signal a database value change to any Link widgets.
+   //
+   emit dbValueChanged( update.value );
+}
 
 //------------------------------------------------------------------------------
 // Implement a slot to set the current text of the push button
@@ -528,6 +544,7 @@ void QEPeriodic::setAtomicNumber( const int atomicNumber )
 
 //------------------------------------------------------------------------------
 // Return the user values for a given element symbol. (Not nessesarily the current element)
+//
 bool QEPeriodic::getElementValues( QString symbol, double* value1, double* value2 ) const
 {
    int i; // element index

@@ -20,7 +20,6 @@
 #include <alarm.h>
 #include <QDebug>
 #include <QECommon.h>
-#include <QCaObject.h>
 #include <QEStringFormatting.h>
 
 #define DEBUG qDebug () << "QEAnalogProgressBar" << __LINE__ << __FUNCTION__ << "  "
@@ -92,8 +91,8 @@ void QEAnalogProgressBar::setup ()
 }
 
 //------------------------------------------------------------------------------
-// Implementation of QEWidget's virtual funtion to create the specific type of QCaObject required.
-// For a progress bar a QCaObject that streams integers is required.
+// Implementation of QEWidget's virtual funtion to create the specific type of QEChannel required.
+// For a progress bar a QEChannel that streams integers is required.
 //
 QEChannel* QEAnalogProgressBar::createQcaItem (unsigned int variableIndex)
 {
@@ -123,12 +122,12 @@ QEChannel* QEAnalogProgressBar::createQcaItem (unsigned int variableIndex)
 void QEAnalogProgressBar::establishConnection (unsigned int variableIndex)
 {
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   // Note createConnection creates the connection and returns reference to existing QCaObject.
+   // If successfull, the QEChannel object that will supply data update signals will be returned
+   // Note createConnection creates the connection and returns reference to existing QEChannel.
    //
    QEChannel* qca = this->createConnection (variableIndex);
 
-   // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots.
+   // If a QEChannel object is now available to supply data update signals, connect it to the appropriate slots.
    //
    if ((qca) && (variableIndex == PV_VARIABLE_INDEX)) {
       QObject::connect (qca,  SIGNAL (valueUpdated      (const QEFloatingValueUpdate&)),
@@ -145,7 +144,7 @@ void QEAnalogProgressBar::establishConnection (unsigned int variableIndex)
 //------------------------------------------------------------------------------
 // Act on a connection change.
 // Change how the progress bar looks and change the tool tip
-// This is the slot used to recieve connection updates from a QCaObject based class.
+// This is the slot used to recieve connection updates from a QEChannel based class.
 //
 void QEAnalogProgressBar::connectionUpdated (const QEConnectionUpdate& update)
 {
@@ -329,7 +328,7 @@ QEAnalogIndicator::BandList QEAnalogProgressBar::getBandList () const
 
 //------------------------------------------------------------------------------
 // Update the progress bar value
-// This is the slot used to recieve data updates from a QCaObject based class.
+// This is the slot used to recieve data updates from a QEChannel based class.
 //
 void QEAnalogProgressBar::setProgressBarValue (const QEFloatingValueUpdate& update)
 {

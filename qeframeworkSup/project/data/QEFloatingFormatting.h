@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -32,12 +32,12 @@ public:
    //   - Format a double based on a value
    //   - Translate a double and generate a value
    //===============================================
-   /// This is used to convert the QVariant value received from a QCaObject,
+   /// This is used to convert the QVariant value received from a QEChannel,
    /// which is still based on the data variable type, to a double.
    double formatFloating( const QVariant &value ) const;
    double formatFloating( const QVariant &value, int arrayIndex ) const;
 
-   /// This is used to convert the QVariant value received from a QCaObject,
+   /// This is used to convert the QVariant value received from a QEChannel,
    /// which is still based on the data variable type, to a double array.
    /// Typically used where the input QVariant value is an array of data values,
    /// but will work for any QVariant type.

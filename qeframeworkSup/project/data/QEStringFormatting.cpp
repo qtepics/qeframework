@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -634,7 +634,6 @@ QString QEStringFormatting::formatElementString (const QVariant& value,
                      result = dbEnumerations[lValue];
                      haveEnumeratedString = true;
                   }
-                  // NOTE: STAT field hard-coded values now set up in QCaObject.cpp - extra values appended to dbEnumerations.
                }
             }
 

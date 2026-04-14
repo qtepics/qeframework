@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -28,7 +28,7 @@
 #include <QProgressBar>
 
 #include <QEEnums.h>
-#include <QCaObject.h>
+#include <QEChannel.h>
 #include <QEArchiveAccess.h>
 #include <QEFrame.h>
 #include <QEActionRequests.h>
@@ -135,7 +135,7 @@ signals:
 protected:
    // We don't expect these to be called - but do override and output debug error
    //
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
    void establishConnection (unsigned int variableIndex);
 
    void resizeEvent (QResizeEvent* );
@@ -259,9 +259,7 @@ private:
    friend class QEPvLoadSaveModel;
 
 private slots:
-   void useNewConfigurationFileProperty (QString configurationFileIn,
-                                         QString configurationFileSubstitutionsIn,
-                                         unsigned int variableIndex );
+   void useFilenameProperties (const QEPvNameProperties& fileNameProperties);
 
    void acceptActionComplete (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ActionKinds, const bool);
    void acceptActionInComplete (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ActionKinds);

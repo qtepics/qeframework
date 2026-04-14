@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -127,7 +127,7 @@ public:
     /// When used within the QEGui application, the QEGui application creates a new window, new tab, or replaces the current window as appropriate.
     Q_PROPERTY(QE::CreationOptions creationOption READ getCreationOption WRITE setCreationOption)
 
-    
+
     /// Window customisation name. This name will be used to select a set of window customisations including menu items and tool bar buttons.
     /// Applications such as QEGui can load .xml files containing named sets of window customisations. This property is used to select a set loaded from these files.
     /// The selected set of customisations will be applied to the main window containing the new GUI.
@@ -570,8 +570,8 @@ private:
 
 private slots:
     // Hand-ball to QEGenericButton.
-    void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex ) { QEGenericButton::connectionChanged( connectionInfo, variableIndex ); }
-    void setButtonText( const QString& text, QCaAlarmInfo& alarmInfo, QCaDateTime& timestamp, const unsigned int& variableIndex ) { setGenericButtonText( text, alarmInfo, timestamp, variableIndex); }
+    void connectionChanged( const QEConnectionUpdate& update ) { QEGenericButton::connectionChanged( update ); }
+    void setButtonText( const QEStringValueUpdate& update ) { QEGenericButton::setGenericButtonText( update ); }
     void userPressed() { QEGenericButton::userPressed(); }
     void userReleased() { QEGenericButton::userReleased(); }
     void userClicked( bool checked ) { QEGenericButton::userClicked( checked ); }
@@ -580,12 +580,11 @@ private slots:
     /// Slot to receiver a 'process completed' signal from the application launcher
     //
     void programCompletedSlot();
-    
-    void useNewVariableNameProperty( QString variableNameIn, QString variableNameSubstitutionsIn, unsigned int variableIndex )
-    {
-        useGenericNewVariableName( variableNameIn, variableNameSubstitutionsIn, variableIndex );
-    }
 
+    void usePvNameProperties( const QEPvNameProperties& pvNameProperties )
+    {
+        useGenericNewVariableName( pvNameProperties );
+    }
 };
 
 #endif // QE_RADIO_BUTTON_H

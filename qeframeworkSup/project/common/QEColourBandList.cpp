@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2015-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2015-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -11,13 +11,11 @@
  *  Contact:    andrews@ansto.gov.au
  */
 
+#include "QEColourBandList.h"
 #include <alarm.h>
-
 #include <QEPlatform.h>
 #include <QCaAlarmInfo.h>
-#include <QCaObject.h>
 #include <QEWidget.h>
-#include <QEColourBandList.h>
 
 //------------------------------------------------------------------------------
 //
@@ -76,7 +74,7 @@ QEColourBand QEColourBandList::createColourBand
 //------------------------------------------------------------------------------
 // static
 QEColourBand QEColourBandList::createColourBand (const double lower, const double upper,
-                                                  const unsigned short severity)
+                                                 const unsigned short severity)
 {
    QCaAlarmInfo alarmInfo (0, severity);
    int saturation;
@@ -91,7 +89,7 @@ QEColourBand QEColourBandList::createColourBand (const double lower, const doubl
 //
 void QEColourBandList::setAlarmColours (const double dispLower,
                                         const double dispUpper,
-                                        qcaobject::QCaObject* qca)
+                                        QEChannel* qca)
 {
    this->list.clear ();
    if (!qca) return;  // sanity check

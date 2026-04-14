@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -26,7 +26,7 @@
   integer and a QVariant of any type.
   It is generally set up with it's formatting instructions and then passed to a
   QEInteger class that will sink and source integer data to widgets or other code.
-  It is used to convert data to and from a QCaObject (which sources and sinks data
+  It is used to convert data to and from a QEChannel (which sources and sinks data
   in the form of a QVariant where the QVariant reflects the underlying variable
   data type) and the QEInteger class.
   An example of a requirement for integer data is a combo box which must
@@ -44,12 +44,12 @@ public:
    //   - Format a double based on a value
    //   - Translate a double and generate a value
    //===============================================
-   /// This is used to convert the QVariant value received from a QCaObject,
+   /// This is used to convert the QVariant value received from a QEChannel,
    /// which is still based on the data variable type, to an integer.
    long formatInteger( const QVariant &value ) const;
    long formatInteger( const QVariant &value, int arrayIndex ) const;
 
-   /// This is used to convert the QVariant value received from a QCaObject,
+   /// This is used to convert the QVariant value received from a QEChannel,
    /// which is still based on the data variable type, to an integer array.
    /// Typically used where the input QVariant value is an array of data values,
    /// but will work for any QVariant type.
@@ -57,7 +57,7 @@ public:
 
    /// Given an integer value, format it as a data value of the specified type,
    /// according to the formatting instructions held by the class.
-   /// This is used when writing integer data to a QCaObject.
+   /// This is used when writing integer data to a QEChannel.
    QVariant formatValue( const long &integerValue) const;
    QVariant formatValue( const QVector<long> &integerValue ) const;
 

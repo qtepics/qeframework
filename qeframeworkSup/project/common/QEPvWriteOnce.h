@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2022-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2022-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -15,7 +15,7 @@
 #define QE_PV_WRITE_ONCE_H
 
 #include <QObject>
-#include <QCaObject.h>
+#include <QEChannel.h>
 #include <QEEnums.h>
 #include <QEFrameworkLibraryGlobal.h>
 
@@ -45,13 +45,12 @@ public:
 
 private:
    QString substitutedValue;            // value post substitution
-   qcaobject::QCaObject* qca;
+   QEChannel* qca;
 
-   void writeToVariable (qcaobject::QCaObject* qca);
+   void writeToVariable (QEChannel* qca);
 
 private slots:
-   void connectionChanged (QCaConnectionInfo& connectionInfo,
-                           const unsigned int& variableIndex);
+   void connectionUpdated (const QEConnectionUpdate&);
    void connectionTimeout();
 };
 

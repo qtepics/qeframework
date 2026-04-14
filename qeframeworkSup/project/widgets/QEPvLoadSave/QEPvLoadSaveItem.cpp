@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -15,7 +15,7 @@
 #include "QEPvLoadSave.h"
 #include <QEPvLoadSaveUtilities.h>
 
-#include <algorithm>    // std::sort
+#include <algorithm>    // for std::sort
 #include <QDebug>
 #include <QFrame>
 #include <QMetaType>
@@ -552,7 +552,7 @@ QEPvLoadSaveLeaf::QEPvLoadSaveLeaf (const QString& setPointPvNameIn,
    this->leafStatus.isNotEqualCount = 0;
    this->leafStatus.isNotAplicableCount = 0;
 
-   this->setupQCaObjects ();
+   this->setupQEChannels ();
 
    // Allow item to retrive archive data values.
    //
@@ -580,7 +580,7 @@ void QEPvLoadSaveLeaf::setPvNames (const QString& setPointPvNameIn,
    this->setPointPvName = setPointPvNameIn;
    this->readBackPvName = readBackPvNameIn.isEmpty () ? this->setPointPvName  : readBackPvNameIn;
    this->archiverPvName = archiverPvNameIn.isEmpty () ? this->setPointPvName  : archiverPvNameIn;
-   this->setupQCaObjects ();
+   this->setupQEChannels ();
 }
 
 //-----------------------------------------------------------------------------
@@ -796,7 +796,7 @@ void QEPvLoadSaveLeaf::setNodeName (const QString& nodeName)
       this->readBackPvName = readBack;
       this->archiverPvName = archiver;
       this->action = QEPvLoadSaveCommon::NullAction;
-      this->setupQCaObjects ();
+      this->setupQEChannels ();
    } else {
       emit this->setReadOut ("failed to parse: " + nodeName);
    }
@@ -804,7 +804,7 @@ void QEPvLoadSaveLeaf::setNodeName (const QString& nodeName)
 
 //-----------------------------------------------------------------------------
 //
-void QEPvLoadSaveLeaf::setupQCaObjects ()
+void QEPvLoadSaveLeaf::setupQEChannels ()
 {
    QString aggragateName = this->calcNodeName ();
    QEPvLoadSaveItem::setNodeName (aggragateName);  // call parenet function
@@ -824,10 +824,10 @@ void QEPvLoadSaveLeaf::setupQCaObjects ()
 
    // Allocate new objects.
    //
-   this->qcaSetPoint = new qcaobject::QCaObject (this->getSetPointPvName (), this, 0);
-   this->qcaReadBack = new qcaobject::QCaObject (this->getReadBackPvName (), this, 1);
+   this->qcaSetPoint = new QEChannel (this->getSetPointPvName (), this, 0);
+   this->qcaReadBack = new QEChannel (this->getReadBackPvName (), this, 1);
 
-   // QCaObject does not do this automatically. Maybe it should?.
+   // QEChannel does not do this automatically. Maybe it should?.
    //
    this->qcaSetPoint->setParent (this);
    this->qcaReadBack->setParent (this);
@@ -840,8 +840,8 @@ void QEPvLoadSaveLeaf::setupQCaObjects ()
 
    // For the read back - no read yet, but do set up the connection.
    //
-   this->connect (this->qcaReadBack, SIGNAL (dataChanged (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&  )),
-                  this,              SLOT   (dataChanged (const QVariant&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&  )));
+   this->connect (this->qcaReadBack, SIGNAL (valueUpdated (const QEVariantUpdate&)),
+                  this,              SLOT   (dataChanged  (const QEVariantUpdate&)));
 }
 
 //-----------------------------------------------------------------------------
@@ -979,7 +979,7 @@ QEPvLoadSaveCommon::PvNameValueMaps QEPvLoadSaveLeaf::getPvNameValueMap () const
 void QEPvLoadSaveLeaf::setSetPointPvName (const QString& pvName)
 {
    this->setPointPvName = pvName;
-   this->setupQCaObjects ();
+   this->setupQEChannels ();
 }
 
 //-----------------------------------------------------------------------------
@@ -994,7 +994,7 @@ QString QEPvLoadSaveLeaf::getSetPointPvName () const
 void QEPvLoadSaveLeaf::setReadBackPvName (const QString& pvName)
 {
    this->readBackPvName = pvName;
-   this->setupQCaObjects ();
+   this->setupQEChannels ();
 }
 
 //-----------------------------------------------------------------------------
@@ -1009,7 +1009,7 @@ QString QEPvLoadSaveLeaf::getReadBackPvName () const
 void QEPvLoadSaveLeaf::setArchiverPvName (const QString& pvName)
 {
    this->archiverPvName = pvName;
-   this->setupQCaObjects ();
+   this->setupQEChannels ();
 }
 
 //-----------------------------------------------------------------------------
@@ -1036,25 +1036,26 @@ QString QEPvLoadSaveLeaf::calcNodeName () const
 
 //-----------------------------------------------------------------------------
 //
-void QEPvLoadSaveLeaf::dataChanged (const QVariant& valueIn, QCaAlarmInfo& alarmInfoIn,
-                                    QCaDateTime&, const unsigned int&)
+void QEPvLoadSaveLeaf::dataChanged (const QEVariantUpdate& update)
 {
    // Must treat enumerations as strings.
    //
    const QStringList enums = this->qcaReadBack->getEnumerations ();
    const int n = enums.count ();
    if (n > 0) {
+      // This  PV provides an enumeration value.
+      //
       bool okay;
-      const int index = valueIn.toInt (&okay);
+      const int index = update.value.toInt (&okay);
       if (okay && (index >= 0) && (index < n)) {
          this->liveValue = enums.value (index);
       } else {
-         this->liveValue = valueIn;
+         this->liveValue = update.value;
       }
    } else {
-      this->liveValue = valueIn;
+      this->liveValue = update.value;
    }
-   this->alarmInfo = alarmInfoIn;
+   this->alarmInfo = update.alarmInfo;
 
    emit this->reportActionComplete (this, QEPvLoadSaveCommon::Update, true);
 }

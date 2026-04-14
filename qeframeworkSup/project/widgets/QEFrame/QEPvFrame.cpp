@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2016-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2016-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -68,25 +68,25 @@ void QEPvFrame::commonSetup ()
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
-   this->connectNewVariableNameProperty (SLOT (useNewVariableNameProperty (QString, QString, unsigned int)));
+   this->connectPvNameProperties (SLOT (usePvNameProperties (const QEPvNameProperties&)));
 }
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type
-// of QCaObject required. For a PV Frame widget a QCaObject that streams
+// of QEChannel required. For a PV Frame widget a QEChannel that streams
 // integers is required.
 //
-qcaobject::QCaObject * QEPvFrame::createQcaItem (unsigned int variableIndex)
+QEChannel* QEPvFrame::createQcaItem (unsigned int variableIndex)
 {
-   qcaobject::QCaObject * result = NULL;
+   QEChannel* result = NULL;
 
    if (variableIndex != PV_VARIABLE_INDEX) {
       DEBUG << "unexpected variableIndex" << variableIndex;
       return NULL;
    }
 
-   result = new QEInteger (getSubstitutedVariableName (variableIndex),
-                           this, &this->integerFormatting, variableIndex);
+   const QString pvName = this->getSubstitutedVariableName (variableIndex);
+   result = new QEInteger (pvName, this, &this->integerFormatting, variableIndex);
 
    // Apply currently defined array index/elements request values.
    //
@@ -109,20 +109,20 @@ void QEPvFrame::establishConnection (unsigned int variableIndex)
    }
 
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   // Note createConnection creates the connection and returns reference to existing QCaObject.
+   // If successfull, the QEChannel object that will supply data update signals will be returned
+   // Note createConnection creates the connection and returns reference to existing QEChannel.
    //
-   qcaobject::QCaObject * qca = createConnection (variableIndex);
+   QEChannel* qca = this->createConnection (variableIndex);
 
-   // If a QCaObject object is now available to supply data update signals,
+   // If a QEChannel object is now available to supply data update signals,
    // connect it to the appropriate slots.
    //
    if (qca) {
-      QObject::connect (qca, SIGNAL (integerChanged (const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)),
-                        this, SLOT  (pvValueUpdate  (const long&, QCaAlarmInfo&, QCaDateTime&, const unsigned int&)));
+      QObject::connect (qca,  SIGNAL (valueUpdated  (const QEIntegerValueUpdate&)),
+                        this, SLOT   (pvValueUpdate (const QEIntegerValueUpdate&)));
 
-      QObject::connect (qca,  SIGNAL (connectionChanged (QCaConnectionInfo&, const unsigned int&)),
-                        this, SLOT   (connectionChanged (QCaConnectionInfo&, const unsigned int&)));
+      QObject::connect (qca,  SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                        this, SLOT   (connectionUpdated (const QEConnectionUpdate&)));
    }
 }
 
@@ -130,62 +130,64 @@ void QEPvFrame::establishConnection (unsigned int variableIndex)
 //------------------------------------------------------------------------------
 // This is the slot used to recieve new PV information.
 //
-void QEPvFrame::useNewVariableNameProperty (QString pvName,
-                                            QString pvNameSubstitutions,
-                                            unsigned int pvIndex)
+void QEPvFrame::usePvNameProperties (const QEPvNameProperties& pvNameProperties)
 {
-   this->setVariableNameAndSubstitutions (pvName, pvNameSubstitutions, pvIndex);
+   this->setVariableNameAndSubstitutions (pvNameProperties.pvName,
+                                          pvNameProperties.substitutions,
+                                          pvNameProperties.index);
 }
 
 //------------------------------------------------------------------------------
 //
-void QEPvFrame::connectionChanged (QCaConnectionInfo & connectionInfo,
-                                   const unsigned int &variableIndex)
+void QEPvFrame::connectionUpdated (const QEConnectionUpdate& update)
 {
-   if (variableIndex != PV_VARIABLE_INDEX) {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+   const unsigned int vi = update.variableIndex;
+
+   if (vi != PV_VARIABLE_INDEX) {
+      DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
    // Note the connected state.
    //
-   const bool isConnected = connectionInfo.isChannelConnected ();
+   const bool isConnected = update.connectionInfo.isChannelConnected ();
 
    // Display the connected state
    //
-   this->updateToolTipConnection (isConnected, variableIndex);
-   this->processConnectionInfo (isConnected, variableIndex);
+   this->updateToolTipConnection (isConnected, vi);
+   this->processConnectionInfo (isConnected, vi);
 
    // Signal channel connection change to any (Link) widgets.
    // using signal dbConnectionChanged.
    //
-   this->emitDbConnectionChanged (variableIndex);
+   this->emitDbConnectionChanged (vi);
 }
 
 //------------------------------------------------------------------------------
 //
-void QEPvFrame::pvValueUpdate (const long &value, QCaAlarmInfo & alarmInfo,
-                               QCaDateTime &, const unsigned int &variableIndex)
+void QEPvFrame::pvValueUpdate (const QEIntegerValueUpdate& update)
 {
-   if (variableIndex != PV_VARIABLE_INDEX) {
-      DEBUG << "unexpected variableIndex" << variableIndex;
+   const unsigned int vi = update.variableIndex;
+
+   if (vi != PV_VARIABLE_INDEX) {
+      DEBUG << "unexpected variableIndex" << vi;
       return;
    }
 
    // Update QEFrame - select pixmap
    // Constrain modulo 16 ??? Set -1 if invalid ???
    //
-   this->setSelectPixmap ((int) value);
+   this->setSelectPixmap ((int) update.value);
 
    // Invoke common alarm handling processing.
    // Do we really want to do this ???
    //
-   this->processAlarmInfo (alarmInfo, variableIndex);
+   this->processAlarmInfo (update.alarmInfo, vi);
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged.
    //
-   this->emitDbValueChanged (variableIndex);
+   this->emitDbValueChanged (vi);
 }
 
 //==============================================================================

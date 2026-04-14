@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2022-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2022-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -21,10 +21,10 @@
 
 //------------------------------------------------------------------------------
 //
-QEPvWriteOnce::QEPvWriteOnce(const QString& pvNameIn,
-                             const QString& valueIn,
-                             const QE::Formats formatIn,
-                             QObject* parent) : QObject (parent)
+QEPvWriteOnce::QEPvWriteOnce (const QString& pvNameIn,
+                              const QString& valueIn,
+                              const QE::Formats formatIn,
+                              QObject* parent) : QObject (parent)
 {
    this->pvName = pvNameIn;
    this->value = valueIn;
@@ -49,13 +49,13 @@ bool QEPvWriteOnce::writeNow (const QString& macroSubs)
 
    if (usePvName.isEmpty()) return false;
 
-   this->qca = new qcaobject::QCaObject (usePvName, this, 0);
+   this->qca = new QEChannel (usePvName, this, 0);
 
    // We are writing, only need wait for a successful connection.
    // No subscribe/single shot read needed.
    //
-   QObject::connect (qca,  SIGNAL (connectionChanged (QCaConnectionInfo&, const unsigned int&)),
-                     this, SLOT   (connectionChanged (QCaConnectionInfo&, const unsigned int&)));
+   QObject::connect (qca,  SIGNAL (connectionUpdated (const QEConnectionUpdate&)),
+                     this, SLOT   (connectionUpdated (const QEConnectionUpdate&)));
 
    // Set timeout (to recover object) - 2 secs should be plenty of time.
    //
@@ -69,7 +69,7 @@ bool QEPvWriteOnce::writeNow (const QString& macroSubs)
 
 //------------------------------------------------------------------------------
 //
-void QEPvWriteOnce::writeToVariable (qcaobject::QCaObject* qca)
+void QEPvWriteOnce::writeToVariable (QEChannel* qca)
 {
    if (!qca) return;  // sanity check
 
@@ -135,12 +135,11 @@ void QEPvWriteOnce::writeToVariable (qcaobject::QCaObject* qca)
 
 //------------------------------------------------------------------------------
 // slot
-void QEPvWriteOnce::connectionChanged (QCaConnectionInfo& connectionInfo,
-                                       const unsigned int&)
+void QEPvWriteOnce::connectionUpdated (const QEConnectionUpdate& update)
 {
    if (!this->qca) return;  // sanity check
 
-   if (connectionInfo.isChannelConnected()) {
+   if (update.connectionInfo.isChannelConnected()) {
       this->writeToVariable (qca);
    }
 }

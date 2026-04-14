@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -190,7 +190,7 @@ public slots:
 
 private:
    void setup();
-   qcaobject::QCaObject* createQcaItem( unsigned int variableIndex );
+   QEChannel* createQcaItem( unsigned int variableIndex );
    void establishConnection( unsigned int variableIndex );
    void stringFormattingChange();
 
@@ -207,8 +207,7 @@ private:
 
 private slots:
    // Update the text in the widget as long as the user is not entering data in it
-   void setTextIfNoFocus( const QString& value, QCaAlarmInfo&,
-                          QCaDateTime&, const unsigned int& );
+   void setTextIfNoFocus( const QEStringValueUpdate& );
 };
 
 #endif   // QE_LINE_EDIT_H

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -18,6 +18,7 @@
 #include <QEEnums.h>
 #include <QEWidget.h>
 #include <QEForm.h>
+#include <QEChannel.h>
 #include <QEString.h>
 #include <QEInteger.h>
 #include <QEStringFormatting.h>
@@ -146,9 +147,10 @@ public:
     void writeClickedNow (const bool checked = false);
 
 protected:
-    void useGenericNewVariableName( const QString& variableName, const QString& variableNameSubstitutions, const unsigned int variableIndex );
-    void connectionChanged( QCaConnectionInfo& connectionInfo, const unsigned int& variableIndex );
-    void setGenericButtonText( const QString& text, QCaAlarmInfo& alarmInfo, QCaDateTime&, const unsigned int& variableIndex );
+    void useGenericNewVariableName( const QEPvNameProperties& pvNameProperties );
+    void connectionChanged (const QEConnectionUpdate& update);
+    void setGenericButtonText( const QEStringValueUpdate& update );
+
     void userPressed();
     void userReleased();
     void userClicked( bool checked );
@@ -217,7 +219,7 @@ private:
     void dataSetup();
 //    void commandSetup();
     void guiSetup();
-    qcaobject::QCaObject* createQcaItem( unsigned int variableIndex  );
+    QEChannel* createQcaItem( unsigned int variableIndex  );
 
     bool isConnected;
     QEIntegerFormatting integerFormatting;
@@ -230,7 +232,7 @@ private:
 
     virtual void emitNewGui( const QEActionRequests& request ) = 0;
 
-    virtual void connectButtonDataChange( qcaobject::QCaObject* qca );
+    virtual void connectButtonDataChange( QEChannel* qca );
 
     virtual QAbstractButton* getButtonQObject() = 0;
     bool checkPassword();

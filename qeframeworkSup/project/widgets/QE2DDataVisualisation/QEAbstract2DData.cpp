@@ -17,7 +17,6 @@
 #include <QDebug>
 #include <QECommon.h>
 #include <UserMessage.h>
-#include <QCaObject.h>
 #include <QEStripChartRangeDialog.h>
 
 #define DEBUG qDebug () << "QEAbstract2DData" << __LINE__ << __FUNCTION__ << "  "
@@ -154,7 +153,7 @@ void QEAbstract2DData::commonSetup ()
 
 //------------------------------------------------------------------------------
 // Implementation of QEWidget's virtual funtion to create the specific type of
-// QCaObject's required.
+// QEChannel's required.
 //
 QEChannel* QEAbstract2DData::createQcaItem (unsigned int vi)
 {
@@ -744,7 +743,7 @@ void QEAbstract2DData::usePvNameProperties (const QEPvNameProperties& pvNameProp
 //------------------------------------------------------------------------------
 // Act on a connection change - modify the tool tip
 // We don't chage the style - the inner widgets can to that.
-// This is the slot used to recieve connection updates from a QCaObject based class.
+// This is the slot used to recieve connection updates from a QEChannel based class.
 //
 void QEAbstract2DData::connectionUpdated (const QEConnectionUpdate& update)
 {

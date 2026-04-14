@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2018-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2018-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -24,6 +24,7 @@
 #include <QEEnums.h>
 #include <QCaVariableNamePropertyManager.h>
 #include <QEAbstractDynamicWidget.h>
+#include <QEChannel.h>
 #include <QEFrame.h>
 #include <QELabel.h>
 #include <QEArchiveAccess.h>
@@ -111,7 +112,7 @@ protected:
 
    // Implementation of QEWidget's virtual funtions
    //
-   qcaobject::QCaObject* createQcaItem (unsigned int variableIndex);
+   QEChannel* createQcaItem (unsigned int variableIndex);
    void establishConnection (unsigned int variableIndex);
 
    // We hande drag/drop internally
@@ -218,9 +219,7 @@ private:
    static int  getTag (const QWidget* widget, const int defaultValue = -1);
 
 private slots:
-   void setNewVariableName (QString pvName,
-                            QString substitutions,
-                            unsigned int vi);
+   void usePvNameProperties (const QEPvNameProperties&);
 
    void sampleTimeout ();
    void reDrawTimeout ();

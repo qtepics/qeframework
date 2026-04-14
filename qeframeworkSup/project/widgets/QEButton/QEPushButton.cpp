@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -61,9 +61,11 @@ void QEPushButton::setup() {
 
     // For each variable name property manager, set up an index to identify it when it signals and
     // set up a connection to recieve variable name property changes.
-    // The variable name property manager class only delivers an updated variable name after the user has stopped typing
-    connectNewVariableNameProperty( SLOT ( useNewVariableNameProperty( QString, QString, unsigned int ) ) );
-    altReadback->connectNewVariableNameProperty( SLOT ( useNewVariableNameProperty( QString, QString, unsigned int ) ) );
+    // The variable name property manager class only delivers an updated
+    // variable name after the user has stopped typing.
+    //
+    connectPvNameProperties( SLOT ( usePvNameProperties( const QEPvNameProperties& ) ) );
+    altReadback->connectPvNameProperties( SLOT ( usePvNameProperties( const QEPvNameProperties& ) ) );
 }
 
 /*

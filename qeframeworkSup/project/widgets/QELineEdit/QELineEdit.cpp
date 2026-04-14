@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2009-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2009-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -25,7 +25,8 @@
 /*
     Constructor with no initialisation
 */
-QELineEdit::QELineEdit( QWidget *parent ) : QEGenericEdit( parent )
+QELineEdit::QELineEdit( QWidget *parent ) :
+   QEGenericEdit( parent )
 {
    setup();
 }
@@ -33,7 +34,8 @@ QELineEdit::QELineEdit( QWidget *parent ) : QEGenericEdit( parent )
 /*
     Constructor with known variable
 */
-QELineEdit::QELineEdit( const QString& variableNameIn, QWidget *parent ) : QEGenericEdit( variableNameIn, parent )
+QELineEdit::QELineEdit( const QString& variableNameIn, QWidget *parent ) :
+   QEGenericEdit( variableNameIn, parent )
 {
    setup();
    setVariableName( variableNameIn, 0 );
@@ -76,18 +78,18 @@ void QELineEdit::setPvValue (const bool value)
 
 
 /*
-    Implementation of QEWidget's virtual funtion to create the specific type of QCaObject required.
-    For a line edit a QCaObject that streams strings is required.
+    Implementation of QEWidget's virtual funtion to create the specific type of QEChannel required.
+    For a line edit a QEChannel that streams strings is required.
 */
-qcaobject::QCaObject* QELineEdit::createQcaItem( unsigned int variableIndex ) {
-
-   qcaobject::QCaObject* result = NULL;
-
-   // Create the item as a QEString
-   QString pvName = getSubstitutedVariableName( variableIndex );
-   result = new QEString( pvName, this, &stringFormatting, variableIndex );
+QEChannel* QELineEdit::createQcaItem( unsigned int variableIndex )
+{
+   // Create the item as a QEString.
+   //
+   const QString pvName = getSubstitutedVariableName( variableIndex );
+   QEChannel* result = new QEString( pvName, this, &stringFormatting, variableIndex );
 
    // Apply currently defined array index/elements request values.
+   //
    setSingleVariableQCaProperties( result );
 
    return result;
@@ -98,20 +100,22 @@ qcaobject::QCaObject* QELineEdit::createQcaItem( unsigned int variableIndex ) {
     Implementation of VariableNameManager's virtual funtion to establish a connection to a PV as the variable name has changed.
     This function may also be used to initiate updates when loaded as a plugin.
 */
-void QELineEdit::establishConnection( unsigned int variableIndex ) {
-
+void QELineEdit::establishConnection( unsigned int variableIndex )
+{
    // Create a connection.
-   // If successfull, the QCaObject object that will supply data update signals will be returned
-   qcaobject::QCaObject* qca = createConnection( variableIndex );
+   // If successfull, the QEChannel object that will supply data update signals will be returned
+   QEChannel* qca = createConnection( variableIndex );
 
-   // If a QCaObject object is now available to supply data update signals, connect it to the appropriate slots
+   // If a QEChannel object is now available to supply data update signals, connect it to the appropriate slots
    if(  qca ) {
-      QObject::connect( qca,  SIGNAL( stringChanged( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ),
-                        this, SLOT( setTextIfNoFocus( const QString&, QCaAlarmInfo&, QCaDateTime&, const unsigned int& ) ) );
-      QObject::connect( qca,  SIGNAL( connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ),
-                        this, SLOT( connectionChanged( QCaConnectionInfo&, const unsigned int&  ) ) );
+      QObject::connect( qca,  SIGNAL( valueUpdated(   const QEStringValueUpdate& ) ),
+                        this, SLOT( setTextIfNoFocus( const QEStringValueUpdate& ) ) );
+
+      QObject::connect( qca,  SIGNAL( connectionUpdated( const QEConnectionUpdate& ) ),
+                        this, SLOT(   connectionUpdated( const QEConnectionUpdate& ) ) );
+
       QObject::connect( this, SIGNAL( requestResend() ),
-                        qca, SLOT( resendLastData() ) );
+                        qca,  SLOT(  resendLastData() ) );
    }
 }
 
@@ -128,17 +132,20 @@ void QELineEdit::stringFormattingChange()
     value. However, this scenario should be allowed for. A reasonable reason
     for a user updated value to update on a gui is if is is written to by
     another user on another gui.
-    This is the slot used to recieve data updates from a QCaObject based class.
+    This is the slot used to recieve data updates from a QEChannel based class.
 */
-void QELineEdit::setTextIfNoFocus( const QString& value, QCaAlarmInfo& alarmInfo, QCaDateTime& dateTime, const unsigned int& ) {
-
+void QELineEdit::setTextIfNoFocus( const QEStringValueUpdate& update )
+{
    // Do generic update processing.
-   setDataIfNoFocus (QVariant (value), alarmInfo, dateTime);
+   //
+   setDataIfNoFocus( { QVariant (update.value), update.alarmInfo,
+                       update.timeStamp, update.variableIndex,
+                       update.isMetaUpdate } );
 
    // Signal a database value change to any Link (or other) widgets using one
    // of the dbValueChanged.
    //
-   emitDbValueChanged( value, 0 );
+   emitDbValueChanged( update.value, 0 );
 }
 
 // Set widget to the given value

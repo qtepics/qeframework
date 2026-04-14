@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -24,7 +24,7 @@
 #include <QVariantList>
 #include <QModelIndex>
 
-#include <QCaObject.h>
+#include <QEChannel.h>
 #include <QCaDataPoint.h>
 #include <QEArchiveManager.h>
 #include <QEPvLoadSaveCommon.h>
@@ -143,7 +143,7 @@ public:
 protected:
    // We keep and maintain a separate list of QEPvLoadSaveItem children, as
    // opposed to using the QObject children mechanism, as QEPvLoadSaveItem
-   // objects have other children such as a qcaobject::QCaObject.
+   // objects have other children such as a QEChannel.
    //
    QList<QEPvLoadSaveItem*> childItems;
    QEPvLoadSaveItem* parentItem;
@@ -262,7 +262,7 @@ signals:
 
 private:
    QString calcNodeName () const;  // Merges three PV names into a single node name.
-   void setupQCaObjects ();        // Create/updates internal QCaObjects
+   void setupQEChannels ();        // Create/updates internal QEChannels
    void determineDeltaAndLeafStatus () const;
 
    // Conveniance function
@@ -273,8 +273,8 @@ private:
    QString readBackPvName;
    QString archiverPvName;
 
-   qcaobject::QCaObject* qcaSetPoint;
-   qcaobject::QCaObject* qcaReadBack;
+   QEChannel* qcaSetPoint;
+   QEChannel* qcaReadBack;
    QEArchiveAccess* archiveAccess;
    QCaAlarmInfo alarmInfo;
    QEPvLoadSaveCommon::ActionKinds action;
@@ -284,8 +284,7 @@ private:
    mutable QVariant deltaText;
 
 private slots:
-   void dataChanged (const QVariant& value, QCaAlarmInfo& alarmInfo,
-                     QCaDateTime& timeStamp, const unsigned int& variableIndex);
+   void dataChanged (const QEVariantUpdate& update);
 
    void setArchiveData (const QObject* userData, const bool okay,
                         const QCaDataPointList& archiveData,
