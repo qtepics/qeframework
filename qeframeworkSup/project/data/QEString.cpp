@@ -21,6 +21,14 @@
 
 #define DEBUG qDebug() << "QEString" << __LINE__ << __FUNCTION__ << "  "
 
+#define CHECK_FORMAT(chk_fmt_result)  {                                    \
+   if (!this->stringFormat) {                                              \
+      DEBUG << "Null stringFormat specified for" << this->getPvName();     \
+      return chk_fmt_result;                                               \
+   }                                                                       \
+}
+
+
 //------------------------------------------------------------------------------
 //
 QEString::QEString (const QString& pvName, QObject* eventObject,
@@ -49,6 +57,7 @@ QEString::QEString (const QString& pvName, QObject* eventObject,
 void QEString::initialise (QEStringFormatting* stringFormattingIn)
 {
    this->stringFormat = stringFormattingIn;
+   CHECK_FORMAT ();
 
    QObject::connect (this, SIGNAL (valueUpdated (const QEVariantUpdate&)),
                      this, SLOT (convertVariant (const QEVariantUpdate&)));
@@ -65,8 +74,10 @@ void QEString::initialise (QEStringFormatting* stringFormattingIn)
 //
 bool QEString::writeString (const QString &data, QString& message)
 {
+   CHECK_FORMAT (false);
+
    bool ok = false;
-   QVariant formattedData = stringFormat->formatValue (data, ok);
+   QVariant formattedData = this->stringFormat->formatValue (data, ok);
    if (ok) {
       this->writeData (formattedData);
    } else {
@@ -76,9 +87,11 @@ bool QEString::writeString (const QString &data, QString& message)
 }
 
 //------------------------------------------------------------------------------
-//
+// slot
 void QEString::writeString (const QString &data)
 {
+   CHECK_FORMAT ();
+
    QString message;
    bool ok = this->writeString (data, message);
    if (!ok) {
@@ -93,6 +106,15 @@ void QEString::writeString (const QString &data)
 //
 bool QEString::writeStringElement (const QString &data, QString& message)
 {
+   CHECK_FORMAT (false);
+
+   const QE::ArrayActions arrayAction = this->stringFormat->getArrayAction();
+   if (arrayAction == QE::ArrayActions::Ascii) {
+      // We using Ascii mode - do not try to write to a single element (of a long string).
+      //
+      return this->writeString (data, message);
+   }
+
    bool ok = false;
    QVariant elementValue = this->stringFormat->formatValue (data, ok);
    if (ok) {
@@ -104,9 +126,11 @@ bool QEString::writeStringElement (const QString &data, QString& message)
 }
 
 //------------------------------------------------------------------------------
-//
+// slot
 void QEString::writeStringElement (const QString& data)
 {
+   CHECK_FORMAT ();
+
    QString message;
    bool ok = this->writeStringElement (data, message);
    if (!ok) {
@@ -119,6 +143,8 @@ void QEString::writeStringElement (const QString& data)
 //
 bool QEString::writeString (const QVector<QString> &data, QString& message)
 {
+   CHECK_FORMAT (false);
+
    bool ok = false;
    QVariant arrayValue = this->stringFormat->formatValue (data, ok);
    if (ok) {
@@ -131,9 +157,11 @@ bool QEString::writeString (const QVector<QString> &data, QString& message)
 }
 
 //------------------------------------------------------------------------------
-//
+// slot
 void QEString::writeString (const QVector<QString>& data)
 {
+   CHECK_FORMAT();
+
    QString message;
    bool ok = this->writeString (data, message);
    if (!ok) {
@@ -147,6 +175,8 @@ void QEString::writeString (const QVector<QString>& data)
 //
 void QEString::convertVariant (const QEVariantUpdate& update)
 {
+   CHECK_FORMAT();
+
    const QMetaType::Type mtype = QEPlatform::metaType (update.value);
 
    // The expected varient type is one of:
@@ -182,7 +212,12 @@ void QEString::convertVariant (const QEVariantUpdate& update)
    QCaAlarmInfo alarmInfo = update.alarmInfo;
    QCaDateTime  timeStamp = update.timeStamp;
 
-   if (vlist || slist || vector) {
+   // For QEString, unlike QEInteger and QEFloating, we need to check the array
+   // action. If this is Ascii, we do not want an array of strings, rather use
+   // the array to create single string.
+   //
+   const QE::ArrayActions arrayAction = this->stringFormat->getArrayAction();
+   if ((vlist || slist || vector) && (arrayAction != QE::ArrayActions::Ascii)) {
       // The value is some sort of array type.
       //
       const QVector<QString> data = this->stringFormat->formatStringArray (update.value);
