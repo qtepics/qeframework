@@ -334,6 +334,21 @@ QCaAlarmInfo::Status QCaAlarmInfo::getStatus () const
    return this->status;
 }
 
+//------------------------------------------------------------------------------
+//
+QDebug operator<<(QDebug dbg, const QCaAlarmInfo& alarmInfo)
+{
+   char buffer [100];
+   snprintf (buffer, sizeof (buffer),
+             "QEAlarmInfo (sevr: %s, stat: %s, msg: '%s')",
+             alarmInfo.severityName().toStdString().c_str(),
+             alarmInfo.statusName().toStdString().c_str(),
+             alarmInfo.messageText().toStdString().c_str());
+
+   dbg << buffer;
+   return dbg.maybeSpace ();
+}
+
 //==============================================================================
 // QCaAlarmInfoColorNamesManager
 //==============================================================================

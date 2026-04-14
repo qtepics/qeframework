@@ -16,6 +16,7 @@
 #ifndef QE_ALARM_INFO_H
 #define QE_ALARM_INFO_H
 
+#include <QDebug>
 #include <QObject>
 #include <QList>
 #include <QRegularExpression>
@@ -83,6 +84,10 @@ private:
    QString  message;     // Alarm message (PV Access only - otherwise empty string)
 };
 
+// allows qDebug() << QCaAlarmInfo object.
+//
+QDebug QE_FRAMEWORK_LIBRARY_SHARED_EXPORT
+operator<<(QDebug dbg, const QCaAlarmInfo& alarmInfo);
 
 //------------------------------------------------------------------------------
 // The main purpose of this class is to manage the color names, which in turn
