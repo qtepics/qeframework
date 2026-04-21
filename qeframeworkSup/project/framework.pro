@@ -1,4 +1,6 @@
-# framework.pro
+# File: qeframeworkSup/project/framework.pro
+# DateTime: Mon Apr 20 16:42:42 2026
+# Last checked in by: starritt
 #
 # This file is part of the EPICS QT Framework, initially developed at
 # the Australian Synchrotron.
@@ -94,9 +96,12 @@ isEmpty( _ACAI ) {
 # Add a bit usefull diag/config information.
 #
 message ("BASE = "$$(EPICS_BASE)", "$$(EPICS_HOST_ARCH) )
-message ("PVA  = "$$(QE_PVACCESS_SUPPORT) )
 message ("ACAI = "$$(ACAI) )
-message ("QWT  = "$$(QWT_ROOT) )
+message ("QWT_ROOT  = "$$(QWT_ROOT) )
+message ("QE_FFMPEG = "$$(QE_FFMPEG) )
+message ("QE_ARCHAPPL_SUPPORT = "$$(QE_ARCHAPPL_SUPPORT) )
+message ("QE_PVACCESS_SUPPORT = "$$(QE_PVACCESS_SUPPORT) )
+message ("QE_AD_SUPPORT       = "$$(QE_AD_SUPPORT)", "$$(ADSUPPORT) )
 
 # Define _MINGW if using a MinGW compiler
 #
@@ -281,7 +286,7 @@ equals(_PVACCESS_SUPPORT, "YES") {
 
     # This currently assumes EPICS 7. Maybe we could allow EPICS 4 builds as well.
     #
-    message( "QE_PVACCESS_SUPPORT is defined. The QE framework library will be built for both CA and PVA. ")
+    message( "QE_PVACCESS_SUPPORT is defined as 'YES'. The QE framework library will be built for both CA and PVA. ")
  
     # Let the code 'know' to include PV Access related stuff.
     #
@@ -292,21 +297,19 @@ equals(_PVACCESS_SUPPORT, "YES") {
     LIBS += -L$$(EPICS_BASE)/lib/$$(EPICS_HOST_ARCH) -lpvData  -lpvAccess -lnt
 
 } else {
-    message( "QE_PVACCESS_SUPPORT is not defined. The QE framework library will not include PV Access support." )
+    message( "QE_PVACCESS_SUPPORT is not defined as 'YES'. The QE framework library will not include PV Access support." )
     message( "If you want to build with PV Access support, set environment variable QE_PVACCESS_SUPPORT=YES" )
 }
 
 #===========================================================
-# Set upfor jpeg, lz4, blosc and bslz4 decompression
-# This is only expected if QE_PVACCESS_SUPPORT defined, but not enforced
+# Set up for jpeg, lz4, blosc and bslz4 decompression
+# This is only expected if QE_PVACCESS_SUPPORT defined, but not enforced.
 #
-_ADSUPPORT = $$(ADSUPPORT)
-isEmpty( _ADSUPPORT ) {
-    message( "ADSUPPORT is not defined. The QE framework library will not support image decompression.")
-} else {
+_ADSUPPORT = $$(QE_AD_SUPPORT)
+equals( _ADSUPPORT, "YES" ) {
     # This currently assumes EPICS 7. Maybe we could allow EPICS 4 builds as well.
     #
-    message( "ADSUPPORT is defined. The QE framework library will be built to support image decompression.")
+    message( "QE_AD_SUPPORT is defined as 'YES'. The QE framework library will be built to support image decompression.")
 
     INCLUDEPATH += $$(ADSUPPORT)/include
 
@@ -317,6 +320,9 @@ isEmpty( _ADSUPPORT ) {
     # Set runtime path for shared libraries
     #
     unix: QMAKE_LFLAGS += -Wl,-rpath,$$(ADSUPPORT)/lib/$$(EPICS_HOST_ARCH)
+
+} else {
+    message( "QE_AD_SUPPORT is not defined as 'YES'. The QE framework library will not support image decompression.")
 }
 
 #===========================================================

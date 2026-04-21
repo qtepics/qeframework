@@ -1,5 +1,5 @@
 # File: configure/RELEASE
-# DateTime: Mon Apr 21 18:59:50 2025
+# DateTime: Mon Apr 20 16:42:42 2026
 # Last checked in by: starritt
 #
 # RELEASE - Location of external support modules
@@ -42,8 +42,10 @@ ACAI=$(BUNDLE)/epics/acai
 
 # Modify this to reference to __your__ local AD Support installation.
 # Uncomment if needed; not required if PVAccess is not support defined.
+# Enable usage by defining  QE_AD_SUPPORT=YES, either in CONFIG_SITE.local
+# or as an environment variable.
 #
-# ADSUPPORT=$(BUNDLE)/det/ADSupport
+ADSUPPORT=$(BUNDLE)/det/ADSupport
 
 # EPICS_BASE usually appears last so other apps can override stuff:
 # Modify this to reference to __your__ local EPICS base installation.
