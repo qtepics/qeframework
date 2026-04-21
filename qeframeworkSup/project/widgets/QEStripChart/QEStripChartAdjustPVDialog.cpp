@@ -78,6 +78,8 @@ QEStripChartAdjustPVDialog::QEStripChartAdjustPVDialog (QWidget* parent) :
 
    QObject::connect (this->ui->upperButton,    SIGNAL (clicked             (bool)),
                      this,                     SLOT   (upperButtonClicked  (bool)));
+
+   this->setSignButtonStyle (true);
 }
 
 //------------------------------------------------------------------------------
@@ -113,6 +115,7 @@ void QEStripChartAdjustPVDialog::setValueScaling (const QEValueScaling& valueSca
 
    this->ui->posTimeOffset->setChecked (offset >= 0);
    this->ui->negTimeOffset->setChecked (offset <  0);
+   this->setSignButtonStyle (offset >= 0);
 
    const int absOffset = ABS(offset);
    const int days = absOffset / secsPerDay;
@@ -123,7 +126,6 @@ void QEStripChartAdjustPVDialog::setValueScaling (const QEValueScaling& valueSca
 
    this->ui->daysOffsetEdit->setValue (days);
    this->ui->timeOffsetEdit->setTime (time);
-
 }
 
 //------------------------------------------------------------------------------
@@ -193,8 +195,26 @@ void QEStripChartAdjustPVDialog::offsetReturnPressed ()
 
 //------------------------------------------------------------------------------
 //
+void QEStripChartAdjustPVDialog::setSignButtonStyle (const bool isPositive)
+{
+   static const QString posSelectedStyle("background-color: rgb(255, 120, 120); color: rgb(  0,   0,   0)");
+   static const QString negSelectedStyle("background-color: rgb(  0, 128, 255); color: rgb(  0,   0,   0)");
+   static const QString notSelectedStyle("background-color: rgb(224, 224, 224); color: rgb(128, 128, 128)");
+
+   if (isPositive) {
+      this->ui->posTimeOffset->setStyleSheet (posSelectedStyle);
+      this->ui->negTimeOffset->setStyleSheet (notSelectedStyle);
+   } else {
+      this->ui->posTimeOffset->setStyleSheet (notSelectedStyle);
+      this->ui->negTimeOffset->setStyleSheet (negSelectedStyle);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
 void QEStripChartAdjustPVDialog::signButtonClicked (bool)
 {
+   this->setSignButtonStyle (this->sender() == this->ui->posTimeOffset);
 }
 
 //------------------------------------------------------------------------------

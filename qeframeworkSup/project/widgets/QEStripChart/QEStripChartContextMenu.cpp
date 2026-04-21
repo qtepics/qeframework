@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -16,9 +16,7 @@
 #include <QDebug>
 #include <QECommon.h>
 
-
 #define DEBUG  qDebug () << "QEStripChartContextMenu" << __LINE__ <<  __FUNCTION__  << "  "
-
 
 //------------------------------------------------------------------------------
 //
@@ -53,8 +51,8 @@ QEStripChartContextMenu::QEStripChartContextMenu (bool inUseIn, QWidget *parent)
 
       menu = new QMenu ("Adjust/Scale this PV", this);
       this->addMenu (menu);
-      this->make (menu, "Reset",                               false, QEStripChartNames::SCCM_SCALE_PV_RESET);
       this->make (menu, "General...",                          false, QEStripChartNames::SCCM_SCALE_PV_GENERAL);
+      this->make (menu, "Reset",                               false, QEStripChartNames::SCCM_SCALE_PV_RESET);
       this->make (menu, "HOPR/LOPR values map to chart range", false, QEStripChartNames::SCCM_SCALE_PV_AUTO);
       this->make (menu, "Plotted values map to chart range",   false, QEStripChartNames::SCCM_SCALE_PV_PLOTTED);
       this->make (menu, "Plotted values map to upper 3rd of chart",    false, QEStripChartNames::SCCM_SCALE_PV_PLOTTED_UPPER);

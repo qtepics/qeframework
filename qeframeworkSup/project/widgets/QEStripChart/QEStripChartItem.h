@@ -215,9 +215,11 @@ private:
 
    QEStripChartAdjustPVDialog *adjustPVDialog;
 
-   enum DataChartKinds { NotInUse,          // blank  - not in use - no data - no plot
-                         PVData,            // use specified PV to provide plot data
-                         CalculationData }; // "= ..." - use given calculation for plot data
+   enum DataChartKinds {
+      NotInUse,          // blank  - not in use - no data - no plot
+      PVData,            // use specified PV to provide plot data
+      CalculationData    // "= ..." - use given calculation for plot data
+   };
 
    DataChartKinds dataKind;
    QString expression;        // when dataKind is CalculationPlot
@@ -262,6 +264,8 @@ private slots:
    void showHideChecked (int state);
    void contextMenuRequested (const QPoint & pos);
    void contextMenuSelected  (const QEStripChartNames::ContextMenuOptions option);
+
+   friend class QEStripChart;
 };
 
 #endif  // QE_STRIP_CHART_ITEM_H

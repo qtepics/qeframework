@@ -584,7 +584,8 @@ QEDisplayRanges QEStripChartItem::getBufferedMinMax (bool doScale) const
 QPointF QEStripChartItem::dataPointToReal (const QCaDataPoint& point) const
 {
    const QCaDateTime end_time = this->chart->getEndDateTime ();
-   const double t = end_time.secondsTo (point.datetime);
+   const double timeOffset = this->scaling.getTimeOffset();
+   const double t = end_time.secondsTo (point.datetime.addSeconds (timeOffset));
    QPointF result = QPointF (t, PLOT_Y (point.value));
    return result;
 }
@@ -936,8 +937,15 @@ const QCaDataPoint* QEStripChartItem::findNearestPoint (const QCaDateTime& searc
 {
    const QCaDataPoint* result = NULL;
 
-   const QCaDataPoint* historicalNearest = this->historicalTimeDataPoints.findNearestPoint (searchTime);
-   const QCaDataPoint* realTimeNearest = this->realTimeDataPoints.findNearestPoint (searchTime);
+   const double timeOffset = this->scaling.getTimeOffset();
+
+   // We subtract the time offset when doing a search.
+   // Compare with dataPointToReal (~584) where we add the timeOffset.
+   //
+   const QCaDateTime offsetSearchTime = searchTime.addSeconds (-timeOffset);
+
+   const QCaDataPoint* historicalNearest = this->historicalTimeDataPoints.findNearestPoint (offsetSearchTime);
+   const QCaDataPoint* realTimeNearest = this->realTimeDataPoints.findNearestPoint (offsetSearchTime);
 
    if (!historicalNearest) {
       result = realTimeNearest;
@@ -946,8 +954,8 @@ const QCaDataPoint* QEStripChartItem::findNearestPoint (const QCaDateTime& searc
    } else {
       // Both points found.
       //
-      double hdt = historicalNearest->datetime.secondsTo (searchTime);
-      double rdt = realTimeNearest->datetime.secondsTo (searchTime);
+      double hdt = historicalNearest->datetime.secondsTo (offsetSearchTime);
+      double rdt = realTimeNearest->datetime.secondsTo (offsetSearchTime);
 
       result = ABS (hdt) >= ABS (rdt) ? realTimeNearest : historicalNearest;
    }

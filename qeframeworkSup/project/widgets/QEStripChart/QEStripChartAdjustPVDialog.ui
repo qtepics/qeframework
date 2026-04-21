@@ -377,11 +377,9 @@
            </property>
            <property name="font">
             <font>
+             <pointsize>10</pointsize>
              <bold>true</bold>
             </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: rgb(255, 208, 208);</string>
            </property>
            <property name="text">
             <string>+</string>
@@ -413,11 +411,9 @@
            </property>
            <property name="font">
             <font>
+             <pointsize>12</pointsize>
              <bold>true</bold>
             </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: rgb(208, 208, 255);</string>
            </property>
            <property name="text">
             <string>-</string>

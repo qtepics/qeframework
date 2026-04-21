@@ -464,7 +464,6 @@ void QEStripChart::calcDisplayMinMax ()
 const QCaDataPoint* QEStripChart::findNearestPoint (const QPointF& posn,
                                                     int& slotOut) const
 {
-   const QCaDateTime end_time = this->getEndDateTime ();
    const QCaDataPoint* result = NULL;
 
    slotOut = -1;
@@ -484,7 +483,7 @@ const QCaDataPoint* QEStripChart::findNearestPoint (const QPointF& posn,
             const QPointF nearestPoint = item->dataPointToReal (*nearest);
             const QPoint difference = this->plotArea->pixelDistance (posn, nearestPoint);
 
-            // Close enough to even be considered.
+            // Close enough to even be considered ?
             // Note: 4 is the box half size when plotted.
             //
             if (ABS (difference.x ()) > 4)  continue;
@@ -512,7 +511,6 @@ void QEStripChart::doCurrentValueCalculations ()
    const QCaDateTime datetime = QCaDateTime::currentDateTime ().toUTC ();
 
    QEStripChartItem::CalcInputs values;
-   bool okay;
 
    // First initialise all values - undefined artefacts yield zero.
    //
@@ -525,7 +523,8 @@ void QEStripChart::doCurrentValueCalculations ()
    for (int slot = 0; slot < NUMBER_OF_PVS; slot++) {
       QEStripChartItem* item = this->getItem (slot);
       if (item && item->isPvData ()) {
-         double t = item->getCurrentValue (okay);
+         bool okay;
+         const double t = item->getCurrentValue (okay);
          if (okay) values [slot] = t;
       }
    }
@@ -537,7 +536,8 @@ void QEStripChart::doCurrentValueCalculations ()
       QEStripChartItem* item = this->getItem (slot);
       if (item && item->isCalculation ()) {
          item->calculateAndUpdate (datetime, values);
-         double t = item->getCurrentValue (okay);
+         bool okay;
+         const double t = item->getCurrentValue (okay);
          if (okay) values [slot] = t;
       }
    }
@@ -869,34 +869,45 @@ void QEStripChart::plotMouseMove  (const QPointF& position)
    //
    if (!this->plotArea->getMarkupEnabled (QEGraphicNames::Box)) {
 
-      const QCaDataPoint* nearest = NULL;
-
       const bool boxWasVisible = this->plotArea->getMarkupVisible (QEGraphicNames::Box);
 
-      // Find neaerst point that is also near enough.
+      // Find nearest point that is also near enough.
       //
-      nearest = this->findNearestPoint (position, this->selectedPointSlot);
-      if (nearest) {
+      const QCaDataPoint* nearestDataPoint =
+            this->findNearestPoint (position, this->selectedPointSlot);
+      if (nearestDataPoint) {
          QEStripChartItem* item = this->getItem (this->selectedPointSlot);
          if (item) {
-            this->selectedPointDateTime = nearest->datetime;
-            this->selectedPointValue = nearest->value;
+            this->selectedPointDateTime = nearestDataPoint->datetime;
+            this->selectedPointValue = nearestDataPoint->value;
 
             this->plotArea->setMarkupVisible (QEGraphicNames::Box, true);
-            this->plotArea->setMarkupPosition (QEGraphicNames::Box, item->dataPointToReal(*nearest));
+            this->plotArea->setMarkupPosition (QEGraphicNames::Box, item->dataPointToReal(*nearestDataPoint));
 
             // Form the string/image of the value.
             //
-            const QString svalue = QString::number(nearest->value, 'e', 5);
+            const QString svalue = QString::number (nearestDataPoint->value, 'e', 5);
 
             mouseReadOut.append (QString (" [%1  %2]").arg (item->getCaptionLabel()).arg (svalue));
 
+            // Form pop-up text box that provides information about the currently
+            // selected data point.
+            //
             QStringList info;
-            info.append (item->getPvName());
+            info.append (QString("PV: %1").arg (item->getPvName()));
             const QString desc = item->getDescription();
-            if (!desc.isEmpty()) info.append (desc);
-            info.append (QString ("%1 %2").arg (svalue).arg (item->getEgu ()));
-            info.append (nearest->datetime.toString (format).left (format.length() - 2));
+            if (!desc.isEmpty()) info.append (QString ("Desc: %1").arg (desc));
+            info.append (QString ("Value: %1 %2").arg (svalue).arg (item->getEgu ()));
+
+            // Data time - truncate mSec to tenths of a second.
+            const QString dt = nearestDataPoint->datetime.toString (format).left (format.length() - 2);
+            info.append (QString ("Time stamp: %1").arg (dt));
+
+            const double ts = item->scaling.getTimeOffset();
+            if (ts != 0.0) {
+               const QString tsImage = QEUtilities::intervalToString (ts, 0, false);
+               info.append (QString ("Time offset:  %1").arg (tsImage));
+            }
 
             this->plotArea->setMarkupData (QEGraphicNames::Box, QVariant (info));
             this->setContextMenuPolicy (Qt::NoContextMenu);
@@ -910,7 +921,7 @@ void QEStripChart::plotMouseMove  (const QPointF& position)
       const bool boxIsVisible = this->plotArea->getMarkupVisible (QEGraphicNames::Box);
 
       if (boxIsVisible != boxWasVisible) {
-         // Change of stae - force replot
+         // Change of state - force replot.
          this->replotIsRequired = true;
       }
    }

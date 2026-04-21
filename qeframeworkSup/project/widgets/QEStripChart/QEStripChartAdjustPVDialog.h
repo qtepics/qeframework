@@ -68,6 +68,7 @@ private:
 
    // local utility conveniance function
    void useSelectedRange (const QEDisplayRanges& selectedRange);
+   void setSignButtonStyle (const bool isPositive);
 
 private slots:
    void originReturnPressed ();
