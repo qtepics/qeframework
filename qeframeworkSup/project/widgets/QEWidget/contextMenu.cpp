@@ -337,7 +337,6 @@ QMenu* contextMenu::buildContextMenu()
          addSeparator = true;
       }
 
-//    Pending
       if (isNTNDArray && menuSet.contains (CM_SHOW_AS_NTND_ARRAY)) {
          this->make (menu, "Show as Image", false, CM_SHOW_AS_NTND_ARRAY);
          addSeparator = true;
@@ -604,7 +603,7 @@ void contextMenu::contextMenuTriggered( int optionNum )
          break;
 
       case contextMenu::CM_SHOW_AS_NTND_ARRAY:
-         doShowAsInage();
+         doShowAsImage();
          break;
 
       case contextMenu::CM_SHOW_AS_OPAQUE:
@@ -729,7 +728,7 @@ void contextMenu::doShowAsNTTable()
 //------------------------------------------------------------------------------
 // 'Show as Image' was selected from the menu
 //
-void contextMenu::doShowAsInage()
+void contextMenu::doShowAsImage()
 {
    QString pvName = this->copyVariable().trimmed();
    QEActionRequests request (QEActionRequests::actionNTNDArray(), pvName);

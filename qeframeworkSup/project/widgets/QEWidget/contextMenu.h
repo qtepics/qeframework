@@ -139,7 +139,7 @@ private:
    void doAddToTable();                 // 'Add to table' was selected from the menu
    void doShowAsHistogram();            // 'Show as histogram' was selected from the menu
    void doShowAsNTTable();              // 'Show as NTTable' was selected from the menu
-   void doShowAsInage();                // 'Show as Image' was selected from the menu
+   void doShowAsImage();                // 'Show as Image' was selected from the menu
    void doShowAsOpaque();               // 'Show as Qpaque' was selected from the menu
    void doGeneralPVEdit();              // 'Add to scratch pad' was selected from the menu
    bool isArrayVariable () const;       // Tests is primary PV is an array variable
