@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2014-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2014-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -27,8 +27,8 @@
 
 // Useful orientation selection macros.
 //
-#define HORIZONTAL       (this->mOrientation == Qt::Horizontal)
-#define SELECT(ho, vo)   (HORIZONTAL ? (ho) : (vo))
+#define IS_HORIZONTAL    (this->mOrientation == Qt::Horizontal)
+#define SELECT(ho, vo)   (IS_HORIZONTAL ? (ho) : (vo))
 
 // Magic null values - use NaN ?
 // 'Unlikely' to occur, and outside of the min-max range.
@@ -284,7 +284,7 @@ QRect QEHistogram::fullBarRect  (const int position) const
 
    // paintArea defines overall paint area.
    //
-   if (HORIZONTAL) {
+   if (IS_HORIZONTAL) {
       top = this->paintArea.top ();
       bottom = this->paintArea.bottom ();
 
@@ -321,7 +321,7 @@ QRect QEHistogram::backgroundAreaRect (const int groupIndex) const
 
    // paintArea defines overall paint area.
    //
-   if (HORIZONTAL) {
+   if (IS_HORIZONTAL) {
       top = this->paintArea.top ();
       bottom = this->paintArea.bottom ();
 
@@ -450,7 +450,7 @@ void QEHistogram::paintSecondaryBackground (QPainter& painter) const
    for (int j = first; j <= last; j += 2) {
       QRect bgArea = this->backgroundAreaRect (j);
 
-      if (HORIZONTAL) {
+      if (IS_HORIZONTAL) {
          if (bgArea.left () >= finishBottomRight) break;    // Off to the side
       } else {
          if (bgArea.top ()  >= finishBottomRight) break;    // Off to the side
@@ -482,7 +482,7 @@ bool QEHistogram::paintItem (QPainter& painter,
 
    bar = this->fullBarRect (position);
 
-   if (HORIZONTAL) {
+   if (IS_HORIZONTAL) {
       if (bar.left () >= finishBottomRight) return false;   // Off to the side
       if (bar.right () > finishBottomRight) {
          bar.setRight (finishBottomRight);                  // Truncate
@@ -516,7 +516,7 @@ bool QEHistogram::paintItem (QPainter& painter,
                       (this->drawMaximum - this->drawMinimum);
    baseLineFraction = LIMIT (baseLineFraction, 0.0, 1.0);
 
-   if (HORIZONTAL) {
+   if (IS_HORIZONTAL) {
       // Top based on fraction which in turn based on value.
       // Note: top increases as value/fraction decreases.
       //
@@ -636,7 +636,7 @@ void QEHistogram::paintGrid (QPainter& painter, const QColor& penColour) const
 
       // Same idea as we used in paintItem.
       //
-      if (HORIZONTAL) {
+      if (IS_HORIZONTAL) {
          y = this->paintArea.bottom () - (int) (fraction * this->paintArea.height ());
          if (this->mShowGrid && (j > 0)) {
             painter.drawLine (this->paintArea.left () - axisOffset, y,
@@ -656,7 +656,7 @@ void QEHistogram::paintGrid (QPainter& painter, const QColor& penColour) const
       pen.setStyle (Qt::SolidLine);
       painter.setPen (pen);
 
-      if (HORIZONTAL) {
+      if (IS_HORIZONTAL) {
          painter.drawLine (this->paintArea.left () - axisOffset, this->paintArea.bottom () + axisOffset,
                            this->paintArea.right (),             this->paintArea.bottom () + axisOffset);
 
@@ -770,7 +770,7 @@ void QEHistogram::paintAllItems ()
    int halfPointSize = (ownFont.pointSize () + 1) / 2;
    int halfTextWidth = (this->maxPaintTextWidth (painter) + 1) / 2;
 
-   if (HORIZONTAL) {
+   if (IS_HORIZONTAL) {
       this->paintArea.setTop (halfPointSize + 1);
       this->paintArea.setBottom (histAreaGeo.height () - halfPointSize - axisOffset);
       this->paintArea.setLeft (extra);
@@ -798,11 +798,12 @@ void QEHistogram::paintAllItems ()
          this->useGap = 0;
          this->useBarWidth = this->paintArea.width ();
       } else {
-         const int markSpace = 6;
+         static const int markSpace = 3;  // markSpace to 1
          // For large n itemWidth is essentially paintArea.width / n
          // For small n, this accounts for n bars and n-1 gaps.
          //
-         int itemWidth = ((markSpace + 1) * paintArea.width ()) / ((markSpace + 1)*n - 1);
+         const int available = SELECT (paintArea.width (), paintArea.height());
+         int itemWidth = ((markSpace + 1) * available) / ((markSpace + 1)*n - 1);
          if (itemWidth < 3) itemWidth = 3;
          this->useGap = itemWidth / markSpace;
          // There is an implicit +1 in the fullBarRect function.
@@ -1069,7 +1070,7 @@ void QEHistogram::setOrientation (const Qt::Orientation orientation)
       this->axisPainter->setOrientation (this->mOrientation == Qt::Horizontal
                                          ? Qt::Vertical : Qt::Horizontal);
 
-      if (HORIZONTAL) {
+      if (IS_HORIZONTAL) {
          this->axisPainter->setFixedWidth (60);
          this->axisPainter->setMaximumHeight (QWIDGETSIZE_MAX);
       } else {
