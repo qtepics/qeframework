@@ -112,10 +112,10 @@ void QEpicsPV::setPV(const QString & _pvName)
   // caused the necessity to register the corresponding types using
   // qRegisterMetaType() functions.
   //
-  connect(_qCaField, SIGNAL(connectionChanged(QCaConnectionInfo&, const unsigned int&)),
+  connect(_qCaField, SIGNAL(connectionUpdated( const QEConnectionUpdate& )),
           SLOT(updateConnection()), Qt::QueuedConnection);
-  connect(_qCaField, SIGNAL(dataChanged(QVariant,QCaAlarmInfo&,QCaDateTime&, const unsigned int&)),
-          SLOT(updateValue(QVariant)), Qt::QueuedConnection);
+  connect(_qCaField, SIGNAL(valueUpdated( const QEVariantUpdate& )),
+          SLOT(updateValue(const QEVariantUpdate&)), Qt::QueuedConnection);
 
   _qCaField->subscribe();
 }
@@ -299,6 +299,10 @@ void QEpicsPV::updateValue(const QVariant & data)
   emit valueUpdated(lastData);
 }
 
+void QEpicsPV::updateValue(const QEVariantUpdate& update)
+{
+  updateValue(update.value);
+}
 
 //------------------------------------------------------------------------------
 //
