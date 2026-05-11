@@ -847,10 +847,10 @@ void QEWidget::startGui( const QEActionRequests& request )
       // Build the gui
       // Build it in a new window.
       QMainWindow* w = new QMainWindow( this->getQWidget() );
-      QEForm* gui = new QEForm( request.getArguments().first(), this->getQWidget() );
+      QEForm* gui = new QEForm( request.getArguments().first(), w );
       gui->setResizeContents( false );
       if( gui ) {
-         if( gui->readUiFile()) {
+         if( gui->readUiFile() ) {
             w->setCentralWidget( gui );
             w->setAttribute( Qt::WA_DeleteOnClose );
             w->resize( QSize(gui->width(), gui->height()) );
