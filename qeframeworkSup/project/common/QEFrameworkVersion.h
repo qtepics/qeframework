@@ -32,7 +32,7 @@
 //
 #define QE_VERSION_MAJOR      4     // Public releases that include interface or paradigm changes that may require changes to the way the framework is used.
 #define QE_VERSION_MINOR      1     // Public releases containing significant new functionality (may include fixes as well)
-#define QE_VERSION_RELEASE    6     // Public releases containing backward compatible new functionality and/or fixes.
+#define QE_VERSION_RELEASE    7     // Public releases containing backward compatible new functionality and/or fixes.
 
 // The integer version is (major << 16) + (minor << 8) + release, and this macro
 // is used to constuct an integer version number.
@@ -47,11 +47,14 @@
 
 // During tagging the version stage should be set to production
 // Note, development versions retain the version release of the last production release.
-// E.g  3.8.1 (Development) is development of 3.6.1 leading eventually to 3.8.2 or 3.9.1
+// E.g  4.1.6 (Development) is development of 4.1.6 leading eventually
+// to 4.1.7 (Production) or 4.2.1 (Production)
+// Prototype is used for feature development branches.
 //
 #define QE_VERSION_STAGE_DEVELOPMENT "Development"
 #define QE_VERSION_STAGE_PRODUCTION  "Production"
-#define QE_VERSION_STAGE             QE_VERSION_STAGE_PRODUCTION
+#define QE_VERSION_STAGE_PROTOTYP    "Prototype"
+#define QE_VERSION_STAGE             QE_VERSION_STAGE_DEVELOPMENT
 
 #define QE_VERSION_STRING     STRINGIFY(QE_VERSION_MAJOR) "." \
                               STRINGIFY(QE_VERSION_MINOR) "." \
