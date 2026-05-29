@@ -433,12 +433,12 @@ private:
    int displayedNumberOfRows;   // number rows of data after any flip/rotation
    int displayedNumberOfCols;   // number cols of data after any flip/rotation
 
-private slots:
+public slots:
    void usePvNameProperties (const QEPvNameProperties& properties);
 
    void connectionUpdated (const QEConnectionUpdate& update);
 
-   void onDataArrayUpdate (const QEFloatingArrayUpdate update);
+   void onDataArrayUpdate (const QEFloatingArrayUpdate& update);
 
    void onWidthUpdate (const QEIntegerValueUpdate& update);
 };

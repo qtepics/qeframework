@@ -786,7 +786,7 @@ void QEAbstract2DData::connectionUpdated (const QEConnectionUpdate& update)
 
 //------------------------------------------------------------------------------
 //
-void QEAbstract2DData::onDataArrayUpdate (const QEFloatingArrayUpdate update)
+void QEAbstract2DData::onDataArrayUpdate (const QEFloatingArrayUpdate& update)
 {
    const unsigned int vi = update.variableIndex;
 
