@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -26,50 +26,67 @@
 /// together with a grabber widget that allows the frame to be re-sized, and
 /// hence contained widget to be resized. The class currently only supports
 /// vertical or horizontal resizing, but not both.
+/// Similar to the layout splitter
 //
-class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEResizeableFrame : public QEFrame {
+class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEResizeableFrame :
+   public QEFrame
+{
     Q_OBJECT
 public:
-   enum GrabbingEdges { TopEdge, LeftEdge, BottomEdge, RightEdge };
+   enum GrabbingEdges {
+      TopEdge,
+      LeftEdge,
+      BottomEdge,
+      RightEdge
+   };
    Q_ENUM (GrabbingEdges)
 
    /// Nominated edge for the grabbing location. Defaults to BottomEdge.
    ///
    Q_PROPERTY (GrabbingEdges grabbingEdge  READ getGrabbingEdge  WRITE setGrabbingEdge)
 
-   /// Set the minimium allowd size (defaults to 10).
+   /// Set the minimium allowed size (defaults to 10).
    ///
    Q_PROPERTY (int  allowedMinimum  READ getAllowedMinimum  WRITE setAllowedMinimum)
 
-   /// Set the maximium allowd size (defaults to 100).
+   /// Set the maximium allowed size (defaults to 100).
    ///
    Q_PROPERTY (int  allowedMaximum  READ getAllowedMaximum  WRITE setAllowedMaximum)
 
 public:
-   explicit QEResizeableFrame (QWidget *parent = 0);
+   explicit QEResizeableFrame (QWidget* parent = 0);
 
    /// Construct widget specifying min and max allowed heights.
-   explicit QEResizeableFrame (GrabbingEdges grabbingEdge, int minimum, int maximum, QWidget *parent = 0);
+   //
+   explicit QEResizeableFrame (GrabbingEdges grabbingEdge,
+                               int minimum, int maximum,
+                               QWidget* parent = 0);
    ~QEResizeableFrame ();
 
    // This modelled on QScrollArea
    //
    /// Returns a ref to the resizeable frame's widget, or 0 if there is none.
-   QWidget *widget() const;
+   //
+   QWidget* widget() const;
 
    /// Sets the resizeable frame's widget.
-   /// The widget becomes a child of the resizeable frame, and will be destroyed when
-   /// the resizeable frame is deleted or when a new widget is set.
+   /// The widget becomes a child of the resizeable frame, and will be destroyed
+   /// when the resizeable frame is deleted or when a new widget is set.
    /// Any existing widget is deleted - use takeWidget first if needs be.
-   void setWidget (QWidget *widget);
+   //
+   void setWidget (QWidget* widget);
 
-   /// Removes the resizeable frame's widget, and passes ownership management of the widget to the caller.
-   QWidget *takeWidget();
+   /// Removes the resizeable frame's widget, and passes ownership management
+   /// of the widget to the caller.
+   //
+   QWidget* takeWidget();
 
    /// Set the tool tip for the internal grabber object.
-   void setGrabberToolTip (const QString & tip);
+   //
+   void setGrabberToolTip (const QString& tip);
 
    /// (Re)set allowed limits.
+   //
    void setAllowedMinimum (const int minimum);
    int getAllowedMinimum () const;
 
@@ -80,7 +97,7 @@ public:
    GrabbingEdges getGrabbingEdge () const;
 
 protected:
-   bool eventFilter (QObject *obj, QEvent *event);
+   bool eventFilter (QObject* watched, QEvent* event);
 
 private:
    void applyLimits ();
@@ -100,8 +117,8 @@ private:
 
    GrabbingEdges grabbingEdge;
 
-   // We can't use widget's min/maximumHeight values to store these as we call setFixedHeight
-   // to the frame height.
+   // We can't use widget's min/maximumHeight values to store these as
+   // we call setFixedHeight to the frame height.
    //
    int allowedMin;
    int allowedMax;

@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -11,6 +11,7 @@
  *  Contact:    andrews@ansto.gov.au
  */
 
+#include "QEResizeableFrame.h"
 #include <QDebug>
 #include <QMouseEvent>
 #include <QRect>
@@ -18,12 +19,12 @@
 
 #include <QECommon.h>
 #include <QEPlatform.h>
-#include "QEResizeableFrame.h"
 
-#define DEBUG qDebug () << "QEResizeableFrame" << __FUNCTION__ << __LINE__
+#define DEBUG qDebug () << "QEResizeableFrame" << __LINE__ << __FUNCTION__ << " "
 
-static const QString passive ("QWidget { background-color: #a0c0e0; }");
-static const QString active  ("QWidget { background-color: #f0f0f0; }");
+static const QString passive ("QWidget { background-color: #a0c0e0; }");  // blue-ish
+static const QString hover   ("QWidget { background-color: #ffffff; }");  // white-ish
+static const QString active  ("QWidget { background-color: #e0c0a0; }");  // orange-ish
 
 //------------------------------------------------------------------------------
 //
@@ -41,7 +42,6 @@ QEResizeableFrame::QEResizeableFrame (GrabbingEdges grabbingEdge,
 {
    this->setup (grabbingEdge, minimumIn, maximumIn);
 }
-
 
 //------------------------------------------------------------------------------
 //
@@ -94,6 +94,7 @@ void QEResizeableFrame::resetEgde ()
       this->grabber->setFixedWidth (4);
       this->layout = new QHBoxLayout (this);
    }
+
    this->grabber->setStyleSheet (passive);
    this->grabber->setMouseTracking (true);
    this->grabber->installEventFilter (this);   // Use self as the event filter object.
@@ -124,7 +125,8 @@ QEResizeableFrame::GrabbingEdges QEResizeableFrame::getGrabbingEdge () const
 
 //------------------------------------------------------------------------------
 //
-QWidget *QEResizeableFrame::widget() const {
+QWidget *QEResizeableFrame::widget() const
+{
    return this->userWidget;
 }
 
@@ -142,9 +144,9 @@ void QEResizeableFrame::setWidget (QWidget* widgetIn)
       if ((widgetIn == this) ||
           (widgetIn == this->userWidget) ||
           (widgetIn == this->defaultWidget)) {
-         // Here be dragons - cannot set do this.
+         // Here be dragons - cannot set to this etc.
          //
-         qDebug () << "QEResizeableFrame::setWidget - unexpected widget parameter";
+         DEBUG << "unexpected widget parameter";
          return;
       }
    }
@@ -183,6 +185,7 @@ void QEResizeableFrame::setWidget (QWidget* widgetIn)
    // Ensure user widget resizeable.
    // Actual size is controlled by allowedMin and allowedMax.
    // designer deafults to 16777215
+   //
    if (this->isVertical()) {
       workingWidget->setMinimumHeight (0);
       workingWidget->setMaximumHeight (8000);
@@ -238,21 +241,20 @@ void QEResizeableFrame::setGrabberToolTip (const QString& tip)
 //
 void QEResizeableFrame::applyLimits ()
 {
-   int ch;  // current width/height
-   int ah;  // allowed width/height
+   int currentSize;  // width/height
 
    if (this->isVertical()) {
-      ch = this->geometry().height ();
+      currentSize = this->geometry().height ();
    } else {
-      ch = this->geometry().height ();
+      currentSize = this->geometry().width ();
    }
 
-   ah = LIMIT (ch, this->allowedMin, this->allowedMax);
+   int allowedSize = LIMIT (currentSize, this->allowedMin, this->allowedMax);
 
    if (this->isVertical()) {
-      this->setFixedHeight (ah);
+      this->setFixedHeight (allowedSize);
    } else {
-      this->setFixedWidth (ah);
+      this->setFixedWidth (allowedSize);
    }
 }
 
@@ -336,7 +338,7 @@ void QEResizeableFrame::processMouseMove (const int x, const int y)
 
       default:
          if (!this->noMoreDebug) {
-            qDebug () << "QEResizeableFrame::processMouseMove: Unexpected edge " << this->objectName ();
+            DEBUG << "Unexpected edge " << this->objectName ();
          }
          this->noMoreDebug = true;
          break;
@@ -345,7 +347,7 @@ void QEResizeableFrame::processMouseMove (const int x, const int y)
 
 //------------------------------------------------------------------------------
 //
-bool QEResizeableFrame::eventFilter (QObject *obj, QEvent *event)
+bool QEResizeableFrame::eventFilter (QObject* watched, QEvent* event)
 {
    QMouseEvent * mouseEvent = NULL;
 
@@ -354,7 +356,7 @@ bool QEResizeableFrame::eventFilter (QObject *obj, QEvent *event)
    switch (event->type ()) {
 
       case QEvent::MouseButtonPress:
-         if (obj == this->grabber) {
+         if (watched == this->grabber) {
             this->isActive = true;
             this->grabber->setStyleSheet (active);
             return true;
@@ -362,7 +364,7 @@ bool QEResizeableFrame::eventFilter (QObject *obj, QEvent *event)
          break;
 
       case QEvent::MouseButtonRelease:
-         if (obj == this->grabber) {
+         if (watched == this->grabber) {
             this->isActive = false;
             this->grabber->setStyleSheet (passive);
             return true;
@@ -372,14 +374,21 @@ bool QEResizeableFrame::eventFilter (QObject *obj, QEvent *event)
 
       case QEvent::MouseMove:
          mouseEvent = static_cast<QMouseEvent *> (event);
-
-         if (obj == this->grabber) {
+         if (watched == this->grabber) {
             // if Actived then stay Activated otherwise ...
             if (this->isActive) {
                QPoint pos = QEPlatform::positionOf (mouseEvent);
                this->processMouseMove (pos.x(), pos.y());
+            } else {
+               this->grabber->setStyleSheet (hover);
             }
             return true;
+         }
+         break;
+
+      case QEvent::Leave:
+         if (watched == this->grabber) {
+            this->grabber->setStyleSheet (passive);
          }
          break;
 
@@ -390,7 +399,7 @@ bool QEResizeableFrame::eventFilter (QObject *obj, QEvent *event)
 
    // standard event processing
    //
-   return QObject::eventFilter (obj, event);
+   return QObject::eventFilter (watched, event);
 }
 
 // end
