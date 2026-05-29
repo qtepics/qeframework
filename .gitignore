@@ -5,7 +5,9 @@
 /bin/
 /lib/
 /include/
+
 /_pro
+/_pso
 
 # intermediate build files.
 #
@@ -16,6 +18,8 @@ O.windows-x64/
 O.win32-x86/
 O.win32-x86-mingw/
 O.windows-x64-mingw/
+.qtc_clangd/
+.cache/
 *.o
 *.exe
 *.linux-x86_64
@@ -27,10 +31,12 @@ Makefile.*
 object_script.*
 *.backup
 *.qmake.stash
+*.idx
+
 # created by protoc
 archapplDataSup/src/archapplProto.pb.h
 
-# work in progress abd temp files.
+# work in progress and temp files.
 #
 */wip/
 *-wip/
