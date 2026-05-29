@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -42,13 +42,16 @@ static const QString groupTagName     = "Group";
 static const QString pvTagName        = "PV";       // scaler PV tag
 static const QString arrayTagName     = "Array";
 static const QString elementTagName   = "Element";
+static const QString pauseTagName     = "Pause";
 
 static const QString indexAttribute   = "Index";
 static const QString nameAttribute    = "Name";
+static const QString delayAttribute   = "Delay";
 static const QString readBackNameAttribute = "ReadPV";
 static const QString archiverNameAttribute = "ArchPV";
 static const QString valueAttribute   = "Value";
 static const QString versionAttribute = "Version";
+static const QString commentAttribute = "Comment";
 static const QString numberAttribute  = "Number";
 
 //------------------------------------------------------------------------------
@@ -163,6 +166,23 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readXmlArrayPv (const QDomElement pvEle
 
 //------------------------------------------------------------------------------
 //
+QEPvLoadSaveItem* QEPvLoadSaveUtilities::readXmlPause (const QDomElement pvElement,
+                                                       const macroSubstitutionList& macroList,
+                                                       QEPvLoadSaveGroup* parent)
+{
+   QEPvLoadSaveItem* result = NULL;
+
+   QString image = macroList.substitute (pvElement.attribute (delayAttribute, "5.0"));
+   bool okay;
+   double delay = image.toDouble (&okay);
+   if (!okay) delay = 5.0;
+
+   result = new QEPvLoadSavePause (delay, parent);
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
 void QEPvLoadSaveUtilities::readXmlGroup (const QDomElement groupElement,
                                           const macroSubstitutionList& macroList,
                                           QEPvLoadSaveGroup* parent,
@@ -192,9 +212,11 @@ void QEPvLoadSaveUtilities::readXmlGroup (const QDomElement groupElement,
       } else if  (tagName == arrayTagName) {
          QEPvLoadSaveUtilities::readXmlArrayPv (itemElement, macroList, parent);
 
+      } else if  (tagName == pauseTagName) {
+         QEPvLoadSaveUtilities::readXmlPause (itemElement, macroList, parent);
+
       } else {
          qWarning () << __FUNCTION__ << " ignoring unexpected tag " << tagName;
-
       }
 
       itemElement = itemElement.nextSiblingElement ("");
@@ -205,10 +227,12 @@ void QEPvLoadSaveUtilities::readXmlGroup (const QDomElement groupElement,
 //
 QEPvLoadSaveItem* QEPvLoadSaveUtilities::readTree (const QString& filename,
                                                    const QString& macroString,
+                                                   QString& comment,
                                                    QString& errorMessage)
 {
-   macroSubstitutionList macroList (macroString);
+   comment = "";
    errorMessage = "n/a";
+   macroSubstitutionList macroList (macroString);
 
    if (filename.isEmpty()) {
       errorMessage = "null file filename";
@@ -252,7 +276,9 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readTree (const QString& filename,
       return NULL;
    }
 
-   QString versionImage = docElem.attribute (versionAttribute).trimmed ();
+   comment = docElem.attribute (commentAttribute).trimmed ();
+
+   const QString versionImage = docElem.attribute (versionAttribute).trimmed ();
    bool versionOkay;
    int version = versionImage.toInt (&versionOkay);
 
@@ -279,6 +305,8 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readTree (const QString& filename,
       return NULL;
    }
 
+
+
    // Create the root item.
    //
    QEPvLoadSaveGroup* result = new QEPvLoadSaveGroup ("ROOT", NULL);
@@ -295,11 +323,11 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readTree (const QString& filename,
 void QEPvLoadSaveUtilities::writeXmlScalerPv (const QEPvLoadSaveItem* itemIn,
                                               QDomElement& pvElement)
 {
-   // Dynamic caste should always work - consider static caste.
+   // Dynamic caste should always work - consider static cast.
    //
-   const QEPvLoadSaveLeaf* item = dynamic_cast <const QEPvLoadSaveLeaf*> (itemIn);
+   const QEPvLoadSaveLeaf* item = qobject_cast <const QEPvLoadSaveLeaf*> (itemIn);
 
-   if (!item) return;  // Sainity check.
+   if (!item) return;  // Sanity check.
 
    const QString basePvName = item->getSetPointPvName ();
    pvElement.setAttribute (nameAttribute, basePvName);
@@ -331,9 +359,9 @@ void QEPvLoadSaveUtilities::writeXmlArrayPv (const QEPvLoadSaveItem* itemIn,
                                              QDomDocument& doc,
                                              QDomElement& arrayElement)
 {
-   const QEPvLoadSaveLeaf* item = dynamic_cast <const QEPvLoadSaveLeaf*> (itemIn);
+   const QEPvLoadSaveLeaf* item = qobject_cast <const QEPvLoadSaveLeaf*> (itemIn);
 
-   if (!item) return;  // Sainity check.
+   if (!item) return;  // Sanity check.
 
    // Note: this converts any vector variants to a QVariantList.
    //
@@ -374,6 +402,19 @@ void QEPvLoadSaveUtilities::writeXmlArrayPv (const QEPvLoadSaveItem* itemIn,
 
 //------------------------------------------------------------------------------
 //
+void QEPvLoadSaveUtilities::writeXmlPause (const QEPvLoadSaveItem* item,
+                                           QDomElement& pauseElement)
+{
+   // Dynamic caste should always work - consider static cast.
+   //
+   const QEPvLoadSavePause* pause = qobject_cast <const QEPvLoadSavePause*> (item);
+   if (!item) return;  // Sanity check.
+
+   pauseElement.setAttribute (delayAttribute, pause->getDelay());
+}
+
+//------------------------------------------------------------------------------
+//
 void QEPvLoadSaveUtilities::writeXmlGroup (const QEPvLoadSaveItem* groupIn,
                                            QDomDocument& doc,
                                            QDomElement& groupElement)
@@ -381,36 +422,50 @@ void QEPvLoadSaveUtilities::writeXmlGroup (const QEPvLoadSaveItem* groupIn,
    int n;
    int j;
 
-   const QEPvLoadSaveGroup* group = dynamic_cast <const QEPvLoadSaveGroup*> (groupIn);
+   const QEPvLoadSaveGroup* group = qobject_cast <const QEPvLoadSaveGroup*> (groupIn);
 
-   if (!group) return;  // Sainity check.
+   if (!group) return;  // Sanity check.
 
    n = group->childCount ();
    for (j = 0; j < n; j++) {
       QEPvLoadSaveItem* child = group->getChild (j);
       QDomElement childElement;
 
-      if (child->getIsGroup ()) {
-         // This is a group node.
-         //
-         childElement = doc.createElement (groupTagName);
-         groupElement.appendChild (childElement);
-         childElement.setAttribute (nameAttribute, child->getNodeName());
-         QEPvLoadSaveUtilities::writeXmlGroup (child, doc, childElement);
-
-      } else {
-         // This is a PV node. Scaler or Array?
-         //
-         if (child->getElementCount () > 1) {
-            childElement = doc.createElement (arrayTagName);
+      const QEPvLoadSaveItem::ItemType itemType = child->getItemType();
+      switch (itemType) {
+         case QEPvLoadSaveItem::Group:
+            // This is a group node.
+            //
+            childElement = doc.createElement (groupTagName);
             groupElement.appendChild (childElement);
-            QEPvLoadSaveUtilities::writeXmlArrayPv (child, doc, childElement);
+            childElement.setAttribute (nameAttribute, child->getNodeName());
+            QEPvLoadSaveUtilities::writeXmlGroup (child, doc, childElement);
+            break;
 
-         } else {
-            childElement = doc.createElement (pvTagName);
+         case QEPvLoadSaveItem::PV:
+            // This is a PV node. Scaler or Array?
+            //
+            if (child->getElementCount () > 1) {
+               childElement = doc.createElement (arrayTagName);
+               groupElement.appendChild (childElement);
+               QEPvLoadSaveUtilities::writeXmlArrayPv (child, doc, childElement);
+
+            } else {
+               childElement = doc.createElement (pvTagName);
+               groupElement.appendChild (childElement);
+               QEPvLoadSaveUtilities::writeXmlScalerPv (child, childElement);
+            }
+            break;
+
+         case QEPvLoadSaveItem::Pause:
+            childElement = doc.createElement (pauseTagName);
             groupElement.appendChild (childElement);
-            QEPvLoadSaveUtilities::writeXmlScalerPv (child, childElement);
-         }
+            QEPvLoadSaveUtilities::writeXmlPause (child, childElement);
+            break;
+
+         default:
+            DEBUG << "Unhandled" << itemType;
+            break;
       }
    }
 }
@@ -419,6 +474,7 @@ void QEPvLoadSaveUtilities::writeXmlGroup (const QEPvLoadSaveItem* groupIn,
 //
 bool QEPvLoadSaveUtilities::writeTree (const QString& filename,
                                        const QEPvLoadSaveItem* root,
+                                       const QString& comment,
                                        QString& errorMessage)
 {
    errorMessage = "n/a";
@@ -434,6 +490,7 @@ bool QEPvLoadSaveUtilities::writeTree (const QString& filename,
    doc.clear ();
    docElem = doc.createElement (fileTagName);
    docElem.setAttribute (versionAttribute, 1);
+   docElem.setAttribute (commentAttribute, comment);
 
    // Add the root to the document
    //

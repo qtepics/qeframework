@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>QEPvLoadSaveHalf</class>
+ <widget class="QWidget" name="QEPvLoadSaveHalf">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>500</width>
+    <height>485</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>PV Load Save Half</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_1">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="mainFrame">
+     <property name="minimumSize">
+      <size>
+       <width>500</width>
+       <height>328</height>
+      </size>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,1">
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QFrame" name="buttonFrame">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>108</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>108</height>
+         </size>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::Shape::Box</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Shadow::Sunken</enum>
+        </property>
+        <widget class="QCheckBox" name="show2ndTreeCheckBox">
+         <property name="geometry">
+          <rect>
+           <x>352</x>
+           <y>12</y>
+           <width>104</width>
+           <height>18</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>9</pointsize>
+          </font>
+         </property>
+         <property name="toolTip">
+          <string> Show/hide 2nd node tree </string>
+         </property>
+         <property name="text">
+          <string>Show 2nd tree</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="deleteButton">
+         <property name="geometry">
+          <rect>
+           <x>148</x>
+           <y>42</y>
+           <width>64</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::FocusPolicy::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string> Delete node </string>
+         </property>
+         <property name="text">
+          <string>Delete</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="compareButton">
+         <property name="geometry">
+          <rect>
+           <x>366</x>
+           <y>42</y>
+           <width>80</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::FocusPolicy::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string> Compare workspaces </string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QWidget { background-color: rgba(176, 208, 255, 255); color: rgba(0, 0, 0, 255); }</string>
+         </property>
+         <property name="text">
+          <string>Compare</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="sortButton">
+         <property name="geometry">
+          <rect>
+           <x>288</x>
+           <y>42</y>
+           <width>64</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::FocusPolicy::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string> Sort node tree by PV name </string>
+         </property>
+         <property name="text">
+          <string>Sort</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="saveButton">
+         <property name="geometry">
+          <rect>
+           <x>78</x>
+           <y>42</y>
+           <width>64</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::FocusPolicy::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string> Save node tree to file </string>
+         </property>
+         <property name="text">
+          <string>Save...</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="macroStringEdit">
+         <property name="geometry">
+          <rect>
+           <x>8</x>
+           <y>76</y>
+           <width>440</width>
+           <height>24</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string> Define macro substitions - applies to PV names, 
+ group names and values when loaded from a file. </string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="copyAllButton">
+         <property name="geometry">
+          <rect>
+           <x>256</x>
+           <y>8</y>
+           <width>40</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::FocusPolicy::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string> Copy all PV values to other workspace </string>
+         </property>
+         <property name="icon">
+          <iconset resource="QEPvLoadSave.qrc">
+           <normaloff>:/qe/pvloadsave/copy_all.png</normaloff>:/qe/pvloadsave/copy_all.png</iconset>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="archiveExtractButton">
+         <property name="geometry">
+          <rect>
+           <x>200</x>
+           <y>8</y>
+           <width>40</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::FocusPolicy::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string> Extract all PV values from the archiver for the specified time </string>
+         </property>
+         <property name="icon">
+          <iconset resource="QEPvLoadSave.qrc">
+           <normaloff>:/qe/pvloadsave/archive_time.png</normaloff>:/qe/pvloadsave/archive_time.png</iconset>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="copySelectedButton">
+         <property name="geometry">
+          <rect>
+           <x>300</x>
+           <y>8</y>
+           <width>40</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::FocusPolicy::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string> Copy selected PV values to other workspace </string>
+         </property>
+         <property name="icon">
+          <iconset resource="QEPvLoadSave.qrc">
+           <normaloff>:/qe/pvloadsave/copy_subset.png</normaloff>:/qe/pvloadsave/copy_subset.png</iconset>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="writeSelectedButton">
+         <property name="geometry">
+          <rect>
+           <x>104</x>
+           <y>8</y>
+           <width>40</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::FocusPolicy::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string> Write selected PV values to the system </string>
+         </property>
+         <property name="icon">
+          <iconset resource="QEPvLoadSave.qrc">
+           <normaloff>:/qe/pvloadsave/write_subset.png</normaloff>:/qe/pvloadsave/write_subset.png</iconset>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="readSelectedButton">
+         <property name="geometry">
+          <rect>
+           <x>146</x>
+           <y>8</y>
+           <width>40</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::FocusPolicy::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string> Read selected PV values from the system </string>
+         </property>
+         <property name="icon">
+          <iconset resource="QEPvLoadSave.qrc">
+           <normaloff>:/qe/pvloadsave/read_subset.png</normaloff>:/qe/pvloadsave/read_subset.png</iconset>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="editButton">
+         <property name="geometry">
+          <rect>
+           <x>218</x>
+           <y>42</y>
+           <width>64</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::FocusPolicy::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string> Edit node vakue(s) </string>
+         </property>
+         <property name="text">
+          <string>Edit...</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="readAllButton">
+         <property name="geometry">
+          <rect>
+           <x>50</x>
+           <y>8</y>
+           <width>40</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::FocusPolicy::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string> Read all PV values from the system </string>
+         </property>
+         <property name="icon">
+          <iconset resource="QEPvLoadSave.qrc">
+           <normaloff>:/qe/pvloadsave/read_all.png</normaloff>:/qe/pvloadsave/read_all.png</iconset>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="loadButton">
+         <property name="geometry">
+          <rect>
+           <x>8</x>
+           <y>42</y>
+           <width>64</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::FocusPolicy::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string> Load node tree from file </string>
+         </property>
+         <property name="text">
+          <string>Load...</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="writeAllButton">
+         <property name="geometry">
+          <rect>
+           <x>8</x>
+           <y>8</y>
+           <width>40</width>
+           <height>26</height>
+          </rect>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::FocusPolicy::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string> Write all PV values to the system </string>
+         </property>
+         <property name="icon">
+          <iconset resource="QEPvLoadSave.qrc">
+           <normaloff>:/qe/pvloadsave/write_all.png</normaloff>:/qe/pvloadsave/write_all.png</iconset>
+         </property>
+        </widget>
+       </widget>
+      </item>
+      <item>
+       <widget class="QEResizeableFrame" name="commentEditFrame">
+        <property name="minimumSize">
+         <size>
+          <width>16</width>
+          <height>12</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>12</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string> Comment - for information only. </string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::Shape::Box</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Shadow::Sunken</enum>
+        </property>
+        <property name="allowedMinimum">
+         <number>12</number>
+        </property>
+        <property name="allowedMaximum">
+         <number>88</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTreeView" name="treeView">
+        <property name="frameShape">
+         <enum>QFrame::Shape::Box</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QEFrame</class>
+   <extends>QFrame</extends>
+   <header>QEFrame.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QEResizeableFrame</class>
+   <extends>QEFrame</extends>
+   <header>QEResizeableFrame.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="QEPvLoadSave.qrc"/>
+ </resources>
+ <connections/>
+</ui>

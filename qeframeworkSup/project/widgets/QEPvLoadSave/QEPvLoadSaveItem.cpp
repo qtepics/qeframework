@@ -16,11 +16,14 @@
 #include <QEPvLoadSaveUtilities.h>
 
 #include <algorithm>    // for std::sort
+#include <QCoreApplication>
 #include <QDebug>
 #include <QFrame>
 #include <QMetaType>
 #include <QModelIndex>
 #include <QPushButton>
+#include <QThread>
+#include <QTime>
 #include <QWidget>
 #include <QECommon.h>
 #include <QEPlatform.h>
@@ -479,13 +482,10 @@ void QEPvLoadSaveGroup::sortChildItems ()
               this->childItems.end(),
               // lambda
               [&](const QEPvLoadSaveItem* node1,
-                  const QEPvLoadSaveItem* node2)
-   {
-      return node1->getNodeName() < node2->getNodeName();
-   }
-   );
+                  const QEPvLoadSaveItem* node2) {
+                     return node1->getNodeName() < node2->getNodeName();
+                 } );
 }
-
 
 //-----------------------------------------------------------------------------
 //
@@ -1086,6 +1086,130 @@ void QEPvLoadSaveLeaf::emitReportActionComplete (const bool actionSuccessful)
    //
    if (actionSuccessful) this->actionIsComplete = true;
    emit this->reportActionComplete (this, this->action, actionSuccessful);
+}
+
+
+//=============================================================================
+// Sub class for pause (on write)
+//=============================================================================
+//
+// static
+bool QEPvLoadSavePause::isEnabled = true;
+void QEPvLoadSavePause::setPauseEnabled (const bool enabled)
+{
+   QEPvLoadSavePause::isEnabled = enabled;
+}
+
+//-----------------------------------------------------------------------------
+//
+QEPvLoadSavePause::QEPvLoadSavePause (const double delayIn,
+                                      QEPvLoadSaveItem* parent) :
+   QEPvLoadSaveItem ("pause://", nilValue, parent)
+{
+   this->setDelay (delayIn);
+}
+
+//-----------------------------------------------------------------------------
+//
+QEPvLoadSavePause::~QEPvLoadSavePause () { }
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSavePause::setDelay (const double delayIn)
+{
+   this->delay = LIMIT (delayIn, 0.0, 10.0);
+
+   QString name = QString ("pause:// %1 sec").arg (this->delay, 0, 'f', 3);
+   this->setNodeName (name);
+}
+
+//-----------------------------------------------------------------------------
+//
+double QEPvLoadSavePause::getDelay() const
+{
+   return this->delay;
+}
+
+//-----------------------------------------------------------------------------
+//
+QVariant QEPvLoadSavePause::getData (int column) const
+{
+   const QEPvLoadSaveCommon::ColumnKinds kind = QEPvLoadSaveCommon::ColumnKinds (column);
+   QVariant result;
+
+   switch (kind) {
+      case QEPvLoadSaveCommon::NodeName:
+         result.setValue (this->nodeName);
+         break;
+
+      case QEPvLoadSaveCommon::LoadSave:
+      case QEPvLoadSaveCommon::Live:
+         // Pause items don't have live or delta values.
+         result.setValue (QString (""));
+         break;
+
+      case QEPvLoadSaveCommon::Delta:
+         result.setValue (QString ("n/a"));
+         break;
+
+      default:
+         result.setValue (QString ("error"));
+         break;
+   }
+   return result;
+}
+
+//-----------------------------------------------------------------------------
+//
+QEPvLoadSaveItem* QEPvLoadSavePause::clone (QEPvLoadSaveItem* parent)
+{
+   return new QEPvLoadSavePause (this->delay, parent);
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSavePause::actionConnect (QObject*, const char*,
+                                       const char*, const char*)
+{ }
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSavePause::extractPVData () { }
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSavePause::applyPVData ()
+{
+   if (this->delay > 0.0) {
+      const QTime awakeTime = QTime::currentTime().addMSecs (1000.0*this->delay);
+      while (QEPvLoadSavePause::isEnabled && (QTime::currentTime() < awakeTime)) {
+         QThread::msleep (20);
+         QCoreApplication::processEvents ();
+      }
+   }
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSavePause::readArchiveData (const QCaDateTime&) {}
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSavePause::abortAction () { }
+
+//-----------------------------------------------------------------------------
+//
+int QEPvLoadSavePause::leafCount () const
+{
+   return 0;
+}
+
+//-----------------------------------------------------------------------------
+//
+QEPvLoadSaveCommon::StatusSummary QEPvLoadSavePause::getStatusSummary () const
+{
+   QEPvLoadSaveCommon::StatusSummary result = { 0, 0, 0 };
+   return result;
 }
 
 // end

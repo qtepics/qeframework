@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -27,176 +27,133 @@
 #include <QECommon.h>
 #include <QEPlatform.h>
 #include <QEScaling.h>
+
+#include <ui_QEPvLoadSaveHalf.h>
+
 #include "QEPvLoadSaveAccessFail.h"
 #include "QEPvLoadSaveCompare.h"
 #include "QEPvLoadSaveItem.h"
 #include "QEPvLoadSaveModel.h"
 #include "QEPvLoadSaveUtilities.h"
 
-#define DEBUG  qDebug () << "QEPvLoadSave.cpp" << __LINE__ << __FUNCTION__ << "  "
+#define DEBUG  qDebug () << "QEPvLoadSave" << __LINE__ << __FUNCTION__ << "  "
 
 static const QVariant nilValue = QVariant();
 
-// Compare with QEStripChartToolBar
-//
-struct PushButtonSpecifications {
-   int side;
-   int gap;
-   int width;
-   bool isIcon;  // when false is caption
-   const QString captionOrIcon;
-   const QString toolTip;
-   const char * member;
-};
-
-// Most buttons are on both sides - some are on one or the other.
-//
-#define BOTH 0
-#define LHS  1
-#define RHS  2
-
-#define NL               (-99)        // new line gap
-#define ICW                40         // icon width
-#define NCW                68         // normal caption width
-#define WCW                80         // wide caption width
-
-static const struct PushButtonSpecifications buttonSpecs [QEPvLoadSave::NumberOfButtons] = {
-   { BOTH, 0,   ICW, true,  QString ("write_all.png"),     QString ("Write all PV values to the system"),          SLOT (writeAllClicked (bool))    },
-   { BOTH, 0,   ICW, true,  QString ("read_all.png"),      QString ("Read all PV values from the system"),         SLOT (readAllClicked (bool))     },
-   { BOTH, 12,  ICW, true,  QString ("write_subset.png"),  QString ("Write selected PV values to the system"),     SLOT (writeSubsetClicked (bool)) },
-   { BOTH, 0,   ICW, true,  QString ("read_subset.png"),   QString ("Read selected PV values from the system"),    SLOT (readSubsetClicked (bool))  },
-
-   { BOTH, 12,  ICW, true,  QString ("archive_time.png"),  QString ("Extract all PV values from the archiver for the specified time"),
-                                                                                                                   SLOT (archiveTimeClicked (bool)) },
-   { LHS,  12,  ICW, true,  QString ("copy_all.png"),      QString ("Copy all PV values to other workspace"),      SLOT (copyAllClicked (bool))     },
-   { LHS,  0,   ICW, true,  QString ("copy_subset.png"),   QString ("Copy selected PV values to other workspace"), SLOT (copySubsetClicked (bool))  },
-   { RHS,  12,  ICW, true,  QString ("ypoc_all.png"),      QString ("Copy all PV values to other workspace"),      SLOT (copyAllClicked (bool))     },
-   { RHS,  0,   ICW, true,  QString ("ypoc_subset.png"),   QString ("Copy selected PV values to other workspace"), SLOT (copySubsetClicked (bool))  },
-
-   { BOTH, NL,  NCW, false, QString ("Load..."),           QString ("Load node tree from file"),                   SLOT (loadClicked (bool))        },
-   { BOTH, 2,   NCW, false, QString ("Save..."),           QString ("Save node tree to file"),                     SLOT (saveClicked (bool))        },
-   { BOTH, 2,   NCW, false, QString ("Delete"),            QString ("Delete node"),                                SLOT (deleteClicked (bool))      },
-   { BOTH, 2,   NCW, false, QString ("Edit..."),           QString ("Edit node"),                                  SLOT (editClicked (bool))        },
-   { BOTH, 2,   NCW, false, QString ("Sort"),              QString ("Sort node tree by PV name"),                  SLOT (sortClicked (bool))        },
-   { BOTH, 2,   WCW, false, QString ("Compare"),           QString ("Compare workspaces"),                         SLOT (compareClicked (bool))     }
-};
-
-
 static const QString abortEnabledStyle  = QEUtilities::colourToStyle (QColor (145, 200, 255));
 static const QString abortDisabledStyle = QEUtilities::colourToStyle (QColor (200, 200, 200));
+static const QString controlDisabledStyle = QEUtilities::colourToStyle (QColor(0xffeecc), QColor (0xa0a0a0));
+static const QString iconPathName = ":/qe/pvloadsave";
 
 //=============================================================================
 // Halves
 //=============================================================================
 //
-QEPvLoadSave::Halves::Halves (const Sides sideIn, QEPvLoadSave* ownerIn, QBoxLayout* layout)
+QEPvLoadSave::Halves::Halves (const Sides sideIn,
+                              QEPvLoadSave* ownerIn,
+                              QBoxLayout* layout) :
+   side (sideIn),
+   owner (ownerIn)
 {
-   int j;
-   int left;
-   int top;
-   int gap;
-   QString iconPathName;
-   QPushButton* button;
-
-   this->side = sideIn;
-   this->owner = ownerIn;
-
    this->container = new QFrame ();
    this->container->setFrameShape (QFrame::Panel);
    this->container->setFrameShadow (QFrame::Plain);
-   // This re-parents container.
-   layout->addWidget (container);
+   layout->addWidget (container);   // This re-parents container.
 
-   this->halfLayout = new QVBoxLayout (this->container);
-   this->halfLayout->setContentsMargins (2, 2, 2, 2);
-   this->halfLayout->setSpacing (2);
+   this->ui = new Ui::QEPvLoadSaveHalf();
+   this->ui->setupUi (this->container);
 
-   this->header = new QFrame ();
-   this->header->setFrameShape (QFrame::NoFrame);
-   this->header->setFrameShadow (QFrame::Plain);
-   this->header->setFixedHeight (92);
-   this->halfLayout->addWidget (this->header);
-
-   // Create add header buttons.
+   // Can't do this in designer ... yet.
    //
-   left = 4;
-   top = 2;
-   for (j = 0 ; j < ARRAY_LENGTH (buttonSpecs); j++) {
+   this->commentTextEdit = new QPlainTextEdit();
+   this->ui->commentEditFrame->setWidget (this->commentTextEdit);
 
-      this->headerPushButtons [j] = NULL;
+   // Connect signals and tag buttons, so we know which side/half
+   // the signal comes from.
+   //
+   QObject::connect (this->ui->writeAllButton, SIGNAL (clicked(bool)),
+                     this->owner, SLOT (writeAllClicked (bool)));
+   QEUtilities::tagObject (this->ui->writeAllButton, this->side);
 
-      // Some buttons are only on one side.
-      //
-      if ((this->side == LeftSide)  && (buttonSpecs[j].side == RHS)) continue;
-      if ((this->side == RightSide) && (buttonSpecs[j].side == LHS)) continue;
+   QObject::connect (this->ui->readAllButton, SIGNAL (clicked(bool)),
+                     this->owner, SLOT (readAllClicked (bool)));
+   QEUtilities::tagObject (this->ui->readAllButton, this->side);
 
-      button = new QPushButton (this->header);
+   QObject::connect (this->ui->writeSelectedButton, SIGNAL (clicked(bool)),
+                     this->owner, SLOT (writeSubsetClicked (bool)));
+   QEUtilities::tagObject (this->ui->writeSelectedButton, this->side);
 
-      // Set up icon or caption text.
-      //
-      if (buttonSpecs[j].isIcon) {
-         iconPathName = ":/qe/pvloadsave/";
-         iconPathName.append (buttonSpecs[j].captionOrIcon);
-         button->setIcon (QIcon (iconPathName));
-      } else {
-         button->setText (buttonSpecs[j].captionOrIcon);
-      }
+   QObject::connect (this->ui->readSelectedButton, SIGNAL (clicked(bool)),
+                     this->owner, SLOT (readSubsetClicked (bool)));
+   QEUtilities::tagObject (this->ui->readSelectedButton, this->side);
 
-      button->setFocusPolicy (Qt::NoFocus);
-      button->setToolTip (buttonSpecs[j].toolTip);
-      gap = buttonSpecs[j].gap;
+   QObject::connect (this->ui->archiveExtractButton, SIGNAL (clicked(bool)),
+                     this->owner, SLOT (archiveTimeClicked (bool)));
+   QEUtilities::tagObject (this->ui->archiveExtractButton, this->side);
 
-      if (gap == NL) {
-         // There is only one "newline".
-         //
-         if (this->side == LeftSide) {
-            this->checkBox = new QCheckBox ("Show 2nd tree", this->header);
-            this->checkBox->setGeometry (left + 2, top, 120, 26);
-            this->checkBox->setFocusPolicy (Qt::NoFocus);
+   QObject::connect (this->ui->copyAllButton, SIGNAL (clicked(bool)),
+                     this->owner, SLOT (copyAllClicked (bool)));
+   QEUtilities::tagObject (this->ui->copyAllButton, this->side);
 
-            QObject::connect (this->checkBox, SIGNAL (stateChanged (int)),
-                              this->owner,    SLOT   (checkBoxStateChanged (int)));
-         } else {
-            this->checkBox = NULL;
-         }
+   QObject::connect (this->ui->copySelectedButton, SIGNAL (clicked(bool)),
+                     this->owner, SLOT (copySubsetClicked (bool)));
+   QEUtilities::tagObject (this->ui->copySelectedButton, this->side);
 
-         left = 4;
-         top += 32;
-         gap = 0;
-      }
+   QObject::connect (this->ui->loadButton, SIGNAL (clicked(bool)),
+                     this->owner, SLOT (loadClicked (bool)));
+   QEUtilities::tagObject (this->ui->loadButton, this->side);
 
-      button->setGeometry (left + gap, top, buttonSpecs[j].width, 26);
-      left += gap + buttonSpecs[j].width + 2;
-      if (buttonSpecs[j].member != NULL) {
-         QObject::connect (button,      SIGNAL (clicked (bool)),
-                           this->owner, buttonSpecs [j].member);
-      }
+   QObject::connect (this->ui->saveButton, SIGNAL (clicked(bool)),
+                     this->owner, SLOT (saveClicked (bool)));
+   QEUtilities::tagObject (this->ui->saveButton, this->side);
 
-      if (j == 14) {
-         button->setStyleSheet (QEUtilities::colourToStyle (QColor (155, 205, 255)));
-      }
-      this->headerPushButtons [j] = button;
+   QObject::connect (this->ui->deleteButton, SIGNAL (clicked(bool)),
+                     this->owner, SLOT (deleteClicked (bool)));
+   QEUtilities::tagObject (this->ui->deleteButton, this->side);
+
+   QObject::connect (this->ui->editButton, SIGNAL (clicked(bool)),
+                     this->owner, SLOT (editClicked (bool)));
+   QEUtilities::tagObject (this->ui->editButton, this->side);
+
+   QObject::connect (this->ui->sortButton, SIGNAL (clicked(bool)),
+                     this->owner, SLOT (sortClicked (bool)));
+   QEUtilities::tagObject (this->ui->sortButton, this->side);
+
+   QObject::connect (this->ui->compareButton, SIGNAL (clicked(bool)),
+                     this->owner, SLOT (compareClicked (bool)));
+   QEUtilities::tagObject (this->ui->compareButton, this->side);
+
+   // A few left/right parity violations...
+   //
+   switch (this->side) {
+      case LeftSide:
+         QObject::connect (this->ui->show2ndTreeCheckBox, SIGNAL (stateChanged (int)),
+                           this->owner, SLOT (checkBoxStateChanged (int)));
+         break;
+
+      case RightSide:
+         // Update copy buttons
+
+         this->ui->copyAllButton->setIcon (QIcon (iconPathName + "/ypoc_all.png"));
+         this->ui->copySelectedButton->setIcon (QIcon (iconPathName + "/ypoc_subset.png"));
+
+         // Hide 2nd check box
+         this->ui->show2ndTreeCheckBox->setVisible (false);
+
+         break;
+
+      default:
+         DEBUG << this->side;
+         break;
    }
 
-   this->macroString = new QLineEdit (this->header);
-   this->macroString->setGeometry (4, top + 32, 444, 23);
-   this->macroString->setToolTip (" Define macro substitions - applies to PV names, \n"
-                                  " group names and values when loaded from a file. ");
+   this->tree = this->ui->treeView;   // alias
+   QEUtilities::tagObject (tree, this->side);
 
-   this->tree = new QTreeView (this->header);
-
-   this->halfLayout->addWidget (this->tree);
    this->tree->setAcceptDrops (true);
    this->tree->setContextMenuPolicy (Qt::CustomContextMenu);
-
-   QObject::connect (this->tree,  SIGNAL (customContextMenuRequested (const QPoint &)),
-                     this->owner, SLOT   (treeMenuRequested          (const QPoint &)));
-
-   this->footer = new QFrame ();
-   this->footer->setFrameShape (QFrame::NoFrame);
-   this->footer->setFrameShadow (QFrame::Plain);
-   this->footer->setFixedHeight (40);
-   this->halfLayout->addWidget (this->footer);
+   QObject::connect (this->tree,  SIGNAL (customContextMenuRequested (const QPoint&)),
+                     this->owner, SLOT   (treeMenuRequested          (const QPoint&)));
 
    // Configure basic tree setup.
    //
@@ -215,6 +172,7 @@ QEPvLoadSave::Halves::Halves (const Sides sideIn, QEPvLoadSave* ownerIn, QBoxLay
    // Create an essentially empty model.
    //
    this->model = new QEPvLoadSaveModel (this->tree, this->owner);  // not a widget
+   QEUtilities::tagObject (this->model, this->side);
 
    QObject::connect (this->model, SIGNAL (reportActionComplete (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ActionKinds, const bool)),
                      this->owner, SLOT   (acceptActionComplete (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ActionKinds, const bool)));
@@ -230,9 +188,9 @@ QEPvLoadSave::Halves::Halves (const Sides sideIn, QEPvLoadSave* ownerIn, QBoxLay
       this->tree->header()->resizeSection (0, 240);
    }
 
-   this->vnpm.setVariableIndex ((int) this->side);
+   this->vnpm.setVariableIndex (static_cast<unsigned int>(this->side));
 
-   // Set up a connection to recieve configuration file name property changes.
+   // Set up a connection to receive configuration file name property changes.
    // The variable name property manager class only delivers an updated
    // variable name after the user has stopped typing.
    //
@@ -267,9 +225,10 @@ void QEPvLoadSave::Halves::open (const QString& configurationFile)
    }
 
    QString errorMessage;
+   QString comment;
    rootItem = QEPvLoadSaveUtilities::readTree (configurationFile,
-                                               this->macroString->text (),
-                                               errorMessage);
+                                               this->ui->macroStringEdit->text (),
+                                               comment, errorMessage);
    if (!rootItem) {
       DEBUG << errorMessage;
       const message_types mt = message_types (MESSAGE_TYPE_WARNING,
@@ -278,6 +237,7 @@ void QEPvLoadSave::Halves::open (const QString& configurationFile)
       return;
    }
 
+   this->setComment (comment);
    this->setRoot (rootItem, configurationFile);
 }
 
@@ -293,13 +253,23 @@ void QEPvLoadSave::Halves::save (const QString& configurationFile)
 
    QEPvLoadSaveItem* rootItem = this->model->getRootItem ();
    QString errorMessage;
-   okay = QEPvLoadSaveUtilities::writeTree (configurationFile, rootItem, errorMessage);
+   okay = QEPvLoadSaveUtilities::writeTree (configurationFile, rootItem,
+                                            this->getComment(), errorMessage);
    if (okay) {
       this->model->setHeading (configurationFile);
    } else {
       message_types mt (MESSAGE_TYPE_WARNING, MESSAGE_KIND_STANDARD);
       this->owner->sendMessage (errorMessage, mt);
    }
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPvLoadSave::Halves::setEnabled (const bool enabled)
+{
+   QWidget* buttons = this->ui->buttonFrame;
+   buttons->setEnabled (enabled);
+   buttons->setStyleSheet (enabled ? "" : controlDisabledStyle);
 }
 
 //------------------------------------------------------------------------------
@@ -330,6 +300,19 @@ QString QEPvLoadSave::Halves::getConfigurationSubstitutions ()
    return this->vnpm.getSubstitutionsProperty ();
 }
 
+//------------------------------------------------------------------------------
+//
+void QEPvLoadSave::Halves::setComment (const QString& comment)
+{
+   this->commentTextEdit->setPlainText (comment);
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEPvLoadSave::Halves::getComment() const
+{
+   return this->commentTextEdit->toPlainText();
+}
 
 //=============================================================================
 // QEPvLoadSave functions
@@ -431,6 +414,7 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    this->createAction (this->treeContextMenu, "Add Group...",         false, TCM_ADD_GROUP);
    this->createAction (this->treeContextMenu, "Rename Group...",      false, TCM_RENAME_GROUP);
    this->createAction (this->treeContextMenu, "Add PV...",            false, TCM_ADD_PV);
+   this->createAction (this->treeContextMenu, "Add Pause Delay...",   false, TCM_ADD_PAUSE);
    this->createAction (this->treeContextMenu, "Examine Properties",   false, TCM_SHOW_PV_PROPERTIES);
    this->createAction (this->treeContextMenu, "Plot in StripChart",   false, TCM_ADD_TO_STRIPCHART);
    this->createAction (this->treeContextMenu, "Show in Scatch Pad",   false, TCM_ADD_TO_SCRATCH_PAD);
@@ -446,6 +430,7 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    this->createAction (this->treeContextMenu, "Edit PV Value...",     false, TCM_EDIT_PV_VALUE);
    this->createAction (this->treeContextMenu, "Copy variable name",   false, TCM_COPY_VARIABLE);
    this->createAction (this->treeContextMenu, "Copy data",            false, TCM_COPY_DATA);
+   this->createAction (this->treeContextMenu, "Edit Pause Delay...",  false, TCM_EDIT_PAUSE_VALUE);
 
    QObject::connect (this->treeContextMenu, SIGNAL (triggered        (QAction*)),
                      this,                  SLOT   (treeMenuSelected (QAction*)));
@@ -460,7 +445,7 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
                            consumer, SLOT   (requestAction (const QEActionRequests& )));
    }
 
-   this->half [LeftSide]->checkBox->setChecked (false);
+   this->half [LeftSide]->ui->show2ndTreeCheckBox->setChecked (false);
    this->checkBoxStateChanged (Qt::Unchecked);
 }
 
@@ -565,33 +550,14 @@ void QEPvLoadSave::establishConnection (unsigned int variableIndex)
 //
 QEPvLoadSave::Sides QEPvLoadSave::objectSide (QObject* obj)
 {
-   int s;
-   int j;
+   if (!obj) return ErrorSide;
 
-   for (s = 0; s < ARRAY_LENGTH (this->half); s++) {
-
-      if (obj == this->half [s]->tree) {
-         // found a match.
-         return Sides (s);
-      }
-
-      if (obj == this->half [s]->model) {
-         // found a match.
-         return Sides (s);
-      }
-
-      // Check push buttons.
-      //
-      for (j = 0; j < ARRAY_LENGTH (this->half [s]->headerPushButtons); j++) {
-         if (obj == this->half [s]->headerPushButtons [j]) {
-            // found a match.
-            return Sides (s);
-         }
-      }
+   int tag = QEUtilities::objectTag (obj, ErrorSide);
+   if ((tag != LeftSide) && (tag != RightSide)) {
+      DEBUG << obj->objectName() << " : " << obj->metaObject()->className();
+      return ErrorSide;
    }
-
-   DEBUG  << "no match found";
-   return ErrorSide;
+   return static_cast<Sides>(tag);
 }
 
 //------------------------------------------------------------------------------
@@ -700,38 +666,53 @@ void QEPvLoadSave::treeMenuRequested (const QPoint& pos)
    if (this->contextMenuItem) {
       // Is is a leaf/PV node or a group node?
       //
-      if (this->contextMenuItem->getIsPV ()) {
-         for (j = TCM_COPY_VARIABLE; j <= TCM_EDIT_PV_VALUE; j++) {
-            this->actionList [j]->setVisible (true);
-         }
+      const QEPvLoadSaveItem::ItemType itemType = this->contextMenuItem->getItemType();
+      switch (itemType) {
+         case QEPvLoadSaveItem::Group: {
+               this->actionList [TCM_ADD_GROUP]->setVisible (true);
+               if (this->contextMenuItem != model->getRootItem ()) {
+                  // Renaming the 'ROOT' node prohibited.
+                  this->actionList [TCM_RENAME_GROUP]->setVisible (true);
+               }
+               this->actionList [TCM_ADD_PV]->setVisible (true);
+               this->actionList [TCM_ADD_PAUSE]->setVisible (true);
+            }
+            break;
 
-         // Specials for if/when is an arrays PV.
-         //
-         bool isAnArrayPv = false;
-         QEPvLoadSaveLeaf* leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
-         if (leaf) {   // just in case
-            const QVariant data = leaf->getNodeValue ();
-            const QVariantList valueList = data.toList ();
-            const int number = valueList.size ();
-            isAnArrayPv = (number >= 2);
-         }
-         this->actionList [TCM_ADD_TO_PLOTTER]->setVisible (isAnArrayPv);
-         this->actionList [TCM_ADD_TO_HISTORGRAM]->setVisible (isAnArrayPv);
-         this->actionList [TCM_ADD_TO_TABLE]->setVisible (isAnArrayPv);
+         case QEPvLoadSaveItem::PV:{
+               for (j = TCM_COPY_VARIABLE; j <= TCM_EDIT_PV_VALUE; j++) {
+                  this->actionList [j]->setVisible (true);
+               }
 
-      } else {
-         this->actionList [TCM_ADD_GROUP]->setVisible (true);
-         if (this->contextMenuItem != model->getRootItem ()) {
-            // Renaming the 'ROOT' node prohibited.
-            this->actionList [TCM_RENAME_GROUP]->setVisible (true);
-         }
-         this->actionList [TCM_ADD_PV]->setVisible (true);
+               // Specials for if/when is an arrays PV.
+               //
+               bool isAnArrayPv = false;
+               QEPvLoadSaveLeaf* leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
+               if (leaf) {   // just in case
+                  const QVariant data = leaf->getNodeValue ();
+                  const QVariantList valueList = data.toList ();
+                  const int number = valueList.size ();
+                  isAnArrayPv = (number >= 2);
+               }
+               this->actionList [TCM_ADD_TO_PLOTTER]->setVisible (isAnArrayPv);
+               this->actionList [TCM_ADD_TO_HISTORGRAM]->setVisible (isAnArrayPv);
+               this->actionList [TCM_ADD_TO_TABLE]->setVisible (isAnArrayPv);
+
+            }
+            break;
+
+         case QEPvLoadSaveItem::Pause:
+            this->actionList [TCM_EDIT_PAUSE_VALUE]->setVisible (true);
+            break;
+
+         default:
+            DEBUG << "Unhandled" << itemType;
+            break;
       }
 
-   } else
-   // no item selected - is there a root item??
-   //
-   if (!model->getRootItem ()) {
+   } else if (!model->getRootItem ()) {
+      // no item selected - is there a root item??
+      //
       // No "ROOT" node - allow it to be created.
       //
       this->actionList [TCM_CREATE_ROOT]->setVisible (true);
@@ -833,6 +814,13 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          }
          break;
 
+      case TCM_ADD_PAUSE:
+         // For now we will go with a fixed pause of 5 seconds.
+         //
+         item = new QEPvLoadSavePause (5.0, NULL);
+         model->addItemToModel (item, this->contextMenuItem);
+         break;
+
       case TCM_EDIT_PV_NAME:
          leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
@@ -853,6 +841,7 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          break;
 
       case TCM_EDIT_PV_VALUE:
+      case TCM_EDIT_PAUSE_VALUE:
          this->editItemValue (this->contextMenuItem, this->contextMenuHalf, tree);
          break;
 
@@ -915,7 +904,7 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
       case TCM_ADD_TO_HISTORGRAM:
          leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
-            emit this->requestAction (QEActionRequests (QEActionRequests::actionShowInHisogram (), leaf->copyVariables()));
+            emit this->requestAction (QEActionRequests (QEActionRequests::actionShowInHistogram (), leaf->copyVariables()));
          }
          break;
 
@@ -939,16 +928,55 @@ void QEPvLoadSave::editItemValue (QEPvLoadSaveItem* item, Halves* half, QWidget*
    if (!item) return;
    if (!half) return;
 
-   // Can only edit PV values.
-   //
-   if (!item->getIsPV ()) return;
+   int n;
+   QEPvLoadSavePause* pause;
 
-   this->valueEditDialog->setPvName (item->getNodeName ());
-   this->valueEditDialog->setValue (item->getNodeValue ());
-   int n = this->valueEditDialog->exec (centerOver);
-   if (n == 1) {
-      item->setNodeValue (this->valueEditDialog->getValue ());
-      half->model->modelUpdated ();
+   const QEPvLoadSaveItem::ItemType itemType = item->getItemType();
+   switch (itemType) {
+      case QEPvLoadSaveItem::Group:
+         // pass
+         break;
+
+      case QEPvLoadSaveItem::PV:
+         this->valueEditDialog->setPvName (item->getNodeName ());
+         this->valueEditDialog->setValue (item->getNodeValue ());
+         n = this->valueEditDialog->exec (centerOver);
+         if (n == 1) {
+            item->setNodeValue (this->valueEditDialog->getValue ());
+            half->model->modelUpdated ();
+         }
+         break;
+
+      case QEPvLoadSaveItem::Pause:
+         pause = qobject_cast<QEPvLoadSavePause*>(item);
+         if (pause) {
+            // Create a bespoke dialog?
+            //
+            this->valueEditDialog->setPvName (pause->getNodeName ());
+            this->valueEditDialog->setValue (pause->getDelay());
+            n = this->valueEditDialog->exec (centerOver);
+            if (n == 1) {
+               QVariant value = this->valueEditDialog->getValue ();
+               bool okay;
+               double delay = value.toDouble(&okay);
+               if (okay) {
+                  pause->setDelay (delay);
+                  half->model->modelUpdated ();
+               } else {
+                  const message_types mt = message_types (MESSAGE_TYPE_WARNING,
+                                                          MESSAGE_KIND_STANDARD);
+                  QString message = value.toString() + " cannot be converted to a delay value";
+                  this->sendMessage (message, mt);
+               }
+            }
+         } else {
+            DEBUG << itemType << "qobject_cast fail";
+         }
+         break;
+
+      default:
+         DEBUG << "Unhandled" << itemType;
+         break;
    }
 }
 
@@ -961,9 +989,11 @@ void QEPvLoadSave::checkBoxStateChanged (int state)
    const bool selected = (state == Qt::Checked);
    this->half [RightSide]->container->setVisible (selected);
 
-   // Increase/Decrease minimum width
-   int mw = this->minimumWidth ();
-   this->setMinimumWidth (selected ? (mw*2) : (mw/2));
+   // Increase/Decrease minimum width.
+   //
+   const int mw = QEScaling::scale (680);  // modify by current scaling
+   int newmw = selected ? (mw*2) : mw;
+   this->setMinimumWidth (newmw);
 }
 
 //------------------------------------------------------------------------------
@@ -995,13 +1025,17 @@ void QEPvLoadSave::writeAllClicked (bool)
 
    const int number =  model->leafCount ();
    if (number > 0) {
-      if (this->pvWriteIsPermitted ()) {
+      if (this->pvWriteIsPermitted ()) {  // query for user approval
          this->loadSaveAction = "Apply";
          this->progressBar->setMaximum (MAX (1, number));
          this->progressBar->setValue (0);
          this->abortButton->setStyleSheet (abortEnabledStyle);
          this->abortButton->setEnabled (true);
+
+         QEPvLoadSavePause::setPauseEnabled (true);
+         this->half [side]->setEnabled (false);
          model->applyPVData ();
+         this->half [side]->setEnabled (true);
       }
    }
 }
@@ -1036,7 +1070,11 @@ void QEPvLoadSave::writeSubsetClicked (bool)
          this->progressBar->setValue (0);
          this->abortButton->setStyleSheet (abortEnabledStyle);
          this->abortButton->setEnabled (true);
+
+         QEPvLoadSavePause::setPauseEnabled (true);
+         this->half [side]->setEnabled (false);
          item->applyPVData ();
+         this->half [side]->setEnabled (true);
       }
    }
 }
@@ -1066,7 +1104,7 @@ void QEPvLoadSave::archiveTimeClicked (bool)
 
    VERIFY_SENDER;
    QEPvLoadSaveModel* model = this->half [side]->model;
-   if (!model) return;  // sainity check
+   if (!model) return;  // sanity check
 
    const int number = model->leafCount ();
 
@@ -1225,14 +1263,16 @@ void QEPvLoadSave::deleteClicked (bool)
 }
 
 //------------------------------------------------------------------------------
-//
+// slot (from Edit button)
 void QEPvLoadSave::editClicked (bool)
 {
    VERIFY_SENDER;
 
    QEPvLoadSaveItem* item = this->half [side]->model->getSelectedItem ();
+   if (!item) return;   // sanity check
 
-   if (item && item->getIsPV ()) {
+   const QEPvLoadSaveItem::ItemType itemType = item->getItemType();
+   if (itemType & (QEPvLoadSaveItem::PV | QEPvLoadSaveItem::Pause)) {
       QWidget* centreOver = dynamic_cast <QWidget*> (this->sender ());
       this->editItemValue (item, this->half [side], centreOver);
    }
@@ -1292,8 +1332,11 @@ void QEPvLoadSave::compareClicked (bool)
 void QEPvLoadSave::abortClicked (bool)
 {
    this->accessFail->clear ();
-   this->half [0]->model->abortAction ();
-   this->half [1]->model->abortAction ();
+
+   QEPvLoadSavePause::setPauseEnabled (false);
+   for (int s = 0; s < 2; s++) {
+      this->half [s]->model->abortAction ();
+   }
 
    QString title = this->loadSaveAction + " failures";
    if (this->hostSlotAvailable) {
@@ -1321,7 +1364,6 @@ void QEPvLoadSave::abortClicked (bool)
    this->abortButton->setEnabled (false);
    this->progressStatus->setText ("");
 }
-
 
 //==============================================================================
 // Property functions

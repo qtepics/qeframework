@@ -49,7 +49,8 @@
 /// QEPvLoadSaveItem are created in one of two flavours:
 /// a/ node - used for groups
 /// b/ leaf - used for PVs.
-/// both of which inherited from the QEPvLoadSaveItem base class
+/// c/ pause - used for wrte delays
+/// all of which inherited from the QEPvLoadSaveItem base class
 ///
 class QEPvLoadSaveItem : public QObject
 {
@@ -62,6 +63,20 @@ protected:
                               const QVariant& value,
                               QEPvLoadSaveItem* parent = 0);
 public:
+   // While dispatching can deal with some of the behavior differences of each
+   // item type, sometimes the user just needs to know which type it is.
+   // Providing an item type is a lot more succinct that doing qobject casts
+   // and testing for a null pointer.
+   //
+   enum ItemType {
+      Null = 0,
+      Group = 1,
+      PV = 2,
+      Pause = 4
+   };
+   Q_ENUM (ItemType)
+   Q_DECLARE_FLAGS (ItemTypeFlags, ItemType)
+
    virtual ~QEPvLoadSaveItem ();
 
    int columnCount () const;
@@ -109,10 +124,9 @@ public:
    QVariant getNodeValue () const;
    int getElementCount () const;   // get the number of elements in value.
 
-   // NOTE: child classes must override these functions
+   // NOTE: child classes must override these functions.
    //
-   virtual bool getIsPV () const { return false; }
-   virtual bool getIsGroup () const { return false; }
+   virtual ItemType getItemType() const = 0;
 
    // Called prior to readArchiveData.
    //
@@ -159,6 +173,8 @@ protected:
    static int readArchiveCount;
 };
 
+Q_DECLARE_OPERATORS_FOR_FLAGS (QEPvLoadSaveItem::ItemTypeFlags)
+
 
 //------------------------------------------------------------------------------
 // Sub class for group
@@ -173,8 +189,8 @@ public:
 
    // Override QEPvLoadSaveItem functions.
    //
+   ItemType getItemType() const { return Group; }
    QVariant getData (int column) const;
-   bool getIsGroup () const { return true; }
    QEPvLoadSaveItem* clone (QEPvLoadSaveItem* parent);
    void actionConnect (QObject* actionCompleteObject,
                        const char* actionSetReadOutSlot,
@@ -230,7 +246,8 @@ public:
    //
    QVariant getData (int column) const;
    void setNodeName (const QString& nodeName);
-   bool getIsPV () const { return true; }
+
+   ItemType getItemType() const { return PV; }
    QEPvLoadSaveItem* clone (QEPvLoadSaveItem* parent);
    QEPvLoadSaveCommon::PvNameValueMaps getPvNameValueMap () const;
    void actionConnect (QObject* actionCompleteObject,
@@ -291,6 +308,44 @@ private slots:
                         const QString& pvName, const QString& supplementary);
 
    void delayedReadArchiveData ();
+};
+
+
+//------------------------------------------------------------------------------
+// Sub class for Pause
+//
+class QEPvLoadSavePause : public QEPvLoadSaveItem
+{
+   Q_OBJECT
+public:
+   explicit QEPvLoadSavePause (const double delay,
+                               QEPvLoadSaveItem* parent = 0);
+   ~QEPvLoadSavePause ();
+
+   void setDelay (const double delay);
+   double getDelay() const;
+
+   // Override QEPvLoadSaveItem functions.
+   //
+   ItemType getItemType() const { return Pause; }
+   QVariant getData (int column) const;
+   QEPvLoadSaveItem* clone (QEPvLoadSaveItem* parent);
+   void actionConnect (QObject* actionCompleteObject,
+                       const char* actionSetReadOutSlot,
+                       const char* actionCompleteSlot,
+                       const char* actionInCompleteSlot);
+   void extractPVData ();
+   void applyPVData ();
+   void readArchiveData (const QCaDateTime& dateTime);
+   void abortAction ();
+   int leafCount () const;
+   QEPvLoadSaveCommon::StatusSummary getStatusSummary () const;
+
+   static void setPauseEnabled (const bool enabled);
+
+private:
+   double delay;
+   static bool isEnabled;
 };
 
 #endif    // QE_PV_LOAD_SAVE_ITEM_H

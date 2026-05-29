@@ -25,6 +25,7 @@
 #include <QVBoxLayout>
 #include <QCheckBox>
 #include <QLabel>
+#include <QPlainTextEdit>
 #include <QProgressBar>
 
 #include <QEEnums.h>
@@ -59,6 +60,10 @@ class QEPvLoadSaveAccessFail;
 class QEPvLoadSaveCompare;
 class QEPvLoadSaveItem;
 class QEPvLoadSaveModel;
+
+namespace Ui {
+    class QEPvLoadSaveHalf;
+}
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvLoadSave : public QEFrame  {
 
@@ -98,7 +103,7 @@ public:
 public:
    /// Create without a nominated config file.
    ///
-   QEPvLoadSave (QWidget *parent = 0);
+   QEPvLoadSave (QWidget* parent = 0);
 
    /// Destruction
    virtual ~QEPvLoadSave ();
@@ -150,6 +155,7 @@ private:
       TCM_ADD_GROUP,
       TCM_RENAME_GROUP,
       TCM_ADD_PV,
+      TCM_ADD_PAUSE,
 
       // This group similar to, but not same as, a regular widget.
       TCM_COPY_VARIABLE,
@@ -162,6 +168,7 @@ private:
       TCM_ADD_TO_TABLE,
       TCM_EDIT_PV_NAME,
       TCM_EDIT_PV_VALUE,
+      TCM_EDIT_PAUSE_VALUE,
       TCM_NUMBER           // must be last
    };
 
@@ -181,28 +188,29 @@ private:
       void setConfigurationSubstitutions (const QString& substitutions);
       QString getConfigurationSubstitutions ();
 
+      void setComment (const QString& comment);
+      QString getComment() const;
+
       void setRoot (QEPvLoadSaveItem* rootItem, const QString& heading);
       void open (const QString& configurationFile);
       void save (const QString& configurationFile);
 
+      void setEnabled (const bool enabled);
+
       QFrame* container;
-      QVBoxLayout* halfLayout;
-      QFrame* header;
-      QCheckBox* checkBox;
-      QPushButton *headerPushButtons [NumberOfButtons];
+      Ui::QEPvLoadSaveHalf* ui;
+      QPlainTextEdit* commentTextEdit;
 
-      QLineEdit* macroString;
-      QTreeView* tree;                        // the tree widget
-      QFrame* footer;
-
+      QTreeView* tree;  // alias
       QEPvLoadSaveModel* model;               // manages tree data
       QCaVariableNamePropertyManager vnpm;    // manages filenames
       QEPvLoadSaveCompare* graphicalCompare;
 
    private:
-      Sides side;
-      QEPvLoadSave* owner;
+      const Sides side;
+      QEPvLoadSave* const owner;
    };
+
 
    QVBoxLayout* overallLayout;
    QFrame* sidesFrame;

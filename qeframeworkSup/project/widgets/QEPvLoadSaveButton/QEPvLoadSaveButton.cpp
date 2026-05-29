@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2020-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2020-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andraz Pozar
@@ -25,8 +25,9 @@
 
 #define DEBUG  qDebug () << "QEPvLoadSaveButton" << __LINE__ << __FUNCTION__ << "  "
 
-QEPvLoadSaveButton::QEPvLoadSaveButton (QWidget* parent) : QPushButton (parent), QEWidget (this) {
-
+QEPvLoadSaveButton::QEPvLoadSaveButton (QWidget* parent) :
+   QPushButton (parent), QEWidget (this)
+{
    // Set up data
    this->progressDialog = NULL;
    this->confirmRequired = false;
@@ -92,8 +93,10 @@ void QEPvLoadSaveButton::userClicked(bool)
    // we fail and print the message below.
    //
    QString configurationFile = this->getSubstitutedVariableName (0);
+   QString comment;   // unused
    QString errorMessage;
-   this->rootItem = QEPvLoadSaveUtilities::readTree (configurationFile, QString(), errorMessage);
+   this->rootItem = QEPvLoadSaveUtilities::readTree (configurationFile, QString(),
+                                                     comment, errorMessage);
    if (!this->rootItem) {
        this->sendMessage (errorMessage, mt);
        return;
@@ -140,12 +143,14 @@ void QEPvLoadSaveButton::userClicked(bool)
 }
 
 
-void QEPvLoadSaveButton::delayedSaveToFile () {
+void QEPvLoadSaveButton::delayedSaveToFile ()
+{
    QString configurationFile = this->getConfigurationFile();
    this->model->extractPVData ();
    QString errorMessage;
    bool status = QEPvLoadSaveUtilities::writeTree (configurationFile,
                                                    this->rootItem,
+                                                   "QEPvLoadSaveButton",
                                                    errorMessage);
    if (status) {
       this->model->setHeading (configurationFile);

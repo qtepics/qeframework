@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -35,7 +35,7 @@ public:
    // This function reads xml file.
    // Example file:
    //
-   // <QEPvLoadSave version="1">
+   // <QEPvLoadSave Version="1"  Commnet="Some Text">
    //    <!-- No need to specify top level ROOT group in file -->
    //
    //    <Group Name="Colour Values">
@@ -44,6 +44,7 @@ public:
    //
    //    <Group Name="Joe Motors">
    //       <PV Name="JOE:MTR01.VAL" ReadPV="JOE:MTR01.RBV" Value = "2.51" />
+   //       <Pause Delay="5.0" />
    //       <PV Name="JOE:MTR02.VAL" ReadPV="JOE:MTR02.RBV" Value = "1.98" />
    //    </Group>
    //
@@ -72,12 +73,14 @@ public:
    //
    static QEPvLoadSaveItem* readTree (const QString& filename,
                                       const QString& macroString,
+                                      QString& comment,
                                       QString& errorMessage);
 
    // This function creates xml file.
    //
    static bool writeTree (const QString& filename,
                           const QEPvLoadSaveItem* root,
+                          const QString& comment,
                           QString& errorMessage);
 
    // Merges three PV names into a single node name.
@@ -107,11 +110,14 @@ private:
                                             const macroSubstitutionList& macroList,
                                             QEPvLoadSaveGroup* parent);
 
+   static QEPvLoadSaveItem* readXmlPause (const QDomElement pvElement,
+                                          const macroSubstitutionList& macroList,
+                                          QEPvLoadSaveGroup* parent);
+
    static void readXmlGroup (const QDomElement groupElement,
                              const macroSubstitutionList& macroList,
                              QEPvLoadSaveGroup* parent,
                              const int level);
-
 
    static void writeXmlScalerPv (const QEPvLoadSaveItem* item,
                                  QDomElement& pvElement);
@@ -119,6 +125,9 @@ private:
    static void writeXmlArrayPv (const QEPvLoadSaveItem* item,
                                 QDomDocument& doc,
                                 QDomElement& pvElement);
+
+   static void writeXmlPause (const QEPvLoadSaveItem* item,
+                              QDomElement& pauseElement);
 
    static void writeXmlGroup (const QEPvLoadSaveItem* group,
                               QDomDocument& doc,

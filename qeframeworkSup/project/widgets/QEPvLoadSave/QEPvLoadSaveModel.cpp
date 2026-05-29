@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -196,26 +196,44 @@ bool QEPvLoadSaveModel::mergeItemInToItem (QEPvLoadSaveItem* item, QEPvLoadSaveI
    if (counterPart) {
       // counter part exists - check types match
       //
-      if (item->getIsPV () != counterPart->getIsPV ()) {
-         DEBUG << "*** PV/Group conflict" << nodeName;
+      const QEPvLoadSaveItem::ItemType itemType = item->getItemType();
+
+      if (itemType != counterPart->getItemType ()) {
+         DEBUG << "*** PV/Group/Pause conflict" << nodeName;
          return false;
       }
 
-      if (item->getIsPV ()) {
-         // Copy value
-         //
-         counterPart->setNodeValue (item->getNodeValue ());
-         this->itemUpdated (counterPart, QEPvLoadSaveCommon::NodeName, false);
-      } else {
-         // Copy children.
-         //
-         int j;
-
-         for (j = 0; j < item->childCount (); j++) {
-            // recursive call.
+      switch (itemType) {
+         case QEPvLoadSaveItem::PV:
+            // Copy value
             //
-            this->mergeItemInToItem (item->getChild (j), counterPart);
-         }
+            counterPart->setNodeValue (item->getNodeValue ());
+            this->itemUpdated (counterPart, QEPvLoadSaveCommon::NodeName, false);
+            break;
+
+         case QEPvLoadSaveItem::Pause:
+            {
+               QEPvLoadSavePause* pauseCounterPart = qobject_cast<QEPvLoadSavePause*>(counterPart);
+               QEPvLoadSavePause* pauseItem = qobject_cast<QEPvLoadSavePause*>(item);
+               if (pauseCounterPart && pauseItem) {    // belts and braces
+                  pauseCounterPart->setDelay (pauseItem->getDelay());
+               }
+            }
+            break;
+
+         case QEPvLoadSaveItem::Group:
+            // Copy children.
+            //
+            for (int j = 0; j < item->childCount (); j++) {
+               // recursive call.
+               //
+               this->mergeItemInToItem (item->getChild (j), counterPart);
+            }
+            break;
+
+         default:
+            DEBUG << "Unhandled" << itemType;
+            break;
       }
 
    } else {
@@ -235,25 +253,24 @@ bool QEPvLoadSaveModel::mergeItemInToModel (QEPvLoadSaveItem* item)
    if (!item) return false;
 
    QStringList location = item->getNodePath ();  // Starts from ROOT, excludes core  and item itself.
-   if (location.size () >= 1 && location.value (0) != "ROOT") return false;
+   if ((location.size () >= 1) && (location.value (0) != "ROOT")) return false;
 
    QEPvLoadSaveItem* parentItem;
-   int s;
 
    // Create item's path in this model.
    //
    parentItem = this->coreItem;
-   for (s = 0; s < location.size (); s++) {
+   for (int s = 0; s < location.size (); s++) {
       QString nodeName = location.value (s);
       QEPvLoadSaveItem* nextItem;
 
-      nextItem = parentItem->getNamedChild (nodeName);
-
+      nextItem = parentItem->getNamedChild (nodeName);        
       if (nextItem) {
          // already exists.
          //
-         if (nextItem->getIsPV ()) {
-            // And item cannot be both a group and a PV.
+         const QEPvLoadSaveItem::ItemType itemType = nextItem->getItemType();
+         if (itemType != QEPvLoadSaveItem::Group) {
+            // And item cannot be both a group and a PY/Pause.
             //
             DEBUG << "*** PV/Group conflict" << nodeName;
             return false;
@@ -417,13 +434,17 @@ void QEPvLoadSaveModel::selectionChanged (const QItemSelection& selected,
       QEPvLoadSaveItem* item = this->indexToItem (s);
       this->selectedItem = item;
       if (item) {
+         const QEPvLoadSaveItem::ItemType itemType = item->getItemType();
+
          int count = item->leafCount ();
          QString text = "selected ";
-         if (item->getIsPV ()) {
-            text.append (item->getNodeName ());
-         } else {
+
+         if (itemType == QEPvLoadSaveItem::Group) {
             text.append (QString ("%1").arg (count).append (" item"));
             if (count != 1) text.append ("s");
+         } else {
+            // Is a PV or a Pause item.
+            text.append (item->getNodeName ());
          }
          this->setReadOut (text);
       }
@@ -442,8 +463,9 @@ bool QEPvLoadSaveModel::processDropEvent (QEPvLoadSaveItem* parentItem, QDropEve
 
    if (!parentItem) return false;  // sanity check.
 
-   if (parentItem->getIsPV ()) {
-      // Don't drop on to PV as such, but create a sibling...
+   if (parentItem->getItemType() == QEPvLoadSaveItem::PV ||
+       parentItem->getItemType() == QEPvLoadSaveItem::Pause ) {
+      // Don't drop on to PV/Pause as such, but create a sibling...
       //
       parentItem = parentItem->getParent ();
    }
