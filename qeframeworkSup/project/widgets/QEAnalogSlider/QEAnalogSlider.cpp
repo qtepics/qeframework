@@ -16,6 +16,7 @@
 #include <QDebug>
 #include <QRadioButton>
 #include <QPushButton>
+#include <QTimer>
 #include <QECommon.h>
 #include <QEDisplayRanges.h>
 #include <QEPvPropertiesUtilities.h>
@@ -29,6 +30,10 @@
 //
 #define SET_POINT_MARKER              1
 #define READ_BACK_MARKER              2
+
+// Minimum time between writes when the continuous apply flag set true.
+//
+static const qint64 minWriteInterval = 100;   // mSec
 
 //-----------------------------------------------------------------------------
 // Constructor with no initialisation
@@ -70,8 +75,8 @@ void QEAnalogSlider::commonSetup ()
    // Connect inherited valueChanged signal to own valueChanged slot.
    // Use virtual function in stread?
    //
-   QObject::connect (this, SIGNAL (valueChanged (const double)),
-                     this, SLOT   (valueChanged (const double)));
+   QObject::connect (this, SIGNAL (valueEdited     (const double)),
+                     this, SLOT   (userValueEdited (const double)));
 
    // Set default property values
    //
@@ -91,8 +96,12 @@ void QEAnalogSlider::commonSetup ()
    this->setShowSaveRevert (true);
    this->setShowApply (true);
 
-   this->mAutoScale = true;
+   this->mLastContinuousWriteTime =
+         QDateTime::currentDateTimeUtc().addMSecs(-minWriteInterval);
+   this->mContinuousWritePending = false;
    this->mContinuousWrite = false;
+
+   this->mAutoScale = true;
    this->mAxisAlarmColours = false;
    this->isConnected = false;
 
@@ -414,10 +423,36 @@ void QEAnalogSlider::stringChanged (const QEStringValueUpdate& update)
 
 //---------------------------------------------------------------------------------
 // slot
-void QEAnalogSlider::valueChanged (const double)
+void QEAnalogSlider::userValueEdited (const double)
 {
    if (this->getContinuousWrite()) {
+      const QDateTime timeNow = QDateTime::currentDateTimeUtc();
+      const qint64 elapsedMSec = this->mLastContinuousWriteTime.msecsTo (timeNow);
+
+      // Has the minimum write time interval passed?
+      //
+      if (elapsedMSec >= minWriteInterval) {
+         // Yes
+         this->mLastContinuousWriteTime = timeNow;
+         this->writeNow ();
+         this->mContinuousWritePending = false;
+
+      } else if (!this->mContinuousWritePending) {  // Is there already a pending write?
+         this->mContinuousWritePending = true;
+         const qint64 delayMSec = minWriteInterval - elapsedMSec;
+         QTimer::singleShot (delayMSec, this, SLOT (userValueUpdatePending()));
+      }
+   }
+}
+
+//---------------------------------------------------------------------------------
+// slot
+void QEAnalogSlider::userValueUpdatePending()
+{
+   if (this->mContinuousWritePending) {
+      this->mLastContinuousWriteTime = QDateTime::currentDateTimeUtc();
       this->writeNow ();
+      this->mContinuousWritePending = false;
    }
 }
 
@@ -635,7 +670,6 @@ void QEAnalogSlider::paste (QVariant s)
 
    this->setVariableName (pvNameList.value (1, ""), READ_BACK_VARIABLE_INDEX);
    this->establishConnection (READ_BACK_VARIABLE_INDEX);
-
 }
 
 // end

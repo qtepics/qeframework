@@ -14,6 +14,7 @@
 #ifndef QE_ANALOG_SLIDER_H
 #define QE_ANALOG_SLIDER_H
 
+#include <QDateTime>
 #include <QECommon.h>
 #include <QEEnums.h>
 #include <QEFrame.h>
@@ -324,8 +325,11 @@ private:
    QEStringFormatting   stringFormatting;
    QESingleVariableMethods* readback;
 
-   bool isConnected;
+   QDateTime mLastContinuousWriteTime;
+   bool mContinuousWritePending;
    bool mContinuousWrite;
+
+   bool isConnected;
    bool mAutoScale;
    bool mAxisAlarmColours;
 
@@ -338,7 +342,9 @@ private slots:
 
    void usePvNameProperties (const QEPvNameProperties& pvNameProperties);
 
-   void valueChanged (const double value);
+   void userValueEdited (const double value);
+   void userValueUpdatePending();
+
    void applyButtonClicked (bool);  // override parent class
 };
 

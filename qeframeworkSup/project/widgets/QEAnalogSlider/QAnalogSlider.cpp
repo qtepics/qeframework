@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2015-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2015-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -179,7 +179,7 @@ void QAnalogSlider::commonSetup ()
 
    this->slotValueChangeInhibited = true;
    this->mValue = 1.0;  // force internalSetValue function to apply change
-   this->internalSetValue (0.0);
+   this->internalSetValue (0.0, vsExternal);
    this->slotValueChangeInhibited = false;
    this->emitValueChangeInhibited = false;
 }
@@ -201,7 +201,8 @@ void QAnalogSlider::setTextImage ()
 
 //------------------------------------------------------------------------------
 //
-void QAnalogSlider::internalSetValue (const double value)
+void QAnalogSlider::internalSetValue (const double value,
+                                      const ValueSource source)
 {
    const double low = this->getMinimum ();
    const double high  = this->getMaximum ();
@@ -216,8 +217,17 @@ void QAnalogSlider::internalSetValue (const double value)
       //
       if (!this->emitValueChangeInhibited) {
          this->emitValueChangeInhibited = true;
+
+         const int iValue = static_cast<int>(this->mValue);   // range check?
+
          emit this->valueChanged (this->mValue);
-         emit this->valueChanged (int (this->mValue));   // range check?
+         emit this->valueChanged (iValue);
+
+         if (source == vsUserInput) {
+            emit valueEdited (this->mValue);
+            emit valueEdited (iValue);
+         }
+
          this->emitValueChangeInhibited = false;
       }
    }
@@ -265,7 +275,7 @@ void QAnalogSlider::setValue (const double value)
 {
    // Essentially just a wrapper.
    //
-   this->internalSetValue (value);
+   this->internalSetValue (value, vsExternal);
 }
 
 //------------------------------------------------------------------------------
@@ -550,7 +560,7 @@ void QAnalogSlider::setSliderValue ()
 void QAnalogSlider::sliderPositionChanged (const int posn)
 {
    if (!this->slotValueChangeInhibited) {
-      this->internalSetValue (convertToFloat (posn));
+      this->internalSetValue (convertToFloat (posn), vsUserInput);
    }
 }
 
@@ -588,7 +598,7 @@ void QAnalogSlider::saveButtonClicked (bool)
 //
 void QAnalogSlider::revertButtonClicked (bool)
 {
-   this->internalSetValue (this->savedValue);
+   this->internalSetValue (this->savedValue, vsUserInput);
 }
 
 //------------------------------------------------------------------------------

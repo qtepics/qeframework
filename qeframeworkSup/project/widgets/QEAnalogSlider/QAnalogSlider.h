@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2015-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2015-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -162,6 +162,11 @@ signals:
    void valueChanged (const double value);              // Send when value changes.
    void valueChanged (const int value);                 // overloaded form
 
+   // These are only emited when the value is changed by the user.
+   //
+   void valueEdited (const double value);
+   void valueEdited (const int value);                  // overloaded form
+
    void appliedValue (const double value);              // Send when internal apply button clicked
    void appliedValue (const int value);                 // overloaded form
 
@@ -178,7 +183,17 @@ protected slots:
 private:
    void commonSetup ();
    void setTextImage ();
-   void internalSetValue (const double value);
+
+   // Used to indicate the source of the value updated.
+   //
+   enum ValueSource {
+      vsExternal,
+      vsUserInput
+   };
+
+   void internalSetValue (const double value,   // used from within the widget.
+                          const ValueSource source);
+
    void setSliderValue ();
 
    // Converts between slider integer positions and associated real values.
