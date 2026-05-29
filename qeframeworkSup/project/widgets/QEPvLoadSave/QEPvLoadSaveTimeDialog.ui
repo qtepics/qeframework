@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>276</width>
+    <width>296</width>
     <height>290</height>
    </rect>
   </property>
@@ -30,7 +30,7 @@
     <widget class="QFrame" name="frame">
      <property name="minimumSize">
       <size>
-       <width>276</width>
+       <width>296</width>
        <height>290</height>
       </size>
      </property>
@@ -57,8 +57,8 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>240</width>
-          <height>180</height>
+          <width>288</width>
+          <height>200</height>
          </size>
         </property>
         <property name="minimumDate">
@@ -76,16 +76,16 @@
          </date>
         </property>
         <property name="firstDayOfWeek">
-         <enum>Qt::Monday</enum>
+         <enum>Qt::DayOfWeek::Monday</enum>
         </property>
         <property name="gridVisible">
          <bool>true</bool>
         </property>
         <property name="horizontalHeaderFormat">
-         <enum>QCalendarWidget::SingleLetterDayNames</enum>
+         <enum>QCalendarWidget::HorizontalHeaderFormat::SingleLetterDayNames</enum>
         </property>
         <property name="verticalHeaderFormat">
-         <enum>QCalendarWidget::NoVerticalHeader</enum>
+         <enum>QCalendarWidget::VerticalHeaderFormat::NoVerticalHeader</enum>
         </property>
         <property name="dateEditAcceptDelay">
          <number>500</number>
@@ -98,7 +98,7 @@
          <number>239</number>
         </property>
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
        </widget>
       </item>
@@ -114,7 +114,7 @@
          </size>
         </property>
         <property name="standardButtons">
-         <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+         <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
         </property>
        </widget>
       </item>

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>552</width>
+    <width>596</width>
     <height>304</height>
    </rect>
   </property>
@@ -30,15 +30,15 @@
     <widget class="QFrame" name="mainFrame">
      <property name="minimumSize">
       <size>
-       <width>548</width>
+       <width>592</width>
        <height>300</height>
       </size>
      </property>
      <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
+      <enum>QFrame::Shape::StyledPanel</enum>
      </property>
      <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
+      <enum>QFrame::Shadow::Raised</enum>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <property name="spacing">
@@ -107,7 +107,7 @@
                <string>Start DateTime</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignCenter</set>
+               <set>Qt::AlignmentFlag::AlignCenter</set>
               </property>
              </widget>
             </item>
@@ -115,8 +115,8 @@
              <widget class="QCalendarWidget" name="startDate">
               <property name="minimumSize">
                <size>
-                <width>240</width>
-                <height>168</height>
+                <width>288</width>
+                <height>200</height>
                </size>
               </property>
               <property name="minimumDate">
@@ -134,16 +134,16 @@
                </date>
               </property>
               <property name="firstDayOfWeek">
-               <enum>Qt::Monday</enum>
+               <enum>Qt::DayOfWeek::Monday</enum>
               </property>
               <property name="gridVisible">
                <bool>true</bool>
               </property>
               <property name="horizontalHeaderFormat">
-               <enum>QCalendarWidget::SingleLetterDayNames</enum>
+               <enum>QCalendarWidget::HorizontalHeaderFormat::SingleLetterDayNames</enum>
               </property>
               <property name="verticalHeaderFormat">
-               <enum>QCalendarWidget::NoVerticalHeader</enum>
+               <enum>QCalendarWidget::VerticalHeaderFormat::NoVerticalHeader</enum>
               </property>
               <property name="dateEditAcceptDelay">
                <number>500</number>
@@ -162,7 +162,7 @@
                <number>239</number>
               </property>
               <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+               <enum>Qt::Orientation::Horizontal</enum>
               </property>
              </widget>
             </item>
@@ -215,7 +215,7 @@
                <string>End DateTime</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignCenter</set>
+               <set>Qt::AlignmentFlag::AlignCenter</set>
               </property>
              </widget>
             </item>
@@ -223,8 +223,8 @@
              <widget class="QCalendarWidget" name="endDate">
               <property name="minimumSize">
                <size>
-                <width>240</width>
-                <height>168</height>
+                <width>288</width>
+                <height>200</height>
                </size>
               </property>
               <property name="minimumDate">
@@ -242,16 +242,16 @@
                </date>
               </property>
               <property name="firstDayOfWeek">
-               <enum>Qt::Monday</enum>
+               <enum>Qt::DayOfWeek::Monday</enum>
               </property>
               <property name="gridVisible">
                <bool>true</bool>
               </property>
               <property name="horizontalHeaderFormat">
-               <enum>QCalendarWidget::SingleLetterDayNames</enum>
+               <enum>QCalendarWidget::HorizontalHeaderFormat::SingleLetterDayNames</enum>
               </property>
               <property name="verticalHeaderFormat">
-               <enum>QCalendarWidget::NoVerticalHeader</enum>
+               <enum>QCalendarWidget::VerticalHeaderFormat::NoVerticalHeader</enum>
               </property>
               <property name="dateEditAcceptDelay">
                <number>500</number>
@@ -270,7 +270,7 @@
                <number>239</number>
               </property>
               <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+               <enum>Qt::Orientation::Horizontal</enum>
               </property>
              </widget>
             </item>
@@ -340,7 +340,7 @@
             <string>-00000 00:00:00</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
            </property>
            <property name="indent">
             <number>4</number>
@@ -350,7 +350,7 @@
          <item>
           <spacer name="horizontalSpacer">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -369,7 +369,7 @@
             </size>
            </property>
            <property name="standardButtons">
-            <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+            <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
            </property>
           </widget>
          </item>
