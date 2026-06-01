@@ -347,6 +347,34 @@ void QEPvLoadSaveModel::sort (QEPvLoadSaveGroup* group)
 
 //-----------------------------------------------------------------------------
 //
+void QEPvLoadSaveModel::shufflePosition (QEPvLoadSaveItem* item, const int offset)
+{
+   if (!item) return;          // sanity check
+   QEPvLoadSaveGroup* parentItem = qobject_cast <QEPvLoadSaveGroup*> (item->getParent ());
+   if (!parentItem) return;    // sanity check
+
+   const int posn = item->childPosition();  // zero based
+   const int newPosn = posn + offset;
+   const int count = parentItem->childCount();
+
+   if (newPosn <  0) return;       // already at the top
+   if (newPosn >= count) return;   // already at the bottom
+
+   parentItem->swapChildren (posn, newPosn);
+   this->modelUpdated ();
+
+   // Keep this item selected. We "know" there are 4 columns.
+   //
+   const QModelIndex topLeftIndex = this->getIndex (item, 0);
+   const QModelIndex bottomRightIndex = this->getIndex (item, 3);
+   const QItemSelection selection (topLeftIndex, bottomRightIndex);
+
+   this->treeSelectionModel->select (selection, QItemSelectionModel::ClearAndSelect);
+   this->selectedItem = item;
+}
+
+//-----------------------------------------------------------------------------
+//
 int QEPvLoadSaveModel::leafCount () const
 {
    return this->coreItem->leafCount ();
@@ -421,11 +449,8 @@ void QEPvLoadSaveModel::acceptActionInComplete (const QEPvLoadSaveItem* item,
 void QEPvLoadSaveModel::selectionChanged (const QItemSelection& selected,
                                           const QItemSelection& /* deselected*/ )
 {
-   QModelIndexList list;
-   int n;
-
-   list = selected.indexes ();
-   n = list.size ();
+   const QModelIndexList list = selected.indexes ();
+   const int n = list.size ();
 
    // We expect only one row to be selected.
    //
@@ -521,7 +546,7 @@ bool QEPvLoadSaveModel::processDropEvent (QEPvLoadSaveItem* parentItem, QDropEve
 
 //-----------------------------------------------------------------------------
 //
-bool QEPvLoadSaveModel::eventFilter (QObject *obj, QEvent* event)
+bool QEPvLoadSaveModel::eventFilter (QObject* watched, QEvent* event)
 {
    const QEvent::Type type = event->type ();
    QPoint pos;
@@ -536,7 +561,7 @@ bool QEPvLoadSaveModel::eventFilter (QObject *obj, QEvent* event)
    switch (type) {
 
       case QEvent::DragEnter:
-         if (obj == this->treeView) {
+         if (watched == this->treeView) {
             QDragEnterEvent* dragEnterEvent = static_cast<QDragEnterEvent*> (event);
             pos = QEPlatform::positionOf (dragEnterEvent);
             pos.setY (pos.y () - dragOffset);
@@ -551,7 +576,7 @@ bool QEPvLoadSaveModel::eventFilter (QObject *obj, QEvent* event)
 
 
       case QEvent::DragMove:
-         if (obj == this->treeView) {
+         if (watched == this->treeView) {
             QDragMoveEvent* dragMoveEvent = static_cast<QDragMoveEvent*> (event);
             pos = QEPlatform::positionOf (dragMoveEvent);
             pos.setY (pos.y () - dragOffset);
@@ -573,7 +598,7 @@ bool QEPvLoadSaveModel::eventFilter (QObject *obj, QEvent* event)
 
 
       case QEvent::DragLeave:
-         if (obj == this->treeView) {
+         if (watched == this->treeView) {
             // QDragLeaveEvent* dragLeaveEvent = static_cast<QDragLeaveEvent*> (event);
             this->setReadOut ("");
             return true;
@@ -582,7 +607,7 @@ bool QEPvLoadSaveModel::eventFilter (QObject *obj, QEvent* event)
 
 
       case QEvent::Drop:
-         if (obj == this->treeView) {
+         if (watched == this->treeView) {
             QDropEvent* dragDropEvent = static_cast<QDropEvent*> (event);
             pos = QEPlatform::positionOf (dragDropEvent);
             pos.setY (pos.y () - dragOffset);
@@ -736,7 +761,7 @@ int QEPvLoadSaveModel::columnCount (const QModelIndex& /* parent */ ) const
 //
 bool QEPvLoadSaveModel::insertRows (int position, int rows, const QModelIndex& parent)
 {
-   QEPvLoadSaveItem *parentItem = this->getItem (parent);
+   QEPvLoadSaveItem* parentItem = this->getItem (parent);
    bool success = false;
 
    // insertRows - ensure we can deal with this request.

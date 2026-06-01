@@ -335,6 +335,23 @@ void QEPvLoadSaveItem::appendChild (QEPvLoadSaveItem *child)
    child->parentItem = this;
 }
 
+//-----------------------------------------------------------------------------
+//
+QDebug operator<<(QDebug dbg, const QEPvLoadSaveItem& item)
+{
+   dbg << "QEPvLoadSaveItem(" << item.getNodeName()
+       << "," << item.getItemType() << ")";
+   return dbg;
+}
+
+//-----------------------------------------------------------------------------
+//
+QDebug operator<<(QDebug dbg, const QEPvLoadSaveItem* item)
+{
+   dbg << *item;
+   return dbg;
+}
+
 
 //=============================================================================
 // Sub class for group
@@ -485,6 +502,18 @@ void QEPvLoadSaveGroup::sortChildItems ()
                   const QEPvLoadSaveItem* node2) {
                      return node1->getNodeName() < node2->getNodeName();
                  } );
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSaveGroup::swapChildren (const int i, const int j)
+{
+   const int k = this->childItems.count();
+   if ((i==j) || (i<0) || (j<0) || (i>=k) || (j>=k)) {
+      DEBUG << "bas arguments";
+      return;
+   }
+   this->childItems.swapItemsAt(i, j);
 }
 
 //-----------------------------------------------------------------------------

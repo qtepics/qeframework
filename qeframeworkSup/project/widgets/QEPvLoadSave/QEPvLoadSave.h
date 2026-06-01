@@ -143,8 +143,8 @@ protected:
    QEChannel* createQcaItem (unsigned int variableIndex);
    void establishConnection (unsigned int variableIndex);
 
-   void resizeEvent (QResizeEvent* );
-   bool eventFilter (QObject *obj, QEvent* event);
+   void resizeEvent (QResizeEvent* event);
+   bool eventFilter (QObject* watched, QEvent* event);
 
    // No Drag and Drop yet
    // No copy paste yet
@@ -197,11 +197,13 @@ private:
 
       void setEnabled (const bool enabled);
 
+      void shuffleUp();
+      void shuffleDown();
+
       QFrame* container;
       Ui::QEPvLoadSaveHalf* ui;
       QPlainTextEdit* commentTextEdit;
-
-      QTreeView* tree;  // alias
+      QTreeView* tree;                        // alias
       QEPvLoadSaveModel* model;               // manages tree data
       QCaVariableNamePropertyManager vnpm;    // manages filenames
       QEPvLoadSaveCompare* graphicalCompare;
@@ -210,7 +212,6 @@ private:
       const Sides side;
       QEPvLoadSave* const owner;
    };
-
 
    QVBoxLayout* overallLayout;
    QFrame* sidesFrame;
@@ -275,7 +276,7 @@ private slots:
    void treeMenuRequested (const QPoint& pos);
    void treeMenuSelected  (QAction* action);
 
-   void checkBoxStateChanged (int);
+   void showHide2ndTree (int);
    void writeAllClicked (bool);
    void readAllClicked (bool);
    void writeSubsetClicked (bool);

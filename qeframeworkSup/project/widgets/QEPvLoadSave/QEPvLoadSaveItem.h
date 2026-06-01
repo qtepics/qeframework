@@ -173,6 +173,9 @@ protected:
    static int readArchiveCount;
 };
 
+QDebug operator<<(QDebug dbg, const QEPvLoadSaveItem& item);
+QDebug operator<<(QDebug dbg, const QEPvLoadSaveItem* item);
+
 Q_DECLARE_OPERATORS_FOR_FLAGS (QEPvLoadSaveItem::ItemTypeFlags)
 
 
@@ -202,6 +205,7 @@ public:
    void abortAction ();
    int leafCount () const;
    void sortChildItems ();
+   void swapChildren (const int i, const int j);
 
    QEPvLoadSaveCommon::StatusSummary getStatusSummary () const;
    QEPvLoadSaveCommon::PvNameValueMaps getPvNameValueMap () const;

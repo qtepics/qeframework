@@ -45,6 +45,9 @@ static const QString abortDisabledStyle = QEUtilities::colourToStyle (QColor (20
 static const QString controlDisabledStyle = QEUtilities::colourToStyle (QColor(0xffeecc), QColor (0xa0a0a0));
 static const QString iconPathName = ":/qe/pvloadsave";
 
+static const int minWidth = 472;
+static const int minHeight = 400;
+
 //=============================================================================
 // Halves
 //=============================================================================
@@ -128,16 +131,17 @@ QEPvLoadSave::Halves::Halves (const Sides sideIn,
    switch (this->side) {
       case LeftSide:
          QObject::connect (this->ui->show2ndTreeCheckBox, SIGNAL (stateChanged (int)),
-                           this->owner, SLOT (checkBoxStateChanged (int)));
+                           this->owner, SLOT (showHide2ndTree (int)));
          break;
 
       case RightSide:
-         // Update copy buttons
-
+         // Update copy buttons.
+         //
          this->ui->copyAllButton->setIcon (QIcon (iconPathName + "/ypoc_all.png"));
          this->ui->copySelectedButton->setIcon (QIcon (iconPathName + "/ypoc_subset.png"));
 
-         // Hide 2nd check box
+         // Hide 2nd check box.
+         //
          this->ui->show2ndTreeCheckBox->setVisible (false);
 
          break;
@@ -162,6 +166,8 @@ QEPvLoadSave::Halves::Halves (const Sides sideIn,
    this->tree->setUniformRowHeights (true);
    this->tree->setRootIsDecorated (true);
    this->tree->setAlternatingRowColors (true);
+
+   this->tree->installEventFilter (this->owner);
 
    // Create the graphical PV value compare widget.
    // There are two, one for each side, to allow Left v. Right as well as
@@ -274,6 +280,24 @@ void QEPvLoadSave::Halves::setEnabled (const bool enabled)
 
 //------------------------------------------------------------------------------
 //
+void QEPvLoadSave::Halves::shuffleUp()
+{
+   QEPvLoadSaveItem* item = this->model->getSelectedItem ();
+   if (!item) return;   // sanity check
+   this->model->shufflePosition (item, -1);
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPvLoadSave::Halves::shuffleDown()
+{
+   QEPvLoadSaveItem* item = this->model->getSelectedItem ();
+   if (!item) return;   // sanity check
+   this->model->shufflePosition (item, +1);
+}
+
+//------------------------------------------------------------------------------
+//
 void QEPvLoadSave::Halves::setConfigurationFile  (const QString& configurationFile)
 {
    this->vnpm.setVariableNameProperty (configurationFile);
@@ -327,7 +351,7 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    //
    this->setFrameShape (QFrame::Panel);
    this->setFrameShadow (QFrame::Plain);
-   this->setMinimumSize (932, 400);
+   this->setMinimumSize (minWidth, minHeight);
 
    // Set default QEFrame properties.
    //
@@ -381,7 +405,8 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    this->abortButton->setStyleSheet (abortDisabledStyle);
    this->abortButton->setEnabled (false);
 
-   QObject::connect (this->abortButton, SIGNAL (clicked (bool)), this, SLOT (abortClicked (bool)));
+   QObject::connect (this->abortButton, SIGNAL (clicked (bool)),
+                     this, SLOT (abortClicked (bool)));
 
    // Initate gathering of archive data - specifically the PV name list.
    //
@@ -446,7 +471,7 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    }
 
    this->half [LeftSide]->ui->show2ndTreeCheckBox->setChecked (false);
-   this->checkBoxStateChanged (Qt::Unchecked);
+   this->showHide2ndTree (Qt::Unchecked);
 }
 
 //-----------------------------------------------------------------------------
@@ -511,9 +536,48 @@ QSize QEPvLoadSave::sizeHint () const
 
 //------------------------------------------------------------------------------
 //
-bool QEPvLoadSave::eventFilter (QObject* /* obj*/ , QEvent* /* event */ )
+bool QEPvLoadSave::eventFilter (QObject* watched, QEvent* event)
 {
-   return false; // place holder - we did not handle this event
+   const QEvent::Type type = event->type ();
+   bool result = false;
+
+   switch (type) {
+      case QEvent::KeyPress:
+         if ((watched == this->half[0]->tree) ||
+             (watched == this->half[1]->tree)) {
+            QKeyEvent* keyEvent = dynamic_cast< QKeyEvent*>(event);
+            if (!keyEvent) break;
+
+            const Qt::KeyboardModifiers modifier = keyEvent->modifiers();
+            const bool isShift = ((modifier & Qt::ShiftModifier) != 0);
+            if (!isShift)  break;
+
+            const int index = watched == this->half[0]->tree ? 0 : 1;
+            const int key = keyEvent->key ();
+            switch (key) {
+               case Qt::Key_Up:
+                  this->half[index]->shuffleUp();
+                  result = true;    // event handled
+                  break;
+
+               case Qt::Key_Down:
+                  this->half[index]->shuffleDown();
+                  result = true;    // event handled
+                  break;
+
+               default:
+                  result = false;
+                  break;
+            }
+         }
+         break;
+
+      default:
+         result = false;
+         break;
+   }
+
+   return result;
 }
 
 //------------------------------------------------------------------------------
@@ -876,42 +940,48 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
       case TCM_SHOW_PV_PROPERTIES:
          leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
-            emit this->requestAction (QEActionRequests (QEActionRequests::actionPvProperties (), leaf->copyVariables()));
+            emit this->requestAction (QEActionRequests (QEActionRequests::actionPvProperties (),
+                                                        leaf->copyVariables()));
          }
          break;
 
       case TCM_ADD_TO_STRIPCHART:
          leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
-            emit this->requestAction (QEActionRequests (QEActionRequests::actionStripChart (), leaf->copyVariables()));
+            emit this->requestAction (QEActionRequests (QEActionRequests::actionStripChart (),
+                                                        leaf->copyVariables()));
          }
          break;
 
       case TCM_ADD_TO_SCRATCH_PAD:
          leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
-            emit this->requestAction (QEActionRequests (QEActionRequests::actionScratchPad (), leaf->copyVariables()));
+            emit this->requestAction (QEActionRequests (QEActionRequests::actionScratchPad (),
+                                                        leaf->copyVariables()));
          }
          break;
 
       case TCM_ADD_TO_PLOTTER:
          leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
-            emit this->requestAction (QEActionRequests (QEActionRequests::actionPlotter (), leaf->copyVariables()));
+            emit this->requestAction (QEActionRequests (QEActionRequests::actionPlotter (),
+                                                        leaf->copyVariables()));
          }
          break;
 
       case TCM_ADD_TO_HISTORGRAM:
          leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
-            emit this->requestAction (QEActionRequests (QEActionRequests::actionShowInHistogram (), leaf->copyVariables()));
+            emit this->requestAction (QEActionRequests (QEActionRequests::actionShowInHistogram (),
+                                                        leaf->copyVariables()));
          }
          break;
 
       case TCM_ADD_TO_TABLE:
          leaf = qobject_cast <QEPvLoadSaveLeaf*> (this->contextMenuItem);
          if (leaf) {   // sanity check
-            emit this->requestAction (QEActionRequests (QEActionRequests::actionTable (), leaf->copyVariables()));
+            emit this->requestAction (QEActionRequests (QEActionRequests::actionTable (),
+                                                        leaf->copyVariables()));
          }
          break;
 
@@ -923,7 +993,8 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
 
 //------------------------------------------------------------------------------
 //
-void QEPvLoadSave::editItemValue (QEPvLoadSaveItem* item, Halves* half, QWidget* centerOver)
+void QEPvLoadSave::editItemValue (QEPvLoadSaveItem* item,
+                                  Halves* half, QWidget* centerOver)
 {
    if (!item) return;
    if (!half) return;
@@ -980,18 +1051,17 @@ void QEPvLoadSave::editItemValue (QEPvLoadSaveItem* item, Halves* half, QWidget*
    }
 }
 
-
 //==============================================================================
 // Button and box signal functions
 //
-void QEPvLoadSave::checkBoxStateChanged (int state)
+void QEPvLoadSave::showHide2ndTree (int state)
 {
    const bool selected = (state == Qt::Checked);
    this->half [RightSide]->container->setVisible (selected);
 
    // Increase/Decrease minimum width.
    //
-   const int mw = QEScaling::scale (680);  // modify by current scaling
+   const int mw = QEScaling::scale (minWidth);  // modify by current scaling
    int newmw = selected ? (mw*2) : mw;
    this->setMinimumWidth (newmw);
 }

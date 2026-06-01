@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -107,6 +107,11 @@ public:
    //
    void sort (QEPvLoadSaveGroup* group);
 
+   // Move the selected item up/down if we can, i.e.
+   // swap with the item above/below.
+   //
+   void shufflePosition (QEPvLoadSaveItem* item, const int offset);
+
    // Tree walking attribute functions.
    //
    int leafCount () const;
@@ -126,7 +131,7 @@ signals:
    void reportActionInComplete (const QEPvLoadSaveItem* item, QEPvLoadSaveCommon::ActionKinds action);
 
 protected:
-   bool eventFilter (QObject *obj, QEvent* event);
+   bool eventFilter (QObject* watched, QEvent* event);
 
 private:
    // The model index associated with the core item is an invalid index.

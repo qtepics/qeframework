@@ -28,12 +28,6 @@
    </property>
    <item>
     <widget class="QFrame" name="mainFrame">
-     <property name="minimumSize">
-      <size>
-       <width>500</width>
-       <height>328</height>
-      </size>
-     </property>
      <property name="frameShape">
       <enum>QFrame::Shape::StyledPanel</enum>
      </property>
@@ -79,9 +73,9 @@
         <widget class="QCheckBox" name="show2ndTreeCheckBox">
          <property name="geometry">
           <rect>
-           <x>352</x>
+           <x>350</x>
            <y>12</y>
-           <width>104</width>
+           <width>112</width>
            <height>18</height>
           </rect>
          </property>
@@ -193,7 +187,7 @@
         <widget class="QPushButton" name="copyAllButton">
          <property name="geometry">
           <rect>
-           <x>256</x>
+           <x>254</x>
            <y>8</y>
            <width>40</width>
            <height>26</height>
@@ -233,7 +227,7 @@
         <widget class="QPushButton" name="copySelectedButton">
          <property name="geometry">
           <rect>
-           <x>300</x>
+           <x>298</x>
            <y>8</y>
            <width>40</width>
            <height>26</height>
