@@ -1146,7 +1146,7 @@ QEPvLoadSavePause::~QEPvLoadSavePause () { }
 //
 void QEPvLoadSavePause::setDelay (const double delayIn)
 {
-   this->delay = LIMIT (delayIn, 0.0, 10.0);
+   this->delay = LIMIT (delayIn, 0.0, 300.0);
 
    QString name = QString ("pause:// %1 sec").arg (this->delay, 0, 'f', 3);
    this->setNodeName (name);
@@ -1173,7 +1173,7 @@ QVariant QEPvLoadSavePause::getData (int column) const
 
       case QEPvLoadSaveCommon::LoadSave:
       case QEPvLoadSaveCommon::Live:
-         // Pause items don't have live or delta values.
+         // Pause items don't have live or delta values. Count down?
          result.setValue (QString (""));
          break;
 
