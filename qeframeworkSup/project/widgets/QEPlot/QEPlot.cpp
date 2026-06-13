@@ -1145,7 +1145,7 @@ void QEPlot::plotData ()
    //
    this->plotArea->replot ();
 
-   // Last - clear teh replot required flag.
+   // Last - clear the replot required flag.
    //
    this->replotIsRequired = false;
 
