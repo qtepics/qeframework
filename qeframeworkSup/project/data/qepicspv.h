@@ -31,6 +31,7 @@
 #include <QStringList>
 #include <QEFrameworkLibraryGlobal.h>
 
+#include <QEChannel.h>
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEpicsPV : public QObject {
   Q_OBJECT
@@ -231,6 +232,8 @@ private slots:
   // Used to catch the QEChannel::dataChanged() signal from the ::qCaField.
   // @param data new data.
   void updateValue(const QVariant & data);
+
+  void updateValue(const QEVariantUpdate& update);
 
   // Used to catch QEChannel::connectionChanged() signal from the ::qCaField.
   void updateConnection();
