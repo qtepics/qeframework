@@ -48,10 +48,12 @@ public:
    Q_PROPERTY (int  precision        READ getPrecision  WRITE setPrecision)
 
    /// Speficies the mimimum allowed value.
-   Q_PROPERTY (double minimum        READ getMinimum    WRITE setMinimum)
+   Q_PROPERTY (double minimum        READ getMinimum        WRITE setMinimum)
+   Q_PROPERTY (QString minimumText   READ getMinimumText    WRITE setMinimumText)
 
    /// Speficies the maximum allowed value.
-   Q_PROPERTY (double maximum        READ getMaximum    WRITE setMaximum)
+   Q_PROPERTY (double maximum        READ getMaximum        WRITE setMaximum)
+   Q_PROPERTY (QString maximumText   READ getMaximumText    WRITE setMaximumText)
 
    /// Minor scale interval.
    /// Only applies for linear scale (not log scale)
@@ -116,8 +118,14 @@ public:
    void setMinimum (const double minimum);        ///< Access function for #minimum - refer to #minimum property for details
    double getMinimum () const;                    ///< Access function for #minimum - refer to #minimum property for details
 
+   void setMinimumText (const QString& value);    ///< Access function for #minimumText - refer to #minimumText property for details
+   QString getMinimumText () const;               ///< Access function for #minimumText - refer to #minimumText property for details
+
    void setMaximum (const double maximum);        ///< Access function for #maximum - refer to #maximum property for details
    double getMaximum () const;                    ///< Access function for #maximum - refer to #maximum property for details
+
+   void setMaximumText (const QString& value);    ///< Access function for #maximumText - refer to #maximumText property for details
+   QString getMaximumText () const;               ///< Access function for #maximumText - refer to #maximumText property for details
 
    void setMinorInterval (const double minorInterval);  ///< Access function for #minorInterval - refer to #minorInterval property for details
    double getMinorInterval () const;                    ///< Access function for #minorInterval - refer to #minorInterval property for details

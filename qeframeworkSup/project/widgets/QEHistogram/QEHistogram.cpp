@@ -974,6 +974,24 @@ double QEHistogram::getMinimum() const
 
 //------------------------------------------------------------------------------
 //
+void QEHistogram::setMinimumText (const QString& text)
+{
+   bool okay;
+   const double value = text.toDouble (&okay);
+   if (okay) {
+      this->setMinimum (value);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEHistogram::getMinimumText () const
+{
+   return QEUtilities::propertyDoubleToText (this->mMinimum);
+}
+
+//------------------------------------------------------------------------------
+//
 void QEHistogram::setMaximum(const double value)
 {
    this->mMaximum = LIMIT (value, MINIMUM_VALUE, MAXIMUM_VALUE);
@@ -987,6 +1005,24 @@ void QEHistogram::setMaximum(const double value)
 double QEHistogram::getMaximum() const
 {
    return this->mMaximum;
+}
+
+//------------------------------------------------------------------------------
+//
+void QEHistogram::setMaximumText (const QString& text)
+{
+   bool okay;
+   const double value = text.toDouble (&okay);
+   if (okay) {
+      this->setMaximum (value);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEHistogram::getMaximumText () const
+{
+   return QEUtilities::propertyDoubleToText (this->mMaximum);
 }
 
 //------------------------------------------------------------------------------

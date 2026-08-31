@@ -837,6 +837,24 @@ double QNumericEdit::getMinimum () const
 
 //------------------------------------------------------------------------------
 //
+void QNumericEdit::setMinimumText (const QString& text)
+{
+   bool okay;
+   const double value = text.toDouble (&okay);
+   if (okay) {
+      this->setMinimum (value);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+QString QNumericEdit::getMinimumText () const
+{
+   return QEUtilities::propertyDoubleToText (this->mMinimum);
+}
+
+//------------------------------------------------------------------------------
+//
 void QNumericEdit::setMaximum (const double value)
 {
    this->mMaximum = LIMIT (value, this->minimumMin, this->maximumMax);
@@ -854,6 +872,24 @@ void QNumericEdit::setMaximum (const double value)
 double QNumericEdit::getMaximum () const
 {
    return this->mMaximum;
+}
+
+//------------------------------------------------------------------------------
+//
+void QNumericEdit::setMaximumText (const QString& text)
+{
+   bool okay;
+   const double value = text.toDouble (&okay);
+   if (okay) {
+      this->setMaximum (value);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+QString QNumericEdit::getMaximumText () const
+{
+   return QEUtilities::propertyDoubleToText (this->mMaximum);
 }
 
 //------------------------------------------------------------------------------

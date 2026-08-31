@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -199,6 +199,10 @@ public:
                               const QString& enumTypeName,
                               const QString& enumImage,
                               bool* ok = 0);
+
+    /// Converts a double to text. Used to ensures format consistancy.
+    ///
+    static QString propertyDoubleToText (const double value);
 
     /// This function tree walks the given parent looking a widget of the specified class
     /// name. The function returns the first found or NULL.

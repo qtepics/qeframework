@@ -333,6 +333,24 @@ double QAnalogSlider::getMinimum () const
 
 //------------------------------------------------------------------------------
 //
+void QAnalogSlider::setMinimumText (const QString& text)
+{
+   bool okay;
+   const double value = text.toDouble (&okay);
+   if (okay) {
+      this->setMinimum (value);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+QString QAnalogSlider::getMinimumText () const
+{
+   return QEUtilities::propertyDoubleToText (this->mMinimum);
+}
+
+//------------------------------------------------------------------------------
+//
 void QAnalogSlider::setMaximum (const double maximum)
 {
    // Ensure in range
@@ -352,6 +370,24 @@ void QAnalogSlider::setMaximum (const double maximum)
 double QAnalogSlider::getMaximum () const
 {
    return this->mMaximum;
+}
+
+//------------------------------------------------------------------------------
+//
+void QAnalogSlider::setMaximumText (const QString& text)
+{
+   bool okay;
+   const double value = text.toDouble (&okay);
+   if (okay) {
+      this->setMaximum (value);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+QString QAnalogSlider::getMaximumText () const
+{
+   return QEUtilities::propertyDoubleToText (this->mMaximum);
 }
 
 //------------------------------------------------------------------------------

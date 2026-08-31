@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2014-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2014-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -40,7 +40,9 @@ public:
    Q_PROPERTY (int    margin           READ getMargin           WRITE setMargin)
    Q_PROPERTY (bool   autoScale        READ getAutoScale        WRITE setAutoScale)
    Q_PROPERTY (double minimum          READ getMinimum          WRITE setMinimum)
+   Q_PROPERTY (QString minimumText     READ getMinimumText      WRITE setMinimumText)
    Q_PROPERTY (double maximum          READ getMaximum          WRITE setMaximum)
+   Q_PROPERTY (QString maximumText     READ getMaximumText      WRITE setMaximumText)
    Q_PROPERTY (double baseLine         READ getBaseLine         WRITE setBaseLine)
    Q_PROPERTY (bool   drawAxies        READ getDrawAxies        WRITE setDrawAxies)
    Q_PROPERTY (bool   showScale        READ getShowScale        WRITE setShowScale)
@@ -106,6 +108,13 @@ public:
    //
    PROPERTY_ACCESS (int,    TestSize)
 #undef PROPERTY_ACCESS
+
+   // Propert wrapper functions
+   void setMinimumText (const QString& value);
+   QString getMinimumText () const;
+
+   void setMaximumText (const QString& value);
+   QString getMaximumText () const;
 
    int count () const;
 

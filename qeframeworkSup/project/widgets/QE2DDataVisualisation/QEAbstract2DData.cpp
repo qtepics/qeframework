@@ -1159,6 +1159,24 @@ double QEAbstract2DData::getMinimum () const
 
 //------------------------------------------------------------------------------
 //
+void QEAbstract2DData::setMinimumText (const QString& text)
+{
+   bool okay;
+   const double value = text.toDouble (&okay);
+   if (okay) {
+      this->setMinimum (value);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEAbstract2DData::getMinimumText () const
+{
+   return QEUtilities::propertyDoubleToText (this->mMinimum);
+}
+
+//------------------------------------------------------------------------------
+//
 void QEAbstract2DData::setMaximum (const double maximum)
 {
    this->mMaximum = maximum;
@@ -1180,6 +1198,23 @@ double QEAbstract2DData::getMaximum () const
    return this->mMaximum;
 }
 
+//------------------------------------------------------------------------------
+//
+void QEAbstract2DData::setMaximumText (const QString& text)
+{
+   bool okay;
+   const double value = text.toDouble (&okay);
+   if (okay) {
+      this->setMaximum (value);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEAbstract2DData::getMaximumText () const
+{
+   return QEUtilities::propertyDoubleToText (this->mMaximum);
+}
 
 //------------------------------------------------------------------------------
 //

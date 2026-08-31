@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2011-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2011-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -1136,6 +1136,22 @@ double QEAnalogIndicator::getMinimum () const
 
 //------------------------------------------------------------------------------
 //
+void QEAnalogIndicator::setMinimumText (const QString& text)
+{
+   bool okay;
+   const double value = text.toDouble (&okay);
+   if (okay) {
+      this->setMinimum (value);
+   }
+}
+
+QString QEAnalogIndicator::getMinimumText () const
+{
+   return QEUtilities::propertyDoubleToText (this->mMinimum);
+}
+
+//------------------------------------------------------------------------------
+//
 void QEAnalogIndicator::setMaximum (const double maximum)
 {
    this->mMaximum = maximum;
@@ -1154,7 +1170,23 @@ double QEAnalogIndicator::getMaximum () const
 }
 
 //------------------------------------------------------------------------------
-// Standard propery access macro.
+//
+void QEAnalogIndicator::setMaximumText (const QString& text)
+{
+   bool okay;
+   const double value = text.toDouble (&okay);
+   if (okay) {
+      this->setMaximum (value);
+   }
+}
+
+QString QEAnalogIndicator::getMaximumText () const
+{
+   return QEUtilities::propertyDoubleToText (this->mMaximum);
+}
+
+//------------------------------------------------------------------------------
+// Standard property access macro.
 //
 #define PROPERTY_ACCESS(type, name, convert)                 \
                                                              \

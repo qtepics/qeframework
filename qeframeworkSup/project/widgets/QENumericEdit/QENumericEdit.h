@@ -140,11 +140,14 @@ public:
    /// This is only used if autoScale is false.
    ///
    Q_PROPERTY (double minimum          READ getMinimum          WRITE setMinimum)
+   Q_PROPERTY (QString minimumText     READ getMinimumText      WRITE setMinimumText)
 
    /// Speficies the maximum allowed value.
    /// This is only used if autoScale is false.
    ///
    Q_PROPERTY (double maximum          READ getMaximum          WRITE setMaximum)
+   Q_PROPERTY (QString maximumText     READ getMaximumText      WRITE setMaximumText)
+
 
    /// If true (default is false), add engineering units supplied with the data.
    ///
@@ -264,8 +267,14 @@ public:
    void setMinimum (const double value);
    double getMinimum () const;
 
+   void setMinimumText (const QString& value);
+   QString getMinimumText () const;
+
    void setMaximum (const double value);
    double getMaximum () const;
+
+   void setMaximumText (const QString& value);
+   QString getMaximumText () const;
 
    // Expose access to the internal widget's set/get functions.
    //

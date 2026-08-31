@@ -135,8 +135,12 @@ public:
    Q_ENUM (ScaleModes)
 
    Q_PROPERTY (ScaleModes scaleMode      READ getScaleMode             WRITE setScaleMode)
+
    Q_PROPERTY (double minimum            READ getMinimum               WRITE setMinimum)
+   Q_PROPERTY (QString minimumText       READ getMinimumText           WRITE setMinimumText)
+
    Q_PROPERTY (double maximum            READ getMaximum               WRITE setMaximum)
+   Q_PROPERTY (QString maximumText       READ getMaximumText           WRITE setMaximumText)
 
    /// If true, use logarithmic scaling/brightness
    ///
@@ -220,7 +224,7 @@ public slots:
    // All non-PV name related property setters are also slots.
    //
    void setDataWidth (const int dataWidth);
-   void setDataFormat (const DataFormats dataFormat);
+   void setDataFormat (const QEAbstract2DData::DataFormats dataFormat);
    void setNumberOfSets (const int numberOfSets);
    void setVerticalSliceFirst (const int first);
    void setVerticalSliceLast (const int last);
@@ -228,11 +232,11 @@ public slots:
    void setHorizontalSliceLast (const int last);
    void setVerticalBin  (const int bin);
    void setHorizontalBin  (const int bin);
-   void setDataBinning  (const DataBinning option);
+   void setDataBinning  (const QEAbstract2DData::DataBinning option);
    void setRotation (const QE::RotationOptions rotation);
    void setVerticalFlip (const bool verticalFlip);
    void setHorizontalFlip (const bool horizontalFlip);
-   void setScaleMode (const ScaleModes);
+   void setScaleMode (const QEAbstract2DData::ScaleModes);
    void setMinimum (const double minimum);
    void setMinimum (const int minimum);    // overloaded form
    void setMaximum (const double maximum);
@@ -257,6 +261,12 @@ public:
    double getMinimum () const;
    double getMaximum () const;
    bool getLogScale () const;
+
+   void setMinimumText (const QString& value);
+   QString getMinimumText () const;
+
+   void setMaximumText (const QString& value);
+   QString getMaximumText () const;
 
 signals:
    // This signal is emitted using the QEEmitter::emitDbConnectionChanged function.

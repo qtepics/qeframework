@@ -405,6 +405,15 @@ int QEUtilities::stringToEnum (const QMetaObject& mo,
 
 //------------------------------------------------------------------------------
 //
+QString QEUtilities::propertyDoubleToText (const double value)
+{
+   // Allow uto 15 significant digits.
+   //
+   return QString::number (value, 'g', 15);
+}
+
+//------------------------------------------------------------------------------
+//
 QStringList QEUtilities::split (const QString& s)
 {
    QStringList result;

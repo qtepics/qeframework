@@ -981,6 +981,24 @@ double QENumericEdit::getMinimum () const
 
 //------------------------------------------------------------------------------
 //
+void QENumericEdit::setMinimumText (const QString& text)
+{
+   bool okay;
+   const double value = text.toDouble (&okay);
+   if (okay) {
+      this->setMinimum (value);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+QString QENumericEdit::getMinimumText () const
+{
+   return QEUtilities::propertyDoubleToText (this->getMinimum());
+}
+
+//------------------------------------------------------------------------------
+//
 void QENumericEdit::setMaximum (const double value)
 {
    this->designMaximum = value;
@@ -994,6 +1012,24 @@ void QENumericEdit::setMaximum (const double value)
 double QENumericEdit::getMaximum () const
 {
    return this->designMaximum;
+}
+
+//------------------------------------------------------------------------------
+//
+void QENumericEdit::setMaximumText (const QString& text)
+{
+   bool okay;
+   const double value = text.toDouble (&okay);
+   if (okay) {
+      this->setMaximum (value);
+   }
+}
+
+//------------------------------------------------------------------------------
+//
+QString QENumericEdit::getMaximumText () const
+{
+   return QEUtilities::propertyDoubleToText (this->getMaximum());
 }
 
 //==============================================================================

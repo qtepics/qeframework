@@ -106,10 +106,12 @@ public:
    /// Specify the mimimum allowed value.
    ///
    Q_PROPERTY (double minimum        READ getMinimum        WRITE setMinimum)
+   Q_PROPERTY (QString minimumText   READ getMinimumText    WRITE setMinimumText)
 
    /// Specify the maximum allowed value.
    ///
    Q_PROPERTY (double maximum        READ getMaximum        WRITE setMaximum)
+   Q_PROPERTY (QString maximumText   READ getMaximumText    WRITE setMaximumText)
 
    /// Specify the value after min/max
    ///
@@ -158,8 +160,14 @@ public:
    void setMinimum (const double value);
    double getMinimum () const;
 
+   void setMinimumText (const QString& value);
+   QString getMinimumText () const;
+
    void setMaximum (const double value);
    double getMaximum () const;
+
+   void setMaximumText (const QString& value);
+   QString getMaximumText () const;
 
    void setRadix (const QE::Radicies value);
    QE::Radicies getRadix () const;
