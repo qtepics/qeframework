@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2017-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2017-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andraz Pozar
@@ -53,6 +53,14 @@ public:
    };
    Q_ENUM (ArchiverTypes)
 
+   // The archve state of a named PV.
+   //
+   enum PVArchiveStatus {
+      Unknown = 0,    // Archive replies are incomplete.
+      NotArchived,
+      IsArchived
+   };
+
    explicit QEArchiveAccess (QObject* parent = 0);
    virtual ~QEArchiveAccess ();
 
@@ -82,6 +90,12 @@ public:
    static int getNumberPVs ();
 
    static QStringList getAllPvNames ();
+
+   // Checks if a PV name is archived.
+   // Checks with/without .VAL
+   // Also caters for optional preceeding protocol, ca:// and pva://
+   //
+   static PVArchiveStatus pvArchiveState (const QString& pvName);
 
    // Requests re-transmission of archive status.
    // Returned status is via archiveStatus signal.

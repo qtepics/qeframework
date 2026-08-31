@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2017-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2017-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andraz Pozar
@@ -225,6 +225,14 @@ QStringList QEArchiveAccess::getAllPvNames ()
    }
 
    return  result;
+}
+
+//------------------------------------------------------------------------------
+// static
+QEArchiveAccess::PVArchiveStatus QEArchiveAccess::pvArchiveState (const QString& pvName)
+{
+   if (!archiveManager) return PVArchiveStatus::Unknown;
+   return archiveManager->pvArchiveState (pvName);
 }
 
 //------------------------------------------------------------------------------

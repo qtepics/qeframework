@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -593,10 +593,10 @@ bool QEArchiveManager::containsPvName (const QString& pvName,
    effectivePvName = uri.getPvName ();
 
    QEPvNameUri::Protocol protocol = uri.getProtocol ();
-   if (protocol != QEPvNameUri::ca) {
-      DEBUG << "Only Channel Access protocol archiving is supported:" << pvName;
-      this->sendMessage (QString ("Only Channel Access protocol archiving is supported: %1").arg (pvName),
-                         message_types (MESSAGE_TYPE_WARNING));
+   if ((protocol != QEPvNameUri::ca) && (protocol != QEPvNameUri::pva)) {
+      QString message = QString("Only CA and PVA protocol archiving is supported: %1)").arg(pvName);
+      DEBUG << message;
+      this->sendMessage (message, message_types (MESSAGE_TYPE_WARNING));
       return false;
    }
 
@@ -635,6 +635,19 @@ bool QEArchiveManager::containsPvName (const QString& pvName,
    }
 
    return result;
+}
+
+//------------------------------------------------------------------------------
+//
+QEArchiveAccess::PVArchiveStatus
+QEArchiveManager::pvArchiveState (const QString& pvName)
+{
+   QString effectivePvName;             // ignored
+   QEArchiveAccess::MetaRequests meta;  // ignored
+
+   if (pvName.trimmed().isEmpty()) return QEArchiveAccess::NotArchived;
+   bool ok = this->containsPvName (pvName, effectivePvName, meta);
+   return ok ? QEArchiveAccess::IsArchived : QEArchiveAccess::NotArchived;
 }
 
 //------------------------------------------------------------------------------

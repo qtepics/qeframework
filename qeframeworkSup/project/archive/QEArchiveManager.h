@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andraz Pozar, Andrew Starritt
@@ -94,6 +94,10 @@ private:
    bool containsPvName (const QString& pvName,
                         QString& effectivePvName,
                         QEArchiveAccess::MetaRequests& meta);
+
+   // A conveniance wrapper around containsPvName
+   //
+   QEArchiveAccess::PVArchiveStatus pvArchiveState (const QString& pvName);
 
    // Processes meta PV data from the archive interface managers.
    // This allows the QEArchiveManager to know if a PV is available
