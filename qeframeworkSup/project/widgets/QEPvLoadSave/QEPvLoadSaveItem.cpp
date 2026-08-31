@@ -513,7 +513,12 @@ void QEPvLoadSaveGroup::swapChildren (const int i, const int j)
       DEBUG << "bas arguments";
       return;
    }
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 13, 0)
+   this->childItems.swap(i, j);
+#else
    this->childItems.swapItemsAt(i, j);
+#endif
 }
 
 //-----------------------------------------------------------------------------
