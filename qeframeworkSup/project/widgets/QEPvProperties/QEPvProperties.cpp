@@ -44,7 +44,7 @@
 // class wide data
 //==============================================================================
 //
-static const QString lightGreyStyle = QEUtilities::colourToStyle ("#e8e8e8");
+static const QString lightGreyStyle   = QEUtilities::colourToStyle ("#e8e8e8");
 
 static bool recordSpecsAreInitialised = false;       // setup housekeeping
 static QERecordSpec* pDefaultRecordSpec = NULL;      // default for unknown record types
@@ -160,6 +160,7 @@ void QEPvProperties::createInternalWidgets ()
 {
    const int label_height = 18;
    const int label_width = 48;
+   const int archive_status_width = 88;
 
    // Create dialog.
    //
@@ -194,13 +195,25 @@ void QEPvProperties::createInternalWidgets ()
 
    this->label2 = new QLabel ("VAL", this->topFrame);
    this->label2->setFixedSize (QSize (label_width, label_height));
+
    this->valueLabel = new QLabel (this->topFrame);
    this->valueLabel->setFixedHeight (label_height);
    this->valueLabel->setStyleSheet (lightGreyStyle);
    this->valueLabel->setIndent (6);
 
+   this->archiveStatus = new QSimpleShape ();
+   this->archiveStatus->setFixedSize (archive_status_width, label_height);
+   this->archiveStatus->setEdgeWidth (0);
+   this->archiveStatus->setTextFormat (QSimpleShape::StateSet);
+   static const QStringList stateTexts = {"unknown", "not archived", "archived"};
+   this->archiveStatus->setStateSet (stateTexts);
+   this->archiveStatus->setColourProperty (0, QColor(0xd0d0a0));
+   this->archiveStatus->setColourProperty (1, QColor(0xf0a0a0));
+   this->archiveStatus->setColourProperty (2, QColor(0xa0f0a0));
+
    this->hlayouts [2]->addWidget (this->label2);
    this->hlayouts [2]->addWidget (this->valueLabel);
+   this->hlayouts [2]->addWidget (this->archiveStatus);
 
    this->label3 = new QLabel ("Host", this->topFrame);
    this->label3->setFixedSize (QSize (label_width, label_height));
@@ -290,6 +303,7 @@ QEPvProperties::QEPvProperties (const QString& variableName, QWidget* parent) :
    this->recordBaseName = QERecordFieldName::recordName (variableName);
    this->common_setup ();
    this->setVariableName (variableName, PV_VARIABLE_INDEX);
+   this->setPvArchiveState ();
    this->activate ();
 }
 
@@ -362,6 +376,8 @@ void QEPvProperties::common_setup ()
    // configure abstract dynamic widget - allow edit PV by default.
    //
    this->setEnableEditPv (true);
+
+   this->archiveAccess = new QEArchiveAccess (this);
 
    // allocate and configure own widgets
    // ...and setup an alias
@@ -971,6 +987,8 @@ void QEPvProperties::setValueConnection (const QEConnectionUpdate& update)
          this->hostName->setText (qca->getHostName());
       }
    }
+
+   this->setPvArchiveState ();
 }
 
 //------------------------------------------------------------------------------
@@ -1160,8 +1178,7 @@ void QEPvProperties::runSelectNameDialog (QWidget* control)
          // Clear style.
          //
          this->valueLabel->setStyleSheet (lightGreyStyle);
-         this->setVariableName (newPvName, 0);
-         this->establishConnection (0);
+         this->setPvName (newPvName);
       }
    }
 }
@@ -1181,8 +1198,7 @@ void QEPvProperties::boxCurrentIndexChanged (int index)
          // Clear style.
          //
          this->valueLabel->setStyleSheet (lightGreyStyle);
-         this->setVariableName (newPvName, 0);
-         this->establishConnection (0);
+         this->setPvName (newPvName);
       }
    }
 }
@@ -1411,10 +1427,20 @@ void QEPvProperties::restoreConfiguration (PersistanceManager* pm, restorePhases
 
 //==============================================================================
 //
-void QEPvProperties::setPvName (const QString& pvNameIn)
+void QEPvProperties::setPvName (const QString& pvName)
 {
-   this->setVariableName (pvNameIn, 0);
-   this->establishConnection (0);
+   this->setVariableName (pvName, PV_VARIABLE_INDEX);
+   this->establishConnection (PV_VARIABLE_INDEX);
+   this->setPvArchiveState ();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPvProperties::setPvArchiveState ()
+{
+   const QString pvName = this->getSubstitutedVariableName (PV_VARIABLE_INDEX);
+   const QEArchiveAccess::PVArchiveStatus status = QEArchiveAccess::pvArchiveState (pvName);
+   this->archiveStatus->setValue (static_cast<int> (status));
 }
 
 //==============================================================================

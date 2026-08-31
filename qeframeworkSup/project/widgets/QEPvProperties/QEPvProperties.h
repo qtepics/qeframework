@@ -28,6 +28,7 @@
 #include <QComboBox>
 
 #include <persistanceManager.h>
+#include <QEArchiveAccess.h>
 #include <QCaAlarmInfo.h>
 #include <QEEnums.h>
 #include <QEDragDrop.h>
@@ -45,6 +46,7 @@
 #include <QEWidget.h>
 #include <QEQuickSort.h>
 #include <QEOneToOne.h>
+#include <QSimpleShape.h>
 
 class QEPVNameSelectDialog;  // differed
 
@@ -165,6 +167,11 @@ private:
    QEStringFormatting rtypStringFormatting;
    QEStringFormatting valueStringFormatting;
 
+   // Not used directly, however mearlty creating one initiates fetching
+   // data from the archivers if this has not otherwise already occured.
+   //
+   QEArchiveAccess* archiveAccess;
+
    // Internal widgets.
    //
    typedef QList<QLabel*> QLabelList;
@@ -178,6 +185,7 @@ private:
    QLabel* label6;
    QComboBox* box;
    QLabel* valueLabel;
+   QSimpleShape* archiveStatus;
    QLabel* hostName;
    QLabel* fieldType;
    QLabel* timeStamp;
@@ -247,6 +255,8 @@ private:
    //
    void setPvName (const QString& pvName);
 
+   void setPvArchiveState ();
+
    // Requests new columns widths.
    void setColumnWidths (const int fcw, const int dcw);
 
@@ -258,7 +268,7 @@ private slots:
 
    void usePvNameProperties (const QEPvNameProperties&);
 
-   // Basic widgit PV related slots (used for RTYP pseudo field).
+   // Basic widget PV related slots (used for RTYP pseudo field).
    //
    void setRecordTypeConnection (const QEConnectionUpdate&);
    void setRecordTypeValue (const QEStringValueUpdate&);
