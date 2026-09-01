@@ -13,7 +13,8 @@
 
 #include "QEPvLoadSaveItem.h"
 #include "QEPvLoadSave.h"
-#include <QEPvLoadSaveUtilities.h>
+#include "QEPvLoadSaveModel.h"
+#include "QEPvLoadSaveUtilities.h"
 
 #include <algorithm>    // for std::sort
 #include <QCoreApplication>
@@ -264,13 +265,6 @@ int QEPvLoadSaveItem::getElementCount () const
 
 //-----------------------------------------------------------------------------
 //
-void QEPvLoadSaveItem::actionConnect (QObject*, const char*, const char*, const char*)
-{
-   NOT_OVERRIDDEN;
-}
-
-//-----------------------------------------------------------------------------
-//
 void QEPvLoadSaveItem::extractPVData ()
 {
    NOT_OVERRIDDEN;
@@ -427,12 +421,14 @@ QVariant QEPvLoadSaveGroup::getData (int column) const
 void QEPvLoadSaveGroup::actionConnect (QObject* actionCompleteObject,
                                        const char* actionSetReadOutSlot,
                                        const char* actionCompleteSlot,
-                                       const char* actionInCompleteSlot)
+                                       const char* actionInCompleteSlot,
+                                       const char* modelUpdateSlot)
 {
    for (int j = 0; j < this->childItems.count(); j++) {
       QEPvLoadSaveItem* item = this->getChild (j);
       if (item) item->actionConnect (actionCompleteObject, actionSetReadOutSlot,
-                                     actionCompleteSlot, actionInCompleteSlot);
+                                     actionCompleteSlot, actionInCompleteSlot,
+                                     modelUpdateSlot);
    }
 }
 
@@ -883,7 +879,8 @@ void QEPvLoadSaveLeaf::setupQEChannels ()
 void QEPvLoadSaveLeaf::actionConnect (QObject* actionCompleteObject,
                                       const char* actionSetReadOutSlot,
                                       const char* actionCompleteSlot,
-                                      const char* actionInCompleteSlot)
+                                      const char* actionInCompleteSlot,
+                                      const char* /* modelUpdateSlot*/ )
 {
    QObject::connect (this, SIGNAL (setReadOut (const QString&)),
                      actionCompleteObject, actionSetReadOutSlot);
@@ -1141,6 +1138,7 @@ QEPvLoadSavePause::QEPvLoadSavePause (const double delayIn,
    QEPvLoadSaveItem ("pause://", nilValue, parent)
 {
    this->setDelay (delayIn);
+   this->countDown = "";
 }
 
 //-----------------------------------------------------------------------------
@@ -1151,7 +1149,7 @@ QEPvLoadSavePause::~QEPvLoadSavePause () { }
 //
 void QEPvLoadSavePause::setDelay (const double delayIn)
 {
-   this->delay = LIMIT (delayIn, 0.0, 300.0);
+   this->delay = LIMIT (delayIn, 0.0, 3600.0);
 
    QString name = QString ("pause:// %1 sec").arg (this->delay, 0, 'f', 3);
    this->setNodeName (name);
@@ -1177,6 +1175,9 @@ QVariant QEPvLoadSavePause::getData (int column) const
          break;
 
       case QEPvLoadSaveCommon::LoadSave:
+         result.setValue (this->countDown);
+         break;
+
       case QEPvLoadSaveCommon::Live:
          // Pause items don't have live or delta values. Count down?
          result.setValue (QString (""));
@@ -1202,9 +1203,14 @@ QEPvLoadSaveItem* QEPvLoadSavePause::clone (QEPvLoadSaveItem* parent)
 
 //-----------------------------------------------------------------------------
 //
-void QEPvLoadSavePause::actionConnect (QObject*, const char*,
-                                       const char*, const char*)
-{ }
+void QEPvLoadSavePause::actionConnect (QObject* actionCompleteObject,
+                                       const char*, const char*, const char*,
+                                       const char* modelUpdateSlot)
+{
+   QObject::connect (this, SIGNAL (updateModel (const QEPvLoadSaveItem*,
+                                                const QEPvLoadSaveCommon::ColumnKinds)),
+                     actionCompleteObject, modelUpdateSlot);
+}
 
 //-----------------------------------------------------------------------------
 //
@@ -1215,13 +1221,35 @@ void QEPvLoadSavePause::extractPVData () { }
 void QEPvLoadSavePause::applyPVData ()
 {
    if (this->delay > 0.0) {
-      const QTime awakeTime = QTime::currentTime().addMSecs (1000.0*this->delay);
-      while (QEPvLoadSavePause::isEnabled && (QTime::currentTime() < awakeTime)) {
+      QDateTime now = QDateTime::currentDateTimeUtc();
+      const QDateTime awakeTime = now.addMSecs (1000.0*this->delay);
+
+      this->setCountDown (this->delay);
+
+      int count = 0;
+      while (QEPvLoadSavePause::isEnabled && (now < awakeTime)) {
+         count++;
          QThread::msleep (20);
+         now = QDateTime::currentDateTimeUtc();
+         if (count % 10 == 0) {
+            const qint64 ms = now.msecsTo(awakeTime);
+            double secs = static_cast<double> (ms) * 0.001;
+            this->setCountDown (secs);
+         }
          QCoreApplication::processEvents ();
       }
+      this->setCountDown (0.0);
    }
 }
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSavePause::setCountDown (const double secs)
+{
+   this->countDown = secs > 0.0 ? QString::number(secs, 'f', 3) : "";
+   emit this->updateModel (this, QEPvLoadSaveCommon::LoadSave);
+}
+
 
 //-----------------------------------------------------------------------------
 //

@@ -145,10 +145,12 @@ bool QEPvLoadSaveModel::addItemToModel (QEPvLoadSaveItem* item, QEPvLoadSaveItem
 
       // item calls this resursively down the QEPvLoadSaveItem tree.
       //
-      item->actionConnect (this,
-                           SLOT (acceptSetReadOut (const QString&)),
-                           SLOT (acceptActionComplete (const QEPvLoadSaveItem*, QEPvLoadSaveCommon::ActionKinds, bool)),
-                           SLOT (acceptActionInComplete (const QEPvLoadSaveItem*, QEPvLoadSaveCommon::ActionKinds)));
+      item->actionConnect
+            (this,
+             SLOT (acceptSetReadOut (const QString&)),
+             SLOT (acceptActionComplete (const QEPvLoadSaveItem*, QEPvLoadSaveCommon::ActionKinds, bool)),
+             SLOT (acceptActionInComplete (const QEPvLoadSaveItem*, QEPvLoadSaveCommon::ActionKinds)),
+             SLOT (updateModel (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ColumnKinds)));
    }
    return result;
 }
@@ -442,6 +444,16 @@ void QEPvLoadSaveModel::acceptActionInComplete (const QEPvLoadSaveItem* item,
    // Just forward as is.
    //
    emit this->reportActionInComplete (item, action);
+}
+
+//-----------------------------------------------------------------------------
+//
+void QEPvLoadSaveModel::updateModel (const QEPvLoadSaveItem* item,
+                                     const QEPvLoadSaveCommon::ColumnKinds col)
+{
+   if (!item) return;
+   QModelIndex index = this->getIndex (item, static_cast<int>(col));
+   emit this->dataChanged (index, index);  // this causes tree view to update
 }
 
 //-----------------------------------------------------------------------------

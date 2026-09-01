@@ -12,61 +12,63 @@
 # Contact:    andrews@ansto.gov.au
 #
 
-QEPVLOADSAVE = widgets/QEPvLoadSave
+INCLUDEPATH += $$PWD
 
-INCLUDEPATH += $$QEPVLOADSAVE
+HEADERS += $$PWD/QEPVLoadSaveNameSelectDialog.h
+SOURCES += $$PWD/QEPVLoadSaveNameSelectDialog.cpp
+FORMS   += $$PWD/QEPVLoadSaveNameSelectDialog.ui
 
-HEADERS += $$QEPVLOADSAVE/QEPVLoadSaveNameSelectDialog.h
-SOURCES += $$QEPVLOADSAVE/QEPVLoadSaveNameSelectDialog.cpp
-FORMS   += $$QEPVLOADSAVE/QEPVLoadSaveNameSelectDialog.ui
+HEADERS += $$PWD/QEPvLoadSave.h
+SOURCES += $$PWD/QEPvLoadSave.cpp
 
-HEADERS += $$QEPVLOADSAVE/QEPvLoadSave.h
-SOURCES += $$QEPVLOADSAVE/QEPvLoadSave.cpp
+HEADERS += $$PWD/QEPvLoadSaveAccessFail.h
+SOURCES += $$PWD/QEPvLoadSaveAccessFail.cpp
+FORMS   += $$PWD/QEPvLoadSaveAccessFail.ui
 
-HEADERS += $$QEPVLOADSAVE/QEPvLoadSaveAccessFail.h
-SOURCES += $$QEPVLOADSAVE/QEPvLoadSaveAccessFail.cpp
-FORMS   += $$QEPVLOADSAVE/QEPvLoadSaveAccessFail.ui
+HEADERS += $$PWD/QEPvLoadSaveCommon.h
+SOURCES += $$PWD/QEPvLoadSaveCommon.cpp
 
-HEADERS += $$QEPVLOADSAVE/QEPvLoadSaveCommon.h
-SOURCES += $$QEPVLOADSAVE/QEPvLoadSaveCommon.cpp
+HEADERS += $$PWD/QEPvLoadSaveCompare.h
+SOURCES += $$PWD/QEPvLoadSaveCompare.cpp
+FORMS   += $$PWD/QEPvLoadSaveCompare.ui
 
-HEADERS += $$QEPVLOADSAVE/QEPvLoadSaveCompare.h
-SOURCES += $$QEPVLOADSAVE/QEPvLoadSaveCompare.cpp
-FORMS   += $$QEPVLOADSAVE/QEPvLoadSaveCompare.ui
+HEADERS += $$PWD/QEPvLoadSaveDelayEditDialog.h
+SOURCES += $$PWD/QEPvLoadSaveDelayEditDialog.cpp
+FORMS   += $$PWD/QEPvLoadSaveDelayEditDialog.ui
 
-HEADERS += $$QEPVLOADSAVE/QEPvLoadSaveGroupNameDialog.h
-SOURCES += $$QEPVLOADSAVE/QEPvLoadSaveGroupNameDialog.cpp
-FORMS   += $$QEPVLOADSAVE/QEPvLoadSaveGroupNameDialog.ui
+HEADERS += $$PWD/QEPvLoadSaveGroupNameDialog.h
+SOURCES += $$PWD/QEPvLoadSaveGroupNameDialog.cpp
+FORMS   += $$PWD/QEPvLoadSaveGroupNameDialog.ui
 
-FORMS   += $$QEPVLOADSAVE/QEPvLoadSaveHalf.ui
+FORMS   += $$PWD/QEPvLoadSaveHalf.ui
 
-HEADERS += $$QEPVLOADSAVE/QEPvLoadSaveItem.h
-SOURCES += $$QEPVLOADSAVE/QEPvLoadSaveItem.cpp
+HEADERS += $$PWD/QEPvLoadSaveItem.h
+SOURCES += $$PWD/QEPvLoadSaveItem.cpp
 
-HEADERS += $$QEPVLOADSAVE/QEPvLoadSaveModel.h
-SOURCES += $$QEPVLOADSAVE/QEPvLoadSaveModel.cpp
+HEADERS += $$PWD/QEPvLoadSaveModel.h
+SOURCES += $$PWD/QEPvLoadSaveModel.cpp
 
-HEADERS += $$QEPVLOADSAVE/QEPvLoadSaveTimeDialog.h
-SOURCES += $$QEPVLOADSAVE/QEPvLoadSaveTimeDialog.cpp
-FORMS   += $$QEPVLOADSAVE/QEPvLoadSaveTimeDialog.ui
+HEADERS += $$PWD/QEPvLoadSaveTimeDialog.h
+SOURCES += $$PWD/QEPvLoadSaveTimeDialog.cpp
+FORMS   += $$PWD/QEPvLoadSaveTimeDialog.ui
 
-HEADERS += $$QEPVLOADSAVE/QEPvLoadSaveUtilities.h
-SOURCES += $$QEPVLOADSAVE/QEPvLoadSaveUtilities.cpp
+HEADERS += $$PWD/QEPvLoadSaveUtilities.h
+SOURCES += $$PWD/QEPvLoadSaveUtilities.cpp
 
-HEADERS += $$QEPVLOADSAVE/QEPvLoadSaveValueEditDialog.h
-SOURCES += $$QEPVLOADSAVE/QEPvLoadSaveValueEditDialog.cpp
-FORMS   += $$QEPVLOADSAVE/QEPvLoadSaveValueEditDialog.ui
+HEADERS += $$PWD/QEPvLoadSaveValueEditDialog.h
+SOURCES += $$PWD/QEPvLoadSaveValueEditDialog.cpp
+FORMS   += $$PWD/QEPvLoadSaveValueEditDialog.ui
 
-OTHER_FILES += $$QEPVLOADSAVE/archive_time.png
-OTHER_FILES += $$QEPVLOADSAVE/copy_all.png
-OTHER_FILES += $$QEPVLOADSAVE/copy_subset.png
-OTHER_FILES += $$QEPVLOADSAVE/read_all.png
-OTHER_FILES += $$QEPVLOADSAVE/read_subset.png
-OTHER_FILES += $$QEPVLOADSAVE/write_all.png
-OTHER_FILES += $$QEPVLOADSAVE/write_subset.png
-OTHER_FILES += $$QEPVLOADSAVE/ypoc_all.png
-OTHER_FILES += $$QEPVLOADSAVE/ypoc_subset.png
+OTHER_FILES += $$PWD/archive_time.png
+OTHER_FILES += $$PWD/copy_all.png
+OTHER_FILES += $$PWD/copy_subset.png
+OTHER_FILES += $$PWD/read_all.png
+OTHER_FILES += $$PWD/read_subset.png
+OTHER_FILES += $$PWD/write_all.png
+OTHER_FILES += $$PWD/write_subset.png
+OTHER_FILES += $$PWD/ypoc_all.png
+OTHER_FILES += $$PWD/ypoc_subset.png
 
-RESOURCES += $$QEPVLOADSAVE/QEPvLoadSave.qrc
+RESOURCES += $$PWD/QEPvLoadSave.qrc
 
 # end

@@ -418,6 +418,7 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    this->groupNameDialog = new QEPvLoadSaveGroupNameDialog (this);
    this->valueEditDialog = new QEPvLoadSaveValueEditDialog (this);
    this->pvNameSelectDialog = new QEPVLoadSaveNameSelectDialog (this);
+   this->delayAddEditDialog = new QEPvLoadSaveDelayEditDialog (this);
    this->archiveTimeDialog = new QEPvLoadSaveTimeDialog (this);
 
    this->setAllowDrop (false);
@@ -879,10 +880,14 @@ void QEPvLoadSave::treeMenuSelected (QAction* action)
          break;
 
       case TCM_ADD_PAUSE:
-         // For now we will go with a fixed pause of 5 seconds.
-         //
-         item = new QEPvLoadSavePause (5.0, NULL);
-         model->addItemToModel (item, this->contextMenuItem);
+         this->delayAddEditDialog->setWindowTitle ("Add pause/delay");
+         this->delayAddEditDialog->setDelay (5.0);
+         n = this->delayAddEditDialog->exec (tree);
+         if (n == 1) {
+            const double v = this->delayAddEditDialog->getDelay();
+            item = new QEPvLoadSavePause (v, NULL);
+            model->addItemToModel (item, this->contextMenuItem);
+         }
          break;
 
       case TCM_EDIT_PV_NAME:
@@ -1021,24 +1026,14 @@ void QEPvLoadSave::editItemValue (QEPvLoadSaveItem* item,
       case QEPvLoadSaveItem::Pause:
          pause = qobject_cast<QEPvLoadSavePause*>(item);
          if (pause) {
-            // Create a bespoke dialog?
-            //
-            this->valueEditDialog->setPvName (pause->getNodeName ());
-            this->valueEditDialog->setValue (pause->getDelay());
-            n = this->valueEditDialog->exec (centerOver);
+            this->delayAddEditDialog->setWindowTitle ("Edit pause/delay");
+            const double delay = pause->getDelay ();
+            this->delayAddEditDialog->setDelay (delay);
+            n = this->delayAddEditDialog->exec (centerOver);
             if (n == 1) {
-               QVariant value = this->valueEditDialog->getValue ();
-               bool okay;
-               double delay = value.toDouble(&okay);
-               if (okay) {
-                  pause->setDelay (delay);
-                  half->model->modelUpdated ();
-               } else {
-                  const message_types mt = message_types (MESSAGE_TYPE_WARNING,
-                                                          MESSAGE_KIND_STANDARD);
-                  QString message = value.toString() + " cannot be converted to a delay value";
-                  this->sendMessage (message, mt);
-               }
+               const double v = this->delayAddEditDialog->getDelay();
+               pause->setDelay (v);
+               half->model->modelUpdated ();
             }
          } else {
             DEBUG << itemType << "qobject_cast fail";

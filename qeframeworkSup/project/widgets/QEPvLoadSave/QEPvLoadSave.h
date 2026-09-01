@@ -39,6 +39,7 @@
 #include <QEPVLoadSaveNameSelectDialog.h>
 #include <QEPvLoadSaveGroupNameDialog.h>
 #include <QEPvLoadSaveValueEditDialog.h>
+#include <QEPvLoadSaveDelayEditDialog.h>
 #include <QEPvLoadSaveTimeDialog.h>
 
 #include "QEPvLoadSaveCommon.h"
@@ -230,6 +231,7 @@ private:
    QEPvLoadSaveGroupNameDialog* groupNameDialog;
    QEPvLoadSaveValueEditDialog* valueEditDialog;
    QEPVLoadSaveNameSelectDialog* pvNameSelectDialog;
+   QEPvLoadSaveDelayEditDialog* delayAddEditDialog;
    QEPvLoadSaveTimeDialog* archiveTimeDialog;
 
    QMenu* treeContextMenu;

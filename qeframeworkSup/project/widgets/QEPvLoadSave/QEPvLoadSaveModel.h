@@ -165,6 +165,7 @@ private slots:
    void acceptSetReadOut (const QString& text);
    void acceptActionComplete   (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ActionKinds, const bool);
    void acceptActionInComplete (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ActionKinds);
+   void updateModel (const QEPvLoadSaveItem*, const QEPvLoadSaveCommon::ColumnKinds);
 
    void selectionChanged (const QItemSelection& selected, const QItemSelection& deselected);
 

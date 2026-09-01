@@ -49,7 +49,7 @@
 /// QEPvLoadSaveItem are created in one of two flavours:
 /// a/ node - used for groups
 /// b/ leaf - used for PVs.
-/// c/ pause - used for wrte delays
+/// c/ pause - used for write delays
 /// all of which inherited from the QEPvLoadSaveItem base class
 ///
 class QEPvLoadSaveItem : public QObject
@@ -105,15 +105,13 @@ public:
    //
    virtual QEPvLoadSaveItem* clone (QEPvLoadSaveItem* parent);
 
-   // Set own model index - used for data changed signals.
-   //
-   // void setModelIndex (const QModelIndex& index);
-   // QModelIndex getModelIndex ();
+   // Make connections to the model
    //
    virtual void actionConnect (QObject* actionCompleteObject,
                                const char* actionSetReadOutSlot,
                                const char* actionCompleteSlot,
-                               const char* actionInCompleteSlot);
+                               const char* actionInCompleteSlot,
+                               const char* modelUpdateSlot) = 0;
 
    QStringList getNodePath ();
 
@@ -198,7 +196,8 @@ public:
    void actionConnect (QObject* actionCompleteObject,
                        const char* actionSetReadOutSlot,
                        const char* actionCompleteSlot,
-                       const char* actionInCompleteSlot);
+                       const char* actionInCompleteSlot,
+                       const char* modelUpdateSlot);
    void extractPVData ();
    void applyPVData ();
    void readArchiveData (const QCaDateTime& dateTime);
@@ -257,7 +256,8 @@ public:
    void actionConnect (QObject* actionCompleteObject,
                        const char* actionSetReadOutSlot,
                        const char* actionCompleteSlot,
-                       const char* actionInCompleteSlot);
+                       const char* actionInCompleteSlot,
+                       const char* modelUpdateSlot);
    void extractPVData ();
    void applyPVData ();
    void readArchiveData (const QCaDateTime& dateTime);
@@ -337,7 +337,8 @@ public:
    void actionConnect (QObject* actionCompleteObject,
                        const char* actionSetReadOutSlot,
                        const char* actionCompleteSlot,
-                       const char* actionInCompleteSlot);
+                       const char* actionInCompleteSlot,
+                       const char* modelUpdateSlot);
    void extractPVData ();
    void applyPVData ();
    void readArchiveData (const QCaDateTime& dateTime);
@@ -347,8 +348,14 @@ public:
 
    static void setPauseEnabled (const bool enabled);
 
+signals:
+   void updateModel (const QEPvLoadSaveItem* item,
+                     const QEPvLoadSaveCommon::ColumnKinds column);
+
 private:
+   void setCountDown (const double seconds);
    double delay;
+   QString countDown;
    static bool isEnabled;
 };
 

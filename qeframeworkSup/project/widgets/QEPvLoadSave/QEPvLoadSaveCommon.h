@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -31,11 +31,12 @@ public:
    //
    enum ActionKinds {
       NullAction = 0,    //
-      Apply,             //
-      Extract,           //
-      ReadArchive,       //
-      Update             //
+      Apply,             // Write to system via CA/PVA
+      Extract,           // Read from system via CA/PVA
+      ReadArchive,       // Read from archive
+      Update             // Line data update
    };
+   Q_ENUM (ActionKinds)
 
    // Defines the columns used in the model tree.
    //
@@ -46,6 +47,7 @@ public:
       Delta,             // = live - snap shot value where calculateable
       NUMBER_OF_COLUMNS  // must be last
    };
+   Q_ENUM (ColumnKinds)
 
    // Summary of number of items equal, not equal or undefined.
    // Passed up from the item leafs
@@ -76,5 +78,10 @@ public:
    static PvNameValueMaps merge (const PvNameValueMaps& a,
                                  const PvNameValueMaps& b);
 };
+
+#ifdef QE_DECLARE_METATYPE_IS_REQUIRED
+Q_DECLARE_METATYPE (QEPvLoadSaveCommon::ActionKinds)
+Q_DECLARE_METATYPE (QEPvLoadSaveCommon::ColumnKinds)
+#endif
 
 #endif  // QE_PV_LOAD_SAVE_COMMON_H
