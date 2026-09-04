@@ -992,7 +992,7 @@ QString QEHistogram::getMinimumText () const
 
 //------------------------------------------------------------------------------
 //
-void QEHistogram::setMaximum(const double value)
+void QEHistogram::setMaximum (const double value)
 {
    this->mMaximum = LIMIT (value, MINIMUM_VALUE, MAXIMUM_VALUE);
    this->mMinimum = MIN (this->mMinimum, this->mMaximum - MINIMUM_SPAN);
