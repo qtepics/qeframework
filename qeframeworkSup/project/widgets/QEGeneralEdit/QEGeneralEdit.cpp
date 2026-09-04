@@ -230,7 +230,7 @@ void QEGeneralEdit::connectionUpdated (const QEConnectionUpdate& update)
 
    // Note the connected state
    //
-   bool isConnected = update.connectionInfo.isChannelConnected ();
+   const bool isConnected = update.connectionInfo.isChannelConnected ();
 
    // Display the connected state
    //
@@ -320,6 +320,7 @@ void QEGeneralEdit::valueUpdated (const QEVariantUpdate& update)
          case QMetaType::UInt:
          case QMetaType::LongLong:
          case QMetaType::ULongLong:
+            DEBUG << "integer value";
             numElements = qca->getEnumerations().count();
             if (numElements > 0) {
                // represents an enumeration.
@@ -334,6 +335,8 @@ void QEGeneralEdit::valueUpdated (const QEVariantUpdate& update)
             } else {
                // basic integer
                //
+               this->determineNumericLimits (qca);
+
                useThisWidget = this->ui->numericEditWidget;
                inThisPanel = this->ui->numericEditPanel;
             }
@@ -342,23 +345,7 @@ void QEGeneralEdit::valueUpdated (const QEVariantUpdate& update)
          case QMetaType::Float:
          case QMetaType::Double:
             {
-               int p = qca->getPrecision();
-
-               this->ui->precisionEdit->setValue (p);
-
-               double t = MAX (ABS (qca->getControlLimitLower ()),
-                               ABS (qca->getControlLimitUpper ()));
-               if (t == 0.0) {
-                  t = MAX (ABS (qca->getDisplayLimitLower ()),
-                           ABS (qca->getDisplayLimitUpper ()));
-               }
-               t = MAX (t, 1);
-               int z = 1 + int (LOG10 (t));  // the (int) cast truncates to 0
-               this->ui->zerosEdit->setValue (z);
-
-               this->ui->numericEditWidget->setPrecision(p);
-               this->ui->numericEditWidget->setLeadingZeros (z);
-
+               this->determineNumericLimits (qca);
                useThisWidget = this->ui->numericEditWidget;
                inThisPanel = this->ui->numericEditPanel;
             }
@@ -400,6 +387,33 @@ void QEGeneralEdit::valueUpdated (const QEVariantUpdate& update)
    // of the dbValueChanged.
    //
    this->emitDbValueChanged (vi);
+}
+
+void QEGeneralEdit::determineNumericLimits (QEChannel* qca)
+{
+   if (!qca) return;   // sanity check.
+
+   const int    p  = qca->getPrecision();
+   const double cl = qca->getControlLimitLower ();
+   const double cu = qca->getControlLimitUpper ();
+   const double dl = qca->getControlLimitLower ();
+   const double du = qca->getControlLimitUpper ();
+
+   double mv = 1.0;
+   if (!QEPlatform::isNaN(cl) && !QEPlatform::isInf(cl)) mv = MAX(mv, ABS(cl));
+   if (!QEPlatform::isNaN(cu) && !QEPlatform::isInf(cu)) mv = MAX(mv, ABS(cu));
+   if (!QEPlatform::isNaN(dl) && !QEPlatform::isInf(dl)) mv = MAX(mv, ABS(dl));
+   if (!QEPlatform::isNaN(du) && !QEPlatform::isInf(du)) mv = MAX(mv, ABS(du));
+
+   int z = 1 + int (LOG10 (mv));  // the (int) cast truncates to 0
+
+   z = MIN (z, 15 - p);
+
+   this->ui->zerosEdit->setValue (z);
+   this->ui->precisionEdit->setValue (p);
+
+   this->ui->numericEditWidget->setLeadingZeros (z);
+   this->ui->numericEditWidget->setPrecision (p);
 }
 
 //------------------------------------------------------------------------------

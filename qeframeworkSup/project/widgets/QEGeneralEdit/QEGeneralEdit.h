@@ -169,6 +169,7 @@ protected:
 
 private:
    void commonSetup ();
+   void determineNumericLimits (QEChannel* qca);
 
    Ui::General_Edit_Form* ui;
    bool useApplyButton;
