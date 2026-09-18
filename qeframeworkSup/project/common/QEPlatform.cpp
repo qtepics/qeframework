@@ -155,4 +155,52 @@ bool QEPlatform::isInf (const double x)
    }
 }
 
+//------------------------------------------------------------------------------
+// static
+bool QEPlatform::setDocumentContents (const QString& xml, QDomDocument& doc,
+                                      QString& error, int& line, int& col)
+{
+   bool result;
+
+#if QT_VERSION < 0x060800
+   result = doc.setContent (xml, false, &error, &line, &col);
+#else
+   auto docStatus = doc.setContent (xml, QDomDocument::ParseOption::Default);
+   if (docStatus) {
+      result = true;
+   } else {
+      result = false;
+      error = docStatus.errorMessage;
+      line = docStatus.errorLine;
+      col = docStatus.errorColumn;
+   }
+#endif
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// static
+bool QEPlatform::setDocumentContents (QFile& file, QDomDocument& doc,
+                                      QString& error, int& line, int& col)
+{
+   bool result;
+
+#if QT_VERSION < 0x060800
+   result = doc.setContent (&file, &error, &line, &col);
+#else
+   auto docStatus = doc.setContent (&file, QDomDocument::ParseOption::Default);
+   if (docStatus) {
+      result = true;
+   } else {
+      result = false;
+      error = docStatus.errorMessage;
+      line = docStatus.errorLine;
+      col = docStatus.errorColumn;
+   }
+#endif
+
+   return result;
+}
+
 // end

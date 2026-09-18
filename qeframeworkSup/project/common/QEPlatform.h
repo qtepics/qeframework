@@ -18,11 +18,13 @@
 #include <QtGlobal>
 #include <QDateTime>
 #include <QDropEvent>
+#include <QFile>
 #include <QMetaType>
 #include <QMouseEvent>
 #include <QPoint>
 #include <QString>
 #include <QVariant>
+#include <qdom.h>
 #include <QEFrameworkLibraryGlobal.h>
 
 /// Geneal purpose platform specific functions used to hide compiler, environment
@@ -59,6 +61,14 @@ public:
 
    /// This function test if the specified double floating point number is +/-Infinity.
    static bool isInf (const double x);
+
+   /// This calls the apprpriate doc.setContent methoda depending on the Qt version in use.
+   static bool setDocumentContents (const QString& xml, QDomDocument& doc,
+                                 QString& error, int& line, int& col);
+
+   /// This calls the apprpriate doc.setContent methoda depending on the Qt version in use.
+   static bool setDocumentContents (QFile& file, QDomDocument& doc,
+                               QString& error, int& line, int& col);
 
 
 #if QT_VERSION < 0x060000
