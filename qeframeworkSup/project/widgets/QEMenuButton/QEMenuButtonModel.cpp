@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2015-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2015-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -16,7 +16,7 @@
 #include <QDebug>
 #include <QMimeData>
 #include <qdom.h>
-
+#include <QEPlatform.h>
 #include <QEMenuButton.h>
 #include <QEMenuButtonItem.h>
 
@@ -61,7 +61,7 @@ bool QEMenuButtonModel::parseXml (const QString& xml)
    int errorLine;
    int errorCol;
 
-   if (!doc.setContent (xml, false, &errorText, &errorLine, &errorCol)) {
+   if (!QEPlatform::setDocumentContents (xml, doc, errorText, errorLine, errorCol)) {
       qWarning () << QString ("%1:%2").arg (errorLine).arg (errorCol)
                   << " set content failed " << errorText;
       return false;
