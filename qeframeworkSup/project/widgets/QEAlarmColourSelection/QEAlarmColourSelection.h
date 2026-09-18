@@ -1,4 +1,14 @@
-/* qecolourselection.h
+/*  QEAlarmColourSelection.h
+ *
+ *  This file is part of the EPICS QT Framework, initially developed at the
+ *  Australian Synchrotron.
+ *
+ *  SPDX-FileCopyrightText: 2024-2026 Australian Synchrotron
+ *  SPDX-License-Identifier: LGPL-3.0-only
+ *
+ *  Author:     Andrew Starritt
+ *  Maintainer: Andrew Starritt
+ *  Contact:    andrews@ansto.gov.au
  */
 
 #ifndef QE_COLOUR_SELECTION_H
@@ -25,7 +35,7 @@ public:
 private:
    Ui::QEAlarmColourSelection* ui;
    QColorDialog* colourDialog;
-   QPushButton* buttons [2][5];
+   QPushButton* buttons [2][6];
 
    void setAllButtonStyles ();
 
