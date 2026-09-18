@@ -29,7 +29,8 @@
 #include <QCoreApplication>
 #include <QDebug>
 
-
+// static
+//
 const QVariant QEpicsPV::badData = QVariant();
 
 const bool QEpicsPV::inited = QEpicsPV::init();
@@ -79,14 +80,12 @@ QEpicsPV::QEpicsPV(QObject *parent) :
 {
 }
 
-
 //------------------------------------------------------------------------------
 //
 QEpicsPV::~QEpicsPV()
 {
   setPV();
 }
-
 
 //------------------------------------------------------------------------------
 //
@@ -126,7 +125,6 @@ const QString & QEpicsPV::pv() const
 {
   return pvName;
 }
-
 
 //------------------------------------------------------------------------------
 //
@@ -249,8 +247,14 @@ const QVariant & QEpicsPV::set(QVariant value, int delay)
       value = val;
     }
   } else {
+
+#if QT_VERSION < 0x060000
      const QMetaType::Type lastMtype = QEPlatform::metaType (this->get());
      const QMetaType::Type currMtype = QEPlatform::metaType (value);
+#else
+     const QMetaType lastMtype = this->get().metaType();
+     const QMetaType currMtype = value.metaType();
+#endif
 
      if ((lastMtype != currMtype) && !value.convert(lastMtype) ) {
         qDebug() << "QEpicsPV. Error. Could not convert type QVariant from" << value.typeName()

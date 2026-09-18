@@ -794,7 +794,8 @@ bool QEVectorVariants::replaceValue (QVariant& vector, const int index,
 
       case BoolVector:
          b = value.toBool();
-         result = replaceElement<QEBoolVector, bool, bool>(vector, index, b, false);
+         // we use int as the intermediate type to avoid the warning.
+         result = replaceElement<QEBoolVector, bool, int>(vector, index, b, false);
          break;
 
       case Int8Vector:
