@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -88,7 +88,7 @@ void QESimpleShape::setup ()
    // Set the initial state
    // Widget is inactive until connected.
    //
-   this->fillColour = this->getColor (invalid, 255);
+   this->fillColour = QColor (invalid.getColorName());
    this->edgeAlarmState = QE::Always;
 
    // Use default context menu.
@@ -341,7 +341,7 @@ void QESimpleShape::setShapeValue (const QEVariantUpdate& update)
                //
                this->fillColour = QColor (update.alarmInfo.getStyleColorName());
             } else {
-                this->fillColour = this->getColor (update.alarmInfo, 255);
+               this->fillColour = QColor(update.alarmInfo.getColorName());
             }
 
          } else {
@@ -370,7 +370,7 @@ void QESimpleShape::setShapeValue (const QEVariantUpdate& update)
                //
                selectedEdgeColour = QColor (update.alarmInfo.getStyleColorName());
             } else {
-               selectedEdgeColour = this->getColor (update.alarmInfo, 255);
+               selectedEdgeColour = QColor (update.alarmInfo.getColorName());
             }
 
          } else {
