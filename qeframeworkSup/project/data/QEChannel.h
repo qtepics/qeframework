@@ -99,10 +99,12 @@ public:
    virtual ~QEChannel();
 
    // Sometimes the widget needs to know the underlying channel kind.
+   //
    bool isCaChannel () const;
    bool isPvaChannel () const;
 
    // Allow dynamic modification of the signals to send.
+   //
    void setSignalsToSend (const SignalsToSendFlags signalsToSend);
    QEChannel::SignalsToSendFlags getSignalsToSend () const;
 
@@ -158,12 +160,16 @@ public:
 
    // Set/get the array index use to extract scaler value form an array.
    // Default to 0, i.e. first element of the array.
+   //
    void setArrayIndex (const int index);
    int getArrayIndex() const;
 
-   // Essentially provides same data as the dataChanged signal. The parameter isDefined indicates whether
-   // the data is valid, i.e. has been received since the channel last connected.
-   void getLastData (bool& isDefined, QVariant& value, QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp) const;
+   // Essentially provides same data as the dataChanged signal.
+   // The parameter isDefined indicates whether the data is valid,
+   // i.e. has been received since the channel last connected.
+   //
+   void getLastData (bool& isDefined, QVariant& value,
+                     QCaAlarmInfo& alarmInfo, QCaDateTime& timeStamp) const;
 
    // Get last connection info.
    //
@@ -230,6 +236,7 @@ public slots:
    // This function can be used when data is an array variable.
    // It uses arrayIndex in order to update a particular element of the array.
    // Also works for scaler variables.
+   //
    bool writeDataElement (const QVariant& elementValue);
 
    void resendLastData();
@@ -245,7 +252,7 @@ private:
                     SignalsToSendFlags signalsToSend,
                     priorities priority);
 
-   // qobject cast to required types or return null_ptr
+   // qobject cast to required types or return null_ptr.
    //
    QECaClient* asCaClient () const;
    QEPvaClient* asPvaClient () const;
@@ -256,13 +263,16 @@ private:
 
    QString processVariableName;
 
-   // The variable index within a widget. If not used within a widget, can hold arbitary number.
+   // The variable index within a widget.
+   // If not used within a widget, this can hold arbitary number.
    //
-   unsigned int variableIndex;
    UserMessage* userMessage;
-   SignalsToSendFlags signalsToSend;
    int arrayIndex;
+   unsigned int variableIndex;
+   unsigned int updateCount;
+   SignalsToSendFlags signalsToSend;
    bool isFirstMetaUpdate;
+   bool timeStampIsConsistent;
 
    // This can be one of QECaClient, QEPvaClient or QENullClient.
    //

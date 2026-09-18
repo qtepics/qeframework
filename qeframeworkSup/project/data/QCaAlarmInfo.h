@@ -11,7 +11,7 @@
  *  Contact:    andrews@ansto.gov.au
  */
 
-// Manage CA (and PVA) alarm and severity information
+// Manage CA and PVA alarm and severity information
 
 #ifndef QE_ALARM_INFO_H
 #define QE_ALARM_INFO_H
@@ -37,11 +37,11 @@ public:
    explicit QCaAlarmInfo();
    QCaAlarmInfo( const QCaAlarmInfo& other );
 
-   // General status and severity
+   // General status and severity.
    QCaAlarmInfo( const Status status,
                  const Severity severity );
 
-   // PV update status and severity
+   // PV update status and severity.
    QCaAlarmInfo( const QEPvNameUri::Protocol protocol,
                  const QString& pvName,
                  const Status status,
@@ -51,8 +51,16 @@ public:
    virtual ~QCaAlarmInfo();
 
    QCaAlarmInfo& operator=(const QCaAlarmInfo& other);
+
+   // Note: == and !=  considers severity and status only.
+   //
    bool operator==(const QCaAlarmInfo& other) const;   // Return true if equal
    bool operator!=(const QCaAlarmInfo& other) const;   // Return true if not equal
+
+   // Get and set the time stamp consistancy state.
+   //
+   void setConsistantTimeStamp (const bool isConsistent);
+   bool getConsistantTimeStamp () const;
 
    QString statusName() const;       // Return the name of the current alarm state
    QString severityName() const;     // Return the name of the current alarm severity
@@ -82,6 +90,7 @@ private:
    Status   status;      // Alarm state
    Severity severity;    // Alarm severity
    QString  message;     // Alarm message (PV Access only - otherwise empty string)
+   bool timeStampIsConsistent; // The time stamp is within acceptable bounds
 };
 
 // allows qDebug() << QCaAlarmInfo object.
@@ -154,6 +163,9 @@ private:
    // Checks if the given name is flagged as out of service.
    //
    static bool isBasicNameMatch (const QString& pvName);
+
+   // Checks for <pvname>, <pvname>.VAL or <pvname> without a trailing .VAL
+   //
    static bool isSmartNameMatch (const QString& pvName);
 
    // Checks if the given name is flagged as out of service.

@@ -27,29 +27,31 @@
 
 #define DEBUG  qDebug () << "QCaAlarmInfo" << __LINE__ << __FUNCTION__ << "  "
 
-// Quazi OOS severity (set to one more than 3, i.e. one more than INVALID)
+// Quaziseverities (set to one more than 3, i.e. more than INVALID)
 //
 static const QCaAlarmInfo::Severity OOS_ALARM = 4;
-static const int NUMBER_SEVERITIES = 5;
+static const QCaAlarmInfo::Severity TSV_ALARM = 5;
+static const int NUMBER_SEVERITIES = 6;
 
 //------------------------------------------------------------------------------
 // Default standard color names.
 // These string lists are index by alarm severity and/or out of service.
 //
 const QStringList defaultStyleColorNames = QStringList ()
-      << "#e0eee0"                // pale green
+      << "#d0e0d0"                // pale green
       << "#ffff00"                // yellow
       << "#ff8080"                // pale red
       << "#ffffff"                // white
-      << "#80c0ff";               // pale blue
+      << "#80c0ff"                // pale blue
+      << "#e0d0e0";               // pale purple
 
 const QStringList defaultColorNames = QStringList ()
       << "#00ff00"                // green
       << "#ffff00"                // yellow
       << "#ff0000"                // red
       << "#ffffff"                // white
-      << "#0080ff";               // blue
-
+      << "#0080ff"                // blue
+      << "#e0a0e0";               // purple
 
 // Adaptation (environment variable) defined color names.
 //
@@ -90,6 +92,7 @@ QCaAlarmInfo::QCaAlarmInfo ()
    this->status = NO_ALARM;
    this->severity = NO_ALARM;
    this->message = "";
+   this->timeStampIsConsistent = true;
 }
 
 //------------------------------------------------------------------------------
@@ -102,8 +105,8 @@ QCaAlarmInfo::QCaAlarmInfo( const QCaAlarmInfo& other )
    this->status = other.status;
    this->severity = other.severity;
    this->message = other.message;
+   this->timeStampIsConsistent = true;
 }
-
 
 //------------------------------------------------------------------------------
 // Construct an instance given an alarm state and severity
@@ -116,6 +119,7 @@ QCaAlarmInfo::QCaAlarmInfo (const Status statusIn,
    this->status = statusIn;
    this->severity = severityIn;
    this->message = "";
+   this->timeStampIsConsistent = true;
 }
 
 //------------------------------------------------------------------------------
@@ -133,6 +137,7 @@ QCaAlarmInfo::QCaAlarmInfo (const QEPvNameUri::Protocol protocolIn,
    this->status = statusIn;
    this->severity = severityIn;
    this->message = messageIn;
+   this->timeStampIsConsistent = true;
 }
 
 //------------------------------------------------------------------------------
@@ -149,12 +154,13 @@ QCaAlarmInfo& QCaAlarmInfo::operator=(const QCaAlarmInfo& other)
    this->status = other.status;
    this->severity = other.severity;
    this->message = other.message;
+   this->timeStampIsConsistent = other.timeStampIsConsistent;
    return *this;
 }
 
 //------------------------------------------------------------------------------
 // Equality function.
-// We only check severity and status, we exclude message and name.
+// We only check severity and status, we exclude message, name and timestamp ok.
 //
 bool QCaAlarmInfo::operator== (const QCaAlarmInfo& other) const
 {
@@ -167,6 +173,20 @@ bool QCaAlarmInfo::operator== (const QCaAlarmInfo& other) const
 bool QCaAlarmInfo::operator!= (const QCaAlarmInfo& other) const
 {
    return !(*this == other);
+}
+
+//------------------------------------------------------------------------------
+//
+void QCaAlarmInfo::setConsistantTimeStamp (const bool isConsistent)
+{
+   this->timeStampIsConsistent = isConsistent;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QCaAlarmInfo::getConsistantTimeStamp () const
+{
+   return this->timeStampIsConsistent;
 }
 
 //------------------------------------------------------------------------------
@@ -254,26 +274,12 @@ bool QCaAlarmInfo::isOutOfService() const
 //
 QString QCaAlarmInfo::style () const
 {
-   QString styleColor = this->getStyleColorName ();
-   QColor bgColor (styleColor);
+   const QString styleColor = this->getStyleColorName ();
+   const QColor bgColor (styleColor);
 
-   QString result;
-
-   switch (this->severity) {
-      case NO_ALARM:
-      case MINOR_ALARM:
-      case MAJOR_ALARM:
-      case INVALID_ALARM:
-      case OOS_ALARM:
-         // colourToStyle sets the font color to white or black as appropriate.
-         //
-         result = QEUtilities::colourToStyle (bgColor);
-         break;
-
-      default:
-         result = "";
-   }
-
+   // colourToStyle sets the font color to white or black as appropriate.
+   //
+   const QString result = QEUtilities::colourToStyle (bgColor);
    return result;
 }
 
@@ -284,8 +290,10 @@ QString QCaAlarmInfo::getStyleColorName () const
 {
    Severity pvSeverity = this->severity;
 
-   bool isOos;
-   isOos = QCaAlarmInfoColorNamesManager::isPvNameDeclaredOos (this->protocol, this->pvName);
+   if (!this->timeStampIsConsistent && this->severity == NO_ALARM) {
+      pvSeverity = TSV_ALARM;
+   }
+   const bool isOos = QCaAlarmInfoColorNamesManager::isPvNameDeclaredOos (this->protocol, this->pvName);
    if (isOos) {
       pvSeverity = OOS_ALARM;
    }
@@ -300,8 +308,10 @@ QString QCaAlarmInfo::getColorName () const
 {
    Severity pvSeverity = this->severity;
 
-   bool isOos;
-   isOos = QCaAlarmInfoColorNamesManager::isPvNameDeclaredOos (this->protocol, this->pvName);
+   if (!this->timeStampIsConsistent && this->severity == NO_ALARM) {
+      pvSeverity = TSV_ALARM;
+   }
+   const bool isOos = QCaAlarmInfoColorNamesManager::isPvNameDeclaredOos (this->protocol, this->pvName);
    if (isOos) {
       pvSeverity = OOS_ALARM;
    }
@@ -536,7 +546,6 @@ bool QCaAlarmInfoColorNamesManager::isBasicNameMatch (const QString& pvName)
 }
 
 //------------------------------------------------------------------------------
-// Checks for <pvname> , <pvname>.VAL  or <pvname> without a trailing .VAL
 // static
 bool QCaAlarmInfoColorNamesManager::isSmartNameMatch (const QString& pvName)
 {

@@ -34,7 +34,7 @@
 
 
 //==============================================================================
-// qcaobject::QEChannel proper
+// QEChannel proper
 //==============================================================================
 //
 int QEChannel::totalChannelCount = 0;
@@ -107,6 +107,8 @@ void QEChannel::initialise (const QString& newPvName,
    this->objectIdentity = ++QEChannel::nextObjectIdentity;
 
    this->arrayIndex = 0;
+   this->updateCount = 0;
+   this->timeStampIsConsistent = true;
 
    // Note the record required name and associated index.
    //
@@ -135,12 +137,12 @@ void QEChannel::initialise (const QString& newPvName,
    switch (protocol) {
 
       case QEPvNameUri::ca:
-         this->client = caClient = new QECaClient (pvName, NULL);
+         this->client = caClient = new QECaClient (pvName, this);
          caClient->setPriority (int (priorityIn));
          break;
 
       case QEPvNameUri::pva:
-         this->client = new QEPvaClient (pvName, NULL);
+         this->client = new QEPvaClient (pvName, this);
          break;
 
       default:
@@ -153,7 +155,7 @@ void QEChannel::initialise (const QString& newPvName,
          //
          //   result = this->client->getEgu();
          //
-         this->client = new QENullClient (pvName, NULL);
+         this->client = new QENullClient (pvName, this);
    }
 
    // Do the plumbing.
@@ -181,19 +183,9 @@ void QEChannel::initialise (const QString& newPvName,
 //
 QEChannel::~QEChannel()
 {
-   // NOTE: Sometimes explicitly calling closeChannel() here causes error:
-   //   corrupted double-linked list
-   //   Aborted (core dumped)
+   // The client object calls close channel as part of its deconstructor,
+   // and also ensures no further signals are emitted.
    //
-   // We avoid the corruption by using deleteLater.
-   // Note: the client is NOT parented by the QEChannel.
-   //
-   if (this->client) {
-      this->client->closeChannel();
-      this->client->deleteLater();
-      this->client = NULL;
-   }
-
    QEChannel::totalChannelCount--;
    QEChannel::connectedCount = LIMIT (QEChannel::connectedCount, 0, QEChannel::totalChannelCount);
    QEChannel::disconnectedCount = QEChannel::totalChannelCount - QEChannel::connectedCount;
@@ -615,9 +607,9 @@ unsigned long QEChannel::getElementCount() const
 // Set nominated array index used to extract a scalar from an array data set.
 // Defaults to zero, i.e. first element.
 //
-void QEChannel::setArrayIndex( const int indexIn )
+void QEChannel::setArrayIndex (const int indexIn)
 {
-   this->arrayIndex = MAX( 0, indexIn );
+   this->arrayIndex = MAX (0, indexIn);
 }
 
 //------------------------------------------------------------------------------
@@ -745,7 +737,9 @@ bool QEChannel::isWriteCallbacksEnabled() const
 //
 QCaAlarmInfo QEChannel::getAlarmInfo() const
 {
-   return this->client->getAlarmInfo ();
+   QCaAlarmInfo alarmInfo;
+   alarmInfo.setConsistantTimeStamp (this->timeStampIsConsistent);
+   return alarmInfo;
 }
 
 //------------------------------------------------------------------------------
@@ -812,6 +806,12 @@ void QEChannel::checkDeprecatedSignalUsage (const char* varSignal)
 //
 void QEChannel::connectionUpdate (const bool isConnected)
 {
+   // Initialise count and state; it is not worth checking if this is
+   // a connect or disconnect update.
+   //
+   this->updateCount = 0;
+   this->timeStampIsConsistent = true;
+
    QCaConnectionInfo connectionInfo;
 
    if (isConnected) {
@@ -853,15 +853,39 @@ void QEChannel::dataUpdate (const bool isMetaUpdateIn)
 {
    if (!this->client) return;   // sanity check
 
+   // Count updates - exclude meta data updates.
+   //
+   this->isFirstMetaUpdate = isMetaUpdateIn;
+   if (!this->isFirstMetaUpdate) {
+      // ensure no overflow
+      this->updateCount = MIN (this->updateCount + 1, 2000000000);
+   }
+
    // We need non-const copies, at least for now, for old style signals.
    //
    QCaAlarmInfo alarmInfo = this->client->getAlarmInfo ();
    QCaDateTime timeStamp = this->client->getTimeStamp ();
 
-   this->isFirstMetaUpdate = isMetaUpdateIn;
+   // Check if the time stamp "out-of-whack".
+   // To avoid false positives, we must wait for at least the 4th update
+   // (using the gateways "add" a couple of initial updates).
+   // Some "constant" PVs natually have old time stamps.
+   //
+   static QEAdaptationParameters ap ("QE_");
+   static const double limit = ap.getFloat ("time_variation_limit", 5.0);
+
+   const QCaDateTime timeNow = QCaDateTime::currentDateTimeUtc();
+   const double timeVariation = timeNow.secondsTo (timeStamp);
+   this->timeStampIsConsistent =
+         (timeVariation <= +limit) &&    // not too far into the future.
+         (timeVariation >= -limit || this->updateCount < 4) &&  // not too old, unless an initial update.
+         (timeVariation >= -1.5e8);      // not really really old, ~5 years.
+
+   alarmInfo.setConsistantTimeStamp (this->timeStampIsConsistent);
 
    if (this->signalsToSend & SIG_VARIANT) {
       // Only form variant and emit signal if a varient has been requested.
+      //
       const QVariant variantValue = this->getVariant ();
 
       QEVariantUpdate valueUpdate;
@@ -978,6 +1002,7 @@ void QEChannel::getLastData (bool& isDefinedOut, QVariant& valueOut,
    isDefinedOut = this->getDataIsAvailable ();
    valueOut = this->getVariant();
    alarmInfoOut = this->client->getAlarmInfo ();
+   alarmInfoOut.setConsistantTimeStamp (this->timeStampIsConsistent);
    timeStampOut = this->client->getTimeStamp ();
 }
 
@@ -1064,7 +1089,7 @@ bool QEChannel::writeDataElement (const QVariant& elementValue)
 void QEChannel::resendLastData()
 {
    if (this->getDataIsAvailable()) {
-      this->dataUpdate (false);
+      this->dataUpdate (true);   // treat as a meta data update.
    }
 }
 
