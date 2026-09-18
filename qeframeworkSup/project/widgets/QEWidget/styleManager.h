@@ -19,8 +19,6 @@
 
 #include <QEFrameworkLibraryGlobal.h>
 
-class changeEventFilter; // Forward declaration
-
 /*!
   This class adds common style support to all QE widgets if required.
 
@@ -62,92 +60,94 @@ class changeEventFilter; // Forward declaration
 */
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT styleManager {
-    friend class changeEventFilter; // The event filter is really part of this style manager class
-
 public:
-    styleManager( QWidget* ownerIn );
-    ~styleManager();
+   styleManager (QWidget* ownerIn);
+   ~styleManager();
 
-    void setStyleDefault( QString style );  //!< Set the default Style Sheet string.
-                                            //!< The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'.
+   void setStyleDefault (const QString& style);      //!< Set the default Style Sheet string.
+                                                     //!< The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'.
 
-    QString getStyleDefault() const;        //!< Get the default Style Sheet string.
-                                            //!<
+   QString getStyleDefault() const;                  //!< Get the default Style Sheet string.
+                                                     //!<
 
-    void setStyleUser( QString style );     //!< Set the Style Sheet string to be applied when the widget is displayed in 'User' mode.
-                                            //!< The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'.
+   void setStyleUser (const QString& style);         //!< Set the Style Sheet string to be applied when the widget is displayed in 'User' mode.
+                                                     //!< The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'.
 
-    QString getStyleUser() const;           //!< Get the Style Sheet string to be applied when the widget is displayed in 'User' mode.
-                                            //!<
+   QString getStyleUser() const;                     //!< Get the Style Sheet string to be applied when the widget is displayed in 'User' mode.
+                                                     //!<
 
-    void setStyleScientist( QString style );//!< Set the Style Sheet string to be applied when the widget is displayed in 'Scientist' mode.
-                                            //!< The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
+   void setStyleScientist (const QString& style);    //!< Set the Style Sheet string to be applied when the widget is displayed in 'Scientist' mode.
+                                                     //!< The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
 
-    QString getStyleScientist() const;      //!< Get the Style Sheet string to be applied when the widget is displayed in 'Scientist' mode.
-                                            //!<
+   QString getStyleScientist() const;                //!< Get the Style Sheet string to be applied when the widget is displayed in 'Scientist' mode.
+                                                     //!<
 
-    void setStyleEngineer( QString style ); //!< Set the Style Sheet string to be applied when the widget is displayed in 'Engineer' mode.
-                                            //!< The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
+   void setStyleEngineer (const QString& style);     //!< Set the Style Sheet string to be applied when the widget is displayed in 'Engineer' mode.
+                                                     //!< The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
 
-    QString getStyleEngineer() const;       //!< Get the Style Sheet string to be applied when the widget is displayed in 'Engineer' mode.
-                                            //!<
+   QString getStyleEngineer() const;                 //!< Get the Style Sheet string to be applied when the widget is displayed in 'Engineer' mode.
+                                                     //!<
 
-    void updateDataStyle( QString style );  //!< Set the Style Sheet string to be applied to reflect an aspect of the current data.
-                                            //!< For example, a value over a high limit may be displayed in red.
+   void updateDataStyle (const QString& style);      //!< Set the Style Sheet string to be applied to reflect an aspect of the current data.
+                                                     //!< For example, a value over a high limit may be displayed in red.
 
-    void updateStatusStyle( QString style );//!< Set the Style Sheet string to be applied to reflect an aspect of the current status.
-                                            //!< For example, invalid data may be displayed with a white background.
+   void updateStatusStyle (const QString& style);    //!< Set the Style Sheet string to be applied to reflect an aspect of the current status.
+                                                     //!< For example, invalid data may be displayed with a white background.
 
-    void updatePropertyStyle( QString style );//!< Set the Style Sheet string to be applied to implement a widget property.
-                                            //!< For example, a style string is used to set QE button text alignment.
+   void updatePropertyStyle (const QString& style);  //!< Set the Style Sheet string to be applied to implement a widget property.
+                                                     //!< For example, a style string is used to set QE button text alignment.
 
-    void updateConnectionStyle( bool connected );  //!< Set the Style Sheet string to be applied to reflect the current connection state (connected or disconnected) of the current data.
-                                                   //!< For example, a disconnected value may be greyed out.
+   void updateConnectionStyle (const bool connected);//!< Set the Style Sheet string to be applied to reflect the current connection state (connected or disconnected) of the current data.
+                                                     //!< For example, a disconnected value may be greyed out.
 
-    void styleUserLevelChanged( QE::UserLevels levelIn );/**< Set the current user level.*/
+   void styleUserLevelChanged (const QE::UserLevels levelIn);  /**< Set the current user level.*/
 
 private:
-    void enabledChange();               // Called to notify the manager that the enabled state of the widget has changed
+   void enabledChange();               // Called to notify the manager that the enabled state of the widget has changed
 
-    QWidget* owner;                     // Widget to which style sheet strings will be applied
-    QString currentStyle;               // Current style sheet (or that that will be applied when not disabled). This is kept up to date as components change even if it not being applied to the widget due to the widget being disabled.
+   QWidget* owner;                     // Widget to which style sheet strings will be applied
+   QString currentStyle;               // Current style sheet (or that that will be applied when not disabled). This is kept up to date as components change even if it not being applied to the widget due to the widget being disabled.
 
-    QString userUserStyle;              // Style to apply to widget when current user is a 'user'
-    QString userScientistStyle;         // Style to apply to widget when current user is a 'scientist'
-    QString userEngineerStyle;          // Style to apply to widget when current user is a 'engineer'
+   QString userUserStyle;              // Style to apply to widget when current user is a 'user'
+   QString userScientistStyle;         // Style to apply to widget when current user is a 'scientist'
+   QString userEngineerStyle;          // Style to apply to widget when current user is a 'engineer'
 
-    QString defaultStyleSheet;          // Style sheet prior to any manipulation by this class
-    QString statusStyleSheet;           // Style to apply to reflect current status
-    QString dataStyleSheet;             // Style to apply to reflect current data
-    QString propertyStyleSheet;         // Style to apply to implement a QE widget property
-    QString connectionStyleSheet;       // Style to apply to reflect current connection state
+   QString defaultStyleSheet;          // Style sheet prior to any manipulation by this class
+   QString statusStyleSheet;           // Style to apply to reflect current status
+   QString dataStyleSheet;             // Style to apply to reflect current data
+   QString propertyStyleSheet;         // Style to apply to implement a QE widget property
+   QString connectionStyleSheet;       // Style to apply to reflect current connection state
 
-    void updateStyleSheet();            // Update the style sheet with the various style sheet components used to modify the label style (alarm info, enumeration color)
+   void updateStyleSheet();            // Update the style sheet with the various style sheet components used to modify the label style (alarm info, enumeration color)
 
-    QE::UserLevels level;               // Current user level - used to select appropriate user style
+   QE::UserLevels level;               // Current user level - used to select appropriate user style
 
-    changeEventFilter* eventFilter;     // Event filter to catch enables and disabled (all styles are removed when disabled)
+   // The event filter is really part of this style manager class
+   class changeEventFilter;            // Forward declaration
+   friend class changeEventFilter;
+   changeEventFilter* eventFilter;     // Event filter to catch enables and disabled (all styles are removed when disabled)
 };
 
 // Event filter that will be added to the widget mening managed by the styleManager class.
 // This filter will be used to catch change events to keep a track of the enabled/disabled
 // state of the widget as the style is only applied if the widget is enabled allowing the
 // full disabled look to be displayed.
-// Note, the filter functionality cant be added to the styleManager class itself
+// Note, the filter functionality can't be added to the styleManager class itself
 // as it is not a QObject (and can't be as it is a base class to QE widgets and
-// there can't be more than a single base class that is a QObject)
-class changeEventFilter : public QObject
+// there can't be more than a single base class that is a QObject).
+//
+class styleManager::changeEventFilter : public QObject
 {
-    Q_OBJECT
-
+   Q_OBJECT
 public:
-    changeEventFilter( styleManager* managerIn ){ manager = managerIn; }
+   changeEventFilter (styleManager* managerIn);
+   ~changeEventFilter ();
 
 protected:
-    bool eventFilter(QObject *obj, QEvent *event);
+   bool eventFilter (QObject* watched, QEvent* event);
 
 private:
-    styleManager* manager;  // Events are passed back to the manager
+   styleManager* manager;  // Events are passed back to the manager
 };
 
 

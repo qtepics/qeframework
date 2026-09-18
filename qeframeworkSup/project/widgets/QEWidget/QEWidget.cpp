@@ -68,10 +68,6 @@ QEWidget::QEWidget( QWidget *ownerIn ) :
    controlVariableIndices.clear();
    isWriteAllowed = true;     // assume allowed until we find out otherwise.
 
-   // Initialise 'current' severity and alarm states
-   lastSeverity = QCaAlarmInfo::getInvalidSeverity();
-   lastDisplayAlarmState = QE::Never;
-
    // Default properties
    subscribe = true;
    setSourceId( 0 );
@@ -161,51 +157,35 @@ QColor QEWidget::getColor( const QCaAlarmInfo& alarmInfo, int saturation )
    return result;
 }
 
+//------------------------------------------------------------------------------
+//
 void QEWidget::processConnectionInfo (bool isConnected, const unsigned int )
 {
    updateConnectionStyle( isConnected );
-
-   // Re-initialise 'current' severity and alarm states.
-   lastSeverity = QCaAlarmInfo::getInvalidSeverity();
-   lastDisplayAlarmState = QE::Never;
 }
 
 
+//------------------------------------------------------------------------------
 // Provides default (and consistant) alarm handling for all QE widgets.
 //
 void QEWidget::processAlarmInfo( const QCaAlarmInfo& alarmInfo,
                                  const unsigned int variableIndex )
 {
-   // Gather the current info
-   QCaAlarmInfo::Severity severity = alarmInfo.getSeverity();
-   QE::DisplayAlarmStateOptions displayAlarmState = getDisplayAlarmStateOption();
-
    // If anything has changed (either the alarm state itself, or if we have just started
    // or stopped displaying the alarm state), update the alarm style as appropriate.
    //
-   if( severity != lastSeverity || displayAlarmState != lastDisplayAlarmState )
-   {
-      // If displaying the alarm state, apply the current alarm style
-      if( getUseAlarmState( alarmInfo ) )
-      {
-         updateStatusStyle( alarmInfo.style() );
-      }
-
-      // If not displaying the alarm state, remove any alarm style
-      else
-      {
-         updateStatusStyle( "" );
-      }
+   // If displaying the alarm state, apply the current alarm style else clear.
+   //
+   if (this->getUseAlarmState (alarmInfo)) {
+      this->updateStatusStyle (alarmInfo.style() );
+   } else {
+      this->updateStatusStyle ("");
    }
 
    // Regardless of whether we are displaying the alarm state in the widget,
    // update the tool tip to reflect current alarm state.
    //
-   updateToolTipAlarm( alarmInfo, variableIndex );
-
-   // Save state for processing next update.
-   lastSeverity = severity;
-   lastDisplayAlarmState = displayAlarmState;
+   this->updateToolTipAlarm (alarmInfo, variableIndex);
 }
 
 // Update the variable name list used in tool tips if required

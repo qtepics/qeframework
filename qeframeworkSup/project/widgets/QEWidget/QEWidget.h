@@ -35,7 +35,7 @@
 class QCaInfo
 {
 public:
-    enum ACCESS_MODES {NO_ACCESS, READ_ONLY, READ_WRITE, UNKNOWN };
+    enum ACCESS_MODES { NO_ACCESS, READ_ONLY, READ_WRITE, UNKNOWN };
 
     // The constructor bundles up a set of CA related information, ensuring every item is set
     QCaInfo(
@@ -373,9 +373,6 @@ private:
     signalSlotHandler signalSlot;                                         // QObject based class a save/restore signal can be delivered to
 
     void buildPersistantName( QWidget* w, QString& name ) const;          // make a function??
-
-    QCAALARMINFO_SEVERITY lastSeverity;                                   // Used as low pass tool tip filter.
-    QE::DisplayAlarmStateOptions lastDisplayAlarmState;                   // Last alarm state. Kept to identify when the alarm state (included in a data update signal) changes
 
     static void addPathToSearchList( QString path, QString name,          // Add a path and filename to a search list. (add sub dirs if path ends with '...')
                                      QStringList& searchList );

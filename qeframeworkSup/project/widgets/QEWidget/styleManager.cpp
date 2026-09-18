@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -15,35 +15,39 @@
 #include <QDebug>
 #include <QEWidget.h>
 
-#define DEBUG qDebug () << "styleManager" << __LINE__ << __FUNCTION__ << "  "
+#define DEBUG qDebug () << "QEStyleManager" << __LINE__ << __FUNCTION__ << "  "
 
 //------------------------------------------------------------------------------
 // Construction.
 //
-styleManager::styleManager( QWidget* ownerIn )
+styleManager::styleManager (QWidget* ownerIn)
 {
-    // Sanity check.
-    if( ownerIn == NULL )
-    {
-        qWarning( "styleManager constructor called with a null 'owner'" );
-        exit( EXIT_FAILURE );
-    }
+   this->owner = ownerIn;
 
-    // Keep a handle on the underlying QWidget of the QE widgets
-    owner = ownerIn;
-    defaultStyleSheet = "";
-    level = QE::User;
+   // Sanity check.
+   if (ownerIn == NULL) {
+      qWarning ("styleManager constructor called with a null 'owner'");
+      DEBUG  << "styleManager constructor called with a null 'owner'";
+      return;
+   }
 
-    // Note the current style sheet.
-    // This will be kept up to date as this manager manages changes to the component
-    // parts of the style, even if the style is not currently being applied to the widget
-    // because it is disabled.
-    // This means that when the widget is re-enabled, the currentStyle can just be applied.
-    currentStyle = owner->styleSheet();
+   // Keep a handle on the underlying QWidget of the QE widgets.
+   //
+   this->defaultStyleSheet = "";
+   this->level = QE::User;
 
-    // Add an event filter to catch enables and disabled (all styles are removed when disabled)
-    eventFilter = new changeEventFilter( this );
-    owner->installEventFilter(eventFilter);
+   // Note the current style sheet.
+   // This will be kept up to date as this manager manages changes to the component
+   // parts of the style, even if the style is not currently being applied to the widget
+   // because it is disabled.
+   // This means that when the widget is re-enabled, the currentStyle can just be applied.
+   //
+   this->currentStyle = owner->styleSheet();
+
+   // Add an event filter to catch enables and disabled (all styles are removed when disabled).
+   //
+   this->eventFilter = new changeEventFilter (this);
+   this->owner->installEventFilter (eventFilter);
 }
 
 //------------------------------------------------------------------------------
@@ -51,18 +55,21 @@ styleManager::styleManager( QWidget* ownerIn )
 //
 styleManager::~styleManager()
 {
-    // Remove the event filter to catch enables and disabled
-    owner->removeEventFilter( eventFilter );
-    delete eventFilter;
+   // Remove the event filter to catch enables and disabled.
+   //
+   this->owner->removeEventFilter (this->eventFilter);
+   delete eventFilter;
 }
 
 //------------------------------------------------------------------------------
 // Allow the default style sheet to be programatically set.
 //
-void styleManager::setStyleDefault( QString styleIn )
+void styleManager::setStyleDefault (const QString& style)
 {
-    defaultStyleSheet = styleIn;
-    updateStyleSheet();
+   if (this->defaultStyleSheet != style) {
+      this->defaultStyleSheet = style;
+      this->updateStyleSheet();
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -71,16 +78,16 @@ void styleManager::setStyleDefault( QString styleIn )
 //
 QString styleManager::getStyleDefault() const
 {
-   return defaultStyleSheet;
+   return this->defaultStyleSheet;
 }
 
 //------------------------------------------------------------------------------
 // Set the Style Sheet string to be applied when the widget is displayed in 'User' mode.
 // The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
 //
-void styleManager::setStyleUser( QString style )
+void styleManager::setStyleUser (const QString& style)
 {
-    userUserStyle = style;
+   this->userUserStyle = style;
 }
 
 //------------------------------------------------------------------------------
@@ -88,16 +95,16 @@ void styleManager::setStyleUser( QString style )
 //
 QString styleManager::getStyleUser() const
 {
-    return userUserStyle;
+   return this->userUserStyle;
 }
 
 //------------------------------------------------------------------------------
 // Set the Style Sheet string to be applied when the widget is displayed in 'Scientist' mode.
 // The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
 //
-void styleManager::setStyleScientist( QString style )
+void styleManager::setStyleScientist (const QString& style)
 {
-    userScientistStyle = style;
+   this->userScientistStyle = style;
 }
 
 //------------------------------------------------------------------------------
@@ -105,16 +112,16 @@ void styleManager::setStyleScientist( QString style )
 //
 QString styleManager::getStyleScientist() const
 {
-    return userScientistStyle;
+   return this->userScientistStyle;
 }
 
 //------------------------------------------------------------------------------
 // Set the Style Sheet string to be applied when the widget is displayed in 'Engineer' mode.
 // The syntax is the standard Qt Style Sheet syntax. For example, 'background-color: red'
 //
-void styleManager::setStyleEngineer( QString style )
+void styleManager::setStyleEngineer (const QString& style)
 {
-    userEngineerStyle = style;
+   this->userEngineerStyle = style;
 }
 
 //------------------------------------------------------------------------------
@@ -122,7 +129,7 @@ void styleManager::setStyleEngineer( QString style )
 //
 QString styleManager::getStyleEngineer() const
 {
-    return userEngineerStyle;
+   return this->userEngineerStyle;
 }
 
 
@@ -130,20 +137,24 @@ QString styleManager::getStyleEngineer() const
 // Set the Style Sheet string to be applied to reflect an aspect of the current data.
 // For example, a value over a high limit may be displayed in red.
 //
-void styleManager::updateDataStyle( QString style )
+void styleManager::updateDataStyle (const QString& style)
 {
-    dataStyleSheet = style;
-    updateStyleSheet();
+   if (this->dataStyleSheet != style) {
+      this->dataStyleSheet = style;
+      this->updateStyleSheet();
+   }
 }
 
 //------------------------------------------------------------------------------
 // Set the Style Sheet string to be applied to reflect an aspect of the current status.
 // For example, invalid data may be displayed with a white background.
 //
-void styleManager::updateStatusStyle( QString style )
+void styleManager::updateStatusStyle (const QString& style)
 {
-    statusStyleSheet = style;
-    updateStyleSheet();
+   if (this->statusStyleSheet != style) {
+      this->statusStyleSheet = style;
+      this->updateStyleSheet();
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -151,27 +162,26 @@ void styleManager::updateStatusStyle( QString style )
 // (connected or disconnected) of the current data.
 // For example, a disconnected value may be greyed out.
 //
-void styleManager::updateConnectionStyle( bool connected )
+void styleManager::updateConnectionStyle (const bool connected)
 {
-    if( connected )
-    {
-        connectionStyleSheet = "";
-    }
-    else
-    {
-        connectionStyleSheet = "QWidget { color: grey }";
-    }
-    updateStyleSheet();
+   const QString style = connected ? "" : "QWidget { color: grey }";
+
+   if (this->connectionStyleSheet != style) {
+      this->connectionStyleSheet = style;
+      this->updateStyleSheet();
+   }
 }
 
 //------------------------------------------------------------------------------
 // Set the Style Sheet string to be applied to implement a widget property.
 // For example, a style string is used to set QE button text alignment.
 //
-void styleManager::updatePropertyStyle( QString style )
+void styleManager::updatePropertyStyle (const QString& style)
 {
-    propertyStyleSheet = style;
-    updateStyleSheet();
+   if (this->propertyStyleSheet != style) {
+      this->propertyStyleSheet = style;
+      this->updateStyleSheet();
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -180,80 +190,80 @@ void styleManager::updatePropertyStyle( QString style )
 //
 void styleManager::updateStyleSheet()
 {
-    // Note,for QE widgets the styleSheet is now a non-designable property,
-    // so inhibiting style updates is no longer applicable.
-    //
-    // Select the appropriate user level style
+   // Note,for QE widgets the styleSheet is now a non-designable property,
+   // so inhibiting style updates is no longer applicable.
    //
-    QString userLevelStyle;
-    switch( level )
-    {
-        case QE::User:
-            userLevelStyle = userUserStyle;
-            break;
+   // Select the appropriate user level style
+   //
+   QString userLevelStyle;
+   switch (level)
+   {
+      case QE::User:
+         userLevelStyle = this->userUserStyle;
+         break;
 
-        case QE::Scientist:
-            userLevelStyle = userScientistStyle;
-            break;
+      case QE::Scientist:
+         userLevelStyle = this->userScientistStyle;
+         break;
 
-        case QE::Engineer:
-            userLevelStyle = userEngineerStyle;
-            break;
-    }
+      case QE::Engineer:
+         userLevelStyle = this->userEngineerStyle;
+         break;
+   }
 
-    // Compile and apply the entire style string if there is any difference
-    // with what is currently there.
-    //
-    QString newStyleSheet = defaultStyleSheet;
+   // Compile and apply the entire style string if there is any difference
+   // with what is currently there.
+   //
+   QString newStyleSheet = this->defaultStyleSheet;
 
-// Macro function to append style with "\n" separator iff required.
-//
+   // Macro function to append style with "\n" separator iff required.
+   //
 #define APPEND_STYLE(nextStyleSheet) {                                         \
-   if( !newStyleSheet.isEmpty() && !nextStyleSheet.isEmpty() )                 \
-       newStyleSheet.append( "\n" );                                           \
-   newStyleSheet.append( nextStyleSheet );                                     \
+   if (!newStyleSheet.isEmpty() && !nextStyleSheet.isEmpty()) {                \
+      newStyleSheet.append ("\n");                                             \
+      newStyleSheet.append (nextStyleSheet);                                   \
+   }                                                                           \
 }
 
 
-    // Note: with styles: Last in - best dressed.
-    //
-    APPEND_STYLE (propertyStyleSheet);
-    APPEND_STYLE (statusStyleSheet);
-    APPEND_STYLE (connectionStyleSheet);
-    APPEND_STYLE (dataStyleSheet);
-    APPEND_STYLE (userLevelStyle);
+   // Note: with styles: Last in - best dressed.
+   //
+   APPEND_STYLE (this->propertyStyleSheet);
+   APPEND_STYLE (this->statusStyleSheet);
+   APPEND_STYLE (this->connectionStyleSheet);
+   APPEND_STYLE (this->dataStyleSheet);
+   APPEND_STYLE (userLevelStyle);
 
 #undef APPEND_STYLE
 
-    // Apply the new style sheet if the widget is enabled
-    // (and it is different to the current one)
-    // (and we are not in Designer)
-    //
-    if( owner->isEnabled() &&
-        newStyleSheet.compare( owner->styleSheet() ) &&
-        !QEWidget::inDesigner() )
-    {
-        owner->setStyleSheet( newStyleSheet );
-    }
+   // Apply the new style sheet if the widget is enabled
+   // (and it is different to the current one)
+   // (and we are not in Designer)
+   //
+   if (this->owner->isEnabled() &&
+       newStyleSheet.compare (owner->styleSheet()) &&
+       !QEWidget::inDesigner())
+   {
+      this->owner->setStyleSheet (newStyleSheet);
+   }
 
-    // Keep an up-to-date copy of the style sheet. It will be applied to the
-    // widget if the widget changes from being disabled to enabled.
-    //
-    currentStyle = newStyleSheet;
+   // Keep an up-to-date copy of the style sheet. It will be applied to the
+   // widget if the widget changes from being disabled to enabled.
+   //
+   this->currentStyle = newStyleSheet;
 }
 
 //------------------------------------------------------------------------------
 // Set the current user level.
 //
-void styleManager::styleUserLevelChanged( QE::UserLevels levelIn )
+void styleManager::styleUserLevelChanged (const QE::UserLevels levelIn)
 {
-    // Note the new style and update the style string if changed
-    bool newLevel = level != levelIn;
-    level = levelIn;
-    if( newLevel )
-    {
-        updateStyleSheet();
-    }
+   // Note the new style and update the style string if changed.
+   //
+   if (this->level != levelIn) {
+      this->level = levelIn;
+      this->updateStyleSheet();
+   }
 }
 
 //------------------------------------------------------------------------------
@@ -265,35 +275,53 @@ void styleManager::styleUserLevelChanged( QE::UserLevels levelIn )
 //
 void styleManager::enabledChange()
 {
-    // Do nothing if running within designer
-    if( QEWidget::inDesigner() )
-        return;
+   // Do nothing if running within designer
+   if (QEWidget::inDesigner())
+      return;
 
-    // Enable use or don't use the current style sheet according to the disabled state
-    if( owner->isEnabled() )
-    {
-        owner->setStyleSheet( currentStyle );
-    }
-    else
-    {
-        owner->setStyleSheet( "" );
-    }
+   // Enable use or don't use the current style sheet according to the disabled state.
+   //
+   if (this->owner->isEnabled())
+   {
+      this->owner->setStyleSheet (currentStyle);
+   }
+   else
+   {
+      this->owner->setStyleSheet ("");
+   }
+}
+
+
+//==============================================================================
+// changeEventFilter
+//==============================================================================
+//
+styleManager::changeEventFilter::changeEventFilter (styleManager* managerIn)
+{
+   this->manager = managerIn;
+}
+
+//------------------------------------------------------------------------------
+//
+styleManager::changeEventFilter::~changeEventFilter ()
+{
 }
 
 //------------------------------------------------------------------------------
 // Change Event Filter used to note when the widget becomes enabled or disabled.
 // (styles are removed while disabled so the 'disabled' look is not hidden by the applied style)
 //
-bool changeEventFilter::eventFilter(QObject *obj, QEvent *event)
+bool styleManager::changeEventFilter::eventFilter (QObject* watched, QEvent* event)
 {
-    // If the enabled state has changed, report this to the style manager
-    if ( event->type() == QEvent::EnabledChange )
-    {
-        manager->enabledChange();
-    }
+   // If the enabled state has changed, report this to the style manager.
+   //
+   if (event->type() == QEvent::EnabledChange) {
+      this->manager->enabledChange();
+   }
 
-    // Do standard event processing.
-    return QObject::eventFilter(obj, event);
+   // Do standard event processing.
+   //
+   return QObject::eventFilter (watched, event);
 }
 
 // end
