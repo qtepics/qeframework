@@ -578,7 +578,8 @@ static pva::ChannelProvider::shared_pointer pvaProvider = NULL;
 //
 QEPvaClient::QEPvaClient (const QString& pvName,
                           QObject* parent) :
-   QEBaseClient (QEBaseClient::PVAType, pvName, parent)
+   QEBaseClient (QEBaseClient::PVAType, pvName, parent),
+   allowSignalEmission (true)
 {
    QEPvaClientManager::initialise ();  // idempotent - do first.
 
@@ -622,6 +623,7 @@ QEPvaClient::QEPvaClient (const QString& pvName,
 //
 QEPvaClient::~QEPvaClient()
 {
+   this->allowSignalEmission = false;
    this->closeChannel ();
    this->magic = 0;
    this->uniqueId = 0;
@@ -969,7 +971,7 @@ void QEPvaClient::processUpdate (QEPvaClient::Update* update)
             this->display.isDefined = false;
             this->valueAlarm.isDefined = false;
          }
-         emit connectionUpdated (this->isConnected);
+         if (this->allowSignalEmission) emit connectionUpdated (this->isConnected);
          this->firstUpdate = true;
          break;
 
@@ -993,7 +995,7 @@ void QEPvaClient::processUpdate (QEPvaClient::Update* update)
          // The first post connection update is always considered
          // a meta data update.
          //
-         emit dataUpdated (this->firstUpdate || isMetaUpdate);
+         if (this->allowSignalEmission) emit dataUpdated (this->firstUpdate || isMetaUpdate);
          this->firstUpdate = false;
          break;
 

@@ -37,14 +37,21 @@ public:
   explicit  QE_ACAI_Client (const QString& pvName, QECaClient* owner);
    ~QE_ACAI_Client ();
 
+   // A wrapper around closeClannel which first inhibist the emission of
+   // of any signals. This is only invoked from the destructor.
+   //
+   void closeClientChannel ();
+
 protected:
    // Override ACAI::Client parent class functions.
    //
    void connectionUpdate (const bool isConnected);
    void dataUpdate (const bool firstUpdate);
    void putCallbackNotifcation (const bool isSuccessful);
+
 private:
    QECaClient* const owner;   // ptr is const, not the object itself.
+   bool allowSignalEmission;
 };
 
 //------------------------------------------------------------------------------
@@ -52,33 +59,50 @@ private:
 QE_ACAI_Client::QE_ACAI_Client (const QString& pvName,
                                 QECaClient* ownerIn) :
    ACAI::Client (pvName.toStdString()),
-   owner(ownerIn)
+   owner(ownerIn),
+   allowSignalEmission (true)
 { }
 
 //------------------------------------------------------------------------------
 //
-QE_ACAI_Client::~QE_ACAI_Client () { }
+QE_ACAI_Client::~QE_ACAI_Client ()
+{
+   this->allowSignalEmission = false;
+}
+
+//------------------------------------------------------------------------------
+//
+void QE_ACAI_Client::closeClientChannel ()
+{
+   this->closeChannel();
+}
 
 //------------------------------------------------------------------------------
 // Override ACAI::Client parent class functions.
 //
 void QE_ACAI_Client::connectionUpdate (const bool isConnected)
 {
-   if (this->owner) this->owner->connectionUpdate (isConnected);
+   if (this->allowSignalEmission && this->owner) {
+      this->owner->connectionUpdate (isConnected);
+   }
 }
 
 //------------------------------------------------------------------------------
 //
 void QE_ACAI_Client::dataUpdate (const bool firstUpdate)
 {
-   if (this->owner) this->owner->dataUpdate (firstUpdate);
+   if (this->allowSignalEmission && this->owner) {
+      this->owner->dataUpdate (firstUpdate);
+   }
 }
 
 //------------------------------------------------------------------------------
 //
 void QE_ACAI_Client::putCallbackNotifcation (const bool isSuccessful)
 {
-   if (this->owner) this->owner->putCallbackNotifcation (isSuccessful);
+   if (this->allowSignalEmission && this->owner) {
+      this->owner->putCallbackNotifcation (isSuccessful);
+   }
 }
 
 
@@ -102,14 +126,14 @@ QECaClient::QECaClient (const QString& pvNameIn,
 //
 QECaClient::~QECaClient ()
 {
-   // valueClient and descriptionClient have an owner(this) but not a parent,
+   // valueClient and descriptionClient have an owner (this) but not a parent,
    // so we must explicitly delete these QE_ACAI_Client objects.
    //
-   this->mainClient->closeChannel ();
+   this->mainClient->closeClientChannel ();
 
    if (this->descClient && (this->descClient != this->mainClient)) {
       // This is a separate client
-      this->descClient->closeChannel();
+      this->descClient->closeClientChannel();
       delete this->descClient;
       this->descClient = NULL;
    }
