@@ -389,11 +389,13 @@ void QEImage::setup()
 
    // Create options dialog
    // This is done after all items manipulated by the options dialog have been built - such as the brightness/contrast controls
-   // Also pareneted by this so will scaled automatically.
+   // Also parented by this so it will be scaled automatically.
+   //
    optionsDialog = new QEImageOptionsDialog( this );
    QObject::connect( optionsDialog, SIGNAL( optionChange( imageContextMenu::imageContextMenuOptions, bool )),
                      this,          SLOT  ( optionAction( imageContextMenu::imageContextMenuOptions, bool )) );
-   optionsDialog->initialise();
+
+   optionsDialog->initialise( this->videoWidget );
 
    // Initially set the video widget to the size of the scroll bar
    // This will be resized when the image size is known
