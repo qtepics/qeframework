@@ -67,7 +67,7 @@ public:
                                     QString& error, int& line, int& col);
 
    /// This calls the appropriate doc.setContent method depending on the Qt version in use.
-   static bool setDocumentContents (QDomDocument& doc, QFile& file
+   static bool setDocumentContents (QDomDocument& doc, QFile& file,
                                     QString& error, int& line, int& col);
 
 
