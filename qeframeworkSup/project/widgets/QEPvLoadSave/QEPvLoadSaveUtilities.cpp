@@ -250,7 +250,7 @@ QEPvLoadSaveItem* QEPvLoadSaveUtilities::readTree (const QString& filename,
    int errorLine;
    int errorCol;
 
-   const bool loadStatus = QEPlatform::setDocumentContents (file, doc, errorText, errorLine, errorCol);
+   const bool loadStatus = QEPlatform::setDocumentContents (doc, file, errorText, errorLine, errorCol);
    if (!loadStatus) {
       errorMessage = QString ("%1:%2:%3 set content failed: %4")
                              .arg (filename)

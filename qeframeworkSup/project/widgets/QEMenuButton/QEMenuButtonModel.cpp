@@ -61,7 +61,7 @@ bool QEMenuButtonModel::parseXml (const QString& xml)
    int errorLine;
    int errorCol;
 
-   if (!QEPlatform::setDocumentContents (xml, doc, errorText, errorLine, errorCol)) {
+   if (!QEPlatform::setDocumentContents (doc, xml, errorText, errorLine, errorCol)) {
       qWarning () << QString ("%1:%2").arg (errorLine).arg (errorCol)
                   << " set content failed " << errorText;
       return false;

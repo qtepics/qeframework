@@ -62,13 +62,13 @@ public:
    /// This function test if the specified double floating point number is +/-Infinity.
    static bool isInf (const double x);
 
-   /// This calls the apprpriate doc.setContent methoda depending on the Qt version in use.
-   static bool setDocumentContents (const QString& xml, QDomDocument& doc,
-                                 QString& error, int& line, int& col);
+   /// This calls the appropriate doc.setContent method depending on the Qt version in use.
+   static bool setDocumentContents (QDomDocument& doc, const QString& xml,
+                                    QString& error, int& line, int& col);
 
-   /// This calls the apprpriate doc.setContent methoda depending on the Qt version in use.
-   static bool setDocumentContents (QFile& file, QDomDocument& doc,
-                               QString& error, int& line, int& col);
+   /// This calls the appropriate doc.setContent method depending on the Qt version in use.
+   static bool setDocumentContents (QDomDocument& doc, QFile& file
+                                    QString& error, int& line, int& col);
 
 
 #if QT_VERSION < 0x060000

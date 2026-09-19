@@ -157,7 +157,7 @@ bool QEPlatform::isInf (const double x)
 
 //------------------------------------------------------------------------------
 // static
-bool QEPlatform::setDocumentContents (const QString& xml, QDomDocument& doc,
+bool QEPlatform::setDocumentContents (QDomDocument& doc, const QString& xml,
                                       QString& error, int& line, int& col)
 {
    bool result;
@@ -181,7 +181,7 @@ bool QEPlatform::setDocumentContents (const QString& xml, QDomDocument& doc,
 
 //------------------------------------------------------------------------------
 // static
-bool QEPlatform::setDocumentContents (QFile& file, QDomDocument& doc,
+bool QEPlatform::setDocumentContents (QDomDocument& doc, QFile& file,
                                       QString& error, int& line, int& col)
 {
    bool result;
