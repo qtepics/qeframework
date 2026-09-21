@@ -8,6 +8,7 @@
 
 /_pro
 /_pso
+/_ref
 
 # intermediate build files.
 #
@@ -38,6 +39,7 @@ archapplDataSup/src/archapplProto.pb.h
 
 # work in progress and temp files.
 #
+/z*
 */wip/
 *-wip/
 *-wip.h

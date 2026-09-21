@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -875,13 +875,9 @@ void histogram::resizeEvent( QResizeEvent* )
 // Histogram repaint event
 void histogram::paintEvent(QPaintEvent* )
 {
-   // Do nothing if no image info yet
-   if( idp->bins == NULL )
-   {
-      return;
-   }
-
-   // Determine range (ignore counts in first and last buckets as it is common for huge counts in one or both ends)
+   // Determine range (ignore counts in first and last buckets as it is
+   // common for huge counts in one or both ends).
+   //
    unsigned int binRange = 0;
    for( int i = 1; i < HISTOGRAM_BINS-1; i++ )
    {
