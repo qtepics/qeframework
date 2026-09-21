@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2018-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2018-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -22,14 +22,20 @@ QEBaseClient::QEBaseClient (const Type type, const QString& pvName,
                             QObject* parent) :
    QObject(parent),
    clientType(type),
-   clientPvName(pvName)
+   clientPvName(pvName),
+   allowSignalEmission (true)
 {
    this->userMessage = NULL;
 }
 
 //------------------------------------------------------------------------------
 //
-QEBaseClient::~QEBaseClient () {}
+QEBaseClient::~QEBaseClient ()
+{
+   // super class should to this as this thing within own destructor.
+   //
+   this->allowSignalEmission = false;
+}
 
 //------------------------------------------------------------------------------
 //

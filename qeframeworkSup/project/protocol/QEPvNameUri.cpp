@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2018-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2018-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -22,10 +22,12 @@
 //------------------------------------------------------------------------------
 // This must be consistant with the enum Protocol definition out of the header.
 //
-static const QString prefix[QEPvNameUri::NUMBER_OF_PROTOCOLS] = {
+static const QString s_protocolPrefixList [QEPvNameUri::NUMBER_OF_PROTOCOLS] = {
    "__undefined__",    // undefined
    "ca",               // ca
-   "pva"               // pva
+   "pva",              // pva
+   "env",              // env
+   "lit",              // lit
 };
 
 static const QString cds = "://";    // colon double slash
@@ -34,7 +36,7 @@ static const QString cds = "://";    // colon double slash
 // static
 QString QEPvNameUri::protocolImage (const Protocol protocol)
 {
-   return prefix [protocol];
+   return s_protocolPrefixList [protocol];
 }
 
 
@@ -72,7 +74,7 @@ QEPvNameUri::Protocol QEPvNameUri::getDefaultProtocol()
             continue;
 #endif
 
-         if (defProtoSpec == prefix[j]) {
+         if (defProtoSpec == s_protocolPrefixList[j]) {
             // Found it.
             theDefaultProtocol = protocol;
             theDefaultIsDefined = true;
@@ -133,14 +135,18 @@ QString QEPvNameUri::encodeUri () const
 {
    QString result = "";
 
+   QString prefix = s_protocolPrefixList [this->protocol] + cds;
+
    switch (this->protocol) {
       case ca:
-         result = QString ("ca%1%2").arg (cds).arg(this->pvName);
+      case env:
+      case lit:
+         result = QString ("%1%2").arg (prefix).arg (this->pvName);
          break;
 
       case pva:
 #ifdef QE_INCLUDE_PV_ACCESS
-         result = QString ("pva%1%2").arg (cds).arg (this->pvName);
+         result = QString ("%1%2").arg (prefix).arg (this->pvName);
 #endif
          break;
 
@@ -177,7 +183,7 @@ bool QEPvNameUri::decodeUri (const QString& uri, const bool strict)
          continue;
 #endif
 
-      QString startCheck = prefix[j] + cds;
+      QString startCheck = s_protocolPrefixList[j] + cds;
 
       // Note the use of toLower.
       //

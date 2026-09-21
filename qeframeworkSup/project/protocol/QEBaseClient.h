@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2018-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2018-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -35,7 +35,9 @@ public:
    enum Type {
       NullType,      // Unknown/Invalid
       CAType,        // Channel Access
-      PVAType        // PV Access
+      PVAType,       // PV Access
+      EnvType,       // Environment Variable
+      LitType,       // Literal Value
    };
 
    // Open channel mode selection enumeration values and associated flags.
@@ -109,6 +111,9 @@ private:
    const Type clientType;
    const QString clientPvName;
    UserMessage* userMessage;
+
+protected:
+   bool allowSignalEmission;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS (QEBaseClient::ChannelModesFlags)

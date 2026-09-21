@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2018-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2018-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -38,8 +38,8 @@
 // 1) We have extended the framework to handle PV Access, and
 //    designate such PVs as "pva://SR11BCM01:CURRENT_MONITOR"
 // 2) To potentially allow other "PV" protocols such as:
-//    "env://XXX"  to access environment variable XXX
-//    "lit://14"   to access literal values (read only)
+//    "archive://name{time}" - access a historical data from the archivers.
+//    "replay://name{time}" - replay historical data from the archivers.
 //    "loc://name" to access some application local value.
 //
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvNameUri
@@ -47,11 +47,15 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvNameUri
 public:
    enum Protocol {
       undefined = 0,  // or invalid
-      ca,             // Channel Access           - prefix ca://
-      pva,            // Process Variable Access  - prefix pva://
+      ca,             // Channel Access              - prefix ca://
+      pva,            // Process Variable Access     - prefix pva://
+      env,            // Environment Variable Access - prefix env://
+      lit,            // Literal Value Access        - prefix lit://
       NUMBER_OF_PROTOCOLS
    };
 
+   // Eg "ca", "pva".
+   //
    static QString protocolImage (const Protocol protocol);
 
    // Contruct an undefined uri

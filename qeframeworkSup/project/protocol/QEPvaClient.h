@@ -91,7 +91,6 @@ private:
    //
    uint64_t magic;         // class type check
    uint64_t uniqueId;      // class instance check
-   bool allowSignalEmission;
    bool isConnected;       //
    bool firstUpdate;       //
    QString id;             // e.g.  "epics:nt/NTScalar:1.0"

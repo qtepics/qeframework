@@ -578,8 +578,7 @@ static pva::ChannelProvider::shared_pointer pvaProvider = NULL;
 //
 QEPvaClient::QEPvaClient (const QString& pvName,
                           QObject* parent) :
-   QEBaseClient (QEBaseClient::PVAType, pvName, parent),
-   allowSignalEmission (true)
+   QEBaseClient (QEBaseClient::PVAType, pvName, parent)
 {
    QEPvaClientManager::initialise ();  // idempotent - do first.
 

@@ -20,6 +20,12 @@ SOURCES += $$PWD/QEBaseClient.cpp
 HEADERS += $$PWD/QECaClient.h
 SOURCES += $$PWD/QECaClient.cpp
 
+HEADERS += $$PWD/QEEnvClient.h
+SOURCES += $$PWD/QEEnvClient.cpp
+
+HEADERS += $$PWD/QELitClient.h
+SOURCES += $$PWD/QELitClient.cpp
+
 HEADERS += $$PWD/QENTNDArrayConverter.h
 SOURCES += $$PWD/QENTNDArrayConverter.cpp
 

@@ -25,6 +25,8 @@
 #include <QENullClient.h>
 #include <QECaClient.h>
 #include <QEPvaClient.h>
+#include <QEEnvClient.h>
+#include <QELitClient.h>
 #include <QEStringFormatting.h>
 #include <QEIntegerFormatting.h>
 #include <QEFloatingFormatting.h>
@@ -143,6 +145,14 @@ void QEChannel::initialise (const QString& newPvName,
 
       case QEPvNameUri::pva:
          this->client = new QEPvaClient (pvName, this);
+         break;
+
+      case QEPvNameUri::env:
+         this->client = new QEEnvClient (pvName, this);
+         break;
+
+      case QEPvNameUri::lit:
+         this->client = new QELitClient (pvName, this);
          break;
 
       default:
