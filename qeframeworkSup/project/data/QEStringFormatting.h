@@ -111,10 +111,26 @@ public:
    // E.g. "8#dddd" for octal, "16#dddd" or "0xdddd" for hexadecimal numbers.
    // Note: 10# may be used for decimal.
    //
-   long toInt (const QString& image, bool& okay) const;
+   int toInt (const QString& image, bool& okay) const;
    long toLong (const QString& image, bool& okay) const;
    unsigned long toULong (const QString& image, bool& okay) const;
    double toDouble (const QString& image, bool& okay) const;
+
+   // Extract a variant (scalar or vector) based on the goven text string.
+   // For a double values or double arrays it will also provide the precision.
+   //
+   // Arrays are denoted with square-brackets, e.g. an int array:
+   //     [ -42, 2026, 100 ]
+   //
+   // If all values are valid integers, then is considered an integer array,
+   // otherwise if all the values are valid floating numbers then it is
+   // considered to be a double array otherwise  a string array is returned.
+   // Note: currently cannot use quotes for strings with an embedded comma.
+   //
+   // For arrays, the possible variant types returned are one of QEInt32Vector,
+   // QEInt64Vector, QEDoubleVector or QStringList.
+   //
+   static QVariant fromString (const QString& text, int& precision, bool& okay);
 
 private:
    // isNumeric set true iff value is numeric data.

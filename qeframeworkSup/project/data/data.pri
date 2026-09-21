@@ -65,6 +65,9 @@ SOURCES += $$PWD/QEString.cpp
 HEADERS += $$PWD/QEStringFormatting.h
 SOURCES += $$PWD/QEStringFormatting.cpp
 
+HEADERS += $$PWD/QEVectorVariants.h
+SOURCES += $$PWD/QEVectorVariants.cpp
+
 HEADERS += $$PWD/qepicspv.h
 SOURCES += $$PWD/qepicspv.cpp
 

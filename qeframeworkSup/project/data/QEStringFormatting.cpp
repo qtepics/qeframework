@@ -634,6 +634,7 @@ QString QEStringFormatting::formatElementString (const QVariant& value,
                      result = dbEnumerations[lValue];
                      haveEnumeratedString = true;
                   }
+                  // NOTE: STAT field hard-coded values now set up in QCaChannel - extra values appended to dbEnumerations.
                }
             }
 
@@ -1397,7 +1398,7 @@ QString QEStringFormatting::toIntegerStringGeneric (const Number value) const
    work[--p] = '\0';            // Fill work in backwards
 
    int n = 0;                   // Number of digits so far - excluding separators
-   Number t = value;              // Working value
+   Number t = value;            // Working value
    do {
       Number q = t / this->radixBase;
       Number r = t % this->radixBase;
@@ -1442,7 +1443,8 @@ QString QEStringFormatting::toIntegerStringGeneric (const Number value) const
 //------------------------------------------------------------------------------
 //
 template<typename Number>
-Number QEStringFormatting::toIntegerValueGeneric (const QString& image, bool& okay) const
+Number QEStringFormatting::
+toIntegerValueGeneric (const QString& image, bool& okay) const
 {
    const char sepChar = separatorChars[this->separator];
 
@@ -1550,7 +1552,7 @@ QString QEStringFormatting::toString (const unsigned long value) const
 
 //------------------------------------------------------------------------------
 //
-long QEStringFormatting::toInt (const QString& image, bool& okay) const
+int QEStringFormatting::toInt (const QString& image, bool& okay) const
 {
    return this->toIntegerValueGeneric<int>(image, okay);
 }
@@ -1567,6 +1569,163 @@ long QEStringFormatting::toLong (const QString& image, bool& okay) const
 unsigned long QEStringFormatting::toULong (const QString& image, bool& okay) const
 {
    return this->toIntegerValueGeneric<unsigned long>(image, okay);
+}
+
+
+//------------------------------------------------------------------------------
+// Determines the requires precision for a floating point number.
+// The result is in the range 1 to 18
+//
+static int determinePrecision (const double x)
+{
+   int result = 3;   // the default
+
+   double t = 10.0;
+   for (int j = 1; j <= 18; j++) {
+      const double y = x * t;
+      const int64_t n = static_cast<int64_t>(std::round(y));
+      const double x2 = n/t;
+
+      double diff = x2 -x;
+      if (diff < 0.0) diff = -diff;
+
+      if (diff <= 1.0e-18) {
+         result = j;
+         break;
+      }
+
+      t = t * 10.0;
+   }
+
+   return result;
+}
+
+//------------------------------------------------------------------------------
+// static
+//
+QVariant QEStringFormatting::fromString (const QString& textIn, int& precision, bool& okay)
+{
+   const QString text = textIn.trimmed ();  // remove any leading/tailing white space
+
+   QVariant result;
+   QEStringFormatting fmt;  // for own formatting functions - we need an object.
+   precision = 0;           // until we know better
+
+   // Are we dealing with an array of values?
+   //
+   const bool sb = text.left(1) == "[";
+   const bool eb = text.right(1) == "]";
+
+   if (sb && eb) {
+      // This is an array of the expected form:
+      // [ value, value, .... value ]
+      //
+      const int size = text.length() - 2;
+      const QStringList values = text.mid(1, size).split (",");
+      const int number = values.count();
+
+      // Assume all good until we find out otherwise.
+      //
+      bool all_int = true;
+      bool all_long = true;
+      bool all_double = true;
+
+      QEInt32Vector ivector;
+      QEInt64Vector lvector;
+      QEDoubleVector dvector;
+      QStringList svector;
+
+      for (int j = 0; j < number; j++) {
+         const QString element = values.value(j).trimmed ();
+         bool elementOkay;
+
+         svector.append (element);  // every thing can be considered a string
+
+         const int32_t ival = fmt.toInt (element, elementOkay);
+         if (elementOkay) {
+            // This is an int, so it is also a long and a double.
+            //
+            ivector.append (ival);
+            lvector.append (static_cast<int64_t> (ival));
+            dvector.append (static_cast<double> (ival));
+            continue;
+         }
+
+         // Not int, maybe long
+         //
+         all_int = false;
+         const int64_t lval = fmt.toLong (element, elementOkay);
+         if (elementOkay) {
+            // This is an long, so it is also a double.
+            //
+            lvector.append (lval);
+            dvector.append (static_cast<double> (lval));
+            continue;
+         }
+
+         // Not long, maybe double
+         //
+         all_long = false;
+         const double dval = fmt.toDouble (element, elementOkay);
+         if (elementOkay) {
+            // We have a double
+            //
+            dvector.append (dval);
+            const int p = determinePrecision (dval);
+            precision = MAX (p, precision);
+            continue;
+         }
+
+         // Not a double, and out of options.
+         //
+         all_double = false;
+      }
+
+      if (all_int) {
+         result.setValue (ivector);
+      } else if (all_long) {
+         result.setValue (lvector);
+      } else if (all_double) {
+         result.setValue (dvector);
+      } else {
+         result.setValue (svector);
+         precision = 0;
+      }
+      okay = true;
+
+   } else if (!sb  && !eb) {
+      // This is a scalar
+      //
+      const int32_t ival = fmt.toInt (text, okay);
+      if (okay) {
+         result.setValue (ival);
+         return result;
+      }
+
+      const int64_t lval = fmt.toLong (text, okay);
+      if (okay) {
+         result.setValue (static_cast<qlonglong>(lval));
+         return result;
+      }
+
+      const double dval = fmt.toDouble (text, okay);
+      if (okay) {
+         result.setValue (dval);
+         precision = determinePrecision (dval);
+         return result;
+      }
+
+      // Is just a string
+      //
+      result = QVariant (text);
+      okay = true;
+
+   } else {
+      DEBUG << "invalid text - [ ] mis match.";
+      okay = false;
+   }
+
+   return result;
 }
 
 // end

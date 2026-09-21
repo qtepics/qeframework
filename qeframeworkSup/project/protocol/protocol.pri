@@ -46,7 +46,4 @@ SOURCES += $$PWD/QEPvaClient.cpp
 HEADERS += $$PWD/QEPvaData.h
 SOURCES += $$PWD/QEPvaData.cpp
 
-HEADERS += $$PWD/QEVectorVariants.h
-SOURCES += $$PWD/QEVectorVariants.cpp
-
 # end
