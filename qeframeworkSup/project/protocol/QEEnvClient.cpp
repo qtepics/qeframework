@@ -12,7 +12,9 @@
  */
 
 #include "QEEnvClient.h"
+#include <QByteArray>
 #include <QDebug>
+#include <QtCore>    // #include <QtEnvironmentVariables>
 #include <QTimer>
 #include <QEPlatform.h>
 #include <QEStringFormatting.h>
@@ -66,9 +68,10 @@ bool QEEnvClient::readVariable ()
       this->dateTime = QCaDateTime::currentDateTime();
 
    } else {
-      char* value = secure_getenv (name.toStdString().c_str());
-      if (value) {
-         this->pvData = QEStringFormatting::fromString (QString (value), this->precision, okay);
+      const QByteArray byteArray = qgetenv (name.toStdString().c_str());
+      if (!byteArray.isEmpty()) {
+         const QString value = QString::fromUtf8 (byteArray);
+         this->pvData = QEStringFormatting::fromString (value, this->precision, okay);
          this->envVarExists = true;
          this->dateTime = QCaDateTime::currentDateTime();
       } else {
@@ -153,14 +156,15 @@ QVariant QEEnvClient::getPvData () const
 //
 bool QEEnvClient::putPvData (const QVariant& newData)
 {
-   QString name = this->getPvName();
-   QString assign = QString("%1=%2").arg(name).arg(newData.toString());
-   char* copy = strdup (assign.toStdString().c_str());
-   int status = putenv (copy);
-   /// we do not free copy;
+   const QString name = this->getPvName();
+   const QString value = newData.toString();
+   const QByteArray byteArray = value.toUtf8();
 
-   emit environmentVariableUpdate (this->getPvName());
-   return status == 0;
+   // Set a variable (creates it if it doesn't exist)
+   qputenv (name.toStdString().c_str(), byteArray);
+
+   emit environmentVariableUpdate (name);
+   return true;
 }
 
 //------------------------------------------------------------------------------
