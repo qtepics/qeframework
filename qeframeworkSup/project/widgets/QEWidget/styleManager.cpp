@@ -219,10 +219,9 @@ void styleManager::updateStyleSheet()
    // Macro function to append style with "\n" separator iff required.
    //
 #define APPEND_STYLE(nextStyleSheet) {                                         \
-   if (!newStyleSheet.isEmpty() && !nextStyleSheet.isEmpty()) {                \
+   if (!newStyleSheet.isEmpty() && !nextStyleSheet.isEmpty())                  \
       newStyleSheet.append ("\n");                                             \
-      newStyleSheet.append (nextStyleSheet);                                   \
-   }                                                                           \
+   newStyleSheet.append (nextStyleSheet);                                      \
 }
 
 
