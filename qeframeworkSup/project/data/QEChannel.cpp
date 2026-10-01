@@ -747,7 +747,7 @@ bool QEChannel::isWriteCallbacksEnabled() const
 //
 QCaAlarmInfo QEChannel::getAlarmInfo() const
 {
-   QCaAlarmInfo alarmInfo;
+   QCaAlarmInfo alarmInfo = this->client->getAlarmInfo ();
    alarmInfo.setConsistantTimeStamp (this->timeStampIsConsistent);
    return alarmInfo;
 }
