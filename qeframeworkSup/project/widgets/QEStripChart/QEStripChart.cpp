@@ -476,7 +476,7 @@ const QCaDataPoint* QEStripChart::findNearestPoint (const QPointF& posn,
    int closest = 0x7FFFFFFF;
    for (int slot = 0; slot < NUMBER_OF_PVS; slot++) {
       QEStripChartItem* item = this->getItem (slot);
-      if (item && (item->isInUse () == true)) {
+      if (item && item->isInUse () && item->isDisplayed) {
          const QCaDataPoint* nearest = item->findNearestPoint (searchTime);
          if (nearest) {
             // write a functions (t, y) <==>  QCaDataPoint
