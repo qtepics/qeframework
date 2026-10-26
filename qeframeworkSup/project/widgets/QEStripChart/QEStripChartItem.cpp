@@ -482,7 +482,7 @@ void QEStripChartItem::setCaption ()
    }
 
    if (this->dataKind == CalculationData) {
-      caption.append (":= ");
+      caption.append ("= ");
    }
 
    caption.append (this->getCaptionLabel());

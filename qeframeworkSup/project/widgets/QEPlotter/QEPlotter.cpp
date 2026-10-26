@@ -732,7 +732,7 @@ void QEPlotter::updateLabel (const int slot)
 
       case CalculationPlot:
          if (ds->expressionIsValid) {
-            caption.append (":= ");
+            caption.append ("= ");
             caption.append (ds->expression);
          } else {
             caption.append ("invalid expr.");

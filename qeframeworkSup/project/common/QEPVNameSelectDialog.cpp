@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2013-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2013-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -42,11 +42,31 @@ QStringList QEPVNameSelectDialog::getPvNameList ()
    return QEPVNameSelectDialog::pvNameList;
 }
 
+
 //------------------------------------------------------------------------------
 //
-QEPVNameSelectDialog::QEPVNameSelectDialog (QWidget *parent) :
+QEPVNameSelectDialog::QEPVNameSelectDialog (QWidget* parent) :
    QEDialog (parent),
+   m_allowCalcHelp (false),
    ui (new Ui::QEPVNameSelectDialog)
+{
+   this->commonConstructor();
+}
+
+//------------------------------------------------------------------------------
+//
+QEPVNameSelectDialog::QEPVNameSelectDialog (const bool allowCalcHelp,
+                                            QWidget* parent) :
+   QEDialog (parent),
+   m_allowCalcHelp (allowCalcHelp),
+   ui (new Ui::QEPVNameSelectDialog)
+{
+   this->commonConstructor();
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPVNameSelectDialog::commonConstructor()
 {
    this->ui->setupUi (this);
 
@@ -56,13 +76,14 @@ QEPVNameSelectDialog::QEPVNameSelectDialog (QWidget *parent) :
 
    this->returnIsMasked = false;
 
-   this->ui->help_frame->setVisible (false);
+   this->ui->help_frame_1->setVisible (false);
+   this->ui->help_frame_2->setVisible (false);
    this->setFixedHeight (this->ui->frame_1->minimumHeight() +
                          this->ui->frame_2->minimumHeight() +
                          this->ui->frame_2->minimumHeight() );
 
-   QObject::connect (this->ui->filterEdit,  SIGNAL  (returnPressed ()),
-                     this,                  SLOT    (filterEditReturnPressed ()));
+   QObject::connect (this->ui->filterEdit,  SIGNAL (returnPressed ()),
+                     this,                  SLOT   (filterEditReturnPressed ()));
 
    QObject::connect (this->ui->filterEdit,  SIGNAL (editingFinished       ()),
                      this,                  SLOT   (filterEditingFinished ()));
@@ -70,8 +91,15 @@ QEPVNameSelectDialog::QEPVNameSelectDialog (QWidget *parent) :
    QObject::connect (this->ui->pvNameEdit,  SIGNAL (editTextChanged (const QString&)),
                      this,                  SLOT   (editTextChanged (const QString&)));
 
-   QObject::connect (this->ui->helpButton,  SIGNAL (clicked       (bool)),
-                     this,                  SLOT   (helpClicked   (bool)));
+   QObject::connect (this->ui->regexHelpButton, SIGNAL (clicked          (bool)),
+                     this,                      SLOT   (regexHelpClicked (bool)));
+
+   if (this->m_allowCalcHelp) {
+      QObject::connect (this->ui->calcHelpButton, SIGNAL (clicked          (bool)),
+                        this,                     SLOT   (calcHelpClicked  (bool)));
+   } else {
+      this->ui->calcHelpButton->setVisible (false);
+   }
 
    QObject::connect (this->ui->clearButton, SIGNAL (clicked       (bool)),
                      this,                  SLOT   (clearClicked  (bool)));
@@ -188,17 +216,19 @@ void QEPVNameSelectDialog::editTextChanged (const QString&)
 }
 
 //------------------------------------------------------------------------------
+// Common help clicked functionality.
 //
-void QEPVNameSelectDialog::helpClicked (bool /* checked */ )
+void QEPVNameSelectDialog::helpClicked (QFrame* frame1, QPushButton* btn1,
+                                        QFrame* frame2, QPushButton* btn2)
 {
    // Toggle visibility.
    //
-   const bool helpIsVis = !this->ui->help_frame->isVisible();
+   const bool helpIsVis = !frame1->isVisible();
 
-   this->ui->help_frame->setVisible (helpIsVis);
+   frame1->setVisible (helpIsVis);
+   frame2->setVisible (false);
 
-   const int requiredHelpHeight =
-         helpIsVis ? this->ui->help_frame->minimumHeight() : 0;
+   const int requiredHelpHeight = helpIsVis ? frame1->minimumHeight() : 0;
 
    this->setFixedHeight (this->ui->frame_1->minimumHeight() +
                          this->ui->frame_2->minimumHeight() +
@@ -209,7 +239,7 @@ void QEPVNameSelectDialog::helpClicked (bool /* checked */ )
    //
    if (helpIsVis) {
       QRect geo = this->geometry();
-      int m = this->ui->help_frame->minimumWidth();
+      int m = frame1->minimumWidth();
       if (m > geo.width()) {
          geo.setWidth (m);
          this->setGeometry (geo);
@@ -219,7 +249,24 @@ void QEPVNameSelectDialog::helpClicked (bool /* checked */ )
    // And update button text.
    //
    const QString helpButtonText = helpIsVis ? "Hide" : "Help";
-   this->ui->helpButton->setText (helpButtonText);
+   btn1->setText (helpButtonText);
+   btn2->setText ("Help");
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPVNameSelectDialog::regexHelpClicked (bool /* checked */ )
+{
+   this->helpClicked (this->ui->help_frame_1, this->ui->regexHelpButton,
+                      this->ui->help_frame_2, this->ui->calcHelpButton);
+}
+
+//------------------------------------------------------------------------------
+//
+void QEPVNameSelectDialog::calcHelpClicked (bool /* checked */ )
+{
+   this->helpClicked (this->ui->help_frame_2, this->ui->calcHelpButton,
+                      this->ui->help_frame_1, this->ui->regexHelpButton);
 }
 
 //------------------------------------------------------------------------------
