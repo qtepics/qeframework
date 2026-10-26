@@ -11,6 +11,8 @@
  *  Contact:    andrews@ansto.gov.au
  */
 
+#include "QEEmitter.h"
+
 #include <QDebug>
 #include <QObject>
 #include <QMetaObject>
@@ -18,11 +20,12 @@
 #include <QVariant>
 
 #include <QECommon.h>
+#include <QEVectorVariants.h>
 #include <QEPlatform.h>
 #include <QEChannel.h>
 #include <QEWidget.h>
 
-#include <QEEmitter.h>
+#define DEBUG  qDebug () << "QEEmitter" << __LINE__ << __FUNCTION__ << "  "
 
 // Signal identifiers.
 //
@@ -154,9 +157,17 @@ void QEEmitter::emitDbValueChangedPrivate (const bool useFormmattedText,
 
    if (!isDefined) return;    // don't send nonsense.
 
+   if (QEVectorVariants::isVectorVariant(value)) {
+      // Convert to a variant list
+      //
+      value = QEVectorVariants::convertToVariantList (value, okay);
+      if (!okay) return;
+   }
+
    // Is this a list?
    //
    const QMetaType::Type mtype = QEPlatform::metaType (value);
+
    if (mtype == QMetaType::QVariantList) {
       // Extract appropriate value.
       //
