@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2022-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2022-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -134,7 +134,8 @@ public:
    ///
    enum Notations {
       Fixed = 0,        ///< Standard floating point, e.g. 123456.789
-      Scientific,       ///< Scientific representation, e.g. 1.23456789e6
+      Scientific,       ///< Scientific representation, e.g. 1.23456789e+05
+      Engineering,      ///< Engineering representation, e.g. 123.456789e+03
       Automatic         ///< Automatic choice of standard or scientific notation
    };
    Q_ENUM (Notations)

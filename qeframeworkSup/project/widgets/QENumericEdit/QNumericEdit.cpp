@@ -39,8 +39,8 @@ QNumericEdit::QNumericEdit (QWidget * parent) : QWidget (parent)
 //
 void QNumericEdit::commonConstructor ()
 {
-   this->fpr.setRadix (QE::Decimal);
-   this->fpr.setSeparator (QE::NoSeparator);
+   this->fpr.setRadix (QE::Radicies::Decimal);
+   this->fpr.setSeparator (QE::Separators::NoSeparator);
 
    this->lineEdit = new QLineEdit (this);
    this->lineEdit->setSizePolicy (QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -67,7 +67,7 @@ void QNumericEdit::commonConstructor ()
    this->mPrecision = 4;
    this->mForceSign = false;
    this->mWrapValue = false;
-   this->mNotation = QE::Fixed;
+   this->mNotation = QE::Notations::Fixed;
    this->minimumMin = this->calcLower ();
    this->maximumMax = this->calcUpper ();
    this->mMinimum = this->minimumMin;
@@ -144,7 +144,7 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
 
             int significance = -this->mPrecision;
 
-            if (this->mNotation == QE::Fixed) {
+            if (this->mNotation == QE::Notations::Fixed) {
                significance = -this->mPrecision;
                for (int j = index + 1; j <= this->cursorLast; j++) {
                   qc = this->charAt (j);
@@ -153,7 +153,7 @@ bool QNumericEdit::lineEditKeyPressEvent (QKeyEvent * event)
                   }
                }
 
-            } else if (this->mNotation == QE::Scientific) {
+            } else if (this->isFloatFormat()) {
                // Exponent size, exluding the 'e' is 3.
                //
                QString expText = this->lineEdit->text().mid (this->cursorLast - 2, 3);
@@ -400,6 +400,14 @@ bool QNumericEdit::eventFilter (QObject *obj, QEvent *event)
 
 //------------------------------------------------------------------------------
 //
+bool QNumericEdit::isFloatFormat() const
+{
+   return (this->mNotation == QE::Notations::Scientific) ||
+          (this->mNotation == QE::Notations::Engineering);
+}
+
+//------------------------------------------------------------------------------
+//
 void QNumericEdit::setDigitSelection ()
 {
    // Only set/update selection if/when the widget has focus.
@@ -426,21 +434,22 @@ double QNumericEdit::valueOfImage (const QString& image) const
    intermediate = image.mid (this->cursorFirst, length);
 
    switch (this->mNotation) {
-      case QE::Fixed:
+      case QE::Notations::Fixed:
          result = this->fpr.toValue (intermediate, okay);
          if (!okay) {
             result = this->mValue;
          }
          break;
 
-      case QE::Scientific:
+      case QE::Notations::Scientific:
+      case QE::Notations::Engineering:
          // Remove thousands separators if needs be.
          //
          switch (this->getSeparator ()) {
-            case QE::NoSeparator: sepChar = "";   break;
-            case QE::Comma:       sepChar = ",";  break;
-            case QE::Underscore:  sepChar = "_";  break;
-            case QE::Space:       sepChar = " ";  break;
+            case QE::Separators::NoSeparator: sepChar = "";   break;
+            case QE::Separators::Comma:       sepChar = ",";  break;
+            case QE::Separators::Underscore:  sepChar = "_";  break;
+            case QE::Separators::Space:       sepChar = " ";  break;
          }
 
          if (!sepChar.isEmpty ()) {
@@ -453,7 +462,7 @@ double QNumericEdit::valueOfImage (const QString& image) const
          }
          break;
 
-      case QE::Automatic:
+      case QE::Notations::Automatic:
          DEBUG << "Unexpected notation";
          break;
    }
@@ -471,22 +480,23 @@ QString QNumericEdit::getFormattedText (const double value) const
    int point;
 
    switch (this->mNotation) {
-      case QE::Fixed:
+      case QE::Notations::Fixed:
          result = this->fpr.toString (value, this->showSign (),
                                       this->mLeadingZeros, this->mPrecision);
          break;
 
-      case QE::Scientific:
+      case QE::Notations::Scientific:
+      case QE::Notations::Engineering:
          signChar = (this->showSign () && (value >= 0.0)) ? "+" : "";
          result = QString ("%1%2").arg (signChar).arg (value, 0, 'e', this->mPrecision);
 
          // Add thousands separators if needs be.
          //
          switch (this->getSeparator ()) {
-            case QE::NoSeparator: sepChar = "";   break;
-            case QE::Comma:       sepChar = ",";  break;
-            case QE::Underscore:  sepChar = "_";  break;
-            case QE::Space:       sepChar = " ";  break;
+            case QE::Separators::NoSeparator: sepChar = "";   break;
+            case QE::Separators::Comma:       sepChar = ",";  break;
+            case QE::Separators::Underscore:  sepChar = "_";  break;
+            case QE::Separators::Space:       sepChar = " ";  break;
          }
          if (sepChar.isEmpty ()) break;
 
@@ -608,7 +618,7 @@ bool QNumericEdit::cursorOverSign () const
 //
 bool QNumericEdit::cursorOverExpSign () const
 {
-   return ((this->mNotation == QE::Scientific) &&
+   return ((this->isFloatFormat()) &&
            (this->getCursorPosition () == this->cursorLast - 2));
 }
 
@@ -616,7 +626,7 @@ bool QNumericEdit::cursorOverExpSign () const
 //
 bool QNumericEdit::cursorOverExponent () const
 {
-   return ((this->mNotation == QE::Scientific) &&
+   return ((this->isFloatFormat()) &&
            ((this->getCursorPosition () == this->cursorLast - 1) ||
             (this->getCursorPosition () == this->cursorLast)));
 }
@@ -634,17 +644,18 @@ double QNumericEdit::calcUpper () const
 
    switch (this->mNotation) {
 
-      case QE::Fixed:
+      case QE::Notations::Fixed:
          a = pow (dblRadix, +this->mLeadingZeros);
          b = pow (dblRadix, -this->mPrecision);
          result =  a - b;
          break;
 
-      case QE::Scientific:
+      case QE::Notations::Scientific:
+      case QE::Notations::Engineering:
          result = +9.999999999999e+99;
          break;
 
-      case QE::Automatic:
+      case QE::Notations::Automatic:
          DEBUG << "Unexpected notation";
          break;
 
@@ -723,7 +734,7 @@ QString QNumericEdit::getCleanText () const
 void QNumericEdit::setLeadingZeros (const int value)
 {
    this->mLeadingZeros = LIMIT (value, 0, this->maximumSignificance ());
-   if (this->mNotation == QE::Scientific) this->mLeadingZeros = 1;
+   if (this->isFloatFormat()) this->mLeadingZeros = 1;
 
    // Reduce precision so as not to exceed max significance if required.
    //
@@ -749,7 +760,7 @@ void QNumericEdit::setPrecision (const int value)
    // Reduce precision so as not to exceed max significance if required.
    //
    this->mLeadingZeros = MIN (this->mLeadingZeros, this->maximumSignificance () - this->mPrecision);
-   if (this->mNotation == QE::Scientific) this->mLeadingZeros = 1;
+   if (this->isFloatFormat()) this->mLeadingZeros = 1;
 
    this->applyLimits ();
    this->redisplayText ();
@@ -793,15 +804,15 @@ bool QNumericEdit::getWrapValue () const
 
 //------------------------------------------------------------------------------
 //
-void QNumericEdit::setNotation (const QE::Notations notationIn )
+void QNumericEdit::setNotation (const QE::Notations notationIn)
 {
    // We don't allow Automatic, go with Fixed.
    //
    this->mNotation = (notationIn != QE::Automatic) ? notationIn : QE::Fixed;
-   if (this->mNotation == QE::Scientific) {
-      // Scientific notation implies decimal notation.
+   if (this->isFloatFormat()) {
+      // Scientific/Engineering notation implies decimal notation.
       //
-      this->fpr.setRadix (QE::Decimal);
+      this->fpr.setRadix (QE::Radicies::Decimal);
       this->mLeadingZeros = 1;
    }
    this->redisplayText ();
@@ -899,7 +910,7 @@ void QNumericEdit::setRadix (const QE::Radicies value)
    if (value != QE::Decimal) {
       // Not decimal - force fixed point notation.
       //
-      this->setNotation (QE::Fixed);
+      this->setNotation (QE::Notations::Fixed);
    }
 
    if (this->fpr.getRadix () != value) {
@@ -948,7 +959,7 @@ void QNumericEdit::internalSetValue (const double value,
    //
    if (!(QEPlatform::isNaN (value) || QEPlatform::isInf (value))) {
 
-      if (this->mNotation == QE::Fixed) {
+      if (this->mNotation == QE::Notations::Fixed) {
          // When fixed notation, ensure widget is WYSIWYG
          // int caste truncates towards zero - select signed half.
          //

@@ -1077,13 +1077,12 @@ static const int separatorGaps[17] = {
 
 //------------------------------------------------------------------------------
 //
-bool QEStringFormatting::useScientificNotation (const double value) const
+QE::Notations QEStringFormatting::determineNotation (const double value) const
 {
-   if (this->notation == QE::Fixed) return false;
-   if (this->notation == QE::Scientific) return true;
+   if (this->notation != QE::Automatic) return this->notation;  // return as is.
 
    // Pick best/most approptiate notation based on the value.
-   // This is athe same logic as in formatFromFloating
+   // This is the same logic as in formatFromFloating
    // Extact precision being used.
    //
    const int prec = LIMIT (this->precision, 0, 15);
@@ -1099,7 +1098,174 @@ bool QEStringFormatting::useScientificNotation (const double value) const
    const bool inFixedLimits = (absValue >= lowFixedLimit) &&
                               (absValue < highFixedLimit);
 
-   return (absValue != 0.0) && !inFixedLimits;
+   return ((absValue != 0.0) && !inFixedLimits) ? QE::Notations::Scientific : QE::Notations::Fixed;
+}
+
+
+//------------------------------------------------------------------------------
+//
+QString QEStringFormatting::toFixedString (const double value) const
+{
+   const int prec = LIMIT (this->useDbPrecision ? this->dbPrecision : this->precision, 0, 64);
+   const int zeros = LIMIT (this->leadingZeros, 0, 64);
+   const char sepChar = separatorChars[this->separator];
+   const int gap = (this->separator == QE::NoSeparator) ? -1 : separatorGaps[this->radixBase];
+   const double dblRadix = this->radixBase;
+
+   QString result = "";
+
+   double work = ABS (value);   // working value
+
+   // Round up by half the value of the least significant digit.
+   //
+   const double roundUp = pow ((1.0 / dblRadix), prec) * 0.5;
+   work = work + roundUp;
+
+   // Find most significant digit position.
+   // Units are 0, tens are 1, etc.
+   //
+   int mostSig = 0;
+   if (work >= dblRadix) {
+      double temp = work;
+      while (temp >= dblRadix) {
+         temp /= dblRadix;
+         mostSig += 1;
+      }
+   }
+
+   // Alternative - how expensive is pow?
+   // for (int t = dblRadix; t < work; t = t*dblRadix) {
+   //    mostSig++;
+   // }
+
+   mostSig = MAX (mostSig, zeros - 1);
+   for (int n = mostSig; n >= -prec; n--) {
+      double prs = pow (dblRadix, n);
+      int r = int (floor (work / prs));
+      work = work - r * prs;
+
+      result.append (radixChars[r]);
+
+      // All done?
+      //
+      if (n <= -prec)
+         break;
+
+      if (n == 0) {
+         result.append ('.');
+      } else if ((gap > 0) && (ABS (n) % gap) == 0) {
+         result.append (sepChar);
+      }
+   }
+   return result;
+}
+
+//------------------------------------------------------------------------------
+//
+QString QEStringFormatting::toFloatingString (const double value,
+                                              const int increment) const
+{
+   const int prec = LIMIT (this->useDbPrecision ? this->dbPrecision : this->precision, 0, 64);
+   const int zeros = LIMIT (this->leadingZeros, 0, 64);
+   const char sepChar = separatorChars[this->separator];
+   const int gap = (this->separator == QE::NoSeparator) ? -1 : separatorGaps[this->radixBase];
+   const double dblRadix = this->radixBase;
+
+   double expRadix = 1.0;
+   for (int j = 0; j < increment; j++) {
+      expRadix *= dblRadix;
+   }
+
+   QString result = "";
+
+   double work = ABS (value);   // working value
+   int exponent = 0;
+
+   if (work != 0.0) {
+      // Non-zero value - normalise the value.
+      //
+      if (work >= expRadix) {
+         while (work >= expRadix) {
+            work /= expRadix;
+            exponent += increment;
+         }
+      } else if (work < 1.0) {
+         while (work < 1.0) {
+            work *= expRadix;
+            exponent -= increment;
+         }
+      }
+      // now:  1.0 <= value < 10.0 in the nominated base (unless is zero).
+
+      // Round up by half the value of the least significant digit.
+      //
+      const double roundUp = pow ((1.0 / dblRadix), prec) * 0.5;
+      work = work + roundUp;
+
+      // Check if the round up pushed us into the next radix-decade?
+      //
+      if (work >= expRadix) {
+         work /= expRadix;
+         exponent += increment;
+      }
+   }
+
+   // Calculate whole number digits: 1 for scientific, 1-3 for engineering.
+   //
+   int r = int (work);   // rounds down towards zero - always works
+   int pre = 1;          // always at least 1.
+   while (r >= this->radixBase) {
+      r /= this->radixBase;
+      pre += 1;
+   }
+
+   // Append any leading zeros
+   //
+   for (int j = zeros; j >= 1 + pre; j--) {
+      if ((gap > 0) && ((j % gap) == 0) && (j < zeros)) {
+         result.append (sepChar);
+      }
+      result.append ('0');
+   }
+
+   // Now append the integer characters.
+   //
+   QString integerPart = "";
+   r = int (work);
+   for (int j = 0; j < pre; j++) {
+      int d = r % this->radixBase;
+      integerPart.prepend (radixChars[d]);
+      r /= this->radixBase;
+   }
+
+   result.append (integerPart);
+
+   if (prec > 0) {
+      result.append ('.');
+      r = int (work);
+      for (int j = 1; j <= prec; j++) {
+         work = dblRadix * (work - r);
+         r = int (work);
+         result.append (radixChars[r]);
+
+         if ((gap > 0) && ((j % gap) == 0) && (j < prec)) {
+            result.append (sepChar);
+         }
+      }
+   }
+
+   // Now do the exponent.
+   // Be consistant with toFloatingValue re selection of e vs. p
+   //
+   char xp[20];
+   if (this->radixBase >= 11) {
+      snprintf (xp, sizeof (xp), "p%+03d", exponent);
+   } else {
+      snprintf (xp, sizeof (xp), "e%+03d", exponent);
+   }
+   result.append (xp);
+
+   return result;
 }
 
 //------------------------------------------------------------------------------
@@ -1110,11 +1276,6 @@ QString QEStringFormatting::toString (const double value) const
    // Some of these could be pre-computed once.
    //
    const QString sign = (value < 0.0) ? "-" : (this->forceSign ? "+" : "");
-   const int zeros = LIMIT (this->leadingZeros, 0, 64);
-   const char sepChar = separatorChars[this->separator];
-   const int gap = (this->separator == QE::NoSeparator) ? -1 : separatorGaps[this->radixBase];
-
-   const int prec = LIMIT (this->useDbPrecision ? this->dbPrecision : this->precision, 0, 64);
 
    // Sanity checks/specials.
    //
@@ -1127,6 +1288,7 @@ QString QEStringFormatting::toString (const double value) const
    }
 
    QString result = "";
+   QString number = "";
 
    // Do leading sign if needed or requested.
    //
@@ -1144,122 +1306,35 @@ QString QEStringFormatting::toString (const double value) const
       }
    }
 
-   double work = ABS (value);   // working value
-   const double dblRadix = this->radixBase;
+   const QE::Notations useNotation = this->determineNotation (value);
 
-   if (this->useScientificNotation (value)) {
-      // Scientifc representation.
-      //
-      int exponent = 0;
+   switch (useNotation) {
 
-      if (work != 0.0) {
-         // Non-zero value - normalise the value.
+      case QE::Notations::Fixed:
+         // Fixed point representation.
          //
-         if (work >= dblRadix) {
-            while (work >= dblRadix) {
-               work /= dblRadix;
-               exponent += 1;
-            }
-         } else if (work < 1.0) {
-            while (work < 1.0) {
-               work *= dblRadix;
-               exponent -= 1;
-            }
-         }
-         // now:  1.0 <= value < 10.0 in the nominated base (unless is zero).
+         number = this->toFixedString (value);
+         result.append (number);
+         break;
 
-         // Round up by half the value of the least significant digit.
+      case QE::Notations::Scientific:
+         // Scientifc representation.
          //
-         const double roundUp = pow ((1.0 / dblRadix), prec) * 0.5;
-         work = work + roundUp;
+         number = this->toFloatingString (value, 1);
+         result.append (number);
+         break;
 
-         // Check if the round up pushed us into the next radix-decade?
+      case QE::Notations::Engineering:
+         // Engineering representation.
          //
-         if (work >= dblRadix) {
-            work /= dblRadix;
-            exponent += 1;
-         }
-      }
+         number = this->toFloatingString (value, 3);
+         result.append (number);
+         break;
 
-      // Leading zeros
-      for (int j = zeros; j >= 2; j--) {
-         if ((gap > 0) && ((j % gap) == 0) && (j < zeros)) {
-            result.append (sepChar);
-         }
-         result.append ('0');
-      }
-
-      int r = int (work);   // rounds down towards zero
-      result.append (radixChars[r]);
-
-      if (prec > 0) {
-         result.append ('.');
-         for (int j = 1; j <= prec; j++) {
-            work = dblRadix * (work - r);
-            r = int (work);
-            result.append (radixChars[r]);
-
-            if ((gap > 0) && ((j % gap) == 0) && (j < prec)) {
-               result.append (sepChar);
-            }
-         }
-      }
-
-      // Now do the exponent.
-      // Be consistant with toFloatingValue re selection of e vs. p
-      //
-      char xp[20];
-      if (this->radixBase >= 11) {
-         snprintf (xp, sizeof (xp), "p%+03d", exponent);
-      } else {
-         snprintf (xp, sizeof (xp), "e%+03d", exponent);
-      }
-      result.append (xp);
-
-   } else {
-      // Fixed point representation.
-      //
-      // Round up by half the value of the least significant digit.
-      //
-      const double roundUp = pow ((1.0 / dblRadix), prec) * 0.5;
-      work = work + roundUp;
-
-      // Find most significant digit position.
-      // Units are 0, tens are 1, etc.
-      //
-      int mostSig = 0;
-      if (work >= dblRadix) {
-         double temp = work;
-         while (temp >= dblRadix) {
-            temp /= dblRadix;
-            mostSig += 1;
-         }
-      }
-
-      // Alternative - how expensive is pow?
-      // for (int t = dblRadix; t < work; t = t*dblRadix) {
-      //    mostSig++;
-      // }
-
-      mostSig = MAX (mostSig, zeros - 1);
-      for (int n = mostSig; n >= -prec; n--) {
-         double prs = pow (dblRadix, n);
-         int r = int (floor (work / prs));
-         work = work - r * prs;
-
-         result.append (radixChars[r]);
-
-         // All done?
-         //
-         if (n <= -prec)
-            break;
-
-         if (n == 0) {
-            result.append ('.');
-         } else if ((gap > 0) && (ABS (n) % gap) == 0) {
-            result.append (sepChar);
-         }
-      }
+      default:
+         result = "error";
+         DEBUG << "Invalid notation:" << QE::NotationsImage (useNotation);
+         break;
    }
 
    return result;

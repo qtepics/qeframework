@@ -288,6 +288,10 @@ public:
 
    QString getCleanText () const { return this->internalWidget->getCleanText (); }
 
+   // Allow third party access to the internal widget.
+   //
+   QNumericEdit* getInternalWidget() const { return this->internalWidget; }
+
 signals:
    // Note, the following signals are common to many QE widgets,
    // if changing the doxygen comments, ensure relevent changes are migrated to all instances

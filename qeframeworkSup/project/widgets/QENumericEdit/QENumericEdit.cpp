@@ -146,7 +146,7 @@ void QENumericEdit::commonSetup ()
    //
    this->setVariableAsToolTip (true);
    this->setAllowDrop (false);
-   this->setDisplayAlarmStateOption (QE::Always);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Always);
 
    // Use default context menu.
    // Note: Turn off the menu for the internal QNumericEdit and QLineEdit widgets.
@@ -638,7 +638,7 @@ void QENumericEdit::calculateAutoValues ()
       autoMinimum = ctrlLow;
       autoMaximum = ctrlUpp;
 
-      if (this->getNotation() == QE::Scientific) {
+      if (this->internalWidget->isFloatFormat()) {
          autoLeadingZeros = 1;
 
       } else {

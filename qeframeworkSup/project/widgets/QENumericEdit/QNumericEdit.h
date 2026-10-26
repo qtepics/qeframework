@@ -244,10 +244,11 @@ private:
 
    QString imageOfValue () const;  // Generate image of the current value - include prefix and suffix.
 
+   bool isFloatFormat () const;       // Scientific or Engineering notation,
    bool showSign () const;
    bool cursorOverSign () const;      // Cursor is over the leading sign char
    bool cursorOverExpSign () const;   // Cursor is over the exponent sign char
-   bool cursorOverExponent () const;  // Cursor is over the exponent nunber
+   bool cursorOverExponent () const;  // Cursor is over the exponent number
 
    void redisplayText ();             // Calls embedded lineEdit's setText using string from imageOfValue.
    void setDigitSelection ();         // High-lights selected digit

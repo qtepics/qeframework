@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2025-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2025-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -56,10 +56,10 @@ QE_ENUM_FN_IMPL (UserLevels, 3)
 QE_ENUM_FN_IMPL (DisplayAlarmStateOptions, 4)
 QE_ENUM_FN_IMPL (Formats, 7)
 QE_ENUM_FN_IMPL (Separators, 4)
-QE_ENUM_FN_IMPL (Notations, 3)
+QE_ENUM_FN_IMPL (Notations, 4)
 QE_ENUM_FN_IMPL (ArrayActions, 3)
 QE_ENUM_FN_IMPL (Radicies, 4)
-QE_ENUM_FN_IMPL (UpdateOptions, 8);
+QE_ENUM_FN_IMPL (UpdateOptions, 8)
 QE_ENUM_FN_IMPL (DisabledRecordPolicy, 3)
 QE_ENUM_FN_IMPL (ProgramStartupOptions, 4)
 QE_ENUM_FN_IMPL (CreationOptions, 12)
