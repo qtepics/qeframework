@@ -401,7 +401,9 @@ bool QEPvaData::Display::extract (const pvxs::Value& pv)
       ASSIGN_MEMBER (Display, "units",       temp);
       this->units = QString::fromStdString (temp);
 
-      if (isNTNDArray) {
+      if (!isNTNDArray) {
+         ASSIGN_MEMBER (Display, "precision",   this->precision);
+      } else {
          // NTNDArrays don't normally have a precision.
          OPTIONAL_ASSIGN_MEMBER (Display, "precision",   this->precision);
       }

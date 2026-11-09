@@ -471,8 +471,9 @@ static QEThreadSafeQueue <QEPvaClient::EventContext> pvaEventQueue;
 
 // Some assert checks occur and are semi-expected, e.g. when reconnecting
 // all PV on a form. This is a no debug message assert macro.
+// Note: has same API to allow easy swap with above.
 //
-#define AFFIRM(condition) {                                \
+#define AFFIRM(condition, dummy) {                         \
    if(!(condition)) {                                      \
       return;                                              \
    }                                                       \
@@ -489,7 +490,7 @@ void QEPvaClient::processEvents (const EventContext& context)
 {
    // Perform sanity checks.
    //
-   ASSERT (this->magic == clientMagicNumber, "magic number mis-match");
+   AFFIRM (this->magic == clientMagicNumber, "magic number mis-match");
    ASSERT (context.client, "null client");
    ASSERT (context.client == this, "specified client is not this client");
    ASSERT (context.clientId == this->clientId, "client id mis-match");

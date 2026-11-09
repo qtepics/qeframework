@@ -1,5 +1,6 @@
+# Repo: tec_gui/qeframework
 # File: qeframeworkSup/Makefile
-# DateTime: Tue Feb 10 16:36:06 2026
+# DateTime: Thu Oct 22 13:42:16 2026
 # Last checked in by: starritt
 #
 # This make file is the bridge beween the EPICS build system and the Qt project qmake/make paradigm.
@@ -26,6 +27,7 @@ include $(TOP)/configure/CONFIG
 #
 export EPICS_BASE := $(EPICS_BASE)
 export ACAI := $(ACAI)
+export PVXS := $(PVXS)
 
 ifdef QE_PVACCESS_SUPPORT
     # Assume user knows what he/she are doing.
