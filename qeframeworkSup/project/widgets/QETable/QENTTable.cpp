@@ -99,6 +99,10 @@ void QENTTable::commonConstruct ()
    this->showPvName = false;
    this->setShowPvName (false);
 
+   this->m_precision = 4;
+   this->m_useDbPrecision = true;
+   this->m_addUnits = true;
+
    // This widget uses a single data source
    //
    this->setNumVariables (1);
@@ -483,10 +487,66 @@ void QENTTable::populateVerticalTable ()
          }
          item->setTextAlignment (itemAlignment);
 
-         const QString image = datum.toString ();
+         const QString image = this->datumImage (datum);
          item->setText (QString(" %1 ").arg (image));
       }
    }
+}
+
+//------------------------------------------------------------------------------
+//
+QString QENTTable::datumImage (const QVariant& datum) const
+{
+   const QMetaType::Type id = QEPlatform::metaType (datum);
+
+   QEChannel* qpv = this->getQcaItem (PV_VARIABLE_INDEX);
+
+   const QString egu = qpv->getEgu();
+   QString units = "";
+   if (this->m_addUnits && !egu.isEmpty()) {
+      units = " " + egu;
+   }
+
+   switch (id) {
+      case QMetaType::Double:
+      case QMetaType::Float:
+         {
+            const double d = datum.toDouble();
+            int prec = this->m_precision;
+            if (this->m_useDbPrecision) {
+               prec = qpv->getPrecision();
+            }
+            return QString::number(d, 'f', prec) + units;
+         }
+         break;
+
+      case QMetaType::Char:
+      case QMetaType::Int:
+      case QMetaType::Short:
+      case QMetaType::Long:
+      case QMetaType::LongLong:
+         {
+            const qlonglong i = datum.toLongLong();
+            return QString::number (i) + units;
+         }
+         break;
+
+      case QMetaType::UChar:
+      case QMetaType::UInt:
+      case QMetaType::UShort:
+      case QMetaType::ULong:
+      case QMetaType::ULongLong:
+         {
+            const qulonglong u = datum.toULongLong();
+            return QString::number (u) + units;
+         }
+         break;
+
+      default:
+         // Just fall through
+         break;
+   }
+   return datum.toString ();
 }
 
 //------------------------------------------------------------------------------
@@ -552,7 +612,7 @@ void QENTTable::populateHorizontalTable ()
          }
          item->setTextAlignment (itemAlignment);
 
-         const QString image = datum.toString ();
+         const QString image = this->datumImage (datum);
          item->setText (QString(" %1 ").arg (image));
       }
    }
@@ -720,6 +780,49 @@ bool QENTTable::getShowPvName () const
 {
    return this->showPvName;
 }
+
+//------------------------------------------------------------------------------
+//
+void QENTTable::setPrecision (const int precision)
+{
+   this->m_precision = LIMIT (precision, 0, 15);
+}
+
+//------------------------------------------------------------------------------
+//
+int QENTTable::getPrecision () const
+{
+   return this->m_precision;
+}
+
+//------------------------------------------------------------------------------
+//
+void QENTTable::setUseDbPrecision (const bool useDbPrecision)
+{
+   this->m_useDbPrecision = useDbPrecision;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QENTTable::getUseDbPrecision () const
+{
+   return this->m_useDbPrecision;
+}
+
+//------------------------------------------------------------------------------
+//
+void QENTTable::setAddUnits (const bool addUnits)
+{
+   this->m_addUnits = addUnits;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QENTTable::getAddUnits () const
+{
+   return this->m_addUnits;
+}
+
 
 //==============================================================================
 // Copy / Paste

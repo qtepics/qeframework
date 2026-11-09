@@ -52,6 +52,17 @@ QEOpaqueData& QEOpaqueData::operator=(const QEOpaqueData& other)
 //------------------------------------------------------------------------------
 //
 #ifdef QE_INCLUDE_PV_ACCESS
+#ifdef QE_USING_PVXS
+
+bool QEOpaqueData::assignFrom (const pvxs::Value& pv)
+{
+   std::stringstream buffer;
+   buffer << pv;
+
+   this->text = QString (buffer.str().c_str());
+   return true;
+}
+#else
 
 bool QEOpaqueData::assignFrom (const epics::pvData::PVStructure::const_shared_pointer item)
 {
@@ -62,7 +73,8 @@ bool QEOpaqueData::assignFrom (const epics::pvData::PVStructure::const_shared_po
    return true;
 }
 
-#endif  // QE_INCLUDE_PV_ACCESS
+#endif
+#endif
 
 //------------------------------------------------------------------------------
 //

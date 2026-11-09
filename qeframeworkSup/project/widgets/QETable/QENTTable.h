@@ -95,6 +95,23 @@ public:
    /// Sets table grid style. Defaults to SolidLine.
    ///
    Q_PROPERTY (Qt::PenStyle gridStyle READ gridStyle           WRITE setGridStyle)
+
+   // Lifted from standard string formatting properties.
+   //
+   /// Precision used when formatting floating point numbers. The default is 4.
+   /// This is only used if useDbPrecision is false.
+   ///
+   Q_PROPERTY (int precision READ getPrecision WRITE setPrecision)
+
+   /// If true (default), format floating point numbers using the precision supplied with the data.
+   /// If false, the precision property is used.
+   ///
+   Q_PROPERTY (bool useDbPrecision READ getUseDbPrecision WRITE setUseDbPrecision)
+
+   /// If true (default), add engineering units supplied with the data.
+   ///
+   Q_PROPERTY(bool addUnits READ getAddUnits WRITE setAddUnits)
+
    //
    // End of QENTTable specific properties =========================================
 
@@ -122,6 +139,15 @@ public:
 
    void setShowPvName (const bool showName);
    bool getShowPvName () const;
+
+   void setPrecision(const int precision);
+   int getPrecision () const;
+
+   void setUseDbPrecision (const bool useDbPrecision);
+   bool getUseDbPrecision () const;
+
+   void setAddUnits (const bool addUnits);
+   bool getAddUnits () const;
 
    // Expose access to the internal table widget's set/get functions.
    //
@@ -189,11 +215,12 @@ protected:
 private:
    void commonConstruct ();   //
    bool isVertical () const;  // True iff the orientation is Qt::Vertical
-   void resizeCoulumns ();    // Resizes colums to fit available space
+   void resizeCoulumns ();    // Resizes columns to fit available space
 
    void populateTable ();             //
    void populateVerticalTable ();     //
    void populateHorizontalTable ();   //
+   QString datumImage (const QVariant& datum) const;
 
    QENTTableData* tableData;
    QLabel* pvNameLabel;         // Displays the PV name
@@ -207,6 +234,9 @@ private:
    bool showPvName;
    bool selectionChangeInhibited;
    bool rePopulateData;
+   int  m_precision;
+   bool m_useDbPrecision;
+   bool m_addUnits;
 
 private slots:
    void usePvNameProperties (const QEPvNameProperties&);

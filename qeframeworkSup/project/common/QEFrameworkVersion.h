@@ -31,8 +31,8 @@
 // (Also, after tagging QE_VERSION_STAGE should be set to QE_VERSION_STAGE_DEVELOPMENT)
 //
 #define QE_VERSION_MAJOR      4     // Public releases that include interface or paradigm changes that may require changes to the way the framework is used.
-#define QE_VERSION_MINOR      1     // Public releases containing significant new functionality (may include fixes as well)
-#define QE_VERSION_RELEASE    8     // Public releases containing backward compatible new functionality and/or fixes.
+#define QE_VERSION_MINOR      2     // Public releases containing significant new functionality (may include fixes as well)
+#define QE_VERSION_RELEASE    1     // Public releases containing backward compatible new functionality and/or fixes.
 
 // The integer version is (major << 16) + (minor << 8) + release, and this macro
 // is used to constuct an integer version number.
@@ -47,14 +47,12 @@
 
 // During tagging the version stage should be set to production
 // Note, development versions retain the version release of the last production release.
-// E.g  4.1.6 (Development) is development of 4.1.6 leading eventually
-// to 4.1.7 (Production) or 4.2.1 (Production)
-// Prototype is used for feature development branches.
+// E.g  3.8.1 (Development) is development of 3.6.1 leading eventually to 3.8.2 or 3.9.1
 //
 #define QE_VERSION_STAGE_DEVELOPMENT "Development"
 #define QE_VERSION_STAGE_PRODUCTION  "Production"
 #define QE_VERSION_STAGE_PROTOTYPE   "Prototype"
-#define QE_VERSION_STAGE             QE_VERSION_STAGE_DEVELOPMENT
+#define QE_VERSION_STAGE             QE_VERSION_STAGE_PROTOTYPE
 
 #define QE_VERSION_STRING     STRINGIFY(QE_VERSION_MAJOR) "." \
                               STRINGIFY(QE_VERSION_MINOR) "." \
@@ -72,21 +70,28 @@ public:
 
    static unsigned int getMajor ();         // e.g. 4
    static unsigned int getMinor ();         // e.g. 1
-   static unsigned int getRelease ();       // e.g. 7
+   static unsigned int getRelease ();       // e.g. 4
    static const QString getStage ();        // e.g. "Production"
-   static const QString getString ();       // e.g. "4.1.7 (Production)"
-   static const QString getDateTime ();     // e.g. "Oct 08 2026 12:51:22"
+   static const QString getString ();       // e.g. "4.1.5 (Production)"
+   static const QString getDateTime ();     // e.g. "Feb 20 2026 12:51:22"
+
+
+   static bool getPVAccessInuse ();
+   static bool getPvxsInuse ();
 
    // Conditional compile attributes.
+   // e.g. "FFMPEG video streaming, Archiver Appliance, PV Access, Image decompression"
    //
-   static const QString getAttributes ();   // e.g. "FFMPEG video streaming, Archiver Appliance"
+   static const QString getAttributes ();
 
    // Other version info
    //
    static const QString getQtVersionStr ();     // e.g. "QT 6.8.1"
    static const QString getQwtVersionStr ();    // e.g. "QWT 6.3.0"
-   static const QString getEpicsVersionStr ();  // e.g. "EPICS 7.0.10"
-   static const QString getAcaiVersionStr ();   // e.g. "ACAI 1.8.2"
+   static const QString getEpicsVersionStr ();  // e.g. "EPICS 7.0.9"
+   static const QString getAcaiVersionStr ();   // e.g. "ACAI 1.8.1"
+
+   static const QString getPvxsVersionStr ();   // e.g. "PVXS 1.5.1"
 };
 
 #endif // QE_FRAMEWORK_VERSION_H

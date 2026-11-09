@@ -54,7 +54,56 @@ QENTTableData& QENTTableData::operator=(const QENTTableData& other)
 //------------------------------------------------------------------------------
 //
 #ifdef QE_INCLUDE_PV_ACCESS
+#ifdef QE_USING_PVXS
 
+bool QENTTableData::assignFrom (const pvxs::Value& pv)
+{
+   bool result;
+
+   // Temp data variables - so that the object update is all or nothing.
+   //
+   QStringList labelsTemp;
+   QList <QVariantList> dataTemp;
+
+   pvxs::Value labelsVal = pv["labels"];
+   if (!labelsVal) {
+      DEBUG << "QENTTableData no: labels item";
+      return false;
+   }
+
+   QESharedStringArray ssa;
+   result = labelsVal.as (ssa);
+   if (!result) return false;
+   labelsTemp = QEPvaData::toStringList (ssa);
+
+   const int numberOfCols = labelsTemp.size();
+
+   pvxs::Value valueVal = pv["value"];
+   if (!valueVal) {
+      DEBUG << "QENTTableData: no value item";
+      return false;
+   }
+
+   int n = valueVal.nmembers();
+   if (n != numberOfCols) {
+      DEBUG << "QENTTableData number of members in value " << n
+            << " does not match number of items "
+            <<  numberOfCols << " in labels";
+      return false;
+   }
+
+   for (auto member : valueVal.iall()) {
+      const QVariantList colData = QEPvaData::scalarArrayToQVariantList (member);
+      dataTemp.push_back (colData);
+   }
+
+   this->labels = labelsTemp;
+   this->data = dataTemp;
+
+   return true;
+}
+
+#else
 namespace TR1 = std::tr1;
 namespace pvd = epics::pvData;
 namespace nmt = epics::nt;
@@ -125,8 +174,8 @@ bool QENTTableData::assignFrom (nmt::NTTable::const_shared_pointer table)
 
 #undef ASSERT
 }
-
-#endif  // QE_INCLUDE_PV_ACCESS
+#endif
+#endif
 
 //------------------------------------------------------------------------------
 //

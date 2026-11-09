@@ -13,10 +13,13 @@
 
 #include <QString>
 #include <QEFrameworkLibraryGlobal.h>
-#include <QEPvaCheck.h>
 
 #ifdef QE_INCLUDE_PV_ACCESS
+#ifdef QE_USING_PVXS
+//TBD
+#else
 #include <pv/ntndarray.h>
+#endif
 #endif
 
 /// Copied from NDAttribute.h
@@ -87,6 +90,9 @@ public:
 };
 
 #ifdef QE_INCLUDE_PV_ACCESS
+#ifdef QE_USING_PVXS
+
+#else
 
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT NTNDArrayConverter {
 public:
@@ -101,6 +107,7 @@ private:
    NDColorMode_t getColorMode (void) const;
 };
 
+#endif
 #endif
 
 #endif   // QE_NTND_ARRAY_CONVERTER_H

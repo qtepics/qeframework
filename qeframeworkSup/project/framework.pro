@@ -1,5 +1,6 @@
+# Repo: tec_gui/qeframework
 # File: qeframeworkSup/project/framework.pro
-# DateTime: Mon Apr 20 16:42:42 2026
+# DateTime: Wed Oct 21 16:26:24 2026
 # Last checked in by: starritt
 #
 # This file is part of the EPICS QT Framework, initially developed at
@@ -95,13 +96,26 @@ isEmpty( _ACAI ) {
 
 # Add a bit usefull diag/config information.
 #
-message ("BASE = "$$(EPICS_BASE)", "$$(EPICS_HOST_ARCH) )
-message ("ACAI = "$$(ACAI) )
-message ("QWT_ROOT  = "$$(QWT_ROOT) )
-message ("QE_FFMPEG = "$$(QE_FFMPEG) )
-message ("QE_ARCHAPPL_SUPPORT = "$$(QE_ARCHAPPL_SUPPORT) )
-message ("QE_PVACCESS_SUPPORT = "$$(QE_PVACCESS_SUPPORT) )
-message ("QE_AD_SUPPORT       = "$$(QE_AD_SUPPORT)", "$$(ADSUPPORT) )
+message ("BASE     = "$$(EPICS_BASE)", "$$(EPICS_HOST_ARCH) )
+message ("ACAI     = "$$(ACAI) )
+message ("QWT_ROOT = "$$(QWT_ROOT) )
+
+# Optional
+#
+message ("FFMpeg              = " $$(QE_FFMPEG) )
+message ("Archive Appliance   = " $$(QE_ARCHAPPL_SUPPORT) )
+message ("PV Access Support   = " $$(QE_PVACCESS_SUPPORT) )
+message ("Image decompression = " $$(QE_AD_SUPPORT)", "$$(ADSUPPORT) )
+message ("Use PVXS            = " $$(QE_PVXS_SUPPORT)", "$$(PVXS) )
+
+# Setup local variables
+#
+_QE_FFMPEG        = $$(QE_FFMPEG)
+_ARCHAPPL_SUPPORT = $$(QE_ARCHAPPL_SUPPORT)
+_ADSUPPORT        = $$(QE_AD_SUPPORT)
+_PVACCESS_SUPPORT = $$(QE_PVACCESS_SUPPORT)
+_PVXS_SUPPORT     = $$(QE_PVXS_SUPPORT)
+
 
 # Define _MINGW if using a MinGW compiler
 #
@@ -156,7 +170,6 @@ win32:DEFINES += EPICS_CALL_DLL
 # If mpeg streaming is required, define environment variable QE_FFMPEG
 # (on windows, this must point to the FFMPEG directory)
 
-_QE_FFMPEG = $$(QE_FFMPEG)
 isEmpty( _QE_FFMPEG ) {
     message( "MPEG viewer will NOT be included in QEImage. If you want MPEG support install FFmpeg and define environment variable" )
     message( ".... QE_FFMPEG. This can be defined as anything on linux, but must point to the FFmpeg directory on windows." )
@@ -281,20 +294,33 @@ unix: QMAKE_LFLAGS += -Wl,-rpath,$$(ACAI)/lib/$$(EPICS_HOST_ARCH)
 # Set up PV Access
 # For headless build QE_PVACCESS_SUPPORT is set in qeframeworkSup Makefile if using EPICS 7 or later.
 #
-_PVACCESS_SUPPORT = $$(QE_PVACCESS_SUPPORT)
 equals(_PVACCESS_SUPPORT, "YES") {
 
     # This currently assumes EPICS 7. Maybe we could allow EPICS 4 builds as well.
     #
-    message( "QE_PVACCESS_SUPPORT is defined as 'YES'. The QE framework library will be built for both CA and PVA. ")
- 
+    message( "QE_PVACCESS_SUPPORT is defined. The QE framework library will be built for both CA and PVA. ")
+
     # Let the code 'know' to include PV Access related stuff.
     #
-    DEFINES += QE_PVACCESS_SUPPORT
+    DEFINES += QE_INCLUDE_PV_ACCESS
 
-    # If you are using EPICS 4, modify the following to reference  EPICS 4 libraries.
-    #
-    LIBS += -L$$(EPICS_BASE)/lib/$$(EPICS_HOST_ARCH) -lpvData  -lpvAccess -lnt
+    _PVXS_SUPPORT     = $$(QE_PVXS_SUPPORT)
+    equals(_PVXS_SUPPORT, "YES") {
+        message( "QE_PVXS_SUPPORT is also defined. The QE framework will use PVXS. ")
+
+        DEFINES += QE_USING_PVXS
+
+        INCLUDEPATH += $$(PVXS)/include
+        INCLUDEPATH += $$(PVXS)/include/pvxs
+
+        LIBS += -L$$(PVXS)/lib/$$(EPICS_HOST_ARCH) -lpvxs
+        QMAKE_LFLAGS += -Wl,-rpath,$$(PVXS)/lib/$$(EPICS_HOST_ARCH)
+
+    } else {
+        # If you are using EPICS 4, modify the following to reference the EPICS 4 libraries.
+        #
+        LIBS += -L$$(EPICS_BASE)/lib/$$(EPICS_HOST_ARCH) -lpvData  -lpvAccess -lnt
+    }
 
 } else {
     message( "QE_PVACCESS_SUPPORT is not defined as 'YES'. The QE framework library will not include PV Access support." )
@@ -305,7 +331,6 @@ equals(_PVACCESS_SUPPORT, "YES") {
 # Set up for jpeg, lz4, blosc and bslz4 decompression
 # This is only expected if QE_PVACCESS_SUPPORT defined, but not enforced.
 #
-_ADSUPPORT = $$(QE_AD_SUPPORT)
 equals( _ADSUPPORT, "YES" ) {
     # This currently assumes EPICS 7. Maybe we could allow EPICS 4 builds as well.
     #
@@ -402,8 +427,6 @@ isEmpty( _QE_FFMPEG ) {
 #===========================================================
 # Archiver Appliance support
 #
-_ARCHAPPL_SUPPORT = $$(QE_ARCHAPPL_SUPPORT)
-
 equals(_ARCHAPPL_SUPPORT, "YES") {
    equals( QT_MAJOR_VERSION, 4 ) {
       message( "QE_ARCHAPPL_SUPPORT is set, however Archvier Appliance support requires Qt version 5.0 or higher." )

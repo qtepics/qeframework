@@ -14,7 +14,6 @@
 #include "QEPvNameUri.h"
 #include <QDebug>
 #include <QECommon.h>
-#include <QEPvaCheck.h>
 #include <QEAdaptationParameters.h>
 
 #define DEBUG qDebug () << "QEPvNameUri" << __LINE__ << __FUNCTION__ << "  "

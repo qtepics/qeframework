@@ -40,10 +40,17 @@ QE_FRAMEWORK=$(BUNDLE)/gui/qeframework
 # 
 ACAI=$(BUNDLE)/epics/acai
 
+# Modify this to reference to __your__ local PVXS installation.
+# Define QE_PVXS_SUPPORT="YES" to enable use of PVXS.
+# PV Access support must also be in use for this to take effect.
+# Can be commented out if not required.
+#
+PVXS=$(BUNDLE)/epics/pvxs
+
 # Modify this to reference to __your__ local AD Support installation.
-# Uncomment if needed; not required if PVAccess is not support defined.
-# Enable usage by defining  QE_AD_SUPPORT=YES, either in CONFIG_SITE.local
-# or as an environment variable.
+# Define QE_AD_SUPPORT="YES" to enable use of image decomression.
+# Not required if PVAccess support is not defined.
+# Can be commented out if not required.
 #
 ADSUPPORT=$(BUNDLE)/det/ADSupport
 

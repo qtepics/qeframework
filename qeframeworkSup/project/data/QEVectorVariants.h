@@ -69,7 +69,7 @@ typedef QVector<int64_t> QEInt64Vector;
 Q_DECLARE_METATYPE (QEInt64Vector)
 
 // UnSigned
-// Note: these QEUint... , not QEUInt... - diffent from epicsTypes.
+// Note: these QEUint... , not QEUInt... - different from epicsTypes.
 //
 typedef QVector<uint8_t> QEUint8Vector;
 Q_DECLARE_METATYPE (QEUint8Vector)

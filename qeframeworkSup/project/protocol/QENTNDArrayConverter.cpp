@@ -8,8 +8,12 @@
 #include "QENTNDArrayConverter.h"
 
 #ifdef QE_INCLUDE_PV_ACCESS
+#ifdef QE_USING_PVXS
+//TBD
+#else
 using namespace epics::nt;
 using namespace epics::pvData;
+#endif
 #endif
 
 #define NUMBER_COLOR_MODES  8
@@ -68,6 +72,9 @@ NTNDArrayInfo_t::~NTNDArrayInfo_t () { }
 
 
 #ifdef QE_INCLUDE_PV_ACCESS
+#ifdef QE_USING_PVXS
+//TBD
+#else
 
 //==============================================================================
 // NTNDArrayConverter
@@ -237,6 +244,7 @@ NTNDArrayInfo_t NTNDArrayConverter::getInfo (void) const
    return info;
 }
 
+#endif
 #endif
 
 // end

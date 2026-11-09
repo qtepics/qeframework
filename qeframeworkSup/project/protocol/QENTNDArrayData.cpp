@@ -109,12 +109,6 @@ void QENTNDArrayData::assignOther (const QENTNDArrayData& other)
 
 //------------------------------------------------------------------------------
 //
-#ifdef QE_INCLUDE_PV_ACCESS
-
-namespace TR1 = std::tr1;
-namespace pvd = epics::pvData;
-
-
 // Format/structure
 // epics:nt/NTNDArray:1.0
 //     union value
@@ -158,21 +152,234 @@ namespace pvd = epics::pvData;
 //     time_t timeStamp ...
 //     display_t display ...
 //
-bool QENTNDArrayData::assignFrom (epics::nt::NTNDArrayPtr item)
-{
-   static bool verbose = true;
 
-   // Local macro function
+#ifdef QE_INCLUDE_PV_ACCESS
+
+static bool verbose = true;
+
+// Local macro function used in assignFrom
+//
+#define ASSERT(condition, message) {        \
+   if (!(condition)) {                      \
+      if (verbose) {                        \
+         DEBUG << message;                  \
+      }                                     \
+      return false;                         \
+   }                                        \
+}
+
+
+#ifdef QE_USING_PVXS
+
+//------------------------------------------------------------------------------
+//
+bool QENTNDArrayData::assignFrom (const pvxs::Value& pv)
+{   
+   ASSERT (pv, "Null PV value");
+
+   // Note: we don't need to worry about / extract alarm, timeStamp
+   // and display which is handled by the PVA client.
    //
-#define ASSERT(condition, message) {           \
-      if (!(condition)) {                      \
-         if (verbose) {                        \
-            DEBUG << message;                  \
-         }                                     \
-         return false;                         \
-      }                                        \
+   pvxs::Value valueValue = pv["value"];
+   ASSERT (valueValue, "QENTNDArrayData: no value");
+
+   pvxs::Value codecValue = pv["codec"];
+   ASSERT (codecValue, "QENTNDArrayData: no codec");
+
+   pvxs::Value codecNameValue = codecValue["name"];
+   ASSERT (codecNameValue, "QENTNDArrayData: no codec name");
+
+   pvxs::Value compressedSizeValue = pv["compressedSize"];
+   ASSERT (compressedSizeValue, "QENTNDArrayData: no compressedSize");
+
+   pvxs::Value uncompressedSizeValue = pv["uncompressedSize"];
+   ASSERT (compressedSizeValue, "QENTNDArrayData: no uncompressedSize");
+
+   pvxs::Value dimensionValue = pv["dimension"];
+   ASSERT (dimensionValue, "QENTNDArrayData: no dimension");
+
+   pvxs::Value uniqueIdValue = pv["uniqueId"];
+   ASSERT (uniqueIdValue, "QENTNDArrayData: no uniqueId");
+
+   // Note: this is separate and distinct from the PV's own time stamp.
+   //
+   pvxs::Value dataTimeStampValue = pv["dataTimeStamp"];
+   ASSERT (dataTimeStampValue, "QENTNDArrayData: no dataTimeStamp");
+
+   pvxs::Value attributeValue = pv["attribute"];
+   ASSERT (attributeValue, "QENTNDArrayData: no attribute");
+
+   // Not the same as the display description.
+   //
+   pvxs::Value  descriptorValue = pv["descriptor"];
+   ASSERT (descriptorValue, "QENTNDArrayData: no descriptor");
+
+   // Start extracting values a regular data types.
+   //
+   pvxs::TypeCode::code_t typeCode = pvxs::TypeCode::Null;  // element type code
+
+   ASSERT (this->asByteArray (valueValue, this->data, typeCode),
+           "cannot extract image array data");
+
+
+#define SWITCH_IT(xxx,yyy,zzz)      \
+   case pvxs::TypeCode::xxx:        \
+      ndDataType = yyy;             \
+      this->bytesPerPixel = zzz;    \
+      break;
+
+
+   NDDataType_t ndDataType;
+   switch (typeCode)
+   {
+      SWITCH_IT (Int8,    NDInt8,    1);
+      SWITCH_IT (Int16,   NDInt16,   2);
+      SWITCH_IT (Int32,   NDInt32,   4);
+      SWITCH_IT (Int64,   NDInt64,   8);
+      SWITCH_IT (UInt8,   NDUInt8,   1);
+      SWITCH_IT (UInt16,  NDUInt16,  2);
+      SWITCH_IT (UInt32,  NDUInt32,  4);
+      SWITCH_IT (UInt64,  NDUInt64,  8);
+      SWITCH_IT (Float32, NDFloat32, 4);
+      SWITCH_IT (Float64, NDFloat64, 8);
+
+      default:
+         ASSERT (false, "unexpected value data type code");
+         break;
    }
 
+#undef SWITCH_IT
+
+   this->dataType = NDDataTypeImage (ndDataType);
+
+   Compression compression;
+   pvxs::shared_array<const pvxs::Value> dimensionData;
+   pvxs::shared_array<const pvxs::Value> attributeData;
+
+   ASSERT (QEPvaData::asQString (codecNameValue, compression.codecName), "cannot extract codec name");
+   ASSERT (compressedSizeValue.as (compression.compressedDataSize), "cannot extract compressedSize");
+   ASSERT (uncompressedSizeValue.as (compression.uncompressedDataSize), "cannot extract uncompressedSize");
+
+   ASSERT (uniqueIdValue.as (this->uniqueId), "cannot extract uniqueId");
+   ASSERT (QEPvaData::asQString (descriptorValue, this->descriptor), "cannot extract descriptor");
+   ASSERT (dimensionValue.as (dimensionData), "cannot extract dimension data");
+   ASSERT (attributeValue.as (attributeData), "cannot extract attribute data");
+
+   this->numberDimensions = dimensionData.size();
+   ASSERT (this->numberDimensions <= 10, "too many dimensions (more than 10)");
+
+   for (int d = 0; d < this->numberDimensions; d++) {
+      const pvxs::Value element = dimensionData[d];
+      const pvxs::Value sizeValue = element["size"];
+      ASSERT (sizeValue, "QENTNDArrayData: no dimension size");
+
+      int32_t size;
+      ASSERT (sizeValue.as(size), "cannot extract dimension size");
+      this->dimensionSizes[d] = static_cast<int>(size);
+   }
+
+   // Examine attributes to find the colour mode.
+   //
+   NDColorMode_t ndColorMode = NDColorModeMono;  // default
+
+   const int numberAttributes = attributeData.size();
+   for (int a = 0; a < numberAttributes; a++) {
+      const pvxs::Value element = attributeData[a];
+      const pvxs::Value nameValue = element["name"];
+
+      ASSERT (nameValue, "QENTNDArrayData: attribute has no name");
+
+      QString name;
+      if (!QEPvaData::asQString (nameValue, name)) break;
+      if (name != "ColorMode") continue;  // not iterested in this attribute
+
+      const pvxs::Value modeValue = element["value"];
+      ASSERT (modeValue, "QENTNDArrayData: attribute has no colour mode value");
+
+      int32_t imode;
+      ASSERT (modeValue.as (imode), "cannot extract colour mode");
+
+      ndColorMode = static_cast<NDColorMode_t>(imode);
+      break;
+   }
+
+   this->colourMode = NDColorModeImage (ndColorMode);
+
+   // Decompress if needs be.
+   //
+   this->decompressData (compression);
+
+   return true;
+}
+
+//------------------------------------------------------------------------------
+//
+bool QENTNDArrayData::asByteArray (const pvxs::Value& value,
+                                   QByteArray& imageData,
+                                   pvxs::TypeCode::code_t& typeCode)
+{
+   ASSERT (value, "null value");   
+   ASSERT (value.type() == pvxs::TypeCode::Union, "value is not a union");
+
+   pvxs::Value unionValue = value.as<pvxs::Value>();  // i.e. uint8_t[], int16_t
+   ASSERT (value, "null union value");
+
+   const pvxs::TypeCode tc = unionValue.type(); // of the element
+   imageData.clear();
+
+   bool result = true;   // hypothesize okay
+
+// The case statements are boiler plate - we use a macro.
+// xxx is the array type code
+// yyy is the element type code
+// zzz is the raw element type.
+//
+#define CASE_TYPE_CODE(xxx, yyy, zzz)                            \
+   case pvxs::TypeCode::xxx:                                     \
+      {                                                          \
+         typeCode = pvxs::TypeCode::yyy;                         \
+         pvxs::shared_array<const zzz> src;                      \
+         result = value.as (src);                                \
+         if (result) {                                           \
+            const qsizetype len = src.size();                    \
+            imageData.append ((const char *)(&src[0]), len);     \
+         }                                                       \
+      }                                                          \
+      break
+
+   switch (tc.code) {
+      CASE_TYPE_CODE (Int8A,  Int8,  int8_t);
+      CASE_TYPE_CODE (Int16A, Int16, int16_t);
+      CASE_TYPE_CODE (Int32A, Int32, int32_t);
+      CASE_TYPE_CODE (Int64A, Int64, int64_t);
+
+      CASE_TYPE_CODE (UInt8A,  UInt8,  uint8_t);
+      CASE_TYPE_CODE (UInt16A, UInt16, uint16_t);
+      CASE_TYPE_CODE (UInt32A, UInt32, uint32_t);
+      CASE_TYPE_CODE (UInt64A, UInt64, uint64_t);
+
+      CASE_TYPE_CODE (Float32A, Float32, float);
+      CASE_TYPE_CODE (Float64A, Float64, double);
+
+      default:
+         ASSERT(false, "unexpected element type");
+         break;
+   }
+
+#undef CASE_TYPE_CODE
+
+   return result;
+}
+
+#else
+
+namespace TR1 = std::tr1;
+namespace pvd = epics::pvData;
+
+//------------------------------------------------------------------------------
+//
+bool QENTNDArrayData::assignFrom (epics::nt::NTNDArrayPtr item)
+{
    ASSERT (item, "Null item");
 
    // Ensure we have a value.
@@ -291,7 +498,8 @@ void QENTNDArrayData::toValue (pvd::PVUnionPtr value)
    this->data.append ((const char *)srcVec.data(), length);
 }
 
-#endif  // QE_INCLUDE_PV_ACCESS
+#endif
+#endif
 
 //------------------------------------------------------------------------------
 //

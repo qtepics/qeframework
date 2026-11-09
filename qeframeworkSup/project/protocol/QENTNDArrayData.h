@@ -24,11 +24,14 @@
 #include <QVariant>
 #include <QEEnums.h>
 #include <QEFrameworkLibraryGlobal.h>
-#include <QEPvaCheck.h>
 
 #ifdef QE_INCLUDE_PV_ACCESS
+#ifdef QE_USING_PVXS
+#include <pvxs/data.h>
+#else
 #include <pv/ntndarray.h>
 #include <pv/pvData.h>
+#endif
 #endif
 
 /// Defines an image class type, specifically to support the epics:nt/NTNDArray type.
@@ -58,7 +61,11 @@ public:
 #ifdef QE_INCLUDE_PV_ACCESS
    // Note: we can only read, as opposed to write, NTNDArray types for now.
    //
+#ifdef QE_USING_PVXS
+   bool assignFrom (const pvxs::Value& pv);
+#else
    bool assignFrom (epics::nt::NTNDArrayPtr item);
+#endif
 #endif
 
    // Access image data attributes.
@@ -109,6 +116,14 @@ private:
    bool decompressData (const Compression& compression);
 
 #ifdef QE_INCLUDE_PV_ACCESS
+#ifdef QE_USING_PVXS
+   bool asByteArray (const pvxs::Value& value,
+                     QByteArray& imageData,
+                     pvxs::TypeCode::code_t& typeCode);
+
+   // TBD
+#else
+
    // array iterator
    //
    typedef epics::pvData::PVStructureArray::const_svector::const_iterator VectorIter;
@@ -119,7 +134,7 @@ private:
    //
    template <typename arrayType>
    void toValue (epics::pvData::PVUnionPtr value);
-
+#endif
 #endif
 
    void assignOther (const QENTNDArrayData& other);
@@ -134,11 +149,11 @@ private:
    QString dataType;          // text as is from DataType_RBV
    int numberDimensions;
    int dimensionSizes [10];   // we expect only 2 or 3. area detector NDArray allows upto 10
-   int bytesPerPixel;              // bytes per pixel
+   int bytesPerPixel;         // bytes per pixel
 
-   // Not needed for QEImage per se..
+   // Not needed for QEImage per se.
    QString descriptor;
-   int uniqueId;
+   int32_t uniqueId;
 };
 
 // allows qDebug() << QENTNDArrayData object.

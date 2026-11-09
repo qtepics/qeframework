@@ -44,12 +44,38 @@ SOURCES += $$PWD/QEOpaqueData.cpp
 HEADERS += $$PWD/QEPvNameUri.h
 SOURCES += $$PWD/QEPvNameUri.cpp
 
-HEADERS += $$PWD/QEPvaCheck.h
-
 HEADERS += $$PWD/QEPvaClient.h
-SOURCES += $$PWD/QEPvaClient.cpp
 
+equals(_PVACCESS_SUPPORT, "YES") {
+  equals(_PVXS_SUPPORT, "YES") {
+    HEADERS += $$PWD/QEPvaClient_PVXS.h
+    SOURCES += $$PWD/QEPvaClient_PVXS.cpp
+  } else {
+    HEADERS += $$PWD/QEPvaClient_PVA.h
+    SOURCES += $$PWD/QEPvaClient_PVA.cpp
+  }
+} else {
+  HEADERS += $$PWD/QEPvaClient_STUB.h
+  SOURCES += $$PWD/QEPvaClient_STUB.cpp
+}
+
+# do similar for QEPvaData.h
+#
 HEADERS += $$PWD/QEPvaData.h
-SOURCES += $$PWD/QEPvaData.cpp
+
+equals(_PVACCESS_SUPPORT, "YES") {
+  equals(_PVXS_SUPPORT, "YES") {
+    HEADERS += $$PWD/QEPvaData_PVXS.h
+    SOURCES += $$PWD/QEPvaData_PVXS.cpp
+  } else {
+    # rename
+    HEADERS += $$PWD/QEPvaData_PVA.h
+    SOURCES += $$PWD/QEPvaData_PVA.cpp
+  }
+} else {
+  # Do we need this ??
+  HEADERS += $$PWD/QEPvaData_STUB.h
+  SOURCES += $$PWD/QEPvaData_STUB.cpp
+}
 
 # end

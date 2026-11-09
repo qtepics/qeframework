@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2018-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2018-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -21,11 +21,14 @@
 #include <QStringList>
 #include <QVariant>
 #include <QEFrameworkLibraryGlobal.h>
-#include <QEPvaCheck.h>
 
 #ifdef QE_INCLUDE_PV_ACCESS
+#ifdef QE_USING_PVXS
+#include <pvxs/data.h>
+#else
 #include <pv/nttable.h>
 #include <pv/pvData.h>
+#endif
 #endif
 
 /// Defines a table data class type, specifically to support the epics:nt/NTTable type.
@@ -51,9 +54,13 @@ public:
    QENTTableData& operator=(const QENTTableData& other);
 
 #ifdef QE_INCLUDE_PV_ACCESS
+#ifdef QE_USING_PVXS
+   bool assignFrom (const pvxs::Value& pv);
+#else
    // Note: we can only read NTTable types for now.
    //
    bool assignFrom (epics::nt::NTTable::const_shared_pointer item);
+#endif
 #endif
 
    // Clear all table data.

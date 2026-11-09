@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -17,7 +17,10 @@
 #include <epicsVersion.h>
 #include <qwt_global.h>
 #include <acai_version.h>
-#include <QEPvaCheck.h>
+
+#if defined (QE_INCLUDE_PV_ACCESS) && defined (QE_USING_PVXS)
+#include <pvxs/version.h>
+#endif
 
 //------------------------------------------------------------------------------
 //
@@ -54,6 +57,28 @@ const QString QEFrameworkVersion::getStage ()
 }
 
 //------------------------------------------------------------------------------
+// static
+bool QEFrameworkVersion::getPVAccessInuse ()
+{
+#if defined(QE_INCLUDE_PV_ACCESS)
+   return true;
+#else
+   return false;
+#endif
+}
+
+//------------------------------------------------------------------------------
+// static
+bool QEFrameworkVersion::getPvxsInuse ()
+{
+#if defined(QE_INCLUDE_PV_ACCESS) && defined (QE_USING_PVXS)
+   return true;
+#else
+   return false;
+#endif
+}
+
+//------------------------------------------------------------------------------
 //
 const QString QEFrameworkVersion::getAttributes ()
 {
@@ -71,13 +96,16 @@ const QString QEFrameworkVersion::getAttributes ()
    #endif
 
    #ifdef QE_INCLUDE_PV_ACCESS
+   #ifdef QE_USING_PVXS
+   attributes.append ("PV Access (PVXS)");
+   #else
    attributes.append ("PV Access");
+   #endif
    #endif
 
    #ifdef QE_AD_SUPPORT
    attributes.append ("Image decompression");
    #endif
-
 
    if (attributes.count() > 0) {
       result = attributes.join (", ");
@@ -128,6 +156,23 @@ const QString QEFrameworkVersion::getEpicsVersionStr ()
 const QString QEFrameworkVersion::getAcaiVersionStr ()
 {
    return QString (ACAI_VERSION_STRING);
+}
+
+//------------------------------------------------------------------------------
+//
+const QString QEFrameworkVersion::getPvxsVersionStr ()
+{
+#if defined(QE_INCLUDE_PV_ACCESS) && defined (QE_USING_PVXS)
+   // The PVXS version string appends the tag/commit.
+   QString v = QString (pvxs::version_str());
+   const int n = v.indexOf(" (");
+   if (n > 0) {
+      v = v.left(n);
+   }
+   return v;
+#else
+   return "n/a";
+#endif
 }
 
 // end

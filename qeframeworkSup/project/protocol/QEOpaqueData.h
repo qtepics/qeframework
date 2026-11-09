@@ -19,10 +19,13 @@
 #include <QString>
 #include <QVariant>
 #include <QEFrameworkLibraryGlobal.h>
-#include <QEPvaCheck.h>
 
 #ifdef QE_INCLUDE_PV_ACCESS
+#ifdef QE_USING_PVXS
+#include <pvxs/data.h>
+#else
 #include <pv/pvData.h>
+#endif
 #endif
 
 
@@ -55,7 +58,11 @@ public:
 #ifdef QE_INCLUDE_PV_ACCESS
    // Note: we can read any type for now.
    //
+#ifdef QE_USING_PVXS
+   bool assignFrom (const pvxs::Value& pv);
+#else
    bool assignFrom (const epics::pvData::PVStructure::const_shared_pointer item);
+#endif
 #endif
 
    // Clear all opaque data.
