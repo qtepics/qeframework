@@ -69,8 +69,8 @@ UserMessage::UserMessage()
     // Initialise
     formId = 0;
     sourceId = 0;
-    formFilter = QE::None;
-    sourceFilter = QE::Any;  // Note, default of QE::Any means default implementation of
+    formFilter = QE::MessageFilterOptions::None;
+    sourceFilter = QE::MessageFilterOptions::Any;  // Note, default of QE::MessageFilterOptions::Any means default implementation of
                              // newMessage() will be called which cancels future unwanted messages.
                              // An alternate default of MESSAGE_FILTER_NONE would mean newMEssage()
                              // is never called (good), but the opportunity to cancel future signals
@@ -235,10 +235,10 @@ void UserMessageSlot::message( QString msg,
     }
 
     // If filter matches, use it.
-    if(( owner->formFilter == QE::Any ) ||                                              // Always match on any form ID
-       ( owner->formFilter ==  QE::Match && owner->childFormId == messageFormId ) ||    // Match only on specific form ID
-       ( owner->sourceFilter == QE::Any ) ||                                            // Always match on any source ID
-       ( owner->sourceFilter == QE::Match && owner->getSourceId() == messageSourceId )) // Match only on specific source ID
+    if(( owner->formFilter == QE::MessageFilterOptions::Any ) ||                                              // Always match on any form ID
+       ( owner->formFilter ==  QE::MessageFilterOptions::Match && owner->childFormId == messageFormId ) ||    // Match only on specific form ID
+       ( owner->sourceFilter == QE::MessageFilterOptions::Any ) ||                                            // Always match on any source ID
+       ( owner->sourceFilter == QE::MessageFilterOptions::Match && owner->getSourceId() == messageSourceId )) // Match only on specific source ID
     {
         owner->newMessage( msg, type );
     }

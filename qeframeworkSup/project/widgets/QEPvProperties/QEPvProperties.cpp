@@ -420,13 +420,13 @@ void QEPvProperties::common_setup ()
 
    // We want to be general here - plenty of precision.
    //
-   this->valueStringFormatting.setFormat (QE::Default);
+   this->valueStringFormatting.setFormat (QE::Formats::Default);
    this->valueStringFormatting.setPrecision (9);
    this->valueStringFormatting.setUseDbPrecision (false);
-   this->valueStringFormatting.setNotation (QE::Automatic);
-   this->valueStringFormatting.setArrayAction (QE::Index);
+   this->valueStringFormatting.setNotation (QE::Notations::Automatic);
+   this->valueStringFormatting.setArrayAction (QE::ArrayActions::Index);
 
-   this->rtypStringFormatting.setArrayAction (QE::Ascii);
+   this->rtypStringFormatting.setArrayAction (QE::ArrayActions::Ascii);
    this->rtypStringFormatting.setAddUnits (false);
 
    this->hostName->setIndent (4);
@@ -476,8 +476,8 @@ void QEPvProperties::common_setup ()
    this->fieldStringFormatting.setAddUnits (false);
    this->fieldStringFormatting.setUseDbPrecision (false);
    this->fieldStringFormatting.setPrecision (12);
-   this->fieldStringFormatting.setNotation (QE::Automatic);
-   this->fieldStringFormatting.setArrayAction (QE::Ascii);
+   this->fieldStringFormatting.setNotation (QE::Notations::Automatic);
+   this->fieldStringFormatting.setArrayAction (QE::ArrayActions::Ascii);
 
    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    // Framework boiler-plate stuff.
@@ -493,7 +493,7 @@ void QEPvProperties::common_setup ()
    // By default, the PV properties widget does not display the alarm state.
    // The internal VALue widget does this on our behalf.
    //
-   this->setDisplayAlarmStateOption (QE::Never);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Never);
 
    // Use standard context menu for overall widget.
    //
@@ -1030,9 +1030,9 @@ void QEPvProperties::setValueValue (const QEVariantUpdate& update)
 
       const bool longString = isDbfChar && requestedCharArray;
       if (longString) {
-         this->valueStringFormatting.setArrayAction (QE::Ascii);
+         this->valueStringFormatting.setArrayAction (QE::ArrayActions::Ascii);
       } else {
-         this->valueStringFormatting.setArrayAction (QE::Index);
+         this->valueStringFormatting.setArrayAction (QE::ArrayActions::Index);
       }
 
       // Set up variable details used by some formatting options

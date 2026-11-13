@@ -40,16 +40,16 @@ public:
 
    QString programName;
    QStringList programArguments;
-   QE::ProgramStartupOptions programStartupOption;  // default is QE::NoOutput
+   QE::ProgramStartupOptions programStartupOption;  // default is QE::ProgramStartupOptions::NoOutput
 
    QString uiFilename;
    QString prioritySubstitutions;
-   QE::CreationOptions creationOption;  // default is QE::Open
+   QE::CreationOptions creationOption;  // default is QE::CreationOptions::Open
    QString customisationName;
 
    QString variable;
    QString variableValue;               // value to write to the variable
-   QE::Formats format;                  // default is QE::Default
+   QE::Formats format;                  // default is QE::Formats::Default
 
    // Utility functions to convert enum to String and vice versa.
    //

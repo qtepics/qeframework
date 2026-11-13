@@ -29,7 +29,7 @@ class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QEPvWriteOnce : public QObject {
 public:
    explicit QEPvWriteOnce (const QString& pvName,
                            const QString& value,
-                           const QE::Formats format = QE::Default,
+                           const QE::Formats format = QE::Formats::Default,
                            QObject* parent = 0);
    ~QEPvWriteOnce();
 

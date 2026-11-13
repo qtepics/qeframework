@@ -174,7 +174,7 @@ protected:
    QString configurationText;
    QE::SourceOptions configurationType;
    QE::LayoutOptions optionsLayout;
-   int currentUserType;
+   QE::UserLevels currentUserType;
    bool subscription;
 
 public:
@@ -201,8 +201,8 @@ public:
    void setOptionsLayout(QE::LayoutOptions pValue);
    QE::LayoutOptions getOptionsLayout();
 
-   void setCurrentUserType(int pValue);
-   int getCurrentUserType();
+   void setCurrentUserType(QE::UserLevels pValue);
+   QE::UserLevels getCurrentUserType();
 
 
    void refreshFields();

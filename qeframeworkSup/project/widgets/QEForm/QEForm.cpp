@@ -127,8 +127,8 @@ void QEForm::commonInit( const bool alertIfUINoFoundIn, const bool loadManuallyI
    this->resizeContents = true;
 
    // Set up the UserMessage class
-   this->setFormFilter( QE::Match );
-   this->setSourceFilter( QE::None );
+   this->setFormFilter( QE::MessageFilterOptions::Match );
+   this->setSourceFilter( QE::MessageFilterOptions::None );
    this->childMessageFormId = getNextMessageFormId();
    this->setChildFormId( childMessageFormId );
 
@@ -1081,8 +1081,8 @@ void QEForm::setMessageFormFilter( QE::MessageFilterOptions messageFormFilter )
    // This would allow QEForm widgets to get into a message resend loop.
    // Alas the any option is exposed in designer now.
    //
-   if (messageFormFilter == QE::Any)
-      messageFormFilter = QE::Match;
+   if (messageFormFilter == QE::MessageFilterOptions::Any)
+      messageFormFilter = QE::MessageFilterOptions::Match;
    this->setFormFilter( messageFormFilter );
 }
 
@@ -1101,8 +1101,8 @@ void QEForm::setMessageSourceFilter( QE::MessageFilterOptions messageSourceFilte
    // This would allow QEForm widgets to get into a message resend loop.
    // Alas the any option is exposed in designer now.
    //
-   if (messageSourceFilter == QE::Any)
-      messageSourceFilter = QE::None;
+   if (messageSourceFilter == QE::MessageFilterOptions::Any)
+      messageSourceFilter = QE::MessageFilterOptions::None;
    this->setSourceFilter(messageSourceFilter);
 }
 

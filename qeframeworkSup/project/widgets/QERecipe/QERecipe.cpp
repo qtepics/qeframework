@@ -68,9 +68,9 @@ QERecipe::QERecipe(QWidget *pParent):QWidget(pParent), QEWidget(this)
    setRecipeFile("");
    setConfigurationFile("");
    setConfigurationText("");
-   setConfigurationType(QE::SourceFile);
+   setConfigurationType(QE::SourceOptions::SourceFile);
    setShowRecipeList(true);
-   setOptionsLayout(QE::Top);
+   setOptionsLayout(QE::LayoutOptions::Top);
    setCurrentUserType(getUserLevel());
 }
 
@@ -295,8 +295,8 @@ void QERecipe::setOptionsLayout(QE::LayoutOptions pValue)
 
    switch(pValue)
    {
-      case QE::Top:
-         optionsLayout = QE::Top;
+      case QE::LayoutOptions::Top:
+         optionsLayout = QE::LayoutOptions::Top;
          qLayoutMain = new QVBoxLayout(this);
          qLayoutChild = new QHBoxLayout();
          qLayoutChild->addWidget(qLabelRecipeDescription);
@@ -310,8 +310,8 @@ void QERecipe::setOptionsLayout(QE::LayoutOptions pValue)
          qLayoutMain->addWidget(qEConfiguredLayoutRecipeFields);
          break;
 
-      case QE::Bottom:
-         optionsLayout = QE::Bottom;
+      case QE::LayoutOptions::Bottom:
+         optionsLayout = QE::LayoutOptions::Bottom;
          qLayoutMain = new QVBoxLayout(this);
          qLayoutMain->addWidget(qEConfiguredLayoutRecipeFields);
          qLayoutChild = new QHBoxLayout();
@@ -325,8 +325,8 @@ void QERecipe::setOptionsLayout(QE::LayoutOptions pValue)
          qLayoutMain->addItem(qLayoutChild);
          break;
 
-      case QE::Left:
-         optionsLayout = QE::Left;
+      case QE::LayoutOptions::Left:
+         optionsLayout = QE::LayoutOptions::Left;
          qLayoutMain = new QHBoxLayout(this);
          qLayoutChild = new QVBoxLayout();
          qLayoutChild->addWidget(qLabelRecipeDescription);
@@ -340,8 +340,8 @@ void QERecipe::setOptionsLayout(QE::LayoutOptions pValue)
          qLayoutMain->addWidget(qEConfiguredLayoutRecipeFields);
          break;
 
-      case QE::Right:
-         optionsLayout = QE::Right;
+      case QE::LayoutOptions::Right:
+         optionsLayout = QE::LayoutOptions::Right;
          qLayoutMain = new QHBoxLayout(this);
          qLayoutChild = new QVBoxLayout();
          qLayoutChild->addWidget(qLabelRecipeDescription);
@@ -367,7 +367,7 @@ QE::LayoutOptions QERecipe::getOptionsLayout()
 //
 void QERecipe::setCurrentUserType(QE::UserLevels pValue)
 {
-   if (pValue == QE::User || pValue == QE::Scientist || pValue == QE::Engineer)
+   if (pValue == QE::UserLevels::User || pValue == QE::UserLevels::Scientist || pValue == QE::UserLevels::Engineer)
    {
       this->currentUserType = pValue;
       refreshRecipeList();
@@ -455,11 +455,11 @@ void QERecipe::buttonNewClicked()
          }
          else if (visible == "SCIENTIST")
          {
-            flag = (this->currentUserType > 0);
+            flag = (this->currentUserType >= QE::UserLevels::Scientist);
          }
          else if (visible == "ENGINEER")
          {
-            flag = (this->currentUserType > 1);
+            flag = (this->currentUserType >= QE::UserLevels::Engineer);
          }
          else
          {
@@ -484,10 +484,10 @@ void QERecipe::buttonNewClicked()
       {
          switch (currentUserType)
          {
-            case QE::User:
+            case QE::UserLevels::User:
                visible = "USER";
                break;
-            case QE::Scientist:
+            case QE::UserLevels::Scientist:
                visible = "SCIENTIST";
                break;
             default:
@@ -796,11 +796,11 @@ void QERecipe::refreshRecipeList()
                }
                else if (visible == "SCIENTIST")
                {
-                  flag = (this->currentUserType > 0);
+                  flag = (this->currentUserType >= QE::UserLevels::Scientist);
                }
                else if (visible == "ENGINEER")
                {
-                  flag = (this->currentUserType > 1);
+                  flag = (this->currentUserType >= QE::UserLevels::Engineer);
                }
                else
                {

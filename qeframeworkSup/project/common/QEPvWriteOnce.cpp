@@ -77,27 +77,27 @@ void QEPvWriteOnce::writeToVariable (QEChannel* qca)
    QVariant pvData;
 
    switch (this->format) {
-      case QE::Floating:
+      case QE::Formats::Floating:
          pvData = QVariant (double (this->substitutedValue.toDouble (&okay)));
          break;
 
-      case QE::Integer:
+      case QE::Formats::Integer:
          pvData = QVariant (int (this->substitutedValue.toInt (&okay)));
          break;
 
-      case QE::UnsignedInteger:
+      case QE::Formats::UnsignedInteger:
          pvData = QVariant (qlonglong (this->substitutedValue.toLongLong (&okay)));
          break;
 
-      case QE::Default:
+      case QE::Formats::Default:
          /// TODO - fix this option, but go with string for now.
-      case QE::String:
+      case QE::Formats::String:
          pvData = QVariant (this->substitutedValue);
          okay = true;
          break;
 
-      case QE::Time:
-      case QE::LocalEnumeration:
+      case QE::Formats::Time:
+      case QE::Formats::LocalEnumeration:
          DEBUG << "unhandled format value" << this->format;
          okay = false;
          break;

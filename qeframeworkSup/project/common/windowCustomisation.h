@@ -199,7 +199,7 @@ public:
    explicit QEPvInfo() {
       pvName = "";
       value = "";
-      format = QE::Default;
+      format = QE::Formats::Default;
    }
    ~QEPvInfo() {}
 

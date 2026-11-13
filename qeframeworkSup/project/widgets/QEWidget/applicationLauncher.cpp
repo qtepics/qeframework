@@ -107,7 +107,7 @@ void processManager::doFinished( int /*exitCode*/, QProcess::ExitStatus /*exitSt
 //
 applicationLauncher::applicationLauncher()
 {
-   this->programStartupOption = QE::NoOutput;
+   this->programStartupOption = QE::ProgramStartupOptions::NoOutput;
 }
 
 //------------------------------------------------------------------------------
@@ -161,8 +161,8 @@ void applicationLauncher::launchCommon( const VariableNameManager* variableNameM
    // Create a new process to run the program
    // (It will be up to the processManager to delete the temporary file if present)
    //
-   processManager* process = new processManager( programStartupOption == QE::LogOutput,
-                                                 programStartupOption == QE::StdOutput,
+   processManager* process = new processManager( programStartupOption == QE::ProgramStartupOptions::LogOutput,
+                                                 programStartupOption == QE::ProgramStartupOptions::StdOutput,
                                                  tempFile );
 
    // Connect to caller if a recipient has been provided
@@ -226,7 +226,7 @@ void applicationLauncher::launchCommon( const VariableNameManager* variableNameM
    // Note: we use prepend in reverse order
    // to get, e.g.  xterm  -hold -e  substitutedProgram
    //
-   if( programStartupOption == QE::Terminal ) {
+   if( programStartupOption == QE::ProgramStartupOptions::Terminal ) {
 #ifdef WIN32
       substitutedArguments.prepend( substitutedProgram );
       substitutedArguments.prepend( "start" );

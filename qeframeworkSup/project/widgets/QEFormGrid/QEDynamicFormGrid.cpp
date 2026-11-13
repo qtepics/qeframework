@@ -172,7 +172,7 @@ void QEDynamicFormGrid::commonSetup (const QString& uiFile)
 
    this->setAllowDrop (false);
    this->setVariableAsToolTip (false);
-   this->setDisplayAlarmStateOption (QE::Never);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Never);
 
    // There are no variables.
    //
@@ -182,7 +182,7 @@ void QEDynamicFormGrid::commonSetup (const QString& uiFile)
    this->formalArg = "DEVICE";
    this->actualArgList.clear();
    this->columns = 1;
-   this->gridOrder = QE::rowMajor;
+   this->gridOrder = QE::GridOrders::rowMajor;
    this->margin = 2;
    this->spacing = 2;
 
@@ -290,7 +290,7 @@ void QEDynamicFormGrid::reorderItems ()
    for (int j = 0; j < m; j++) {
       int r;
       int c;
-      if (this->gridOrder == QE::rowMajor) {
+      if (this->gridOrder == QE::GridOrders::rowMajor) {
          r = j / nc;
          c = j % nc;
       } else { // must be col major order

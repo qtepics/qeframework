@@ -587,7 +587,7 @@ QEPlotter::QEPlotter (QWidget* parent) : QEAbstractDynamicWidget (parent)
    this->alaisSetChangeInhibited = false;
 
    this->setAllowDrop (false);
-   this->setDisplayAlarmStateOption (QE::Never);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Never);
 
    // Set up a connection to recieve variable name property changes
    //
@@ -700,7 +700,7 @@ void QEPlotter::updateLabel (const int slot)
          // If an alias name/description is defined - use it if requested.
          //
          switch (labelMode) {
-            case QE::useAliasName:
+            case QE::PVLabelMode::useAliasName:
                if (!ds->aliasName.isEmpty() && ds->aliasName != "<>") {
                   caption.append (ds->aliasName);
                } else {
@@ -708,7 +708,7 @@ void QEPlotter::updateLabel (const int slot)
                }
                break;
 
-            case QE::useDescription:
+            case QE::PVLabelMode::useDescription:
                // First refresh description - if we can.
                //
                qca = this->getQcaItem (viOfDataSlot (slot));
@@ -723,7 +723,7 @@ void QEPlotter::updateLabel (const int slot)
                }
                break;
 
-            case QE::usePvName:
+            case QE::PVLabelMode::usePvName:
             default:
                caption.append (ds->pvName);
                break;
@@ -1056,11 +1056,11 @@ void QEPlotter::generalContextMenuRequested (const QPoint& pos)
    //
    const QE::PVLabelMode plm = this->getPVLabelMode ();
    this->generalContextMenu->setActionChecked (QEPlotterNames::PLOTTER_SELECT_USE_PV_NAME,
-                                               plm == QE::usePvName);
+                                               plm == QE::PVLabelMode::usePvName);
    this->generalContextMenu->setActionChecked (QEPlotterNames::PLOTTER_SELECT_USE_ALIAS_NAME,
-                                               plm == QE::useAliasName);
+                                               plm == QE::PVLabelMode::useAliasName);
    this->generalContextMenu->setActionChecked (QEPlotterNames::PLOTTER_SELECT_USE_DESCRIPTION,
-                                               plm == QE::useDescription);
+                                               plm == QE::PVLabelMode::useDescription);
 
    this->generalContextMenu->exec (golbalPos);
 }
@@ -1093,7 +1093,7 @@ void QEPlotter::itemContextMenuRequested (const QPoint& pos)
 
    // Allow edit PV menu if and only if we are using the engineer use level.
    //
-   bool inEngineeringMode = (this->getUserLevel () == QE::Engineer);
+   bool inEngineeringMode = (this->getUserLevel () == QE::UserLevels::Engineer);
 
    ds->itemMenu->setActionVisible (QEPlotterNames::PLOTTER_GENERAL_DATA_PV_EDIT, inEngineeringMode);
    ds->itemMenu->setActionVisible (QEPlotterNames::PLOTTER_GENERAL_SIZE_PV_EDIT, inEngineeringMode);
@@ -1214,12 +1214,12 @@ void QEPlotter::menuSelected (const QEPlotterNames::MenuActions action, const in
          break;
 
       case QEPlotterNames::PLOTTER_NORMAL_VIDEO:
-         this->setVideoMode (QE::normal);
+         this->setVideoMode (QE::VideoModes::normal);
          this->pushState ();
          break;
 
       case QEPlotterNames::PLOTTER_REVERSE_VIDEO:
-         this->setVideoMode (QE::reverse);
+         this->setVideoMode (QE::VideoModes::reverse);
          this->pushState ();
          break;
 
@@ -3314,13 +3314,13 @@ bool QEPlotter::getAxisEnableY () const
 void QEPlotter::setVideoMode (const QE::VideoModes mode)
 {
    switch (mode) {
-      case QE::normal:
+      case QE::VideoModes::normal:
          this->isReverse = false;
          this->setXYColour (NUMBER_OF_PLOTS, clBlack);
          this->replotIsRequired = true;
          break;
 
-      case QE::reverse:
+      case QE::VideoModes::reverse:
          this->isReverse = true;
          this->setXYColour (NUMBER_OF_PLOTS, clWhite);
          this->replotIsRequired = true;
@@ -3330,7 +3330,7 @@ void QEPlotter::setVideoMode (const QE::VideoModes mode)
 
 QE::VideoModes QEPlotter::getVideoMode () const
 {
-   return this->isReverse ? QE::reverse : QE::normal;
+   return this->isReverse ? QE::VideoModes::reverse : QE::VideoModes::normal;
 }
 
 //------------------------------------------------------------------------------

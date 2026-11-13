@@ -25,19 +25,25 @@
 // Provides the radix values.
 // Must be consistant with enum Radicies specification.
 //
-const static int radix_value_list [NUMBER_OF_RADICES] = { 10, 16, 8, 2 };
+static int radixValue (const QE::Radicies radix) {
+   static const int radix_value_list [NUMBER_OF_RADICES] = { 10, 16, 8, 2 };
+   return radix_value_list [QE::toIndex (radix)];
+}
 
 // Must be consistant with enum Separators specification.
 //
-const static char separatorChars [] = " ,_ ";
+static char separatorChars (const QE::Separators sep) {
+   static const char list  [] = " ,_ ";
+   return list [QE::toIndex (sep)];
+}
 
 
 //-----------------------------------------------------------------------------
 //
 QEFixedPointRadix::QEFixedPointRadix (QObject* parent) : QObject (parent)
 {
-   this->radix = QE::Decimal;
-   this->separator = QE::NoSeparator;
+   this->radix = QE::Radicies::Decimal;
+   this->separator = QE::Separators::NoSeparator;
 }
 
 //-----------------------------------------------------------------------------
@@ -89,7 +95,7 @@ QE::Separators QEFixedPointRadix::getSeparator () const
 //
 int QEFixedPointRadix::getRadixValue () const
 {
-   return radix_value_list [this->radix];
+   return radixValue (this->radix);
 }
 
 //------------------------------------------------------------------------------
@@ -100,21 +106,21 @@ bool QEFixedPointRadix::isRadixDigit (const QChar qc) const
    char c = qc.toLatin1 ();
 
    switch (this->getRadix()) {
-      case QE::Decimal:
+      case QE::Radicies::Decimal:
          result = ((c >= '0') && (c <= '9'));
          break;
 
-      case QE::Hexadecimal:
+      case QE::Radicies::Hexadecimal:
          result = ((c >= '0') && (c <= '9')) ||
                   ((c >= 'A') && (c <= 'F')) ||
                   ((c >= 'a') && (c <= 'f'));
          break;
 
-      case QE::Octal:
+      case QE::Radicies::Octal:
          result = ((c >= '0') && (c <= '7'));
          break;
 
-      case QE::Binary:
+      case QE::Radicies::Binary:
          result = ((c >= '0') && (c <= '1'));
          break;
 
@@ -136,7 +142,7 @@ QString QEFixedPointRadix::toString (const double value,
    static const char radixChars [] = "0123456789ABCDEF";
    static const int  separatorSizes [NUMBER_OF_RADICES] = { 3, 4, 3, 4 };
 
-   const double dblRadix = double (radix_value_list [this->radix]);
+   const double dblRadix = double (radixValue (this->radix));
 
    // Sanity checks/specials.
    //
@@ -199,9 +205,9 @@ QString QEFixedPointRadix::toString (const double value,
 
       if (s == 0) {
          result.append ('.');
-      } else if (ABS (s) % separatorSizes [this->radix] == 0) {
-         if (separator != QE::NoSeparator) {
-            result.append (separatorChars [this->separator]);
+      } else if (ABS (s) % separatorSizes [QE::toIndex (this->radix)] == 0) {
+         if (separator != QE::Separators::NoSeparator) {
+            result.append (separatorChars (this->separator));
          }
       }
    }
@@ -214,7 +220,7 @@ QString QEFixedPointRadix::toString (const double value,
 double QEFixedPointRadix::toValue (const QString& image,
                                    bool& okay) const
 {
-   const int intRadix = radix_value_list [this->radix];
+   const int intRadix = radixValue (this->radix);
    const double dblRadix = double (intRadix);
 
    double result;

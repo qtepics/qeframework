@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2015-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2015-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Starritt
@@ -46,17 +46,17 @@ enum Actions {
 
 
 // Must be consistant with QEMenuButtonSetupDialog.ui
-// We need a map as QE::Time and QE::Local_Enumeration
+// We need a map as QE::Formats::Time and QE::Local_Enumeration
 // are not applicable here.
 //
 #define NUMBER_FORMATS   5
 
 static const QE::Formats formatMap [NUMBER_FORMATS] = {
-   QE::Default,
-   QE::Floating,
-   QE::Integer,
-   QE::UnsignedInteger,
-   QE::String
+   QE::Formats::Default,
+   QE::Formats::Floating,
+   QE::Formats::Integer,
+   QE::Formats::UnsignedInteger,
+   QE::Formats::String
 };
 
 //-----------------------------------------------------------------------------
@@ -488,20 +488,23 @@ void QEMenuButtonSetupDialog::textEdited (const QString& newText)
 void QEMenuButtonSetupDialog::comboBoxActivated (int index)
 {
    QEMenuButtonItem* item = this->selectedItem;
-   if (!item) return;
-   QComboBox* comboBox = dynamic_cast <QComboBox*> (sender ());
+   if (!item) return;   // sanity check
+
+   QComboBox* comboBox = qobject_cast <QComboBox*> (sender ());
+   if (!comboBox) return;   // sanity check
+
 
    if (comboBox == this->ui->programOptions) {
-      item->data.programStartupOption = QE::ProgramStartupOptions (index);
+      item->data.programStartupOption = static_cast<QE::ProgramStartupOptions> (index);
 
    } else if (comboBox == this->ui->openCreateOption) {
-      item->data.creationOption = QE::CreationOptions (index);
+      item->data.creationOption = static_cast<QE::CreationOptions> (index);
 
    } else if (comboBox == this->ui->variableFormat) {
       item->data.format = formatMap [index];
 
    } else {
-      qDebug() << "Unexpected " << comboBox->objectName ();
+      DEBUG << "Unexpected conbobox:" << comboBox->objectName ();
    }
 }
 
@@ -519,9 +522,10 @@ void QEMenuButtonSetupDialog::resetButtonClicked (bool)
 } else
 
 
-#define CHECKC(btn, cbx, itm, def) if (resetButton == btn) {         \
-   this->ui->cbx->setCurrentIndex (def);                             \
-   itm = def;                                                        \
+#define CHECKC(btn, cbox, itm, typeName, def)                         \
+if (resetButton == btn) {                                             \
+   this->ui->cbox->setCurrentIndex (QE::toIndex (typeName::def));     \
+   itm = typeName::def;                                               \
 } else
 
 
@@ -530,14 +534,14 @@ void QEMenuButtonSetupDialog::resetButtonClicked (bool)
       this->ui->programArgumentsLabel->setText ("");
       item->data.programArguments.clear ();
    } else
-   CHECKC (this->ui->pushButton_04, programOptions, item->data.programStartupOption, QE::NoOutput)
+   CHECKC (this->ui->pushButton_04, programOptions, item->data.programStartupOption, QE::ProgramStartupOptions, NoOutput)
    CHECKB (this->ui->pushButton_05, openUiFilename, item->data.uiFilename, "")
-   CHECKC (this->ui->pushButton_06, openCreateOption, item->data.creationOption, QE::Open)
+   CHECKC (this->ui->pushButton_06, openCreateOption, item->data.creationOption, QE::CreationOptions, Open)
    CHECKB (this->ui->pushButton_07, openPrioritySubstitutions, item->data.prioritySubstitutions, "")
    CHECKB (this->ui->pushButton_08, openCustomisationName, item->data.customisationName, "")
    CHECKB (this->ui->pushButton_09, variableName, item->data.variable, "")
    CHECKB (this->ui->pushButton_10, variableValue, item->data.variableValue, "0")
-   CHECKC (this->ui->pushButton_11, variableFormat, item->data.format, QE::Default)
+   CHECKC (this->ui->pushButton_11, variableFormat, item->data.format, QE::Formats,Default)
    if (resetButton == this->ui->pushButton_12) {
       this->ui->useSeperator->setChecked (false);
       item->data.separator = false;

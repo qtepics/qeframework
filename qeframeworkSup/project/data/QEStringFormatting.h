@@ -135,7 +135,8 @@ public:
 private:
    // isNumeric set true iff value is numeric data.
    //
-   QString formatElementString (const QVariant& value, bool& isNumeric) const;
+   QString defaultElementString (const QVariant& value, bool& isNumeric) const;
+   QString formatElementString  (const QVariant& value, bool& isNumeric) const;
 
    // Time specific conversion function.
    // The value parameter must be in seconds.
@@ -154,9 +155,9 @@ private:
    template<typename Number>
    Number toIntegerValueGeneric (const QString& image, bool& okay) const;
 
-   // If the nominated notation is not QE::Automatic, this just return the
+   // If the nominated notation is not QE::Notations::Automatic, this just return the
    // nominated notation; otherwise it uses the give value to decide whether//
-   // QE::Fixed or QE::Scientific is more appropriate.
+   // QE::Notations::Fixed or QE::Notations::Scientific is more appropriate.
    //
    QE::Notations determineNotation (const double value) const;
 

@@ -85,7 +85,7 @@ public:
    // Default user level is USERLEVEL_ENGINEER
    //
    void setEditPvUserLevel (const QE::UserLevels level);
-   bool getEditPvUserLevel () const;
+   QE::UserLevels getEditPvUserLevel () const;
 
    void clearContextMenuRequestHandling();             // Clears internal signal connection to contextMenuObject
 

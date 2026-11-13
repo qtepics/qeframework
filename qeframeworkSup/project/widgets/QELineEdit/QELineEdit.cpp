@@ -117,7 +117,7 @@ void QELineEdit::commonSetup ()
    this->messageDialogPresent = false;
    this->isModified = false;
    this->lastValue = "";
-   this->dropOption = QE::DropToVariable;
+   this->dropOption = QE::DropOption::DropToVariable;
 
    // Set default property values
    //
@@ -142,7 +142,7 @@ void QELineEdit::commonSetup ()
    //
    this->setVariableAsToolTip (true);
    this->setAllowDrop (false);
-   this->setDisplayAlarmStateOption (QE::Always);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Always);
 
    // Use default context menu.
    // Note: Turn off the menu for the internal QLineEdit and QLineEdit widgets.
@@ -804,18 +804,18 @@ void QELineEdit::paste (QVariant value)
 {
    DEBUG;
    switch (this->getDropOption()) {
-      case QE::DropToVariable:
+      case QE::DropOption::DropToVariable:
          // Standard paste/drop updates the PV name.
          this->setVariableName (value.toString (), PV_VARIABLE_INDEX);
          this->establishConnection (PV_VARIABLE_INDEX);
          break;
 
-      case QE::DropToText:
+      case QE::DropOption::DropToText:
          DEBUG;
          this->setText (value.toString());
          break;
 
-      case QE::DropToTextAndWrite:
+      case QE::DropOption::DropToTextAndWrite:
          this->setText (value.toString());
          this->writeNow ();
          break;

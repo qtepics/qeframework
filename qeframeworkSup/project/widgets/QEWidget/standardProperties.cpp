@@ -35,8 +35,8 @@ standardProperties::standardProperties (QWidget* ownerIn)
 
    ContainerProfile profile;
 
-   this->visibilityLevel = QE::User;
-   this->enabledLevel = QE::User;
+   this->visibilityLevel = QE::UserLevels::User;
+   this->enabledLevel = QE::UserLevels::User;
    this->currentLevel = profile.getUserLevel ();
 
    this->userLevelDisabled = false;
@@ -45,7 +45,7 @@ standardProperties::standardProperties (QWidget* ownerIn)
    // This is the default-default state.
    // Some widgets, esp QEAbstractDynamicWidgets can/di overide this default.
    //
-   this->displayAlarmState = QE::Always;
+   this->displayAlarmState = QE::DisplayAlarmStateOptions::Always;
    this->isOosAware = true;
 }
 
@@ -228,19 +228,19 @@ bool standardProperties::getUseAlarmState (const QCaAlarmInfo & alarmInfo) const
    } else {
       switch (this->getDisplayAlarmStateOption ()) {
 
-         case QE::Always:
+         case QE::DisplayAlarmStateOptions::Always:
             result = true;
             break;
 
-         case QE::WhenInAlarm:
+         case QE::DisplayAlarmStateOptions::WhenInAlarm:
             result = alarmInfo.isInAlarm ();
             break;
 
-         case QE::WhenInvalid:
+         case QE::DisplayAlarmStateOptions::WhenInvalid:
             result = alarmInfo.isInvalid ();
             break;
 
-         case QE::Never:
+         case QE::DisplayAlarmStateOptions::Never:
             result = false;
             break;
       }

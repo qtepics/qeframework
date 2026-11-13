@@ -161,7 +161,7 @@ void QEImage::setup()
 
    // With so many variables involved, don't bother alterning the presentation
    // of the widget when any one variable goes into alarm
-   setDisplayAlarmStateOption( QE::Never );
+   setDisplayAlarmStateOption( QE::DisplayAlarmStateOptions::Never );
 
    // Prepare to interact with whatever application is hosting this widget.
    // For example, the QEGui application can host docks and toolbars for QE widgets
@@ -500,13 +500,13 @@ void QEImage::presentControls()
       if( imageDisplayProps )
       {
          mainLayout->removeWidget( imageDisplayProps );
-         components.append( componentHostListItem( imageDisplayProps, QE::DockFloating, true, name + "Image Display Properties" ) );
+         components.append( componentHostListItem( imageDisplayProps, QE::CreationOptions::DockFloating, true, name + "Image Display Properties" ) );
       }
 
       if( recorder )
       {
          mainLayout->removeWidget( recorder );
-         components.append( componentHostListItem( recorder, QE::DockFloating, true, name + "Recorder" ) );
+         components.append( componentHostListItem( recorder, QE::CreationOptions::DockFloating, true, name + "Recorder" ) );
       }
 
       vSliceLabel->setVisible( false );
@@ -516,19 +516,19 @@ void QEImage::presentControls()
       if( vSliceDisplay && enableVertSlicePresentation )
       {
          graphicsLayout->removeWidget( vSliceDisplay );
-         components.append( componentHostListItem( vSliceDisplay,  QE::DockLeft, true, name + "Vertical Slice Profile" ) );
+         components.append( componentHostListItem( vSliceDisplay,  QE::CreationOptions::DockLeft, true, name + "Vertical Slice Profile" ) );
       }
 
       if( hSliceDisplay && enableHozSlicePresentation )
       {
          graphicsLayout->removeWidget( hSliceDisplay );
-         components.append( componentHostListItem( hSliceDisplay,  QE::DockTop, true, name + "Horizontal Slice Profile" ) );
+         components.append( componentHostListItem( hSliceDisplay,  QE::CreationOptions::DockTop, true, name + "Horizontal Slice Profile" ) );
       }
 
       if( profileDisplay && enableProfilePresentation )
       {
          graphicsLayout->removeWidget( profileDisplay );
-         components.append( componentHostListItem( profileDisplay, QE::DockTop, true, name + "Arbitrary Profile" ) );
+         components.append( componentHostListItem( profileDisplay, QE::CreationOptions::DockTop, true, name + "Arbitrary Profile" ) );
       }
 
       buttonGroup->hide();
@@ -2047,7 +2047,7 @@ void QEImage::setImageFile( QString name )
    scrollArea->setEnabled( true );
    iProcessor.setImageBuffWidth( stdImage.width() );
    iProcessor.setImageBuffHeight( stdImage.height() );
-   iProcessor.setFormat( QE::rgb1 );
+   iProcessor.setFormat( QE::ImageFormatOptions::rgb1 );
    iProcessor.setBitDepth( 8 );
 
 
@@ -5454,11 +5454,11 @@ void QEImage::flipRotateMenuTriggered( QAction* selectedItem )
       case imageContextMenu::ICM_NONE: break;
 
       case imageContextMenu::ICM_ROTATE_RIGHT:
-         setRotation( selectedItem->isChecked() ? QE::Rotate90Right : QE::NoRotation ); break;
+         setRotation( selectedItem->isChecked() ? QE::RotationOptions::Rotate90Right : QE::RotationOptions::NoRotation ); break;
       case imageContextMenu::ICM_ROTATE_LEFT:
-         setRotation( selectedItem->isChecked() ? QE::Rotate90Left  : QE::NoRotation ); break;
+         setRotation( selectedItem->isChecked() ? QE::RotationOptions::Rotate90Left  : QE::RotationOptions::NoRotation ); break;
       case imageContextMenu::ICM_ROTATE_180:
-         setRotation( selectedItem->isChecked() ? QE::Rotate180     : QE::NoRotation ); break;
+         setRotation( selectedItem->isChecked() ? QE::RotationOptions::Rotate180     : QE::RotationOptions::NoRotation ); break;
 
       case imageContextMenu::ICM_FLIP_HORIZONTAL:
          setHorizontalFlip( selectedItem->isChecked() ); break;

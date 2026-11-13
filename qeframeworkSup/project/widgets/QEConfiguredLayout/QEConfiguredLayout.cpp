@@ -30,7 +30,7 @@ QEConfiguredLayout::QEConfiguredLayout(QWidget *pParent, bool pSubscription) :
    //
    setVariableAsToolTip(false);
    setAllowDrop(false);
-   setDisplayAlarmStateOption(QE::Never);
+   setDisplayAlarmStateOption(QE::DisplayAlarmStateOptions::Never);
 
    qScrollArea = new QScrollArea(this);
    qLabelItemDescription = new QLabel(this);
@@ -49,9 +49,9 @@ QEConfiguredLayout::QEConfiguredLayout(QWidget *pParent, bool pSubscription) :
    setItemDescription("");
    setConfigurationFile("");
    setConfigurationText("");
-   setConfigurationType(QE::SourceFile);
+   setConfigurationType(QE::SourceOptions::SourceFile);
    setShowItemList(true);
-   setOptionsLayout(QE::Top);
+   setOptionsLayout(QE::LayoutOptions::Top);
    setCurrentUserType(getUserLevel());
 }
 
@@ -109,7 +109,7 @@ void QEConfiguredLayout::setConfigurationFile(QString pValue)
    QString data;
 
    configurationFile = pValue;
-   if (configurationType == QE::SourceFile)
+   if (configurationType == QE::SourceOptions::SourceFile)
    {
       file = new QFile(configurationFile);
       if (file->open(QFile::ReadOnly | QFile::Text))
@@ -133,7 +133,7 @@ QString QEConfiguredLayout::getConfigurationFile()
 void QEConfiguredLayout::setConfigurationText(QString pValue)
 {
    configurationText = pValue;
-   if (configurationType == QE::SourceText)
+   if (configurationType == QE::SourceOptions::SourceText)
    {
       setConfiguration(configurationText);
    }
@@ -246,8 +246,8 @@ void QEConfiguredLayout::setOptionsLayout(QE::LayoutOptions pValue)
 
    switch(pValue)
    {
-      case QE::Top:
-         optionsLayout = QE::Top;
+      case QE::LayoutOptions::Top:
+         optionsLayout = QE::LayoutOptions::Top;
          qLayoutMain = new QVBoxLayout(this);
          qLayoutChild = new QHBoxLayout();
          qLayoutChild->addWidget(qLabelItemDescription);
@@ -256,8 +256,8 @@ void QEConfiguredLayout::setOptionsLayout(QE::LayoutOptions pValue)
          qLayoutMain->addWidget(qScrollArea);
          break;
 
-      case QE::Bottom:
-         optionsLayout = QE::Bottom;
+      case QE::LayoutOptions::Bottom:
+         optionsLayout = QE::LayoutOptions::Bottom;
          qLayoutMain = new QVBoxLayout(this);
          qLayoutChild = new QHBoxLayout();
          qLayoutMain->addWidget(qScrollArea);
@@ -266,8 +266,8 @@ void QEConfiguredLayout::setOptionsLayout(QE::LayoutOptions pValue)
          qLayoutMain->addItem(qLayoutChild);
          break;
 
-      case QE::Left:
-         optionsLayout = QE::Left;
+      case QE::LayoutOptions::Left:
+         optionsLayout = QE::LayoutOptions::Left;
          qLayoutMain = new QHBoxLayout(this);
          qLayoutChild = new QVBoxLayout();
          qLayoutChild->addWidget(qLabelItemDescription);
@@ -277,8 +277,8 @@ void QEConfiguredLayout::setOptionsLayout(QE::LayoutOptions pValue)
          qLayoutMain->addWidget(qScrollArea);
          break;
 
-      case QE::Right:
-         optionsLayout = QE::Right;
+      case QE::LayoutOptions::Right:
+         optionsLayout = QE::LayoutOptions::Right;
          qLayoutMain = new QHBoxLayout(this);
          qLayoutChild = new QVBoxLayout();
          qLayoutMain->addWidget(qScrollArea);
@@ -306,21 +306,21 @@ void QEConfiguredLayout::userLevelChanged (QE::UserLevels pValue)
 
 //------------------------------------------------------------------------------
 //
-void QEConfiguredLayout::setCurrentUserType(int pValue)
+void QEConfiguredLayout::setCurrentUserType(QE::UserLevels pValue)
 {
    QString tmp;
    QString userType;
    int i;
 
-   if (pValue == QE::User || pValue == QE::Scientist || pValue == QE::Engineer)
+   if (pValue == QE::UserLevels::User || pValue == QE::UserLevels::Scientist || pValue == QE::UserLevels::Engineer)
    {
       currentUserType = pValue;
       switch (currentUserType)
       {
-         case QE::User:
+         case QE::UserLevels::User:
             userType = "USER";
             break;
-         case QE::Scientist:
+         case QE::UserLevels::Scientist:
             userType = "SCIENTIST";
             break;
          default:
@@ -354,7 +354,7 @@ void QEConfiguredLayout::setCurrentUserType(int pValue)
 
 //------------------------------------------------------------------------------
 //
-int QEConfiguredLayout::getCurrentUserType()
+QE::UserLevels QEConfiguredLayout::getCurrentUserType()
 {
    return currentUserType;
 }
@@ -403,10 +403,10 @@ void QEConfiguredLayout::refreshFields()
    {
       switch (currentUserType)
       {
-         case QE::User:
+         case QE::UserLevels::User:
             userType = "USER";
             break;
-         case QE::Scientist:
+         case QE::UserLevels::Scientist:
             userType = "SCIENTIST";
             break;
          default:
@@ -433,7 +433,7 @@ void QEConfiguredLayout::refreshFields()
                qeWidget = new QELineEdit();
                ((QELineEdit *) qeWidget)->setVariableNameAndSubstitutions(field->getProcessVariable(), item->getSubstitution(), 0);
                //((QELineEdit *) qeWidget)->setSubscribe(subscription);
-               ((QELineEdit *) qeWidget)->setNotation(QE::Automatic);
+               ((QELineEdit *) qeWidget)->setNotation(QE::Notations::Automatic);
                ((QELineEdit *) qeWidget)->setEnabled(field->getEditable().isEmpty() || field->getEditable().split(",").contains(userType, Qt::CaseInsensitive));
                ((QELineEdit *) qeWidget)->setWriteOnFinish(false);
                ((QELineEdit *) qeWidget)->setConfirmWrite(false);

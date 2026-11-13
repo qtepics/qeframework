@@ -35,8 +35,8 @@ QEScalarHistogram::QEScalarHistogram (QWidget * parent) :
    //
    this->histogram->setAutoScale (true);
    this->setReadoutPrecision (6);
-   this->setFormat (QE::Default);
-   this->setNotation (QE::Automatic);
+   this->setFormat (QE::Formats::Default);
+   this->setNotation (QE::Notations::Automatic);
    this->setUseDbPrecision (false);
    this->setAddUnits (true);
 

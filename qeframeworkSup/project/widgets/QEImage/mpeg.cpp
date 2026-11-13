@@ -468,7 +468,7 @@ void MpegSource::updateImage (FFBuffer* newbuf) {
    unsigned long dataSize = 1;
    unsigned long depth = 8;
    unsigned long elementsPerPixel = 1;
-   QE::ImageFormatOptions format = QE::Mono;
+   QE::ImageFormatOptions format = QE::ImageFormatOptions::Mono;
 
    // older version does not have 'format'
    //widgets/QEImage/mpeg.cpp: In member function 'void mpegSource::updateImage(FFBuffer*)':
@@ -489,7 +489,7 @@ void MpegSource::updateImage (FFBuffer* newbuf) {
             dataSize = 1;
             depth = 8;
             elementsPerPixel = 3;
-            format = QE::rgb1;
+            format = QE::ImageFormatOptions::rgb1;
 
             const unsigned char* linePtrY = (const unsigned char*)(newbuf->pFrame->data[0]);
             const unsigned char* linePtrU = (const unsigned char*)(newbuf->pFrame->data[1]);
@@ -545,7 +545,7 @@ void MpegSource::updateImage (FFBuffer* newbuf) {
             dataSize = 1;
             depth = 8;
             elementsPerPixel = 1;
-            format = QE::Mono;
+            format = QE::ImageFormatOptions::Mono;
 
             // Package the data in a CA like QByteArray
             const char* linePtr = (const char*)(newbuf->pFrame->data[0]);

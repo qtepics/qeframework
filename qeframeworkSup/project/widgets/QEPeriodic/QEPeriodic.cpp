@@ -265,7 +265,7 @@ void QEPeriodic::setup()
    updatePresentationOptions();
 
    // Default to using user info text property as the source for user information
-   userInfoSourceOption = QE::SourceText;
+   userInfoSourceOption = QE::SourceOptions::SourceText;
 
    // Set up data
    // This control uses:
@@ -1128,11 +1128,11 @@ void QEPeriodic::setUserInfoSourceOption( QE::SourceOptions userInfoSourceOption
    // Set the user info from the appropriate source
    switch( userInfoSourceOption )
    {
-      case QE::SourceText:
+      case QE::SourceOptions::SourceText:
          setUserInfo( userInfoText );
          break;
 
-      case QE::SourceFile:
+      case QE::SourceOptions::SourceFile:
          readUserInfoFile();
          break;
    }
@@ -1152,7 +1152,7 @@ QE::SourceOptions QEPeriodic::getUserInfoSourceOption() const
 void QEPeriodic::setUserInfoText( QString userInfoTextIn )
 {
    userInfoText = userInfoTextIn;
-   if( userInfoSourceOption == QE::SourceText )
+   if( userInfoSourceOption == QE::SourceOptions::SourceText )
    {
       setUserInfo( userInfoText );
    }
@@ -1172,7 +1172,7 @@ void QEPeriodic::setUserInfoFile( QString userInfoFileIn )
 {
    // Save the filename
    userInfoFile = userInfoFileIn;
-   if( userInfoSourceOption == QE::SourceFile )
+   if( userInfoSourceOption == QE::SourceOptions::SourceFile )
    {
       readUserInfoFile();
    }
@@ -1322,7 +1322,7 @@ void QEPeriodic::updateUserInfoSource()
    switch( userInfoSourceOption )
    {
       // Source is the text property, update the property.
-      case QE::SourceText:
+      case QE::SourceOptions::SourceText:
          if (QDesignerFormWindowInterface *formWindow = QDesignerFormWindowInterface::findFormWindow( this ))
          {
             formWindow->cursor()->setProperty("userInfo", getUserInfo() );
@@ -1330,7 +1330,7 @@ void QEPeriodic::updateUserInfoSource()
          break;
 
          // Source is a file, update the file
-      case QE::SourceFile:
+      case QE::SourceOptions::SourceFile:
          writeUserInfoFile();
          break;
    }

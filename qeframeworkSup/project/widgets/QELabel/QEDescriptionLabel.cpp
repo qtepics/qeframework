@@ -45,7 +45,7 @@ void QEDescriptionLabel::descrptionLabelSetup ()
    this->setStyleSheet("");
    this->setDefaultStyle("");
    this->setIndent (-1);
-   this->setDisplayAlarmStateOption (QE::Never);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Never);
    this->m_enableDots = false;
 
    QFont tempFont;

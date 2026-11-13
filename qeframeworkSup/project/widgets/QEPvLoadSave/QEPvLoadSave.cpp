@@ -357,7 +357,7 @@ QEPvLoadSave::QEPvLoadSave (QWidget* parent) : QEFrame (parent)
    //
    this->setAllowDrop (false); // applies to widget as a whole, not the tree view.
    this->setVariableAsToolTip (false);
-   this->setDisplayAlarmStateOption (QE::Never);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Never);
 
    this->defaultDir = "";
    this->confirmRequired = true;
@@ -1377,7 +1377,7 @@ void QEPvLoadSave::compareClicked (bool)
          // Create component item and associated request.
          //
          componentHostListItem item (graphicalCompare,
-                                     QE::DockFloating,
+                                     QE::CreationOptions::DockFloating,
                                      false, title);
 
          // ... and request this hosted by the support application.
@@ -1411,7 +1411,7 @@ void QEPvLoadSave::abortClicked (bool)
          // Create component item and associated request.
          //
          componentHostListItem item (this->accessFail,
-                                     QE::DockFloating,
+                                     QE::CreationOptions::DockFloating,
                                      false, title);
 
          // ... and request this hosted by the support application.

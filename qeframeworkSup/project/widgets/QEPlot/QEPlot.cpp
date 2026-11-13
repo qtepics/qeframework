@@ -329,7 +329,7 @@ void QEPlot::setup ()
    this->setFrameShape (QFrame::NoFrame);
    this->setFrameShadow (QFrame::Plain);
    this->setVariableAsToolTip (true);
-   this->setDisplayAlarmStateOption (QE::Always);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Always);
    this->setAllowDrop (false);
 
    // General plot properties
@@ -343,7 +343,7 @@ void QEPlot::setup ()
    this->selectedYAxis = Left;
    this->useFullLengthArraySubscriptions = false;  // go with modern behaviour by default.
 
-   this->mMouseMoveSignals = QE::signalData;
+   this->mMouseMoveSignals = QE::MouseMoveSignals::signalData;
 
    // Default to one minute span
    //
@@ -451,7 +451,9 @@ void QEPlot::plotMouseMove (const QPointF& posn)
 {
    QString message;
 
-   if (this->mMouseMoveSignals & (QE::signalStatus|QE::signalText)) {
+   const int ss = QE::toIndex (QE::MouseMoveSignals::signalStatus);
+   const int st = QE::toIndex (QE::MouseMoveSignals::signalText);
+   if (this->mMouseMoveSignals & (ss|st)) {
       // Prepare the text
       //
       QString f;   // temp
@@ -506,21 +508,21 @@ void QEPlot::plotMouseMove (const QPointF& posn)
       // Do we send a status message?
       // Appears on the status bar of containing form.
       //
-      if (this->mMouseMoveSignals & QE::signalStatus) {
+      if (this->mMouseMoveSignals & QE::MouseMoveSignals::signalStatus) {
          this->setReadOut (message);
       }
 
       // Do we emit time/value as string signal ?
       // Can go to QLabel or any other widget that accepts a string.
       //
-      if (this->mMouseMoveSignals & QE::signalText) {
+      if (this->mMouseMoveSignals & QE::MouseMoveSignals::signalText) {
          emit mouseMove (message);
       }
    }
 
    // Do we send a data signal message ?
    //
-   if (this->mMouseMoveSignals & QE::signalData) {
+   if (this->mMouseMoveSignals & QE::MouseMoveSignals::signalData) {
       emit mouseMove (posn);
    }
 }

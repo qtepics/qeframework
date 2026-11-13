@@ -146,7 +146,7 @@ windowCustomisationItem::windowCustomisationItem(
       windows.append( windowsIn.at(i));
    }
 
-   programLauncher.setProgramStartupOption( QE::LogOutput );
+   programLauncher.setProgramStartupOption( QE::ProgramStartupOptions::LogOutput );
    programLauncher.setProgram( programIn );
    programLauncher.setArguments( argumentsIn );
 
@@ -164,7 +164,7 @@ windowCustomisationItem::windowCustomisationItem(windowCustomisationItem* item):
       windows.append( item->windows.at(i));
    }
 
-   programLauncher.setProgramStartupOption( QE::LogOutput );
+   programLauncher.setProgramStartupOption( QE::ProgramStartupOptions::LogOutput );
    programLauncher.setProgram( item->getProgram() );
    programLauncher.setArguments( item->getArguments() );
 
@@ -196,8 +196,8 @@ void windowCustomisationItem::commonInit()
 {
    profile.takeLocalCopy();
 
-   userLevelVisible = QE::User;
-   userLevelEnabled = QE::User;
+   userLevelVisible = QE::UserLevels::User;
+   userLevelEnabled = QE::UserLevels::User;
 }
 
 // A menu item or button has been created, let the application or widget know about it
@@ -600,23 +600,23 @@ void windowCustomisation::addItem( windowCustomisationButtonItem* button )
 //
 QE::CreationOptions windowCustomisation::translateCreationOption( QString creationOption )
 {
-   if(      creationOption.compare( "Open"              ) == 0 ) { return QE::Open;             }
-   else if( creationOption.compare( "NewTab"            ) == 0 ) { return QE::NewTab;           }
-   else if( creationOption.compare( "NewWindow"         ) == 0 ) { return QE::NewWindow;        }
+   if(      creationOption.compare( "Open"              ) == 0 ) { return QE::CreationOptions::Open;             }
+   else if( creationOption.compare( "NewTab"            ) == 0 ) { return QE::CreationOptions::NewTab;           }
+   else if( creationOption.compare( "NewWindow"         ) == 0 ) { return QE::CreationOptions::NewWindow;        }
 
-   else if( creationOption.compare( "FloatingDock"      ) == 0 ) { return QE::DockFloating;     }
+   else if( creationOption.compare( "FloatingDock"      ) == 0 ) { return QE::CreationOptions::DockFloating;     }
 
-   else if( creationOption.compare( "LeftDock"          ) == 0 ) { return QE::DockLeft;         }
-   else if( creationOption.compare( "RightDock"         ) == 0 ) { return QE::DockRight;        }
-   else if( creationOption.compare( "TopDock"           ) == 0 ) { return QE::DockTop;          }
-   else if( creationOption.compare( "BottomDock"        ) == 0 ) { return QE::DockBottom;       }
+   else if( creationOption.compare( "LeftDock"          ) == 0 ) { return QE::CreationOptions::DockLeft;         }
+   else if( creationOption.compare( "RightDock"         ) == 0 ) { return QE::CreationOptions::DockRight;        }
+   else if( creationOption.compare( "TopDock"           ) == 0 ) { return QE::CreationOptions::DockTop;          }
+   else if( creationOption.compare( "BottomDock"        ) == 0 ) { return QE::CreationOptions::DockBottom;       }
 
-   else if( creationOption.compare( "LeftDockTabbed"    ) == 0 ) { return QE::DockLeftTabbed;   }
-   else if( creationOption.compare( "RightDockTabbed"   ) == 0 ) { return QE::DockRightTabbed;  }
-   else if( creationOption.compare( "TopDockTabbed"     ) == 0 ) { return QE::DockTopTabbed;    }
-   else if( creationOption.compare( "BottomDockTabbed"  ) == 0 ) { return QE::DockBottomTabbed; }
+   else if( creationOption.compare( "LeftDockTabbed"    ) == 0 ) { return QE::CreationOptions::DockLeftTabbed;   }
+   else if( creationOption.compare( "RightDockTabbed"   ) == 0 ) { return QE::CreationOptions::DockRightTabbed;  }
+   else if( creationOption.compare( "TopDockTabbed"     ) == 0 ) { return QE::CreationOptions::DockTopTabbed;    }
+   else if( creationOption.compare( "BottomDockTabbed"  ) == 0 ) { return QE::CreationOptions::DockBottomTabbed; }
 
-   return QE::NewWindow;  // Default
+   return QE::CreationOptions::NewWindow;  // Default
 }
 
 //==============================================================================================
@@ -932,18 +932,18 @@ bool windowCustomisationList::parseMenuAndButtonItem( QDomElement itemElement,
       // Note: We don't support Time and Local Enumeration here.
       //
       if (format == "Default") {
-         pvInfo.format = QE::Default;
+         pvInfo.format = QE::Formats::Default;
       } else if (format == "Floating") {
-         pvInfo.format = QE::Floating;
+         pvInfo.format = QE::Formats::Floating;
       } else if (format == "Integer") {
-         pvInfo.format = QE::Integer;
+         pvInfo.format = QE::Formats::Integer;
       } else if (format == "UnsignedInteger") {
-         pvInfo.format = QE::UnsignedInteger;
+         pvInfo.format = QE::Formats::UnsignedInteger;
       } else if (format == "String") {
-         pvInfo.format = QE::String;
+         pvInfo.format = QE::Formats::String;
       } else {
          qDebug() << pvInfo.pvName << "Unknown/unexpected format:" << format;
-         pvInfo.format = QE::Default;
+         pvInfo.format = QE::Formats::Default;
       }
    }
 
@@ -999,7 +999,7 @@ bool windowCustomisationList::parseMenuAndButtonItem( QDomElement itemElement,
 
       // Read optional creation option
       QDomElement creationOptionElement = windowElement.firstChildElement( "CreationOption" );
-      windowItem.creationOption = QE::NewWindow;
+      windowItem.creationOption = QE::CreationOptions::NewWindow;
       if( !creationOptionElement.isNull() )
       {
          windowItem.creationOption = windowCustomisation::translateCreationOption( creationOptionElement.text() );
@@ -1070,7 +1070,7 @@ void windowCustomisationList::parseDockItem( QDomElement itemElement,
          }
 
          QDomElement creationOptionElement = dockElement.firstChildElement( "CreationOption" );
-         windowItem.creationOption = QE::DockFloating;
+         windowItem.creationOption = QE::CreationOptions::DockFloating;
 
          if( !creationOptionElement.isNull() )
          {

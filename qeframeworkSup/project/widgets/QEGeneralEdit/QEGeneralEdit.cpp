@@ -109,7 +109,7 @@ void QEGeneralEdit::commonSetup ()
    // Set up default properties
    //
    this->setAllowDrop (true);
-   this->setDisplayAlarmStateOption (QE::Never);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Never);
 
    this->setMinimumWidth (400);
    this->setMinimumHeight (50);

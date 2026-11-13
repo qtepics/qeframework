@@ -22,11 +22,11 @@
 /// Construction. Set all image attributes to sensible defaults
 imageProperties::imageProperties()
 {
-    rotation = QE::NoRotation;
+    rotation = QE::RotationOptions::NoRotation;
     flipVert = false;
     flipHoz = false;
 
-    formatOption = QE::Mono;
+    formatOption = QE::ImageFormatOptions::Mono;
     bitDepth = 8;
 
     imageDataSize = 0;

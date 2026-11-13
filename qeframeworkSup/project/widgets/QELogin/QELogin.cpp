@@ -154,9 +154,9 @@ QString QELogin::getUserTypeName(QE::UserLevels type)
 {
    switch( type )
    {
-      case QE::User:      return "User";
-      case QE::Scientist: return "Scientist";
-      case QE::Engineer:  return "Engineer";
+      case QE::UserLevels::User:      return "User";
+      case QE::UserLevels::Scientist: return "Scientist";
+      case QE::UserLevels::Engineer:  return "Engineer";
       default:            return "Unknown";
    }
 }
@@ -189,9 +189,9 @@ bool QELogin::login( QE::UserLevels level, QString password )
    QString requiredPassword;
    switch( level )
    {
-      case QE::User:      requiredPassword = getPriorityUserPassword();      break;
-      case QE::Scientist: requiredPassword = getPriorityScientistPassword(); break;
-      case QE::Engineer:  requiredPassword = getPriorityEngineerPassword();  break;
+      case QE::UserLevels::User:      requiredPassword = getPriorityUserPassword();      break;
+      case QE::UserLevels::Scientist: requiredPassword = getPriorityScientistPassword(); break;
+      case QE::UserLevels::Engineer:  requiredPassword = getPriorityEngineerPassword();  break;
    }
 
    // Note the current user level
@@ -232,7 +232,7 @@ QString QELogin::getPriorityUserPassword()
    ContainerProfile profile;
    if( profile.areUserLevelPasswordsSet() )
    {
-      return profile.getUserLevelPassword( QE::User );
+      return profile.getUserLevelPassword( QE::UserLevels::User );
    }
    else
    {
@@ -248,7 +248,7 @@ QString QELogin::getPriorityScientistPassword()
    ContainerProfile profile;
    if( profile.areUserLevelPasswordsSet() )
    {
-      return profile.getUserLevelPassword( QE::Scientist );
+      return profile.getUserLevelPassword( QE::UserLevels::Scientist );
    }
    else
    {
@@ -264,7 +264,7 @@ QString QELogin::getPriorityEngineerPassword()
    ContainerProfile profile;
    if( profile.areUserLevelPasswordsSet() )
    {
-      return profile.getUserLevelPassword( QE::Engineer );
+      return profile.getUserLevelPassword( QE::UserLevels::Engineer );
    }
    else
    {
@@ -292,13 +292,13 @@ loginWidget::loginWidget( QELogin* ownerIn )
    // Set up the widgets
    qGroupBox->setTitle( "Login as:");
 
-   qRadioButtonUser->setText(owner->getUserTypeName(QE::User));
+   qRadioButtonUser->setText(owner->getUserTypeName(QE::UserLevels::User));
    QObject::connect(qRadioButtonUser, SIGNAL(clicked()), this, SLOT(radioButtonClicked()));
 
-   qRadioButtonScientist->setText(owner->getUserTypeName(QE::Scientist));
+   qRadioButtonScientist->setText(owner->getUserTypeName(QE::UserLevels::Scientist));
    QObject::connect(qRadioButtonScientist, SIGNAL(clicked()), this, SLOT(radioButtonClicked()));
 
-   qRadioButtonEngineer->setText(owner->getUserTypeName(QE::Engineer));
+   qRadioButtonEngineer->setText(owner->getUserTypeName(QE::UserLevels::Engineer));
    QObject::connect(qRadioButtonEngineer, SIGNAL(clicked()), this, SLOT(radioButtonClicked()));
 
    qLineEditPassword->setEchoMode(QLineEdit::Password);
@@ -318,9 +318,9 @@ loginWidget::loginWidget( QELogin* ownerIn )
    // Select a radio button to match the current user level
    switch( owner->getUserLevel() )
    {
-      case QE::User:        qRadioButtonUser->setChecked(true);      break;
-      case QE::Scientist:   qRadioButtonScientist->setChecked(true); break;
-      case QE::Engineer:    qRadioButtonEngineer->setChecked(true);  break;
+      case QE::UserLevels::User:        qRadioButtonUser->setChecked(true);      break;
+      case QE::UserLevels::Scientist:   qRadioButtonScientist->setChecked(true); break;
+      case QE::UserLevels::Engineer:    qRadioButtonEngineer->setChecked(true);  break;
    }
 
    // Enable or disable the password according to the user type
@@ -339,17 +339,17 @@ void loginWidget::radioButtonClicked()
    if (qRadioButtonUser->isChecked())
    {
       passwordIsEmpty = owner->getPriorityUserPassword().isEmpty();
-      targetLevel = QE::User;
+      targetLevel = QE::UserLevels::User;
    }
    else if (qRadioButtonScientist->isChecked())
    {
       passwordIsEmpty = owner->getPriorityScientistPassword().isEmpty();
-      targetLevel = QE::Scientist;
+      targetLevel = QE::UserLevels::Scientist;
    }
    else
    {
       passwordIsEmpty = owner->getPriorityEngineerPassword().isEmpty();
-      targetLevel = QE::Engineer;
+      targetLevel = QE::UserLevels::Engineer;
    }
 
    // Enable password entry if a password is required for the selected user type
@@ -363,16 +363,16 @@ void loginWidget::radioButtonClicked()
 QE::UserLevels loginWidget::getUserType()
 {
    if( qRadioButtonUser->isChecked() )
-      return QE::User;
+      return QE::UserLevels::User;
 
    if( qRadioButtonScientist->isChecked() )
-      return QE::Scientist;
+      return QE::UserLevels::Scientist;
 
    if( qRadioButtonEngineer->isChecked() )
-      return QE::Engineer;
+      return QE::UserLevels::Engineer;
 
    // Default
-   return QE::User;
+   return QE::UserLevels::User;
 }
 
 //------------------------------------------------------------------------------

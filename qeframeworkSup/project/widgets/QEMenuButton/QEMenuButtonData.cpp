@@ -29,31 +29,31 @@ bool QEMenuButtonData::elaborate ()
 {
    qRegisterMetaType<QEMenuButtonData> ("QEMenuButtonData");
 
-   startOptionsEnums.insertF (QE::NoOutput,          "None");
-   startOptionsEnums.insertF (QE::Terminal,          "Terminal");
-   startOptionsEnums.insertF (QE::LogOutput,         "LogOut");
-   startOptionsEnums.insertF (QE::StdOutput,         "StdOut");
+   startOptionsEnums.insertF (QE::ProgramStartupOptions::NoOutput,          "None");
+   startOptionsEnums.insertF (QE::ProgramStartupOptions::Terminal,          "Terminal");
+   startOptionsEnums.insertF (QE::ProgramStartupOptions::LogOutput,         "LogOut");
+   startOptionsEnums.insertF (QE::ProgramStartupOptions::StdOutput,         "StdOut");
 
-   valueFormatEnums.insertF (QE::Default,            "Default");
-   valueFormatEnums.insertF (QE::Floating,           "Floating");
-   valueFormatEnums.insertF (QE::Integer,            "Integer");
-   valueFormatEnums.insertF (QE::UnsignedInteger,    "UnsignedInteger");
-   valueFormatEnums.insertF (QE::Time,               "Time");
-   valueFormatEnums.insertF (QE::LocalEnumeration,   "LocalEnumeration");
-   valueFormatEnums.insertF (QE::String,             "String");
+   valueFormatEnums.insertF (QE::Formats::Default,            "Default");
+   valueFormatEnums.insertF (QE::Formats::Floating,           "Floating");
+   valueFormatEnums.insertF (QE::Formats::Integer,            "Integer");
+   valueFormatEnums.insertF (QE::Formats::UnsignedInteger,    "UnsignedInteger");
+   valueFormatEnums.insertF (QE::Formats::Time,               "Time");
+   valueFormatEnums.insertF (QE::Formats::LocalEnumeration,   "LocalEnumeration");
+   valueFormatEnums.insertF (QE::Formats::String,             "String");
 
-   actionOptionsEnums.insertF (QE::Open,             "Open");
-   actionOptionsEnums.insertF (QE::NewTab,           "NewTab");
-   actionOptionsEnums.insertF (QE::NewWindow,        "NewWindow");
-   actionOptionsEnums.insertF (QE::DockTop,          "TopDockWindow");
-   actionOptionsEnums.insertF (QE::DockBottom,       "BottomDockWindow");
-   actionOptionsEnums.insertF (QE::DockLeft,         "LeftDockWindow");
-   actionOptionsEnums.insertF (QE::DockRight,        "RightDockWindow");
-   actionOptionsEnums.insertF (QE::DockTopTabbed,    "TopDockWindowTabbed");
-   actionOptionsEnums.insertF (QE::DockBottomTabbed, "BottomDockWindowTabbed");
-   actionOptionsEnums.insertF (QE::DockLeftTabbed,   "LeftDockWindowTabbed");
-   actionOptionsEnums.insertF (QE::DockRightTabbed,  "RightDockWindowTabbed");
-   actionOptionsEnums.insertF (QE::DockFloating,     "FloatingDockWindow");
+   actionOptionsEnums.insertF (QE::CreationOptions::Open,             "Open");
+   actionOptionsEnums.insertF (QE::CreationOptions::NewTab,           "NewTab");
+   actionOptionsEnums.insertF (QE::CreationOptions::NewWindow,        "NewWindow");
+   actionOptionsEnums.insertF (QE::CreationOptions::DockTop,          "TopDockWindow");
+   actionOptionsEnums.insertF (QE::CreationOptions::DockBottom,       "BottomDockWindow");
+   actionOptionsEnums.insertF (QE::CreationOptions::DockLeft,         "LeftDockWindow");
+   actionOptionsEnums.insertF (QE::CreationOptions::DockRight,        "RightDockWindow");
+   actionOptionsEnums.insertF (QE::CreationOptions::DockTopTabbed,    "TopDockWindowTabbed");
+   actionOptionsEnums.insertF (QE::CreationOptions::DockBottomTabbed, "BottomDockWindowTabbed");
+   actionOptionsEnums.insertF (QE::CreationOptions::DockLeftTabbed,   "LeftDockWindowTabbed");
+   actionOptionsEnums.insertF (QE::CreationOptions::DockRightTabbed,  "RightDockWindowTabbed");
+   actionOptionsEnums.insertF (QE::CreationOptions::DockFloating,     "FloatingDockWindow");
 
    return true;
 }
@@ -71,7 +71,7 @@ QString QEMenuButtonData::psoToString (const QE::ProgramStartupOptions value)
 //
 QE::ProgramStartupOptions QEMenuButtonData::stringToPso (const QString& image)
 {
-   return startOptionsEnums.valueI (image, QE::NoOutput);
+   return startOptionsEnums.valueI (image, QE::ProgramStartupOptions::NoOutput);
 }
 
 //------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ QString QEMenuButtonData::optionToString (const QE::CreationOptions  value)
 //
 QE::CreationOptions QEMenuButtonData::stringToOption (const QString& image)
 {
-    return actionOptionsEnums.valueI (image, QE::Open);
+    return actionOptionsEnums.valueI (image, QE::CreationOptions::Open);
 }
 
 
@@ -100,7 +100,7 @@ QString QEMenuButtonData::formatToString (const QE::Formats value)
 //
 QE::Formats QEMenuButtonData::stringToFormat (const QString& image)
 {
-   return valueFormatEnums.valueI (image, QE::Default);
+   return valueFormatEnums.valueI (image, QE::Formats::Default);
 }
 
 //------------------------------------------------------------------------------
@@ -127,16 +127,16 @@ QEMenuButtonData::QEMenuButtonData ()
 
    this->programName = "";
    this->programArguments.clear ();
-   this->programStartupOption = QE::NoOutput;
+   this->programStartupOption = QE::ProgramStartupOptions::NoOutput;
 
    this->uiFilename = "";
    this->prioritySubstitutions = "";
    this->customisationName = "";
-   this->creationOption = QE::Open;
+   this->creationOption = QE::CreationOptions::Open;
 
    this->variable = "";
    this->variableValue = "0";
-   this->format = QE::Default;
+   this->format = QE::Formats::Default;
 }
 
 //------------------------------------------------------------------------------

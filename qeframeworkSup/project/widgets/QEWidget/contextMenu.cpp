@@ -109,7 +109,7 @@ contextMenu::contextMenu( QEWidget* qewIn, QWidget* ownerIn )
    hasConsumer = false;
    qew = qewIn;
    numberOfItems = 1;
-   editPvUserLevel = QE::Engineer;
+   editPvUserLevel = QE::UserLevels::Engineer;
    menuSet = defaultMenuSet();
 
    // Create the signaller object - note: owned and deleted the widget
@@ -510,7 +510,7 @@ void contextMenu::setEditPvUserLevel( const QE::UserLevels level )
 //------------------------------------------------------------------------------
 // Get minimum user level required for EditPV context menu entry available.
 //
-bool contextMenu::getEditPvUserLevel() const
+QE::UserLevels contextMenu::getEditPvUserLevel() const
 {
    return editPvUserLevel;
 }

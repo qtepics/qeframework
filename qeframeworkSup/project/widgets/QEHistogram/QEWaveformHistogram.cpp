@@ -39,8 +39,8 @@ QEWaveformHistogram::QEWaveformHistogram (QWidget* parent) :
 
    this->mScaleMode = Manual;
    this->setReadoutPrecision (6);
-   this->setFormat (QE::Default);
-   this->setNotation (QE::Automatic);
+   this->setFormat (QE::Formats::Default);
+   this->setNotation (QE::Notations::Automatic);
    this->setUseDbPrecision (false);
    this->setAddUnits (true);
    this->useFullLengthArraySubscriptions = false;  // go with modern behaviour by default.

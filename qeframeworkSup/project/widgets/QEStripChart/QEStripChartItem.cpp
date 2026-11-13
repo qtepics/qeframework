@@ -432,7 +432,7 @@ QString QEStripChartItem::getCaptionLabel () const
          substitutedPVName = this->caLabel->getSubstitutedVariableName (0);
 
          switch (labelMode) {
-            case QE::useAliasName:
+            case QE::PVLabelMode::useAliasName:
                if (!this->aliasName.isEmpty() && this->aliasName != "<>") {
                   result = this->aliasName;
                } else {
@@ -440,7 +440,7 @@ QString QEStripChartItem::getCaptionLabel () const
                }
                break;
 
-            case QE::useDescription:
+            case QE::PVLabelMode::useDescription:
                if (!this->description.isEmpty()) {
                   result = this->description;
                } else {
@@ -448,7 +448,7 @@ QString QEStripChartItem::getCaptionLabel () const
                }
                break;
 
-            case QE::usePvName:
+            case QE::PVLabelMode::usePvName:
             default:
                result = substitutedPVName;
                break;
@@ -1862,7 +1862,7 @@ void QEStripChartItem::generateStatistics ()
    if (this->hostSlotAvailable) {
       // Create component item and associated request.
       //
-      componentHostListItem item (pvStatistics, QE::DockFloating , false, this->getPvName () + " Statistics");
+      componentHostListItem item (pvStatistics, QE::CreationOptions::DockFloating , false, this->getPvName () + " Statistics");
 
       // ... and request this hosted by the support application.
       //

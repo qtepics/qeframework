@@ -143,7 +143,7 @@ void QEScratchPad::createInternalWidgets ()
 
       item->recordType = new QELabel (item->frame);
       item->recordType->setFixedWidth (rtypWidth);
-      item->recordType->setDisplayAlarmStateOption (QE::Never);
+      item->recordType->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Never);
       item->recordType->setText ("");
       item->recordType->setIndent (indent);
       item->recordType->setSizePolicy (QSizePolicy::Ignored, QSizePolicy::Preferred);
@@ -151,7 +151,7 @@ void QEScratchPad::createInternalWidgets ()
       item->recordType->setEditPvUserLevel (level);
 
       item->description = new QELabel (item->frame);
-      item->description->setDisplayAlarmStateOption (QE::Never);
+      item->description->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Never);
       item->description->setText ("");
       item->description->setIndent (indent);
       item->description->setSizePolicy (QSizePolicy::Ignored, QSizePolicy::Preferred);
@@ -159,16 +159,16 @@ void QEScratchPad::createInternalWidgets ()
       item->description->setEditPvUserLevel (level);
 
       item->value = new QELabel (item->frame);
-      item->value->setDisplayAlarmStateOption (QE::Always);
+      item->value->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Always);
       item->value->setText ("");
       item->value->setIndent (indent);
       item->value->setSizePolicy (QSizePolicy::Ignored, QSizePolicy::Preferred);
       item->value->setStyleSheet (QEUtilities::colourToStyle (clNotInUse));
       item->value->setPrecision (12);
       item->value->setUseDbPrecision (false);
-      item->value->setNotation (QE::Automatic);
-      item->value->setSeparator (QE::Comma);
-      item->value->setArrayAction (QE::Index);
+      item->value->setNotation (QE::Notations::Automatic);
+      item->value->setSeparator (QE::Separators::Comma);
+      item->value->setArrayAction (QE::ArrayActions::Index);
       item->value->setArrayIndex (0);
       item->value->setEditPvUserLevel (level);
 
@@ -273,7 +273,7 @@ QEScratchPad::QEScratchPad (QWidget* parent) : QEAbstractDynamicWidget (parent),
    this->emitPvNameSetChangeInhibited = false;
 
    this->setAllowDrop (true);
-   this->setDisplayAlarmStateOption (QE::Never);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Never);
 
    // Use default context menu.
    //

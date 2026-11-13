@@ -92,7 +92,7 @@ QNumericEdit::~QNumericEdit ()
 //
 int QNumericEdit::maximumSignificance () const
 {
-   return maximumNumberDigits [this->fpr.getRadix ()];
+   return maximumNumberDigits [QE::toIndex (this->fpr.getRadix ())];
 }
 
 //------------------------------------------------------------------------------
@@ -808,7 +808,7 @@ void QNumericEdit::setNotation (const QE::Notations notationIn)
 {
    // We don't allow Automatic, go with Fixed.
    //
-   this->mNotation = (notationIn != QE::Automatic) ? notationIn : QE::Fixed;
+   this->mNotation = (notationIn != QE::Notations::Automatic) ? notationIn : QE::Notations::Fixed;
    if (this->isFloatFormat()) {
       // Scientific/Engineering notation implies decimal notation.
       //
@@ -907,7 +907,7 @@ QString QNumericEdit::getMaximumText () const
 //
 void QNumericEdit::setRadix (const QE::Radicies value)
 {
-   if (value != QE::Decimal) {
+   if (value != QE::Radicies::Decimal) {
       // Not decimal - force fixed point notation.
       //
       this->setNotation (QE::Notations::Fixed);

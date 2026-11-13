@@ -97,7 +97,7 @@ void QELCDNumber::setup ()
 
    // Set up default properties
    //
-   this->setArrayAction (QE::Index);
+   this->setArrayAction (QE::ArrayActions::Index);
    this->setAllowDrop (false);
 
    this->lastValue = QVariant ();

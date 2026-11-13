@@ -52,7 +52,7 @@ QEFileBrowser::QEFileBrowser (QWidget* parent):
    //
    this->setVariableAsToolTip(false);
    this->setAllowDrop(false);
-   this->setDisplayAlarmStateOption(QE::Never);
+   this->setDisplayAlarmStateOption(QE::DisplayAlarmStateOptions::Never);
 
    // Create interbnal widgets
    //
@@ -92,7 +92,7 @@ QEFileBrowser::QEFileBrowser (QWidget* parent):
    this->setFileFilter("");
    this->setFileDialogDirectoriesOnly(true);
    this->setFileCreationAllowed(false);
-   this->setOptionsLayout(QE::Top);
+   this->setOptionsLayout(QE::LayoutOptions::Top);
    this->setMargin(2);
 }
 
@@ -343,8 +343,8 @@ void QEFileBrowser::setOptionsLayout (const QE::LayoutOptions layoutIn)
    delete this->layout();
 
    switch (layoutIn) {
-      case QE::Top:
-         this->m_optionsLayout = QE::Top;
+      case QE::LayoutOptions::Top:
+         this->m_optionsLayout = QE::LayoutOptions::Top;
          qLayoutMain = new QVBoxLayout(this);
          qLayoutMain->setContentsMargins(m, m, m, m);
          qLayoutChild = new QHBoxLayout();
@@ -356,8 +356,8 @@ void QEFileBrowser::setOptionsLayout (const QE::LayoutOptions layoutIn)
          qLayoutMain->addWidget(browserTable);
          break;
 
-      case QE::Bottom:
-         this->m_optionsLayout = QE::Bottom;
+      case QE::LayoutOptions::Bottom:
+         this->m_optionsLayout = QE::LayoutOptions::Bottom;
          qLayoutMain = new QVBoxLayout(this);
          qLayoutMain->setContentsMargins(m, m, m, m);
          qLayoutMain->addWidget(browserTable);
@@ -369,8 +369,8 @@ void QEFileBrowser::setOptionsLayout (const QE::LayoutOptions layoutIn)
          qLayoutMain->addItem(qLayoutChild);
          break;
 
-      case QE::Left:
-         this->m_optionsLayout = QE::Left;
+      case QE::LayoutOptions::Left:
+         this->m_optionsLayout = QE::LayoutOptions::Left;
          qLayoutMain = new QHBoxLayout(this);
          qLayoutMain->setContentsMargins(m, m, m, m);
          qLayoutChild = new QVBoxLayout();
@@ -382,8 +382,8 @@ void QEFileBrowser::setOptionsLayout (const QE::LayoutOptions layoutIn)
          qLayoutMain->addWidget(browserTable);
          break;
 
-      case QE::Right:
-         this->m_optionsLayout = QE::Right;
+      case QE::LayoutOptions::Right:
+         this->m_optionsLayout = QE::LayoutOptions::Right;
          qLayoutMain = new QHBoxLayout(this);
          qLayoutMain->setContentsMargins(m, m, m, m);
          qLayoutChild = new QVBoxLayout();

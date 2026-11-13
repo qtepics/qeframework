@@ -35,7 +35,7 @@ QEAbstractDynamicWidget::QEAbstractDynamicWidget (QWidget* parent) :
    this->defaultDir = "";
    this->useOwnPersistantName = false;
    this->enableEditPv = false;
-   this->pvLabelMode = QE::useAliasName;
+   this->pvLabelMode = QE::PVLabelMode::useAliasName;
 
    // Typically QEAbstractDynamicWidget widgets hold other QEWidgets, like 
    // QEDistrubtion, and theses widgets handle this internally.
@@ -71,7 +71,7 @@ QString QEAbstractDynamicWidget::getDefaultDir () const
 //
 QE::UserLevels QEAbstractDynamicWidget::minimumEditPvUserLevel () const
 {
-   return this->getEnableEditPv () ? QE::User : QE::Engineer;
+   return this->getEnableEditPv () ? QE::UserLevels::User : QE::UserLevels::Engineer;
 }
 
 //------------------------------------------------------------------------------
@@ -84,9 +84,9 @@ void QEAbstractDynamicWidget::setStandardFormat (QELabel* dataLabel)
    dataLabel->setPrecision (6);
    dataLabel->setForceSign (true);
    dataLabel->setUseDbPrecision (false);
-   dataLabel->setNotation (QE::Automatic);
-   dataLabel->setSeparator (QE::Comma);
-   dataLabel->setArrayAction (QE::Index);
+   dataLabel->setNotation (QE::Notations::Automatic);
+   dataLabel->setSeparator (QE::Separators::Comma);
+   dataLabel->setArrayAction (QE::ArrayActions::Index);
    dataLabel->setArrayIndex (0);
 }
 
@@ -203,19 +203,19 @@ void QEAbstractDynamicWidget::addPVLabelModeContextMenu (QMenu* menu)
 
    action = new QAction ("Use PV Names", menu);
    action->setCheckable (true);
-   action->setChecked (this->pvLabelMode == QE::usePvName);
+   action->setChecked (this->pvLabelMode == QE::PVLabelMode::usePvName);
    action->setData (ADWCM_SELECT_USE_PV_NAME);
    menu->addAction (action);
 
    action = new QAction ("Use Alias Names (if available)", menu);
    action->setCheckable (true);
-   action->setChecked (this->pvLabelMode == QE::useAliasName);
+   action->setChecked (this->pvLabelMode == QE::PVLabelMode::useAliasName);
    action->setData (ADWCM_SELECT_USE_ALIAS_NAME);
    menu->addAction (action);
 
    action = new QAction ("Use Descriptions (if available)", menu);
    action->setCheckable (true);
-   action->setChecked (this->pvLabelMode == QE::useDescription);
+   action->setChecked (this->pvLabelMode == QE::PVLabelMode::useDescription);
    action->setData (ADWCM_SELECT_USE_DESCRIPTION);
    menu->addAction (action);
 }
@@ -235,15 +235,15 @@ void QEAbstractDynamicWidget::contextMenuTriggered (int selectedItemNum)
          break;
 
       case ADWCM_SELECT_USE_PV_NAME:
-         this->setPVLabelMode (QE::usePvName);
+         this->setPVLabelMode (QE::PVLabelMode::usePvName);
          break;
 
       case ADWCM_SELECT_USE_ALIAS_NAME:
-         this->setPVLabelMode (QE::useAliasName);
+         this->setPVLabelMode (QE::PVLabelMode::useAliasName);
          break;
 
       case ADWCM_SELECT_USE_DESCRIPTION:
-         this->setPVLabelMode (QE::useDescription);
+         this->setPVLabelMode (QE::PVLabelMode::useDescription);
          break;
 
       default:

@@ -90,7 +90,7 @@ void QEAnalogSlider::commonSetup ()
    //
    this->setVariableAsToolTip (true);
    this->setAllowDrop (false);
-   this->setDisplayAlarmStateOption (QE::Never);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Never);
    this->setIsActive (false);
 
    this->setShowSaveRevert (true);
@@ -105,7 +105,7 @@ void QEAnalogSlider::commonSetup ()
    this->mAxisAlarmColours = false;
    this->isConnected = false;
 
-   this->stringFormatting.setArrayAction (QE::Index);
+   this->stringFormatting.setArrayAction (QE::ArrayActions::Index);
 
    // Use default context menu.
    //

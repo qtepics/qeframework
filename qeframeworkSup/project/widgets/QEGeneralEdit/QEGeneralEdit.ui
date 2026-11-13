@@ -52,7 +52,7 @@
          <string>THE PV NAME GOES HERE</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignmentFlag::AlignCenter</set>
         </property>
        </widget>
       </item>
@@ -71,13 +71,13 @@
          </size>
         </property>
         <property name="frameShape">
-         <enum>QFrame::Panel</enum>
+         <enum>QFrame::Shape::Panel</enum>
         </property>
         <property name="frameShadow">
-         <enum>QFrame::Plain</enum>
+         <enum>QFrame::Shadow::Plain</enum>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignmentFlag::AlignCenter</set>
         </property>
         <property name="arrayIndex">
          <number>0</number>
@@ -88,14 +88,14 @@
         <property name="useDbPrecision">
          <bool>false</bool>
         </property>
-        <property name="separator" stdset="0">
-         <enum>QE::Comma</enum>
+        <property name="separator">
+         <enum>QE::Separators::Comma</enum>
         </property>
-        <property name="notation" stdset="0">
-         <enum>QE::Automatic</enum>
+        <property name="notation">
+         <enum>QE::Notations::Automatic</enum>
         </property>
-        <property name="arrayAction" stdset="0">
-         <enum>QE::Index</enum>
+        <property name="arrayAction">
+         <enum>QE::ArrayActions::Index</enum>
         </property>
        </widget>
       </item>
@@ -178,7 +178,7 @@
             </size>
            </property>
            <property name="separator">
-            <enum>QE::Comma</enum>
+            <enum>QE::Separators::Comma</enum>
            </property>
            <property name="leadingZeros">
             <number>6</number>
@@ -211,7 +211,7 @@
             </font>
            </property>
            <property name="focusPolicy">
-            <enum>Qt::NoFocus</enum>
+            <enum>Qt::FocusPolicy::NoFocus</enum>
            </property>
            <property name="styleSheet">
             <string>QPushButton { background-color: rgb(128,232,128); } QPushButton { color: rgb(0,0,0); }</string>
@@ -239,7 +239,7 @@
             <string>Zeros</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
            </property>
            <property name="indent">
             <number>4</number>
@@ -301,7 +301,7 @@
             <string>Precision</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
            </property>
            <property name="indent">
             <number>4</number>
@@ -408,7 +408,7 @@
             </font>
            </property>
            <property name="focusPolicy">
-            <enum>Qt::NoFocus</enum>
+            <enum>Qt::FocusPolicy::NoFocus</enum>
            </property>
            <property name="styleSheet">
             <string>QPushButton { background-color: rgb(128,232,128); } QPushButton { color: rgb(0,0,0); }</string>
@@ -434,17 +434,17 @@
   </customwidget>
   <customwidget>
    <class>QELineEdit</class>
-   <extends>QLineEdit</extends>
+   <extends>QFrame</extends>
    <header>QELineEdit.h</header>
   </customwidget>
   <customwidget>
    <class>QENumericEdit</class>
-   <extends>QWidget</extends>
+   <extends>QFrame</extends>
    <header>QENumericEdit.h</header>
   </customwidget>
   <customwidget>
    <class>QERadioGroup</class>
-   <extends>QWidget</extends>
+   <extends>QFrame</extends>
    <header>QERadioGroup.h</header>
   </customwidget>
   <customwidget>

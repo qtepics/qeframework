@@ -66,8 +66,8 @@ QELog::UserMessageReceiver::UserMessageReceiver () : UserMessage ()
 
    // Grab any and all messages.
    //
-   this->setFormFilter (QE::Any);
-   this->setSourceFilter (QE::Any);
+   this->setFormFilter (QE::MessageFilterOptions::Any);
+   this->setSourceFilter (QE::MessageFilterOptions::Any);
 }
 
 //------------------------------------------------------------------------------
@@ -219,13 +219,13 @@ QELog::QELog (QWidget* parent) : QEFrame (parent)
    this->setWarningColor (QColor (255, 160, 0));
    this->setErrorColor (QColor (255, 0, 0));
    this->setScrollToBottom (true);
-   this->setOptionsLayout (QE::Bottom);
+   this->setOptionsLayout (QE::LayoutOptions::Bottom);
 
    this->clearLog ();
 
    // Set up the UserMessage class to match on any messages from widgets on the same form by default
-   this->setFormFilter (QE::Match);
-   this->setSourceFilter (QE::None);
+   this->setFormFilter (QE::MessageFilterOptions::Match);
+   this->setSourceFilter (QE::MessageFilterOptions::None);
 
    // Set the form ID to use when matching the form of received message
    this->setChildFormId (this->getFormId ());
@@ -368,8 +368,8 @@ void QELog::setOptionsLayout (QE::LayoutOptions pValue)
    const int m = this->mainLayoutMargin;
 
    switch (pValue) {
-      case QE::Top:
-         this->optionsLayout = QE::Top;
+      case QE::LayoutOptions::Top:
+         this->optionsLayout = QE::LayoutOptions::Top;
          qLayoutMain = new QVBoxLayout (this);
          qLayoutMain->setContentsMargins (m, m, m, m);
          qLayoutChild = new QHBoxLayout ();
@@ -384,8 +384,8 @@ void QELog::setOptionsLayout (QE::LayoutOptions pValue)
          qLayoutMain->addWidget (qTableWidgetLog);
          break;
 
-      case QE::Bottom:
-         this->optionsLayout = QE::Bottom;
+      case QE::LayoutOptions::Bottom:
+         this->optionsLayout = QE::LayoutOptions::Bottom;
          qLayoutMain = new QVBoxLayout (this);
          qLayoutMain->setContentsMargins (m, m, m, m);
          qLayoutChild = new QHBoxLayout ();
@@ -400,8 +400,8 @@ void QELog::setOptionsLayout (QE::LayoutOptions pValue)
          qLayoutMain->addItem (qLayoutChild);
          break;
 
-      case QE::Left:
-         this->optionsLayout = QE::Left;
+      case QE::LayoutOptions::Left:
+         this->optionsLayout = QE::LayoutOptions::Left;
          qLayoutMain = new QHBoxLayout (this);
          qLayoutMain->setContentsMargins (m, m, m, m);
          qLayoutChild = new QVBoxLayout ();
@@ -414,8 +414,8 @@ void QELog::setOptionsLayout (QE::LayoutOptions pValue)
          qLayoutMain->addWidget (qTableWidgetLog);
          break;
 
-      case QE::Right:
-         this->optionsLayout = QE::Right;
+      case QE::LayoutOptions::Right:
+         this->optionsLayout = QE::LayoutOptions::Right;
          qLayoutMain = new QHBoxLayout (this);
          qLayoutMain->setContentsMargins (m, m, m, m);
          qLayoutChild = new QVBoxLayout ();

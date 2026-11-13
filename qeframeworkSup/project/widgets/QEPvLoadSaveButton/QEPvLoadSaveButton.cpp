@@ -35,7 +35,7 @@ QEPvLoadSaveButton::QEPvLoadSaveButton (QWidget* parent) :
    this->showProgressDialog = true;
    this->setVariableAsToolTip(false);
    this->setAllowDrop(false);
-   this->setDisplayAlarmStateOption(QE::Never);
+   this->setDisplayAlarmStateOption(QE::DisplayAlarmStateOptions::Never);
 
 
    // Identify the type of button

@@ -54,7 +54,7 @@ bool imageDataFormats::convertToFormatOption (const QString& text,
       // Do a Bayer special
       //
       if (!text.compare ("Bayer")) {
-         format = QE::BayerRG;
+         format = QE::ImageFormatOptions::BayerRG;
          result = true;
       }
    }
@@ -68,10 +68,11 @@ QString imageDataFormats::getFormatInformation (const QE::ImageFormatOptions for
 {
    QString result;
 
-   if ((format >= 0) && (format < NUMBER_OF_FORMATS)) {
-      result = QString (images [format][1]);
+   const int iformat = QE::toIndex (format);
+   if ((iformat >= 0) && (iformat < NUMBER_OF_FORMATS)) {
+      result = QString (images [iformat][1]);
    } else {
-      result = QString ("Unknown format (%1)").arg (format);
+      result = QString ("Unknown format (%1)").arg (iformat);
    }
 
    return result;

@@ -317,9 +317,9 @@ QETable::QETable (QWidget* parent) : QEAbstractDynamicWidget (parent)
    //
    this->setAddUnits (false);
    this->setForceSign (false);
-   this->setFormat (QE::Default);
-   this->setNotation (QE::Automatic);
-   this->setSeparator (QE::NoSeparator);
+   this->setFormat (QE::Formats::Default);
+   this->setNotation (QE::Notations::Automatic);
+   this->setSeparator (QE::Separators::NoSeparator);
 
    this->columnWidthMinimum = 80;
    this->orientation = Qt::Vertical;

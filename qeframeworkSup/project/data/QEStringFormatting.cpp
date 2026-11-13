@@ -32,7 +32,7 @@
 // These "formats" are not selectable from within designer.
 //
 enum InternalFormats {
-   NTTable = QE::String + 1,   ///< Format as a NTTable
+   NTTable = int (QE::Formats::String) + 1,   ///< Format as a NTTable
    NTNDImage,                  ///< Format as a NTNDArray
    PVAOpaque                   ///< Format as opaque, i.e. unknown/unhandled type.
 };
@@ -49,14 +49,14 @@ QEStringFormatting::QEStringFormatting ()
    this->leadingZero = true;
    this->trailingZeros = true;
    this->forceSign = false;
-   this->format = QE::Default;
-   this->dbFormat = QE::Default;
-   this->separator = QE::NoSeparator;
+   this->format = QE::Formats::Default;
+   this->dbFormat = QE::Formats::Default;
+   this->separator = QE::Separators::NoSeparator;
    this->dbFormatArray = false;
-   this->notation = QE::Fixed;
+   this->notation = QE::Notations::Fixed;
    this->radixBase = 10;
    this->addUnits = true;
-   this->arrayAction = QE::Ascii;
+   this->arrayAction = QE::ArrayActions::Ascii;
    this->useRadixPrefix = true;       // only applies to not base 10
    this->leadingZeros = 1;
 
@@ -91,7 +91,7 @@ void QEStringFormatting::setDbEgu (const QString eguIn)
 
 //----------------------------------------------------------------------------
 // Set up the enumeration values. Thses are used if avaiable if the formatting
-// is QE::Default
+// is QE::Formats::Default
 //
 void QEStringFormatting::setDbEnumerations (const QStringList enumerationsIn)
 {
@@ -120,14 +120,14 @@ QVariant QEStringFormatting::formatValue (const QString& text, bool& ok) const
    // which case use the format determined from any value read.
    //
    QE::Formats fmt = this->format;
-   if (fmt == QE::Default) {
+   if (fmt == QE::Formats::Default) {
       fmt = this->dbFormat;
    }
 
    // Format the value if an enumerated list
    //
    const int enumCount = this->dbEnumerations.size ();
-   if ((this->format == QE::Default) && (enumCount > 0)) {
+   if ((this->format == QE::Formats::Default) && (enumCount > 0)) {
       // If value matched an enumeration, use it
       for (int i = 0; i < this->dbEnumerations.size (); i++) {
          if (unitlessText.compare (this->dbEnumerations[i]) == 0) {
@@ -160,7 +160,7 @@ QVariant QEStringFormatting::formatValue (const QString& text, bool& ok) const
 
    // Format the value if a local enumerated list
    //
-   if ((this->format == QE::LocalEnumeration) &&
+   if ((this->format == QE::Formats::LocalEnumeration) &&
        this->localEnumerations.isDefined ()) {
       return localEnumerations.textToValue (text, ok);
    }
@@ -170,14 +170,14 @@ QVariant QEStringFormatting::formatValue (const QString& text, bool& ok) const
    if (!this->dbFormatArray) {
       // Format the value if not enumerated
       switch (fmt) {
-         case QE::Default:
+         case QE::Formats::Default:
             {
                value = QVariant (unitlessText);
                ok = true;
             }
             break;
 
-         case QE::Floating:
+         case QE::Formats::Floating:
             {
                double d = this->toDouble (unitlessText, ok);
                if (ok) {
@@ -186,7 +186,7 @@ QVariant QEStringFormatting::formatValue (const QString& text, bool& ok) const
             }
             break;
 
-         case QE::Integer:
+         case QE::Formats::Integer:
             {
                qlonglong ll = this->toLong (unitlessText, ok);
                if (ok) {
@@ -195,7 +195,7 @@ QVariant QEStringFormatting::formatValue (const QString& text, bool& ok) const
             }
             break;
 
-         case QE::UnsignedInteger:
+         case QE::Formats::UnsignedInteger:
             {
                qulonglong ul = this->toULong (unitlessText, ok);
                if (ok) {
@@ -204,19 +204,19 @@ QVariant QEStringFormatting::formatValue (const QString& text, bool& ok) const
             }
             break;
 
-         case QE::Time:
+         case QE::Formats::Time:
             // ??? to do
             value = QVariant (unitlessText);
             ok = true;
             break;
 
-         case QE::LocalEnumeration:
+         case QE::Formats::LocalEnumeration:
             //??? to do
             value = QVariant (unitlessText);
             ok = true;
             break;
 
-         case QE::String:
+         case QE::Formats::String:
             value = QVariant (unitlessText);
             ok = true;
             break;
@@ -237,7 +237,7 @@ QVariant QEStringFormatting::formatValue (const QString& text, bool& ok) const
       int len = unitlessText.size ();
 
       switch (fmt) {
-         case QE::Default:
+         case QE::Formats::Default:
             {
                for (int i = 0; i < len; i++) {
                   list.append (QVariant (unitlessText[i]));
@@ -251,7 +251,7 @@ QVariant QEStringFormatting::formatValue (const QString& text, bool& ok) const
             }
             break;
 
-         case QE::Floating:
+         case QE::Formats::Floating:
             {
                double d = this->toDouble (unitlessText, ok);
                if (ok) {
@@ -260,7 +260,7 @@ QVariant QEStringFormatting::formatValue (const QString& text, bool& ok) const
             }
             break;
 
-         case QE::Integer:
+         case QE::Formats::Integer:
             {
                qlonglong ll = this->toLong (unitlessText, ok);
                if (ok) {
@@ -276,7 +276,7 @@ QVariant QEStringFormatting::formatValue (const QString& text, bool& ok) const
             }
             break;
 
-         case QE::UnsignedInteger:
+         case QE::Formats::UnsignedInteger:
             {
                for (int i = 0; i < len; i++) {
                   qulonglong ul = unitlessText[i].toLatin1 ();
@@ -291,19 +291,19 @@ QVariant QEStringFormatting::formatValue (const QString& text, bool& ok) const
             }
             break;
 
-         case QE::Time:
+         case QE::Formats::Time:
             //??? to do
             list.append (QVariant (unitlessText));
             ok = true;
             break;
 
-         case QE::LocalEnumeration:
+         case QE::Formats::LocalEnumeration:
             //??? to do
             list.append (QVariant (unitlessText));
             ok = true;
             break;
 
-         case QE::String:
+         case QE::Formats::String:
             list.append (QVariant (unitlessText));
             ok = true;
             break;
@@ -347,7 +347,7 @@ void QEStringFormatting::determineDbFormat (const QVariant& value) const
    // Assume default formatting, and only a single value
    // Note: these two members are mutable.
    //
-   this->dbFormat = QE::Default;
+   this->dbFormat = QE::Formats::Default;
    this->dbFormatArray = false;
 
    // Get the value type
@@ -378,22 +378,22 @@ void QEStringFormatting::determineDbFormat (const QVariant& value) const
    switch (vtype) {
       case QMetaType::Double:
       case QMetaType::Float:
-         this->dbFormat = QE::Floating;
+         this->dbFormat = QE::Formats::Floating;
          break;
 
       case QMetaType::LongLong:
       case QMetaType::Int:
          // Could be an ENUM
-         this->dbFormat = QE::Integer;
+         this->dbFormat = QE::Formats::Integer;
          break;
 
       case QMetaType::ULongLong:
       case QMetaType::UInt:
-         this->dbFormat = QE::UnsignedInteger;
+         this->dbFormat = QE::Formats::UnsignedInteger;
          break;
 
       case QMetaType::QString:
-         dbFormat = QE::String;
+         dbFormat = QE::Formats::String;
          break;
 
       default:
@@ -468,7 +468,7 @@ QString QEStringFormatting::formatString (const QVariant& value, int arrayIndex)
 
       switch (this->arrayAction) {
 
-         case QE::Append:
+         case QE::ArrayActions::Append:
             // Interpret each element in the array as an unsigned integer and append
             // string representations of each element from the array with a space in
             // between each.
@@ -484,7 +484,7 @@ QString QEStringFormatting::formatString (const QVariant& value, int arrayIndex)
             }
             break;
 
-         case QE::Ascii:
+         case QE::ArrayActions::Ascii:
             // Interpret each element from the array as a character in a string.
             // Translate all non printing characters to '?' except for trailing
             // zeros (ignore them).
@@ -514,7 +514,7 @@ QString QEStringFormatting::formatString (const QVariant& value, int arrayIndex)
             }
             break;
 
-         case QE::Index:
+         case QE::ArrayActions::Index:
             // Interpret the element selected by setArrayIndex().
             if ((arrayIndex >= 0) && (arrayIndex < number)) {
                QVariant element = valueArray.value (arrayIndex);
@@ -533,7 +533,7 @@ QString QEStringFormatting::formatString (const QVariant& value, int arrayIndex)
    // ??? Why cant this be in the 'if' statement?  If it is it never adds an egu
    //
    int eguLen = dbEgu.length ();
-   if (isNumeric && this->addUnits && (eguLen > 0) && (this->format != QE::Time)) {
+   if (isNumeric && this->addUnits && (eguLen > 0) && (this->format != QE::Formats::Time)) {
       result.append (" ").append (dbEgu);
    }
 
@@ -594,6 +594,78 @@ QVector<QString> QEStringFormatting::formatStringArray( const QVariant &value ) 
    return result;
 }
 
+
+//------------------------------------------------------------------------------
+//
+QString QEStringFormatting::defaultElementString (const QVariant& value,
+                                                  bool& isNumeric) const
+{
+   // We use two enumeration types "mashed" into one.
+   //
+   const InternalFormats extra = static_cast<InternalFormats> (this->dbFormat);
+
+   QString result;
+   double d;
+   long l;
+   unsigned long u;
+   bool okay;
+
+   switch (this->dbFormat) {
+      case QE::Formats::Floating:
+         d = value.toDouble (&okay);
+         result = this->toString (d);
+         isNumeric = true;
+         break;
+
+      case QE::Formats::Integer:
+         l = value.toLongLong (&okay);
+         result = this->toString (l);
+         isNumeric = true;
+         break;
+
+      case QE::Formats::UnsignedInteger:
+         u = value.toULongLong (&okay);
+         result = this->toString (u);
+         isNumeric = true;
+         break;
+
+      case QE::Formats::String:
+         result = value.toString ();
+         break;
+
+      default:
+         // Is this one of our specials?
+         //
+         switch (extra) {
+            case NTTable:
+               // Can't display an NT Table as a string.
+               //
+               result = "{{NTTable}}";
+               break;
+
+            case NTNDImage:
+               // Can't display an NT NDArray (image) as a string.
+               //
+               result = "{{NTNDArray}}";
+               break;
+
+            case PVAOpaque:
+               // Can't display an opaque (unknown) as a string.
+               //
+               result = "{{opaque}}";
+               break;
+
+            default:
+               okay = false;
+               result = formatFailure (QString ("%1 - unexpected dbFormat %2.")
+                                       .arg (__FUNCTION__).arg (int(extra)));
+               break;
+         }
+   }
+
+   return result;
+}
+
 //------------------------------------------------------------------------------
 // Generate a string given an element value, using formatting defined within
 // this class.
@@ -620,7 +692,7 @@ QString QEStringFormatting::formatElementString (const QVariant& value,
          // Determine the format from the variant type.
          // Only the types used to store ca data are used. any other type is
          // considered a failure.
-      case QE::Default:
+      case QE::Formats::Default:
          {
             bool haveEnumeratedString = false;  // Successfully converted the value to an enumerated string
             // If a list of enumerated strings is available, attempt to get an enumerated string
@@ -642,88 +714,39 @@ QString QEStringFormatting::formatElementString (const QVariant& value,
             // could not be selected, convert the value based on it's type.
             //
             if (!haveEnumeratedString) {
-               // avoid the warning related to mixed enums usage
-               //
-               const int iFormat = int (this->dbFormat);
-               switch (iFormat) {
-                  case QE::Floating:
-                     d = value.toDouble(&okay);
-                     result = this->toString (d);
-                     isNumeric = true;
-                     break;
-
-                  case QE::Integer:
-                     l = value.toLongLong (&okay);
-                     result = this->toString (l);
-                     isNumeric = true;
-                     break;
-
-                  case QE::UnsignedInteger:
-                     u = value.toULongLong (&okay);
-                     result = this->toString (u);
-                     isNumeric = true;
-                     break;
-
-                  case QE::String:
-                     result = value.toString ();
-                     break;
-
-                 case NTTable:
-                     // Can't display an NT Table as a string.
-                     //
-                     result = "{{NTTable}}";
-                     break;
-
-                 case NTNDImage:
-                     // Can't display an NT NDArray (image) as a string.
-                     //
-                     result = "{{NTNDArray}}";
-                     break;
-
-                  case PVAOpaque:
-                     // Can't display an opaque (unknown) as a string.
-                     //
-                     result = "{{opaque}}";
-                     break;
-
-                  default:
-                     okay = false;
-                     result = formatFailure (QString ("%1 - unexpected dbFormat %2.")
-                                            .arg (__FUNCTION__).arg (iFormat));
-                     break;
-               }
+               result = this->defaultElementString (value, isNumeric);
             }
             break;
          }
 
          // Format as requested, ignoring the database type
-      case QE::Floating:
+      case QE::Formats::Floating:
          d = value.toDouble (&okay);
          result = this->toString (d);
          isNumeric = true;
          break;
 
-      case QE::Integer:
+      case QE::Formats::Integer:
          l = value.toLongLong (&okay);
          result = this->toString (l);
          isNumeric = true;
          break;
 
-      case QE::UnsignedInteger:
+      case QE::Formats::UnsignedInteger:
          u = value.toULongLong (&okay);
          result = this->toString (u);
          isNumeric = true;
          break;
 
-      case QE::LocalEnumeration:
+      case QE::Formats::LocalEnumeration:
          result = this->localEnumerations.valueToText (value, okay);
          break;
 
-      case QE::Time:
+      case QE::Formats::Time:
          result = this->timeToString (value);
          break;
 
-      case QE::String:
+      case QE::Formats::String:
          result = value.toString ();
          // formatFromString (value);
          break;
@@ -735,7 +758,7 @@ QString QEStringFormatting::formatElementString (const QVariant& value,
          okay = false;
          result = this->formatFailure (QString ("Bug in formatElementString."
                                                 " The format type %1 was not expected")
-                                       .arg(this->format));
+                                       .arg( QE::toIndex (this->format)));
          break;
    }
 
@@ -1079,7 +1102,7 @@ static const int separatorGaps[17] = {
 //
 QE::Notations QEStringFormatting::determineNotation (const double value) const
 {
-   if (this->notation != QE::Automatic) return this->notation;  // return as is.
+   if (this->notation != QE::Notations::Automatic) return this->notation;  // return as is.
 
    // Pick best/most approptiate notation based on the value.
    // This is the same logic as in formatFromFloating
@@ -1108,8 +1131,8 @@ QString QEStringFormatting::toFixedString (const double value) const
 {
    const int prec = LIMIT (this->useDbPrecision ? this->dbPrecision : this->precision, 0, 64);
    const int zeros = LIMIT (this->leadingZeros, 0, 64);
-   const char sepChar = separatorChars[this->separator];
-   const int gap = (this->separator == QE::NoSeparator) ? -1 : separatorGaps[this->radixBase];
+   const char sepChar = separatorChars[QE::toIndex (this->separator)];
+   const int gap = (this->separator == QE::Separators::NoSeparator) ? -1 : separatorGaps[this->radixBase];
    const double dblRadix = this->radixBase;
 
    QString result = "";
@@ -1167,8 +1190,8 @@ QString QEStringFormatting::toFloatingString (const double value,
 {
    const int prec = LIMIT (this->useDbPrecision ? this->dbPrecision : this->precision, 0, 64);
    const int zeros = LIMIT (this->leadingZeros, 0, 64);
-   const char sepChar = separatorChars[this->separator];
-   const int gap = (this->separator == QE::NoSeparator) ? -1 : separatorGaps[this->radixBase];
+   const char sepChar = separatorChars[QE::toIndex (this->separator)];
+   const int gap = (this->separator == QE::Separators::NoSeparator) ? -1 : separatorGaps[this->radixBase];
    const double dblRadix = this->radixBase;
 
    double expRadix = 1.0;
@@ -1344,7 +1367,7 @@ QString QEStringFormatting::toString (const double value) const
 //
 double QEStringFormatting::toDouble (const QString& image, bool& okay) const
 {
-   const char sepChar = separatorChars[this->separator];
+   const char sepChar = separatorChars[QE::toIndex (this->separator)];
 
    okay = false;                // hypothesize no good until we know better
    double result = 0.0;
@@ -1461,8 +1484,8 @@ QString QEStringFormatting::toIntegerStringGeneric (const Number value) const
    //
    const QString sign = (value < 0) ? "-" : (this->forceSign ? "+" : "");
    const int zeros = LIMIT (this->leadingZeros, 0, 64);
-   const char sepChar = separatorChars[this->separator];
-   const int gap = (this->separator == QE::NoSeparator) ? -1 : separatorGaps[this->radixBase];
+   const char sepChar = separatorChars[QE::toIndex (this->separator)];
+   const int gap = (this->separator == QE::Separators::NoSeparator) ? -1 : separatorGaps[this->radixBase];
 
    // Big enough for a 64 bit integer on base 2 plus separators, sign and nn#
    // Given zeros are allowed upto 64, then 86 required for decimal.
@@ -1521,7 +1544,7 @@ template<typename Number>
 Number QEStringFormatting::
 toIntegerValueGeneric (const QString& image, bool& okay) const
 {
-   const char sepChar = separatorChars[this->separator];
+   const char sepChar = separatorChars[QE::toIndex (this->separator)];
 
    okay = false;                // hypothesize no good until we know better
    Number result = 0;

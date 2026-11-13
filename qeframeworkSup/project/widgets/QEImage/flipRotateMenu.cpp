@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2012-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2012-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -18,7 +18,6 @@
 
 #include "flipRotateMenu.h"
 #include "QEImage.h"
-#include <QEEnums.h>
 
 flipRotateMenu::flipRotateMenu( QWidget *parent) : QMenu(parent)
 {
@@ -57,13 +56,15 @@ imageContextMenu::imageContextMenuOptions flipRotateMenu::getFlipRotate( const Q
     }
 }
 
-// Set the initial state of the menu to reflect the current state of the image
-void flipRotateMenu::setChecked( const int rotation, const bool flipH, const bool flipV )
+// Set the initial state of the menu to reflect the current state of the image.
+//
+void flipRotateMenu::setChecked( const QE::RotationOptions rotation,
+                                 const bool flipH, const bool flipV )
 {
     // Check the appropriate rotation option
-    rotation90RAction->setChecked( rotation == QE::Rotate90Right );
-    rotation90LAction->setChecked( rotation == QE::Rotate90Left );
-    rotation180Action->setChecked( rotation == QE::Rotate180 );
+    rotation90RAction->setChecked( rotation == QE::RotationOptions::Rotate90Right );
+    rotation90LAction->setChecked( rotation == QE::RotationOptions::Rotate90Left );
+    rotation180Action->setChecked( rotation == QE::RotationOptions::Rotate180 );
 
     // Check the appropriate flip options
     flipHAction->setChecked( flipH );

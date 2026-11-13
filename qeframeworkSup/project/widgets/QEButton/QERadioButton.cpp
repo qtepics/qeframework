@@ -76,7 +76,7 @@ QERadioButton::~QERadioButton() { }
 //
 QE::UpdateOptions QERadioButton::getDefaultUpdateOption()
 {
-   return QE::State;
+   return QE::UpdateOptions::State;
 }
 
 // Slot to receiver a 'process completed' signal from the application launcher

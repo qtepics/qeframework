@@ -66,7 +66,7 @@ void QEGenericButton::dataSetup()
     setNumVariables( NUMBER_OF_VARIABLES );
 
     // Set up default properties
-    disabledRecordPolicy = QE::ignore;
+    disabledRecordPolicy = QE::DisabledRecordPolicy::ignore;
     writeOnPress = false;
     writeOnRelease = false;
     writeOnClick = true;
@@ -113,7 +113,7 @@ void QEGenericButton::guiSetup()
 {
 
     // Set default properties
-    creationOption = QE::Open;
+    creationOption = QE::CreationOptions::Open;
 
     // Use standard context menu
     setupContextMenu();
@@ -176,7 +176,8 @@ QEChannel* QEGenericButton::createQcaItem( unsigned int variableIndex ) {
     connection to a PV as the variable name has changed.
     This function may also be used to initiate updates when loaded as a plugin.
 */
-void QEGenericButton::establishConnection( unsigned int variableIndex ) {
+void QEGenericButton::establishConnection( unsigned int variableIndex )
+{
 
     // Create a connection.
     // If successfull, the QEChannel object that will supply data update signals will be returned.
@@ -204,13 +205,19 @@ void QEGenericButton::establishConnection( unsigned int variableIndex ) {
     // Fetch reference to the target button widget.
     QAbstractButton* target = getButtonQObject();
 
-    // If a QEChannel object is now available to supply data update signals, connect it to the appropriate slots
+    const int intUpdateOption = QE::toIndex (this->updateOption);
+    const int textUpdate = QE::toIndex (QE::UpdateOptions::Text);
+
+    // If a QEChannel object is now available to supply data update signals,
+    // connect it to the appropriate slots.
+    //
     switch (variableIndex) {
 
     case VAR_PRIMARY:     // Primary readback variable
         // Get updates if subscribing and  there is no alternate read back.
         if( subscribe && getSubstitutedVariableName( VAR_READBACK ).isEmpty() ){
-            if( (updateOption & QE::Text) == QE::Text )
+
+            if( (intUpdateOption & textUpdate) == textUpdate )
             {
                 this->setButtonText( "" );
             }
@@ -230,7 +237,7 @@ void QEGenericButton::establishConnection( unsigned int variableIndex ) {
     case VAR_READBACK:     // Alternate readback variable
         // Get updates if subscribing.
         if( subscribe ){
-            if( (updateOption & QE::Text) == QE::Text )
+            if( (intUpdateOption & textUpdate) == textUpdate )
             {
                 setButtonText( "" );
             }
@@ -292,16 +299,16 @@ void QEGenericButton::processRecordDisableState()
     const bool isDisabled = alarmInfo.getStatus() == epicsAlarmDisable;
 
     switch( disabledRecordPolicy ) {
-    case QE::ignore:
+    case QE::DisabledRecordPolicy::ignore:
         // Do nothing
         break;
 
-    case QE::grayout:
+    case QE::DisabledRecordPolicy::grayout:
         // Treat disabled like not connected wrt style.
         updateConnectionStyle( !isDisabled );
         break;
 
-    case QE::disable:
+    case QE::DisabledRecordPolicy::disable:
         button->setEnabled ( !isDisabled );
         break;
     }
@@ -369,11 +376,16 @@ void QEGenericButton::setGenericButtonText( const QEStringValueUpdate& update )
         return;
     }
 
+    const int intUpdateOption = QE::toIndex (updateOption);
+    const int textUpdate  = QE::toIndex (QE::UpdateOptions::Text);
+    const int stateUpdate = QE::toIndex (QE::UpdateOptions::State);
+    const int iconUpdate  = QE::toIndex (QE::UpdateOptions::Icon);
+
     // Update the button state if required
     // Display checked if text matches what is written when checked
     // See GUI-323
     //
-    if( (updateOption & QE::State) == QE::State )
+    if( (intUpdateOption & stateUpdate) == stateUpdate )
     {
         if( update.value.compare( clickCheckedText ) == 0){
             setButtonState( true );
@@ -414,13 +426,13 @@ void QEGenericButton::setGenericButtonText( const QEStringValueUpdate& update )
     }
 
     // Update the text if required
-    if( (updateOption & QE::Text) == QE::Text )
+    if( (intUpdateOption & textUpdate) == textUpdate )
     {
         this->setButtonText( update.value );
     }
 
     // Update the icon if required
-    if( (updateOption & QE::Icon) == QE::Icon )
+    if( (intUpdateOption & iconUpdate) == iconUpdate )
     {
         QIcon icon;
         icon.addPixmap( getDataPixmap( update.value ) );

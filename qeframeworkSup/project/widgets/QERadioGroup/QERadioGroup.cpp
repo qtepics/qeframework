@@ -109,7 +109,7 @@ void QERadioGroup::commonSetup (const QString& title)
    //
    this->setVariableAsToolTip (true);
    this->setAllowDrop (false);
-   this->setDisplayAlarmStateOption (QE::Always);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Always);
    this->useDbEnumerations = true;      // as opposed to local enumeations.
 
    // Set the initial state

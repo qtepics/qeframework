@@ -20,7 +20,7 @@
 QEActionRequests::QEActionRequests ()
 {
    this->kind = KindNone;
-   this->option = QE::NewWindow;
+   this->option = QE::CreationOptions::NewWindow;
    this->initialise = false;
    this->originator = NULL;
 }
@@ -33,7 +33,7 @@ QEActionRequests::QEActionRequests( const QString& actionIn,
    this->kind = KindAction;
    this->action = actionIn;
    this->arguments << pvName;
-   this->option = QE::NewWindow;
+   this->option = QE::CreationOptions::NewWindow;
    this->initialise = false;
    this->originator = NULL;
    this->formHandle = QEFormMapper::nullHandle();
@@ -51,7 +51,7 @@ QEActionRequests::QEActionRequests( const QString& actionIn,
    this->action = actionIn;
    this->widgetName = widgetNameIn;
    this->arguments = argumentsIn;
-   this->option = QE::NewWindow; // not required, but keep things neat
+   this->option = QE::CreationOptions::NewWindow; // not required, but keep things neat
    this->initialise = initialiseIn;
    this->originator = originatorIn;
    this->formHandle = QEFormMapper::nullHandle();
@@ -78,7 +78,7 @@ QEActionRequests::QEActionRequests (const QString & filename,
 QEActionRequests::QEActionRequests( const QList<windowCreationListItem> windowsIn )
 {
    this->kind = KindOpenFiles;
-   this->option = QE::NewWindow; // not required, but keep things neat
+   this->option = QE::CreationOptions::NewWindow; // not required, but keep things neat
    this->initialise = false;
    this->originator = NULL;
    this->formHandle = QEFormMapper::nullHandle();
@@ -94,7 +94,7 @@ QEActionRequests::QEActionRequests( const QList<windowCreationListItem> windowsI
 QEActionRequests::QEActionRequests( const componentHostListItem& componentIn )
 {
    this->kind = KindHostComponents;
-   this->option = QE::DockFloating; // not required, but keep things neat
+   this->option = QE::CreationOptions::DockFloating; // not required, but keep things neat
    this->initialise = false;
    this->originator = NULL;
    this->formHandle = QEFormMapper::nullHandle();
@@ -106,7 +106,7 @@ QEActionRequests::QEActionRequests( const componentHostListItem& componentIn )
 QEActionRequests::QEActionRequests( const QList<componentHostListItem>& componentsIn )
 {
    this->kind = KindHostComponents;
-   this->option = QE::DockFloating; // not required, but keep things neat
+   this->option = QE::CreationOptions::DockFloating; // not required, but keep things neat
    this->initialise = false;
    this->originator = NULL;
    this->formHandle = QEFormMapper::nullHandle();
@@ -230,21 +230,21 @@ bool QEActionRequests::isDockCreationOption( const QE::CreationOptions createOpt
    bool result = false;
    switch( createOption )
    {
-      case QE::Open:
-      case QE::NewTab:
-      case QE::NewWindow:
+      case QE::CreationOptions::Open:
+      case QE::CreationOptions::NewTab:
+      case QE::CreationOptions::NewWindow:
          result = false;
          break;
 
-      case QE::DockTop:
-      case QE::DockBottom:
-      case QE::DockLeft:
-      case QE::DockRight:
-      case QE::DockTopTabbed:
-      case QE::DockBottomTabbed:
-      case QE::DockLeftTabbed:
-      case QE::DockRightTabbed:
-      case QE::DockFloating:
+      case QE::CreationOptions::DockTop:
+      case QE::CreationOptions::DockBottom:
+      case QE::CreationOptions::DockLeft:
+      case QE::CreationOptions::DockRight:
+      case QE::CreationOptions::DockTopTabbed:
+      case QE::CreationOptions::DockBottomTabbed:
+      case QE::CreationOptions::DockLeftTabbed:
+      case QE::CreationOptions::DockRightTabbed:
+      case QE::CreationOptions::DockFloating:
          result = true;
          break;
    }
@@ -260,21 +260,21 @@ bool QEActionRequests::isTabbedDockCreationOption( const QE::CreationOptions cre
    bool result = false;
    switch( createOption )
    {
-      case QE::Open:
-      case QE::NewTab:
-      case QE::NewWindow:
-      case QE::DockTop:
-      case QE::DockBottom:
-      case QE::DockLeft:
-      case QE::DockRight:
-      case QE::DockFloating:
+      case QE::CreationOptions::Open:
+      case QE::CreationOptions::NewTab:
+      case QE::CreationOptions::NewWindow:
+      case QE::CreationOptions::DockTop:
+      case QE::CreationOptions::DockBottom:
+      case QE::CreationOptions::DockLeft:
+      case QE::CreationOptions::DockRight:
+      case QE::CreationOptions::DockFloating:
          result = false;
          break;
 
-      case QE::DockTopTabbed:
-      case QE::DockBottomTabbed:
-      case QE::DockLeftTabbed:
-      case QE::DockRightTabbed:
+      case QE::CreationOptions::DockTopTabbed:
+      case QE::CreationOptions::DockBottomTabbed:
+      case QE::CreationOptions::DockLeftTabbed:
+      case QE::CreationOptions::DockRightTabbed:
          result = true;
          break;
    }
@@ -340,7 +340,7 @@ QDebug operator<<(QDebug dbg, const QEActionRequests& ar)
 windowCreationListItem::windowCreationListItem()
 {
    this->hidden = false;
-   this->creationOption = QE::NewWindow;
+   this->creationOption = QE::CreationOptions::NewWindow;
    this->formHandle = QEFormMapper::nullHandle ();
 }
 
@@ -386,7 +386,7 @@ componentHostListItem::componentHostListItem()
 {
    this->widget = NULL;
    this->hidden = false;
-   this->creationOption = QE::DockFloating;
+   this->creationOption = QE::CreationOptions::DockFloating;
 }
 
 //------------------------------------------------------------------------------

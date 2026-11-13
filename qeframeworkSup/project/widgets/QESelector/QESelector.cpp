@@ -79,7 +79,7 @@ void QESelector::commonSetup()
    //
    this->userInfoList.clear();
    this->fileInfoList.clear();
-   this->infoSource = QE::SourceText;
+   this->infoSource = QE::SourceOptions::SourceText;
    this->delimiter = SpaceDelimiter;
    this->internalWidget->addItem (EMPTY_TEXT);
    this->subscribe = true;
@@ -100,7 +100,7 @@ void QESelector::commonSetup()
    //
    this->setVariableAsToolTip (true);
    this->setAllowDrop (true);
-   this->setDisplayAlarmStateOption (QE::Always);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Always);
 
    // Use default context menu.
    // Note: Turn off the menu for the internal QComboBox widget.
@@ -130,11 +130,11 @@ void QESelector::updateDropDownList ()
    const QE::SourceOptions source = this->getSource ();
    switch (source) {
 
-      case QE::SourceText:
+      case QE::SourceOptions::SourceText:
          this->internalWidget->addItems (this->userInfoList);
          break;
 
-      case QE::SourceFile:
+      case QE::SourceOptions::SourceFile:
          this->internalWidget->addItems (this->fileInfoList);
          break;
 
@@ -397,7 +397,7 @@ void QESelector::valueUpdated (const QEStringValueUpdate& update)
       this->internalWidget->setCurrentIndex (0);
       found = true;
    } else {
-      const QStringList infoList = this->infoSource == QE::SourceText ? this->userInfoList : this->fileInfoList;
+      const QStringList infoList = this->infoSource == QE::SourceOptions::SourceText ? this->userInfoList : this->fileInfoList;
 
       for (int j = 0; j < infoList.count(); j++) {
          QString option = infoList.value(j);

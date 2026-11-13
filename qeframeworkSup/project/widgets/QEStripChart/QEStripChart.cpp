@@ -1434,7 +1434,7 @@ void QEStripChart::stateSelected (const QEStripChartNames::StateModes mode)
 //
 void QEStripChart::videoModeSelected (const QE::VideoModes mode)
 {
-   this->setNormalBackground (mode == QE::normal);
+   this->setNormalBackground (mode == QE::VideoModes::normal);
    this->pushState ();
 }
 
@@ -1442,7 +1442,7 @@ void QEStripChart::videoModeSelected (const QE::VideoModes mode)
 //
 QE::VideoModes QEStripChart::getVideoMode () const
 {
-   return this->isNormalVideo ? QE::normal : QE::reverse;
+   return this->isNormalVideo ? QE::VideoModes::normal : QE::VideoModes::reverse;
 }
 
 //------------------------------------------------------------------------------

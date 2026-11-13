@@ -3,7 +3,7 @@
  *  This file is part of the EPICS QT Framework, initially developed at the
  *  Australian Synchrotron.
  *
- *  SPDX-FileCopyrightText: 2015-2025 Australian Synchrotron
+ *  SPDX-FileCopyrightText: 2015-2026 Australian Synchrotron
  *  SPDX-License-Identifier: LGPL-3.0-only
  *
  *  Author:     Andrew Rhyder
@@ -15,6 +15,7 @@
 #define QE_FLIP_ROTATE_MENU_H
 
 #include <QMenu>
+#include <QEEnums.h>
 #include "imageContextMenu.h"
 
 class flipRotateMenu : public QMenu
@@ -28,7 +29,7 @@ public:
 
     // Set the initial state of the menu to reflect the current state of the image.
     //
-    void setChecked( const int rotation, const bool flipH, const bool flipV );
+    void setChecked( const QE::RotationOptions rotation, const bool flipH, const bool flipV );
 
 signals:
 

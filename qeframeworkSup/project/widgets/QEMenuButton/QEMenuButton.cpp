@@ -43,7 +43,7 @@ QEMenuButton::QEMenuButton (QWidget* parent) : QEAbstractWidget (parent)
    //
    this->setAllowDrop (false);
    this->setVariableAsToolTip (false);
-   this->setDisplayAlarmStateOption (QE::Never);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Never);
 
    this->setButtonTextProperty ("MenuButton");
    this->button->setFont (this->font ());

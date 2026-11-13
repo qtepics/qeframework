@@ -415,7 +415,7 @@ QImage imagePropertiesCore::buildImageCore()
    // Note, for speed, the switch on format is outside the loop. The loop is duplicated in each case using macros.
    switch( formatOption )
    {
-      case QE::Mono:
+      case QE::ImageFormatOptions::Mono:
          {
             LOOP_START
                   unsigned int inPixel;
@@ -436,10 +436,10 @@ QImage imagePropertiesCore::buildImageCore()
                   break;
          }
 
-      case QE::BayerGB:
-      case QE::BayerBG:
-      case QE::BayerGR:
-      case QE::BayerRG:
+      case QE::ImageFormatOptions::BayerGB:
+      case QE::ImageFormatOptions::BayerBG:
+      case QE::ImageFormatOptions::BayerGR:
+      case QE::ImageFormatOptions::BayerRG:
          {
             // Pre-calculate offsets in the data to neighbouring pixels
             int TLOffset = (-(int)(imageBuffWidth)-1)*(int)(bytesPerPixel);
@@ -500,10 +500,10 @@ QImage imagePropertiesCore::buildImageCore()
             switch( formatOption )
             {
                default:    // Should never hit the default case. Include to avoid compilation errors
-               case QE::BayerGB: cellColours[0] = CC_G1; cellColours[1] = CC_B;  cellColours[2] = CC_R;  cellColours[3] = CC_G2; break;
-               case QE::BayerBG: cellColours[0] = CC_B;  cellColours[1] = CC_G1; cellColours[2] = CC_G2; cellColours[3] = CC_R;  break;
-               case QE::BayerGR: cellColours[0] = CC_G1; cellColours[1] = CC_R;  cellColours[2] = CC_B;  cellColours[3] = CC_G2; break;
-               case QE::BayerRG: cellColours[0] = CC_R;  cellColours[1] = CC_G1; cellColours[2] = CC_G2; cellColours[3] = CC_B;  break;
+               case QE::ImageFormatOptions::BayerGB: cellColours[0] = CC_G1; cellColours[1] = CC_B;  cellColours[2] = CC_R;  cellColours[3] = CC_G2; break;
+               case QE::ImageFormatOptions::BayerBG: cellColours[0] = CC_B;  cellColours[1] = CC_G1; cellColours[2] = CC_G2; cellColours[3] = CC_R;  break;
+               case QE::ImageFormatOptions::BayerGR: cellColours[0] = CC_G1; cellColours[1] = CC_R;  cellColours[2] = CC_B;  cellColours[3] = CC_G2; break;
+               case QE::ImageFormatOptions::BayerRG: cellColours[0] = CC_R;  cellColours[1] = CC_G1; cellColours[2] = CC_G2; cellColours[3] = CC_B;  break;
             }
 
             // Preconfigure red and blue positions relative to green. Depending on the Bayer pattern
@@ -511,16 +511,16 @@ QImage imagePropertiesCore::buildImageCore()
             switch( formatOption )
             {
                default:    // Should never hit the default case. Include to avoid compilation errors
-               case QE::BayerGB:
-               case QE::BayerBG:
+               case QE::ImageFormatOptions::BayerGB:
+               case QE::ImageFormatOptions::BayerBG:
                   g1r = &v; // Use vertical (v) for reds associated with Green1
                   g1b = &h; // Use horizontal (h) for blues associated with Green1
                   g2r = &h; // Use horizontal (h) for reds associated with Green2
                   g2b = &v; // Use vertical (v) for blues associated with Green2
                   break;
 
-               case QE::BayerGR:
-               case QE::BayerRG:
+               case QE::ImageFormatOptions::BayerGR:
+               case QE::ImageFormatOptions::BayerRG:
                   g1r = &h; // Use horizontal (h) for reds associated with Green1
                   g1b = &v; // Use vertical (v) for blues associated with Green1
                   g2r = &v; // Use vertical (v) for reds associated with Green2
@@ -884,9 +884,9 @@ QImage imagePropertiesCore::buildImageCore()
                   break;
          }
 
-      case QE::rgb1:
-      case QE::rgb2: //!!! not done yet - just do the same as RGB1 for the time being and hope
-      case QE::rgb3: //!!! not done yet - just do the same as RGB1 for the time being and hope
+      case QE::ImageFormatOptions::rgb1:
+      case QE::ImageFormatOptions::rgb2: //!!! not done yet - just do the same as RGB1 for the time being and hope
+      case QE::ImageFormatOptions::rgb3: //!!! not done yet - just do the same as RGB1 for the time being and hope
          {
             //unsigned int rOffset = 0*imageDataSize;
             unsigned int gOffset = imageDataSize;
@@ -919,9 +919,9 @@ QImage imagePropertiesCore::buildImageCore()
                   break;
          }
 
-      case QE::yuv421: //!!! not done yet. do the same as for YUV422
-      case QE::yuv422:
-      case QE::yuv444: //!!! not done yet. do the same as for YUV422
+      case QE::ImageFormatOptions::yuv421: //!!! not done yet. do the same as for YUV422
+      case QE::ImageFormatOptions::yuv422:
+      case QE::ImageFormatOptions::yuv444: //!!! not done yet. do the same as for YUV422
          {
             LOOP_START
                   // Extract pixel
@@ -1179,10 +1179,10 @@ int imageProcessor::getScanOption() const
    // Determine the scan option as shown in the above diagram
    switch( rotation )
    {                                     // vh v!h     !vh !v!h
-      case QE::NoRotation:    return flipVert?flipHoz?4:3:flipHoz?2:1;
-      case QE::Rotate90Right: return flipVert?flipHoz?6:8:flipHoz?5:7;
-      case QE::Rotate90Left:  return flipVert?flipHoz?7:5:flipHoz?8:6;
-      case QE::Rotate180:     return flipVert?flipHoz?1:2:flipHoz?3:4;
+      case QE::RotationOptions::NoRotation:    return flipVert?flipHoz?4:3:flipHoz?2:1;
+      case QE::RotationOptions::Rotate90Right: return flipVert?flipHoz?6:8:flipHoz?5:7;
+      case QE::RotationOptions::Rotate90Left:  return flipVert?flipHoz?7:5:flipHoz?8:6;
+      case QE::RotationOptions::Rotate180:     return flipVert?flipHoz?1:2:flipHoz?3:4;
       default:                return 1; // Sanity check
    }
 }
@@ -1295,23 +1295,23 @@ unsigned int imageProcessor::maxPixelValue() const
 
    switch( formatOption )
    {
-      case QE::BayerGB:
-      case QE::BayerBG:
-      case QE::BayerGR:
-      case QE::BayerRG:
-      case QE::Mono:
+      case QE::ImageFormatOptions::BayerGB:
+      case QE::ImageFormatOptions::BayerBG:
+      case QE::ImageFormatOptions::BayerGR:
+      case QE::ImageFormatOptions::BayerRG:
+      case QE::ImageFormatOptions::Mono:
          result = ((unsigned long)(1)<<bitDepth)-1;
          break;
 
-      case QE::rgb1:
-      case QE::rgb2:
-      case QE::rgb3:
+      case QE::ImageFormatOptions::rgb1:
+      case QE::ImageFormatOptions::rgb2:
+      case QE::ImageFormatOptions::rgb3:
          result = (1<<8)-1; //???!!! not done yet probably correct
          break;
 
-      case QE::yuv444:
-      case QE::yuv422:
-      case QE::yuv421:
+      case QE::ImageFormatOptions::yuv444:
+      case QE::ImageFormatOptions::yuv422:
+      case QE::ImageFormatOptions::yuv421:
          result = (1<<8)-1; //???!!! not done yet probably correct
          break;
 
@@ -1334,12 +1334,12 @@ unsigned int imageProcessor::rotatedImageBuffWidth() const
    switch( rotation)
    {
       default:
-      case QE::NoRotation:
-      case QE::Rotate180:
+      case QE::RotationOptions::NoRotation:
+      case QE::RotationOptions::Rotate180:
          return imageBuffWidth;
 
-      case QE::Rotate90Right:
-      case QE::Rotate90Left:
+      case QE::RotationOptions::Rotate90Right:
+      case QE::RotationOptions::Rotate90Left:
          return imageBuffHeight;
    }
 }
@@ -1350,12 +1350,12 @@ unsigned int imageProcessor::rotatedImageBuffHeight() const
    switch( rotation)
    {
       default:
-      case QE::NoRotation:
-      case QE::Rotate180:
+      case QE::RotationOptions::NoRotation:
+      case QE::RotationOptions::Rotate180:
          return imageBuffHeight;
 
-      case QE::Rotate90Right:
-      case QE::Rotate90Left:
+      case QE::RotationOptions::Rotate90Right:
+      case QE::RotationOptions::Rotate90Left:
          return imageBuffWidth;
    }
 }
@@ -1576,11 +1576,11 @@ int imageProcessor::getPixelValueFromData( const unsigned char* ptr ) const
    // Case the data to the correct size, then return the data as a floating point number.
    switch( formatOption )
    {
-      case QE::BayerGB:
-      case QE::BayerBG:
-      case QE::BayerGR:
-      case QE::BayerRG:
-      case QE::Mono:
+      case QE::ImageFormatOptions::BayerGB:
+      case QE::ImageFormatOptions::BayerBG:
+      case QE::ImageFormatOptions::BayerGR:
+      case QE::ImageFormatOptions::BayerRG:
+      case QE::ImageFormatOptions::Mono:
          {
             unsigned int usableDepth = bitDepth;
             if( bitDepth > (imageDataSize*8) )
@@ -1593,14 +1593,14 @@ int imageProcessor::getPixelValueFromData( const unsigned char* ptr ) const
             return (*((quint32*)ptr))&mask;
          }
 
-      case QE::rgb1:
+      case QE::ImageFormatOptions::rgb1:
          {
             // for RGB, average all colors
             unsigned int pixel = *(unsigned int*)ptr;
             return ((pixel&0xff0000>>16) + (pixel&0x00ff00>>8) + (pixel&0x0000ff)) / 3;
          }
 
-      case QE::rgb2:
+      case QE::ImageFormatOptions::rgb2:
          //!!! not done - copy of RGB1
          {
             // for RGB, average all colors
@@ -1608,7 +1608,7 @@ int imageProcessor::getPixelValueFromData( const unsigned char* ptr ) const
             return ((pixel&0xff0000>>16) + (pixel&0x00ff00>>8) + (pixel&0x0000ff)) / 3;
          }
 
-      case QE::rgb3:
+      case QE::ImageFormatOptions::rgb3:
          //!!! not done - copy of RGB1
          {
             // for RGB, average all colors
@@ -1616,7 +1616,7 @@ int imageProcessor::getPixelValueFromData( const unsigned char* ptr ) const
             return ((pixel&0xff0000>>16) + (pixel&0x00ff00>>8) + (pixel&0x0000ff)) / 3;
          }
 
-      case QE::yuv444:
+      case QE::ImageFormatOptions::yuv444:
          //!!! not done - copy of RGB1
          {
             // for RGB, average all colors
@@ -1624,7 +1624,7 @@ int imageProcessor::getPixelValueFromData( const unsigned char* ptr ) const
             return ((pixel&0xff0000>>16) + (pixel&0x00ff00>>8) + (pixel&0x0000ff)) / 3;
          }
 
-      case QE::yuv422:
+      case QE::ImageFormatOptions::yuv422:
          //!!! not done - copy of RGB1
          {
             // for RGB, average all colors
@@ -1632,7 +1632,7 @@ int imageProcessor::getPixelValueFromData( const unsigned char* ptr ) const
             return ((pixel&0xff0000>>16) + (pixel&0x00ff00>>8) + (pixel&0x0000ff)) / 3;
          }
 
-      case QE::yuv421:
+      case QE::ImageFormatOptions::yuv421:
          //!!! not done - copy of RGB1
          {
             // for RGB, average all colors

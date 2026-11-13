@@ -67,7 +67,7 @@ void QEGenericEdit::setup()
    isFirstUpdate = false;
 
    setAllowDrop( false );
-   setDropOption( QE::DropToVariable );
+   setDropOption( QE::DropOption::DropToVariable );
 
    // Set the initial state
    isConnected = false;
@@ -402,16 +402,16 @@ bool QEGenericEdit::getIsFirstUpdate () const
 void QEGenericEdit::setDrop( QVariant drop )
 {
    switch (getDropOption()) {
-      case QE::DropToVariable:
+      case QE::DropOption::DropToVariable:
          setVariableName( drop.toString(), 0 );
          establishConnection( 0 );
          break;
 
-      case QE::DropToText:
+      case QE::DropOption::DropToText:
          setText(drop.toString());
          break;
 
-      case QE::DropToTextAndWrite:
+      case QE::DropOption::DropToTextAndWrite:
          setText(drop.toString());
          writeNow();
          break;

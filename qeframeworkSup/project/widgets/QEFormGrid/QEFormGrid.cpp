@@ -198,7 +198,7 @@ void QEFormGrid::commonSetup (const QString& uiFileIn,
    this->setFrameStyle (QFrame::Sunken);
    this->setFrameShape (QFrame::Box);
 
-   this->gridOrder = QE::rowMajor;
+   this->gridOrder = QE::GridOrders::rowMajor;
 
    // Set up default macro formal name prefixes.
    //
@@ -366,11 +366,11 @@ int QEFormGrid::slotOf (const int row, const int col)
    int slot = 0;
 
    switch (this->gridOrder) {
-      case QE::rowMajor:
+      case QE::GridOrders::rowMajor:
          slot = (row * this->getColumns ()) + col;
          break;
 
-      case QE::colMajor:
+      case QE::GridOrders::colMajor:
          slot = (col * this->getRows ()) + row;
          break;
 
@@ -387,11 +387,11 @@ int QEFormGrid::slotOf (const int row, const int col)
 void QEFormGrid::splitSlot (const int slot, int& row, int& col)
 {
    switch (this->gridOrder) {
-      case QE::rowMajor:
+      case QE::GridOrders::rowMajor:
          row = slot / this->getColumns ();
          col = slot % this->getColumns ();
          break;
-      case QE::colMajor:
+      case QE::GridOrders::colMajor:
          row = slot % this->getRows ();
          col = slot / this->getRows ();
          break;
@@ -449,7 +449,7 @@ void QEFormGrid::setNumber (int number)
 
    this->number = LIMIT (number, 1, MaximumForms);
 
-   if (this->gridOrder == QE::rowMajor) {
+   if (this->gridOrder == QE::GridOrders::rowMajor) {
       // Existing row and col numbers remain unchanged.
       //
       if (this->number > currentNumber) {

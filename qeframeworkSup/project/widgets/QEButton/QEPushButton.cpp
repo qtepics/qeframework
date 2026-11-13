@@ -80,7 +80,7 @@ QEPushButton::~QEPushButton()
 //
 QE::UpdateOptions QEPushButton::getDefaultUpdateOption()
 {
-   return QE::Text;
+   return QE::UpdateOptions::Text;
 }
 
 /*

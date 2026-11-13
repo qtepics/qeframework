@@ -526,9 +526,9 @@ QString ContainerProfile::getUserLevelPassword( QE::UserLevels level )
     QString result;
     switch( level )
     {
-        case QE::User:      result = publishedProfile->userLevelPassword;      break;
-        case QE::Scientist: result = publishedProfile->scientistLevelPassword; break;
-        case QE::Engineer:  result = publishedProfile->engineerLevelPassword;  break;
+        case QE::UserLevels::User:      result = publishedProfile->userLevelPassword;      break;
+        case QE::UserLevels::Scientist: result = publishedProfile->scientistLevelPassword; break;
+        case QE::UserLevels::Engineer:  result = publishedProfile->engineerLevelPassword;  break;
     }
     return result;
 }
@@ -542,9 +542,9 @@ void ContainerProfile::setUserLevelPassword( QE::UserLevels level, QString passw
 
     switch( level )
     {
-        case QE::User:      publishedProfile->userLevelPassword      = passwordIn; break;
-        case QE::Scientist: publishedProfile->scientistLevelPassword = passwordIn; break;
-        case QE::Engineer:  publishedProfile->engineerLevelPassword  = passwordIn; break;
+        case QE::UserLevels::User:      publishedProfile->userLevelPassword      = passwordIn; break;
+        case QE::UserLevels::Scientist: publishedProfile->scientistLevelPassword = passwordIn; break;
+        case QE::UserLevels::Engineer:  publishedProfile->engineerLevelPassword  = passwordIn; break;
     }
 
     publishedProfile->userLevelPasswordsSet = true;
@@ -575,9 +575,9 @@ QString ContainerProfile::getUserLevelName( QE::UserLevels userLevelValue )
 {
     switch( userLevelValue )
     {
-        case QE::User:      return "User";
-        case QE::Scientist: return "Scientist";
-        case QE::Engineer:  return "Engineer";
+        case QE::UserLevels::User:      return "User";
+        case QE::UserLevels::Scientist: return "Scientist";
+        case QE::UserLevels::Engineer:  return "Engineer";
         default: return "Unknown";
     }
 }
@@ -588,19 +588,19 @@ QE::UserLevels ContainerProfile::getUserLevelValue( QString userLevelName )
 {
     if( userLevelName == "User" )
     {
-        return QE::User;
+        return QE::UserLevels::User;
     }
     else if ( ( userLevelName == "Scientist" ) )
     {
-        return QE::Scientist;
+        return QE::UserLevels::Scientist;
     }
     else if ( ( userLevelName == "Engineer" ) )
     {
-        return QE::Engineer;
+        return QE::UserLevels::Engineer;
     }
     else // default
     {
-        return QE::User;
+        return QE::UserLevels::User;
     }
 }
 
@@ -642,7 +642,7 @@ void QEProfileUserLevelSlot::userChanged( QE::UserLevels level )
 //
 QEProfileUserLevelSignal::QEProfileUserLevelSignal() : QObject( NULL )
 {
-    this->level = QE::User;
+    this->level = QE::UserLevels::User;
 }
 
 //------------------------------------------------------------------------------

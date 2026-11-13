@@ -81,7 +81,7 @@ void QESimpleShape::setup ()
    //
    this->setNumVariables (2);
    this->setVariableAsToolTip (true);
-   this->setDisplayAlarmStateOption (QE::Always);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Always);
    this->setAllowDrop (false);
    this->setIsActive (false);
 
@@ -89,7 +89,7 @@ void QESimpleShape::setup ()
    // Widget is inactive until connected.
    //
    this->fillColour = QColor (invalid.getColorName());
-   this->edgeAlarmState = QE::Always;
+   this->edgeAlarmState = QE::DisplayAlarmStateOptions::Always;
 
    // Use default context menu.
    //
@@ -313,16 +313,16 @@ void QESimpleShape::setShapeValue (const QEVariantUpdate& update)
          // Set up variable details used by some formatting options.
          //
          if (update.isMetaUpdate) {
-            this->stringFormatting.setArrayAction (QE::Index);
+            this->stringFormatting.setArrayAction (QE::ArrayActions::Index);
             this->stringFormatting.setDbEgu (qca->getEgu ());
             this->stringFormatting.setDbEnumerations (qca->getEnumerations ());
             this->stringFormatting.setDbPrecision (qca->getPrecision ());
          }
 
          if (this->getTextFormat () == LocalEnumeration) {
-            this->stringFormatting.setFormat (QE::LocalEnumeration);
+            this->stringFormatting.setFormat (QE::Formats::LocalEnumeration);
          } else {
-            this->stringFormatting.setFormat (QE::Default);
+            this->stringFormatting.setFormat (QE::Formats::Default);
          }
 
          // Update the shape value.

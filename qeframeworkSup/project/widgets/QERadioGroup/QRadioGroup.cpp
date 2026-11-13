@@ -51,7 +51,7 @@ void QRadioGroup::commonSetup (const QString& title)
    this->cols = 2;
    this->space = 4;
    this->buttonStyle = Radio;
-   this->buttonOrder = QE::rowMajor;
+   this->buttonOrder = QE::GridOrders::rowMajor;
    this->mStrings.clear ();
 
    // Set the initial state
@@ -281,7 +281,7 @@ void QRadioGroup::setButtonLayout ()
       QAbstractButton *button = this->buttonList.value (j, NULL);
       if (button) {
 
-         if (this->buttonOrder == QE::colMajor) {
+         if (this->buttonOrder == QE::GridOrders::colMajor) {
             // Find row and col - col major.
             //
             row = j % MAX (this->rows, 1);

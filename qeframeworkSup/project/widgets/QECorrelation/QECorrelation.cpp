@@ -126,7 +126,7 @@ void QECorrelation::setup ()
    this->setFrameShadow (QFrame::Sunken);
 
    this->setAllowDrop (true);
-   this->setDisplayAlarmStateOption (QE::Never);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Never);
 
    // Use default context menu.
    //

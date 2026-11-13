@@ -189,7 +189,7 @@ public:
    // note: apart for array action, this provides a raw string conversion,
    // i.e. no units, precision or other QEString formatting
    //
-   QString getStringValue (const QE::ArrayActions arrayAction = QE::Index) const;
+   QString getStringValue (const QE::ArrayActions arrayAction = QE::ArrayActions::Index) const;
 
    bool getBooleanValue () const;     // 0 values are false, non-zero are true, non-numeric are undefined.
    long getIntegerValue () const;

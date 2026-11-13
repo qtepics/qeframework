@@ -152,7 +152,7 @@ void QEDistribution::setup()
    // By default, the distribution widget does not display the alarm state.
    // The internal valueLabel widget does this on our behalf.
    //
-   this->setDisplayAlarmStateOption (QE::Never);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Never);
 
    // Set up a connection to receive variable name property changes
    // The variable name property manager class only delivers an updated
@@ -868,7 +868,7 @@ void QEDistribution::setPvValue (const QEFloatingValueUpdate& update)
    if (!qca) return;  // sanity check
 
    if (update.isMetaUpdate) {
-      this->stringFormatting.setArrayAction (QE::Index);
+      this->stringFormatting.setArrayAction (QE::ArrayActions::Index);
       this->stringFormatting.setDbEgu (qca->getEgu ());
       this->stringFormatting.setDbEnumerations (qca->getEnumerations ());
       this->stringFormatting.setDbPrecision (qca->getPrecision ());

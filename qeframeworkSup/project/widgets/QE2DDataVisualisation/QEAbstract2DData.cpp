@@ -90,7 +90,7 @@ void QEAbstract2DData::commonSetup ()
    this->setStyleDefault ("QWidget { background-color: #e0dcda; }");
 
    this->setAllowDrop (true);
-   this->setDisplayAlarmStateOption (QE::Always);
+   this->setDisplayAlarmStateOption (QE::DisplayAlarmStateOptions::Always);
 
    this->rawNumberOfRows = 0;
    this->rawNumberOfCols = 0;
@@ -104,7 +104,7 @@ void QEAbstract2DData::commonSetup ()
    // Set default porpety values.
    //
    this->mDataWidth = 100;
-   this->mRotation = QE::NoRotation;
+   this->mRotation = QE::RotationOptions::NoRotation;
    this->mVerticalFlip = false;
    this->mHorizontalFlip = false;
    this->mVerticalSliceFirst = 0;
@@ -122,7 +122,7 @@ void QEAbstract2DData::commonSetup ()
    this->mLogScale = false;
    this->mDataFormat = array2D;
    this->mNumberOfSets = 40;
-   this->mMouseMoveSignals = QE::signalStatus;
+   this->mMouseMoveSignals = QE::MouseMoveSignals::signalStatus;
 
    this->pvDataWidthAvailable = false;
    this->pvDataWidth = 100;
@@ -513,7 +513,9 @@ void QEAbstract2DData::setMouseOverElement (const int displayRow, const int disp
 
    // Do we send a status message ?
    //
-   if (this->mMouseMoveSignals & (QE::signalStatus|QE::signalText)) {
+   const int ss = QE::toIndex (QE::MouseMoveSignals::signalStatus);
+   const int st = QE::toIndex (QE::MouseMoveSignals::signalText);
+   if (this->mMouseMoveSignals & (ss | st )) {
       // Prepare the text
       //
       QString message;
@@ -539,21 +541,21 @@ void QEAbstract2DData::setMouseOverElement (const int displayRow, const int disp
       // Do we send a status message?
       // Appears on the status bar of containing form.
       //
-      if (this->mMouseMoveSignals & QE::signalStatus) {
+      if (this->mMouseMoveSignals & QE::MouseMoveSignals::signalStatus) {
          this->setReadOut (message);
       }
 
       // Do we emit time/value as string signal ?
       // Can go to QLabel or any other widget that accepts a string.
       //
-      if (this->mMouseMoveSignals & QE::signalText) {
+      if (this->mMouseMoveSignals & QE::MouseMoveSignals::signalText) {
          emit mouseElementChanged (message);
       }
    }
 
    // Do we send a data signal message ?
    //
-   if (this->mMouseMoveSignals & QE::signalData) {
+   if (this->mMouseMoveSignals & QE::MouseMoveSignals::signalData) {
       if (value != noValue) {
          emit this->mouseElementChanged (sourceRow, sourceCol, value);
       } else {
@@ -623,14 +625,14 @@ void QEAbstract2DData::calculateDataVisulationValues()
    // Calc rotation info
    //
    switch (this->mRotation) {
-      case QE::NoRotation:
-      case QE::Rotate180:
+      case QE::RotationOptions::NoRotation:
+      case QE::RotationOptions::Rotate180:
          this->displayedNumberOfRows = this->binnedNumberOfRows;
          this->displayedNumberOfCols = this->binnedNumberOfCols;
          break;
 
-      case QE::Rotate90Left:
-      case QE::Rotate90Right:
+      case QE::RotationOptions::Rotate90Left:
+      case QE::RotationOptions::Rotate90Right:
          this->displayedNumberOfRows = this->binnedNumberOfCols;
          this->displayedNumberOfCols = this->binnedNumberOfRows;
          break;
@@ -671,11 +673,11 @@ void QEAbstract2DData::calculateDataVisulationValues()
          switch (this->mRotation) {
             int temp;
 
-            case QE::NoRotation:
+            case QE::RotationOptions::NoRotation:
                // pass
                break;
 
-            case QE::Rotate90Right:
+            case QE::RotationOptions::Rotate90Right:
                // Do the rotation
                //
                temp = sourceCol;
@@ -683,7 +685,7 @@ void QEAbstract2DData::calculateDataVisulationValues()
                sourceRow = this->displayedNumberOfCols - 1 - temp;
                break;
 
-            case QE::Rotate90Left:
+            case QE::RotationOptions::Rotate90Left:
                // Do the rotation
                //
                temp = sourceRow;
@@ -691,7 +693,7 @@ void QEAbstract2DData::calculateDataVisulationValues()
                sourceCol = this->displayedNumberOfRows - 1 - temp;
                break;
 
-            case QE::Rotate180:
+            case QE::RotationOptions::Rotate180:
                // Do the rotation
                //
                sourceRow = this->displayedNumberOfRows - 1 - sourceRow;
@@ -1248,25 +1250,25 @@ QMenu* QEAbstract2DData::buildContextMenu ()
 
    action = new QAction ("No Local Rotation", menu);
    action->setCheckable (true);
-   action->setChecked (this->getRotation() == QE::NoRotation);
+   action->setChecked (this->getRotation() == QE::RotationOptions::NoRotation);
    action->setData (A2DDCM_NO_ROTATION);
    menu->addAction (action);
 
    action = new QAction ("Local Rotate 90 Right", menu);
    action->setCheckable (true);
-   action->setChecked (this->getRotation() == QE::Rotate90Right);
+   action->setChecked (this->getRotation() == QE::RotationOptions::Rotate90Right);
    action->setData (A2DDCM_ROTATE_90_RIGHT);
    menu->addAction (action);
 
    action = new QAction ("Local Rotate 180", menu);
    action->setCheckable (true);
-   action->setChecked (this->getRotation() == QE::Rotate180);
+   action->setChecked (this->getRotation() == QE::RotationOptions::Rotate180);
    action->setData (A2DDCM_ROTATE_180);
    menu->addAction (action);
 
    action = new QAction ("Local Rotate 90 Left", menu);
    action->setCheckable (true);
-   action->setChecked (this->getRotation() == QE::Rotate90Left);
+   action->setChecked (this->getRotation() == QE::RotationOptions::Rotate90Left);
    action->setData (A2DDCM_ROTATE_90_LEFT);
    menu->addAction (action);
 
@@ -1324,19 +1326,19 @@ void QEAbstract2DData::contextMenuTriggered (int selectedItemNum)
    switch (selectedItemNum) {
 
       case A2DDCM_NO_ROTATION:
-         this->setRotation (QE::NoRotation);
+         this->setRotation (QE::RotationOptions::NoRotation);
          break;
 
       case A2DDCM_ROTATE_90_RIGHT:
-         this->setRotation (QE::Rotate90Right);
+         this->setRotation (QE::RotationOptions::Rotate90Right);
          break;
 
       case A2DDCM_ROTATE_180:
-         this->setRotation (QE::Rotate180);
+         this->setRotation (QE::RotationOptions::Rotate180);
          break;
 
       case A2DDCM_ROTATE_90_LEFT:
-         this->setRotation (QE::Rotate90Left);
+         this->setRotation (QE::RotationOptions::Rotate90Left);
          break;
 
       case A2DDCM_VERTICAL_FLIP:
