@@ -16,6 +16,7 @@
 
 #include <QMetaType>
 #include <QObject>
+#include <QString>
 #include <QEFrameworkLibraryGlobal.h>
 
 /// This class defines common widget property types.
@@ -32,7 +33,7 @@
 /// Roughly the eqivilent of qnamespace.h, without the clever namespace/object
 /// compile time selection.
 //
-// Note: these enums will become the master/single source of truth definitions.
+// Note: these enums are the master/single source of truth definitions.
 //
 class QE_FRAMEWORK_LIBRARY_SHARED_EXPORT QE : public QObject
 {
@@ -45,7 +46,9 @@ public:
 #define QE_ENUM_FN(typeName)                                                \
    static int typeName##Count();                                            \
    static QString typeName##Image (const typeName enumValue);               \
-   static typeName typeName##Value (const QString& image, bool& okay);
+   static typeName typeName##Value (const QString& image, bool& okay);      \
+   static inline int toIndex (const typeName enumValue)                     \
+      { return static_cast<int>(enumValue); }
 
 
    //---------------------------------------------------------------------------
@@ -149,7 +152,7 @@ public:
    enum ArrayActions {
       Append = 0,       ///< Interpret each element in the array as a value
                         ///  and append string representations of each
-                        /// element from the array with a space in between each.
+                        ///  element from the array with a space in between each.
       Ascii,            ///< Interpret each element from the array as a character
                         ///  in a string. Translate all non printing characters
                         ///  to '?' except for trailing zeros (ignore them).
@@ -161,7 +164,8 @@ public:
 
 
    /// \enum Radicies
-   /// Defines allowed radix values.
+   /// Defines allowed radix values for QNumericEdit.
+   ///
    enum Radicies {
       Decimal = 0,         ///< base 10
       Hexadecimal,         ///< base 16
@@ -320,10 +324,10 @@ public:
    Q_ENUM (ImageFormatOptions)
    QE_ENUM_FN (ImageFormatOptions)
 
-   // We don't want this as the last enumeration value as it will
-   // "stuff--up" the QEImage format property in designer.
+   // We don't want numberOfImageFormats as the last enumeration value as
+   // it will "stuff-up" the QEImage format property in designer.
    //
-   static const int numberOfImageFormats = int (QE::yuv421) + 1;
+   static const int numberOfImageFormats = int (QE::ImageFormatOptions::yuv421) + 1;
 
    //---------------------------------------------------------------------------
    // QImage and 2D data rotation option.
